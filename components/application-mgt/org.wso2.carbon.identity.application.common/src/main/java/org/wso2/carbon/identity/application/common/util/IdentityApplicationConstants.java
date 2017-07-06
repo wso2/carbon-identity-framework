@@ -149,6 +149,18 @@ public class IdentityApplicationConstants {
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
         }
 
+        public static class SCIM {
+            public static final String NAME = "scim";
+            public static final String USER_EP_URL = "scimUserEndpoint";
+            public static final String GROUP_EP_URL = "scimGroupEndpoint";
+            public static final String SCIM2_USER_EP_URL = "scim2UserEndpoint";
+            public static final String SCIM2_GROUP_EP_URL = "scim2GroupEndpoint";
+
+            private SCIM() {
+                throw new AssertionError("Must not initiate an object of SCIM class");
+            }
+        }
+
         public static class PassiveSTS {
 
             public static final String NAME = "passivests";
@@ -196,6 +208,24 @@ public class IdentityApplicationConstants {
 
     }
 
+    public static class IdentityManagement {
+        public static final String Name = "IdentityManagement";
+        public static final String Recovery_Rest_EP_URL = "RecoveryRestEPUrl";
+        public static final String Self_Registration_Rest_EP_URL = "SelfRegistrationEPUrl";
+
+        public IdentityManagement() {
+        }
+    }
+
+    public static class XACML {
+        public static final String Name = "xacml";
+        public static final String Discovery_EP_URL = "DiscoveryEPUrl";
+        public static final String PDP_EP_URL = "PDPEPURL";
+
+        public XACML() {
+        }
+    }
+
     public static class OAuth10A {
 
         public static final String NAME = "oauth10a";
@@ -222,6 +252,7 @@ public class IdentityApplicationConstants {
         public static final String OAUTH2_USER_INFO_EP_URL = "OAuth2UserInfoEPUrl";
         public static final String CALLBACK_URL = "callbackUrl";
         public static final String OAUTH_CONSUMER_SECRET = "oauthConsumerSecret";
+        public static final String OAUTH2_DCR_URL = "OAuth2DCREPUrl";
 
         private OAuth2() {
             throw new AssertionError("Must not initiate an object of OAuth2 class");
@@ -229,7 +260,7 @@ public class IdentityApplicationConstants {
     }
 
 	public static class SAML2 {
-        
+
         public static class AuthnContextClass {
             public static final String IP = "Internet Protocol";
             public static final String IP_PASSWORD = "Internet Protocol Password";
@@ -257,7 +288,7 @@ public class IdentityApplicationConstants {
             public static final String TIME_SYNC_TOKEN = "Time Sync Token";
             public static final String UNSPECIFIED = "Unspecified";
         }
-        
+
         public static class AuthnContextClassURI {
             public static final String IP = "urn:oasis:names:tc:SAML:2.0:ac:classes:InternetProtocol";
             public static final String IP_PASSWORD = "urn:oasis:names:tc:SAML:2.0:ac:classes:InternetProtocolPassword";
@@ -281,11 +312,11 @@ public class IdentityApplicationConstants {
             public static final String PERSONAL_TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:PersonalTelephony";
             public static final String AUTHENTICATED_TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:AuthenticatedTelephony";
             public static final String SECURE_REMOTE_PASSWORD = "urn:oasis:names:tc:SAML:2.0:ac:classes:SecureRemotePassword";
-            public static final String TLS_CLIENT = "urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient";
+                public static final String TLS_CLIENT = "urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient";
             public static final String TIME_SYNC_TOKEN = "urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken";
             public static final String UNSPECIFIED = "urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified";
         }
-        
+
         public static class AuthnContextComparison {
             public static final String EXACT = "Exact";
             public static final String MINIMUM = "Minimum";
@@ -293,9 +324,9 @@ public class IdentityApplicationConstants {
             public static final String BETTER = "Better";
         }
     }
-    
+
     public static class XML {
-        
+
         public static class SignatureAlgorithm {
             public static final String DSA_SHA1 = "DSA with SHA1";
             public static final String ECDSA_SHA1 = "ECDSA with SHA1";
@@ -309,7 +340,7 @@ public class IdentityApplicationConstants {
             public static final String RSA_SHA384 = "RSA with SHA384";
             public static final String RSA_SHA512 = "RSA with SHA512";
         }
-        
+
         public static class SignatureAlgorithmURI {
             public static final String DSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#dsa-sha1";
             public static final String ECDSA_SHA1 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1";
@@ -323,7 +354,7 @@ public class IdentityApplicationConstants {
             public static final String RSA_SHA384 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384";
             public static final String RSA_SHA512 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512";
         }
-        
+
         public static class DigestAlgorithm {
             public static final String MD5 = "MD5";
             public static final String RIPEMD160 = "RIPEMD160";
@@ -332,7 +363,7 @@ public class IdentityApplicationConstants {
             public static final String SHA384 = "SHA384";
             public static final String SHA512 = "SHA512";
         }
-        
+
         public static class DigestAlgorithmURI {
             public static final String MD5 = "http://www.w3.org/2001/04/xmldsig-more#md5";
             public static final String RIPEMD160 = "http://www.w3.org/2001/04/xmlenc#ripemd160";
