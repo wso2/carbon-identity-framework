@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
 import org.wso2.carbon.identity.mgt.endpoint.client.Pair;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Property;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.RecoveryInitiatingRequest;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.ResetPasswordRequest;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.UserClaim;
@@ -190,6 +191,21 @@ public class NotificationApi {
             throw new ApiException(400, "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
         }
 
+        String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = resetPasswordRequest.getProperties();
+        for(Property property : properties){
+            if(StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())){
+                userTenantDomain = property.getValue();
+                properties.remove(property);
+                break;
+            }
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(userTenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + userTenantDomain + "/api/identity/recovery/v0.9");
+        }
         apiClient.setBasePath(basePath);
 
         // create path and map variables

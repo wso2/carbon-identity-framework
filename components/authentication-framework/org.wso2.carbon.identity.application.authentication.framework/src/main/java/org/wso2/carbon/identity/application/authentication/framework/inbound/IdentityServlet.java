@@ -137,7 +137,7 @@ public class IdentityServlet extends HttpServlet {
             try {
                 PrintWriter out = response.getWriter();
                 if(StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-                    out.print(Encode.forHtml(httpIdentityResponse.getBody()));
+                    out.print(httpIdentityResponse.getBody());
                 }
             } catch (IOException e) {
                 throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);

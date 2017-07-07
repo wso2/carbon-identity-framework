@@ -205,6 +205,7 @@ public class HttpIdentityResponse implements Serializable {
         }
 
         public HttpIdentityResponseBuilder setBody(String body) {
+            //HttpIdentityResponseFactory who is setting the body make sure content type encoding is done properly
             this.body = body;
             return this;
         }

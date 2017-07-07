@@ -398,8 +398,8 @@
                 <Enable>false</Enable>
             </Username>
             <InternallyManage>true</InternallyManage>
-        </Notification>
-        <Question>
+       </Notification>
+       <Question>
             <Password>
                 <Enable>false</Enable>
                 <NotifyStart>false</NotifyStart>
@@ -411,7 +411,7 @@
                 </ReCaptcha>
             </Password>
         </Question>
-        <ExpiryTime>3</ExpiryTime>
+        <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
         <AdminPasswordReset>
             <Offline>false</Offline>
@@ -422,19 +422,26 @@
 
     <EmailVerification>
         <Enable>false</Enable>
+	    <ExpiryTime>1440</ExpiryTime>
         <LockOnCreation>true</LockOnCreation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
+        <AskPassword>
+	        <ExpiryTime>1440</ExpiryTime>
+        </AskPassword>
     </EmailVerification>
 
     <SelfRegistration>
         <Enable>false</Enable>
-        <LockOnCreation>false</LockOnCreation>
+        <LockOnCreation>true</LockOnCreation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
-        <ReCaptcha>false</ReCaptcha>
+        <ReCaptcha>true</ReCaptcha>
+	<VerificationCode>
+	    <ExpiryTime>1440</ExpiryTime>
+	</VerificationCode>
     </SelfRegistration-->
 
     <EventListeners>
