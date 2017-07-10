@@ -486,6 +486,7 @@
             <Cache name="AppInfoCache"               enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
             <Cache name="AuthorizationGrantCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthCache"                 enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="OAuthScopeCache"            enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthSessionDataCache"      enable="false" timeout="60" capacity="5000" isDistributed="false"/>
             <Cache name="SAMLSSOParticipantCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
             <Cache name="SAMLSSOSessionIndexCache"   enable="false" timeout="60" capacity="5000" isDistributed="false"/>
