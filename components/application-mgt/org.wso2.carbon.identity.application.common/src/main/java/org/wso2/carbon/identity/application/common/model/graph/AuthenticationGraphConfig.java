@@ -49,10 +49,15 @@ public class AuthenticationGraphConfig implements Serializable {
 
     /**
      * Builds the graph with Axiom.
+     *
      * @param graphOM OM element of the graph.
-     * @return the built graph.
+     * @return the built graph. Will return null if supplied OMElement being null or it is not of the correct type.
      */
     public static AuthenticationGraphConfig build(OMElement graphOM) {
+
+        if (graphOM == null) {
+            return null;
+        }
 
         AuthenticationGraphConfig authenticationGraphConfig = null;
 
@@ -63,16 +68,16 @@ public class AuthenticationGraphConfig implements Serializable {
             if (o instanceof OMElement) {
                 OMElement nodeOM = (OMElement) o;
                 switch (nodeOM.getLocalName()) {
-                case "AuthenticationStep":
-                    StepNode stepNode = toStepNode(nodeOM);
-                    nodesMap.put(stepNode.getName(), stepNode);
-                    break;
-                case "AuthenticationDecision":
-                    DecisionNode decisionNode = toDecisionNode(nodeOM);
-                    nodesMap.put(decisionNode.getName(), decisionNode);
-                    break;
-                default:
-                    log.error("Unknown element:" + nodeOM.getLocalName() + " in graph node");
+                    case GraphConfigConstants.AUTHENTICATION_STEP_LOCAL_NAME:
+                        StepNode stepNode = toStepNode(nodeOM);
+                        nodesMap.put(stepNode.getName(), stepNode);
+                        break;
+                    case GraphConfigConstants.AUTHENTICATION_DECISION_LOCAL_NAME:
+                        DecisionNode decisionNode = toDecisionNode(nodeOM);
+                        nodesMap.put(decisionNode.getName(), decisionNode);
+                        break;
+                    default:
+                        log.error("Unknown element:" + nodeOM.getLocalName() + " in graph node");
                 }
             }
         }
@@ -81,40 +86,48 @@ public class AuthenticationGraphConfig implements Serializable {
 
         Node startNode = nodesMap.get(startNodeName);
         if (startNode == null) {
-            log.error("There was no node found as the graph start node: " + startNodeName);
-        }
-
-        Map<Node, VisitedNodeInfo> visitedNodesInfo = new HashMap<>();
-        try {
-            visit(nodesMap, startNode, visitedNodesInfo);
-            authenticationGraphConfig = new AuthenticationGraphConfig();
-            authenticationGraphConfig.startNode = startNode;
-            authenticationGraphConfig.nodesMap = nodesMap;
-        } catch (IdentityApplicationManagementException e) {
-            log.error("Error in building authentication graph", e);
+            log.error("There was no start node found with the name: " + startNodeName +
+                    ". No further processing possible on the authentication graph.");
+        } else {
+            Map<Node, VisitedNodeInfo> visitedNodesInfo = new HashMap<>();
+            try {
+                visit(nodesMap, startNode, visitedNodesInfo);
+                authenticationGraphConfig = new AuthenticationGraphConfig();
+                authenticationGraphConfig.startNode = startNode;
+                authenticationGraphConfig.nodesMap = nodesMap;
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error in building authentication graph", e);
+            }
         }
 
         return authenticationGraphConfig;
     }
 
     public Node getNodeByName(String name) {
+
         return nodesMap.get(name);
     }
 
     private static void visit(Map<String, Node> nodesMap, Node currentNode,
-            Map<Node, VisitedNodeInfo> visitedNodesInfoMap) throws IdentityApplicationManagementException {
+                              Map<Node, VisitedNodeInfo> visitedNodesInfoMap) throws IdentityApplicationManagementException {
+
         VisitedNodeInfo visitedNodeInfo = visitedNodesInfoMap.get(currentNode);
         if (visitedNodeInfo == null) {
             visitedNodeInfo = new VisitedNodeInfo();
             visitedNodesInfoMap.put(currentNode, visitedNodeInfo);
+        } else {
+            //This node is already visited. Just exit visiting.
+            visitedNodeInfo.incrementReferenceCount();
+            if (visitedNodeInfo.getReferenceCount() > MAX_RECURSION_COUNT) {
+                //The graph can not have too many cycles. Most probably a misconfiguration. Need to bail out.
+                String error = "Maximum number :[" + MAX_RECURSION_COUNT
+                        + "] of reference to the same node detected. Graph building interrupted. Node Name :" + currentNode
+                        .getName();
+                throw new IdentityApplicationManagementException(error);
+            }
+            return;
         }
-        visitedNodeInfo.incrementReferenceCount();
-        if (visitedNodeInfo.getReferenceCount() > MAX_RECURSION_COUNT) {
-            String error = "Maximum number :[" + MAX_RECURSION_COUNT
-                    + "] of reference to the same node detected. Graph building interrupted. Node Name :" + currentNode
-                    .getName();
-            throw new IdentityApplicationManagementException(error);
-        }
+
         if (currentNode instanceof StepNode) {
             StepNode stepNode = (StepNode) currentNode;
             Link nextLink = stepNode.getNext();
@@ -156,34 +169,42 @@ public class AuthenticationGraphConfig implements Serializable {
     }
 
     public Node getStartNode() {
+
         return startNode;
     }
 
     public void setStartNode(Node startNode) {
+
         this.startNode = startNode;
     }
 
     public Node getEndNode() {
+
         return endNode;
     }
 
     public void setEndNode(Node endNode) {
+
         this.endNode = endNode;
     }
 
     private static DecisionNode toDecisionNode(OMElement nodeOM) {
+
         return DecisionNode.build(nodeOM);
     }
 
     private static StepNode toStepNode(OMElement nodeOM) {
+
         return StepNode.build(nodeOM);
     }
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = name;
     }
 
@@ -192,10 +213,12 @@ public class AuthenticationGraphConfig implements Serializable {
         int referenceCount = 0;
 
         public int getReferenceCount() {
+
             return referenceCount;
         }
 
         public void incrementReferenceCount() {
+
             referenceCount++;
         }
     }

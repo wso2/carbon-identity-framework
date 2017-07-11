@@ -21,11 +21,9 @@ package org.wso2.carbon.identity.application.common.model.graph;
 import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
-import javax.xml.namespace.QName;
 
 /**
- * Representing an outgoing link from a node.
- *
+ * Represents an outgoing link from a node.
  */
 public class Link implements Serializable {
 
@@ -37,6 +35,7 @@ public class Link implements Serializable {
     private boolean isEnd;
 
     public Link(String nextLink, String name, String expression) {
+
         this.nextLink = nextLink;
         this.name = name;
         this.expression = expression;
@@ -44,37 +43,41 @@ public class Link implements Serializable {
 
     /**
      * Builds the link with Axiom.
+     *
      * @param linkOM OM element of the link.
-     * @return the built link.
+     * @return the built link. Will result in null if supplied OMElement is null.
      */
     public static Link build(OMElement linkOM) {
-        String name = linkOM.getAttributeValue(new QName(null, "name"));
-        String nextNode = linkOM.getAttributeValue(new QName(null, "nextLink"));
-        String expression = linkOM.getAttributeValue(new QName(null, "expression"));
-        String end = linkOM.getAttributeValue(new QName(null, "end"));
-        boolean isEnd = false;
-        if (end != null) {
-            isEnd = Boolean.parseBoolean(end);
-        }
 
+        if (linkOM == null) {
+            return null;
+        }
+        String name = linkOM.getAttributeValue(GraphConfigConstants.ATTR_NAME);
+        String nextNode = linkOM.getAttributeValue(GraphConfigConstants.ATTR_NEXT);
+        String expression = linkOM.getAttributeValue(GraphConfigConstants.ATTR_EXPRESSION);
+        String end = linkOM.getAttributeValue(GraphConfigConstants.ATTR_END);
         Link result = new Link(nextNode, name, expression);
-        result.isEnd = isEnd;
+        result.isEnd = Boolean.parseBoolean(end);
         return result;
     }
 
     public String getNextLink() {
+
         return nextLink;
     }
 
     public String getName() {
+
         return name;
     }
 
     public String getExpression() {
+
         return expression;
     }
 
     public boolean isEnd() {
+
         return isEnd;
     }
 }

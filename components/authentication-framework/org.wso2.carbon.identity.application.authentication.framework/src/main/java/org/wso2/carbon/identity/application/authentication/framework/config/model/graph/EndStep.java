@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+/**
+ * A virtual authentication step signifying it is an end node for an authentication graph.
+ */
 public class EndStep implements AuthGraphNode {
 
     private static final long serialVersionUID = -8969107833064916187L;

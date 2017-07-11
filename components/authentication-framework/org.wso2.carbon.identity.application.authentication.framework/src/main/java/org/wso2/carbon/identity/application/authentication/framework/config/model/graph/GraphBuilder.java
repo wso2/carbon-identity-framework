@@ -34,15 +34,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Translate the authentication graph config to runtime model.
  * This is not thread safe. Should be discarded after build is called.
  */
 public class GraphBuilder {
 
     private static final Log log = LogFactory.getLog(GraphBuilder.class);
     private Map<Node, AuthGraphNode> nodesMap = new HashMap<>();
+    private Map<AuthGraphNode, Integer> nodeVsInboundLinks = new HashMap<>();
     private EndStep endStep = new EndStep();
 
     public AuthenticationGraph createWith(AuthenticationGraphConfig graphConfig) {
+
         AuthenticationGraph result = new AuthenticationGraph();
         result.setName(graphConfig.getName());
         Node startNodeConfig = graphConfig.getStartNode();
@@ -53,6 +56,7 @@ public class GraphBuilder {
     }
 
     private AuthGraphNode translate(Node configNode) {
+
         AuthGraphNode result = null;
         if (configNode == null) {
             return result;
@@ -73,6 +77,7 @@ public class GraphBuilder {
         }
         if (result != null) {
             nodesMap.put(configNode, result);
+            nodeVsInboundLinks.put(result, 1);
         }
 
         return result;
@@ -80,15 +85,19 @@ public class GraphBuilder {
     }
 
     private void visit(AuthenticationGraph result, Node configNode, AuthGraphNode node,
-            AuthenticationGraphConfig graphConfig) {
+                       AuthenticationGraphConfig graphConfig) {
+
         if (configNode == null) {
             return;
         }
 
         if (configNode instanceof DecisionNode) {
+            AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) node;
             DecisionNode decisionNode = (DecisionNode) configNode;
+            Node defaultNode = graphConfig.getNodeByName(decisionNode.getDefaultLinkName());
+            decisionPointNode.setDefaultEdge(translate(defaultNode));
             for (Link link : decisionNode.getLinks()) {
-                AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) node;
+
                 if (link.isEnd()) {
                     decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(endStep, link));
                 } else {
@@ -96,12 +105,10 @@ public class GraphBuilder {
                     if (StringUtils.isNotEmpty(nextName)) {
                         Node nextNode = graphConfig.getNodeByName(nextName);
                         AuthGraphNode graphNode = translate(nextNode);
-                        if (StringUtils.isEmpty(link.getName()) || "DEFAULT".equalsIgnoreCase(link.getName())) {
-                            ((AuthDecisionPointNode) node).setDefaultEdge(graphNode);
-                        } else {
-                            decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(graphNode, link));
+                        decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(graphNode, link));
+                        if (hasAlreadyVisited(graphNode)) {
+                            visit(result, nextNode, graphNode, graphConfig);
                         }
-                        visit(result, nextNode, graphNode, graphConfig);
                     } else {
                         log.warn("Next Link for the the link : " + link.getName() + " is empty at the decision : "
                                 + configNode.getName() + ". Ignoring it.");
@@ -122,7 +129,9 @@ public class GraphBuilder {
                 } else {
                     AuthGraphNode graphNode = translate(nextNode);
                     stepConfigGraphNode.setNext(graphNode);
-                    visit(result, nextNode, graphNode, graphConfig);
+                    if (!hasAlreadyVisited(graphNode)) {
+                        visit(result, nextNode, graphNode, graphConfig);
+                    }
                 }
             } else {
                 stepConfigGraphNode.setNext(endStep);
@@ -131,6 +140,7 @@ public class GraphBuilder {
     }
 
     protected StepConfigGraphNode createStepConfigurationObject(int stepOrder, StepNode stepNode) {
+
         AuthenticationStep authenticationStep = stepNode.getAuthenticationStep();
         StepConfigGraphNode stepConfig = new StepConfigGraphNode(stepNode);
         stepConfig.setOrder(stepOrder);
@@ -140,6 +150,13 @@ public class GraphBuilder {
     }
 
     public Collection<AuthGraphNode> getNodes() {
+
         return Collections.unmodifiableCollection(nodesMap.values());
+    }
+
+    private boolean hasAlreadyVisited(AuthGraphNode node) {
+
+        Integer i = nodeVsInboundLinks.get(node);
+        return i != null && i > 1;
     }
 }

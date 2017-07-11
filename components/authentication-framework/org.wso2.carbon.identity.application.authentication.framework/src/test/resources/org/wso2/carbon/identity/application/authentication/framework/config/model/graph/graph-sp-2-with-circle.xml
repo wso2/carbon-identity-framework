@@ -17,7 +17,7 @@
   -->
 <ServiceProvider>
     <ApplicationID>1</ApplicationID>
-    <ApplicationName>default</ApplicationName>
+    <ApplicationName>graph-sp2</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -41,13 +41,13 @@
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
+            <AuthenticationDecision name="is_hwk_needed" defaultLink="foo">
                 <Evaluator>AcrEvaluator</Evaluator>
-                <Link name="end" nextLink="" />
+                <Link name="end" end="true" />
                 <Link name="hwk" nextLink="sample_auth" expression="hwk" />
+                <Link name="default" nextLink="sample_auth" />
             </AuthenticationDecision>
-            <AuthenticationStep name="sample_auth">
-                <StepOrder>2</StepOrder>
+            <AuthenticationStep name="sample_auth" nextLink="basic_auth">
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>SampleHardwareKeyAuthenticator</IdentityProviderName>

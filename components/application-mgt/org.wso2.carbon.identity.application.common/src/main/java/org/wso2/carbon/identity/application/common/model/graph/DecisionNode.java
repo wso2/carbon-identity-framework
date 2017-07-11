@@ -30,7 +30,6 @@ import javax.xml.namespace.QName;
 
 /**
  * Config for the node representing a decision point in authentication steps graph.
- *
  */
 public class DecisionNode extends Node implements Serializable {
 
@@ -39,25 +38,33 @@ public class DecisionNode extends Node implements Serializable {
     private static final Log log = LogFactory.getLog(DecisionNode.class);
 
     private String evaluatorName;
+    private String defaultLinkName;
     private List<Link> links = new ArrayList<>();
 
     /**
      * Builds the decision node with Axiom.
+     *
      * @param decisionOM OM element of the decision.
-     * @return the built decision node.
+     * @return the built decision node. Will result in null if supplied OMElement is null.
      */
     public static DecisionNode build(OMElement decisionOM) {
+
+        if (decisionOM == null) {
+            return null;
+        }
         DecisionNode decisionNode = new DecisionNode();
         Iterator<?> iter = decisionOM.getChildElements();
 
-        String name = decisionOM.getAttributeValue(new QName(null, "name"));
+        String name = decisionOM.getAttributeValue(GraphConfigConstants.ATTR_NAME);
+        String defaultLinkName = decisionOM.getAttributeValue(GraphConfigConstants.ATTR_DEFAULT_LINK);
         decisionNode.setName(name);
+        decisionNode.setDefaultLinkName(defaultLinkName);
         while (iter.hasNext()) {
             OMElement member = (OMElement) iter.next();
-            if ("Link".equals(member.getLocalName())) {
+            if (GraphConfigConstants.LINK_LOCAL_NAME.equals(member.getLocalName())) {
                 Link link = Link.build(member);
                 decisionNode.links.add(link);
-            } else if ("Evaluator".equals(member.getLocalName())) {
+            } else if (GraphConfigConstants.EVALUATOR_CLASS_LOCAL_NAME.equals(member.getLocalName())) {
                 decisionNode.setEvaluatorName(member.getText());
             } else {
                 log.error("Unsupported element: " + member.getLocalName() + ", in DecisionNode : " + name);
@@ -68,14 +75,27 @@ public class DecisionNode extends Node implements Serializable {
     }
 
     public String getEvaluatorName() {
+
         return evaluatorName;
     }
 
     public void setEvaluatorName(String evaluatorName) {
+
         this.evaluatorName = evaluatorName;
     }
 
     public List<Link> getLinks() {
+
         return links;
+    }
+
+    public String getDefaultLinkName() {
+
+        return defaultLinkName;
+    }
+
+    public void setDefaultLinkName(String defaultLinkName) {
+
+        this.defaultLinkName = defaultLinkName;
     }
 }

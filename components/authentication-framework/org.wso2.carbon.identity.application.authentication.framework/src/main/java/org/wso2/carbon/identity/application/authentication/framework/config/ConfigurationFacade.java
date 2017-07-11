@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -94,21 +95,21 @@ public class ConfigurationFacade {
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap)
             throws FrameworkException {
         String requestType = context.getRequestType();
-        String[] relyingParties = parameterMap.get(FrameworkConstants.RequestParams.ISSUER);
-        String relayingParty = null;
-        if (relyingParties != null && relyingParties.length > 0) {
-            relayingParty = relyingParties[0];
+        String[] issuers = parameterMap.get(FrameworkConstants.RequestParams.ISSUER);
+        String issuer = null;
+        if (!ArrayUtils.isEmpty(issuers)) {
+            issuer = issuers[0];
         }
         String tenantDomain = context.getTenantDomain();
         
         SequenceLoader sequenceBuilder = FrameworkServiceDataHolder.getInstance().getSequenceLoader();
         if (sequenceBuilder != null) {
-            ServiceProvider serviceProvider = getServiceProvider(requestType, relayingParty, tenantDomain);
+            ServiceProvider serviceProvider = getServiceProvider(requestType, issuer, tenantDomain);
             return sequenceBuilder.getSequenceConfig(context, parameterMap, serviceProvider);
         }
 
         // Get SP config from SP Management component
-        return UIBasedConfigurationBuilder.getInstance().getSequence(requestType, relayingParty, tenantDomain);
+        return UIBasedConfigurationBuilder.getInstance().getSequence(requestType, issuer, tenantDomain);
     }
 
     public ExternalIdPConfig getIdPConfigByName(String idpName, String tenantDomain)

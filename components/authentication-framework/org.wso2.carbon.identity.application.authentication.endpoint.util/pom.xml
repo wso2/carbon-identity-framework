@@ -92,6 +92,11 @@
             <artifactId>org.wso2.carbon.securevault</artifactId>
             <version>${carbon.kernel.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

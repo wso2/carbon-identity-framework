@@ -49,15 +49,18 @@ import java.util.Map;
 
 /**
  * Sequence Configuration loader, loads the sequence configuration from the database.
+ * <p>
+ * History: The main logic was moved from @see {@link org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder},
+ * This is one step to move away from Singleton pattern used throughout the code.
+ * Few other singletons should be removed and passed relevant information as setters or constructor arguments here.
  */
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
 
-
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
-            ServiceProvider serviceProvider) throws FrameworkException {
+                                            ServiceProvider serviceProvider) throws FrameworkException {
 
         String tenantDomain = context.getTenantDomain();
 
@@ -105,6 +108,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
      */
     @Deprecated
     public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain) throws FrameworkException {
+
         if (serviceProvider == null) {
             throw new FrameworkException("ServiceProvider cannot be null");
         }
@@ -115,7 +119,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain,
-            AuthenticationStep[] authenticationSteps) throws FrameworkException {
+                                      AuthenticationStep[] authenticationSteps) throws FrameworkException {
+
         if (serviceProvider == null) {
             throw new FrameworkException("ServiceProvider cannot be null");
         }
@@ -124,7 +129,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider));
 
         // setting request path authenticators
-        loadRequestPathAuthenticatos(sequenceConfig, serviceProvider);
+        loadRequestPathAuthenticators(sequenceConfig, serviceProvider);
 
         int stepOrder = 0;
 
@@ -157,6 +162,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     protected StepConfig createStepConfigurationObject(int stepOrder, AuthenticationStep authenticationStep) {
+
         StepConfig stepConfig = new StepConfig();
         stepConfig.setOrder(stepOrder);
         stepConfig.setSubjectAttributeStep(authenticationStep.isAttributeStep());
@@ -164,7 +170,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         return stepConfig;
     }
 
-    protected void loadRequestPathAuthenticatos(SequenceConfig sequenceConfig, ServiceProvider serviceProvider) {
+    protected void loadRequestPathAuthenticators(SequenceConfig sequenceConfig, ServiceProvider serviceProvider) {
+
         if (serviceProvider.getRequestPathAuthenticatorConfigs() != null
                 && serviceProvider.getRequestPathAuthenticatorConfigs().length > 0) {
 
@@ -195,7 +202,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     protected void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
-            String tenantDomain) throws FrameworkException {
+                                               String tenantDomain) throws FrameworkException {
+
         IdentityProvider[] federatedIDPs = authenticationStep.getFederatedIdentityProviders();
 
         if (federatedIDPs != null) {
@@ -227,6 +235,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) {
+
         LocalAuthenticatorConfig[] localAuthenticators = authenticationStep.getLocalAuthenticatorConfigs();
         if (localAuthenticators != null) {
             IdentityProvider localIdp = new IdentityProvider();

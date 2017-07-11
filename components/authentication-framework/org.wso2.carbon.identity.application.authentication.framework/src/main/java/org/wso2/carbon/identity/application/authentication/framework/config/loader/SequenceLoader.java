@@ -25,9 +25,22 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.Map;
 
+/**
+ * Sequence Loader contract.
+ */
 public interface SequenceLoader {
 
+    /**
+     * Returns the sequence from the Loader/DAO/Repository, which matches to the context and parameter map
+     * for the given Service provider.
+     *
+     * @param context the current Authentication Context.
+     * @param parameterMap Name-Value pair with the incoming parameters.
+     * @param serviceProvider
+     * @return located SequenceConfig if matching one can be found or built. May return null.
+     * @throws FrameworkException will be thrown upon any error accessing underlying repository.
+     */
     SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
-            ServiceProvider serviceProvider) throws FrameworkException;
+                                     ServiceProvider serviceProvider) throws FrameworkException;
 
 }

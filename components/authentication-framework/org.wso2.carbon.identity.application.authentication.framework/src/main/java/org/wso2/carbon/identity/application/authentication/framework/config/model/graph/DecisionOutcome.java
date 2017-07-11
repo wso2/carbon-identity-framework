@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.application.common.model.graph.Link;
 
 import java.io.Serializable;
 
+/**
+ * Runtime model for a Authentication decision outcome for a Decision node.
+ */
 public class DecisionOutcome implements Serializable {
 
     private static final long serialVersionUID = -6026213391911495321L;

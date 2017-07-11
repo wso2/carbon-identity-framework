@@ -22,7 +22,6 @@ import org.apache.axiom.om.OMElement;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 
 import java.io.Serializable;
-import javax.xml.namespace.QName;
 
 /**
  * Authentication step in a graph.
@@ -36,13 +35,18 @@ public class StepNode extends Node implements Serializable {
 
     /**
      * Builds the step with Axiom.
+     *
      * @param stepElement OM element of the step.
-     * @return the built step.
+     * @return the built step. Will result in null if supplied OMElement is null.
      */
     public static StepNode build(OMElement stepElement) {
+
+        if (stepElement == null) {
+            return null;
+        }
         StepNode stepNode = new StepNode();
-        String nextNodeName = stepElement.getAttributeValue(new QName(null, "nextLink"));
-        String name = stepElement.getAttributeValue(new QName(null, "name"));
+        String nextNodeName = stepElement.getAttributeValue(GraphConfigConstants.ATTR_NEXT);
+        String name = stepElement.getAttributeValue(GraphConfigConstants.ATTR_NAME);
         stepNode.setName(name);
         if (nextNodeName != null) {
             stepNode.next = new Link(nextNodeName, name, null);
@@ -53,10 +57,12 @@ public class StepNode extends Node implements Serializable {
     }
 
     public Link getNext() {
+
         return next;
     }
 
     public AuthenticationStep getAuthenticationStep() {
+
         return authenticationStep;
     }
 }

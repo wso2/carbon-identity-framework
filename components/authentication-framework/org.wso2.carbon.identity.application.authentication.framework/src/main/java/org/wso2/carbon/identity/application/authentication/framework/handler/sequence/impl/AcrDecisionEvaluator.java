@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.apache.commons.collections.KeyValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

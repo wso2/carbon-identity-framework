@@ -21,6 +21,10 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 
+/**
+ * Graph node extending traditional authentication step.
+ * Provides the Graph (Node) constructs so that the Step can be executed within a graph.
+ */
 public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
 
     private static final long serialVersionUID = -5648175409277330725L;

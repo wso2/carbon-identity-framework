@@ -655,20 +655,20 @@ public class FileBasedConfigurationBuilder {
                 log.error("There was no authenticator configured for name: " + authenticatorName
                         + " Please add relevant configuration in element: "
                         + FrameworkConstants.Config.QNAME_AUTHENTICATOR_CONFIGS);
-            }
-            
-            //if idps defined
-            if (idps != null && !idps.isEmpty()) {
-                String[] idpArr = idps.split(",");
-
-                for (String idp : idpArr) {
-                    authenticatorConfig.getIdpNames().add(idp);
-                }
             } else {
-                authenticatorConfig.getIdpNames().add(FrameworkConstants.LOCAL_IDP_NAME);
-            }
+                //if IDP defined
+                if (idps != null && !idps.isEmpty()) {
+                    String[] idpArr = idps.split(",");
 
-            stepConfig.getAuthenticatorList().add(authenticatorConfig);
+                    for (String idp : idpArr) {
+                        authenticatorConfig.getIdpNames().add(idp);
+                    }
+                } else {
+                    authenticatorConfig.getIdpNames().add(FrameworkConstants.LOCAL_IDP_NAME);
+                }
+
+                stepConfig.getAuthenticatorList().add(authenticatorConfig);
+            }
         }
 
         return stepConfig;

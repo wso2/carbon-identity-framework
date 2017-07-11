@@ -18,18 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.graph.DecisionNode;
 import org.wso2.carbon.identity.application.common.model.graph.Link;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Performs the authentication decision based on ACR in the context.
@@ -43,10 +41,16 @@ public class AmrDecisionEvaluator implements AuthenticationDecisionEvaluator {
         List<String> amrRequested = context.getAmrRequested();
         if (amrRequested == null || amrRequested.isEmpty()) {
             if (log.isDebugEnabled()) {
-                log.debug("AMR values from context is empty. Selecting the default outcome as null.");
+                log.debug("AMR values from context is empty. Selecting the default outcome (i.e. null).");
             }
             return null;
         }
-        return null;
+        List<AuthHistory> histories = context.getAuthenticationStepHistory();
+        List<Link> links = config.getLinks();
+        Link selected = links.stream().filter(l -> l.getExpression().equals(amrRequested.stream()
+                .filter(m -> !histories.stream().filter(h -> h.getAuthenticatorName().equals(m)).findAny()
+                        .isPresent()))).findAny().orElse(null);
+
+        return selected == null ? null : selected.getNextLink();
     }
 }

@@ -18,31 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.builder;
 
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- *
+ * @Depricated Please use {@link UIBasedConfigurationLoader}. It is wrong to have this class as singleton.
+ * The *Builder suffix gives wrong meaning, This is not conforming to Builder pattern.
  */
 @Deprecated
 public class UIBasedConfigurationBuilder {
@@ -51,6 +36,7 @@ public class UIBasedConfigurationBuilder {
     private UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
 
     public static UIBasedConfigurationBuilder getInstance() {
+
         if (instance == null) {
             synchronized (UIBasedConfigurationBuilder.class) {
                 if (instance == null) {

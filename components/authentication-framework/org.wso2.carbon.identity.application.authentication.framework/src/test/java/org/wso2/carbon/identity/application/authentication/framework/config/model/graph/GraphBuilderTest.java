@@ -18,25 +18,59 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import junit.framework.TestCase;
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-
-import java.io.InputStream;
-import javax.xml.stream.XMLStreamException;
 
 public class GraphBuilderTest extends AbstractFrameworkTest {
 
     public void testCreateWith() throws Exception {
+
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
         GraphBuilder graphBuilder = new GraphBuilder();
         AuthenticationGraph g1 = graphBuilder
                 .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
         assertNotNull(g1);
+        assertNotNull(g1.getStartNode());
+        assertTrue(g1.getStartNode() instanceof StepConfigGraphNode);
+        assertNotNull(((StepConfigGraphNode) g1.getStartNode()).getNext());
+        assertTrue(((StepConfigGraphNode) g1.getStartNode()).getNext() instanceof AuthDecisionPointNode);
+    }
+
+    public void testDefaultLink() throws Exception {
+
+        ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
+        GraphBuilder graphBuilder = new GraphBuilder();
+        AuthenticationGraph g1 = graphBuilder
+                .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        AuthDecisionPointNode decisionPointNode1 = (AuthDecisionPointNode) ((StepConfigGraphNode) g1.getStartNode())
+                .getNext();
+        assertNotNull(decisionPointNode1.getDefaultEdge());
+        assertEquals("sample_auth", decisionPointNode1.getDefaultEdge().getName());
+        assertEquals("sample_auth", decisionPointNode1.getOutcome("hwk").getDestination().getName());
+        assertEquals("hwk outcome and default outcome should be the same java objects",
+                decisionPointNode1.getDefaultEdge(),
+                decisionPointNode1.getOutcome("hwk").getDestination());
+    }
+
+    /**
+     * Tests whether a circular graph is building properly without stack overflow.
+     *
+     * @throws Exception
+     */
+    public void testCreateWithCircle() throws Exception {
+
+        ServiceProvider sp1 = getTestServiceProvider("graph-sp-2-with-circle.xml");
+        GraphBuilder graphBuilder = new GraphBuilder();
+        AuthenticationGraph g1 = graphBuilder
+                .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        assertNotNull(g1);
+        assertNotNull(g1.getStartNode());
+        assertTrue(g1.getStartNode() instanceof StepConfigGraphNode);
+        assertNotNull(((StepConfigGraphNode) g1.getStartNode()).getNext());
+        assertTrue(((StepConfigGraphNode) g1.getStartNode()).getNext() instanceof AuthDecisionPointNode);
     }
 
     public void testCreateStepConfigurationObject() throws Exception {
+
     }
 }

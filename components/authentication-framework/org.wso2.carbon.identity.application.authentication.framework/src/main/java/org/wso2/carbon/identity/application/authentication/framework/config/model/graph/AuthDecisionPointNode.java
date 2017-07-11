@@ -25,6 +25,7 @@ import java.util.Map;
 
 /**
  * Authentication Decision Node.
+ * A decision Node contains the decision evaluator runtime class and set of outcomes.
  */
 public class AuthDecisionPointNode implements AuthGraphNode {
 
