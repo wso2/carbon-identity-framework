@@ -215,7 +215,9 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         // If unlock time is specified then unlock the account.
                         if ((userIdentityDTO.getUnlockTime() != 0) && (System.currentTimeMillis() >= userIdentityDTO.getUnlockTime())) {
-
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME, String.
+                                    valueOf(0));
                             userIdentityDTO.setAccountLock(false);
                             userIdentityDTO.setUnlockTime(0);
 
@@ -440,7 +442,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             if (log.isDebugEnabled()) {
                                 log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
                             }
-
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                                    IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString());
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME,
+                                    String.valueOf(System.currentTimeMillis()));
                             userIdentityDTO.setAccountLock(true);
                             userIdentityDTO.setFailAttempts(0);
                             // lock time from the config
@@ -476,6 +481,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     // if the account was locked due to account verification process,
                     // the unlock the account and reset the number of failedAttempts
                     if (userIdentityDTO.isAccountLocked() || userIdentityDTO.getFailAttempts() > 0 || userIdentityDTO.getAccountLock()) {
+                        userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                        userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME, String.valueOf(0));
                         userIdentityDTO.setAccountLock(false);
                         userIdentityDTO.setFailAttempts(0);
                         userIdentityDTO.setUnlockTime(0);
@@ -620,6 +627,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     }
 
                     // store identity data
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME, String.valueOf(0));
                     userIdentityClaimsDO.setAccountLock(false);
                     try {
                         module.store(userIdentityClaimsDO, userStoreManager);
@@ -675,6 +684,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 // No account recoveries are defined, no email will be sent.
                 if (config.isAuthPolicyAccountLockOnCreation()) {
                     // accounts are locked. Admin should unlock
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                            IdentityMgtConstants.LockedReason.UNVERIFIED.toString());
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME,
+                            String.valueOf(System.currentTimeMillis()));
                     userIdentityClaimsDO.setAccountLock(true);
                     try {
                         config.getIdentityDataStore().store(userIdentityClaimsDO, userStoreManager);
@@ -986,7 +999,13 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             || claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
                         String key = claim.getKey();
                         String value = claim.getValue();
-
+                        if (UserIdentityDataStore.ACCOUNT_LOCK.equals(key) && (Boolean.TRUE.toString()).
+                                equalsIgnoreCase(value)) {
+                            identityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                                    IdentityMgtConstants.LockedReason.ADMIN_INITIATED.toString());
+                            identityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_TIME,
+                                    String.valueOf(System.currentTimeMillis()));
+                        }
                         identityDTO.setUserIdentityDataClaim(key, value);
                         it.remove();
                     }
