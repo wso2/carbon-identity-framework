@@ -243,4 +243,10 @@ public class IdentityMgtConstants {
         public static final String USER_ACCOUNT = " No user account found for user ";
 
     }
+
+    public enum LockedReason {
+        ADMIN_INITIATED,
+        MAX_ATTEMT_EXCEEDED,
+        UNVERIFIED
+    }
 }

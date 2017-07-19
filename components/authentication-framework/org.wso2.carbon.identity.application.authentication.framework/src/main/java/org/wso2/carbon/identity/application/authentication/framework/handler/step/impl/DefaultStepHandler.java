@@ -553,6 +553,14 @@ public class DefaultStepHandler implements StepHandler {
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
+                String reason = null;
+                if (errorCode.contains(":")) {
+                    String[] errorCodeReason = errorCode.split(":");
+                    if (errorCodeReason.length > 1) {
+                        errorCode = errorCodeReason[0];
+                        reason = errorCodeReason[1];
+                    }
+                }
                 int remainingAttempts = errorContext.getMaximumLoginAttempts() - errorContext.getFailedLoginAttempts();
 
                 if (log.isDebugEnabled()) {
@@ -572,16 +580,32 @@ public class DefaultStepHandler implements StepHandler {
                 } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
                     String redirectURL;
                     if (remainingAttempts == 0) {
-                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
-                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                                "&remainingAttempts=0" + "&authenticators=" + URLEncoder.encode(authenticatorNames,
-                                "UTF-8") + retryParam;
+                        if (StringUtils.isBlank(reason)) {
+                            redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+                                    .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
+                                    + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
+                                    "&remainingAttempts=0" + "&authenticators=" + URLEncoder.encode(authenticatorNames,
+                                    "UTF-8") + retryParam;
+                        } else {
+                            redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+                                    .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&lockedReason="
+                                    + reason + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"),
+                                    "UTF-8") + "&remainingAttempts=0" + "&authenticators=" + URLEncoder.
+                                    encode(authenticatorNames, "UTF-8") + retryParam;
+                        }
                     } else {
-                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
-                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
-                                URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                        if (StringUtils.isBlank(reason)) {
+                            redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+                                    .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
+                                    + URLEncoder.encode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
+                                    URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                        } else {
+                            redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+                                    .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&lockedReason="
+                                    + reason + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"),
+                                    "UTF-8") + "&authenticators=" +
+                                    URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                        }
                     }
                     return redirectURL;
                 } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
