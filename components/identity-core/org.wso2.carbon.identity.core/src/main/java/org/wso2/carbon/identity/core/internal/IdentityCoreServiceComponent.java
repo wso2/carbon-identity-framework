@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.DefaultBootstrap;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
@@ -26,6 +25,8 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.KeyProviderService;
+import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -59,6 +60,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * @scr.reference name="registry.loader.default"
  * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
  * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
+ * @scr.reference name="identity.core.keystore.extension"
+ * interface="org.wso2.carbon.identity.core.KeyStoreManagerExtension"
+ * cardinality="0..1" policy="dynamic" bind="setKeyStoreManagerExtension" unbind="unsetKeyStoreManagerExtension"
  */
 
 public class IdentityCoreServiceComponent {
@@ -68,8 +72,12 @@ public class IdentityCoreServiceComponent {
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
+    private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
+    private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
+    private DefaultKeyProviderService defaultKeyProviderService;
 
     public IdentityCoreServiceComponent() {
+        defaultKeyProviderService = new DefaultKeyProviderService(defaultKeystoreManagerExtension);
     }
 
     public static ServerConfigurationService getServerConfigurationService() {
@@ -172,6 +180,8 @@ public class IdentityCoreServiceComponent {
                     new IdentityCoreInitializedEventImpl(), null);
 
 
+            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
+                    defaultKeyProviderService, null);
         } catch (Throwable e) {
             log.error("Error occurred while populating identity configuration properties", e);
         }
@@ -181,6 +191,7 @@ public class IdentityCoreServiceComponent {
      * @param ctxt
      */
     protected void deactivate(ComponentContext ctxt) {
+        defaultKeystoreManagerServiceRef.unregister();
         IdentityTenantUtil.setBundleContext(null);
         if (log.isDebugEnabled()) {
             log.debug("Identity Core bundle is deactivated");
@@ -200,12 +211,14 @@ public class IdentityCoreServiceComponent {
      */
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
+        defaultKeystoreManagerExtension.setRealmService(realmService);
     }
 
     /**
      * @param realmService
      */
     protected void unsetRealmService(RealmService realmService) {
+        defaultKeystoreManagerExtension.setRealmService(null);
         IdentityTenantUtil.setRealmService(null);
     }
 
@@ -244,4 +257,15 @@ public class IdentityCoreServiceComponent {
         configurationContextService = null;
     }
 
+    protected void setKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        if (log.isDebugEnabled()) {
+            log.debug("KeyStoreManagerExtension is being set by an OSGI component. The extension class is: "
+                    + keyStoreManagerExtension);
+        }
+        defaultKeyProviderService.setKeyStoreManagerExtension(keyStoreManagerExtension);
+    }
+
+    protected void unsetKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        defaultKeyProviderService.setKeyStoreManagerExtension(defaultKeystoreManagerExtension);
+    }
 }

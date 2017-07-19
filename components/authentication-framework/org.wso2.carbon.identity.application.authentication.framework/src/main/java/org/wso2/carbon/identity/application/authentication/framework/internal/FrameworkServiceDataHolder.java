@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -31,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FrameworkServiceDataHolder {
+
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
 
     private BundleContext bundleContext = null;
@@ -43,6 +49,9 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
+    private SequenceLoader sequenceLoader = null;
+    private List<AuthenticationDecisionEvaluator> authenticationDecisionEvaluatorList = new ArrayList<>();
+    private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -69,6 +78,14 @@ public class FrameworkServiceDataHolder {
         this.realmService = realmService;
     }
 
+    /**
+     *
+     * @return
+     * @throws FrameworkException
+     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * provide necessary wiring for any place which require the BundleContext.
+     */
+    @Deprecated
     public BundleContext getBundleContext() {
         return bundleContext;
     }
@@ -117,4 +134,32 @@ public class FrameworkServiceDataHolder {
         this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
+    public SequenceLoader getSequenceLoader() {
+        return sequenceLoader;
+    }
+
+    public void setSequenceLoader(SequenceLoader sequenceLoader) {
+        this.sequenceLoader = sequenceLoader;
+    }
+
+    public void addAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
+        authenticationDecisionEvaluatorList.add(evaluator);
+    }
+
+    public void removeAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
+        authenticationDecisionEvaluatorList.remove(evaluator);
+    }
+
+    public List<AuthenticationDecisionEvaluator> getAuthenticationDecisionEvaluators() {
+        return Collections.unmodifiableList(authenticationDecisionEvaluatorList);
+    }
+
+    public AuthenticationMethodNameTranslator getAuthenticationMethodNameTranslator() {
+        return authenticationMethodNameTranslator;
+    }
+
+    public void setAuthenticationMethodNameTranslator(
+            AuthenticationMethodNameTranslator authenticationMethodNameTranslator) {
+        this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
+    }
 }

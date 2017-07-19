@@ -943,7 +943,7 @@ public class FrameworkUtils {
 
                     IdentityProvider idp = authConfig.getIdps().get(idpName);
 
-                    if (idp.isFederationHub()) {
+                    if (idp != null && idp.isFederationHub()) {
                         idpName += ".hub";
                     }
 

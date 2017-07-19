@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.7.24-SNAPSHOT</version>
+        <version>5.9.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -97,14 +97,29 @@
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.3</version>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <version>1.9.0</version>
+                <version>${maven.scr.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -124,7 +139,7 @@
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

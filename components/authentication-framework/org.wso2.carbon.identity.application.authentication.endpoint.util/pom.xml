@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.7.24-SNAPSHOT</version>
+        <version>5.9.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -91,6 +91,11 @@
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.securevault</artifactId>
             <version>${carbon.kernel.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

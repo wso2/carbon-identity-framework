@@ -33,17 +33,22 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AcrDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -59,9 +64,9 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import javax.servlet.Servlet;
 import java.util.Collections;
 import java.util.List;
+import javax.servlet.Servlet;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
@@ -115,6 +120,14 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
+    /**
+     *
+     * @return
+     * @throws FrameworkException
+     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * provide necessary wiring for any place which require the BundleContext.
+     */
+    @Deprecated
     public static BundleContext getBundleContext() throws FrameworkException {
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
         if (bundleContext == null) {
@@ -149,6 +162,12 @@ public class FrameworkServiceComponent {
                           "enabled.");
             }
         }
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
+        bundleContext
+                .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
+        FrameworkServiceDataHolder.getInstance()
+                .setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
 
         // Register Common servlet
         Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
@@ -171,6 +190,9 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
+        UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
+        FrameworkServiceDataHolder.getInstance().addAuthenticationDecisionEvaluator(new AcrDecisionEvaluator());
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -412,5 +434,20 @@ public class FrameworkServiceComponent {
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
+    }
+
+    @Reference(
+            name = "identity.authentication.step.selection.evaluator",
+            service = AuthenticationDecisionEvaluator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthenticationDecisionEvaluator"
+    )
+    protected void setAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
+       FrameworkServiceDataHolder.getInstance().addAuthenticationDecisionEvaluator(evaluator);
+    }
+
+    protected void unsetAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
+        FrameworkServiceDataHolder.getInstance().removeAuthenticationDecisionEvaluator(evaluator);
     }
 }
