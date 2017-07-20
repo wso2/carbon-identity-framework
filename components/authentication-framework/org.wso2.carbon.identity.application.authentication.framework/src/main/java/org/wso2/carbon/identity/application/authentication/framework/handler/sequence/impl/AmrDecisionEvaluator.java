@@ -47,6 +47,7 @@ public class AmrDecisionEvaluator implements AuthenticationDecisionEvaluator {
         }
         List<AuthHistory> histories = context.getAuthenticationStepHistory();
         List<Link> links = config.getLinks();
+        //todo: need to revisit the logic
         Link selected = links.stream().filter(l -> l.getExpression().equals(amrRequested.stream()
                 .filter(m -> !histories.stream().filter(h -> h.getAuthenticatorName().equals(m)).findAny()
                         .isPresent()))).findAny().orElse(null);

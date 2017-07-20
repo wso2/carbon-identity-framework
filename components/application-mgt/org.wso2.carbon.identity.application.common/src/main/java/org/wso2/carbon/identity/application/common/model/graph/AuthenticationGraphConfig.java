@@ -131,7 +131,7 @@ public class AuthenticationGraphConfig implements Serializable {
         if (currentNode instanceof StepNode) {
             StepNode stepNode = (StepNode) currentNode;
             Link nextLink = stepNode.getNext();
-            if (nextLink == null) {
+            if (!stepNode.hasNext()) {
                 if (log.isDebugEnabled()) {
                     log.debug("No next Link found for the step : " + stepNode.getName());
                 }

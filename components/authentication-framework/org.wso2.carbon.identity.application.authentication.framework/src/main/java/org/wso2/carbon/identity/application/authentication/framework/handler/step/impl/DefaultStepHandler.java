@@ -457,7 +457,7 @@ public class DefaultStepHandler implements StepHandler {
         ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
         if (authenticator == null) {
-            log.error("Authenticator is null for AuthenticatorConfig: "+authenticatorConfig.getName());
+            log.error("Authenticator is null for AuthenticatorConfig: " + authenticatorConfig.getName());
             return;
         }
 

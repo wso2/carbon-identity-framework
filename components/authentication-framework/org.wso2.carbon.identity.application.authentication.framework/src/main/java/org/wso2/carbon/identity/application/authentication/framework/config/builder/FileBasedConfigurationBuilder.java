@@ -41,11 +41,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -134,39 +138,16 @@ public class FileBasedConfigurationBuilder {
      */
     private void buildConfiguration() {
 
-        InputStream inStream = null;
-        File configFile = null;
-        try {
-            if (configFilePath != null) {
-                configFile = new File(configFilePath);
-            } else {
-                configFile = new File(IdentityUtil.getIdentityConfigDirPath(),
+        Path configFile = configFilePath != null ? Paths.get(configFilePath) :
+                Paths.get(IdentityUtil.getIdentityConfigDirPath(),
                         IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG);
-            }
-            if (configFile.exists()) {
-                inStream = new FileInputStream(configFile);
-            }
-            if (inStream == null) {
-                String message = "Identity Application Authentication Framework configuration not found. File Name: "
-                        +configFile.getAbsolutePath();
-                log.error(message);
-                throw new FileNotFoundException(message);
-            }
-            buildConfiguration(inStream);
 
+        try (InputStream inputStream = Files.newInputStream(configFile)) {
+            buildConfiguration(inputStream);
         } catch (FileNotFoundException e) {
             log.error(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG + " file is not available", e);
         } catch (IOException e) {
             log.error(e);
-        } finally {
-            try {
-                if (inStream != null) {
-                    inStream.close();
-                }
-            } catch (IOException e) {
-                log.error("Error occurred while closing the FileInputStream after reading " +
-                        "Identity Application Authentication Framework configuration", e);
-            }
         }
     }
 

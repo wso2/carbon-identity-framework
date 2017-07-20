@@ -119,7 +119,7 @@ public class GraphBuilder {
             StepNode stepNode = (StepNode) configNode;
             Link nextLink = stepNode.getNext();
             StepConfigGraphNode stepConfigGraphNode = (StepConfigGraphNode) node;
-            if (nextLink != null && StringUtils.isNotEmpty(nextLink.getNextLink())) {
+            if (stepNode.hasNext() && StringUtils.isNotEmpty(nextLink.getNextLink())) {
                 String nextName = nextLink.getNextLink();
                 Node nextNode = graphConfig.getNodeByName(nextName);
                 if (nextNode == null) {

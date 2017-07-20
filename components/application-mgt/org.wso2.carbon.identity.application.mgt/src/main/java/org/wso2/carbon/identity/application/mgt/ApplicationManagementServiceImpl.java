@@ -853,7 +853,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                             .setAuthenticationSteps(authenticationSteps);
                 }
-
+                //if no authentication graph attached to the service provider, use default service provider graph
+                // configuration
                 if(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() == null ) {
                     ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
                             .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);

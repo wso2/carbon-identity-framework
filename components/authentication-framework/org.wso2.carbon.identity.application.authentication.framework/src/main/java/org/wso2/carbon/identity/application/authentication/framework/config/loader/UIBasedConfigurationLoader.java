@@ -152,7 +152,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             // loading Federated Authenticators
             loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
-            // load local authenticators
+            // loading local authenticators
             loadLocalAuthenticators(authenticationStep, stepConfig);
 
             sequenceConfig.getStepMap().put(stepOrder, stepConfig);
@@ -211,7 +211,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             for (IdentityProvider federatedIDP : federatedIDPs) {
 
                 FederatedAuthenticatorConfig federatedAuthenticator = federatedIDP.getDefaultAuthenticatorConfig();
-                // for each authenticator in the idp
 
                 //When loading the federated IDP configuration from default.xml file in service-providers, we need to
                 // retrieve the federated IDP and load

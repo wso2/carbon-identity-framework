@@ -24,13 +24,17 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.graph.DecisionNode;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+/**
+ * todo:need to add proper description
+ */
 public class AmrCompletionEvaluator implements AuthenticationDecisionEvaluator {
 
     private static final Log log = LogFactory.getLog(AmrCompletionEvaluator.class);
 
     @Override
     public String evaluate(AuthenticationContext context, ServiceProvider serviceProvider, DecisionNode config) {
-        return null;
+        throw new NotImplementedException();
     }
 }
