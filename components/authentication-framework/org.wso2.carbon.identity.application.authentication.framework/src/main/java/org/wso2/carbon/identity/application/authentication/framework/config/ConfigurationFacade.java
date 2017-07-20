@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -45,7 +46,7 @@ import java.util.Map;
 public class ConfigurationFacade {
 
     private static final Log log = LogFactory.getLog(ConfigurationFacade.class);
-
+    private UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
     private static volatile ConfigurationFacade instance;
     private SequenceLoader sequenceBuilder;
 
@@ -81,8 +82,29 @@ public class ConfigurationFacade {
     public SequenceConfig getSequenceConfig(String reqType, String relyingParty, String tenantDomain)
             throws FrameworkException {
 
-        // Get SP config from SP Management component
-        return UIBasedConfigurationBuilder.getInstance().getSequence(reqType, relyingParty, tenantDomain);
+        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+
+        // special case for OpenID Connect, these clients are stored as OAuth2 clients
+        if ("oidc".equals(reqType)) {
+            reqType = "oauth2";
+        }
+
+        ServiceProvider serviceProvider;
+
+        try {
+            serviceProvider = appInfo.getServiceProviderByClientId(relyingParty, reqType, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException(e.getMessage(), e);
+        }
+
+        if (serviceProvider == null) {
+            throw new FrameworkException("ServiceProvider cannot be null");
+        }
+        AuthenticationStep[] authenticationSteps = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .getAuthenticationSteps();
+
+        return uiBasedConfigurationLoader.getSequence(serviceProvider, tenantDomain, authenticationSteps);
+
     }
 
     /**
@@ -109,7 +131,28 @@ public class ConfigurationFacade {
         }
 
         // Get SP config from SP Management component
-        return UIBasedConfigurationBuilder.getInstance().getSequence(requestType, issuer, tenantDomain);
+        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+
+        // special case for OpenID Connect, these clients are stored as OAuth2 clients
+        if ("oidc".equals(requestType)) {
+            requestType = "oauth2";
+        }
+
+        ServiceProvider serviceProvider;
+
+        try {
+            serviceProvider = appInfo.getServiceProviderByClientId(issuer, requestType, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException(e.getMessage(), e);
+        }
+
+        if (serviceProvider == null) {
+            throw new FrameworkException("ServiceProvider cannot be null");
+        }
+        AuthenticationStep[] authenticationSteps = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .getAuthenticationSteps();
+
+        return uiBasedConfigurationLoader.getSequence(serviceProvider, tenantDomain, authenticationSteps);
     }
 
     public ExternalIdPConfig getIdPConfigByName(String idpName, String tenantDomain)
@@ -251,7 +294,8 @@ public class ConfigurationFacade {
         try {
             serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
-            throw new FrameworkException(e.getMessage(), e);
+            throw new FrameworkException("Error occurred while retrieving service provider for client ID: " + clientId
+                    + " and tenant: " + tenantDomain, e);
         }
         return serviceProvider;
     }

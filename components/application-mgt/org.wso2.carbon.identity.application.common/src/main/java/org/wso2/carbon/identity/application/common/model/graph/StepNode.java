@@ -61,6 +61,14 @@ public class StepNode extends Node implements Serializable {
         return next;
     }
 
+    public boolean hasNext() {
+
+        if (next == null) {
+            return false;
+        }
+        return true;
+    }
+
     public AuthenticationStep getAuthenticationStep() {
 
         return authenticationStep;
