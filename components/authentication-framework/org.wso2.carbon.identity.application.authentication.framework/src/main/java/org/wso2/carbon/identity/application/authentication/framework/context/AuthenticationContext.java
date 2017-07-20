@@ -26,10 +26,13 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class is used for holding data about the
@@ -37,7 +40,7 @@ import java.util.Map;
  */
 public class AuthenticationContext extends MessageContext implements Serializable {
 
-    private static final long serialVersionUID = 6438291349985653301L;
+    private static final long serialVersionUID = 6438291349985653402L;
 
     private String contextIdentifier;
     private String sessionIdentifier;
@@ -74,7 +77,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean retrying;
     private boolean previousSessionFound;
 
-    //subject should be set by each authenticator
+    //Adaptive Authentication control and status
+    private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
+    private List<String> amrRequested = new ArrayList<>();
+    private AcrRule acrRule = AcrRule.EXACT;
+    private String selectedAcr;
+
+    /** The user/subject known at the latest authentication step */
+    private AuthenticatedUser lastAuthenticatedUser;
+
+    /** subject should be set by each authenticator */
     private AuthenticatedUser subject;
 
     /* Holds any (state) information that would be required by the authenticator
@@ -151,6 +163,9 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
+        if(subject != null) {
+            lastAuthenticatedUser = subject;
+        }
     }
 
     public String getContextIdentifier() {
@@ -360,5 +375,47 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setPreviousAuthTime(boolean previousAuthTime) {
         this.previousAuthTime = previousAuthTime;
+    }
+
+    public void addAuthenticationStepHistory(AuthHistory history) {
+        authenticationStepHistory.add(history);
+    }
+
+    public List<AuthHistory> getAuthenticationStepHistory() {
+        return Collections.unmodifiableList(authenticationStepHistory);
+    }
+
+    public List<String> getAmrRequested() {
+        return amrRequested;
+    }
+
+    public void setAmrRequested(List<String> amrRequested) {
+        this.amrRequested = amrRequested;
+    }
+
+    public AcrRule getAcrRule() {
+        return acrRule;
+    }
+
+    public void setAcrRule(AcrRule acrRule) {
+        this.acrRule = acrRule;
+    }
+
+    public String getSelectedAcr() {
+        return selectedAcr;
+    }
+
+    public void setSelectedAcr(String selectedAcr) {
+        this.selectedAcr = selectedAcr;
+    }
+
+    /**
+     * Returns the Authenticated user who is known as at the moment.
+     * Use this to get the user details for any multi-factor authenticator which depends on previously known subject.
+     * 
+     * @return AuthenticatedUser which is assigned to the context last. Null if no previous step could find a user.
+     */
+    public AuthenticatedUser getLastAuthenticatedUser() {
+        return lastAuthenticatedUser;
     }
 }

@@ -36,8 +36,6 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.ServerConstants;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -49,6 +47,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
 
 /**
  * Application Authenticators Framework configuration reader.
@@ -97,6 +97,14 @@ public class FileBasedConfigurationBuilder {
         return instance;
     }
 
+    /**
+     *
+     * @param filePath
+     * @return
+     * @deprecated This is unsafe method, will only return previously configured instance if available.
+     * Hence please change any usage to getInstance() "no arg" constructor.
+     */
+    @Deprecated
     public static FileBasedConfigurationBuilder getInstance(String filePath) {
         configFilePath = filePath;
         return getInstance();
@@ -139,10 +147,31 @@ public class FileBasedConfigurationBuilder {
                 inStream = new FileInputStream(configFile);
             }
             if (inStream == null) {
-                String message = "Identity Application Authentication Framework configuration not found";
+                String message = "Identity Application Authentication Framework configuration not found. File Name: "
+                        +configFile.getAbsolutePath();
                 log.error(message);
                 throw new FileNotFoundException(message);
             }
+            buildConfiguration(inStream);
+
+        } catch (FileNotFoundException e) {
+            log.error(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG + " file is not available", e);
+        } catch (IOException e) {
+            log.error(e);
+        } finally {
+            try {
+                if (inStream != null) {
+                    inStream.close();
+                }
+            } catch (IOException e) {
+                log.error("Error occurred while closing the FileInputStream after reading " +
+                        "Identity Application Authentication Framework configuration", e);
+            }
+        }
+    }
+
+    private void buildConfiguration(InputStream inStream) throws IOException {
+        try {
             StAXOMBuilder builder = new StAXOMBuilder(inStream);
             rootElement = builder.getDocumentElement();
             Stack<String> nameStack = new Stack<String>();
@@ -184,20 +213,9 @@ public class FileBasedConfigurationBuilder {
 
             //########### Read Sequence Configs ###########
             readSequenceConfigs(rootElement);
-
-        } catch (FileNotFoundException e) {
-            log.error(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG + " file is not available", e);
         } catch (XMLStreamException e) {
-            log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
-        } finally {
-            try {
-                if (inStream != null) {
-                    inStream.close();
-                }
-            } catch (IOException e) {
-                log.error("Error occurred while closing the FileInputStream after reading " +
-                        "Identity Application Authentication Framework configuration", e);
-            }
+            throw new IOException("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG,
+                    e);
         }
     }
 
@@ -597,7 +615,6 @@ public class FileBasedConfigurationBuilder {
                 sequenceConfig.getStepMap().put(stepConfig.getOrder(), stepConfig);
             }
         }
-
         return sequenceConfig;
     }
 
@@ -634,18 +651,24 @@ public class FileBasedConfigurationBuilder {
             AuthenticatorConfig authenticatorConfig = authenticatorConfigMap.get(authenticatorName);
             String idps = authenticatorElem.getAttributeValue(new QName(FrameworkConstants.Config.ATTR_AUTHENTICATOR_IDPS));
 
-            //if idps defined
-            if (idps != null && !idps.isEmpty()) {
-                String[] idpArr = idps.split(",");
-
-                for (String idp : idpArr) {
-                    authenticatorConfig.getIdpNames().add(idp);
-                }
+            if (authenticatorConfig == null) {
+                log.error("There was no authenticator configured for name: " + authenticatorName
+                        + " Please add relevant configuration in element: "
+                        + FrameworkConstants.Config.QNAME_AUTHENTICATOR_CONFIGS);
             } else {
-                authenticatorConfig.getIdpNames().add(FrameworkConstants.LOCAL_IDP_NAME);
-            }
+                //if IDP defined
+                if (idps != null && !idps.isEmpty()) {
+                    String[] idpArr = idps.split(",");
 
-            stepConfig.getAuthenticatorList().add(authenticatorConfig);
+                    for (String idp : idpArr) {
+                        authenticatorConfig.getIdpNames().add(idp);
+                    }
+                } else {
+                    authenticatorConfig.getIdpNames().add(FrameworkConstants.LOCAL_IDP_NAME);
+                }
+
+                stepConfig.getAuthenticatorList().add(authenticatorConfig);
+            }
         }
 
         return stepConfig;

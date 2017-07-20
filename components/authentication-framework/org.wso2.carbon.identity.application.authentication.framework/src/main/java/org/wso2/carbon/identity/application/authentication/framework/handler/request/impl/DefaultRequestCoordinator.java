@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -34,21 +35,27 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Request Coordinator
@@ -280,6 +287,49 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         return context;
     }
 
+    /**
+     * Sets the requested ACR values to the context if available.
+     * @param request
+     */
+    private List<String> getAcrRequested(HttpServletRequest request) {
+        List<String> result = Collections.emptyList();
+        String requestType = request.getParameter(FrameworkConstants.RequestParams.TYPE);
+        if (StringUtils.isNotBlank(request.getParameter("acr_values")) && !"null"
+                .equals(request.getParameter("acr_values"))) {
+            String[] acrValues = request.getParameter("acr_values").split(" ");
+            AuthenticationMethodNameTranslator translator = FrameworkServiceDataHolder
+                    .getInstance().getAuthenticationMethodNameTranslator();
+            if (translator == null) {
+                log.error(
+                        "No AuthenticationMethodNameTranslator present to translate the requested acr_values to"
+                                + " internal form. acr_values:"
+                                + acrValues);
+            }
+
+            LinkedHashSet list = new LinkedHashSet();
+            for (String acrValue : acrValues) {
+                String translatedValue =  acrValue;
+                if(translator != null) {
+                    String internalAcr = translator.translateToInternalAcr(acrValue, requestType);
+                    if (internalAcr == null) {
+                        String errorMessage = String.format("An internal acr_value mapping is not configured"
+                                + " for external acr_value : %s for the requestType : %s. "
+                                + "Using un-translated acr_value itself for further processing.", acrValue, requestType);
+
+                        log.warn(errorMessage);
+                    } else {
+                        translatedValue = internalAcr;
+                    }
+                }
+                list.add(translatedValue);
+            }
+            if(!list.isEmpty())  {
+                result = new ArrayList<>(list);
+            }
+        }
+        return result;
+    }
+
     private String getCallerPath(HttpServletRequest request) throws FrameworkException {
         String callerPath = request.getParameter(FrameworkConstants.RequestParams.CALLER_PATH);
         try {
@@ -320,10 +370,14 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                                                     AuthenticationContext context) throws FrameworkException {
 
         // Get service provider chain
-        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(
-                context.getRequestType(),
-                request.getParameter(FrameworkConstants.RequestParams.ISSUER),
-                context.getTenantDomain());
+        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance()
+                .getSequenceConfig(context, request.getParameterMap());
+        List<String> acrRequested = getAcrRequested(request);
+        if(acrRequested != null) {
+            for(String acr: acrRequested) {
+                sequenceConfig.addRequestedAcr(acr);
+            }
+        }
 
         Cookie cookie = FrameworkUtils.getAuthCookie(request);
 
@@ -352,7 +406,8 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                 SequenceConfig previousAuthenticatedSeq = sessionContext
                         .getAuthenticatedSequences().get(appName);
 
-                if (previousAuthenticatedSeq != null) {
+                if (previousAuthenticatedSeq != null &&
+                        !isReinitialize(previousAuthenticatedSeq, sequenceConfig, request, context)) {
 
                     if (log.isDebugEnabled()) {
                         log.debug("A previously authenticated sequence found for the SP: "
@@ -396,6 +451,24 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
         // set the sequence for the current authentication/logout flow
         context.setSequenceConfig(sequenceConfig);
+    }
+
+    private boolean isReinitialize(SequenceConfig previousAuthenticatedSeq, SequenceConfig sequenceConfig,
+            HttpServletRequest request, AuthenticationContext context) {
+        List<String> newAcrList = getAcrRequested(request);
+        List<String> previousAcrList = previousAuthenticatedSeq.getRequestedAcr();
+        if(newAcrList != null && !newAcrList.isEmpty() && isDifferent(newAcrList, previousAcrList)) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    private boolean isDifferent(List<String> newAcrList, List<String> previousAcrList) {
+        if(previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
+            return true;
+        }
+        return newAcrList.get(0).equals(previousAcrList.get(0)); //TODO: Scan All list.
     }
 
     private void buildOutboundQueryString(HttpServletRequest request, AuthenticationContext context)

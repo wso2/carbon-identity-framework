@@ -18,16 +18,24 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -39,6 +47,7 @@ public class ConfigurationFacade {
     private static final Log log = LogFactory.getLog(ConfigurationFacade.class);
 
     private static volatile ConfigurationFacade instance;
+    private SequenceLoader sequenceBuilder;
 
     public ConfigurationFacade() {
         // Read the default config from the files
@@ -59,12 +68,48 @@ public class ConfigurationFacade {
         return instance;
     }
 
+    /**
+     * Returns the sequence config with given parameters.
+     * @param reqType
+     * @param relyingParty
+     * @param tenantDomain
+     * @return
+     * @throws FrameworkException
+     * @deprecated Please use  #getSequenceConfig(AuthenticationContext, Map) instead.
+     */
+    @Deprecated
     public SequenceConfig getSequenceConfig(String reqType, String relyingParty, String tenantDomain)
             throws FrameworkException {
 
         // Get SP config from SP Management component
-        return UIBasedConfigurationBuilder.getInstance().getSequence(reqType,
-                                                                     relyingParty, tenantDomain);
+        return UIBasedConfigurationBuilder.getInstance().getSequence(reqType, relyingParty, tenantDomain);
+    }
+
+    /**
+     * TODO: Move this to better place
+     * @param context
+     * @param parameterMap
+     * @return
+     * @throws FrameworkException
+     */
+    public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap)
+            throws FrameworkException {
+        String requestType = context.getRequestType();
+        String[] issuers = parameterMap.get(FrameworkConstants.RequestParams.ISSUER);
+        String issuer = null;
+        if (!ArrayUtils.isEmpty(issuers)) {
+            issuer = issuers[0];
+        }
+        String tenantDomain = context.getTenantDomain();
+        
+        SequenceLoader sequenceBuilder = FrameworkServiceDataHolder.getInstance().getSequenceLoader();
+        if (sequenceBuilder != null) {
+            ServiceProvider serviceProvider = getServiceProvider(requestType, issuer, tenantDomain);
+            return sequenceBuilder.getSequenceConfig(context, parameterMap, serviceProvider);
+        }
+
+        // Get SP config from SP Management component
+        return UIBasedConfigurationBuilder.getInstance().getSequence(requestType, issuer, tenantDomain);
     }
 
     public ExternalIdPConfig getIdPConfigByName(String idpName, String tenantDomain)
@@ -112,8 +157,7 @@ public class ConfigurationFacade {
 
         try {
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
-            idpDO = idpManager
-                    .getEnabledIdPByRealmId(realm, tenantDomain);
+            idpDO = idpManager.getEnabledIdPByRealmId(realm, tenantDomain);
 
             if (idpDO != null) {
 
@@ -136,15 +180,16 @@ public class ConfigurationFacade {
 
     public String getAuthenticationEndpointURL() {
         String authenticationEndpointURL = FileBasedConfigurationBuilder.getInstance().getAuthenticationEndpointURL();
-        if (StringUtils.isBlank(authenticationEndpointURL)){
+        if (StringUtils.isBlank(authenticationEndpointURL)) {
             authenticationEndpointURL = "/authenticationendpoint/login.do";
         }
         return authenticationEndpointURL;
     }
 
     public String getAuthenticationEndpointRetryURL() {
-        String authenticationEndpointRetryURL = FileBasedConfigurationBuilder.getInstance().getAuthenticationEndpointRetryURL();
-        if (StringUtils.isBlank(authenticationEndpointRetryURL)){
+        String authenticationEndpointRetryURL = FileBasedConfigurationBuilder.getInstance()
+                .getAuthenticationEndpointRetryURL();
+        if (StringUtils.isBlank(authenticationEndpointRetryURL)) {
             authenticationEndpointRetryURL = "/authenticationendpoint/retry.do";
         }
         return authenticationEndpointRetryURL;
@@ -186,5 +231,28 @@ public class ConfigurationFacade {
 
     public int getMaxLoginAttemptCount() {
         return FileBasedConfigurationBuilder.getInstance().getMaxLoginAttemptCount();
+    }
+
+    /*
+    TODO: Move this to better place
+     */
+    private ServiceProvider getServiceProvider(String reqType, String clientId, String tenantDomain)
+            throws FrameworkException {
+
+        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+
+        // special case for OpenID Connect, these clients are stored as OAuth2 clients
+        if ("oidc".equals(reqType)) {
+            reqType = "oauth2";
+        }
+
+        ServiceProvider serviceProvider;
+
+        try {
+            serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException(e.getMessage(), e);
+        }
+        return serviceProvider;
     }
 }

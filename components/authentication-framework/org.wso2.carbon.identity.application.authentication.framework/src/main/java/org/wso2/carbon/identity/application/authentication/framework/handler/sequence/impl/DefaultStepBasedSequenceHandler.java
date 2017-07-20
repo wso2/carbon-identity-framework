@@ -736,6 +736,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
+    /*
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+     */
     protected void resetAuthenticationContext(AuthenticationContext context)
             throws FrameworkException {
 

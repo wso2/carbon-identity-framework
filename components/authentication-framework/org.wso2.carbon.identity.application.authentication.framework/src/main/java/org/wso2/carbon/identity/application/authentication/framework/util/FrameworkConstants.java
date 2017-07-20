@@ -78,6 +78,7 @@ public abstract class FrameworkConstants {
         // Constant definitions for Elements
         public static final String ELEM_SEQUENCE = "Sequence";
         public static final String ELEM_STEP = "Step";
+        public static final String ELEM_AUTHENTICATION_CHAIN = "AuthenticationChain";
         public static final String ELEM_AUTHENTICATOR = "Authenticator";
         public static final String ELEM_AUTHENTICATOR_CONFIG = "AuthenticatorConfig";
         public static final String ELEM_AUTH_ENDPOINT_QUERY_PARAM = "AuthenticationEndpointQueryParam";
@@ -105,6 +106,7 @@ public abstract class FrameworkConstants {
         public static final String ATTR_APPLICATION_ID = "appId";
         public static final String ATTR_AUTHENTICATOR_NAME_MAPPING_NAME = "name";
         public static final String ATTR_AUTHENTICATOR_NAME_MAPPING_ALIAS = "alias";
+        public static final String ATTR_ACR_LIST = "acrList";
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
