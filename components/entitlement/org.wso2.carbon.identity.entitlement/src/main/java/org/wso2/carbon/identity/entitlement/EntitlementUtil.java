@@ -381,7 +381,7 @@ public class EntitlementUtil {
                 + "identity" + File.separator + "policies" + File.separator + "xacml"
                 + File.separator + "default");
 
-        if (policyFolder.exists()) {
+        if (policyFolder.exists() && policyFolder.listFiles() != null) {
             for (File policyFile : policyFolder.listFiles()) {
                 if (policyFile.isFile()) {
                     PolicyDTO policyDTO = new PolicyDTO();

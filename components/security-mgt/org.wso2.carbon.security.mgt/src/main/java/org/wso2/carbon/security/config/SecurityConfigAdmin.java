@@ -1273,7 +1273,7 @@ public class SecurityConfigAdmin {
                     log.error("Error while reading Transit Ghosts map", axisFault);
                 }
                 if (service == null) {
-                    throw new SecurityConfigException("AxisService is Null" + service);
+                    throw new SecurityConfigException("AxisService is Null");
                 }
             }
 

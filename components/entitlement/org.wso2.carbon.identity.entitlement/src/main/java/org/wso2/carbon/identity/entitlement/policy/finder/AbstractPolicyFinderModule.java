@@ -24,8 +24,6 @@ import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
-import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStore;
-import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreReader;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 
 import java.util.ArrayList;
@@ -47,15 +45,8 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
      * This method must be called by the module when its policies are updated
      */
     public static void invalidateCache(String policyId, String action) {
-
-        PAPPolicyStore policyStore = new PAPPolicyStore();
-        PAPPolicyStoreReader reader = new PAPPolicyStoreReader(policyStore);
-
         EntitlementEngine.getInstance().getPolicyCache().invalidateCache(policyId, action);
-
-
         EntitlementEngine.getInstance().clearDecisionCache();
-
     }
 
     public static void invalidateCache() {
