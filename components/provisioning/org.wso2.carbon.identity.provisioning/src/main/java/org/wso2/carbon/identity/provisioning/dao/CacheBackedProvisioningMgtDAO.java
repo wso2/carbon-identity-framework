@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCacheEntry;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCacheKey;
 
+import java.sql.SQLException;
+
 public class CacheBackedProvisioningMgtDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedProvisioningMgtDAO.class);
@@ -114,7 +116,12 @@ public class CacheBackedProvisioningMgtDAO {
                         ". Fetching entity from DB");
             }
 
-            ProvisionedIdentifier provisionedIdentifier = provisioningMgtDAO.getProvisionedIdentifier(identityProviderName, connectorType, provisioningEntity, tenantId);
+            ProvisionedIdentifier provisionedIdentifier;
+            try {
+                provisionedIdentifier = provisioningMgtDAO.getProvisionedIdentifier(identityProviderName, connectorType, provisioningEntity, tenantId);
+            } catch (SQLException ex) {
+                throw new IdentityApplicationManagementException("Error in getting provision identifier");
+            }
 
             if (provisionedIdentifier != null) {
                 if (log.isDebugEnabled()) {
@@ -174,7 +181,12 @@ public class CacheBackedProvisioningMgtDAO {
             provisioningEntityCache.clearCacheEntry(cacheKey);
         }
 
-        provisioningMgtDAO.deleteProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
+        try {
+            provisioningMgtDAO.deleteProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
+        } catch (SQLException ex) {
+            throw new IdentityApplicationManagementException("Error in deleting provision entity");
+        }
+
 
         if (log.isDebugEnabled()) {
             log.debug("Entry removed from DB for Provisioning Entity : " +

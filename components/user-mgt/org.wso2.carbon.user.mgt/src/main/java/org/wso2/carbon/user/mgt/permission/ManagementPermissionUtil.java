@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.user.mgt.permission;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.user.api.Permission;
@@ -66,25 +67,15 @@ public class ManagementPermissionUtil {
 	public static Permission[] getRoleUIPermissions(String roleName, String[] rawPermissions)
 			throws UserAdminException {
 		Permission[] permissions = new Permission[0];
-		try {
+		if (ArrayUtils.isEmpty(permissions)) {
+			return permissions;
+		}
 
-			if (rawPermissions == null || rawPermissions.length == 0) {
-				return permissions;
-			}
-
-			String[] optimizedList = UserCoreUtil.optimizePermissions(rawPermissions);
-			UserRealm realm = AdminServicesUtil.getUserRealm();
-			AuthorizationManager authMan = realm.getAuthorizationManager();
-			permissions = new Permission[optimizedList.length];
-			int i = 0;
-			for (String path : optimizedList) {
-				permissions[i++] = new Permission(path, UserMgtConstants.EXECUTE_ACTION);
-			}
-		} catch (UserStoreException e) {
-			// not logging already logged
-			throw new UserAdminException(e.getMessage(), e);
-		} catch (CarbonException e) {
-			throw new UserAdminException(e.getMessage(), e);
+		String[] optimizedList = UserCoreUtil.optimizePermissions(rawPermissions);
+		permissions = new Permission[optimizedList.length];
+		int i = 0;
+		for (String path : optimizedList) {
+			permissions[i++] = new Permission(path, UserMgtConstants.EXECUTE_ACTION);
 		}
 
 		return permissions;

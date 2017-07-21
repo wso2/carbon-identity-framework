@@ -52,7 +52,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
             if (StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
                 throw new IdentityProviderManagementException("Cannot delete Resident Identity Provider of Super " +
                         "Tenant");
-            } else if(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant){
+            } else if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant) {
                 throw new IdentityProviderManagementException("Tenant user of " + loggedInTenant + " cannot delete " +
                         "Resident Identity Provider of tenant " + tenantDomain);
             } else {
@@ -108,8 +108,8 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         }
 
         //Updating a non-shared IdP's name to have shared prefix is not allowed
-        if (oldIdPName != null && !oldIdPName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX) &&
-                identityProvider != null && identityProvider.getIdentityProviderName() != null && identityProvider
+        if (!oldIdPName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX) &&
+                identityProvider.getIdentityProviderName() != null && identityProvider
                 .getIdentityProviderName().startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
             throw new IdentityProviderManagementException("Cannot update Idp name to have '" +
                     IdPManagementConstants.SHARED_IDP_PREFIX + "' as a prefix (previous name:" + oldIdPName + ", " +

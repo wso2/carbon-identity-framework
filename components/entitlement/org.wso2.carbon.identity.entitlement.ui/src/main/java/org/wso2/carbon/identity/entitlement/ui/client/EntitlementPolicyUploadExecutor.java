@@ -76,15 +76,23 @@ public class EntitlementPolicyUploadExecutor extends AbstractFileUploadExecutor 
                     throw new CarbonException("File with extension " +
                             getFileName(fileItem.getFileItem().getName()) + " is not supported!");
                 } else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(fileItem.getDataHandler().getInputStream()));
-                    String temp;
-                    String policyContent = "";
-                    while ((temp = br.readLine()) != null) {
-                        policyContent += temp;
+                    BufferedReader br = null;
+                    try {
+                        br = new BufferedReader(new InputStreamReader(fileItem.getDataHandler().getInputStream()));
+                        String temp;
+                        String policyContent = "";
+                        while ((temp = br.readLine()) != null) {
+                            policyContent += temp;
+                        }
+                        if (!"".equals(policyContent)) {
+                            client.uploadPolicy(policyContent);
+                        }
+                    } finally {
+                        if (br != null) {
+                            br.close();
+                        }
                     }
-                    if (!"".equals(policyContent)) {
-                        client.uploadPolicy(policyContent);
-                    }
+
                 }
             }
 

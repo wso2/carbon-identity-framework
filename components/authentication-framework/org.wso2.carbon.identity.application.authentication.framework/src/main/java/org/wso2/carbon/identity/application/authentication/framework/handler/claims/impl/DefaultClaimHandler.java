@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -128,7 +127,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             spClaimMappings = new HashMap<>();
         }
 
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+        Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getRequestedClaimMappings();
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
@@ -294,7 +293,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                                          context.getTenantDomain() + " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
-        for(ClaimMapping claimMapping : idPClaimMappings){
+        for (ClaimMapping claimMapping : idPClaimMappings) {
             if (StringUtils.isNotBlank(claimMapping.getDefaultValue()) && !localToIdPClaimMap.containsKey
                     (claimMapping.getLocalClaim().getClaimUri())) {
                 localToIdPClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), claimMapping.getDefaultValue());
@@ -348,16 +347,13 @@ public class DefaultClaimHandler implements ClaimHandler {
             throws FrameworkException {
 
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
-        ServiceProvider serviceProvider = appConfig.getServiceProvider();
-        ClaimConfig claimConfig = serviceProvider.getClaimConfig();
-        boolean isLocalClaimDialect = claimConfig.isLocalClaimDialect();
 
         Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
         if (spToLocalClaimMappings == null) {
             spToLocalClaimMappings = new HashMap<>();
         }
 
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+        Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
         if (requestedClaimMappings == null) {
             requestedClaimMappings = new HashMap<>();
@@ -522,7 +518,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
-                         spStandardDialect+ " dialect for " +
+                         spStandardDialect + " dialect for " +
                         tenantDomain + " to handle local claims", e);
             }
         }
@@ -549,21 +545,25 @@ public class DefaultClaimHandler implements ClaimHandler {
             allLocalClaims = userStore.getUserClaimValues(tenantAwareUserName,
                     localClaimURIs.toArray(new String[localClaimURIs.size()]), null);
 
-            for (Map.Entry<String, String> entry : allLocalClaims.entrySet()) {
-                //set local2sp role mappings
-                if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey())) {
-                    RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
-                    String claimSeparator = realmConfiguration
-                            .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-                    if (StringUtils.isBlank(claimSeparator)) {
-                        claimSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+            if (allLocalClaims != null) {
+                for (Map.Entry<String, String> entry : allLocalClaims.entrySet()) {
+                    //set local2sp role mappings
+                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey())) {
+                        RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
+                        String claimSeparator = realmConfiguration
+                                .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+                        if (StringUtils.isBlank(claimSeparator)) {
+                            claimSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                        }
+                        String roleClaim = entry.getValue();
+                        List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(claimSeparator)));
+                        roleClaim = getServiceProviderMappedUserRoles(appConfig, rolesList, claimSeparator);
+                        entry.setValue(roleClaim);
                     }
-                    String roleClaim = entry.getValue();
-                    List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(claimSeparator)));
-                    roleClaim = getServiceProviderMappedUserRoles(appConfig, rolesList, claimSeparator);
-                    entry.setValue(roleClaim);
                 }
             }
+
+
 
         } catch (UserStoreException e) {
             if (e.getMessage().contains("UserNotFound")) {
@@ -744,7 +744,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                               "from user store " + value);
                 }
             } else {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("Subject claim for " + tenantAwareUserId + " not found in user store");
                 }
             }

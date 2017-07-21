@@ -192,17 +192,17 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
             }
         }
 
-        for (String key : requestParams.keySet()) {
-            if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
+        for (Map.Entry entry : requestParams.entrySet()) {
+            if (entry.getKey().toString().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
 
-                String localClaimURI = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
-                claims.put(localClaimURI, requestParams.get(key)[0]);
+                String localClaimURI = entry.getKey().toString().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                claims.put(localClaimURI, entry.getValue().toString());
 
                 if (spToCarbonClaimMappingObject != null) {
                     String spClaimURI = carbonToSPClaimMapping.get(localClaimURI);
-                    claimsForContext.put(spClaimURI, requestParams.get(key)[0]);
+                    claimsForContext.put(spClaimURI, entry.getValue().toString());
                 } else {
-                    claimsForContext.put(localClaimURI, requestParams.get(key)[0]);
+                    claimsForContext.put(localClaimURI, entry.getValue().toString());
                 }
             }
         }

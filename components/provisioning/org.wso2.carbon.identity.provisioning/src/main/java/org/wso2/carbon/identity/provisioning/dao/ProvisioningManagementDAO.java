@@ -59,10 +59,10 @@ public class ProvisioningManagementDAO {
                                       ProvisioningEntity provisioningEntity, int tenantId)
             throws IdentityApplicationManagementException {
 
+        PreparedStatement prepStmt;
+
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
-
-            PreparedStatement prepStmt = null;
 
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
@@ -88,6 +88,8 @@ public class ProvisioningManagementDAO {
 
             prepStmt.execute();
             dbConnection.commit();
+            prepStmt.close();
+
         } catch (SQLException e) {
             IdentityApplicationManagementUtil.rollBack(dbConnection);
             String msg = "Error occurred while adding Provisioning entity for tenant " + tenantId;
@@ -106,13 +108,11 @@ public class ProvisioningManagementDAO {
      */
     public void deleteProvisioningEntity(String identityProviderName, String connectorType,
                                          ProvisioningEntity provisioningEntity, int tenantId)
-            throws IdentityApplicationManagementException {
+            throws IdentityApplicationManagementException, SQLException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement prepStmt = null;
         try {
-
-            PreparedStatement prepStmt = null;
-
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
 
@@ -133,11 +133,15 @@ public class ProvisioningManagementDAO {
 
             prepStmt.execute();
             dbConnection.commit();
+
         } catch (SQLException e) {
             IdentityApplicationManagementUtil.rollBack(dbConnection);
             String msg = "Error occurred while deleting Provisioning entity for tenant " + tenantId;
             throw new IdentityApplicationManagementException(msg, e);
         } finally {
+            if (prepStmt != null) {
+                prepStmt.close();
+            }
             IdentityApplicationManagementUtil.closeConnection(dbConnection);
         }
     }
@@ -151,12 +155,12 @@ public class ProvisioningManagementDAO {
      */
     public ProvisionedIdentifier getProvisionedIdentifier(String identityProviderName, String connectorType,
                                                           ProvisioningEntity provisioningEntity, int tenantId)
-            throws IdentityApplicationManagementException {
+            throws IdentityApplicationManagementException, SQLException {
+
+        PreparedStatement prepStmt = null;
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
-
-            PreparedStatement prepStmt = null;
 
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
@@ -195,6 +199,9 @@ public class ProvisioningManagementDAO {
             throw new IdentityApplicationManagementException(msg, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(dbConnection);
+            if (prepStmt != null) {
+                prepStmt.close();
+            }
         }
     }
 
@@ -224,7 +231,7 @@ public class ProvisioningManagementDAO {
                 throw new IdentityApplicationManagementException(msg);
             }
 
-            PreparedStatement prepStmt = null;
+            PreparedStatement prepStmt;
 
             // SP_IDP_NAME=?, SP_IDP_PRIMARY=?,SP_IDP_HOME_REALM_ID=?,
             // SP_IDP_THUMBPRINT=?,
@@ -388,7 +395,7 @@ public class ProvisioningManagementDAO {
             throws SQLException,
             IdentityApplicationManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -421,7 +428,7 @@ public class ProvisioningManagementDAO {
                                                        String connectorType) throws SQLException,
             IdentityApplicationManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -503,7 +510,7 @@ public class ProvisioningManagementDAO {
      */
     public String getProvisionedEntityNameByLocalId(String localId) throws IdentityApplicationManagementException {
         Connection dbConnection = null;
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -515,7 +522,7 @@ public class ProvisioningManagementDAO {
             if (rs.next()) {
                 return rs.getString(1);
             } else {
-                throw new IdentityApplicationManagementException("Given Local ID :"+localId+" does not exist");
+                throw new IdentityApplicationManagementException("Given Local ID :" + localId + " does not exist");
             }
         } catch (SQLException e) {
             IdentityApplicationManagementUtil.rollBack(dbConnection);

@@ -336,7 +336,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @throws ParserConfigurationException
      */
     public void editUserStoreWithDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
-            throws IdentityUserStoreMgtException{
+            throws IdentityUserStoreMgtException {
         boolean isDebugEnabled = log.isDebugEnabled();
         String domainName = userStoreDTO.getDomainId();
         if (isDebugEnabled) {
@@ -357,13 +357,13 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         String fileName = domainName.replace(".", "_");
         String previousFileName = previousDomainName.replace(".", "_");
 
-        if(!IdentityUtil.isValidFileName(fileName)){
+        if (!IdentityUtil.isValidFileName(fileName)) {
             String message = "Provided domain name : '" + domainName + "' is invalid.";
             log.error(message);
             throw new IdentityUserStoreMgtException(message);
         }
 
-        if(!IdentityUtil.isValidFileName(previousFileName)){
+        if (!IdentityUtil.isValidFileName(previousFileName)) {
             String message = "Provided domain name : '" + previousDomainName + "' is invalid.";
             log.error(message);
             throw new IdentityUserStoreMgtException(message);
@@ -561,7 +561,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             if (randomPasswordContainer == null) {
                 String errorMsg = "randomPasswordContainer is null for uniqueID therefore " +
                         "proceeding without encryption=" + uniqueID;
-                log.error(errorMsg);//need this error log to further identify the reason for throwing this exception
+                log.error(errorMsg); //need this error log to further identify the reason for throwing this exception
                 throw new IdentityUserStoreMgtException("Longer delay causes the edit operation be to " +
                         "abandoned");
             }
@@ -627,7 +627,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
 
     private void deleteFile(File file, final String userStoreName) throws IdentityUserStoreMgtException {
-        if(!IdentityUtil.isValidFileName(userStoreName)) {
+        if (!IdentityUtil.isValidFileName(userStoreName)) {
             String message = "Provided domain name : '" + userStoreName + "' is invalid.";
             log.error(message);
             throw new IdentityUserStoreMgtException(message);
@@ -638,13 +638,17 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 return name.equalsIgnoreCase(userStoreName);
             }
         });
-        for (File file1 : deleteCandidates) {
-            if (file1.delete()) {
-                log.info("File " + file.getName() + " deleted successfully");
-            } else {
-                log.error("error at deleting file:" + file.getName());
+
+        if (deleteCandidates != null && deleteCandidates.length > 0) {
+            for (File file1 : deleteCandidates) {
+                if (file1.delete()) {
+                    log.info("File " + file.getName() + " deleted successfully");
+                } else {
+                    log.error("error at deleting file:" + file.getName());
+                }
             }
         }
+
     }
 
     /**
@@ -704,8 +708,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully written to the file system");
             }
         } catch (ParserConfigurationException | SAXException | TransformerException | IOException e) {
-            log.error(e.getMessage(),e);
-            throw new IdentityUserStoreMgtException("Error while updating user store state",e);
+            log.error(e.getMessage(), e);
+            throw new IdentityUserStoreMgtException("Error while updating user store state", e);
         }
     }
 
@@ -776,7 +780,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     private File createConfigurationFile(String domainName) throws IdentityUserStoreMgtException {
         String fileName = domainName.replace(".", "_");
 
-        if(!IdentityUtil.isValidFileName(fileName)){
+        if (!IdentityUtil.isValidFileName(fileName)) {
             String message = "Provided domain name : '" + domainName + "' is invalid.";
             log.error(message);
             throw new IdentityUserStoreMgtException(message);
