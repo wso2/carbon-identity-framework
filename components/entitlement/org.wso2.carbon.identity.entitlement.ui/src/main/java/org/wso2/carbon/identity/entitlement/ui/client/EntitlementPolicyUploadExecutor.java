@@ -87,6 +87,8 @@ public class EntitlementPolicyUploadExecutor extends AbstractFileUploadExecutor 
                         if (!"".equals(policyContent)) {
                             client.uploadPolicy(policyContent);
                         }
+                    } catch (Exception ex) {
+                        throw new CarbonException("Policy file " + filename + "cannot be read");
                     } finally {
                         if (br != null) {
                             br.close();

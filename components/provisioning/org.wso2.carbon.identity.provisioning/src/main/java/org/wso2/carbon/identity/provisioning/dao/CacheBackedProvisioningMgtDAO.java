@@ -56,7 +56,9 @@ public class CacheBackedProvisioningMgtDAO {
                                       ProvisioningEntity provisioningEntity, int tenantId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+
         provisioningMgtDAO.addProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
+
 
         if (log.isDebugEnabled()) {
             log.debug("Caching newly added Provisioning Entity : " +
@@ -116,12 +118,7 @@ public class CacheBackedProvisioningMgtDAO {
                         ". Fetching entity from DB");
             }
 
-            ProvisionedIdentifier provisionedIdentifier;
-            try {
-                provisionedIdentifier = provisioningMgtDAO.getProvisionedIdentifier(identityProviderName, connectorType, provisioningEntity, tenantId);
-            } catch (SQLException ex) {
-                throw new IdentityApplicationManagementException("Error in getting provision identifier");
-            }
+            ProvisionedIdentifier provisionedIdentifier = provisioningMgtDAO.getProvisionedIdentifier(identityProviderName, connectorType, provisioningEntity, tenantId);
 
             if (provisionedIdentifier != null) {
                 if (log.isDebugEnabled()) {
@@ -181,12 +178,7 @@ public class CacheBackedProvisioningMgtDAO {
             provisioningEntityCache.clearCacheEntry(cacheKey);
         }
 
-        try {
-            provisioningMgtDAO.deleteProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
-        } catch (SQLException ex) {
-            throw new IdentityApplicationManagementException("Error in deleting provision entity");
-        }
-
+        provisioningMgtDAO.deleteProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
 
         if (log.isDebugEnabled()) {
             log.debug("Entry removed from DB for Provisioning Entity : " +
