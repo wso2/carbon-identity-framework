@@ -108,7 +108,7 @@ public class UMDatabaseManager {
                 stmt.setString(1, name);
                 stmt.setString(2, value);
                 stmt.executeUpdate();
-                stmt.executeUpdate();
+                dbConnection.commit();
             }
         }
     }
