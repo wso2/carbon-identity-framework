@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.ui;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.common.model.graph.xsd.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.xsd.Claim;
@@ -82,6 +83,15 @@ public class ApplicationBean {
     private String[] claimUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
+    private String[] graphs = new String[0];
+
+    public String[] getGraphs() {
+        return graphs;
+    }
+
+    public void setGraphs(String[] graphs) {
+        this.graphs = graphs;
+    }
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -889,6 +899,21 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
+
+        String graph = request.getParameter("graph");
+
+        if (StringUtils.isNotBlank(graph)) {
+
+            AuthenticationGraphConfig authenticationGraphConfig = new AuthenticationGraphConfig();
+            authenticationGraphConfig.setName(graph);
+
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new
+                    LocalAndOutboundAuthenticationConfig();
+            localAndOutboundAuthenticationConfig.setAuthenticationType("graph");
+            localAndOutboundAuthenticationConfig.setAuthenticationGraphConfig(authenticationGraphConfig);
+
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+        }
 
         String[] authSteps = request.getParameterValues("auth_step");
 

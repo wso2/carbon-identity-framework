@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
@@ -846,20 +847,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
                 loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-                if (authenticationSteps == null || authenticationSteps.length == 0) {
-                    ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
-                            .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                            .setAuthenticationSteps(authenticationSteps);
-                }
-                //if no authentication graph attached to the service provider, use default service provider graph
-                // configuration
-                if(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() == null ) {
-                    ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
-                            .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    localAndOutboundAuthenticationConfig.setAuthenticationGraphConfig(
-                            defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+                AuthenticationGraphConfig authenticationGraphConfig =
+                        localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig();
+                if (authenticationGraphConfig != null){
+                    String graphName = authenticationGraphConfig.getName();
+                    AuthenticationGraphConfigReaderService authenticationGraphConfigReaderService =
+                            ApplicationManagementServiceComponentHolder.getInstance().
+                                    getAuthenticationGraphConfigReaderService();
+                    localAndOutboundAuthenticationConfig.
+                            setAuthenticationGraphConfig(authenticationGraphConfigReaderService.getGraph(graphName));
+                } else {
+                    if (authenticationSteps == null || authenticationSteps.length == 0){
+                        ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
+                                .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationSteps(authenticationSteps);
+                    }
                 }
             }
         }
@@ -894,6 +898,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return serviceProvider;
+    }
+
+    public String[] getAllGraphs() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationGraphConfigReaderService().
+                getAllGraphs();
     }
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)

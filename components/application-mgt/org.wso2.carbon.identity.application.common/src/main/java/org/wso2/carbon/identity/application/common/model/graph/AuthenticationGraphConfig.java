@@ -45,7 +45,16 @@ public class AuthenticationGraphConfig implements Serializable {
     private Node startNode;
     private Node endNode;
     private String name;
+    private String reference;
     private Map<String, Node> nodesMap;
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
 
     /**
      * Builds the graph with Axiom.

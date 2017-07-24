@@ -25,11 +25,15 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.AuthenticationGraphConfigReaderService;
+import org.wso2.carbon.identity.application.mgt.internal.impl.AuthenticationGraphConfigReaderServiceImpl;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtValidationListener;
@@ -77,6 +81,12 @@ public class ApplicationManagementServiceComponent {
     protected void activate(ComponentContext context) {
         try {
             bundleContext = context.getBundleContext();
+            AuthenticationGraphConfigReaderService authenticationGraphConfigReaderService = new
+                    AuthenticationGraphConfigReaderServiceImpl(buildFileBasedGraphs());
+            bundleContext.registerService(AuthenticationGraphConfigReaderService.class,
+                    authenticationGraphConfigReaderService, null);
+            ApplicationManagementServiceComponentHolder.getInstance().
+                    setAuthenticationGraphConfigReaderService(authenticationGraphConfigReaderService);
             // Registering Application management service as a OSGIService
             bundleContext.registerService(ApplicationManagementService.class.getName(),
                     ApplicationManagementServiceImpl.getInstance(), null);
@@ -166,6 +176,16 @@ public class ApplicationManagementServiceComponent {
                         fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));
                         documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
                         ServiceProvider sp = ServiceProvider.build(documentElement);
+                        String graphRef = sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig().getReference();
+                        if(graphRef != null) {
+                            AuthenticationGraphConfig graph = ApplicationManagementServiceComponentHolder.
+                                    getInstance().getAuthenticationGraphConfigReaderService().getGraph(graphRef);
+                            if(graph != null) {
+                                sp.getLocalAndOutBoundAuthenticationConfig().setAuthenticationGraphConfig(graph);
+                            } else {
+                                log.error("Could not find a graph by reference. reference Id :"+graph);
+                            }
+                        }
                         if (sp != null) {
                             fileBasedSPs.put(sp.getApplicationName(), sp);
                         }
@@ -183,6 +203,42 @@ public class ApplicationManagementServiceComponent {
                 }
             }
         }
+    }
+
+    private Map<String, AuthenticationGraphConfig> buildFileBasedGraphs() {
+        Map<String, AuthenticationGraphConfig> authenticationGraphConfigMap = new HashMap<>();
+        String configDirPath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "identity"
+                + File.separator + "authentication-graphs";
+        FileInputStream fileInputStream = null;
+        File configDir = new File(configDirPath);
+        OMElement documentElement;
+
+        if (configDir.exists()) {
+
+            for (final File fileEntry : configDir.listFiles()) {
+                try {
+                    if (!fileEntry.isDirectory()) {
+                        fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));
+                        documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
+                        AuthenticationGraphConfig authGraph = AuthenticationGraphConfig.build(documentElement);
+                        if (authGraph != null) {
+                            authenticationGraphConfigMap.put(authGraph.getName(), authGraph);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Error while loading Authentication Graph from file system.", e);
+                } finally {
+                    if (fileInputStream != null) {
+                        try {
+                            fileInputStream.close();
+                        } catch (IOException e) {
+                            log.error("Error occurred while closing file input stream for file " + configDirPath, e);
+                        }
+                    }
+                }
+            }
+        }
+        return authenticationGraphConfigMap;
     }
 
 }

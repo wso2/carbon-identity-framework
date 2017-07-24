@@ -439,7 +439,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "identity.authentication.step.selection.evaluator",
             service = AuthenticationDecisionEvaluator.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthenticationDecisionEvaluator"
     )

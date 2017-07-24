@@ -49,14 +49,13 @@ public class GraphBuilder {
         AuthenticationGraph result = new AuthenticationGraph();
         result.setName(graphConfig.getName());
         Node startNodeConfig = graphConfig.getStartNode();
-        AuthGraphNode startNode = translate(startNodeConfig);
+        AuthGraphNode startNode = translate(startNodeConfig, graphConfig);
         result.setStartNode(startNode);
         visit(result, startNodeConfig, startNode, graphConfig);
         return result;
     }
 
-    private AuthGraphNode translate(Node configNode) {
-
+    private AuthGraphNode translate(Node configNode, AuthenticationGraphConfig graphConfig) {
         AuthGraphNode result = null;
         if (configNode == null) {
             return result;
@@ -66,11 +65,7 @@ public class GraphBuilder {
             return result;
         }
         if (configNode instanceof DecisionNode) {
-            DecisionNode decisionNode = (DecisionNode) configNode;
-
-            AuthDecisionPointNode decisionPointNode = new AuthDecisionPointNode(decisionNode);
-            result = decisionPointNode;
-
+            result = getDecisionPointNode((DecisionNode)configNode, graphConfig);
         } else if (configNode instanceof StepNode) {
             StepNode stepNode = (StepNode) configNode;
             result = createStepConfigurationObject(0, stepNode);
@@ -95,7 +90,7 @@ public class GraphBuilder {
             AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) node;
             DecisionNode decisionNode = (DecisionNode) configNode;
             Node defaultNode = graphConfig.getNodeByName(decisionNode.getDefaultLinkName());
-            decisionPointNode.setDefaultEdge(translate(defaultNode));
+            decisionPointNode.setDefaultEdge(translate(defaultNode, graphConfig));
             for (Link link : decisionNode.getLinks()) {
 
                 if (link.isEnd()) {
@@ -104,7 +99,7 @@ public class GraphBuilder {
                     String nextName = link.getNextLink();
                     if (StringUtils.isNotEmpty(nextName)) {
                         Node nextNode = graphConfig.getNodeByName(nextName);
-                        AuthGraphNode graphNode = translate(nextNode);
+                        AuthGraphNode graphNode = translate(nextNode, graphConfig);
                         decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(graphNode, link));
                         if (hasAlreadyVisited(graphNode)) {
                             visit(result, nextNode, graphNode, graphConfig);
@@ -127,7 +122,7 @@ public class GraphBuilder {
                             + ". Assuming it is the end step.");
                     stepConfigGraphNode.setNext(endStep);
                 } else {
-                    AuthGraphNode graphNode = translate(nextNode);
+                    AuthGraphNode graphNode = translate(nextNode, graphConfig);
                     stepConfigGraphNode.setNext(graphNode);
                     if (!hasAlreadyVisited(graphNode)) {
                         visit(result, nextNode, graphNode, graphConfig);
@@ -158,5 +153,24 @@ public class GraphBuilder {
 
         Integer i = nodeVsInboundLinks.get(node);
         return i != null && i > 1;
+    }
+
+
+    private AuthDecisionPointNode getDecisionPointNode(DecisionNode decisionNode, AuthenticationGraphConfig
+            graphConfig) {
+
+        AuthDecisionPointNode authDecisionPointNode = new AuthDecisionPointNode(decisionNode);
+
+        Node defaultNode = graphConfig.getNodeByName(decisionNode.getDefaultLinkName());
+        if (nodesMap.get(defaultNode) == null) {
+            if (defaultNode instanceof StepNode) {
+                nodesMap.put(defaultNode, createStepConfigurationObject(0, (StepNode)defaultNode));
+            } else if (defaultNode instanceof DecisionNode) {
+                nodesMap.put(defaultNode, new AuthDecisionPointNode((DecisionNode)defaultNode));
+            }
+        }
+
+        authDecisionPointNode.setDefaultEdge(nodesMap.get(defaultNode));
+        return authDecisionPointNode;
     }
 }

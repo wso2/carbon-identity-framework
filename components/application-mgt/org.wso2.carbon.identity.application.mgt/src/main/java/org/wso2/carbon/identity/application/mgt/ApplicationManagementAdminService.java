@@ -106,7 +106,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public void updateApplication(ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
-
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         // check whether use is authorized to update the application.
         if (!ApplicationConstants.LOCAL_SP.equals(serviceProvider.getApplicationName()) &&
                 !ApplicationMgtUtil.isUserAuthorized(serviceProvider.getApplicationName(), getUsername(),
@@ -196,6 +196,16 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public String[] getAllLocalClaimUris() throws IdentityApplicationManagementException {
         applicationMgtService = ApplicationManagementService.getInstance();
         return applicationMgtService.getAllLocalClaimUris(getTenantDomain());
+    }
+
+    /**
+     * Provide all available graphs
+     * @return
+     */
+    public String[] getGraphs() {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        return applicationMgtService.getAllGraphs();
     }
 
 }

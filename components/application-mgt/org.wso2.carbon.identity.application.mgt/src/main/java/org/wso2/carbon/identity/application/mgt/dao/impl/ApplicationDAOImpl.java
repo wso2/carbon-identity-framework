@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -803,6 +804,27 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
+        String authType = localAndOutboundAuthConfig.getAuthenticationType();
+
+        String STORE_AUTH_GRAPH = "INSERT INTO SP_AUTH_GRAPH (TENANT_ID, APP_ID, NAME, DESCRIPTION) " +
+                "VALUES (?,?,?,?)";
+
+        if ("graph".equals(authType)) {
+            PreparedStatement storeAuthGraphPrepStmt = null;
+            try {
+                storeAuthGraphPrepStmt = connection
+                        .prepareStatement(STORE_AUTH_GRAPH);
+                storeAuthGraphPrepStmt.setInt(1, tenantID);
+                storeAuthGraphPrepStmt.setInt(2, applicationId);
+                storeAuthGraphPrepStmt.setString(3, localAndOutboundAuthConfig.
+                        getAuthenticationGraphConfig().getName());
+                storeAuthGraphPrepStmt.setString(4, "");
+                storeAuthGraphPrepStmt.execute();
+            } finally {
+                IdentityApplicationManagementUtil.closeStatement(storeAuthGraphPrepStmt);
+            }
+        }
+
         PreparedStatement updateAuthTypePrepStmt = null;
         if (localAndOutboundAuthConfig == null) {
             // no local or out-bound configuration for this service provider.
@@ -880,7 +902,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
 
-        if (authSteps == null || authSteps.length == 0) {
+        if (!"graph".equals(authType) && (authSteps == null || authSteps.length == 0)) {
             // if no authentication steps defined - it should be the default behavior.
             localAndOutboundAuthConfig
                     .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
@@ -1925,6 +1947,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
 
         try {
+            String authType = getAuthenticationType(applicationId, connection);
+            LocalAndOutboundAuthenticationConfig localAndOutboundConfiguration
+                    = new LocalAndOutboundAuthenticationConfig();
+            localAndOutboundConfiguration.setAuthenticationType(authType);
+
+            if ("graph".equals(authType)) {
+                localAndOutboundConfiguration.setAuthenticationGraphConfig(
+                        getGraphConfiguration(applicationId, connection));
+            }
+
             getStepInfoPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_STEPS_INFO_BY_APP_ID);
             // STEP_ORDER, AUTHENTICATOR_ID, IS_SUBJECT_STEP, IS_ATTRIBUTE_STEP
@@ -1990,9 +2022,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 authSteps.put(step, authStep);
             }
 
-            LocalAndOutboundAuthenticationConfig localAndOutboundConfiguration
-                    = new LocalAndOutboundAuthenticationConfig();
-
             AuthenticationStep[] authenticationSteps = new AuthenticationStep[authSteps.size()];
 
             int authStepCount = 0;
@@ -2044,9 +2073,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             localAndOutboundConfiguration.setAuthenticationSteps(authenticationSteps);
 
-            String authType = getAuthenticationType(applicationId, connection);
-            localAndOutboundConfiguration.setAuthenticationType(authType);
-
             PreparedStatement localAndOutboundConfigPrepStmt = null;
             ResultSet localAndOutboundConfigResultSet = null;
 
@@ -2079,6 +2105,22 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(getStepInfoPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(stepInfoResultSet);
         }
+    }
+
+    private AuthenticationGraphConfig getGraphConfiguration(int applicationId, Connection connection)
+            throws SQLException {
+
+        AuthenticationGraphConfig authenticationGraphConfig = new AuthenticationGraphConfig();
+        PreparedStatement localAndOutboundConfigGraphPrepStmt = null;
+        ResultSet localAndOutboundConfigGraphResultSet = null;
+        String LOAD_AUTH_GRAPH_CONFIG = "SELECT NAME FROM SP_AUTH_GRAPH WHERE APP_ID = ?";
+        localAndOutboundConfigGraphPrepStmt = connection.prepareStatement(LOAD_AUTH_GRAPH_CONFIG);
+        localAndOutboundConfigGraphPrepStmt.setInt(1, applicationId);
+        localAndOutboundConfigGraphResultSet = localAndOutboundConfigGraphPrepStmt.executeQuery();
+        if (localAndOutboundConfigGraphResultSet.next()) {
+            authenticationGraphConfig.setName(localAndOutboundConfigGraphResultSet.getString(1));
+        }
+        return authenticationGraphConfig;
     }
 
     private boolean isFederationHubIdP(String idPName, Connection connection, int tenantId)
@@ -2550,6 +2592,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
 
         PreparedStatement deleteLocalAndOutboundAuthConfigPrepStmt = null;
+        PreparedStatement deleteLocalAndOutboundAuthGraphConfigPrepStmt = null;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
@@ -2558,6 +2601,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(1, applicationId);
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
+
+            deleteLocalAndOutboundAuthGraphConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_GRAPH WHERE APP_ID = ? AND TENANT_ID = ?");
+            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(1, applicationId);
+            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(2, tenantId);
+            deleteLocalAndOutboundAuthGraphConfigPrepStmt.execute();
 
         } finally {
             IdentityApplicationManagementUtil
