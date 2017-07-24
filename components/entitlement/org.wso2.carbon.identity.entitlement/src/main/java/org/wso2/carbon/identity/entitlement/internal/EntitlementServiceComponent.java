@@ -235,7 +235,7 @@ public class EntitlementServiceComponent {
 
                 boolean customPolicies = false;
 
-                if (policyFolder != null && policyFolder.exists()) {
+                if (policyFolder != null && policyFolder.exists() && policyFolder.listFiles() != null) {
                     for (File policyFile : policyFolder.listFiles()) {
                         if (policyFile.isFile()) {
                             PolicyDTO policyDTO = new PolicyDTO();

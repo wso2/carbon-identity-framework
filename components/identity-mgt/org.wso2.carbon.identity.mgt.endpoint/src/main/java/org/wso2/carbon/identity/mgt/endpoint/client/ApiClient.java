@@ -258,9 +258,11 @@ public class ApiClient {
         List<Pair> params = new ArrayList<Pair>();
 
         // preconditions
-        if (name == null || name.isEmpty() || value == null) return params;
+        if (name == null || name.isEmpty() || value == null) {
+            return params;
+        }
 
-        Collection<?> valueCollection = null;
+        Collection<?> valueCollection;
         if (value instanceof Collection<?>) {
             valueCollection = (Collection<?>) value;
         } else {
@@ -439,32 +441,32 @@ public class ApiClient {
             builder = httpClient.resource(url).accept(accept);
         }
 
-        for (String key : headerParams.keySet()) {
-            builder = builder.header(key, headerParams.get(key));
+        for (Entry entry : headerParams.entrySet()) {
+            builder = builder.header(entry.getKey().toString(), entry.getValue());
         }
-        for (String key : defaultHeaderMap.keySet()) {
-            if (!headerParams.containsKey(key)) {
-                builder = builder.header(key, defaultHeaderMap.get(key));
+        for (Entry entry : defaultHeaderMap.entrySet()) {
+            if (!headerParams.containsKey(entry.getKey())) {
+                builder = builder.header(entry.getKey().toString(), entry.getValue());
             }
         }
 
-        ClientResponse response = null;
+        ClientResponse response;
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":" + String.valueOf(IdentityManagementServiceUtil
                 .getInstance().getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
 
         if ("GET".equals(method)) {
-            response = (ClientResponse) builder.header("Authorization", "Client "+ authHeader).get(ClientResponse.class);
+            response = (ClientResponse) builder.header("Authorization", "Client " + authHeader).get(ClientResponse.class);
         } else if ("POST".equals(method)) {
-            response = builder.type(contentType).header("Authorization", "Client "+ authHeader).post(ClientResponse.class,
+            response = builder.type(contentType).header("Authorization", "Client " + authHeader).post(ClientResponse.class,
                     serialize(body, contentType, formParams));
         } else if ("PUT".equals(method)) {
             response = builder.type(contentType).header("Authorization", "Client " + authHeader).put(ClientResponse.class, serialize(body, contentType, formParams));
         } else if ("DELETE".equals(method)) {
             response = builder.type(contentType).header("Authorization", "Client " + authHeader).delete(ClientResponse.class, serialize(body, contentType, formParams));
         } else if ("PATCH".equals(method)) {
-            response = builder.type(contentType).header("X-HTTP-Method-Override", "PATCH").header("Authorization", "Client "+ authHeader).post(ClientResponse.class, serialize(body, contentType, formParams));
+            response = builder.type(contentType).header("X-HTTP-Method-Override", "PATCH").header("Authorization", "Client " + authHeader).post(ClientResponse.class, serialize(body, contentType, formParams));
         } else {
             throw new ApiException(500, "unknown method type " + method);
         }
@@ -497,10 +499,11 @@ public class ApiClient {
             throw new ApiException(204, "No content Found");
 
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
-            if (returnType == null)
+            if (returnType == null) {
                 return null;
-            else
+            } else {
                 return response.getEntity(returnType);
+            }
         } else {
             String message = "error";
             String respBody = null;

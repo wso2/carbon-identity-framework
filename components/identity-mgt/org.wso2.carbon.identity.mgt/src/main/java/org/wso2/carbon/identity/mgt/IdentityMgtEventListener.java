@@ -339,7 +339,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             if (MapUtils.isNotEmpty(transportHeaderMap)) {
                                 TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
                                 int i = 0;
-                                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
+                                for (Map.Entry<String, String> entry : transportHeaderMap.entrySet()) {
                                     TransportHeader transportHeader = new TransportHeader();
                                     transportHeader.setHeaderName(entry.getKey());
                                     transportHeader.setHeaderValue(entry.getValue());
@@ -744,17 +744,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = false;
+                if (identityDTO != null) {
+                    isAccountDisabled = identityDTO.getIsAccountDisabled();
+                }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                } else {
-                    // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
                 }
 
                 //account is already disabled and trying to update the credential without enabling it
@@ -822,17 +820,17 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+
+                boolean isAccountDisabled = false;
+
+                if (identityDTO != null) {
+                    isAccountDisabled = identityDTO.getIsAccountDisabled();
+                }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                } else {
-                    // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
                 }
 
                 //account is already disabled and trying to update the credential without enabling it

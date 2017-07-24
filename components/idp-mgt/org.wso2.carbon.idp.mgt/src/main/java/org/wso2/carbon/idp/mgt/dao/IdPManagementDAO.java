@@ -887,11 +887,7 @@ public class IdPManagementDAO {
     private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
         if (value != null) {
             InputStream inputStream = new ByteArrayInputStream(value.getBytes());
-            if (inputStream != null) {
-                prepStmt.setBinaryStream(index, inputStream, inputStream.available());
-            } else {
-                prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);
-            }
+            prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);
         }
