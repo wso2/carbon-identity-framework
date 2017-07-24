@@ -235,8 +235,10 @@ public class EntitlementServiceComponent {
 
                 boolean customPolicies = false;
 
-                if (policyFolder != null && policyFolder.exists()) {
-                    for (File policyFile : policyFolder.listFiles()) {
+                File[] fileList;
+                if (policyFolder != null && policyFolder.exists()
+                        && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
+                    for (File policyFile : fileList) {
                         if (policyFile.isFile()) {
                             PolicyDTO policyDTO = new PolicyDTO();
                             policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
@@ -464,7 +466,7 @@ public class EntitlementServiceComponent {
                 byte[] byteAddress = new byte[4];
                 for (int i = 0; i < splittedString.length; i++) {
                     if (Integer.parseInt(splittedString[i]) > 127) {
-                        byteAddress[i] = new Integer(Integer.parseInt(splittedString[i]) - 256).byteValue();
+                        byteAddress[i] = Integer.valueOf(Integer.parseInt(splittedString[i]) - 256).byteValue();
                     } else {
                         byteAddress[i] = Byte.parseByte(splittedString[i]);
                     }

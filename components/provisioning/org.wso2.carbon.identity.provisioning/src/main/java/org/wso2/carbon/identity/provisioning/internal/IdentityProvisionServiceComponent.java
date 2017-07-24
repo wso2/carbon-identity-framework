@@ -183,8 +183,7 @@ public class IdentityProvisionServiceComponent {
 
 
     protected void unsetProvisioningConnectorFactory(AbstractProvisioningConnectorFactory connectorFactory) {
-
-        ProvisioningServiceDataHolder.getInstance().getConnectorFactories().remove(connectorFactory);
+        ProvisioningServiceDataHolder.getInstance().getConnectorFactories().values().remove(connectorFactory);
         ProvisioningConnectorConfig provisioningConnectorConfig = ProvisioningConnectorService.getInstance().
                 getProvisioningConnectorByName(connectorFactory.getConnectorType());
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(provisioningConnectorConfig);
