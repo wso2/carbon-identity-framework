@@ -51,8 +51,13 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public void createApplication(ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        applicationMgtService.createApplication(serviceProvider, getTenantDomain(), getUsername());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.createApplication(serviceProvider, getTenantDomain(), getUsername());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while creating application for service provider: " + serviceProvider, idpException);
+            throw idpException;
+        }
     }
 
     /**
@@ -64,15 +69,20 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public ServiceProvider getApplication(String applicationName)
             throws IdentityApplicationManagementException {
+        try {
 
-        if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
-                !ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
-            log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                    " does not have access to the application " + applicationName);
-            throw new IdentityApplicationManagementException("User not authorized");
+            if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
+                    !ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have access to the application " + applicationName);
+                throw new IdentityApplicationManagementException("User not authorized");
+            }
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getApplicationExcludingFileBasedSPs(applicationName, getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting application: " + applicationName, idpException);
+            throw idpException;
         }
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getApplicationExcludingFileBasedSPs(applicationName, getTenantDomain());
     }
 
     /**
@@ -83,19 +93,25 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public ApplicationBasicInfo[] getAllApplicationBasicInfo()
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
 
-        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo: applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {
-                appInfo.add(applicationBasicInfo);
-                if (log.isDebugEnabled()) {
-                    log.debug("Application Name:" + applicationBasicInfo.getApplicationName());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+
+            ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
+            ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
+            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+                if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {
+                    appInfo.add(applicationBasicInfo);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Application Name:" + applicationBasicInfo.getApplicationName());
+                    }
                 }
             }
+            return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting all application basic info: ", idpException);
+            throw idpException;
         }
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
     }
 
     /**
@@ -108,16 +124,22 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             throws IdentityApplicationManagementException {
 
         // check whether use is authorized to update the application.
-        if (!ApplicationConstants.LOCAL_SP.equals(serviceProvider.getApplicationName()) &&
-                !ApplicationMgtUtil.isUserAuthorized(serviceProvider.getApplicationName(), getUsername(),
-                        serviceProvider.getApplicationID())) {
-            log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                    " does not have access to the application " +
-                    serviceProvider.getApplicationName());
-            throw new IdentityApplicationManagementException("User not authorized");
+        try {
+            if (!ApplicationConstants.LOCAL_SP.equals(serviceProvider.getApplicationName()) &&
+                    !ApplicationMgtUtil.isUserAuthorized(serviceProvider.getApplicationName(), getUsername(),
+                            serviceProvider.getApplicationID())) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have access to the application " +
+                        serviceProvider.getApplicationName());
+                throw new IdentityApplicationManagementException("User not authorized");
+            }
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while updating application by the service provider: " + serviceProvider, idpException);
+            throw idpException;
+
         }
-        applicationMgtService = ApplicationManagementService.getInstance();
-        applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
     }
 
     /**
@@ -128,14 +150,20 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public void deleteApplication(String applicationName)
             throws IdentityApplicationManagementException {
+        try {
 
-        if (!ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
-            log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                    " does not have access to the application " + applicationName);
-            throw new IdentityApplicationManagementException("User not authorized");
+            if (!ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have access to the application " + applicationName);
+                throw new IdentityApplicationManagementException("User not authorized");
+            }
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.deleteApplication(applicationName, getTenantDomain(), getUsername());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while deleting application: " + applicationName, idpException);
+            throw idpException;
+
         }
-        applicationMgtService = ApplicationManagementService.getInstance();
-        applicationMgtService.deleteApplication(applicationName, getTenantDomain(), getUsername());
     }
 
     /**
@@ -147,8 +175,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public IdentityProvider getIdentityProvider(String federatedIdPName)
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting identity provider: " + federatedIdPName, idpException);
+            throw idpException;
+
+        }
     }
 
     /**
@@ -159,8 +193,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public IdentityProvider[] getAllIdentityProviders()
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllIdentityProviders(getTenantDomain());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getAllIdentityProviders(getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting all identity providers", idpException);
+            throw idpException;
+
+        }
     }
 
     /**
@@ -171,8 +211,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public LocalAuthenticatorConfig[] getAllLocalAuthenticators()
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllLocalAuthenticators(getTenantDomain());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getAllLocalAuthenticators(getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting all local authenticators", idpException);
+            throw idpException;
+
+        }
     }
 
     /**
@@ -183,8 +229,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators()
             throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllRequestPathAuthenticators(getTenantDomain());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getAllRequestPathAuthenticators(getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting all request path authenticators", idpException);
+            throw idpException;
+
+        }
     }
 
     /**
@@ -194,8 +246,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public String[] getAllLocalClaimUris() throws IdentityApplicationManagementException {
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllLocalClaimUris(getTenantDomain());
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getAllLocalClaimUris(getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while getting all request path authenticators", idpException);
+            throw idpException;
+
+        }
     }
 
 }
