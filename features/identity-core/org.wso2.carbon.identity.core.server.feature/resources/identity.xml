@@ -128,6 +128,23 @@
         <SessionDataCacheTimeout>-1</SessionDataCacheTimeout>
         <ClaimCacheTimeout>-1</ClaimCacheTimeout>
 
+        <!-- Specify the Token issuer class to be used.
+             Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
+             Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
+        -->
+        <!--<IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</IdentityOAuthTokenGenerator>-->
+
+        <!-- This configuration is used to specify the access token value generator.
+             Default: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator
+             Applicable values: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator,
+                                org.apache.oltu.oauth2.as.issuer.MD5Generator,
+                                org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator-->
+        <!--<AccessTokenValueGenerator>org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator</AccessTokenValueGenerator>-->
+
+        <!-- This configuration is used to specify whether the Service Provider tenant domain should be used when generating
+             access token. Otherwise user domain will be used. Currently this value is only supported by the JWTTokenIssuer.-->
+        <!--<UseSPTenantDomain>True</UseSPTenantDomain>-->
+
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
