@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCacheEntry;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCacheKey;
 
-import java.sql.SQLException;
-
 public class CacheBackedProvisioningMgtDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedProvisioningMgtDAO.class);
