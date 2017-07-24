@@ -32,17 +32,10 @@ public class FacebookFederatedAuthenticatorConfig extends FederatedAuthenticator
      * @return
      */
     public boolean isValid() {
-        if (IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID)) &&
-                IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.Facebook.CLIENT_SECRET) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.Facebook.CLIENT_SECRET))) {
-            return true;
-        }
-        return false;
+        return isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID))
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.Facebook.CLIENT_SECRET));
     }
 
     @Override

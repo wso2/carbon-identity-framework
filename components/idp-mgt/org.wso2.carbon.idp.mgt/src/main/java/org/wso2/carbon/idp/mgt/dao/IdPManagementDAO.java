@@ -347,12 +347,14 @@ public class IdPManagementDAO {
 
         if (newFederatedAuthenticatorConfigs != null && newFederatedAuthenticatorConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthenticator : newFederatedAuthenticatorConfigs) {
-                if (oldFedAuthnConfigMap.containsKey(fedAuthenticator.getName())
-                        && oldFedAuthnConfigMap.get(fedAuthenticator.getName()).isValid()) {
-                    updateFederatedAuthenticatorConfig(fedAuthenticator, oldFedAuthnConfigMap.get(fedAuthenticator
-                            .getName()), dbConnection, idpId, tenantId);
-                } else {
-                    addFederatedAuthenticatorConfig(fedAuthenticator, dbConnection, idpId, tenantId);
+                if (fedAuthenticator.isValid()) {
+                    if (oldFedAuthnConfigMap.containsKey(fedAuthenticator.getName())) {
+                        updateFederatedAuthenticatorConfig(fedAuthenticator,
+                                oldFedAuthnConfigMap.get(fedAuthenticator.getName()),
+                                dbConnection, idpId, tenantId);
+                    } else {
+                        addFederatedAuthenticatorConfig(fedAuthenticator, dbConnection, idpId, tenantId);
+                    }
                 }
             }
         }

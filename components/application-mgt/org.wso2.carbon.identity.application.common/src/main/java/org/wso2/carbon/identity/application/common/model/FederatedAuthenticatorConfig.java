@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -172,5 +173,14 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
+    }
+
+    /**
+     * Checks whether given property is not null and property value is not blank
+     * @param property
+     * @return boolean
+     */
+    public boolean isValidPropertyValue (Property property){
+        return property != null && StringUtils.isNotBlank(property.getValue());
     }
 }
