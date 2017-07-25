@@ -154,22 +154,21 @@
             String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
             String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
 
-            if (request.getParameter("relyingParty").equals("wso2.my.dashboard")) {
-                String identityMgtEndpointContext =
-                        application.getInitParameter("IdentityManagementEndpointContextURL");
-                if (StringUtils.isBlank(identityMgtEndpointContext)) {
-                    identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
-                }
+            String identityMgtEndpointContext =
+                    application.getInitParameter("IdentityManagementEndpointContextURL");
+            if (StringUtils.isBlank(identityMgtEndpointContext)) {
+                identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+            }
 
-                URL url = null;
-                HttpURLConnection httpURLConnection = null;
+            URL url = null;
+            HttpURLConnection httpURLConnection = null;
 
-                url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback="+Encode.forHtmlAttribute
-                        (urlEncodedURL ));
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestMethod("HEAD");
-                httpURLConnection.connect();
-                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute
+                    (urlEncodedURL));
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setRequestMethod("HEAD");
+            httpURLConnection.connect();
+            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
         %>
         <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
         <br/><br/>
@@ -201,7 +200,6 @@
         Don't have an account?
         <a id="registerLink" href="<%=url%>">Register Now</a>
         <%
-                }
             }
         %>
         <br/>
