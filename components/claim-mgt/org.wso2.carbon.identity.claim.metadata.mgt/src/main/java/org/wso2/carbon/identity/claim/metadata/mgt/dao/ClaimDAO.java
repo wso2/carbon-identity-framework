@@ -28,9 +28,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,7 +43,6 @@ public class ClaimDAO {
     public Map<Integer, Claim> getClaims(Connection connection, String claimDialectURI, int tenantId) throws
             ClaimMetadataException {
 
-        List<Claim> claimList = new ArrayList<>();
         Map<Integer, Claim> claimMap = new HashMap<>();
 
         PreparedStatement prepStmt = null;

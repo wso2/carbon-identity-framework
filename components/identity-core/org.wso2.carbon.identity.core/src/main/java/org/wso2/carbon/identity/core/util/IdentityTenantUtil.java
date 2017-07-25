@@ -116,23 +116,24 @@ public class IdentityTenantUtil {
 
     private static UserRealm getRealmForAnonymousSession(String domainName, String username)
             throws IdentityException {
-        try {
-            if (domainName == null && username == null) {
-                domainName = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            }
 
-            if (username == null) {
-                return AnonymousSessionUtil.getRealmByTenantDomain(registryService, realmService,
-                        domainName);
-            } else if (username != null) {
+        try {
+            if (username != null) {
                 return AnonymousSessionUtil.getRealmByUserName(registryService, realmService,
                         username);
             }
+
+            if (domainName == null) {
+                domainName = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            }
+
+            return AnonymousSessionUtil.getRealmByTenantDomain(registryService, realmService,
+                    domainName);
+
         } catch (CarbonException e) {
-            log.error("Error obtaining the realm", e);
-            throw IdentityException.error("Error Obtaining a realm", e);
+            throw IdentityException.error("Error Obtaining a realm for user name: " + username + " and " +
+                    "domain:" + domainName, e);
         }
-        return null;
     }
 
     public static String getGlobalUserName(String userName) {
@@ -260,7 +261,7 @@ public class IdentityTenantUtil {
                     tenantId + e.getMessage(), e);
         }
         if(tenantDomain == null){
-            throw IdentityRuntimeException.error("Invalid tenant domain " + tenantDomain);
+            throw IdentityRuntimeException.error("Can not find the tenant domain for the tenant id " + tenantId);
         } else {
             return tenantDomain;
         }
