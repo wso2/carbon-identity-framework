@@ -49,13 +49,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return application id
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public void createApplication(ServiceProvider serviceProvider)
-            throws IdentityApplicationManagementException {
+    public void createApplication(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.createApplication(serviceProvider, getTenantDomain(), getUsername());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while creating application for service provider: " + serviceProvider, idpException);
+            log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
+                    getTenantDomain(), idpException);
             throw idpException;
         }
     }
@@ -67,10 +68,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return service provider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ServiceProvider getApplication(String applicationName)
-            throws IdentityApplicationManagementException {
-        try {
+    public ServiceProvider getApplication(String applicationName) throws IdentityApplicationManagementException {
 
+        try {
             if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
                     !ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
@@ -80,7 +80,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getApplicationExcludingFileBasedSPs(applicationName, getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting application: " + applicationName, idpException);
+            log.error("Error while retrieving application: " + applicationName + " for tenant: " + getTenantDomain(),
+                    idpException);
             throw idpException;
         }
     }
@@ -91,25 +92,26 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo()
-            throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-
-            ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
+            ApplicationBasicInfo[] applicationBasicInfos =
+                    applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
             ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
             for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
                 if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {
                     appInfo.add(applicationBasicInfo);
                     if (log.isDebugEnabled()) {
-                        log.debug("Application Name:" + applicationBasicInfo.getApplicationName());
+                        log.debug("Retrieving basic information of application: " +
+                                applicationBasicInfo.getApplicationName());
                     }
                 }
             }
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting all application basic info: ", idpException);
+            log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
+                    idpException);
             throw idpException;
         }
     }
@@ -120,8 +122,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @param serviceProvider Service provider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public void updateApplication(ServiceProvider serviceProvider)
-            throws IdentityApplicationManagementException {
+    public void updateApplication(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         // check whether use is authorized to update the application.
         try {
@@ -129,14 +130,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     !ApplicationMgtUtil.isUserAuthorized(serviceProvider.getApplicationName(), getUsername(),
                             serviceProvider.getApplicationID())) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " does not have access to the application " +
-                        serviceProvider.getApplicationName());
+                        " does not have access to the application " + serviceProvider.getApplicationName());
                 throw new IdentityApplicationManagementException("User not authorized");
             }
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while updating application by the service provider: " + serviceProvider, idpException);
+            log.error("Error while updating application: " + serviceProvider.getApplicationName() + " for tenant: " +
+                    getTenantDomain(), idpException);
             throw idpException;
 
         }
@@ -148,10 +149,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @param applicationName Application name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public void deleteApplication(String applicationName)
-            throws IdentityApplicationManagementException {
-        try {
+    public void deleteApplication(String applicationName) throws IdentityApplicationManagementException {
 
+        try {
             if (!ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
                         " does not have access to the application " + applicationName);
@@ -160,7 +160,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.deleteApplication(applicationName, getTenantDomain(), getUsername());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while deleting application: " + applicationName, idpException);
+            log.error("Error while deleting application: " + applicationName + " for tenant: " + getTenantDomain(),
+                    idpException);
             throw idpException;
 
         }
@@ -173,13 +174,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Identity provider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public IdentityProvider getIdentityProvider(String federatedIdPName)
-            throws IdentityApplicationManagementException {
+    public IdentityProvider getIdentityProvider(String federatedIdPName) throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting identity provider: " + federatedIdPName, idpException);
+            log.error("Error while retrieving identity provider: " + federatedIdPName + " for tenant: " +
+                            getTenantDomain(), idpException);
             throw idpException;
 
         }
@@ -191,13 +193,13 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Identity providers array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public IdentityProvider[] getAllIdentityProviders()
-            throws IdentityApplicationManagementException {
+    public IdentityProvider[] getAllIdentityProviders() throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getAllIdentityProviders(getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting all identity providers", idpException);
+            log.error("Error while retrieving all identity providers for tenant: " + getTenantDomain(), idpException);
             throw idpException;
 
         }
@@ -209,13 +211,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return local authenticators array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public LocalAuthenticatorConfig[] getAllLocalAuthenticators()
-            throws IdentityApplicationManagementException {
+    public LocalAuthenticatorConfig[] getAllLocalAuthenticators() throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getAllLocalAuthenticators(getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting all local authenticators", idpException);
+            log.error("Error while retrieving all local authenticators for tenant: " + getTenantDomain(),
+                    idpException);
             throw idpException;
 
         }
@@ -229,11 +232,13 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators()
             throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getAllRequestPathAuthenticators(getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting all request path authenticators", idpException);
+            log.error("Error while retrieving all request path authenticators for tenant: " + getTenantDomain(),
+                    idpException);
             throw idpException;
 
         }
@@ -246,11 +251,12 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public String[] getAllLocalClaimUris() throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getAllLocalClaimUris(getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while getting all request path authenticators", idpException);
+            log.error("Error while retrieving all local claim URIs for tenant: " + getTenantDomain(), idpException);
             throw idpException;
 
         }
