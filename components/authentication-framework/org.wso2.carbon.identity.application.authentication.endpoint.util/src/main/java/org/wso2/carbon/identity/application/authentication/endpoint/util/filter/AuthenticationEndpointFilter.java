@@ -24,6 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -33,9 +36,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * AuthenticationEndpointFilter acts as a front controller for all incoming requests to the authenticationendpoint
@@ -122,25 +122,32 @@ public class AuthenticationEndpointFilter implements Filter {
             }
 
             Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
+            Map<String, String> idpNameMapping = new HashMap<String, String>();
             String authenticators = servletRequest.getParameter(REQUEST_PARAM_AUTHENTICATORS);
             if (authenticators != null) {
                 String[] authenticatorIdPMappings = authenticators.split(";");
                 for (String authenticatorIdPMapping : authenticatorIdPMappings) {
                     String[] authenticatorIdPMapArr = authenticatorIdPMapping.split(":");
-                    for (int i = 1; i < authenticatorIdPMapArr.length; i++) {
-                        if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                                        idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
-                                                        authenticatorIdPMapArr[0]);
-                        } else {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
-                        }
+                    if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[1])) {
+                        idpAuthenticatorMapping.put(authenticatorIdPMapArr[1],
+                                                    idpAuthenticatorMapping.get(authenticatorIdPMapArr[1]) + "," +
+                                                    authenticatorIdPMapArr[0]);
+                    } else {
+                        idpAuthenticatorMapping.put(authenticatorIdPMapArr[1], authenticatorIdPMapArr[0]);
+                    }
+
+                    if (authenticatorIdPMapArr.length > 2){
+                        idpNameMapping.put(authenticatorIdPMapArr[1], authenticatorIdPMapArr[2]);
                     }
                 }
             }
 
             if (!idpAuthenticatorMapping.isEmpty()) {
                 servletRequest.setAttribute(Constants.IDP_AUTHENTICATOR_MAP, idpAuthenticatorMapping);
+            }
+
+            if (!idpNameMapping.isEmpty()) {
+                servletRequest.setAttribute(Constants.IDP_AUTHENTICATOR_NAME_MAP, idpNameMapping);
             }
 
             String loadPage;

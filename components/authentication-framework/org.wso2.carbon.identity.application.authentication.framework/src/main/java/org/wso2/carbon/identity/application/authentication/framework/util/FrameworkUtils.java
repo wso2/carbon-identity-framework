@@ -932,6 +932,16 @@ public class FrameworkUtils {
                     }
 
                     idpsOfAuthenticatorStr.append(idpName);
+
+                    for (FederatedAuthenticatorConfig fedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                        if (StringUtils.isNotEmpty(fedAuthConfig.getName()) &&
+                                fedAuthConfig.getName().equals(authConfig.getName()) &&
+                                StringUtils.isNotEmpty(fedAuthConfig.getDisplayName())) {
+                            idpsOfAuthenticatorStr.append(":");
+                            idpsOfAuthenticatorStr.append(fedAuthConfig.getDisplayName().toUpperCase());
+                        }
+                    }
+
                 }
             }
 
