@@ -286,16 +286,26 @@ public class IdentityRequest implements Serializable {
             if (attributes == null) {
                 throw FrameworkRuntimeException.error("Attributes map is null.");
             }
-            this.attributes = attributes;
+
+            Map<String, Object> attributeMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+                if (entry.getValue() instanceof Serializable) {
+                    attributeMap.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            this.attributes = attributeMap;
             return this;
         }
 
         public IdentityRequestBuilder addAttribute(String name, Object value) {
             if (this.attributes.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Attributes map trying to override existing " +
-                                                      "key " + name);
+                throw FrameworkRuntimeException.error("Attributes map trying to override existing key: " + name);
             }
-            this.attributes.put(name, value);
+
+            if (value instanceof Serializable) {
+                this.attributes.put(name, value);
+            }
             return this;
         }
 
