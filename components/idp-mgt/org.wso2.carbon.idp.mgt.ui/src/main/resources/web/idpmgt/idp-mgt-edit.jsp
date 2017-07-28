@@ -1224,8 +1224,14 @@
         }
     }
 
+    // If SCIM Provisioning has not been Configured at all,
+    // make password provisioning enable by default.
+    // Since scimUserName is a required field,
+    // it being blank means that SCIM Provisioning has not been configured at all.
     if (scimUserName == null) {
         scimUserName = "";
+        scimPwdProvEnabledChecked = "checked=\'checked\'";
+        disableDefaultPwd = "disabled=\'disabled\'";
     }
     if (scimPassword == null) {
         scimPassword = "";
