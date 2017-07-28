@@ -24,6 +24,7 @@ public class IdentityApplicationConstants {
     private IdentityApplicationConstants(){
     }
 
+    public static final String REF = "ref";
     public static final String APPLICATION_AUTHENTICATION_CONGIG = "application-authentication.xml";
     public static final String APPLICATION_AUTHENTICATION_DEFAULT_NAMESPACE =
             "http://wso2.org/projects/carbon/application-authentication.xml";
