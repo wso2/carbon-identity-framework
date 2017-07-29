@@ -40,6 +40,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -78,7 +80,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     @Override
     public Map<String, String> handleClaimMappings(StepConfig stepConfig,
-                                                   AuthenticationContext context, Map<String, String> remoteClaims,
+                                                   AuthenticationContext context,
+                                                   Map<String, String> remoteClaims,
                                                    boolean isFederatedClaims) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
@@ -111,9 +114,10 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @return
      * @throws FrameworkException
      */
-    protected Map<String, String> handleFederatedClaims(Map<String, String> remoteClaims, String spStandardDialect,
-                                                        StepConfig stepConfig, AuthenticationContext context)
-            throws FrameworkException {
+    protected Map<String, String> handleFederatedClaims(Map<String, String> remoteClaims,
+                                                        String spStandardDialect,
+                                                        StepConfig stepConfig,
+                                                        AuthenticationContext context) throws FrameworkException {
 
         ClaimMapping[] idPClaimMappings = context.getExternalIdP().getClaimMappings();
 
@@ -121,16 +125,26 @@ public class DefaultClaimHandler implements ClaimHandler {
             idPClaimMappings = new ClaimMapping[0];
         }
 
-        Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
-                getClaimMappings();
+        Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().getClaimMappings();
 
         if (spClaimMappings == null) {
             spClaimMappings = new HashMap<>();
         }
 
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+        Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getRequestedClaimMappings();
+
+        if (spRequestedClaimMappings == null || spRequestedClaimMappings.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                String spName = context.getServiceProviderName();
+                String spTenantDomain = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
+                        .getOwner().getTenantDomain();
+                log.debug("No claims requested by the service provider: " + spName + ", tenantDomain: " + spTenantDomain);
+            }
+            return new HashMap<>();
+        }
+
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
                 .LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
             carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
@@ -359,8 +373,14 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        if (requestedClaimMappings == null) {
-            requestedClaimMappings = new HashMap<>();
+
+        if (requestedClaimMappings == null || requestedClaimMappings.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                String spName = context.getServiceProviderName();
+                String spTenantDomain = serviceProvider.getOwner().getTenantDomain();
+                log.debug("No claims requested by the service provider: " + spName + ", tenantDomain: " + spTenantDomain);
+            }
+            return new HashMap<>();
         }
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
