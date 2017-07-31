@@ -104,6 +104,7 @@ public class AuthenticationGraphConfig implements Serializable {
                 authenticationGraphConfig = new AuthenticationGraphConfig();
                 authenticationGraphConfig.startNode = startNode;
                 authenticationGraphConfig.nodesMap = nodesMap;
+                authenticationGraphConfig.name = graphOM.getAttribute(new QName("name")).getAttributeValue();
             } catch (IdentityApplicationManagementException e) {
                 log.error("Error in building authentication graph", e);
             }
