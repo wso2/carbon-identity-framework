@@ -109,9 +109,37 @@
         <%
             }
         %>
+
+         <script>
+
+	function checkSessionKey() {
+                $.ajax({
+                    type: "GET",
+                    url: "/logincontext?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                    success: function (data) {
+                        if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
+                            window.location.href = data.redirectUrl;
+                        }
+                    }
+                });
+            }
+
+
+	function getParameterByName(name, url) {
+             if (!url) {
+                url = window.location.href;
+             }
+             name = name.replace(/[\[\]]/g, '\\$&');
+             var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+             results = regex.exec(url);
+             if (!results) return null;
+             if (!results[2]) return "";
+             return decodeURIComponent(results[2].replace(/\+/g, ' '));
+         }
+         </script>
     </head>
 
-    <body>
+    <body onload="checkSessionKey()">
 
     <!-- header -->
     <header class="header header-default">
@@ -366,7 +394,7 @@
                 return $("#popover-content").html();
             }
         });
-
+        window.onunload = function(){};
     </script>
 
     </body>
@@ -374,4 +402,3 @@
 
 
 </fmt:bundle>
-
