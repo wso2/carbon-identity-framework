@@ -1644,19 +1644,18 @@ public class UserRealmProxy {
                 throw new UserAdminException("Invalid data"); // obscure error
                 // message
             }
-
-            UserStoreManager admin = realm.getUserStoreManager();
-            String[] oldRoleList = admin.getRoleListOfUser(userName);
-            Arrays.sort(oldRoleList);
-            List<String> addRoles = new ArrayList<String>();
-            List<String> delRoles = new ArrayList<String>();
-
             if (roleList != null) {
                 String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
                 RealmConfiguration realmConfig = realm.getRealmConfiguration();
                 String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
                 Arrays.sort(roleList);
                 String[] roles = realm.getUserStoreManager().getRoleListOfUser(userName);
+
+                UserStoreManager admin = realm.getUserStoreManager();
+                String[] oldRoleList = admin.getRoleListOfUser(userName);
+                Arrays.sort(oldRoleList);
+                List<String> addRoles = new ArrayList<String>();
+                List<String> delRoles = new ArrayList<String>();
 
 
                 boolean isUserHasAdminPermission = false;
@@ -1725,9 +1724,9 @@ public class UserRealmProxy {
                         delRoles.add(name);
                     }
                 }
+                admin.updateRoleListOfUser(userName, delRoles.toArray(new String[delRoles.size()]),
+                        addRoles.toArray(new String[addRoles.size()]));
             }
-            admin.updateRoleListOfUser(userName, delRoles.toArray(new String[delRoles.size()]),
-                    addRoles.toArray(new String[addRoles.size()]));
         } catch (UserStoreException e) {
             // previously logged so logging not needed
             throw new UserAdminException(e.getMessage(), e);

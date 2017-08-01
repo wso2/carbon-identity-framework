@@ -249,9 +249,8 @@ public class EntitlementServiceComponent {
                                     // log and ignore
                                     log.error("Error while adding XACML policies", e);
                                 }
-                                customPolicies = true;
-
                             }
+                            customPolicies = true;
                         }
                     }
                 }
