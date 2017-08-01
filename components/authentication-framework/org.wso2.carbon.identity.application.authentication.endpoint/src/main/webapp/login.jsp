@@ -43,8 +43,12 @@
         request.getSession().invalidate();
         String queryString = request.getQueryString();
         Map<String, String> idpAuthenticatorMapping = null;
+        Map<String, String> idpAuthenticatorNameMapping = null;
         if (request.getAttribute(Constants.IDP_AUTHENTICATOR_MAP) != null) {
             idpAuthenticatorMapping = (Map<String, String>) request.getAttribute(Constants.IDP_AUTHENTICATOR_MAP);
+        }
+        if (request.getAttribute(Constants.IDP_AUTHENTICATOR_NAME_MAP) != null) {
+            idpAuthenticatorNameMapping = (Map<String, String>) request.getAttribute(Constants.IDP_AUTHENTICATOR_NAME_MAP);
         }
 
         String errorMessage = "Authentication Failed! Please Retry";
@@ -235,7 +239,7 @@
                                          title="Sign in with <%=Encode.forHtmlAttribute(idpName)%>"/>
 
                                     <div id="popover-head" class="hide">
-                                        <label class="font-large">Sign in with <%=Encode.forHtmlContent(idpName)%></label>
+                                        <label class="font-large">Sign in with <%=Encode.forHtmlContent(idpName)%>(<%=Encode.forHtmlContent(idpAuthenticatorNameMapping.get(idpName))%>)</label>
                                     </div>
                                     <div id="popover-content" class="hide">
                                         <form class="form-inline">
@@ -261,7 +265,7 @@
                                     <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
                                          data-placement="top" title="Sign in with <%=Encode.forHtmlAttribute(idpName)%>"/>
                                 </a>
-                                <label for="icon-<%=iconId%>"><%=Encode.forHtmlContent(idpName)%></label>
+                                <label for="icon-<%=iconId%>"><%=Encode.forHtmlContent(idpName)%>(<%=Encode.forHtmlContent(idpAuthenticatorNameMapping.get(idpName))%>)</label>
                                     </div>
                                 <%} %>
                                 <%

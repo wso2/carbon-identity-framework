@@ -28,6 +28,7 @@ public class Constants {
     public static final String STATUS = "status";
     public static final String STATUS_MSG = "statusMsg";
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
+    public static final String IDP_AUTHENTICATOR_NAME_MAP = "idpAuthenticatorNameMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL" ;
 
