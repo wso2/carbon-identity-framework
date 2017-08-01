@@ -88,7 +88,6 @@ public class ProvisioningManagementDAO {
 
             prepStmt.execute();
             dbConnection.commit();
-
         } catch (SQLException e) {
             IdentityApplicationManagementUtil.rollBack(dbConnection);
             String msg = "Error occurred while adding Provisioning entity for tenant " + tenantId;
@@ -132,7 +131,6 @@ public class ProvisioningManagementDAO {
 
             prepStmt.execute();
             dbConnection.commit();
-
         } catch (SQLException e) {
             IdentityApplicationManagementUtil.rollBack(dbConnection);
             String msg = "Error occurred while deleting Provisioning entity for tenant " + tenantId;

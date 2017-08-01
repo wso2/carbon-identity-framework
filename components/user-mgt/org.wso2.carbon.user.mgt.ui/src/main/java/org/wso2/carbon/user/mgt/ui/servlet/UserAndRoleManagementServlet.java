@@ -20,6 +20,7 @@ package org.wso2.carbon.user.mgt.ui.servlet;
 
 import com.google.gson.Gson;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -57,17 +58,22 @@ import java.util.ResourceBundle;
  */
 public class UserAndRoleManagementServlet extends HttpServlet {
 
-    private static final Log log = LogFactory.getLog(UserAndRoleManagementServlet.class);
-    private static final String PERMISSION_VIEWTASKS = "/permission/admin/manage/humantask/viewtasks";
+    private static final Log log                        = LogFactory.getLog(UserAndRoleManagementServlet.class);
+    private static final String PERMISSION_VIEWTASKS    = "/permission/admin/manage/humantask/viewtasks";
+    private static final String USERS                   = "users";
+    private static final String CATEGORY                = "category";
+    private static final String ROLES                   = "roles";
+    private static final String PREVIOUS_ROLE           = "previousRole";
+    private static final String DOMAIN                  = "domain";
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String category = request.getParameter("category");
+        String category = request.getParameter(CATEGORY);
         HttpSession session = request.getSession();
 
-        if (category != null && category.equals("users")) {
+        if (USERS.equals(category)) {
 
             boolean error = false;
             boolean newFilter = false;
@@ -123,7 +129,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED);
 
             //  search filter
-            String selectedDomain = request.getParameter("domain");
+            String selectedDomain = request.getParameter(DOMAIN);
             if (selectedDomain == null || selectedDomain.trim().length() == 0) {
                 selectedDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
                 if (selectedDomain == null || selectedDomain.trim().length() == 0) {
@@ -283,7 +289,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                 response.getWriter().write(resp);
 
             }
-        } else if (category != null && category.equals("roles")) {
+        } else if (ROLES.equals(category)) {
 
             boolean error = false;
             boolean newFilter = false;
@@ -314,10 +320,10 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_UNASSIGNED_USER_FILTER);
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_VIEW_USER_FILTER);
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE);
-            session.removeAttribute("previousRole");
+            session.removeAttribute(PREVIOUS_ROLE);
             // search filter
-            String selectedDomain = request.getParameter("domain");
-            if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+            String selectedDomain = request.getParameter(DOMAIN);
+            if (StringUtils.isBlank(selectedDomain)) {
                 selectedDomain = (String) session.getAttribute(UserAdminUIConstants.ROLE_LIST_DOMAIN_FILTER);
                 if (selectedDomain == null || selectedDomain.trim().length() == 0) {
                     selectedDomain = UserAdminUIConstants.ALL_DOMAINS;

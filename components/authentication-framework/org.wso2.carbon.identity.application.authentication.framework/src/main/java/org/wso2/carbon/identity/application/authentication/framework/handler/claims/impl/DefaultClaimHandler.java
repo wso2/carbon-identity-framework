@@ -442,7 +442,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         return spRequestedClaims;
     }
 
-    private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings, Map<String, String> carbonToStandardClaimMapping) {
+    private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings,
+                                                                  Map<String, String> carbonToStandardClaimMapping) {
         Map<String, String> requestedClaimMappingsInStandardDialect = new HashMap<>();
         if (requestedClaimMappings != null) {
             Iterator iterator = requestedClaimMappings.entrySet().iterator();
@@ -518,8 +519,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
-                         spStandardDialect + " dialect for " +
-                        tenantDomain + " to handle local claims", e);
+                         spStandardDialect + " dialect for " + tenantDomain + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
@@ -561,10 +561,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                         entry.setValue(roleClaim);
                     }
                 }
+            } else {
+                return new HashMap<>();
             }
-
-
-
         } catch (UserStoreException e) {
             if (e.getMessage().contains("UserNotFound")) {
                 if (log.isDebugEnabled()) {
@@ -574,9 +573,6 @@ public class DefaultClaimHandler implements ClaimHandler {
                 throw new FrameworkException("Error occurred while getting all user claims for " +
                         authenticatedUser + " in " + tenantDomain, e);
             }
-        }
-        if (allLocalClaims == null) {
-            allLocalClaims = new HashMap<>();
         }
         return allLocalClaims;
     }

@@ -159,6 +159,8 @@ public class OutboundProvisioningManager {
                     }
                     return entry.getConnectors();
                 }
+            } else {
+                throw new IdentityProvisioningException("Error reading service provider from cache.");
             }
 
         } finally {

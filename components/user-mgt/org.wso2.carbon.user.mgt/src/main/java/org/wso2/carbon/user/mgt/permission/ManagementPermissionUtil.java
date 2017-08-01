@@ -66,9 +66,9 @@ public class ManagementPermissionUtil {
     
 	public static Permission[] getRoleUIPermissions(String roleName, String[] rawPermissions)
 			throws UserAdminException {
-		Permission[] permissions = new Permission[0];
-		if (ArrayUtils.isEmpty(permissions)) {
-			return permissions;
+		Permission[] permissions;
+		if (ArrayUtils.isEmpty(rawPermissions)) {
+			return new Permission[0];
 		}
 
 		String[] optimizedList = UserCoreUtil.optimizePermissions(rawPermissions);

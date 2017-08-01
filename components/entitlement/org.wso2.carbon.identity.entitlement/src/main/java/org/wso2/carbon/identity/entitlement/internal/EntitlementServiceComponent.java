@@ -48,7 +48,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -250,9 +249,9 @@ public class EntitlementServiceComponent {
                                     // log and ignore
                                     log.error("Error while adding XACML policies", e);
                                 }
-                            }
-                            customPolicies = true;
+                                customPolicies = true;
 
+                            }
                         }
                     }
                 }

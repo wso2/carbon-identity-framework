@@ -17,6 +17,7 @@
 */
 package org.wso2.carbon.identity.user.store.configuration;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Attr;
@@ -639,7 +640,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             }
         });
 
-        if (deleteCandidates != null && deleteCandidates.length > 0) {
+        if (ArrayUtils.isNotEmpty(deleteCandidates)) {
             for (File file1 : deleteCandidates) {
                 if (file1.delete()) {
                     log.info("File " + file.getName() + " deleted successfully");

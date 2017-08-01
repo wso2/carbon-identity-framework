@@ -1111,7 +1111,7 @@ public class IdentityProviderManager implements IdpManager {
                 Set<ClaimMapping> returnSet = new HashSet<ClaimMapping>();
                 for (String localClaimURI : localClaimURIs) {
                     for (ClaimMapping claimMapping : claimMappings) {
-                        if (claimMapping.toString().equals(localClaimURI)) {
+                        if (claimMapping.getLocalClaim().getClaimUri().equals(localClaimURI)) {
                             returnSet.add(claimMapping);
                             break;
                         }

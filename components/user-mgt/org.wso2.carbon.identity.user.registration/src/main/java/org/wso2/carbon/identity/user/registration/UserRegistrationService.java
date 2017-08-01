@@ -261,8 +261,8 @@ public class UserRegistrationService {
         }
     }
 
-    private void doAddUser(int i, UserStoreManager admin, String[] identityRoleNames, String userName, Permission
-            permission) throws IdentityException, UserStoreException {
+    private void doAddUser(int i, UserStoreManager admin, String[] identityRoleNames, String userName,
+                           Permission permission) throws IdentityException, UserStoreException {
         try {
             if (!admin.isExistingRole(identityRoleNames[i], false)) {
                 permission = new Permission("/permission/admin/login", UserMgtConstants.EXECUTE_ACTION);

@@ -50,15 +50,19 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
             notificationMgtConfigBuilder = IdentityEventConfigBuilder.getInstance();
         } catch (IdentityEventException e) {
             log.error("Error while retrieving event mgt config builder", e);
+            return false;
         }
         List<Subscription> subscriptionList = null;
         ModuleConfiguration moduleConfiguration = null;
         if (notificationMgtConfigBuilder != null) {
             moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
+        } else {
+            return false;
         }
-
         if (moduleConfiguration != null) {
             subscriptionList = moduleConfiguration.getSubscriptions();
+        } else {
+            return false;
         }
         if (subscriptionList != null) {
             for (Subscription subscription : subscriptionList) {
@@ -97,6 +101,8 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
     public void init(InitConfig configuration) throws IdentityRuntimeException {
         if (configuration instanceof ModuleConfiguration) {
             this.configs = (ModuleConfiguration) configuration;
+        } else {
+            throw new IdentityRuntimeException("Initial configuration error");
         }
     }
 

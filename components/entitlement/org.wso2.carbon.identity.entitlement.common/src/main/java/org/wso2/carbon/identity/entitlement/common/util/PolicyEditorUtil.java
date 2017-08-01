@@ -713,7 +713,6 @@ public class PolicyEditorUtil {
 
         List<ObligationElementDTO> obligationElementDTOs = new ArrayList<ObligationElementDTO>();
 
-
         if (obligationDTOs != null) {
             for (ObligationDTO obligationDTO : obligationDTOs) {
                 ObligationElementDTO elementDTO = createObligationElement(obligationDTO);

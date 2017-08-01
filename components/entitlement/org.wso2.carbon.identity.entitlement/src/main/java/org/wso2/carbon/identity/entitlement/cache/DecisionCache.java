@@ -87,7 +87,8 @@ public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, Object
      */
     public void clearCache() {
         if (log.isDebugEnabled()) {
-            log.debug("DecisionCache clear all cache from the cluster");
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            log.debug("DecisionCache clear all cache from the cluster and tenant domain " + tenantDomain);
         }
         clear();
     }

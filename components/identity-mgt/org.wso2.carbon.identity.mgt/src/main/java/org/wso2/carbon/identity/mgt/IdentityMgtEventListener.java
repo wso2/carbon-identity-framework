@@ -747,16 +747,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 boolean isAccountDisabled = false;
                 if (identityDTO != null) {
                     isAccountDisabled = identityDTO.getIsAccountDisabled();
+                } else {
+                    throw new UserStoreException("Cannot get the user account active status.");
                 }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                }
-
-                //account is already disabled and trying to update the credential without enabling it
-                if (isAccountDisabled) {
+                    //account is already disabled and trying to update the credential without enabling it
                     log.warn("Trying to update credential of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update credential without enabling.");
                 }
@@ -825,16 +824,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                 if (identityDTO != null) {
                     isAccountDisabled = identityDTO.getIsAccountDisabled();
+                } else {
+                    throw new UserStoreException("Cannot get the user account active status.");
                 }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                }
-
-                //account is already disabled and trying to update the credential without enabling it
-                if (isAccountDisabled) {
+                    //account is already disabled and trying to update the credential without enabling it
                     log.warn("Trying to update credential of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update credential without enabling.");
                 }

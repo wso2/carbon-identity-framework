@@ -57,7 +57,6 @@ public class CacheBackedProvisioningMgtDAO {
 
         provisioningMgtDAO.addProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);
 
-
         if (log.isDebugEnabled()) {
             log.debug("Caching newly added Provisioning Entity : " +
                     "identityProviderName=" + identityProviderName +
