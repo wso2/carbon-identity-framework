@@ -1,0 +1,51 @@
+<AuthenticationGraph name="graph2" start="one">
+	      <AuthenticationStep name="one" nextLink="is_hwk_needed">
+		 <StepOrder>1</StepOrder>
+		 <LocalAuthenticatorConfigs>
+		    <LocalAuthenticatorConfig>
+		       <Name>BasicAuthenticator</Name>
+		       <DisplayName>basicauth</DisplayName>
+		       <IsEnabled>true</IsEnabled>
+		    </LocalAuthenticatorConfig>
+		 </LocalAuthenticatorConfigs>
+		 <SubjectStep>true</SubjectStep>
+		 <AttributeStep>true</AttributeStep>
+	      </AuthenticationStep>
+	      <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
+		 <Evaluator>AcrDecisionEvaluator</Evaluator>
+  		 <Link name="fpt" nextLink="sample_hwk" expression="fpt" />	
+		 <Link name="pwd" expression="pwd" end="true"/>
+	      </AuthenticationDecision>
+	      <AuthenticationStep name="sample_hwk" nextLink="fingure_print">
+		 <StepOrder>2</StepOrder>
+		 <FederatedIdentityProviders>
+		    <IdentityProvider>
+		       <IdentityProviderName>sample-hwk</IdentityProviderName>
+		       <DefaultAuthenticatorConfig>SampleHardwareKeyAuthenticator</DefaultAuthenticatorConfig>
+		       <FederatedAuthenticatorConfigs>
+		          <FederatedAuthenticatorConfig>
+		             <Name>SampleHardwareKeyAuthenticator</Name>
+		          </FederatedAuthenticatorConfig>
+		       </FederatedAuthenticatorConfigs>
+		    </IdentityProvider>
+		 </FederatedIdentityProviders>
+		 <SubjectStep>fales</SubjectStep>
+		 <AttributeStep>false</AttributeStep>
+	      </AuthenticationStep>
+	      <AuthenticationStep name="fingure_print">
+		 <StepOrder>3</StepOrder>
+		 <FederatedIdentityProviders>
+		    <IdentityProvider>
+		       <IdentityProviderName>sample-fp</IdentityProviderName>
+		       <DefaultAuthenticatorConfig>SampleFingerprintAuthenticator</DefaultAuthenticatorConfig>
+		       <FederatedAuthenticatorConfigs>
+		          <FederatedAuthenticatorConfig>
+		             <Name>SampleFingerprintAuthenticator</Name>
+		          </FederatedAuthenticatorConfig>
+		       </FederatedAuthenticatorConfigs>
+		    </IdentityProvider>
+		 </FederatedIdentityProviders>
+		 <SubjectStep>fales</SubjectStep>
+		 <AttributeStep>false</AttributeStep>
+	      </AuthenticationStep>
+</AuthenticationGraph>
