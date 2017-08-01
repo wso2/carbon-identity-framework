@@ -370,12 +370,12 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                                                     AuthenticationContext context) throws FrameworkException {
 
         // Get service provider chain
-        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance()
+        SequenceConfig effectiveSequence = ConfigurationFacade.getInstance()
                 .getSequenceConfig(context, request.getParameterMap());
         List<String> acrRequested = getAcrRequested(request);
         if(acrRequested != null) {
             for(String acr: acrRequested) {
-                sequenceConfig.addRequestedAcr(acr);
+                effectiveSequence.addRequestedAcr(acr);
             }
         }
 
@@ -386,7 +386,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
             if (log.isDebugEnabled()) {
                 log.debug(FrameworkConstants.COMMONAUTH_COOKIE
-                          + " cookie is available with the value: " + cookie.getValue());
+                        + " cookie is available with the value: " + cookie.getValue());
             }
 
             String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
@@ -397,7 +397,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
             if (sessionContext != null) {
 
                 context.setSessionIdentifier(sessionContextKey);
-                String appName = sequenceConfig.getApplicationConfig().getApplicationName();
+                String appName = effectiveSequence.getApplicationConfig().getApplicationName();
 
                 if (log.isDebugEnabled()) {
                     log.debug("Service Provider is: " + appName);
@@ -406,18 +406,23 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                 SequenceConfig previousAuthenticatedSeq = sessionContext
                         .getAuthenticatedSequences().get(appName);
 
-                if (previousAuthenticatedSeq != null &&
-                        !isReinitialize(previousAuthenticatedSeq, sequenceConfig, request, context)) {
-
+                if (previousAuthenticatedSeq != null) {
                     if (log.isDebugEnabled()) {
                         log.debug("A previously authenticated sequence found for the SP: "
-                                  + appName);
+                                + appName);
                     }
 
                     context.setPreviousSessionFound(true);
-                    sequenceConfig = previousAuthenticatedSeq.cloneObject();
-                    AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-                    String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+
+                    if (!isReinitialize(previousAuthenticatedSeq, effectiveSequence, request, context)){
+                        if (log.isDebugEnabled()) {
+                            log.debug("Previous Sequence should be used without change");
+                        }
+                        effectiveSequence = previousAuthenticatedSeq.cloneObject();
+                    }
+
+                    AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
+                    String authenticatedUserTenantDomain = previousAuthenticatedSeq.getAuthenticatedUser().getTenantDomain();
 
                     if (authenticatedUser != null) {
                         // set the user for the current authentication/logout flow
@@ -425,7 +430,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
                         if (log.isDebugEnabled()) {
                             log.debug("Already authenticated by username: " +
-                                      authenticatedUser.getAuthenticatedSubjectIdentifier());
+                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
                         }
 
                         if (authenticatedUserTenantDomain != null) {
@@ -447,10 +452,10 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
             }
         }
 
-        context.setServiceProviderName(sequenceConfig.getApplicationConfig().getApplicationName());
+        context.setServiceProviderName(effectiveSequence.getApplicationConfig().getApplicationName());
 
         // set the sequence for the current authentication/logout flow
-        context.setSequenceConfig(sequenceConfig);
+        context.setSequenceConfig(effectiveSequence);
     }
 
     private boolean isReinitialize(SequenceConfig previousAuthenticatedSeq, SequenceConfig sequenceConfig,

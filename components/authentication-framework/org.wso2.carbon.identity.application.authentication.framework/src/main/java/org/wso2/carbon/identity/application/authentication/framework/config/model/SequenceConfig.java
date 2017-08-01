@@ -186,6 +186,7 @@ public class SequenceConfig implements Serializable {
         sequenceConfig.setAuthenticatedIdPs(this.getAuthenticatedIdPs());
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
         sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
+        sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
         return sequenceConfig;
     }
 
