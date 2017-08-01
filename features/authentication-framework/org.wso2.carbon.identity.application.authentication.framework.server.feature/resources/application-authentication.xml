@@ -40,7 +40,7 @@
 		<RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
 		<AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
 		<LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
-		<StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler</StepBasedSequenceHandler>
+		<StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler</StepBasedSequenceHandler>
 		<RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
 		<StepHandler>org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler</StepHandler>
 		<HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
@@ -149,7 +149,14 @@
             <Parameter name="windowSize">3</Parameter>
             <Parameter name="enableTOTP">false</Parameter>
         </AuthenticatorConfig>
-	</AuthenticatorConfigs> 
+		<AuthenticatorConfig name="SampleHardwareKeyAuthenticator" enabled="true">
+			<Parameter name="HwkAppUrl">http://127.0.0.1:8080/hwk/hwk.jsp</Parameter>
+		</AuthenticatorConfig>
+		<AuthenticatorConfig name="SampleFingerprintAuthenticator" enabled="true">
+			<Parameter name="FptAppUrl">http://127.0.0.1:8080/hwk/fpt.jsp</Parameter>
+		</AuthenticatorConfig>
+
+</AuthenticatorConfigs>
 
     <!--
 		Sequences allow specifying authentication flows for different
