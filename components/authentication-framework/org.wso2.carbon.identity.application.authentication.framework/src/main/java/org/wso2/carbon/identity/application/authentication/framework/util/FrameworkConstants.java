@@ -69,6 +69,10 @@ public abstract class FrameworkConstants {
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
 
+    // Error details sent from authenticators
+    public static final String AUTH_ERROR_CODE = "AuthErrorCode";
+    public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
+
     private FrameworkConstants() {
 
     }
