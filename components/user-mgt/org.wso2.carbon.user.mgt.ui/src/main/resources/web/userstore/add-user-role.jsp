@@ -101,16 +101,13 @@
         <div id="workArea">
             <table width="100%">
 
-                <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt") ||
-                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt") ||
-                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/users") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/passwords") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/profiles")) {%>
+                <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt") ||
+                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/create") ||
+                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/create")) {%>
                 <tr>
                     <td>
                         <table class="styledLeft" id="internal" width="100%">
-                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt")) { %>
+                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/create")) { %>
                             <tr>
                                 <td>
                                     <a class="icon-link"
@@ -121,7 +118,7 @@
                             <% } %>
 
 
-                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) { %>
+                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/create")) { %>
                             <tr>
                                 <td>
                                     <a class="icon-link"

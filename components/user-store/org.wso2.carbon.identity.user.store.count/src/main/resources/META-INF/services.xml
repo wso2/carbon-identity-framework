@@ -49,6 +49,12 @@
             </parameter>
         </operation>
 
+        <operation name="countRoles">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/count/view
+            </parameter>
+        </operation>
+
+
         <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/userstore/count</parameter>
     </service>
 
