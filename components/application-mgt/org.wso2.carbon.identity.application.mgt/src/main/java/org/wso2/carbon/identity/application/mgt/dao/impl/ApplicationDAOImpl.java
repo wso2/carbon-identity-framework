@@ -1133,6 +1133,19 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(storeClaimDialectPrepStmt);
         }
 
+        PreparedStatement storeSubjectClaimUri = null;
+        try {
+            storeSubjectClaimUri = connection
+                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALECT_URI);
+            // SUBJECT_CLAIM_URI=? WHERE TENANT_ID= ? AND ID = ?
+            storeSubjectClaimUri.setString(1, claimConfiguration.getClaimDialectURI());
+            storeSubjectClaimUri.setInt(2, tenantID);
+            storeSubjectClaimUri.setInt(3, applicationId);
+            storeSubjectClaimUri.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(storeSubjectClaimUri);
+        }
+
         try {
             storeSendLocalSubIdPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID);
@@ -1382,6 +1395,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 claimConfig.setLocalClaimDialect("1".equals(basicAppDataResultSet.getString(10)));
                 claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(basicAppDataResultSet
                         .getString(11)));
+                claimConfig.setClaimDialectURI(basicAppDataResultSet.getString(18));
                 serviceProvider.setClaimConfig(claimConfig);
 
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
@@ -2203,6 +2217,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 claimConfig.setLocalClaimDialect("1".equals(loadClaimConfigsResultSet.getString(2)));
                 claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(loadClaimConfigsResultSet
                                                                                  .getString(3)));
+                claimConfig.setClaimDialectURI(loadClaimConfigsResultSet.getString(4));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving all application");

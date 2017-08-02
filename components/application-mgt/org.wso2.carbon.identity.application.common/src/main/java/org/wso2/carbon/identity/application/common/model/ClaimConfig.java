@@ -31,15 +31,21 @@ public class ClaimConfig implements Serializable {
 
     private String roleClaimURI;
     private String userClaimURI;
+    private String claimDialectURI;
     private boolean localClaimDialect;
     private Claim[] idpClaims = new Claim[0];
     private ClaimMapping[] claimMappings = new ClaimMapping[0];
     private boolean alwaysSendMappedLocalSubjectId;
 
     /*
-     * <ClaimConfig> <RoleClaimURI></RoleClaimURI> <UserClaimURI></UserClaimURI>
-     * <LocalClaimDialect></LocalClaimDialect> <IdpClaims></IdpClaims>
-     * <ClaimMappings></ClaimMappings> </ClaimConfig>
+     * <ClaimConfig>
+     *     <RoleClaimURI></RoleClaimURI>
+     *     <UserClaimURI></UserClaimURI>
+     *     <ClaimDialectURI></ClaimDialectURI>
+     *     <LocalClaimDialect></LocalClaimDialect>
+     *     <IdpClaims></IdpClaims>
+     *     <ClaimMappings></ClaimMappings>
+     * </ClaimConfig>
      */
     public static ClaimConfig build(OMElement claimConfigOM) {
         ClaimConfig claimConfig = new ClaimConfig();
@@ -58,6 +64,8 @@ public class ClaimConfig implements Serializable {
                     claimConfig.setLocalClaimDialect(Boolean.parseBoolean(element.getText()));
                 }
             } else if ("UserClaimURI".equals(elementName)) {
+                claimConfig.setUserClaimURI(element.getText());
+            } else if ("ClaimDialectURI".equals(elementName)) {
                 claimConfig.setUserClaimURI(element.getText());
             } else if ("AlwaysSendMappedLocalSubjectId".equals(elementName)) {
                 if ("true".equals(element.getText())) {
@@ -141,6 +149,14 @@ public class ClaimConfig implements Serializable {
 
     public void setUserClaimURI(String userClaimURI) {
         this.userClaimURI = userClaimURI;
+    }
+
+    public String getClaimDialectURI() {
+        return claimDialectURI;
+    }
+
+    public void setClaimDialectURI(String claimDialectURI) {
+        this.claimDialectURI = claimDialectURI;
     }
 
     public Claim[] getIdpClaims() {
