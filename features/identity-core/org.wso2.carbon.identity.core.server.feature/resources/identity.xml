@@ -453,6 +453,7 @@
         </Notification>
         <AskPassword>
 	        <ExpiryTime>1440</ExpiryTime>
+	        <PasswordGenerator>org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator</PasswordGenerator>
         </AskPassword>
     </EmailVerification>
 

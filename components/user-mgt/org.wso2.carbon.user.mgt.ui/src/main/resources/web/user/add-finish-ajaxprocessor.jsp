@@ -53,23 +53,22 @@
 
         ClaimValue[] claims = null;
         String userPassword = (userBean.getPassword());
-        boolean isUserOnBoardingEnabled = Util.getUserOnBoardingFromSession(session);
-        if(userBean.getEmail().trim().length() > 0 ){
+        boolean isUserOnBoardingEnabled = Util.isUserOnBoardingEnabled(config.getServletContext(), session);
+        boolean isOldAskPasswordEnabled = Util.isAskPasswordEnabled();
+
+        if (userBean.getEmail().trim().length() > 0) {
             ClaimValue emailClaim = new ClaimValue();
             emailClaim.setClaimURI(UserAdminUIConstants.EMAIL_CLAIM_URI);
             emailClaim.setValue(userBean.getEmail());
             claims = new ClaimValue[]{emailClaim};
-            if (isUserOnBoardingEnabled) {
+            if (isOldAskPasswordEnabled) {
+                userPassword = null;
+            } else if (isUserOnBoardingEnabled) {
                 ClaimValue askPassword = new ClaimValue();
                 askPassword.setClaimURI(UserAdminUIConstants.ASK_PASSWORD_CLAIM_URI);
                 askPassword.setValue(Boolean.TRUE.toString());
-
-                ClaimValue accountLocked = new ClaimValue();
-                accountLocked.setClaimURI(UserAdminUIConstants.ACCOUNT_LOCKED_CLAIM_URI);
-                accountLocked.setValue(Boolean.TRUE.toString());
-                claims = new ClaimValue[]{emailClaim, askPassword, accountLocked};
-            } else {
-                userPassword = null;
+                claims = new ClaimValue[]{emailClaim, askPassword};
+                userPassword = new String(Util.generateRandomPassword(config.getServletContext(), session));
             }
         }
         userBean.addUserRoles((Map<String,Boolean>)session.getAttribute("checkedRolesMap"));

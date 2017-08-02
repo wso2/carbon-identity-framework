@@ -19,6 +19,7 @@
 package org.wso2.carbon.user.mgt.ui;
 
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -29,14 +30,14 @@ import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
 import org.wso2.carbon.identity.governance.stub.bean.Property;
 import org.wso2.carbon.ui.CarbonUIUtil;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
+import org.wso2.carbon.user.mgt.common.RandomPasswordGenerator;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
 import org.wso2.carbon.user.mgt.ui.client.IdentityGovernanceAdminClient;
 import org.wso2.carbon.utils.DataPaginator;
 import org.wso2.carbon.utils.ServerConstants;
-import org.wso2.carbon.utils.xml.StringUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,7 +57,9 @@ public class Util {
 
     public static final String ALL = "ALL";
     private static final Log log = LogFactory.getLog(Util.class);
-    public static final String EMAIL_VERIFICATION_ENABLE_PROP_NAME = "EmailVerification.Enable";
+    private static final String EMAIL_VERIFICATION_ENABLE_PROP_NAME = "EmailVerification.Enable";
+    private static final String ASK_PASSWORD_TEMP_PASSWORD_GENERATOR = "EmailVerification.AskPassword.PasswordGenerator";
+
     private static boolean isAskPasswordEnabled = true;
 
     static {
@@ -214,11 +217,8 @@ public class Util {
         return isAskPasswordEnabled;
     }
 
-    public static boolean isUserOnBoardingEnabled(ServletContext context, HttpSession session) throws Exception {
-        Object emailVerificationEnabledObj = session.getAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME);
-        if (emailVerificationEnabledObj != null) {
-            return Boolean.parseBoolean(String.valueOf(emailVerificationEnabledObj));
-        }
+    public static boolean isUserOnBoardingEnabled(ServletContext context, HttpSession session) {
+
         String backendServerURL = CarbonUIUtil.getServerURL(context, session);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         ConfigurationContext configContext =
@@ -228,12 +228,10 @@ public class Util {
             IdentityGovernanceAdminClient client =
                     new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
             connectorList = client.getConnectorList();
-        } catch (RemoteException e) {
-            throw new Exception("Error while getting connector list from governance service, at URL :" +
-                                backendServerURL, e);
-        } catch (IdentityGovernanceAdminServiceIdentityGovernanceExceptionException e) {
-            throw new Exception("Error while getting connector list from governance service, at URL :" +
-                                backendServerURL, e);
+        } catch (Exception e) {
+            log.error("Error while getting connector list from governance service, at URL :" +
+                    backendServerURL, e);
+            return false;
         }
 
         if (connectorList != null) {
@@ -247,10 +245,9 @@ public class Util {
                             if (EMAIL_VERIFICATION_ENABLE_PROP_NAME.equals(property.getName())) {
                                 String propValue = property.getValue();
                                 boolean isEmailVerificationEnabled = false;
+
                                 if (!StringUtils.isEmpty(propValue)) {
                                     isEmailVerificationEnabled = Boolean.parseBoolean(propValue);
-                                    session.setAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME,
-                                                         isEmailVerificationEnabled);
                                 }
                                 return isEmailVerificationEnabled;
                             }
@@ -262,13 +259,70 @@ public class Util {
         return false;
     }
 
-
-    public static Boolean getUserOnBoardingFromSession(HttpSession session) {
-        Object emailVerificationEnabledObj = session.getAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME);
-        if (emailVerificationEnabledObj != null) {
-            return Boolean.parseBoolean(String.valueOf(emailVerificationEnabledObj));
+    public static char[] generateRandomPassword(ServletContext context, HttpSession session) {
+        char[] tempPass = "password".toCharArray();
+        try {
+            return getAskPasswordTempPassGenerator(context, session).generatePassword();
+        } catch (Exception e) {
+            log.error("Error while generating the temporary password. Used the default password as temp password", e);
+            return tempPass;
         }
-        return false;
     }
 
+    public static RandomPasswordGenerator getAskPasswordTempPassGenerator(ServletContext context, HttpSession session) {
+
+        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.password.DefaultPasswordGenerator";
+
+
+        if (isUserOnBoardingEnabled(context, session)) {
+
+            String backendServerURL = CarbonUIUtil.getServerURL(context, session);
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            ConfigurationContext configContext =
+                    (ConfigurationContext) context.getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            Map<String, Map<String, List<ConnectorConfig>>> connectorList;
+            try {
+                IdentityGovernanceAdminClient client =
+                        new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
+                connectorList = client.getConnectorList();
+
+                if (connectorList != null) {
+                    for (String key : connectorList.keySet()) {
+                        Map<String, List<ConnectorConfig>> subCatList = connectorList.get(key);
+                        for (String subCatKey : subCatList.keySet()) {
+                            List<ConnectorConfig> connectorConfigs = subCatList.get(subCatKey);
+                            for (ConnectorConfig connectorConfig : connectorConfigs) {
+                                Property[] properties = connectorConfig.getProperties();
+                                for (Property property : properties) {
+                                    if (ASK_PASSWORD_TEMP_PASSWORD_GENERATOR.equals(property.getName())) {
+                                        randomPasswordGenerationClass = property.getValue();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error while getting connector list from governance service, at URL :" +
+                        backendServerURL, e);
+            }
+
+        } else {
+            String randomPasswordGenerationClassFromFile =
+                    IdentityUtil.getProperty(ASK_PASSWORD_TEMP_PASSWORD_GENERATOR);
+            if (StringUtils.isNotBlank(randomPasswordGenerationClassFromFile)) {
+                randomPasswordGenerationClass = randomPasswordGenerationClassFromFile;
+            }
+        }
+
+        try {
+            Class clazz = Class.forName(randomPasswordGenerationClass);
+            return (RandomPasswordGenerator) clazz.newInstance();
+        } catch (Exception e) {
+            log.error("Error while loading random password generator class. " +
+                    "Default random password generator would be used", e);
+        }
+
+        return new DefaultPasswordGenerator();
+    }
 }

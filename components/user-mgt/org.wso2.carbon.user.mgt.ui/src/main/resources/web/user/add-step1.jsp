@@ -41,7 +41,6 @@
 
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
-<script type="text/javascript" src="js/randexp.min.js"></script>
 <%
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
@@ -126,9 +125,6 @@
     <script type="text/javascript">
 
         var skipPasswordValidation = false;
-        var passwordRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getPasswordRegEx())%>";
-
-        var generatedPwd = new RandExp(passwordRegEx).gen();
 
         function validateString(fld1name, regString) {
             var stringValue = document.getElementsByName(fld1name)[0].value;
@@ -279,8 +275,6 @@
                 jQuery('#emailRow').hide();
                 jQuery('#passwordRow').show();
                 jQuery('#retypeRow').show();
-                jQuery('#password').val("");
-                jQuery('#password-repeat').val("");
             }
         }
 
@@ -288,11 +282,9 @@
             var emailInput = document.getElementsByName('email')[0];
             var passwordMethod = document.getElementById('askFromUser');
             if (passwordMethod.checked) {
-                skipPasswordValidation = <%=!isUserOnBoardingEnabled%>;
+                skipPasswordValidation = true;
                 jQuery('#passwordRow').hide();
-                jQuery('#password').val(generatedPwd);
                 jQuery('#retypeRow').hide();
-                jQuery('#password-repeat').val(generatedPwd);
                 if (emailInput == null) {
                     var mainTable = document.getElementById('mainTable');
                     var newTr = mainTable.insertRow(mainTable.rows.length);
