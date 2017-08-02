@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.event;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
@@ -61,15 +62,20 @@ public class IdentityEventConfigBuilder {
      */
     private String threadPoolSize;
 
-    private static IdentityEventConfigBuilder notificationMgtConfigBuilder;
+    private static IdentityEventConfigBuilder notificationMgtConfigBuilder = new IdentityEventConfigBuilder();
 
     /**
      * Load properties file and set Module properties
      *
-     * @throws IdentityEventException
      */
-    private IdentityEventConfigBuilder() throws IdentityEventException {
-        notificationMgtConfigProperties = loadProperties();
+    private IdentityEventConfigBuilder() {
+
+        try {
+            notificationMgtConfigProperties = loadProperties();
+        } catch (IdentityEventException e) {
+            throw new IdentityRuntimeException("Failed to initialize IdentityEventConfigBuilder.", e);
+        }
+
         setThreadPoolSize();
         resolveSecrets();
         moduleConfiguration = new HashMap<>();
@@ -77,8 +83,9 @@ public class IdentityEventConfigBuilder {
     }
 
     public static IdentityEventConfigBuilder getInstance ()  throws IdentityEventException {
+
         if (notificationMgtConfigBuilder == null) {
-            return new IdentityEventConfigBuilder();
+            throw new IdentityEventException("Failed to initialize IdentityEventConfigBuilder.");
         }
         return notificationMgtConfigBuilder;
     }

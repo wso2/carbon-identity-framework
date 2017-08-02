@@ -24,6 +24,11 @@
 <%
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
+    String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
+
+    if(StringUtils.isBlank(tenantDomain)) {
+        tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
+    }
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
@@ -32,6 +37,7 @@
     if ( StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.setAttribute("callback", callback);
+        request.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, tenantDomain);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);

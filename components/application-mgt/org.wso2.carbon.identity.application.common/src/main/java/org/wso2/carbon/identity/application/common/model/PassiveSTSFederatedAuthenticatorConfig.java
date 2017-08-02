@@ -30,14 +30,10 @@ public class PassiveSTSFederatedAuthenticatorConfig extends FederatedAuthenticat
 
     @Override
     public boolean isValid() {
-
-        if (IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL) != null
-                && !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL))) {
-            return true;
-        }
-        return false;
+        return isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL))
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.PassiveSTS.REALM_ID));
     }
 
     @Override

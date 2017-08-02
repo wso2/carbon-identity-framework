@@ -31,6 +31,7 @@ import org.wso2.balana.ctx.EvaluationCtx;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -140,11 +141,13 @@ public class SimplePolicyCollection implements PolicyCollection {
             // we found a valid version, so see if it's the right kind,
             // and if it is then we return it
             if (type == PolicyReference.POLICY_REFERENCE) {
-                if (policy instanceof Policy)
+                if (policy instanceof Policy) {
                     return policy;
+                }
             } else {
-                if (policy instanceof PolicySet)
+                if (policy instanceof PolicySet) {
                     return policy;
+                }
             }
         }
 
@@ -162,8 +165,11 @@ public class SimplePolicyCollection implements PolicyCollection {
 
     @Override
     public boolean deletePolicy(String policyId) {
-
-        return this.policyCollection.remove(policyId) != null ;
+        try {
+            return this.policyCollection.remove(new URI(policyId)) != null;
+        } catch (URISyntaxException ex) {
+            return false;
+        }
     }
 
     @Override
@@ -173,6 +179,6 @@ public class SimplePolicyCollection implements PolicyCollection {
 
     @Override
     public void setPolicyMap(LinkedHashMap policyMap) {
-        this.policyCollection = policyMap ;
+        this.policyCollection = policyMap;
     }
 }

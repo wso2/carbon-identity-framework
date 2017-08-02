@@ -20,6 +20,7 @@ package org.wso2.carbon.user.mgt.ui.servlet;
 
 import com.google.gson.Gson;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -57,17 +58,22 @@ import java.util.ResourceBundle;
  */
 public class UserAndRoleManagementServlet extends HttpServlet {
 
-    private static final Log log = LogFactory.getLog(UserAndRoleManagementServlet.class);
-    private static final String PERMISSION_VIEWTASKS = "/permission/admin/manage/humantask/viewtasks";
+    private static final Log log                        = LogFactory.getLog(UserAndRoleManagementServlet.class);
+    private static final String PERMISSION_VIEWTASKS    = "/permission/admin/manage/humantask/viewtasks";
+    private static final String USERS                   = "users";
+    private static final String CATEGORY                = "category";
+    private static final String ROLES                   = "roles";
+    private static final String PREVIOUS_ROLE           = "previousRole";
+    private static final String DOMAIN                  = "domain";
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String category = request.getParameter("category");
+        String category = request.getParameter(CATEGORY);
         HttpSession session = request.getSession();
 
-        if(category != null && category.equals("users")) {
+        if (USERS.equals(category)) {
 
             boolean error = false;
             boolean newFilter = false;
@@ -123,7 +129,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED);
 
             //  search filter
-            String selectedDomain = request.getParameter("domain");
+            String selectedDomain = request.getParameter(DOMAIN);
             if (selectedDomain == null || selectedDomain.trim().length() == 0) {
                 selectedDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
                 if (selectedDomain == null || selectedDomain.trim().length() == 0) {
@@ -229,29 +235,27 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                         List<FlaggedName> dataList = new ArrayList<>(Arrays.asList(datas));
                         exceededDomains = dataList.remove(dataList.size() - 1);
                         session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, exceededDomains);
-                        if (dataList == null || dataList.size() == 0) {
+                        if (dataList.size() == 0) {
                             session.removeAttribute(UserAdminUIConstants.USER_LIST_FILTER);
                             showFilterMessage = true;
                         }
 
-                        if (dataList != null) {
-                            flaggedNameMap = new HashMap<>();
-                            int max = pageNumber + cachePages;
-                            for (int i = (pageNumber - cachePages); i < max; i++) {
-                                if (i < 0) {
-                                    max++;
-                                    continue;
-                                }
-                                PaginatedNamesBean bean = Util.retrievePaginatedFlaggedName(i, dataList);
-                                flaggedNameMap.put(i, bean);
-                                if (bean.getNumberOfPages() == i + 1) {
-                                    break;
-                                }
+                        flaggedNameMap = new HashMap<>();
+                        int max = pageNumber + cachePages;
+                        for (int i = (pageNumber - cachePages); i < max; i++) {
+                            if (i < 0) {
+                                max++;
+                                continue;
                             }
-                            users = flaggedNameMap.get(pageNumber).getNames();
-                            numberOfPages = flaggedNameMap.get(pageNumber).getNumberOfPages();
-                            session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE, flaggedNameMap);
+                            PaginatedNamesBean bean = Util.retrievePaginatedFlaggedName(i, dataList);
+                            flaggedNameMap.put(i, bean);
+                            if (bean.getNumberOfPages() == i + 1) {
+                                break;
+                            }
                         }
+                        users = flaggedNameMap.get(pageNumber).getNames();
+                        numberOfPages = flaggedNameMap.get(pageNumber).getNumberOfPages();
+                        session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE, flaggedNameMap);
                     }
 
                 } catch (Exception e) {
@@ -285,14 +289,14 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                 response.getWriter().write(resp);
 
             }
-        }else if(category!=null && category.equals("roles")){
+        } else if (ROLES.equals(category)) {
 
             boolean error = false;
             boolean newFilter = false;
             boolean doRoleList = true;
             boolean showFilterMessage = false;
             boolean multipleUserStores = false;
-            List<FlaggedName> datasList= null;
+            List<FlaggedName> datasList = null;
             FlaggedName[] roles = null;
             FlaggedName exceededDomains = null;
             String[] domainNames = null;
@@ -316,10 +320,10 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_UNASSIGNED_USER_FILTER);
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_VIEW_USER_FILTER);
             session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE);
-            session.removeAttribute("previousRole");
+            session.removeAttribute(PREVIOUS_ROLE);
             // search filter
-            String selectedDomain = request.getParameter("domain");
-            if(selectedDomain == null || selectedDomain.trim().length() == 0){
+            String selectedDomain = request.getParameter(DOMAIN);
+            if (StringUtils.isBlank(selectedDomain)) {
                 selectedDomain = (String) session.getAttribute(UserAdminUIConstants.ROLE_LIST_DOMAIN_FILTER);
                 if (selectedDomain == null || selectedDomain.trim().length() == 0) {
                     selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
@@ -337,7 +341,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                     filter = "*";
                 }
             } else {
-                if(filter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)){
+                if (filter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
                     selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
                     session.removeAttribute(UserAdminUIConstants.ROLE_LIST_DOMAIN_FILTER);
                 }
@@ -346,15 +350,14 @@ public class UserAndRoleManagementServlet extends HttpServlet {
 
 
             String modifiedFilter = filter.trim();
-            if(!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)){
+            if (!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)) {
                 modifiedFilter = selectedDomain + UserAdminUIConstants.DOMAIN_SEPARATOR + filter;
                 modifiedFilter = modifiedFilter.trim();
             }
 
             session.setAttribute(UserAdminUIConstants.ROLE_LIST_FILTER, filter.trim());
 
-            String currentUser = (String) session.getAttribute("logged-user");
-            userRealmInfo = (UserRealmInfo)session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+            userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
             if (userRealmInfo != null) {
                 multipleUserStores = userRealmInfo.getMultipleUserStore();
             }
@@ -374,11 +377,11 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             }
 
             flaggedNameMap  = (Map<Integer, PaginatedNamesBean>) session.getAttribute(UserAdminUIConstants.ROLE_LIST_CACHE);
-            if(flaggedNameMap != null){
+            if (flaggedNameMap != null) {
                 PaginatedNamesBean bean = flaggedNameMap.get(pageNumber);
-                if(bean != null){
+                if (bean != null) {
                     roles = bean.getNames();
-                    if(roles != null && roles.length > 0){
+                    if (roles != null && roles.length > 0) {
                         numberOfPages = bean.getNumberOfPages();
                         doRoleList = false;
                     }
@@ -414,22 +417,22 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                             showFilterMessage = true;
                         }
                     }
-                    if(userRealmInfo == null){
+                    if (userRealmInfo == null) {
                         userRealmInfo = client.getUserRealmInfo();
                         session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
                     }
 
-                    if(datasList != null){
+                    if (datasList != null) {
                         flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
                         int max = pageNumber + cachePages;
-                        for(int i = (pageNumber - cachePages); i < max ; i++){
-                            if(i < 0){
+                        for (int i = (pageNumber - cachePages); i < max; i++) {
+                            if (i < 0) {
                                 max++;
                                 continue;
                             }
                             PaginatedNamesBean bean  =  Util.retrievePaginatedFlaggedName(i, datasList);
                             flaggedNameMap.put(i, bean);
-                            if(bean.getNumberOfPages() == i + 1){
+                            if (bean.getNumberOfPages() == i + 1) {
                                 break;
                             }
                         }

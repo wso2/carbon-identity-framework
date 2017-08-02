@@ -52,6 +52,14 @@
     }
 </script>
 <%
+    IdentityProvider residentIdentityProvider = (IdentityProvider) session.getAttribute("ResidentIdentityProvider");
+    if (residentIdentityProvider == null) {
+%>
+<script type="text/javascript">
+    location.href = "idp-mgt-edit-load-local.jsp";
+</script>
+<%
+} else {
     String DEFAULT = "DEFAULT";
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
     String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -68,13 +76,6 @@
         // Intentionally skipping handling the exception for class not found for admin service.
     }
 
-
-%>
-
-
-<%
-    IdentityProvider residentIdentityProvider =
-            (IdentityProvider)session.getAttribute("ResidentIdentityProvider");
     String homeRealmId = residentIdentityProvider.getHomeRealmId();
     String openidUrl = null;
     String idPEntityId = null;
@@ -828,3 +829,4 @@ function idpMgtCancel(){
         </div>
     </div>
 </fmt:bundle>
+<% } %>

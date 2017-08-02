@@ -215,7 +215,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         // If unlock time is specified then unlock the account.
                         if ((userIdentityDTO.getUnlockTime() != 0) && (System.currentTimeMillis() >= userIdentityDTO.getUnlockTime())) {
-
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
                             userIdentityDTO.setAccountLock(false);
                             userIdentityDTO.setUnlockTime(0);
 
@@ -228,9 +228,13 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             }
                         } else {
                             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
-                                    UserCoreConstants.ErrorCode.USER_IS_LOCKED,
-                                    userIdentityDTO.getFailAttempts(),
-                                    config.getAuthPolicyMaxLoginAttempts());
+                                    UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" + userIdentityDTO.getUserDataMap().
+                                            get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON),
+                                    userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
+                            if (IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.equals(userIdentityDTO.getUserDataMap()
+                                    .get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON))) {
+                                customErrorMessageContext.setFailedLoginAttempts(config.getAuthPolicyMaxLoginAttempts());
+                            }
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                             String errorMsg = "User account is locked for user : " + userName
                                     + ". cannot login until the account is unlocked ";
@@ -335,7 +339,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             if (MapUtils.isNotEmpty(transportHeaderMap)) {
                                 TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
                                 int i = 0;
-                                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
+                                for (Map.Entry<String, String> entry : transportHeaderMap.entrySet()) {
                                     TransportHeader transportHeader = new TransportHeader();
                                     transportHeader.setHeaderName(entry.getKey());
                                     transportHeader.setHeaderValue(entry.getValue());
@@ -431,8 +435,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         if (userIdentityDTO.getFailAttempts() >= config.getAuthPolicyMaxLoginAttempts()) {
                             log.info("User, " + userName + " has exceed the max failed login attempts. " +
                                     "User account would be locked");
-                            IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants.ErrorCode.USER_IS_LOCKED,
-                                    userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
+                            IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext
+                                    (UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" +
+                                            IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString(),
+                                            userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                             IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE,
                                     UserCoreConstants.ErrorCode.USER_IS_LOCKED);
@@ -440,7 +446,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             if (log.isDebugEnabled()) {
                                 log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
                             }
-
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                                    IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString());
                             userIdentityDTO.setAccountLock(true);
                             userIdentityDTO.setFailAttempts(0);
                             // lock time from the config
@@ -476,6 +483,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     // if the account was locked due to account verification process,
                     // the unlock the account and reset the number of failedAttempts
                     if (userIdentityDTO.isAccountLocked() || userIdentityDTO.getFailAttempts() > 0 || userIdentityDTO.getAccountLock()) {
+                        userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
                         userIdentityDTO.setAccountLock(false);
                         userIdentityDTO.setFailAttempts(0);
                         userIdentityDTO.setUnlockTime(0);
@@ -620,6 +628,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     }
 
                     // store identity data
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
                     userIdentityClaimsDO.setAccountLock(false);
                     try {
                         module.store(userIdentityClaimsDO, userStoreManager);
@@ -675,6 +684,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 // No account recoveries are defined, no email will be sent.
                 if (config.isAuthPolicyAccountLockOnCreation()) {
                     // accounts are locked. Admin should unlock
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                            IdentityMgtConstants.LockedReason.UNVERIFIED.toString());
                     userIdentityClaimsDO.setAccountLock(true);
                     try {
                         config.getIdentityDataStore().store(userIdentityClaimsDO, userStoreManager);
@@ -733,21 +744,18 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = false;
+                if (identityDTO != null) {
+                    isAccountDisabled = identityDTO.getIsAccountDisabled();
+                } else {
+                    throw new UserStoreException("Cannot get the user account active status.");
+                }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                } else {
-                    // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
-                }
-
-                //account is already disabled and trying to update the credential without enabling it
-                if (isAccountDisabled) {
+                    //account is already disabled and trying to update the credential without enabling it
                     log.warn("Trying to update credential of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update credential without enabling.");
                 }
@@ -811,21 +819,20 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+
+                boolean isAccountDisabled = false;
+
+                if (identityDTO != null) {
+                    isAccountDisabled = identityDTO.getIsAccountDisabled();
+                } else {
+                    throw new UserStoreException("Cannot get the user account active status.");
+                }
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                } else {
-                    // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
-                }
-
-                //account is already disabled and trying to update the credential without enabling it
-                if (isAccountDisabled) {
+                    //account is already disabled and trying to update the credential without enabling it
                     log.warn("Trying to update credential of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update credential without enabling.");
                 }
@@ -986,6 +993,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             || claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
                         String key = claim.getKey();
                         String value = claim.getValue();
+                        if (UserIdentityDataStore.ACCOUNT_LOCK.equals(key) && (Boolean.TRUE.toString()).
+                                equalsIgnoreCase(value)) {
+                            identityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                                    IdentityMgtConstants.LockedReason.ADMIN_INITIATED.toString());
+                        }
 
                         identityDTO.setUserIdentityDataClaim(key, value);
                         it.remove();

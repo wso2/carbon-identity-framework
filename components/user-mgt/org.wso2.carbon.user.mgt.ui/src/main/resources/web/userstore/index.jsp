@@ -65,13 +65,16 @@
             <table width="100%">
 
                 <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity") ||
+                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt") ||
                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/users") ||
+                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/us/ermgt/users") ||
                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/passwords") ||
                        CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/profiles")) {%>
                 <tr>
                     <td>
                         <table class="styledLeft" id="internal" width="100%">
+                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt"))
+                            { %>
                             <tr>
                                 <td>
                                     <a class="icon-link"
@@ -79,9 +82,11 @@
                                        href="../user/user-mgt.jsp"><fmt:message key="users"/></a>
                                 </td>
                             </tr>
+                            <% } %>
 
 
-                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) { %>
+                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt"))
+                            { %>
                             <tr>
                                 <td>
                                     <a class="icon-link"
