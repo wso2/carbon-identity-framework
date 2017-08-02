@@ -35,7 +35,9 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
      */
     public IdentityServiceProviderCacheKey(String serviceProviderName, String tenantDomain) {
         this.serviceProviderKey = serviceProviderName;
-        this.tenantDomain = tenantDomain.toLowerCase();
+        if (tenantDomain != null) {
+            this.tenantDomain = tenantDomain.toLowerCase();
+        }
     }
 
     /**
