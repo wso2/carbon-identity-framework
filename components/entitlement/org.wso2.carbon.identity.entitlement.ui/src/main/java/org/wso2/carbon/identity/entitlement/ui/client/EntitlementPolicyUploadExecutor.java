@@ -17,6 +17,7 @@
 */
 package org.wso2.carbon.identity.entitlement.ui.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.ui.CarbonUIMessage;
@@ -76,18 +77,22 @@ public class EntitlementPolicyUploadExecutor extends AbstractFileUploadExecutor 
                     throw new CarbonException("File with extension " +
                             getFileName(fileItem.getFileItem().getName()) + " is not supported!");
                 } else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(fileItem.getDataHandler().getInputStream()));
-                    String temp;
-                    String policyContent = "";
-                    while ((temp = br.readLine()) != null) {
-                        policyContent += temp;
-                    }
-                    if (!"".equals(policyContent)) {
-                        client.uploadPolicy(policyContent);
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                            fileItem.getDataHandler().getInputStream()))) {
+
+                        String temp;
+                        String policyContent = "";
+                        while ((temp = br.readLine()) != null) {
+                            policyContent += temp;
+                        }
+                        if (StringUtils.isNotEmpty(policyContent)) {
+                            client.uploadPolicy(policyContent);
+                        }
+                    } catch (IOException ex) {
+                        throw new CarbonException("Policy file " + filename + "cannot be read");
                     }
                 }
             }
-
             httpServletResponse.setContentType("text/html; charset=utf-8");
             msg = "Policy have been uploaded successfully.";
             CarbonUIMessage.sendCarbonUIMessage(msg, CarbonUIMessage.INFO, httpServletRequest,

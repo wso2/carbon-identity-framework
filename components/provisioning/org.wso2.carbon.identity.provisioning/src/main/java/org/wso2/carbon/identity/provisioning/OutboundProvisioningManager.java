@@ -146,17 +146,21 @@ public class OutboundProvisioningManager {
             carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             // reading from the cache
-            key = new ServiceProviderProvisioningConnectorCacheKey(serviceProvider.getApplicationName(), tenantDomain);
+            if (serviceProvider != null && tenantDomain != null) {
+                key = new ServiceProviderProvisioningConnectorCacheKey(serviceProvider.getApplicationName(), tenantDomain);
 
-            entry = ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key);
+                entry = ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key);
 
-            // cache hit
-            if (entry != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Provisioning cache HIT for " + serviceProvider + " of "
-                              + tenantDomainName);
+                // cache hit
+                if (entry != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Provisioning cache HIT for " + serviceProvider + " of "
+                                + tenantDomainName);
+                    }
+                    return entry.getConnectors();
                 }
-                return entry.getConnectors();
+            } else {
+                throw new IdentityProvisioningException("Error reading service provider from cache.");
             }
 
         } finally {

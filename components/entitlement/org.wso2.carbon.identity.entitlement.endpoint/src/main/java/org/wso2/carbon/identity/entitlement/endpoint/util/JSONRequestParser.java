@@ -256,7 +256,7 @@ public class JSONRequestParser {
                                 jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
 
                         //If a recognizable data type is given, it should replace the above
-                        if (type.equals(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING)
+                        if (type.equals(stringAttributeToURI(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING))
                                 && dataType != null) {
                             type = dataType;
                         }

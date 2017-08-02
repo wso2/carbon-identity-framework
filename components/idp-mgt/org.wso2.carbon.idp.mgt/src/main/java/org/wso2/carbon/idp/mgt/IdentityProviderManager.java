@@ -1111,7 +1111,7 @@ public class IdentityProviderManager implements IdpManager {
                 Set<ClaimMapping> returnSet = new HashSet<ClaimMapping>();
                 for (String localClaimURI : localClaimURIs) {
                     for (ClaimMapping claimMapping : claimMappings) {
-                        if (claimMapping.equals(localClaimURI)) {
+                        if (claimMapping.getLocalClaim().getClaimUri().equals(localClaimURI)) {
                             returnSet.add(claimMapping);
                             break;
                         }
@@ -1335,7 +1335,7 @@ public class IdentityProviderManager implements IdpManager {
                                                 throw new IdentityProviderManagementException("SP name can't be empty");
                                             }
 
-                                            if(metaFederated!=null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
+                                            if (metaFederated != null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 for (int y = 0; y < metaFederated.getProperties().length; y++) {
                                                     if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null
                                                             && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
@@ -1357,7 +1357,7 @@ public class IdentityProviderManager implements IdpManager {
                                             identityProvider.setCertificate(certificate.toString());
 
                                         }
-                                    } catch (XMLStreamException e) {//
+                                    } catch (XMLStreamException e) {
                                         throw new IdentityProviderManagementException("Error while configuring metadata", e);
                                     }
                                     break;
@@ -1447,9 +1447,9 @@ public class IdentityProviderManager implements IdpManager {
                 idpName.toString().length() > 0 &&
                         metadata.toString().length() > 0
                 ) {
-            if(SAML2SSOMetadataConverter!=null) {
+            if (SAML2SSOMetadataConverter != null) {
                 SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
-            }else{
+            } else {
                 throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
             }
         }
@@ -1484,7 +1484,7 @@ public class IdentityProviderManager implements IdpManager {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        if(SAML2SSOMetadataConverter!=null) {
+        if (SAML2SSOMetadataConverter != null) {
             SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idPName.toString());
         }
 
@@ -1582,9 +1582,9 @@ public class IdentityProviderManager implements IdpManager {
                         metadata != null && metadata.toString().length() > 0
 
                 ) {
-            if(SAML2SSOMetadataConverter!=null) {
+            if (SAML2SSOMetadataConverter != null) {
                 SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
-            }else{
+            } else {
                 throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
             }
         }

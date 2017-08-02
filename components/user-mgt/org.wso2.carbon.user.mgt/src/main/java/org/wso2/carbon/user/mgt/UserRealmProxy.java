@@ -149,7 +149,7 @@ public class UserRealmProxy {
                     }
                     i++;
                 }
-                if (usersWithClaim.length > 0) {//tail flagged name is added to handle pagination
+                if (usersWithClaim.length > 0) { //tail flagged name is added to handle pagination
                     FlaggedName flaggedName = new FlaggedName();
                     flaggedName.setItemName(FALSE);
                     flaggedName.setDomainName("");
@@ -966,7 +966,7 @@ public class UserRealmProxy {
                 throw new UserStoreException("Internal role can not be created");
             }
             // adding permission with internal domain name
-            if((roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR) && UserMgtConstants.APPLICATION_DOMAIN.equals
+            if ((roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR) && UserMgtConstants.APPLICATION_DOMAIN.equals
                     (roleName.substring(0, roleName.indexOf(UserCoreConstants.DOMAIN_SEPARATOR))))) {
                 ManagementPermissionUtil.updateRoleUIPermission(roleName, permissions);
             } else {
@@ -1536,13 +1536,13 @@ public class UserRealmProxy {
 
             if (CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME.equalsIgnoreCase(roleName)) {
                 log.error("Security Alert! Carbon anonymous role is being manipulated");
-                throw new UserStoreException("Invalid data");// obscure error
+                throw new UserStoreException("Invalid data"); // obscure error
                 // message
             }
 
             if (realm.getRealmConfiguration().getEveryOneRoleName().equalsIgnoreCase(roleName)) {
                 log.error("Security Alert! Carbon Everyone role is being manipulated");
-                throw new UserStoreException("Invalid data");// obscure error
+                throw new UserStoreException("Invalid data"); // obscure error
                 // message
             }
 
@@ -1641,16 +1641,21 @@ public class UserRealmProxy {
 
             if (CarbonConstants.REGISTRY_ANONNYMOUS_USERNAME.equalsIgnoreCase(userName)) {
                 log.error("Security Alert! Carbon anonymous user is being manipulated");
-                throw new UserAdminException("Invalid data");// obscure error
+                throw new UserAdminException("Invalid data"); // obscure error
                 // message
             }
-
             if (roleList != null) {
                 String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
                 RealmConfiguration realmConfig = realm.getRealmConfiguration();
                 String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
                 Arrays.sort(roleList);
                 String[] roles = realm.getUserStoreManager().getRoleListOfUser(userName);
+
+                UserStoreManager admin = realm.getUserStoreManager();
+                String[] oldRoleList = admin.getRoleListOfUser(userName);
+                Arrays.sort(oldRoleList);
+                List<String> addRoles = new ArrayList<String>();
+                List<String> delRoles = new ArrayList<String>();
 
 
                 boolean isUserHasAdminPermission = false;
@@ -1701,35 +1706,27 @@ public class UserRealmProxy {
                         throw new UserStoreException("Can not remove users from Admin role");
                     }
                 }
-            }
 
-            UserStoreManager admin = realm.getUserStoreManager();
-            String[] oldRoleList = admin.getRoleListOfUser(userName);
-            Arrays.sort(oldRoleList);
-
-            List<String> delRoles = new ArrayList<String>();
-            List<String> addRoles = new ArrayList<String>();
-
-            for (String name : roleList) {
-                int oldindex = Arrays.binarySearch(oldRoleList, name);
-                if (oldindex < 0) {
-                    addRoles.add(name);
-                }
-            }
-
-            for (String name : oldRoleList) {
-                int newindex = Arrays.binarySearch(roleList, name);
-                if (newindex < 0) {
-                    if (realm.getRealmConfiguration().getEveryOneRoleName().equalsIgnoreCase(name)) {
-                        log.warn("Carbon Internal/everyone role can't be manipulated");
-                        continue;
+                for (String name : roleList) {
+                    int oldindex = Arrays.binarySearch(oldRoleList, name);
+                    if (oldindex < 0) {
+                        addRoles.add(name);
                     }
-                    delRoles.add(name);
                 }
-            }
 
-            admin.updateRoleListOfUser(userName, delRoles.toArray(new String[delRoles.size()]),
-                    addRoles.toArray(new String[addRoles.size()]));
+                for (String name : oldRoleList) {
+                    int newindex = Arrays.binarySearch(roleList, name);
+                    if (newindex < 0) {
+                        if (realm.getRealmConfiguration().getEveryOneRoleName().equalsIgnoreCase(name)) {
+                            log.warn("Carbon Internal/everyone role can't be manipulated");
+                            continue;
+                        }
+                        delRoles.add(name);
+                    }
+                }
+                admin.updateRoleListOfUser(userName, delRoles.toArray(new String[delRoles.size()]),
+                        addRoles.toArray(new String[addRoles.size()]));
+            }
         } catch (UserStoreException e) {
             // previously logged so logging not needed
             throw new UserAdminException(e.getMessage(), e);

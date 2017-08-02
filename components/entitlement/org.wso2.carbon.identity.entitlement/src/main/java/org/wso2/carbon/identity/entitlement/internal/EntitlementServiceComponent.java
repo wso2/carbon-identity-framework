@@ -48,7 +48,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -252,7 +251,6 @@ public class EntitlementServiceComponent {
                                 }
                             }
                             customPolicies = true;
-
                         }
                     }
                 }

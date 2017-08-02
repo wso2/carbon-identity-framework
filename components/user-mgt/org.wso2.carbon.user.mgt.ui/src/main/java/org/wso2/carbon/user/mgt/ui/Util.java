@@ -56,9 +56,9 @@ public class Util {
             if (identityEventListenerConfig != null) {
                 identityMgtListenerEnabled = Boolean.parseBoolean(identityEventListenerConfig.getEnable());
             }
-            if(identityMgtListenerEnabled){
+            if (identityMgtListenerEnabled) {
                 File file = new File(IdentityUtil.getIdentityConfigDirPath() + "/identity-mgt.properties");
-                if(file.exists() && file.isFile()) {
+                if (file.exists() && file.isFile()) {
                     is = new FileInputStream(file);
                     Properties identityMgtProperties = new Properties();
                     identityMgtProperties.load(is);
@@ -66,7 +66,7 @@ public class Util {
                             ".Password.Enable"));
                     boolean acctVerificationEnabled = Boolean.parseBoolean(identityMgtProperties.getProperty
                             ("UserAccount.Verification.Enable"));
-                    if(!tempPasswordEnabled || !acctVerificationEnabled){
+                    if (!tempPasswordEnabled || !acctVerificationEnabled) {
                         isAskPasswordEnabled = false;
                     }
                 } else {
@@ -76,14 +76,14 @@ public class Util {
                 isAskPasswordEnabled = false;
             }
         } catch (FileNotFoundException e) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("identity-mgt.properties file not found in " + IdentityUtil.getIdentityConfigDirPath());
             }
             isAskPasswordEnabled = false;
         } catch (IOException e) {
             log.error("Error while reading identity-mgt.properties file");
         } finally {
-            if(is != null){
+            if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
@@ -159,8 +159,8 @@ public class Util {
         if (selectedBoxesStr != null || unselectedBoxesStr != null) {
             if (selectedBoxesStr != null && ALL.equals(selectedBoxesStr) || unselectedBoxesStr != null && ALL.equals(unselectedBoxesStr)) {
                 if (selectedBoxesStr != null && ALL.equals(selectedBoxesStr) && flaggedNamesMap != null) {
-                    for (int key : flaggedNamesMap.keySet()) {
-                        FlaggedName[] flaggedNames = flaggedNamesMap.get(key).getNames();
+                    for (Map.Entry<Integer, PaginatedNamesBean> entry : flaggedNamesMap.entrySet()) {
+                        FlaggedName[] flaggedNames = entry.getValue().getNames();
                         for (FlaggedName flaggedName : flaggedNames) {
                             if (flaggedName.getEditable()) {
                                 checkBoxMap.put(flaggedName.getItemName(), true);
@@ -198,7 +198,7 @@ public class Util {
         }
     }
 
-    public static boolean isAskPasswordEnabled(){
+    public static boolean isAskPasswordEnabled() {
         return isAskPasswordEnabled;
     }
 
