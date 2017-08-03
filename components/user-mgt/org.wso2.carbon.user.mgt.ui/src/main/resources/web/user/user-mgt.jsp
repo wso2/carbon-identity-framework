@@ -228,24 +228,28 @@
                     .getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-            UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
-            countableUserStores = countClient.getCountableUserStores();
+            UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
 
-            if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
-                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
-                    userCount = countClient.countUsers(countFilter);
-                } else {
-                    userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
-                }
-            } else {                //this is a claim based search
-                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
-                    userCount = countClient.countByClaim(countClaimUri, countFilter);
-                } else {
-                    userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
-                            countFilter, selectedCountDomain)));
+            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/userstore/count/view")) {
+
+                countableUserStores = countClient.getCountableUserStores();
+
+                if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
+                    if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                        userCount = countClient.countUsers(countFilter);
+                    } else {
+                        userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                    }
+                } else {                //this is a claim based search
+                    if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                        userCount = countClient.countByClaim(countClaimUri, countFilter);
+                    } else {
+                        userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
+                                countFilter, selectedCountDomain)));
+                    }
                 }
             }
 
@@ -488,6 +492,7 @@
             </form>
             <p>&nbsp;</p>
 
+            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/userstore/count/view")) { %>
             <form name="countForm" method="post" action="user-mgt.jsp">
                 <table class="styledLeft">
                     <%
@@ -601,6 +606,8 @@
                     %>
                 </table>
             </form>
+
+            <%}%>
             <p>&nbsp;</p>
 
             <carbon:paginator pageNumber="<%=pageNumber%>"
@@ -678,7 +685,7 @@
                         <%
                             if (!Util.getUserStoreInfoForUser(userName, userRealmInfo).getPasswordsExternallyManaged() &&
                                     CarbonUIUtil.isUserAuthorized(request,
-                                            "/permission/admin/manage/identity/usermgt/passwords") &&
+                                            "/permission/admin/manage/identity/identitymgt/update") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
                                 if (userName.equals(currentUser)) {
                         %>
@@ -704,7 +711,8 @@
                                 key="edit.roles"/></a>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
+                            if (CarbonUIUtil.isUserAuthorized(request,
+                                    "/permission/admin/manage/identity/rolemgt/view")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -733,7 +741,7 @@
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/userprofile/")
                                     && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/profiles")) {
+                                    "/permission/admin/manage/identity/usermgt/update")) {
                         %>
                         <a href="../userprofile/index.jsp?username=<%=java.net.URLEncoder.encode(userName,"UTF-8")%>&displayName=<%=java.net.URLEncoder.encode(displayName,"UTF-8")%>&fromUserMgt=true"
                            class="icon-link"
@@ -782,7 +790,7 @@
                         <%
                             if (!Util.getUserStoreInfoForUser(userName, userRealmInfo).getPasswordsExternallyManaged() &&      // TODO
                                     CarbonUIUtil.isUserAuthorized(request,
-                                            "/permission/admin/manage/identity/usermgt/passwords") &&
+                                            "/permission/admin/manage/identity/identitymgt/update") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
                                 if (userName.equals(currentUser)) {
                         %>
@@ -804,7 +812,8 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
+                            if (CarbonUIUtil.isUserAuthorized(request,
+                                    "/permission/admin/manage/identity/rolemgt/update")) {
                         %>
                         <a href="edit-user-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -815,7 +824,8 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
+                            if (CarbonUIUtil.isUserAuthorized(request,
+                                    "/permission/admin/manage/identity/rolemgt/view")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -827,7 +837,7 @@
 
                         <%
                             if (CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/users") && !userName.equals(currentUser)
+                                    "/permission/admin/manage/identity/usermgt/delete") && !userName.equals(currentUser)
                                     && !userName.equals(userRealmInfo.getAdminUser()) &&
                                     users[i].getEditable()) {
                         %>
@@ -859,7 +869,7 @@
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/userprofile/")
                                     && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/profiles")) {
+                                    "/permission/admin/configure/security/usermgt/profiles")) {
                         %>
                         <a href="../userprofile/index.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>&fromUserMgt=true"
                            class="icon-link" style="background-image:url(../userprofile/images/my-prof.gif);">User

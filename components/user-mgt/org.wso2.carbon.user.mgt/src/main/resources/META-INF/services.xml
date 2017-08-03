@@ -181,6 +181,70 @@
             </parameter>
         </operation>
 
+        <operation name="updateRoleName">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/rolemgt/update
+            </parameter>
+        </operation>
+
+        <operation name="setRoleUIPermission">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/rolemgt/update
+            </parameter>
+        </operation>
+
+        <operation name="deleteRole">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/rolemgt/delete
+            </parameter>
+        </operation>
+
+        <operation name="isSharedRolesEnabled">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/view
+                ,/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+
+        <operation name="getRolesOfUser">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/view,/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+
+        <operation name="addRemoveRolesOfUser">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/update,/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+
+        <operation name="updateRolesOfUser">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/update,/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+
+        <operation name="addRemoveUsersOfRole">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/update,/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+
+        <operation name="getRolePermissions">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/view
+            </parameter>
+        </operation>
+
+        <operation name="getAllUIPermissions">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/view
+            </parameter>
+        </operation>
+
+        <operation name="addRole">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/rolemgt/create
+            </parameter>
+        </operation>
+
         <operation name="hasMultipleUserStores">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>

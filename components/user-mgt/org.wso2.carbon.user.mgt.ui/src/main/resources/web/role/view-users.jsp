@@ -544,7 +544,8 @@
                 <tr>
                     <td class="buttonRow">
                         <%
-                            if (showUpdate && !readOnlyRole && !showFilterMessage) {
+                            if (showUpdate && !readOnlyRole && !showFilterMessage &&  CarbonUIUtil.isUserAuthorized(request,
+                                    "/permission/admin/manage/identity/rolemgt/update")) {
                         %>
                         <input class="button" type="button" value="<fmt:message key="update"/>" onclick="doUpdate()"/>
                         <input class="button" type="button" value="<fmt:message key="finish"/>" onclick="doFinish()"/>
