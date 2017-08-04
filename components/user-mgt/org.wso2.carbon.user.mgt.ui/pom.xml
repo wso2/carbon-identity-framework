@@ -76,6 +76,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.governance.stub</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -111,13 +115,17 @@
                             org.wso2.carbon.user.mgt.common.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.mgt.workflow.stub.*;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.governance.stub;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.governance.stub.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.utils.xml
                         </Import-Package>
                          <Export-Package>
                             org.wso2.carbon.user.mgt.ui.*;version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.userstore.ui.*,
                          </Export-Package>
-                         <Carbon-Component>UIBundle</Carbon-Component>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Carbon-Component>UIBundle</Carbon-Component>
                      </instructions>
                 </configuration>
             </plugin>
