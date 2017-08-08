@@ -190,9 +190,8 @@ public class FileBasedConfigurationBuilder {
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
-            log.error("Error while parsing "+ IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
-        }
-        finally {
+            log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
+        } finally {
             try {
                 if (inStream != null) {
                     inStream.close();
