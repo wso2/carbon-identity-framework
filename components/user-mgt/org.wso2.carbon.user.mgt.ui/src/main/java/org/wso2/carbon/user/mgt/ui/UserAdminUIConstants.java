@@ -32,6 +32,8 @@ public class UserAdminUIConstants {
     public static final String ROLE_READ_ONLY = "org.wso2.carbon.role.read.only";
     public static final String ALL_ITEMS_IN_PAGE = "pages-Items";
     public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
+    public static final String ASK_PASSWORD_CLAIM_URI = "http://wso2.org/claims/identity/askPassword";
+    public static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
 
     public static final String PRIMARY_DOMAIN_NAME_NOT_DEFINED = "PRIMARY-DOMAIN [Domain name is not defined]";
 

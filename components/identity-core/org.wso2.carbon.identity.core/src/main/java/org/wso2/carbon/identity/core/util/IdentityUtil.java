@@ -38,12 +38,18 @@ import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.model.*;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -54,13 +60,6 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -77,6 +76,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class IdentityUtil {
 
@@ -159,9 +165,23 @@ public class IdentityUtil {
         return identityEventListenerConfig;
     }
 
+    /**
+     * This reads the &lt;CacheConfig&gt; configuration in identity.xml.
+     * Since the name of the cache is different between the distributed mode and local mode,
+     * that is specially handled.
+     *
+     * When calling this method, only pass the cacheManagerName and cacheName parameters considering
+     * how the names are set in a clustered environment i.e. without the CachingConstants.LOCAL_CACHE_PREFIX.
+     *
+     */
     public static IdentityCacheConfig getIdentityCacheConfig(String cacheManagerName, String cacheName) {
         IdentityCacheConfigKey configKey = new IdentityCacheConfigKey(cacheManagerName, cacheName);
         IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(configKey);
+        if (identityCacheConfig == null && cacheName.startsWith(CachingConstants.LOCAL_CACHE_PREFIX)) {
+            configKey = new IdentityCacheConfigKey(cacheManagerName,
+                            cacheName.replace(CachingConstants.LOCAL_CACHE_PREFIX, ""));
+            identityCacheConfig = identityCacheConfigurationHolder.get(configKey);
+        }
         return identityCacheConfig;
     }
 
@@ -893,5 +913,24 @@ public class IdentityUtil {
             clockSkewConfigValue = IdentityConstants.ServerConfig.CLOCK_SKEW_DEFAULT;
         }
         return Integer.parseInt(clockSkewConfigValue);
+    }
+
+    /**
+     * Returns whether the passed operation is supported by userstore or not
+     *
+     * @param userStoreManager User Store
+     * @param operation        Operation name
+     * @return true if the operation is supported by userstore. False if it doesnt
+     */
+    public static boolean isSupportedByUserStore(UserStoreManager userStoreManager, String operation) {
+        boolean isOperationSupported = true;
+        if (userStoreManager != null) {
+            String isOperationSupportedProperty = userStoreManager.getRealmConfiguration().getUserStoreProperty
+                    (operation);
+            if (StringUtils.isNotBlank(isOperationSupportedProperty)) {
+                isOperationSupported = Boolean.parseBoolean(isOperationSupportedProperty);
+            }
+        }
+        return isOperationSupported;
     }
 }

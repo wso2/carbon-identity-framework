@@ -183,6 +183,64 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * @param dbConnection
+     * @param property
+     * @param value
+     * @param authenticator
+     * @param tenantId
+     * @param tenantDomain
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    public IdentityProvider getIdPByAuthenticatorPropertyValue(Connection dbConnection, String property, String value,
+                                                               String authenticator, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdPAuthPropertyCacheKey cacheKey = new IdPAuthPropertyCacheKey(property, value, tenantDomain);
+        IdPCacheEntry entry = idPCacheByAuthProperty.getValueFromCache(cacheKey);
+
+        if (entry != null) {
+            log.debug("Cache entry found for Identity Provider with authenticator property " + property
+                    + " and with value " + value);
+            IdentityProvider identityProvider = entry.getIdentityProvider();
+            return identityProvider;
+        } else {
+            log.debug("Cache entry not found for Identity Provider with authenticator property " + property
+                    + " and with value " + value + ". Fetching entry from DB");
+        }
+
+        IdentityProvider identityProvider = idPMgtDAO.getIdPByAuthenticatorPropertyValue(dbConnection, property,
+                value, authenticator,tenantId, tenantDomain);
+
+        if (identityProvider != null) {
+            log.debug("Entry fetched from DB for Identity Provider with authenticator property " + property
+                    + " and with value " + value + ". Updating cache");
+
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName(),
+                    tenantDomain);
+            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider));
+            if (identityProvider.getHomeRealmId() != null) {
+                IdPHomeRealmIdCacheKey homeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
+                        identityProvider.getHomeRealmId(), tenantDomain);
+                idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
+            }
+            if (identityProvider.isPrimary()) {
+                primaryIdPs.put(tenantDomain, identityProvider);
+
+            }
+            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
+                    identityProvider.getIdentityProviderName())) {
+                residentIdPs.put(tenantDomain, identityProvider);
+            }
+        } else {
+            log.debug("Entry for Identity Provider with authenticator property " + property + " and with value "
+                    + value + " not found in cache or DB");
+        }
+
+        return identityProvider;
+    }
+
+    /**
      * @param realmId
      * @param tenantId
      * @param tenantDomain

@@ -324,7 +324,7 @@ public class IdentityConfigParser {
 
                     String httpOnly = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_HTTP_ONLY));
                     if (StringUtils.isNotBlank(httpOnly)) {
-                        cookieConfig.setSecure(Boolean.valueOf(httpOnly));
+                        cookieConfig.setIsHttpOnly(Boolean.valueOf(httpOnly));
                     }
 
                     // Add the config to container

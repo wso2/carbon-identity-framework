@@ -94,7 +94,6 @@ public class UserIdentityManagementUtil {
                                                               int tenantId)
             throws IdentityException {
 
-        JDBCUserRecoveryDataStore metadatStore = new JDBCUserRecoveryDataStore();
         UserRecoveryDTO registrationDTO = new UserRecoveryDTO(userName);
         return registrationDTO;
     }
@@ -118,7 +117,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
         } catch (UserStoreException e) {
@@ -130,6 +129,8 @@ public class UserIdentityManagementUtil {
         UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
         UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
         if (userIdentityDO != null) {
+            userIdentityDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
+                    IdentityMgtConstants.LockedReason.ADMIN_INITIATED.toString());
             userIdentityDO.setAccountLock(true);
             userIdentityDO.setUnlockTime(0);
             store.store(userIdentityDO, userStoreManager);
@@ -157,7 +158,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName + "to disable");
             }
         } catch (UserStoreException e) {
@@ -197,7 +198,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName + "to enable");
             }
         } catch (UserStoreException e) {
@@ -257,7 +258,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
         } catch (UserStoreException e) {
@@ -269,6 +270,7 @@ public class UserIdentityManagementUtil {
         UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
         UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
         if (userIdentityDO != null) {
+            userIdentityDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
             userIdentityDO.setAccountLock(false);
             userIdentityDO.setUnlockTime(0);
             store.store(userIdentityDO, userStoreManager);

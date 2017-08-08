@@ -196,18 +196,28 @@ public class JSONResponseWriter {
         JsonObject jsonAa = new JsonObject();
         jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, attributeAssignment.getAttributeId()
                 .toString());
-        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer());
-        jsonAa.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
-                .toString());
+        /*As per the xacml 3.0 core spec(section 5.41), Category and Issuer are optional categories for
+        Element <AttributeAssignmentExpression>*/
+        if(attributeAssignment.getIssuer() != null) {
+            jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer()
+                    .toString());
+        }
+        if(attributeAssignment.getCategory() != null) {
+            jsonAa.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
+                    .toString());
+        }
 
         //try to get the attribute value and type by using json
         try {
             JsonObject attributeValue = gson.fromJson(gson.toJson(attributeAssignment), JsonObject.class);
+            /*As per the xacml 3.0 core spec(section 7.3.1), data-type is a required attribute and content is optional
+            for Element <AttributeValue>*/
+            if(attributeValue.get("content") != null) {
+                jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE,
+                        attributeValue.get("content").getAsString());
+            }
             jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                    attributeValue.get("value").getAsString());
-            jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                    attributeValue.get("identifier").getAsString());
-
+                    attributeValue.get("type").getAsString());
         } catch (Exception e) {
             return null;
         }

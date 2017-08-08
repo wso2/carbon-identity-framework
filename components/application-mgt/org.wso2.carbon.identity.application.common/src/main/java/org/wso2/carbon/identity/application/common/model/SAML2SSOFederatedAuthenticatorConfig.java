@@ -108,22 +108,12 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
     @Override
     public boolean isValid() {
-
-        if (IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID) != null
-                && !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
+        return isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID))
-                && IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID) != null
-                && !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID))
-                && IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL) != null
-                && !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL))) {
-            return true;
-        }
-        return false;
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL));
     }
 
     @Override

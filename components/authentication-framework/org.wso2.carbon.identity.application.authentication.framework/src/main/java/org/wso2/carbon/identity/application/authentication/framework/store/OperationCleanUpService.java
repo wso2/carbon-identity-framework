@@ -40,7 +40,10 @@ public final class OperationCleanUpService {
     /**
      * @param initialDelay
      * @param delayBetweenRuns
+     * @deprecated This task is deprecated now and is done as part of the {@link SessionCleanUpService } due to
+     * the deadlock and db lock scenarios mentioned in IDENTITY-5131 & IDENTITY-4043
      */
+    @Deprecated
     public OperationCleanUpService(long initialDelay, long delayBetweenRuns) {
         this.initialDelay = initialDelay;
         this.delayBetweenRuns = delayBetweenRuns;
