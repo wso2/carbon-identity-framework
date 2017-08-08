@@ -271,7 +271,7 @@ public class Util {
 
     public static RandomPasswordGenerator getAskPasswordTempPassGenerator(ServletContext context, HttpSession session) {
 
-        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.password.DefaultPasswordGenerator";
+        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator";
 
 
         if (isUserOnBoardingEnabled(context, session)) {
