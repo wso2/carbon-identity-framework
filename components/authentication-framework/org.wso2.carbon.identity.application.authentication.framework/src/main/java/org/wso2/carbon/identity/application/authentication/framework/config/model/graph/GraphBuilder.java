@@ -101,7 +101,7 @@ public class GraphBuilder {
                         Node nextNode = graphConfig.getNodeByName(nextName);
                         AuthGraphNode graphNode = translate(nextNode, graphConfig);
                         decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(graphNode, link));
-                        if (hasAlreadyVisited(graphNode)) {
+                        if (!hasAlreadyVisited(graphNode)) {
                             visit(result, nextNode, graphNode, graphConfig);
                         }
                     } else {
