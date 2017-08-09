@@ -23,11 +23,17 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.profile.mgt.listener.ProfileMgtEventListener;
 import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @scr.component name="identity.user.profile.mgt.component" immediate="true"
@@ -44,6 +50,7 @@ public class IdentityUserProfileServiceComponent {
     private static final Log log = LogFactory.getLog(IdentityUserProfileServiceComponent.class);
 
     protected void activate(ComponentContext ctxt) {
+
         try {
             if (log.isDebugEnabled()) {
                 log.debug("User Profile Mgt bundle is activated ");
@@ -60,6 +67,13 @@ public class IdentityUserProfileServiceComponent {
             }
             ServiceRegistration profileMgtEventSR = ctxt.getBundleContext().registerService(
                     UserOperationEventListener.class.getName(), new ProfileMgtEventListener(), null);
+
+            // Check whether the IDN tables exist at the beginning.
+            ServiceHodler.setIsIDNTableExist(isIDNTablesExist());
+            if (log.isDebugEnabled()) {
+                log.debug("Is IDN_ASSOCIATED_ID table exist: " + ServiceHodler.isIDNTableExist());
+            }
+
             if (profileMgtEventSR != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("User profile management - ProfileMgtEventListener registered.");
@@ -74,14 +88,15 @@ public class IdentityUserProfileServiceComponent {
 
     // the below two methods are kept just to be sure the realm is available.
     protected void setUserRealmDefault(UserRealm userRealmDefault) {
+
         if (log.isDebugEnabled()) {
             log.debug("Setting DefaultRealm in User Profile Management");
         }
         ServiceHodler.setInternalUserStore(userRealmDefault);
     }
 
-
     protected void unsetUserRealmDefault(UserRealm userRealmDefault) {
+
         if (log.isDebugEnabled()) {
             log.info("Un-setting DefaultRealm in User Profile Management");
         }
@@ -98,4 +113,25 @@ public class IdentityUserProfileServiceComponent {
          is started */
     }
 
+    /**
+     * Checks whether the IDN_ASSOCIATED_ID table is present.
+     * @return True if table exist.
+     */
+    private boolean isIDNTablesExist() {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            // Try to find whether there is IDN_ASSOCIATED_ID table.
+            DatabaseMetaData metaData = connection.getMetaData();
+            try (ResultSet resultSet = metaData.getTables(null, null, "IDN_ASSOCIATED_ID", new String[]{"TABLE"})) {
+                if (resultSet.next()) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+
+        return false;
+    }
 }

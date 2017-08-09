@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.base.IdentityValidationUtil;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -126,6 +127,12 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     private void deleteFederatedIdpAccountAssociations(String tenantAwareUsername,
                                                        String userStoreDomain,
                                                        int tenantId) throws UserStoreException {
+
+        // Run this code only if IDN_ASSOCIATED_ID table presents. We are doing this because of this feature can be used
+        // by products which does not have the IDN tables.
+        if (!ServiceHodler.isIDNTableExist()) {
+            return;
+        }
 
         String sql = "DELETE FROM IDN_ASSOCIATED_ID WHERE USER_NAME=? AND DOMAIN_NAME=? AND TENANT_ID=?";
 
