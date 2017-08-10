@@ -467,7 +467,11 @@
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
-    </SelfRegistration-->
+    </SelfRegistration>
+
+    <AuthenticationPolicy>
+        <CheckAccountExist>false</CheckAccountExist>
+    </AuthenticationPolicy-->
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
