@@ -1565,7 +1565,7 @@
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.version</ClaimURI>
