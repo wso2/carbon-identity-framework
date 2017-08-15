@@ -21,11 +21,12 @@ package org.wso2.carbon.identity.core.bean.context;
 import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class MessageContext<T1 extends Object,T2 extends Object> {
+public abstract class MessageContext<T1 extends Object,T2 extends Object> implements Serializable {
 
     protected Map<T1,T2> parameters = new HashMap<>();
 
