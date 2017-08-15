@@ -86,6 +86,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- Sign the ID Token with Service Provider Tenant Private Key-->
+        <SignJWTWithSPKey>false</SignJWTWithSPKey>
 
         <!--
                OpenID private association store is configurable from following configs.
