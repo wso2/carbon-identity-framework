@@ -753,10 +753,8 @@ public class IdentityApplicationManagementUtil {
     public static String getPropertyValue(Property[] properties, String propertyName) {
 
         Property property = getProperty(properties, propertyName);
-        if (property != null) {
-            if (StringUtils.isNotBlank(property.getValue())) {
-                return property.getValue();
-            }
+        if (property != null && StringUtils.isNotBlank(property.getValue())) {
+            return property.getValue();
         }
         return null;
     }

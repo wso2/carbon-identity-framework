@@ -1053,20 +1053,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                                     // ID, TENANT_ID, AUTHENTICATOR_ID
                                     int authenticatorId = getAuthentictorID(connection, tenantID,
                                             idpName, authenticator.getName());
-                                    if (authenticatorId > 0) {
-                                        if (authenticator != null) {
-                                            storeStepIDPAuthnPrepStmt.setInt(1, stepId);
-                                            storeStepIDPAuthnPrepStmt.setInt(2, tenantID);
-                                            storeStepIDPAuthnPrepStmt.setInt(3, authenticatorId);
-                                            storeStepIDPAuthnPrepStmt.addBatch();
+                                    if (authenticatorId > 0 && authenticator != null) {
+                                        storeStepIDPAuthnPrepStmt.setInt(1, stepId);
+                                        storeStepIDPAuthnPrepStmt.setInt(2, tenantID);
+                                        storeStepIDPAuthnPrepStmt.setInt(3, authenticatorId);
+                                        storeStepIDPAuthnPrepStmt.addBatch();
 
-                                            if (log.isDebugEnabled()) {
-                                                log.debug("Updating Federated IdP of Application "
-                                                        + applicationId + " Step Order: "
-                                                        + authStep.getStepOrder() + " IdP: "
-                                                        + idpName + " Authenticator: "
-                                                        + authenticator);
-                                            }
+                                        if (log.isDebugEnabled()) {
+                                            log.debug("Updating Federated IdP of Application "
+                                                    + applicationId + " Step Order: "
+                                                    + authStep.getStepOrder() + " IdP: "
+                                                    + idpName + " Authenticator: "
+                                                    + authenticator);
                                         }
                                     }
                                 }

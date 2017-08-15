@@ -928,14 +928,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String resourcePath = RegistryResources.SERVICE_GROUPS + groupName +
                     RegistryResources.SERVICES + serviceName + "/trustedServices";
         Registry registry = getConfigSystemRegistry();
-        if (registry != null) {
-            if (registry.resourceExists(resourcePath)) {
-                Resource resource = registry.get(resourcePath);
-                if (resource.getProperty(trustedService) != null) {
-                    resource.removeProperty(trustedService);
-                }
-                registry.put(resourcePath, resource);
+        if (registry != null && registry.resourceExists(resourcePath)) {
+            Resource resource = registry.get(resourcePath);
+            if (resource.getProperty(trustedService) != null) {
+                resource.removeProperty(trustedService);
             }
+            registry.put(resourcePath, resource);
         }
     }
 

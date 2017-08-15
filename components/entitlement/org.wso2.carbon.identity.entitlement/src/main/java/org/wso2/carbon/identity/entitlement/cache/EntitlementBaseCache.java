@@ -170,14 +170,12 @@ public class EntitlementBaseCache<K extends IdentityCacheKey, V extends Object> 
      */
     public V getValueFromCache(K key) {
         Cache<K, V> cache = getEntitlementCache();
-        if (cache != null) {
-            if (cache.containsKey(key)) {
-                if (log.isDebugEnabled()) {
-                    String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                    log.debug("Cache : " + Entitlement_CACHE_NAME + "  is HIT " + "in tenant domain : " + tenantDomain);
-                }
-                return cache.get(key);
+        if (cache != null && cache.containsKey(key)) {
+            if (log.isDebugEnabled()) {
+                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                log.debug("Cache : " + Entitlement_CACHE_NAME + "  is HIT " + "in tenant domain : " + tenantDomain);
             }
+            return cache.get(key);
         }
         if (log.isDebugEnabled()) {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();

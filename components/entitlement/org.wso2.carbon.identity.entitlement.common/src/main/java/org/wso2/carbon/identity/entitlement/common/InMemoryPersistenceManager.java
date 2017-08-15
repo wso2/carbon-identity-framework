@@ -107,10 +107,8 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                 parsePreFunctions(node, holder);
             } else if (node.getNodeName().equals("rule")) {
                 parseRule(node, holder);
-            } else if (node.getNodeName().equals("policyDescription")) {
-                if ("true".equals(node.getTextContent())) {
-                    holder.setShowPolicyDescription(true);
-                }
+            } else if (node.getNodeName().equals("policyDescription") && "true".equals(node.getTextContent())) {
+                holder.setShowPolicyDescription(true);
             }
         }
 
@@ -426,10 +424,8 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                                 if (child1.getTextContent() != null) {
                                     name = child1.getTextContent();
                                 }
-                            } else if ("uri".equals(child1.getNodeName())) {
-                                if (child1.getTextContent() != null) {
-                                    uri = child1.getTextContent();
-                                }
+                            } else if ("uri".equals(child1.getNodeName()) && child1.getTextContent() != null) {
+                                uri = child1.getTextContent();
                             }
                         }
 
@@ -453,14 +449,12 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                         if ("true".equals(child.getTextContent())) {
                             holder.setAddLastRule(true);
                         }
-                    } else if ("effect".equals(child.getNodeName())) {
-                        if (child.getTextContent() != null) {
-                            String uri = child.getTextContent();
-                            if (!Utils.isValidEffect(uri)) {
-                                throw new PolicyEditorException("Invalid Rule Effect : " + uri);
-                            }
-                            holder.setLastRuleEffect(uri);
+                    } else if ("effect".equals(child.getNodeName()) && child.getTextContent() != null) {
+                        String uri = child.getTextContent();
+                        if (!Utils.isValidEffect(uri)) {
+                            throw new PolicyEditorException("Invalid Rule Effect : " + uri);
                         }
+                        holder.setLastRuleEffect(uri);
                     }
                 }
             }

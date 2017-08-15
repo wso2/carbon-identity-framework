@@ -63,10 +63,8 @@ public class FileBasedIdPMgtDAO {
                 Property samlProperty = IdentityApplicationManagementUtil.getProperty(samlAuthenticatorConfig.
                                 getProperties(),
                         property);
-                if (samlProperty != null) {
-                    if (value.equalsIgnoreCase(samlProperty.getValue())) {
-                        return entry.getValue();
-                    }
+                if (samlProperty != null && value.equalsIgnoreCase(samlProperty.getValue())) {
+                    return entry.getValue();
                 }
             }
         }

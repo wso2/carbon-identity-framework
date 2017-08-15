@@ -319,10 +319,8 @@ public class IdentityDBInitializer {
             updateCount = statement.getUpdateCount();
             resultSet = statement.getResultSet();
             do {
-                if (!ret) {
-                    if (updateCount != -1) {
-                        updateCountTotal += updateCount;
-                    }
+                if (!ret && updateCount != -1) {
+                    updateCountTotal += updateCount;
                 }
                 ret = statement.getMoreResults();
                 if (ret) {

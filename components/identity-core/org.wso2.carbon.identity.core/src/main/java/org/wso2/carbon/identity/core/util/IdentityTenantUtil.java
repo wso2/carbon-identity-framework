@@ -66,15 +66,13 @@ public class IdentityTenantUtil {
     public static Registry getRegistry(String domainName, String username) throws IdentityException {
         HttpSession httpSess = getHttpSession();
 
-        if (httpSess != null) {
-            if (httpSess.getAttribute(ServerConstants.USER_LOGGED_IN) != null) {
-                try {
-                    return AdminServicesUtil.getSystemRegistry();
-                } catch (CarbonException e) {
-                    log.error("Error obtaining a registry instance", e);
-                    throw IdentityException.error(
-                            "Error obtaining a registry instance", e);
-                }
+        if (httpSess != null && httpSess.getAttribute(ServerConstants.USER_LOGGED_IN) != null) {
+            try {
+                return AdminServicesUtil.getSystemRegistry();
+            } catch (CarbonException e) {
+                log.error("Error obtaining a registry instance", e);
+                throw IdentityException.error(
+                        "Error obtaining a registry instance", e);
             }
         }
         return getRegistryForAnonymousSession(domainName, username);

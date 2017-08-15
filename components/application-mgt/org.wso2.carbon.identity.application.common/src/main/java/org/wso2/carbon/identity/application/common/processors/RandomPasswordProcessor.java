@@ -112,10 +112,8 @@ public class RandomPasswordProcessor {
 
     private void addPasswordContainerToCache(RandomPassword[] randomPasswords, String uuid) {
 
-        if(randomPasswords == null){
-            if (log.isDebugEnabled()) {
-                log.debug("Random passwords not available for Password Container");
-            }
+        if(randomPasswords == null && log.isDebugEnabled()){
+            log.debug("Random passwords not available for Password Container");
         }
         RandomPasswordContainer randomPasswordContainer = new RandomPasswordContainer();
         randomPasswordContainer.setRandomPasswords(randomPasswords);
