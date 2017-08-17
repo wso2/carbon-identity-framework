@@ -96,7 +96,7 @@
         -->
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
-        <!-- 
+        <!--
 		<OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
 	-->
 
@@ -399,6 +399,8 @@
         -->
         <UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Users</UserEPUrl>
         <GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Groups</GroupEPUrl>
+        <SCIM2UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Users</SCIM2UserEPUrl>
+        <SCIM2GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</SCIM2GroupEPUrl>
         <SCIMAuthenticators>
             <Authenticator class="org.wso2.carbon.identity.scim.provider.auth.BasicAuthHandler">
                 <Property name="Priority">5</Property>
@@ -412,7 +414,14 @@
             </Authenticator>
         </SCIMAuthenticators>
     </SCIM>
-
+    <XACML>
+        <DiscoveryEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}api/identity/entitlement/decision/home</DiscoveryEPUrl>
+        <PDPEPURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}api/identity/entitlement/decision/pdp</PDPEPURL>
+    </XACML>
+    <IM>
+        <RecoveryRestEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/api/identity/recovery</RecoveryRestEPUrl>
+        <SelfRegistrationEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/api/identity/user/me</SelfRegistrationEPUrl>
+    </IM>
     <!--Recovery>
         <Notification>
             <Password>

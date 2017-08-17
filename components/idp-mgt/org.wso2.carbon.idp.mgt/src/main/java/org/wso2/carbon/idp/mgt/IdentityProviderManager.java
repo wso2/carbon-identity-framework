@@ -128,6 +128,9 @@ public class IdentityProviderManager implements IdpManager {
         String stsUrl = null;
         String scimUserEndpoint = null;
         String scimGroupsEndpoint = null;
+        String dcrEPUrl = null;
+        String scim2UserEndpoint = null;
+        String scim2GroupsEndpoint = null;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
@@ -140,10 +143,13 @@ public class IdentityProviderManager implements IdpManager {
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
         oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
         oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
+        dcrEPUrl = IdentityUtil.getProperty("OAuth.OAuth2DCREPUrl");
         passiveStsUrl = IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL);
         stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
         scimUserEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
         scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
+        scim2UserEndpoint = IdentityUtil.getProperty("SCIM2.SCIM2UserEPUrl");
+        scim2GroupsEndpoint = IdentityUtil.getProperty("SCIM2.SCIM2GroupEPUrl");
         oauth2RevokeEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL);
         oauth2IntrospectEpUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL);
 
@@ -212,6 +218,9 @@ public class IdentityProviderManager implements IdpManager {
             stsUrl = IdentityUtil.getServerURL("services/" + tenantContext + IdentityConstants.STS.WSO2_CARBON_STS,
                     true, true);
         }
+        if(StringUtils.isBlank(dcrEPUrl)) {
+            dcrEPUrl = IdentityUtil.getServerURL("oauth2/register", true, false);
+        }
 
         if (StringUtils.isBlank(scimUserEndpoint)) {
             scimUserEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);
@@ -220,6 +229,15 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isBlank(scimGroupsEndpoint)) {
             scimGroupsEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.GROUP_EP, true, false);
         }
+
+        if(StringUtils.isBlank(scim2UserEndpoint)) {
+            scim2UserEndpoint = IdentityUtil.getServerURL("scim2/Users", true, false);
+        }
+
+        if(StringUtils.isBlank(scim2GroupsEndpoint)) {
+            scim2GroupsEndpoint = IdentityUtil.getServerURL("scim2/Groups", true, false);
+        }
+
         IdentityProvider identityProvider = dao.getIdPByName(null,
                 IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
                 IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
@@ -422,6 +440,14 @@ public class IdentityProviderManager implements IdpManager {
             logoutUrlProp.setValue(oidcLogoutEPUrl);
             propertiesList.add(logoutUrlProp);
         }
+        if(IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(), IdentityApplicationConstants
+                .OAuth2.OAUTH2_DCR_URL) == null) {
+            Property dcrUrlProp = new Property();
+            dcrUrlProp = new Property();
+            dcrUrlProp.setName("OAuth2DCREPUrl");
+            dcrUrlProp.setValue(dcrEPUrl);
+            propertiesList.add(dcrUrlProp);
+        }
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);
 
@@ -506,24 +532,38 @@ public class IdentityProviderManager implements IdpManager {
 
         ProvisioningConnectorConfig scimProvConn = IdentityApplicationManagementUtil
                 .getProvisioningConnector(identityProvider.getProvisioningConnectorConfigs(),
-                        "scim");
+                        IdentityApplicationConstants.Authenticator.SCIM.NAME);
         if (scimProvConn == null) {
             scimProvConn = new ProvisioningConnectorConfig();
-            scimProvConn.setName("scim");
+            scimProvConn.setName(IdentityApplicationConstants.Authenticator.SCIM.NAME);
         }
         propertiesList = new ArrayList<Property>(Arrays.asList(scimProvConn
                 .getProvisioningProperties()));
         if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
-                "scimUserEndpoint") == null) {
+                IdentityApplicationConstants.Authenticator.SCIM.USER_EP_URL) == null) {
             Property property = new Property();
-            property.setName("scimUserEndpoint");
+            property.setName(IdentityApplicationConstants.Authenticator.SCIM.USER_EP_URL);
             property.setValue(scimUserEndpoint);
             propertiesList.add(property);
         }
         if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
-                "scimUserEndpoint") == null) {
+                IdentityApplicationConstants.Authenticator.SCIM.GROUP_EP_URL) == null) {
             Property property = new Property();
-            property.setName("scimGroupEndpoint");
+            property.setName(IdentityApplicationConstants.Authenticator.SCIM.GROUP_EP_URL);
+            property.setValue(scimGroupsEndpoint);
+            propertiesList.add(property);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
+                IdentityApplicationConstants.Authenticator.SCIM.SCIM2_USER_EP_URL) == null) {
+            Property property = new Property();
+            property.setName(IdentityApplicationConstants.Authenticator.SCIM.SCIM2_USER_EP_URL);
+            property.setValue(scimGroupsEndpoint);
+            propertiesList.add(property);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
+                IdentityApplicationConstants.Authenticator.SCIM.SCIM2_GROUP_EP_URL) == null) {
+            Property property = new Property();
+            property.setName(IdentityApplicationConstants.Authenticator.SCIM.SCIM2_GROUP_EP_URL);
             property.setValue(scimGroupsEndpoint);
             propertiesList.add(property);
         }

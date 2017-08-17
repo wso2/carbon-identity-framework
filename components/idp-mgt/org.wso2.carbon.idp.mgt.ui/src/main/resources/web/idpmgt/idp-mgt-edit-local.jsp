@@ -61,6 +61,7 @@
 <%
 } else {
     String DEFAULT = "DEFAULT";
+    final String lable = "lable";
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
     String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     final String governanceAdminServiceClass = "org.wso2.carbon.identity.governance.IdentityGovernanceAdminService";
@@ -97,6 +98,8 @@
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
+    String dcrEndpoint = null;
+
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -140,6 +143,8 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL).getValue();
             oidcLogoutEndpoint = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL).getValue();
+            dcrEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME.equals(federatedAuthenticator.getName())){
             passiveSTSUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL).getValue();
@@ -152,6 +157,8 @@
     }
     String scimUserEp = null;
     String scimGroupEp = null;
+    String scim2UserEp = null;
+    String scim2GroupEp = null;
     ProvisioningConnectorConfig[] provisioningConnectors = residentIdentityProvider.getProvisioningConnectorConfigs();
     for(ProvisioningConnectorConfig provisioningConnector : provisioningConnectors){
         if(provisioningConnector.getName().equals("scim")){
@@ -160,10 +167,14 @@
                 provisioningProperties = new Property[0];
             }
             for(Property property : provisioningProperties){
-                if(property.getName().equals("scimUserEndpoint")){
+                if(property.getName().equals(IdentityApplicationConstants.Authenticator.SCIM.USER_EP_URL)){
                     scimUserEp = property.getValue();
-                } else if(property.getName().equals("scimGroupEndpoint")){
+                } else if(property.getName().equals(IdentityApplicationConstants.Authenticator.SCIM.GROUP_EP_URL)){
                     scimGroupEp = property.getValue();
+                }else if(property.getName().equals(IdentityApplicationConstants.Authenticator.SCIM.SCIM2_USER_EP_URL)){
+                    scim2UserEp = property.getValue();
+                }else if(property.getName().equals(IdentityApplicationConstants.Authenticator.SCIM.SCIM2_GROUP_EP_URL)){
+                    scim2GroupEp = property.getValue();
                 }
             }
         }
@@ -552,6 +563,10 @@ function idpMgtCancel(){
                             <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(oidcLogoutEndpoint)%></td>
                         </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='dcr.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(dcrEndpoint)%></td>
+                        </tr>
                     </table>
                     </div>
 
@@ -615,6 +630,16 @@ function idpMgtCancel(){
                             <td class="leftCol-med labelField"><fmt:message key='scim.group.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(scimGroupEp)%></td>
                         </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='scim2.user.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(scim2UserEp)%>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='scim2.group.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(scim2GroupEp)%>
+                            </td>
+                        </tr>
                     </table>
 
             		</div>
@@ -639,41 +664,49 @@ function idpMgtCancel(){
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
                             <%
-                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                                    // assume as boolean value. But actually this must be sent from backend.
-                                    // will fix for next release.
-                            %>
-                            <td>
-                                <input class="sectionCheckbox" type="checkbox"
-                                       onclick="setBooleanValueToTextBox(this)"
-                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
-                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
-                            <%}%>
-                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            </td>
-                            <%
-                            } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
-                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
-                            <%}%>
-                            </td>
-                            <%}%>
-                        </tr>
-                    <%}%>
+
+                                if (lable.equalsIgnoreCase(connectorProperties[k].getType())) { %>
+                                    <td colspan="2">
+                                    <lable><%=Encode.forHtmlContent(connectorProperties[k].getValue())%></lable></td>
+                                <%}
+                                else{
+                                    if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                        // assume as boolean value. But actually this must be sent from backend.
+                                        // will fix for next release.
+                                %>
+                                <td>
+                                    <input class="sectionCheckbox" type="checkbox"
+                                           onclick="setBooleanValueToTextBox(this)"
+                                            <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                           value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
+                                <%
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                    <div class="sectionHelp">
+                                           <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    </div>
+                                <%}%>
+                                    <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                           name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                           type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                                </td>
+                                <%
+                                }
+                                else {%>
+                                <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                       id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                       style="width:400px"
+                                                       value="<%=Encode.forHtmlAttribute(value)%>"/>
+                                <%
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                    <div class="sectionHelp">
+                                           <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    </div>
+                                <%}%>
+                                </td>
+                                <%}%>
+                            </tr>
+                        <%}
+                        }%>
                         </table></div>
 <%
                 }
@@ -704,6 +737,13 @@ function idpMgtCancel(){
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
                             <%
+                                if (lable.equalsIgnoreCase(connectorProperties[k].getType())) { %>
+                            <td colspan="2">
+                                <lable><%=Encode.forHtmlContent(connectorProperties[k].getValue())%>
+                                </lable>
+                            </td>
+                            <%
+                            } else {
                                 if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
                                     // assume as boolean value. But actually this must be sent from backend.
                                     // will fix for next release.
@@ -713,33 +753,38 @@ function idpMgtCancel(){
                                        onclick="setBooleanValueToTextBox(this)"
                                         <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
                                        value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <%
+                                    if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
                                 <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
                                 </div>
-                            <%}%>
+                                <%}%>
                                 <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode
+                                    .forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
+                                                           style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <%
+                                    if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
                                 <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
                                 </div>
-                            <%}%>
+                                <%}%>
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
-                        </table></div>
+                    <%
+                            }
+                        }
+                    %>
+                </table>
+            </div>
 <%
                         }
                     } else {
@@ -767,6 +812,13 @@ function idpMgtCancel(){
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
                             <%
+                                if (lable.equalsIgnoreCase(connectorProperties[k].getType())) { %>
+                            <td colspan="2">
+                                <lable><%=Encode.forHtmlContent(connectorProperties[k].getValue())%>
+                                </lable>
+                            </td>
+                            <%
+                            } else {
                                 if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
                                     // assume as boolean value. But actually this must be sent from backend.
                                     // will fix for next release.
@@ -776,32 +828,33 @@ function idpMgtCancel(){
                                        onclick="setBooleanValueToTextBox(this)"
                                         <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
                                        value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <%
+                                    if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
                                 <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
                                 </div>
-                            <%}%>
+                                <%}%>
                                 <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode
+                                    .forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
+                                                           style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <%
+                                    if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
                                 <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                    <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
                                 </div>
-                            <%}%>
+                                <%}%>
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                         }

@@ -109,7 +109,7 @@ public class IdentityConstants {
     public final static String CACHE_ENABLE = "enable";
     public final static String CACHE_TIMEOUT = "timeout";
     public final static String CACHE_CAPACITY = "capacity";
-    
+
     // Cookie Config constants
     public final static String COOKIES_CONFIG = "Cookies";
     public final static String COOKIE = "Cookie";
@@ -311,6 +311,7 @@ public class IdentityConstants {
         public static final String OAUTH2_TOKEN_EP_URL = "OAuth.OAuth2TokenEPUrl";
         public static final String OAUTH2_USERINFO_EP_URL = "OAuth.OAuth2UserInfoEPUrl";
         public static final String OAUTH2_REVOKE_EP_URL = "OAuth.OAuth2RevokeEPUrl";
+        public static final String OAUTH2_DCR_EP_URL = "OAuth.OAuth2DCREPUrl";
         public static final String OAUTH2_INTROSPECT_EP_URL = "OAuth.OAuth2IntrospectEPUrl";
         public static final String OIDC_CHECK_SESSION_EP_URL = "OAuth.OIDCCheckSessionEPUrl";
         public static final String OIDC_LOGOUT_EP_URL = "OAuth.OIDCLogoutEPUrl";
@@ -325,6 +326,7 @@ public class IdentityConstants {
         public static final String USERINFO = "oauth2/userinfo";
         public static final String CHECK_SESSION = "oidc/checksession";
         public static final String LOGOUT = "oidc/logout";
+        public static final String DCR = "oauth2/register";
     }
 
     /**
@@ -340,6 +342,26 @@ public class IdentityConstants {
                 "PassiveSTS.SLOHostNameVerificationEnabled";
     }
 
+    public static class XACML {
+        public static final String Discovery_EP_URL = "XACML.DiscoveryEPUrl";
+        public static final String Discovery_EP = "api/identity/entitlement/decision/home";
+        public static final String PDP_EP_URL = "XACML.PDPEPURL";
+        public static final String PDP_EP = "api/identity/entitlement/decision/pdp";
+
+        public XACML() {
+        }
+    }
+
+    public static class IdentityManagement {
+        public static final String Recovery_REST_EP_URL = "IM.RecoveryRestEPUrl";
+        public static final String Recovery_REST_EP = "/api/identity/recovery";
+        public static final String Self_Registration_EP_URL = "IM.SelfRegistrationEPUrl";
+        public static final String Self_Registration_EP = "api/identity/user/me";
+
+        public IdentityManagement() {
+        }
+    }
+
     /**
      * Common constants realted to SCIM
      */
@@ -347,8 +369,12 @@ public class IdentityConstants {
 
         public static final String USER_EP_URL = "SCIM.UserEPUrl";
         public static final String GROUP_EP_URL = "SCIM.GroupEPUrl";
+        public static final String SCIM2_USER_EP_URL = "SCIM2.SCIM2UserEPUrl";
+        public static final String SCIM2_GROUP_EP_URL = "SCIM2.SCIM2GroupEPUrl";
         public static final String USER_EP = "wso2/scim/Users";
-        public static final String GROUP_EP = "wso2/scim/Users";
+        public static final String GROUP_EP = "wso2/scim/Groups";
+        public static final String SCIM2_USER_EP = "scim2/Users";
+        public static final String SCIM2_GROUP_EP = "scim2/Groups";
     }
 
     /**
