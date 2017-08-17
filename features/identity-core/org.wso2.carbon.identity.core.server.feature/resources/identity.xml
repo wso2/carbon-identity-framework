@@ -85,8 +85,6 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
-
-
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
