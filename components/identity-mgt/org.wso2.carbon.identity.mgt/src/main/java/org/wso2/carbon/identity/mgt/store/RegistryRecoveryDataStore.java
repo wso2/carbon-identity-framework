@@ -276,25 +276,39 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
             }
         }
 
+        boolean isTransactionSucceeded = false;
         try {
             if (collection != null) {
                 String[] resources = collection.getChildren();
                 for (String resource : resources) {
+                    isTransactionSucceeded = false;
                     String[] splittedResource = resource.split("___");
                     if (splittedResource.length == 3) {
                         //PRIMARY USER STORE
                         if (resource.contains("___" + userNameToValidate.toLowerCase() + "___")) {
-
-                            registry.beginTransaction();
-                            // Check whether the resource still exists for concurrent cases.
-                            if (registry.resourceExists(resource)) {
-                                registry.delete(resource);
-                                registry.commitTransaction();
-                            } else {
-                                // Already deleted by another thread. Do nothing.
-                                registry.rollbackTransaction();
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Confirmation code already deleted in path of resource : " + resource);
+                            try {
+                                registry.beginTransaction();
+                                // Check whether the resource still exists for concurrent cases.
+                                if (registry.resourceExists(resource)) {
+                                    registry.delete(resource);
+                                    isTransactionSucceeded = true;
+                                } else {
+                                    // Already deleted by another thread. Do nothing.
+                                    if (log.isDebugEnabled()) {
+                                        log.debug("Confirmation code already deleted in path of resource : " + resource);
+                                    }
+                                }
+                            } catch (RegistryException ex) {
+                                log.error("Error while deleting the old confirmation code \n" + ex);
+                            } finally {
+                                try {
+                                    if (isTransactionSucceeded) {
+                                        registry.commitTransaction();
+                                    } else {
+                                        registry.rollbackTransaction();
+                                    }
+                                } catch (RegistryException e) {
+                                    log.error("Error while processing registry transaction", e);
                                 }
                             }
                         }
