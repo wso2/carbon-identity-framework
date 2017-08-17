@@ -116,6 +116,7 @@
     String authzUrl = null;
     String tokenUrl = null;
     String callBackUrl = null;
+    String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
     boolean isPassiveSTSEnabled = false;
     boolean isPassiveSTSDefault = false;
@@ -400,6 +401,11 @@
                         callBackUrl = callBackURLProp.getValue();
                     }
 
+                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
+                    if (userInfoEndpointProp != null) {
+                        userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
 
                     Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
@@ -1045,6 +1051,10 @@
 
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
+    }
+
+    if (StringUtils.isBlank(userInfoEndpoint)) {
+        userInfoEndpoint = StringUtils.EMPTY;
     }
 
     String passiveSTSEnabledChecked = "";
@@ -4367,6 +4377,18 @@
 
                                     <div class="sectionHelp">
                                         <fmt:message key='callbackUrl.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='userInfoEndpoint'/>
+                                <td>
+                                    <input id="userInfoEndpoint" name="userInfoEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(userInfoEndpoint)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='userInfoEndpoint.help'/>
                                     </div>
                                 </td>
                             </tr>
