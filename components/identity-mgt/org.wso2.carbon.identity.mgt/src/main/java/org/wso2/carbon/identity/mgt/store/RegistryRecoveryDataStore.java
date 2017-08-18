@@ -298,8 +298,11 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
                                         log.debug("Confirmation code already deleted in path of resource : " + resource);
                                     }
                                 }
-                            } catch (RegistryException ex) {
-                                log.error("Error while deleting the old confirmation code \n" + ex);
+                            } catch (RegistryException e) {
+                                log.warn("Error while deleting the old confirmation code \n" + e);
+                                if (log.isDebugEnabled()) {
+                                    log.debug(e.getMessage(), e);
+                                }
                             } finally {
                                 try {
                                     if (isTransactionSucceeded) {
