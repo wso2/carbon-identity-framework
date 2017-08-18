@@ -231,9 +231,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                     UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" + userIdentityDTO.getUserDataMap().
                                             get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON),
                                     userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
-                            if (IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.equals(userIdentityDTO.getUserDataMap()
-                                    .get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON))) {
-                                customErrorMessageContext.setFailedLoginAttempts(config.getAuthPolicyMaxLoginAttempts());
+                            if (IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString().equals(userIdentityDTO
+                                    .getUserDataMap().get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON))) {
+                                customErrorMessageContext
+                                        .setFailedLoginAttempts(config.getAuthPolicyMaxLoginAttempts());
                             }
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                             String errorMsg = "User account is locked for user : " + userName
