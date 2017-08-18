@@ -29,6 +29,10 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="org.apache.commons.httpclient.HttpClient" %>
+<%@ page import="org.apache.commons.httpclient.methods.HeadMethod" %>
+<%@ page import=" org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory" %>
+<%@ page import=" org.apache.commons.httpclient.protocol.Protocol" %>
 
 <script>
         function submitCredentials () {
@@ -160,42 +164,40 @@
                 identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
             }
 
-            URL url = null;
-            HttpURLConnection httpURLConnection = null;
+            HttpClient client = new HttpClient();
+            if ("https".equals(scheme)) {
+                Protocol p = new Protocol(scheme, new SSLProtocolSocketFactory(), 443);
+                Protocol.registerProtocol(scheme, p);
+                client.getHostConfiguration().setHost(serverName, 443, p);
+            }
 
-            url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute
-                    (urlEncodedURL));
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setRequestMethod("HEAD");
-            httpURLConnection.connect();
-            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+            HeadMethod head = new HeadMethod(url);
+            int status = client.executeMethod(head);
+            head.releaseConnection();
+            if (status == HttpURLConnection.HTTP_OK) {
         %>
         <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
         <br/><br/>
     <%
         }
 
-        url = new URL(identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute
-                (urlEncodedURL ));
-        httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setRequestMethod("HEAD");
-        httpURLConnection.connect();
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        url = identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
+        head = new HeadMethod(url);
+        status = client.executeMethod(head);
+        head.releaseConnection();
+        if (status == HttpURLConnection.HTTP_OK) {
     %>
         <a id="usernameRecoverLink" href="<%=url%>">Forgot Username </a>
         <br/><br/>
     <%
         }
 
-
-
-
-        url = new URL(identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute
-                (urlEncodedURL ));
-        httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setRequestMethod("HEAD");
-        httpURLConnection.connect();
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        url = identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
+        head = new HeadMethod(url);
+        status = client.executeMethod(head);
+        head.releaseConnection();
+        if (status == HttpURLConnection.HTTP_OK) {
         %>
         Don't have an account?
         <a id="registerLink" href="<%=url%>">Register Now</a>
