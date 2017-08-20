@@ -137,15 +137,14 @@ public class IdentityCoreServiceComponent {
             String component = System.getProperty("component");
             try {
                 if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
+                    log.info("Migration process starting...");
                     //Directly call migration client here and selectively check for component migrations at client
                     Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
                     c.getMethod("databaseMigration").invoke(c.newInstance());
-                    log.info("Migrated the identity and user management databases");
+                    log.info("Migration process finished.");
                 }
             } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Migration client is not available");
-                }
+                log.error("Error occurred while initializing the migration client, " , e);
             }
 
             //this is done to initialize primary key store
