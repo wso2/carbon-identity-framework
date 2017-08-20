@@ -62,7 +62,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  */
 
 public class IdentityCoreServiceComponent {
-    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom520to530";
+    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom530to540";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
 
