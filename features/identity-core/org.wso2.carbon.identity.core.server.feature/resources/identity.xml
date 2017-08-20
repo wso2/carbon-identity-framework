@@ -79,14 +79,12 @@
         <OpenIDServerUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/openidserver</OpenIDServerUrl>
         <OpenIDUserPattern>${carbon.protocol}://${carbon.host}:${carbon.management.port}/openid</OpenIDUserPattern>
         <OpenIDLoginUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/openid_login.do</OpenIDLoginUrl>
-
         <!-- If the users must be prompted for approval -->
         <OpenIDSkipUserConsent>false</OpenIDSkipUserConsent>
         <!-- Expiry time of the OpenID RememberMe token in minutes -->
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
-
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -300,6 +298,9 @@
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
+            <!-- Sign the ID Token with Service Provider Tenant Private Key-->
+            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
@@ -590,6 +591,9 @@
         <Resource context="/scim2/Bulk" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
         </Resource>
+        <Resource context="(.*)/api/identity/oauth/dcr/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
+        </Resource>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -603,6 +607,7 @@
             <Context>/oauth2</Context>
             <Context>/scim2</Context>
             <Context>/api/identity/entitlement</Context>
+            <Context>/api/identity/oauth/dcr/v1.0</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

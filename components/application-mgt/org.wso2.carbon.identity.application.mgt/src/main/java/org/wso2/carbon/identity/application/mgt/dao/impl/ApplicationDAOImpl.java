@@ -629,66 +629,67 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         PreparedStatement outboundProConfigPrepStmt = null;
 
-        IdentityProvider[] proProviders = outBoundProvisioningConfig
-                .getProvisioningIdentityProviders();
+        if (outBoundProvisioningConfig != null) {
+            IdentityProvider[] proProviders = outBoundProvisioningConfig
+                    .getProvisioningIdentityProviders();
 
-        try {
-            if (outBoundProvisioningConfig == null || proProviders == null
-                    || proProviders.length == 0) {
-                // no in-bound authentication requests defined.
-                return;
-            }
-
-            outboundProConfigPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.STORE_PRO_CONNECTORS);
-            // TENANT_ID, IDP_NAME, CONNECTOR_NAME, APP_ID
-
-            for (IdentityProvider proProvider : proProviders) {
-                if (proProvider != null) {
-                    ProvisioningConnectorConfig proConnector = proProvider
-                            .getDefaultProvisioningConnectorConfig();
-                    if (proConnector == null) {
-                        continue;
-                    }
-
-                    String jitEnabled = "0";
-
-                    if (proProvider.getJustInTimeProvisioningConfig() != null
-                            && proProvider.getJustInTimeProvisioningConfig()
-                            .isProvisioningEnabled()) {
-                        jitEnabled = "1";
-                    }
-
-                    String blocking = "0";
-
-                    if (proProvider.getDefaultProvisioningConnectorConfig() != null
-                            && proProvider.getDefaultProvisioningConnectorConfig().isBlocking()) {
-                        blocking = "1";
-                    }
-
-                    String ruleEnabled = "0";
-
-                    if (proProvider.getDefaultProvisioningConnectorConfig() != null
-                        && proProvider.getDefaultProvisioningConnectorConfig().isRulesEnabled()) {
-                        ruleEnabled = "1";
-                    }
-
-                    outboundProConfigPrepStmt.setInt(1, tenantID);
-                    outboundProConfigPrepStmt.setString(2, proProvider.getIdentityProviderName());
-                    outboundProConfigPrepStmt.setString(3, proConnector.getName());
-                    outboundProConfigPrepStmt.setInt(4, applicationId);
-                    outboundProConfigPrepStmt.setString(5, jitEnabled);
-                    outboundProConfigPrepStmt.setString(6, blocking);
-                    outboundProConfigPrepStmt.setString(7, ruleEnabled);
-                    outboundProConfigPrepStmt.addBatch();
-
+            try {
+                if (ArrayUtils.isEmpty(proProviders)) {
+                    // no in-bound authentication requests defined.
+                    return;
                 }
+
+                outboundProConfigPrepStmt = connection
+                        .prepareStatement(ApplicationMgtDBQueries.STORE_PRO_CONNECTORS);
+                // TENANT_ID, IDP_NAME, CONNECTOR_NAME, APP_ID
+
+                for (IdentityProvider proProvider : proProviders) {
+                    if (proProvider != null) {
+                        ProvisioningConnectorConfig proConnector = proProvider
+                                .getDefaultProvisioningConnectorConfig();
+                        if (proConnector == null) {
+                            continue;
+                        }
+
+                        String jitEnabled = "0";
+
+                        if (proProvider.getJustInTimeProvisioningConfig() != null
+                                && proProvider.getJustInTimeProvisioningConfig()
+                                .isProvisioningEnabled()) {
+                            jitEnabled = "1";
+                        }
+
+                        String blocking = "0";
+
+                        if (proProvider.getDefaultProvisioningConnectorConfig() != null
+                                && proProvider.getDefaultProvisioningConnectorConfig().isBlocking()) {
+                            blocking = "1";
+                        }
+
+                        String ruleEnabled = "0";
+
+                        if (proProvider.getDefaultProvisioningConnectorConfig() != null
+                                && proProvider.getDefaultProvisioningConnectorConfig().isRulesEnabled()) {
+                            ruleEnabled = "1";
+                        }
+
+                        outboundProConfigPrepStmt.setInt(1, tenantID);
+                        outboundProConfigPrepStmt.setString(2, proProvider.getIdentityProviderName());
+                        outboundProConfigPrepStmt.setString(3, proConnector.getName());
+                        outboundProConfigPrepStmt.setInt(4, applicationId);
+                        outboundProConfigPrepStmt.setString(5, jitEnabled);
+                        outboundProConfigPrepStmt.setString(6, blocking);
+                        outboundProConfigPrepStmt.setString(7, ruleEnabled);
+                        outboundProConfigPrepStmt.addBatch();
+
+                    }
+                }
+
+                outboundProConfigPrepStmt.executeBatch();
+
+            } finally {
+                IdentityApplicationManagementUtil.closeStatement(outboundProConfigPrepStmt);
             }
-
-            outboundProConfigPrepStmt.executeBatch();
-
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(outboundProConfigPrepStmt);
         }
     }
 
@@ -1051,10 +1052,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                                 for (FederatedAuthenticatorConfig authenticator : authenticators) {
                                     // ID, TENANT_ID, AUTHENTICATOR_ID
-                                    int authenticatorId = getAuthentictorID(connection, tenantID,
-                                            idpName, authenticator.getName());
-                                    if (authenticatorId > 0) {
-                                        if (authenticator != null) {
+                                    if (authenticator != null) {
+                                        int authenticatorId = getAuthentictorID(connection, tenantID,
+                                                idpName, authenticator.getName());
+                                        if (authenticatorId > 0) {
                                             storeStepIDPAuthnPrepStmt.setInt(1, stepId);
                                             storeStepIDPAuthnPrepStmt.setInt(2, tenantID);
                                             storeStepIDPAuthnPrepStmt.setInt(3, authenticatorId);
@@ -1153,7 +1154,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         List<ClaimMapping> claimMappings = Arrays.asList(claimConfiguration.getClaimMappings());
 
-        if (claimConfiguration == null || claimMappings.isEmpty()) {
+        if (claimMappings.isEmpty()) {
             log.debug("No claim mapping found, Skipping ..");
             return;
         }
@@ -1419,10 +1420,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
-            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
             if (serviceProvider == null) {
                 return null;
             }
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
 
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
