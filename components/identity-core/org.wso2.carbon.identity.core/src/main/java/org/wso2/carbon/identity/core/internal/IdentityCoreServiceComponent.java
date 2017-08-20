@@ -144,7 +144,7 @@ public class IdentityCoreServiceComponent {
                     log.info("Migration process finished.");
                 }
             } catch (Exception e) {
-                log.error("Error occurred while initializing the migration client, " , e);
+                log.error("Error occurred while initializing the migration client." , e);
             }
 
             //this is done to initialize primary key store
