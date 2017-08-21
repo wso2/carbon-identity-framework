@@ -725,6 +725,29 @@ public class IdentityApplicationManagementUtil {
         }
     }
 
+    /**
+     * @return the Assertion Encryption Algorithm URI defined in configuration
+     */
+    public static String getAssertionEncryptionAlgorithmURIByConfig() {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM))) {
+            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM).trim();
+        } else {
+            return IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES256;
+        }
+    }
+
+    /**
+     * @return the Key Encryption Algorithm URI defined in configuration
+     */
+    public static String getKeyEncryptionAlgorithmURIByConfig() {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM))) {
+            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM).trim();
+        } else {
+            return IdentityApplicationConstants.XML.KeyEncryptionAlgorithmURI.RSAOAEP;
+        }
+    }
 
     /**
      * This is used in back end. Property is the type of stub generated property
