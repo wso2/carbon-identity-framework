@@ -341,5 +341,22 @@ public class IdentityApplicationConstants {
             public static final String SHA384 = "http://www.w3.org/2001/04/xmldsig-more#sha384";
             public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
         }
+
+        public static class AssertionEncryptionAlgorithm {
+            public static final String AES256 = "AES256";
+        }
+
+        public static class AssertionEncryptionAlgorithmURI {
+            public static final String AES256 = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+        }
+
+        public static class KeyEncryptionAlgorithm {
+            public static final String RSAOAEP = "RSAOAEP";
+        }
+
+        public static class KeyEncryptionAlgorithmURI {
+            public static final String RSAOAEP = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+        }
+
     }
 }
