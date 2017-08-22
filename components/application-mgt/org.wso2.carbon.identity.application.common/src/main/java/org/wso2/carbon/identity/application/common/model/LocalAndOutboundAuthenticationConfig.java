@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.common.model;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import javax.xml.namespace.QName;
@@ -52,6 +53,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
+    private AuthenticationScriptConfig authenticationScriptConfig;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -260,5 +262,11 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     public void setAuthenticationGraphConfig(AuthenticationGraphConfig authenticationGraphConfig) {
         this.authenticationGraphConfig = authenticationGraphConfig;
+    }
+
+    public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}
+
+    public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
+        this.authenticationScriptConfig = authenticationScriptConfig;
     }
 }

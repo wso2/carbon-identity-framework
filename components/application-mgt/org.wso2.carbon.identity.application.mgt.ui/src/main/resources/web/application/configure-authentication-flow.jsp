@@ -15,6 +15,11 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
+<script>
+	function clearText() {
+        document.getElementById("scriptTextarea").value = ""; // clear scriptTextarea
+	}
+</script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
 
 <%@page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig"%>
@@ -517,8 +522,21 @@ var img = "";
                 <input type="button" value="<fmt:message key='button.update.service.provider'/>" onclick="createAppOnclick();"/>
                 <input type="button" value="<fmt:message key='button.cancel'/>" onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
             </div>
-            </form>
-        </div>
+			<h2 id="lambda_function" class="sectionSeperator trigger active" style="font-size:large "  >
+				<a href="#">Code in Lambda</a>
+			</h2>
+
+			<div class="sectionSeperator togglebleTitle" style="margin-bottom:10px;" id="lamda_func_dropdown">
+				<textarea id="scriptTextarea" name="scriptTextarea"  style="height: 500px;width: 100%"><%
+				    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null){
+                    						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null){
+                    						    out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
+                    						}
+                    					}
+				%></textarea>
+				<input type="button" value="clear" onclick="clearText();"/>
+			</div>
+			</form>
     </div>
 
 </fmt:bundle>

@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -69,6 +70,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -822,6 +824,19 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 storeAuthGraphPrepStmt.execute();
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(storeAuthGraphPrepStmt);
+            }
+        }
+
+        final String STORE_AUTH_SCRIPT = "INSERT INTO SP_AUTH_SCRIPT (TENANT_ID, APP_ID, TYPE,CONTENT) VALUES (?,?,?,?)";
+
+        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
+            try (PreparedStatement storeAuthScriptPrepStmt = connection.prepareStatement(STORE_AUTH_SCRIPT)){
+
+                storeAuthScriptPrepStmt.setInt(1, tenantID);
+                storeAuthScriptPrepStmt.setInt(2,applicationId);
+                storeAuthScriptPrepStmt.setString(3, "authentication_flaw");
+                storeAuthScriptPrepStmt.setCharacterStream(4, new StringReader(localAndOutboundAuthConfig.getAuthenticationScriptConfig().getContent()));
+                storeAuthScriptPrepStmt.execute();
             }
         }
 
@@ -1957,6 +1972,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         getGraphConfiguration(applicationId, connection));
             }
 
+            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
+            if(authenticationScriptConfig != null) {
+                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
+            }
+
             getStepInfoPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_STEPS_INFO_BY_APP_ID);
             // STEP_ORDER, AUTHENTICATOR_ID, IS_SUBJECT_STEP, IS_ATTRIBUTE_STEP
@@ -2111,7 +2131,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             throws SQLException {
 
         AuthenticationGraphConfig authenticationGraphConfig = new AuthenticationGraphConfig();
+        AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
         PreparedStatement localAndOutboundConfigGraphPrepStmt = null;
+        PreparedStatement localAndOutboundConfigScriptPrepStmt = null;
         ResultSet localAndOutboundConfigGraphResultSet = null;
         String LOAD_AUTH_GRAPH_CONFIG = "SELECT NAME FROM SP_AUTH_GRAPH WHERE APP_ID = ?";
         localAndOutboundConfigGraphPrepStmt = connection.prepareStatement(LOAD_AUTH_GRAPH_CONFIG);
@@ -2121,6 +2143,23 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             authenticationGraphConfig.setName(localAndOutboundConfigGraphResultSet.getString(1));
         }
         return authenticationGraphConfig;
+    }
+
+    private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
+            throws SQLException {
+
+        PreparedStatement localAndOutboundConfigScriptPrepStmt = null;
+        ResultSet localAndOutboundConfigScriptResultSet = null;
+        String LOAD_AUTH_SCRIPT_CONFIG = "SELECT CONTENT FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
+        localAndOutboundConfigScriptPrepStmt = connection.prepareStatement(LOAD_AUTH_SCRIPT_CONFIG);
+        localAndOutboundConfigScriptPrepStmt.setInt(1, applicationId);
+        localAndOutboundConfigScriptResultSet = localAndOutboundConfigScriptPrepStmt.executeQuery();
+        if (localAndOutboundConfigScriptResultSet.next()) {
+            AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+            authenticationScriptConfig.setContent(localAndOutboundConfigScriptResultSet.getString(1));
+            return authenticationScriptConfig;
+        }
+        return null;
     }
 
     private boolean isFederationHubIdP(String idPName, Connection connection, int tenantId)
@@ -2593,6 +2632,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         PreparedStatement deleteLocalAndOutboundAuthConfigPrepStmt = null;
         PreparedStatement deleteLocalAndOutboundAuthGraphConfigPrepStmt = null;
+        PreparedStatement deleteLocalAndOutboundAuthScriptConfigPrepStmt = null;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
@@ -2606,6 +2646,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(1, applicationId);
             deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthGraphConfigPrepStmt.execute();
+
+            deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_SCRIPT WHERE APP_ID = ? AND TENANT_ID = ?");
+            deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
+            deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(2, tenantId);
+            deleteLocalAndOutboundAuthScriptConfigPrepStmt.execute();
 
         } finally {
             IdentityApplicationManagementUtil
