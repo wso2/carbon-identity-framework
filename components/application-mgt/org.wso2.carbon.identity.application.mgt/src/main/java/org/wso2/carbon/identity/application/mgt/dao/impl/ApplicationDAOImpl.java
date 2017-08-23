@@ -70,7 +70,11 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -2156,7 +2160,23 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         localAndOutboundConfigScriptResultSet = localAndOutboundConfigScriptPrepStmt.executeQuery();
         if (localAndOutboundConfigScriptResultSet.next()) {
             AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
-            authenticationScriptConfig.setContent(localAndOutboundConfigScriptResultSet.getString(1));
+            
+            try {
+                StringBuilder sb = new StringBuilder();
+                BufferedReader br = new BufferedReader(
+                        localAndOutboundConfigScriptResultSet.getCharacterStream(1));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line).append("\r\n");
+                }
+                String targetString = sb.toString();
+                authenticationScriptConfig.setContent(targetString);
+            } catch (IOException e) {
+                log.error("Could not read the Script for application : "+applicationId, e);
+                //TODO: Handle and throw proper exception
+                return null;
+            }
+
             return authenticationScriptConfig;
         }
         return null;
@@ -2642,10 +2662,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            deleteLocalAndOutboundAuthGraphConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_GRAPH WHERE APP_ID = ? AND TENANT_ID = ?");
-            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(1, applicationId);
-            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(2, tenantId);
-            deleteLocalAndOutboundAuthGraphConfigPrepStmt.execute();
+//            deleteLocalAndOutboundAuthGraphConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_GRAPH WHERE APP_ID = ? AND TENANT_ID = ?");
+//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(1, applicationId);
+//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(2, tenantId);
+//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.execute();
 
             deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_SCRIPT WHERE APP_ID = ? AND TENANT_ID = ?");
             deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
@@ -3211,5 +3231,4 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityDatabaseUtil.closeConnection(connection);
         }
     }
-
 }

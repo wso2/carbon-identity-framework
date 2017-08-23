@@ -73,4 +73,9 @@ public class StepNode extends Node implements Serializable {
 
         return authenticationStep;
     }
+
+    public void setAuthenticationStep(AuthenticationStep authenticationStep) {
+
+        this.authenticationStep = authenticationStep;
+    }
 }

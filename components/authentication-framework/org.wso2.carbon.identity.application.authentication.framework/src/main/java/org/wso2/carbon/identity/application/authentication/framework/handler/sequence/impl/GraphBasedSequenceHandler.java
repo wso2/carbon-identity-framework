@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthDecisionPointNode;
@@ -87,7 +88,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * from OSGI may not be ready.
      * We can remove the lazy initialize method if we change the SequenceHandler extension point to use OSGI wiring.
      */
-    private void lazyInit() {
+    protected void lazyInit() {
         if (!isInitialized) {
             synchronized (this) {
                 if (!isInitialized) {
@@ -165,7 +166,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             AuthenticationContext context, SequenceConfig sequenceConfig, StepConfigGraphNode stepConfigGraphNode)
             throws FrameworkException {
 
-        StepConfig stepConfig = stepConfigGraphNode;
+        StepConfig stepConfig = stepConfigGraphNode.getStepConfig();
         if (stepConfig == null) {
             throw new FrameworkException("StepConfig not found while handling the step. Service Provider : " + context
                     .getServiceProviderName());
@@ -238,6 +239,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         String nextOutcome = null;
 
+        AuthenticationDecisionEvaluator2 evaluator2 = decisionPointNode.getAuthenticationDecisionEvaluator();
+        if(evaluator2 != null) {
+            nextOutcome = evaluator2.evaluate(context);
+            if (log.isDebugEnabled()) {
+                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + decisionPointNode
+                        .getEvaluatorName());
+            }
+        }
+
         AuthenticationDecisionEvaluator evaluator = authenticationDecisionEvaluatorMap
                 .get(decisionPointNode.getEvaluatorName());
         if (evaluator == null) {
@@ -293,7 +303,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (startNode == null) {
             throw new FrameworkException("Start node is not set for authentication graph:" + graph.getName());
         }
-        context.setCurrentStep(1);
+        context.setCurrentStep(0);
         return handleNode(request, response, context, sequenceConfig, startNode);
     }
 }

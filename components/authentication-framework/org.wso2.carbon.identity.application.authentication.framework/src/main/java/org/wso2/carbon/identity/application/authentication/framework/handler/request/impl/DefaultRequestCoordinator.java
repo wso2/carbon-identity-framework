@@ -60,7 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Request Coordinator
  */
-public class DefaultRequestCoordinator implements RequestCoordinator {
+public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
     private static volatile DefaultRequestCoordinator instance;
@@ -369,10 +369,15 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
     protected void findPreviousAuthenticatedSession(HttpServletRequest request,
                                                     AuthenticationContext context) throws FrameworkException {
 
-        // Get service provider chain
-        SequenceConfig effectiveSequence = ConfigurationFacade.getInstance()
-                .getSequenceConfig(context, request.getParameterMap());
         List<String> acrRequested = getAcrRequested(request);
+        if(acrRequested != null) {
+            for(String acr: acrRequested) {
+                context.addRequestedAcr(acr);
+            }
+        }
+        // Get service provider chain
+        SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
+
         if(acrRequested != null) {
             for(String acr: acrRequested) {
                 effectiveSequence.addRequestedAcr(acr);

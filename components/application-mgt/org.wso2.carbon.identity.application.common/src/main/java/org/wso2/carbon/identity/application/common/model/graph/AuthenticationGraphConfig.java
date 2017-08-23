@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -70,6 +71,7 @@ public class AuthenticationGraphConfig implements Serializable {
 
         AuthenticationGraphConfig authenticationGraphConfig = null;
 
+
         Map<String, Node> nodesMap = new HashMap<>();
         Iterator iterator = graphOM.getChildElements();
         while (iterator.hasNext()) {
@@ -104,11 +106,14 @@ public class AuthenticationGraphConfig implements Serializable {
                 authenticationGraphConfig = new AuthenticationGraphConfig();
                 authenticationGraphConfig.startNode = startNode;
                 authenticationGraphConfig.nodesMap = nodesMap;
-                authenticationGraphConfig.name = graphOM.getAttribute(new QName("name")).getAttributeValue();
+                authenticationGraphConfig.name = graphOM.getAttributeValue(new QName("name"));
             } catch (IdentityApplicationManagementException e) {
                 log.error("Error in building authentication graph", e);
             }
         }
+
+        String graphRef = graphOM.getAttributeValue(new QName(IdentityApplicationConstants.REF));
+        authenticationGraphConfig.setReference(graphRef);
 
         return authenticationGraphConfig;
     }

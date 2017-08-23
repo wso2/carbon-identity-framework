@@ -18,19 +18,26 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal.impl;
 
-import junit.framework.TestCase;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.InputStream;
 import javax.xml.stream.XMLStreamException;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+
 /**
  * Tests the AuthenticationMethodNameTranslatorImpl.
  *
  */
-public class AuthenticationMethodNameTranslatorImplTest extends TestCase {
+@Test
+public class AuthenticationMethodNameTranslatorImplTest {
 
     public void testInitializeConfigsWithServerConfig_NoContextMapping() throws Exception {
         AuthenticationMethodNameTranslatorImpl translator = new AuthenticationMethodNameTranslatorImpl();

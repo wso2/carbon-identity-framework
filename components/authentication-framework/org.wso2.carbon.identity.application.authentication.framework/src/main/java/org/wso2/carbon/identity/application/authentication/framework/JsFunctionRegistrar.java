@@ -16,14 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.dao;
+package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
+public interface JsFunctionRegistrar {
 
-
-public interface AuthenticationFlowDAO {
-    AuthenticationGraphConfig getGraph(String name, String tenantDomain);
-
-
-
+    enum Subsystem{
+        SEQUENCE_HANDLER
+    }
+    void register(Subsystem subsystem, String functionName, Object function);
 }
