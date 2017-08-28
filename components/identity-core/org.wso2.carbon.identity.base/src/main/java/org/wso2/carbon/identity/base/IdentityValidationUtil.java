@@ -42,6 +42,7 @@ public class IdentityValidationUtil {
         ALPHABETIC_ONLY("^[a-zA-Z]+$"),
         ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
         URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        URL_WITHOUT_FRAGMENT("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?$"),
         EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
         WHITESPACE_EXISTS(".*\\s+.*"),
         URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
