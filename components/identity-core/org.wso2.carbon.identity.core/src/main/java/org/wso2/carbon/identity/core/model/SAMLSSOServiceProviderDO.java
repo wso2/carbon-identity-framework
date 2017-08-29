@@ -63,6 +63,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean doValidateSignatureInRequests;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
+    private String assertionEncryptionAlgorithmUri;
+    private String keyEncryptionAlgorithmUri;
     private String signingCertificate ;
     private String encryptionCertificate ;
     private X509Certificate x509Certificate;
@@ -84,6 +86,20 @@ public class SAMLSSOServiceProviderDO implements Serializable {
                     .SSO_DEFAULT_DIGEST_ALGORITHM).trim();
         } else {
             digestAlgorithmUri = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM))) {
+            assertionEncryptionAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                    .SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM).trim();
+        } else {
+            assertionEncryptionAlgorithmUri = IdentityCoreConstants.XML_ASSERTION_ENCRYPTION_ALGORITHM_AES256;
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM))) {
+            keyEncryptionAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                    .SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM).trim();
+        } else {
+            keyEncryptionAlgorithmUri = IdentityCoreConstants.XML_KEY_ENCRYPTION_ALGORITHM_RSAOAEP;
         }
     }
 
@@ -234,6 +250,26 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setDigestAlgorithmUri(String digestAlgorithmUri) {
         if (StringUtils.isNotEmpty(digestAlgorithmUri)) {
             this.digestAlgorithmUri = digestAlgorithmUri;
+        }
+    }
+
+    public String getAssertionEncryptionAlgorithmUri() {
+        return assertionEncryptionAlgorithmUri;
+    }
+
+    public void setAssertionEncryptionAlgorithmUri(String assertionEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(assertionEncryptionAlgorithmUri)) {
+            this.assertionEncryptionAlgorithmUri = assertionEncryptionAlgorithmUri;
+        }
+    }
+
+    public String getKeyEncryptionAlgorithmUri() {
+        return keyEncryptionAlgorithmUri;
+    }
+
+    public void setKeyEncryptionAlgorithmUri(String keyEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(keyEncryptionAlgorithmUri)) {
+            this.keyEncryptionAlgorithmUri = keyEncryptionAlgorithmUri;
         }
     }
     /**
