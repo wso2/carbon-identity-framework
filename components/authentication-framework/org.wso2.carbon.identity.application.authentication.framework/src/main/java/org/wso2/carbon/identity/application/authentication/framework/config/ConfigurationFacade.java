@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -105,54 +104,6 @@ public class ConfigurationFacade {
 
         return uiBasedConfigurationLoader.getSequence(serviceProvider, tenantDomain, authenticationSteps);
 
-    }
-
-    /**
-     * TODO: Move this to better place
-     * @param context
-     * @param parameterMap
-     * @return
-     * @throws FrameworkException
-     */
-    public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap)
-            throws FrameworkException {
-        String requestType = context.getRequestType();
-        String[] issuers = parameterMap.get(FrameworkConstants.RequestParams.ISSUER);
-        String issuer = null;
-        if (!ArrayUtils.isEmpty(issuers)) {
-            issuer = issuers[0];
-        }
-        String tenantDomain = context.getTenantDomain();
-        
-        SequenceLoader sequenceBuilder = FrameworkServiceDataHolder.getInstance().getSequenceLoader();
-        if (sequenceBuilder != null) {
-            ServiceProvider serviceProvider = getServiceProvider(requestType, issuer, tenantDomain);
-            return sequenceBuilder.getSequenceConfig(context, parameterMap, serviceProvider);
-        }
-
-        // Get SP config from SP Management component
-        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-
-        // special case for OpenID Connect, these clients are stored as OAuth2 clients
-        if ("oidc".equals(requestType)) {
-            requestType = "oauth2";
-        }
-
-        ServiceProvider serviceProvider;
-
-        try {
-            serviceProvider = appInfo.getServiceProviderByClientId(issuer, requestType, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            throw new FrameworkException(e.getMessage(), e);
-        }
-
-        if (serviceProvider == null) {
-            throw new FrameworkException("ServiceProvider cannot be null");
-        }
-        AuthenticationStep[] authenticationSteps = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                .getAuthenticationSteps();
-
-        return uiBasedConfigurationLoader.getSequence(serviceProvider, tenantDomain, authenticationSteps);
     }
 
     public ExternalIdPConfig getIdPConfigByName(String idpName, String tenantDomain)
@@ -274,29 +225,5 @@ public class ConfigurationFacade {
 
     public int getMaxLoginAttemptCount() {
         return FileBasedConfigurationBuilder.getInstance().getMaxLoginAttemptCount();
-    }
-
-    /*
-    TODO: Move this to better place
-     */
-    private ServiceProvider getServiceProvider(String reqType, String clientId, String tenantDomain)
-            throws FrameworkException {
-
-        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-
-        // special case for OpenID Connect, these clients are stored as OAuth2 clients
-        if ("oidc".equals(reqType)) {
-            reqType = "oauth2";
-        }
-
-        ServiceProvider serviceProvider;
-
-        try {
-            serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            throw new FrameworkException("Error occurred while retrieving service provider for client ID: " + clientId
-                    + " and tenant: " + tenantDomain, e);
-        }
-        return serviceProvider;
     }
 }

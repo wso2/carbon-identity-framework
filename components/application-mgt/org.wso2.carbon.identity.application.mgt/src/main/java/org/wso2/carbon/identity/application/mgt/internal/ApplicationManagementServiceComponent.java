@@ -176,14 +176,18 @@ public class ApplicationManagementServiceComponent {
                         fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));
                         documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
                         ServiceProvider sp = ServiceProvider.build(documentElement);
-                        String graphRef = sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig().getReference();
-                        if(graphRef != null) {
-                            AuthenticationGraphConfig graph = ApplicationManagementServiceComponentHolder.
-                                    getInstance().getAuthenticationGraphConfigReaderService().getGraph(graphRef);
-                            if(graph != null) {
-                                sp.getLocalAndOutBoundAuthenticationConfig().setAuthenticationGraphConfig(graph);
-                            } else {
-                                log.error("Could not find a graph by reference. reference Id :"+graph);
+                        AuthenticationGraphConfig authenticationGraphConfig =
+                                sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig();
+                        if(authenticationGraphConfig != null) {
+                            String graphRef = authenticationGraphConfig.getReference();
+                            if (graphRef != null) {
+                                AuthenticationGraphConfig graph = ApplicationManagementServiceComponentHolder.
+                                        getInstance().getAuthenticationGraphConfigReaderService().getGraph(graphRef);
+                                if (graph != null) {
+                                    sp.getLocalAndOutBoundAuthenticationConfig().setAuthenticationGraphConfig(graph);
+                                } else {
+                                    log.error("Could not find a graph by reference. reference Id :" + graph);
+                                }
                             }
                         }
                         if (sp != null) {

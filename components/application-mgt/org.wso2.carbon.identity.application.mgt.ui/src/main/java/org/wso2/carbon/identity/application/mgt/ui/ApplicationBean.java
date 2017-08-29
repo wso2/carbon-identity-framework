@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.graph.xsd.AuthenticationGraphConfig;
+import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.xsd.Claim;
@@ -1016,8 +1017,14 @@ public class ApplicationBean {
             }
 
             if (CollectionUtils.isNotEmpty(authStepList)) {
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
-                        authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+                String flawByScript = request.getParameter("scriptTextarea");
+                if (StringUtils.isNotBlank(flawByScript)) {
+                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+                    authenticationScriptConfig.setContent(flawByScript);
+                    localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+                }
             }
 
         }

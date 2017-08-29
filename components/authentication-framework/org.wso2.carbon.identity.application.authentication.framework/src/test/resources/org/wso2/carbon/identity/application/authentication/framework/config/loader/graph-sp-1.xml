@@ -42,11 +42,10 @@
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="foo">
+            <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
                 <Evaluator>AcrEvaluator</Evaluator>
                 <Link name="end" nextLink="" />
                 <Link name="hwk" nextLink="sample_auth" expression="hwk" />
-                <Link name="default" nextLink="sample_auth" />
             </AuthenticationDecision>
             <AuthenticationStep name="sample_auth">
                 <StepOrder>2</StepOrder>

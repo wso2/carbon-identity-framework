@@ -31,7 +31,9 @@ import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -41,17 +43,19 @@ public class GraphBuilder {
 
     private static final Log log = LogFactory.getLog(GraphBuilder.class);
     private Map<Node, AuthGraphNode> nodesMap = new HashMap<>();
-    private Map<AuthGraphNode, Integer> nodeVsInboundLinks = new HashMap<>();
+    private Set<AuthGraphNode> visitedNodes = new HashSet<>();
     private EndStep endStep = new EndStep();
+    private AuthenticationGraph result = new AuthenticationGraph();
 
-    public AuthenticationGraph createWith(AuthenticationGraphConfig graphConfig) {
-
-        AuthenticationGraph result = new AuthenticationGraph();
+    public void createWith(AuthenticationGraphConfig graphConfig) {
         result.setName(graphConfig.getName());
         Node startNodeConfig = graphConfig.getStartNode();
         AuthGraphNode startNode = translate(startNodeConfig, graphConfig);
         result.setStartNode(startNode);
         visit(result, startNodeConfig, startNode, graphConfig);
+    }
+
+    public AuthenticationGraph getGraph() {
         return result;
     }
 
@@ -72,7 +76,6 @@ public class GraphBuilder {
         }
         if (result != null) {
             nodesMap.put(configNode, result);
-            nodeVsInboundLinks.put(result, 1);
         }
 
         return result;
@@ -82,6 +85,7 @@ public class GraphBuilder {
     private void visit(AuthenticationGraph result, Node configNode, AuthGraphNode node,
                        AuthenticationGraphConfig graphConfig) {
 
+        visitedNodes.add(node);
         if (configNode == null) {
             return;
         }
@@ -101,7 +105,7 @@ public class GraphBuilder {
                         Node nextNode = graphConfig.getNodeByName(nextName);
                         AuthGraphNode graphNode = translate(nextNode, graphConfig);
                         decisionPointNode.putOutcome(link.getName(), new DecisionOutcome(graphNode, link));
-                        if (!hasAlreadyVisited(graphNode)) {
+                        if (!visitedNodes.contains(graphNode)) {
                             visit(result, nextNode, graphNode, graphConfig);
                         }
                     } else {
@@ -124,7 +128,7 @@ public class GraphBuilder {
                 } else {
                     AuthGraphNode graphNode = translate(nextNode, graphConfig);
                     stepConfigGraphNode.setNext(graphNode);
-                    if (!hasAlreadyVisited(graphNode)) {
+                    if (!visitedNodes.contains(graphNode)) {
                         visit(result, nextNode, graphNode, graphConfig);
                     }
                 }
@@ -148,13 +152,6 @@ public class GraphBuilder {
 
         return Collections.unmodifiableCollection(nodesMap.values());
     }
-
-    private boolean hasAlreadyVisited(AuthGraphNode node) {
-
-        Integer i = nodeVsInboundLinks.get(node);
-        return i != null && i > 1;
-    }
-
 
     private AuthDecisionPointNode getDecisionPointNode(DecisionNode decisionNode, AuthenticationGraphConfig
             graphConfig) {
