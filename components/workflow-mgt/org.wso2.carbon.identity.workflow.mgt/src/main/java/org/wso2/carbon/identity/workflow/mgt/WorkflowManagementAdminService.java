@@ -197,6 +197,13 @@ public class WorkflowManagementAdminService {
      */
     public void addWorkflow(WorkflowWizard workflow) throws WorkflowException {
 
+        WorkflowWizard[] workflowWizards = listWorkflows();
+        for(WorkflowWizard workflowWizard: workflowWizards){
+            if(workflowWizard.getWorkflowName().equals(workflow.getWorkflowName())){
+                throw new WorkflowException("Workflow name can not be duplicated.");
+            }
+        }
+
         String id = workflow.getWorkflowId();
         if (StringUtils.isBlank(id)) {
             id = UUID.randomUUID().toString();

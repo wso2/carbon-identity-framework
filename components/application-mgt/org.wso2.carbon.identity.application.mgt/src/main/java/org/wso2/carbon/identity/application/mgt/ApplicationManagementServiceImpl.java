@@ -755,21 +755,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         ServiceProvider serviceProvider = appDAO.getApplication(appId);
 
+        if (serviceProvider == null){
+            throw new IdentityApplicationManagementException(
+                    "Error while getting the service provider for appId: " + appId);
+        }
         String serviceProviderName = serviceProvider.getApplicationName();
         String tenantDomain = serviceProvider.getOwner().getTenantDomain();
 
         try {
             startTenantFlow(tenantDomain);
-            if (serviceProvider != null) {
-                loadApplicationPermissions(serviceProviderName, serviceProvider);
-            }
+            loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-            if (serviceProvider == null
-                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                    serviceProviderName)) {
-                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                        serviceProviderName);
-            }
         } finally {
             endTenantFlow();
         }

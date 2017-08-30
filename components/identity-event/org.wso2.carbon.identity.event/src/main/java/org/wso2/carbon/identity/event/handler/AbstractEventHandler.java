@@ -24,8 +24,8 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
@@ -45,7 +45,7 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         Event event = ((IdentityEventMessageContext) messageContext).getEvent();
         String eventName = event.getEventName();
         String moduleName = this.getName();
-        IdentityEventConfigBuilder notificationMgtConfigBuilder = null;
+        IdentityEventConfigBuilder notificationMgtConfigBuilder;
         try {
             notificationMgtConfigBuilder = IdentityEventConfigBuilder.getInstance();
         } catch (IdentityEventException e) {
@@ -53,12 +53,7 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
             return false;
         }
         List<Subscription> subscriptionList = null;
-        ModuleConfiguration moduleConfiguration = null;
-        if (notificationMgtConfigBuilder != null) {
-            moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
-        } else {
-            return false;
-        }
+        ModuleConfiguration moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
         if (moduleConfiguration != null) {
             subscriptionList = moduleConfiguration.getSubscriptions();
         } else {

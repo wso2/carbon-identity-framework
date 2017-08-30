@@ -79,14 +79,12 @@
         <OpenIDServerUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/openidserver</OpenIDServerUrl>
         <OpenIDUserPattern>${carbon.protocol}://${carbon.host}:${carbon.management.port}/openid</OpenIDUserPattern>
         <OpenIDLoginUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/openid_login.do</OpenIDLoginUrl>
-
         <!-- If the users must be prompted for approval -->
         <OpenIDSkipUserConsent>false</OpenIDSkipUserConsent>
         <!-- Expiry time of the OpenID RememberMe token in minutes -->
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
-
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -253,6 +251,18 @@
         <!--TokenValidators>
             <TokenValidator type="bearer" class="org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator"/>
         </TokenValidators-->
+
+        <!-- Scope validators list. The validators registered here wil be executed during token validation. -->
+        <ScopeValidators>
+            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
+        </ScopeValidators>
+
+        <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
+             issuing access tokens. -->
+        <ScopeHandlers>
+            <ScopeHandler class="org.wso2.carbon.identity.oauth2.validators.OIDCScopeHandler" />
+        </ScopeHandlers>
+
         <!-- Assertions can be used to embedd parameters into access token. -->
         <EnableAssertions>
             <UserName>false</UserName>
@@ -295,11 +305,15 @@
             <IDTokenIssuerID>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</IDTokenIssuerID>
             <IDTokenCustomClaimsCallBackHandler>org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback</IDTokenCustomClaimsCallBackHandler>
             <IDTokenExpiration>3600</IDTokenExpiration>
+            <UserInfoJWTSignatureAlgorithm>SHA256withRSA</UserInfoJWTSignatureAlgorithm>
             <UserInfoEndpointClaimRetriever>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever</UserInfoEndpointClaimRetriever>
             <UserInfoEndpointRequestValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
+            <!-- Sign the ID Token with Service Provider Tenant Private Key-->
+            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
@@ -353,6 +367,8 @@
         <UseAuthenticatedUserDomainCrypto>false</UseAuthenticatedUserDomainCrypto>
         <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2000/09/xmldsig#rsa-sha1</SAMLDefaultSigningAlgorithmURI>
         <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2000/09/xmldsig#sha1</SAMLDefaultDigestAlgorithmURI>
+        <SAMLDefaultAssertionEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#aes256-cbc</SAMLDefaultAssertionEncryptionAlgorithmURI>
+        <SAMLDefaultKeyEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p</SAMLDefaultKeyEncryptionAlgorithmURI>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
     </SSOService>
 
@@ -483,10 +499,10 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
                        orderId="90" enable="true"/>
-        <!-- Uncomment the following event listener if SCIM2 is used. -->
-        <!--EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+        <!-- Enable the following SCIM2 event listener and disable the above SCIM event listener if SCIM2 is used. -->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMUserOperationListener"
-                       orderId="93" enable="true"/-->
+                       orderId="93" enable="false"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
                        orderId="95" enable="true"/>
@@ -590,6 +606,9 @@
         <Resource context="/scim2/Bulk" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
         </Resource>
+        <Resource context="(.*)/api/identity/oauth/dcr/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
+        </Resource>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -601,7 +620,9 @@
             <Context>/api/identity/user/v0.9</Context>
             <Context>/api/identity/recovery/v0.9</Context>
             <Context>/oauth2</Context>
+            <Context>/scim2</Context>
             <Context>/api/identity/entitlement</Context>
+            <Context>/api/identity/oauth/dcr/v1.0</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

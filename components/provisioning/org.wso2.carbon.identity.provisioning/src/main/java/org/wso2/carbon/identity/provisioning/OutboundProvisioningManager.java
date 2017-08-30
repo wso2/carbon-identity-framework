@@ -262,12 +262,8 @@ public class OutboundProvisioningManager {
 
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
-
-            if (tenantDomain != null) {
-
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            }
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         }
 
         if (log.isDebugEnabled()) {
