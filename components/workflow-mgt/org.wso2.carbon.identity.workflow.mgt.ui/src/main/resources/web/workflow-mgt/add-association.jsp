@@ -161,15 +161,17 @@
             actionDropdown.options.add(headOption);
             if (selectedCategory != lastSelectedCategory) {
                 var eventsOfCategory = eventsObj[selectedCategory];
-                for (var i = 0; i < eventsOfCategory.length; i++) {
-                    var opt = document.createElement("option");
-                    opt.text = eventsOfCategory[i].displayName;
-                    opt.value = eventsOfCategory[i].value;
-                    opt.title = eventsOfCategory[i].title;
-                    actionDropdown.options.add(opt);
+                if(eventsOfCategory) {
+                    for (var i = 0; i < eventsOfCategory.length; i++) {
+                        var opt = document.createElement("option");
+                        opt.text = eventsOfCategory[i].displayName;
+                        opt.value = eventsOfCategory[i].value;
+                        opt.title = eventsOfCategory[i].title;
+                        actionDropdown.options.add(opt);
+                    }
                 }
-                lastSelectedCategory = selectedCategory;
             }
+            lastSelectedCategory = selectedCategory;
             $(".enableOnCategorySel").prop('disabled', false);
         }
 
