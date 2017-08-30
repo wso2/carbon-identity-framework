@@ -91,8 +91,7 @@
             }
             session.setAttribute(requestToken,workflowWizard);
         }
-
-
+        
         WorkflowWizard[] workflowWizards = client.listWorkflows();
         for (int i = 0; i < workflowWizards.length; i++) {
             WorkflowWizard workflowWizard1 = workflowWizards[i];
