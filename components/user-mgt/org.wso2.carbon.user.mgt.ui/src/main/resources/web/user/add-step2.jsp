@@ -255,7 +255,7 @@
                                    black-list-patterns="xml-meta-exists"/>
                         </td>
                         <td style="text-align:left;">
-                            <input class="button" type="submit" value="<fmt:message key="user.search"/>"/>
+                            <input class="button" type="submit" value="<fmt:message key="role.search"/>"/>
                         </td>
                     </tr>
                 </table>
