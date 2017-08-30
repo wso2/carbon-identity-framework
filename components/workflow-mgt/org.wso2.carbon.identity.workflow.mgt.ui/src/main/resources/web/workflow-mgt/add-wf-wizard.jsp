@@ -91,11 +91,14 @@
             }
             session.setAttribute(requestToken,workflowWizard);
         }
-        
+
         WorkflowWizard[] workflowWizards = client.listWorkflows();
         for (int i = 0; i < workflowWizards.length; i++) {
             WorkflowWizard workflowWizard1 = workflowWizards[i];
-            existingWorkflowNames += workflowWizard1.getWorkflowName() + "|" ;
+            existingWorkflowNames +=  "\"" + workflowWizard1.getWorkflowName() + "\"" ;
+            if(workflowWizards.length > (i+1)){
+                existingWorkflowNames +=  "," ;
+            }
         }
     } catch (Exception e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
@@ -123,7 +126,7 @@
 %>
 
 <script type="text/javascript">
-        var existingWorkflowNames = "<%=existingWorkflowNames%>";
+        var existingWorkflowNames = [<%=existingWorkflowNames%>];
 </script>
 
 
@@ -161,7 +164,7 @@
                 CARBON.showWarningDialog("<fmt:message key="workflow.error.empty.workflow.name"/>" , null ,null) ;
                 return false;
             }
-            if(existingWorkflowNames.indexOf(workflow_name + "|") !== -1){
+            if($.inArray(workflow_name, existingWorkflowNames) !== -1){
                 CARBON.showWarningDialog("<fmt:message key="workflow.error.duplicate.workflow.name"/>" , null ,null) ;
                 return false;
             }
