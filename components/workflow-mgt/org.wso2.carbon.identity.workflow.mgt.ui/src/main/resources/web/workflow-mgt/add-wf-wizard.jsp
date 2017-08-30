@@ -94,8 +94,8 @@
 
         WorkflowWizard[] workflowWizards = client.listWorkflows();
         for (int i = 0; i < workflowWizards.length; i++) {
-            WorkflowWizard workflowWizard1 = workflowWizards[i];
-            existingWorkflowNames +=  "\"" + workflowWizard1.getWorkflowName() + "\"" ;
+            WorkflowWizard workflow = workflowWizards[i];
+            existingWorkflowNames +=  "\"" + workflow.getWorkflowName() + "\"" ;
             if(workflowWizards.length > (i+1)){
                 existingWorkflowNames +=  "," ;
             }
