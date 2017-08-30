@@ -45,6 +45,8 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, request.getLocale());
     String forwardTo = null;
 
+    String existingWorkflowNames = "" ;
+
 
     String requestPath = "list-workflows";
     //'path' parameter to use to track parent wizard path if this wizard trigger by another wizard
@@ -89,6 +91,13 @@
             }
             session.setAttribute(requestToken,workflowWizard);
         }
+
+
+        WorkflowWizard[] workflowWizards = client.listWorkflows();
+        for (int i = 0; i < workflowWizards.length; i++) {
+            WorkflowWizard workflowWizard1 = workflowWizards[i];
+            existingWorkflowNames += workflowWizard1.getWorkflowName() + "|" ;
+        }
     } catch (Exception e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -114,7 +123,9 @@
     }
 %>
 
-
+<script type="text/javascript">
+        var existingWorkflowNames = "<%=existingWorkflowNames%>";
+</script>
 
 
 
@@ -140,11 +151,22 @@
 
         function submitPage(){
             var workflowForm = document.getElementById("id_workflow");
-            if($('#id_workflow_name').val().length > 0){
+            if(validateWorkflowName()){
                 workflowForm.submit();
-            }else{
-                CARBON.showWarningDialog("<fmt:message key="workflow.error.empty.workflow.name"/>" , null ,null) ;
             }
+        }
+
+        function validateWorkflowName(){
+            var workflow_name = $('#id_workflow_name').val();
+            if(workflow_name.length == 0){
+                CARBON.showWarningDialog("<fmt:message key="workflow.error.empty.workflow.name"/>" , null ,null) ;
+                return false;
+            }
+            if(existingWorkflowNames.indexOf(workflow_name + "|") !== -1){
+                CARBON.showWarningDialog("<fmt:message key="workflow.error.duplicate.workflow.name"/>" , null ,null) ;
+                return false;
+            }
+            return true;
         }
 
     </script>
