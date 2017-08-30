@@ -22,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -44,6 +46,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -63,6 +66,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
+    private static String multiAttributeSeparator;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -207,6 +211,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         int stepCount = 1;
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
+
+        try {
+            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm. Switching to default MultiAttributeSeparator.");
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+            }
+        }
+        if (StringUtils.isBlank(multiAttributeSeparator)) {
+            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+        }
 
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -476,11 +493,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     String roleAttr = mappedAttrs.get(spRoleUri);
 
                     if (StringUtils.isNotBlank(roleAttr)) {
-
-                        String multiAttributeSeparator = mappedAttrs.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-                        if (StringUtils.isBlank(multiAttributeSeparator)) {
-                            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
-                        }
                         //Need to convert multiAttributeSeparator value into a regex literal before calling
                         // split function. Otherwise split can produce misleading results in case
                         // multiAttributeSeparator contains regex special meaning characters like .*
@@ -571,17 +583,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             for (String role : locallyMappedUserRoles) {
                 if (roleMappingDefined) {
                     if (localToSpRoleMapping.containsKey(role)) {
-                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + ",");
+                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + multiAttributeSeparator);
                     } else {
-                        spMappedUserRoles.append(role + ",");
+                        spMappedUserRoles.append(role + multiAttributeSeparator);
                     }
                 } else {
-                    spMappedUserRoles.append(role + ",");
+                    spMappedUserRoles.append(role + multiAttributeSeparator);
                 }
             }
 
-            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().substring(0,
-                                                                                           spMappedUserRoles.length() - 1) : null;
+            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().
+                    substring(0, spMappedUserRoles.length() - multiAttributeSeparator.length()) : null;
         }
 
         return null;
