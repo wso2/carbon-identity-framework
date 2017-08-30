@@ -571,6 +571,8 @@ function updateBeanAndPostTo(postURL, data) {
         
         $("[name=claim_dialect]").click(function(){
         		var element = $(this);
+        		var currentId = element.attr('id');
+        		
         		claimMappinRowID = -1;
         		
         		if($('.idpClaim').length > 0){
