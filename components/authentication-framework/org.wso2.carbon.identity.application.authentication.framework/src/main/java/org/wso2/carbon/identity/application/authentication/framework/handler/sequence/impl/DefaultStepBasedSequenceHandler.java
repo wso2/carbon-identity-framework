@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -475,7 +477,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     if (StringUtils.isNotBlank(roleAttr)) {
 
-                        String[] roles = roleAttr.split(",");
+                        String multiAttributeSeparator = mappedAttrs.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+                        if (StringUtils.isBlank(multiAttributeSeparator)) {
+                            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                        }
+                        //Need to convert multiAttributeSeparator value into a regex literal before calling
+                        // split function. Otherwise split can produce misleading results in case
+                        // multiAttributeSeparator contains regex special meaning characters like .*
+                        String[] roles = roleAttr.split(Pattern.quote(multiAttributeSeparator));
                         mappedAttrs.put(
                                 spRoleUri,
                                 getServiceProviderMappedUserRoles(sequenceConfig,
