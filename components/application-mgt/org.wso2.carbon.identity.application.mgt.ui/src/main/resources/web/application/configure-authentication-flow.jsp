@@ -15,7 +15,39 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
+<script src="lib/codemirror.js"></script>
+<script src="keymap/sublime.js"></script>
+<link rel="stylesheet" href="lib/codemirror.css">
+<script src="mode/javascript/javascript.js"></script>
+<script src="addon/hint/show-hint.js"></script>
+<script src="addon/hint/javascript-hint.js"></script>
+<link rel="stylesheet" href="addon/hint/show-hint.css">
+<script src="addon/hint/anyword-hint.js"></script>
 <script>
+    jQuery(document).ready(function () {
+        var myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, { //Adding CodeMirror IDE
+            lineNumbers:true,
+            mode:  "javascript",
+            keymap:"sublime",
+            lineWiseCopyCut:true,
+            pasteLinesPerSelection:true,
+            extraKeys:{"Ctrl-Space":"autocomplete"},				//Adding auto compete functionality
+            indentWithTabs:true
+        });
+    });
+
+    editor.on('cursorActivity', function(){							// Giving custom hint list
+        var options = {
+            hint: function() {
+                return {
+                    from: editor.getDoc().getCursor(),
+                    to: editor.getDoc().getCursor(),
+                    list: ['wso2', 'test']
+                }
+            }
+        };
+        editor.showHint(options);
+    });
 	function clearText() {
         document.getElementById("scriptTextarea").value = ""; // clear scriptTextarea
 	}
