@@ -587,6 +587,11 @@ function updateBeanAndPostTo(postURL, data) {
                            		$('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
                            		$('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
                            	});
+                           	jQuery('.ui-dialog-titlebar-close').click(function(){
+                                //Reset checkboxes
+                                $('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
+                                $('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
+                            })
         		}else{
         			$('#claimMappingAddTable').hide();
         			changeDialectUIs(element);
