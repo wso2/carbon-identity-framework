@@ -583,10 +583,21 @@ function updateBeanAndPostTo(postURL, data) {
                     			changeDialectUIs(element);
                            	},
                     		function(){
-                           		//Reset checkboxes
-                           		$('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
-                           		$('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
-                           	});
+                                //Reset checkboxes
+                                if(currentId === "claim_dialect_custom"){
+                                $('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
+                                } else{
+                                $('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
+                                }
+                            });
+                            jQuery('.ui-dialog-titlebar-close').click(function(){
+                                //Reset checkboxes
+                                if(currentId === "claim_dialect_custom"){
+                                $('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
+                                } else{
+                                $('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
+                                }
+                            })
         		}else{
         			$('#claimMappingAddTable').hide();
         			changeDialectUIs(element);
