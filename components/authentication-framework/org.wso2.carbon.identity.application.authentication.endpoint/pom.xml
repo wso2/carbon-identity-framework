@@ -58,10 +58,6 @@
             <artifactId>axiom-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-httpclient.wso2</groupId>
-            <artifactId>commons-httpclient</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
             <scope>provided</scope>
