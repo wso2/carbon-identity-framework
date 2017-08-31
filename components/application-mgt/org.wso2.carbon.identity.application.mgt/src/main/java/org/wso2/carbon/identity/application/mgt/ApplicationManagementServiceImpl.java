@@ -281,7 +281,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
 
-            ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
                     .PATH_SEPARATOR + storedAppName;
             org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
@@ -292,8 +291,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, serviceProvider.getApplicationName());
             }
 
-            if (ArrayUtils.isNotEmpty(permissions)) {
-                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(), permissions);
+            if (serviceProvider.getPermissionAndRoleConfig() != null &&
+                    ArrayUtils.isNotEmpty(serviceProvider.getPermissionAndRoleConfig().getPermissions())) {
+                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(),
+                        serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
         } catch (Exception e) {
             String error = "Error occurred while updating the application: " + serviceProvider.getApplicationName();
