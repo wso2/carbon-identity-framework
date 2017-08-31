@@ -160,48 +160,22 @@
                 identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
             }
 
-            URL url = null;
-            HttpURLConnection httpURLConnection = null;
-
-            url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute
-                    (urlEncodedURL));
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setRequestMethod("HEAD");
-            httpURLConnection.connect();
-            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
         %>
         <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
         <br/><br/>
     <%
-        }
 
-        url = new URL(identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute
-                (urlEncodedURL ));
-        httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setRequestMethod("HEAD");
-        httpURLConnection.connect();
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        url = identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
     %>
         <a id="usernameRecoverLink" href="<%=url%>">Forgot Username </a>
         <br/><br/>
     <%
-        }
 
-
-
-
-        url = new URL(identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute
-                (urlEncodedURL ));
-        httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setRequestMethod("HEAD");
-        httpURLConnection.connect();
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        url = identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
         %>
         Don't have an account?
         <a id="registerLink" href="<%=url%>">Register Now</a>
-        <%
-            }
-        %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
         Not received confirmation email ?
