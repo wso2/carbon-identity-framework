@@ -1219,10 +1219,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                                                       PermissionsAndRoleConfig permissionsAndRoleConfiguration, Connection connection)
             throws SQLException {
 
-        if (permissionsAndRoleConfiguration == null) {
-            return;
-        } else if (permissionsAndRoleConfiguration.getRoleMappings() == null ||
-                permissionsAndRoleConfiguration.getRoleMappings().length == 0) {
+        if (permissionsAndRoleConfiguration == null || permissionsAndRoleConfiguration.getRoleMappings() == null ||
+                ArrayUtils.isEmpty(permissionsAndRoleConfiguration.getRoleMappings())) {
             return;
         }
 
