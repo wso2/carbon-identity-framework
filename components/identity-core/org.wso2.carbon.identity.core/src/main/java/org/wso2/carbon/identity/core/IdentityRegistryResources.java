@@ -150,6 +150,8 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     public static final String PROP_SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String PROP_SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+    public static final String PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM = "assertionEncryptionAlgorithm";
+    public static final String PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM = "keyEncryptionAlgorithm";
     public static final String PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED =
             "AssertionQueryRequestProfileEnabled";
     public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
