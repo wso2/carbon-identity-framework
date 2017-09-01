@@ -51,10 +51,7 @@ public class ServiceProviderTest extends TestCase {
 
     public void testGetLocalAndOutBoundAuthenticationConfig_AuthenticationGraph_InfiniteLoop() throws Exception {
         ServiceProvider sp2 = getTestServiceProvider("graph-sp-2-infinite-loop.xml");
-        assertNull(sp2.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
-
-        ServiceProvider sp3 = getTestServiceProvider("graph-sp-3-infinite-loop.xml");
-        assertNull(sp3.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        assertNotNull(sp2.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
     }
 
     private ServiceProvider getTestServiceProvider(String name) throws XMLStreamException {

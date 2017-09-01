@@ -77,11 +77,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             OMElement member = (OMElement) iter.next();
 
             if (AUTHENTICATION_SCRIPT.equals(member.getLocalName())) {
-
                 localAndOutboundAuthenticationConfig.authenticationScriptConfig = AuthenticationScriptConfig
                         .build(member);
             } else if (AUTHENTICATION_GRAPH.equals(member.getLocalName())) {
-
                 localAndOutboundAuthenticationConfig.authenticationGraphConfig = AuthenticationGraphConfig
                         .build(member);
             } else if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {

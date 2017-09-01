@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistrar;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistrarImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -47,17 +48,39 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public void testHandle_Dynamic_Javascript_1() throws Exception {
 
-        JsFunctionRegistrarImpl jsFunctionRegistrar = new JsFunctionRegistrarImpl();
+        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
-        jsFunctionRegistrar.register(JsFunctionRegistrar.Subsystem.SEQUENCE_HANDLER, "fn1",
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<AuthenticationContext, String>) this::customFunction1);
-        jsFunctionRegistrar.register(JsFunctionRegistrar.Subsystem.SEQUENCE_HANDLER, "fn2",
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2",
                 new CustomFunctionImpl2());
 
         AuthenticationContext context = getAuthenticationContextAcrStatic(new String[] { "acr1" });
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(3, authHistories.size());
+    }
+
+    @Test(enabled = false)
+    public void testHandle_Dynamic_Javascript_Serialization() throws Exception {
+
+        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
+                (Function<AuthenticationContext, String>) this::customFunction1);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
+
+        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+        
+        byte[] serialized = SerializationUtils.serialize(context);
+
+        AuthenticationContext context1 = (AuthenticationContext) SerializationUtils.deserialize(serialized);
+        assertNotNull(context1);
     }
 
     private AuthenticationContext getAuthenticationContextAcrStatic(String[] acrArray)

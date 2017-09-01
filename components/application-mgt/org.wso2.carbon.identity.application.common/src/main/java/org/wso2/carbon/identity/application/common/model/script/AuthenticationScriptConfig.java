@@ -24,15 +24,15 @@ import javax.xml.namespace.QName;
 
 /**
  * Holds a dynamic authentication script.
- * Contains script as a string and sevaral other meta-information related to script.
+ * Contains script as a string and several other meta-information related to script.
  */
 public class AuthenticationScriptConfig implements Serializable {
 
-    private static final long serialVersionUID = -16127229981193883L;
+    private static final long serialVersionUID = -16127229981193884L;
 
-    public static final QName ATTR_TYPE = new QName(null, "type");
+    public static final QName ATTR_TYPE = new QName(null, "language");
 
-    public String type;
+    private String language;
     private String content;
 
     /**
@@ -48,23 +48,23 @@ public class AuthenticationScriptConfig implements Serializable {
 
         AuthenticationScriptConfig scriptConfig = new AuthenticationScriptConfig();
         String type = scriptOM.getAttributeValue(ATTR_TYPE);
-        scriptConfig.setType(type);
+        scriptConfig.setLanguage(type);
         scriptConfig.setContent(scriptOM.getText());
         return scriptConfig;
     }
 
     /**
-     * @return type
+     * @return the language of the Script.
      */
-    public String getType() {
-        return type;
+    public String getLanguage() {
+        return language;
     }
 
     /**
-     * @param type
+     * @param language
      */
-    public void setType(String type) {
-        this.type = type;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     /**

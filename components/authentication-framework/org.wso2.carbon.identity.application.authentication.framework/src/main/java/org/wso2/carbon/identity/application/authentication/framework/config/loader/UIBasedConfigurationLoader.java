@@ -28,8 +28,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistrarImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -60,7 +61,8 @@ import java.util.Map;
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
-    private JsFunctionRegistrarImpl jsFunctionRegistrar;
+    private JsFunctionRegistryImpl jsFunctionRegistrar;
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
@@ -105,12 +107,12 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             Map<Integer, StepConfig> stepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
 
-            JsGraphBuilder jsGraphBuilder = new JsGraphBuilder(context, stepConfigMap);
+            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
             jsGraphBuilder.setJsFunctionRegistrar(jsFunctionRegistrar);
 
-            jsGraphBuilder
-                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent());
-            AuthenticationGraph graph = jsGraphBuilder.getGraph();
+            AuthenticationGraph graph = jsGraphBuilder
+                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
+                    .build();
             sequenceConfig.setAuthenticationGraph(graph);
         }
         return sequenceConfig;
@@ -316,7 +318,11 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
     }
 
-    public void setJsFunctionRegistrar(JsFunctionRegistrarImpl jsFunctionRegistrar) {
+    public void setJsFunctionRegistrar(JsFunctionRegistryImpl jsFunctionRegistrar) {
         this.jsFunctionRegistrar = jsFunctionRegistrar;
+    }
+
+    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 }

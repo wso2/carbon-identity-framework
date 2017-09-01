@@ -478,7 +478,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if(previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
             return true;
         }
-        return newAcrList.get(0).equals(previousAcrList.get(0)); //TODO: Scan All list.
+        for(int i=0; i< previousAcrList.size(); i++) {
+            if(! newAcrList.get(i).equals(previousAcrList.get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void buildOutboundQueryString(HttpServletRequest request, AuthenticationContext context)

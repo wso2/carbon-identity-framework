@@ -26,32 +26,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalRole;
-import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -72,9 +49,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -831,15 +806,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             }
         }
 
-        final String STORE_AUTH_SCRIPT = "INSERT INTO SP_AUTH_SCRIPT (TENANT_ID, APP_ID, TYPE,CONTENT) VALUES (?,?,?,?)";
-
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
-            try (PreparedStatement storeAuthScriptPrepStmt = connection.prepareStatement(STORE_AUTH_SCRIPT)){
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
+                    .getAuthenticationScriptConfig();
+            try (PreparedStatement storeAuthScriptPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_SP_AUTH_SCRIPT)) {
 
                 storeAuthScriptPrepStmt.setInt(1, tenantID);
-                storeAuthScriptPrepStmt.setInt(2,applicationId);
-                storeAuthScriptPrepStmt.setString(3, "authentication_flaw");
-                storeAuthScriptPrepStmt.setCharacterStream(4, new StringReader(localAndOutboundAuthConfig.getAuthenticationScriptConfig().getContent()));
+                storeAuthScriptPrepStmt.setInt(2, applicationId);
+                storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
+                storeAuthScriptPrepStmt
+                        .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
                 storeAuthScriptPrepStmt.execute();
             }
         }
@@ -1957,7 +1934,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
      * @throws SQLException
      */
     private LocalAndOutboundAuthenticationConfig getLocalAndOutboundAuthenticationConfig(
-            int applicationId, Connection connection, int tenantId) throws SQLException {
+            int applicationId, Connection connection, int tenantId)
+            throws SQLException, IdentityApplicationManagementException {
         PreparedStatement getStepInfoPrepStmt = null;
         ResultSet stepInfoResultSet = null;
 
@@ -2150,34 +2128,35 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
-            throws SQLException {
+            throws SQLException, IdentityApplicationManagementException {
 
-        PreparedStatement localAndOutboundConfigScriptPrepStmt = null;
-        ResultSet localAndOutboundConfigScriptResultSet = null;
-        String LOAD_AUTH_SCRIPT_CONFIG = "SELECT CONTENT FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
-        localAndOutboundConfigScriptPrepStmt = connection.prepareStatement(LOAD_AUTH_SCRIPT_CONFIG);
-        localAndOutboundConfigScriptPrepStmt.setInt(1, applicationId);
-        localAndOutboundConfigScriptResultSet = localAndOutboundConfigScriptPrepStmt.executeQuery();
-        if (localAndOutboundConfigScriptResultSet.next()) {
-            AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
-            
-            try {
-                StringBuilder sb = new StringBuilder();
-                BufferedReader br = new BufferedReader(
-                        localAndOutboundConfigScriptResultSet.getCharacterStream(1));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    sb.append(line).append("\r\n");
+        try (PreparedStatement localAndOutboundConfigScriptPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.LOAD_SCRIPT_BY_APP_ID_QUERY);) {
+
+            localAndOutboundConfigScriptPrepStmt.setInt(1, applicationId);
+            try (ResultSet localAndOutboundConfigScriptResultSet = localAndOutboundConfigScriptPrepStmt
+                    .executeQuery()) {
+                if (localAndOutboundConfigScriptResultSet.next()) {
+                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+
+                    try {
+                        StringBuilder sb = new StringBuilder();
+                        BufferedReader br = new BufferedReader(
+                                localAndOutboundConfigScriptResultSet.getCharacterStream(1));
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line).append("\r\n");
+                        }
+                        String targetString = sb.toString();
+                        authenticationScriptConfig.setContent(targetString);
+                    } catch (IOException e) {
+                        throw new IdentityApplicationManagementException(
+                                "Could not read the Script for application : " + applicationId, e);
+                    }
+
+                    return authenticationScriptConfig;
                 }
-                String targetString = sb.toString();
-                authenticationScriptConfig.setContent(targetString);
-            } catch (IOException e) {
-                log.error("Could not read the Script for application : "+applicationId, e);
-                //TODO: Handle and throw proper exception
-                return null;
             }
-
-            return authenticationScriptConfig;
         }
         return null;
     }
@@ -2662,14 +2641,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-//            deleteLocalAndOutboundAuthGraphConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_GRAPH WHERE APP_ID = ? AND TENANT_ID = ?");
-//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(1, applicationId);
-//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.setInt(2, tenantId);
-//            deleteLocalAndOutboundAuthGraphConfigPrepStmt.execute();
-
-            deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection.prepareStatement("DELETE FROM SP_AUTH_SCRIPT WHERE APP_ID = ? AND TENANT_ID = ?");
+            deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT);
             deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
-            deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthScriptConfigPrepStmt.execute();
 
         } finally {

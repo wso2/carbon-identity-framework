@@ -34,7 +34,9 @@ import javax.xml.namespace.QName;
 /**
  * Model for Authentication Steps graph.
  * Graph has a start node, set of other connected nodes.
+ * @Deprecated We will remove this in favor of Script based dynamic model.
  */
+@Deprecated
 public class AuthenticationGraphConfig implements Serializable {
 
     private static final long serialVersionUID = 1610571097373920966L;

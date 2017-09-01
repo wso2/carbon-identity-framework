@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
  * Custom functions can be added supporting this contract to the dynamic sequence handler.
  *
  * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler
+ *
+ * TODO: remove the deprecated AuthenticationDecisionEvaluator and rename this class as AuthenticationDecisionEvaluator, once the XML model is removed.
  */
 @FunctionalInterface
 public interface AuthenticationDecisionEvaluator2 {
