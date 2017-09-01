@@ -36,10 +36,12 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AcrDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
@@ -83,6 +85,7 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
+    private JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -149,7 +152,7 @@ public class FrameworkServiceComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        ;
+        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistrar, null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -191,6 +194,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
         FrameworkServiceDataHolder.getInstance().addAuthenticationDecisionEvaluator(new AcrDecisionEvaluator());
 

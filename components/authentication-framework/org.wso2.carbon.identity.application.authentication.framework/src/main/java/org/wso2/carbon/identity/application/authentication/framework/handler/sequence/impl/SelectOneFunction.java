@@ -16,14 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.dao;
+package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
-
-public interface AuthenticationFlowDAO {
-    AuthenticationGraphConfig getGraph(String name, String tenantDomain);
-
-
-
+@FunctionalInterface
+public interface SelectOneFunction {
+    String evaluate(AuthenticationContext context, String[] possibleOutcomes);
 }

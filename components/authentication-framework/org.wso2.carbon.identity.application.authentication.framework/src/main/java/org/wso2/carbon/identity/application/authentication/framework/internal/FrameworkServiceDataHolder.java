@@ -162,4 +162,6 @@ public class FrameworkServiceDataHolder {
             AuthenticationMethodNameTranslator authenticationMethodNameTranslator) {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
+
+
 }

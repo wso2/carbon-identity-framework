@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -44,6 +47,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +61,8 @@ import java.util.Map;
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
+    private JsFunctionRegistryImpl jsFunctionRegistrar;
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
@@ -81,8 +87,9 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if ((authenticationSteps == null || authenticationSteps.length <= 0)
                 && localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() != null) {
             GraphBuilder graphBuilder = new GraphBuilder();
-            AuthenticationGraph graph = graphBuilder
+            graphBuilder
                     .createWith(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig());
+            AuthenticationGraph graph = graphBuilder.getGraph();
             for (AuthGraphNode node : graphBuilder.getNodes()) {
                 if (node instanceof StepConfigGraphNode) {
                     StepConfigGraphNode stepConfigGraphNode = (StepConfigGraphNode) node;
@@ -91,6 +98,21 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                     loadLocalAuthenticators(authenticationStep, stepConfigGraphNode);
                 }
             }
+            sequenceConfig.setAuthenticationGraph(graph);
+        }
+
+        //Use script based evaluation if script is present.
+        if (localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig() != null) {
+            //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
+            Map<Integer, StepConfig> stepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
+            sequenceConfig.getStepMap().clear();
+
+            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+            jsGraphBuilder.setJsFunctionRegistrar(jsFunctionRegistrar);
+
+            AuthenticationGraph graph = jsGraphBuilder
+                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
+                    .build();
             sequenceConfig.setAuthenticationGraph(graph);
         }
         return sequenceConfig;
@@ -118,6 +140,16 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         return getSequence(serviceProvider, tenantDomain, authenticationSteps);
     }
 
+    /**
+     * Loads the sequence in the way previous loading mechanism used to work.
+     * Please do not use this for any new development.
+     *
+     * @param serviceProvider
+     * @param tenantDomain
+     * @param authenticationSteps
+     * @return
+     * @throws FrameworkException
+     */
     public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain,
                                       AuthenticationStep[] authenticationSteps) throws FrameworkException {
 
@@ -284,5 +316,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
         }
+    }
+
+    public void setJsFunctionRegistrar(JsFunctionRegistryImpl jsFunctionRegistrar) {
+        this.jsFunctionRegistrar = jsFunctionRegistrar;
+    }
+
+    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 }

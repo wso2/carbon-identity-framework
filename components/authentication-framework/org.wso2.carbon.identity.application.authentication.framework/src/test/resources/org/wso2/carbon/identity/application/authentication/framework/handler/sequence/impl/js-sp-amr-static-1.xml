@@ -17,7 +17,7 @@
   -->
 <ServiceProvider>
     <ApplicationID>1</ApplicationID>
-    <ApplicationName>graph-sp2</ApplicationName>
+    <ApplicationName>default</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -29,11 +29,12 @@
         </InboundAuthenticationRequestConfigs>
     </InboundAuthenticationConfig>
     <LocalAndOutBoundAuthenticationConfig>
-        <AuthenticationGraph start="basic_auth">
-            <AuthenticationStep name="basic_auth" nextLink="is_hwk_needed">
+        <AuthenticationSteps>
+            <AuthenticationStep>
+                <StepOrder>0</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
-                        <Name>BasicAuthenticator</Name>
+                        <Name>BasicMockAuthenticator</Name>
                         <DisplayName>basicauth</DisplayName>
                         <IsEnabled>true</IsEnabled>
                     </LocalAuthenticatorConfig>
@@ -41,20 +42,16 @@
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
-                <Evaluator>AcrEvaluator</Evaluator>
-                <Link name="end" end="true" />
-                <Link name="hwk" nextLink="sample_auth" expression="hwk" />
-            </AuthenticationDecision>
-            <AuthenticationStep name="sample_auth" nextLink="basic_auth">
+            <AuthenticationStep>
+                <StepOrder>1</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
-                        <IdentityProviderName>SampleHardwareKeyAuthenticator</IdentityProviderName>
+                        <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
                         <IsEnabled>true</IsEnabled>
-                        <DefaultAuthenticatorConfig>SampleHardwareKeyAuthenticator</DefaultAuthenticatorConfig>
+                        <DefaultAuthenticatorConfig>HwkMockAuthenticator</DefaultAuthenticatorConfig>
                         <FederatedAuthenticatorConfigs>
                             <FederatedAuthenticatorConfig>
-                                <Name>SampleHardwareKeyAuthenticator</Name>
+                                <Name>HwkMockAuthenticator</Name>
                                 <IsEnabled>true</IsEnabled>
                             </FederatedAuthenticatorConfig>
                         </FederatedAuthenticatorConfigs>
@@ -63,7 +60,47 @@
                 <SubjectStep>fales</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
-        </AuthenticationGraph>
+            <AuthenticationStep>
+                <StepOrder>2</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>FptMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>FptMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>fales</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+        </AuthenticationSteps>
+        <AuthenticationScript type="javascript"><![CDATA[
+
+function(context) {
+    var amrArray = getRequestedAmr(context);
+    log.debug("AMR requested "+amrArray);
+
+    for (var i = 0, len = amrArray.length; i < len; i++) {
+        var amr = amrArray[i];
+        log.debug("Adding AMR "+amr);
+        switch(amr) {
+            case "pwd" : execute('0'); break;
+            case "hwk" : execute('1'); break;
+            case "fpt" : execute('2'); break;
+            default :
+                log.error("Unknown AMR requested. Authentication fails amr: "+amr);
+                fail("Could not find Authenticator for amr: "+amr);
+                //fail(i18n("Could not find Authenticator for amr: "+amr, "no.amr.for", amr));
+        }
+    }
+}
+
+]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

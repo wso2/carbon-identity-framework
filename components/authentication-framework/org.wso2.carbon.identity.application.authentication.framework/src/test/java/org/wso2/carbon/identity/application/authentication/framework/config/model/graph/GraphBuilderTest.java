@@ -18,17 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+@Test
 public class GraphBuilderTest extends AbstractFrameworkTest {
 
     public void testCreateWith() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
         GraphBuilder graphBuilder = new GraphBuilder();
-        AuthenticationGraph g1 = graphBuilder
-                .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        graphBuilder.createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        AuthenticationGraph g1 = graphBuilder.getGraph();
         assertNotNull(g1);
         assertNotNull(g1.getStartNode());
         assertTrue(g1.getStartNode() instanceof StepConfigGraphNode);
@@ -40,16 +46,15 @@ public class GraphBuilderTest extends AbstractFrameworkTest {
 
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
         GraphBuilder graphBuilder = new GraphBuilder();
-        AuthenticationGraph g1 = graphBuilder
-                .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        graphBuilder.createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        AuthenticationGraph g1 = graphBuilder.getGraph();
         AuthDecisionPointNode decisionPointNode1 = (AuthDecisionPointNode) ((StepConfigGraphNode) g1.getStartNode())
                 .getNext();
         assertNotNull(decisionPointNode1.getDefaultEdge());
         assertEquals("sample_auth", decisionPointNode1.getDefaultEdge().getName());
         assertEquals("sample_auth", decisionPointNode1.getOutcome("hwk").getDestination().getName());
-        assertEquals("hwk outcome and default outcome should be the same java objects",
-                decisionPointNode1.getDefaultEdge(),
-                decisionPointNode1.getOutcome("hwk").getDestination());
+        assertEquals(decisionPointNode1.getDefaultEdge(), decisionPointNode1.getOutcome("hwk").getDestination(),
+                "hwk outcome and default outcome should be the same java objects");
     }
 
     /**
@@ -61,8 +66,8 @@ public class GraphBuilderTest extends AbstractFrameworkTest {
 
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-2-with-circle.xml");
         GraphBuilder graphBuilder = new GraphBuilder();
-        AuthenticationGraph g1 = graphBuilder
-                .createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        graphBuilder.createWith(sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+        AuthenticationGraph g1 = graphBuilder.getGraph();
         assertNotNull(g1);
         assertNotNull(g1.getStartNode());
         assertTrue(g1.getStartNode() instanceof StepConfigGraphNode);

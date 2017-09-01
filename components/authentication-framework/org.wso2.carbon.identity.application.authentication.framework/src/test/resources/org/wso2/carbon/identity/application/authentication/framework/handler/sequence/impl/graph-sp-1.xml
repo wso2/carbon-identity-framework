@@ -42,11 +42,10 @@
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="foo">
+            <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
                 <Evaluator>AcrDecisionEvaluator</Evaluator>
                 <Link name="hwk" nextLink="sample_auth" expression="hwk" />
                 <Link name="pwd" expression="pwd" end="true"/>
-                <Link name="default" nextLink="sample_auth" />
             </AuthenticationDecision>
             <AuthenticationStep name="sample_auth">
                 <StepOrder>2</StepOrder>

@@ -18,26 +18,25 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthDecisionPointNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.graph.DecisionNode;
 
 /**
- * Evaluates the authentication context and decides the next path to be taken.
- * @deprecated We will remove this when XML based graph config is removed.
+ * Definition for dynamic Authentication Decision evaluation.
+ * Custom functions can be added supporting this contract to the dynamic sequence handler.
+ *
+ * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler
+ *
+ * TODO: remove the deprecated AuthenticationDecisionEvaluator and rename this class as AuthenticationDecisionEvaluator, once the XML model is removed.
  */
-@Deprecated
-public interface AuthenticationDecisionEvaluator {
+@FunctionalInterface
+public interface AuthenticationDecisionEvaluator2 {
 
     /**
      * Selects the authentication decision outcome based on current context.
      * Implementor may return null, in which case the flow will select the default outcome.
      *
      * @param context
-     * @param serviceProvider
-     * @param config
      * @return
      */
-    String evaluate(AuthenticationContext context, ServiceProvider serviceProvider, DecisionNode config);
+    String evaluate(AuthenticationContext context);
 }

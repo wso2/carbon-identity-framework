@@ -28,11 +28,21 @@ import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
 
     private static final long serialVersionUID = -5648175409277330725L;
+    @Deprecated
     private StepNode config;
     private AuthGraphNode nextLink;
+    private StepConfig stepConfig;
 
     public StepConfigGraphNode(StepNode config) {
         this.config = config;
+    }
+
+    public StepConfigGraphNode(StepConfig stepConfig) {
+       this.stepConfig = stepConfig;
+    }
+
+    public StepConfig getStepConfig() {
+        return stepConfig == null? this : stepConfig;
     }
 
     public void setNext(AuthGraphNode nextLink) {
@@ -43,8 +53,14 @@ public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
         return nextLink;
     }
 
+    @Deprecated
     public StepNode getConfig() {
         return config;
+    }
+
+    @Deprecated
+    public void setConfig(StepNode config) {
+        this.config = config;
     }
 
     @Override
