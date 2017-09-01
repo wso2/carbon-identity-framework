@@ -401,6 +401,12 @@
 				<Description>Entitlements</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/lockedReason</ClaimURI>
+				<DisplayName>Locked Reason</DisplayName>
+				<AttributeID>lockedReason</AttributeID>
+				<Description>Locked Reason</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:roles</ClaimURI>
 				<DisplayName>Roles</DisplayName>
 				<AttributeID>roles</AttributeID>
