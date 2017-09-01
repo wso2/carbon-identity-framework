@@ -48,10 +48,10 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
         for (String acrChecked : acrListRequested) {
             for (int x = 0; x < possibleOutcomes.length; x++) {
-                String test = possibleOutcomes[x];
-                if (test.equals(acrChecked)) {
+                String outcomeToTest = possibleOutcomes[x];
+                if (outcomeToTest.equals(acrChecked)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Reassigning Best Match for the outcome : " + test);
+                        log.debug("Reassigning Best Match for the outcome : " + outcomeToTest);
                     }
                     acrSelected = acrChecked;
                     break;
