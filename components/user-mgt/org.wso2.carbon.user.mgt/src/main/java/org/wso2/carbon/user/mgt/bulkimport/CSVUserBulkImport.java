@@ -157,10 +157,16 @@ public class CSVUserBulkImport {
                 if (claimStrings.length != 2) {
                     throw new UserAdminException("Claims and values are not in correct format");
                 } else {
-                    if (claimStrings[0].contains("role")) {
-                        roleString = claimStrings[1];
+                    String claimURI = claimStrings[0];
+                    String claimValue = claimStrings[1];
+                    if (claimURI.contains("role")) {
+                        roleString = claimValue;
                     } else {
-                        claims.put(claimStrings[0], claimStrings[1]);
+                        if (!claimURI.isEmpty()) {
+                            // Not trimming the claim values as we should not restrict the claim values not to have
+                            // leading or trailing whitespaces.
+                            claims.put(claimURI.trim(), claimValue);
+                        }
                     }
                 }
 
