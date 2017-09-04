@@ -72,6 +72,7 @@ public abstract class FrameworkConstants {
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
     public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
+    public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
     private FrameworkConstants() {
 

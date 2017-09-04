@@ -533,6 +533,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         String errorCode = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
         String errorMessage = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG));
+        String errorUri = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_URI));
+
 
         if (authenticationResult != null) {
 
@@ -546,9 +548,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
             }
 
+            if (IdentityUtil.isNotBlank(errorUri)) {
+                // set the custom error uri
+                authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
+            }
+
             if (log.isDebugEnabled()) {
-                log.debug("Populated errorCode=" + errorCode + ", errorMessage=" + errorMessage + " to the" +
-                        " AuthenticationResult.");
+                log.debug("Populated errorCode=" + errorCode + ", errorMessage=" + errorMessage + ", errorUri=" +
+                        errorUri + " to the AuthenticationResult.");
             }
 
             // set the updated authentication result to request
