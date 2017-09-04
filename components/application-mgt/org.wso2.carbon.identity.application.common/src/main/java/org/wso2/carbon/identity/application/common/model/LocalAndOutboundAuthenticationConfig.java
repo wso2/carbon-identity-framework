@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 
 import java.io.Serializable;
@@ -43,7 +42,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
 
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
-    private AuthenticationGraphConfig authenticationGraphConfig;
     private String authenticationType;
     private AuthenticationStep authenticationStepForSubject;
     private AuthenticationStep authenticationStepForAttributes;
@@ -78,9 +76,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
             if (AUTHENTICATION_SCRIPT.equals(member.getLocalName())) {
                 localAndOutboundAuthenticationConfig.authenticationScriptConfig = AuthenticationScriptConfig
-                        .build(member);
-            } else if (AUTHENTICATION_GRAPH.equals(member.getLocalName())) {
-                localAndOutboundAuthenticationConfig.authenticationGraphConfig = AuthenticationGraphConfig
                         .build(member);
             } else if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
 
@@ -253,14 +248,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setEnableAuthorization(boolean enableAuthorization) {
 
         this.enableAuthorization = enableAuthorization;
-    }
-
-    public AuthenticationGraphConfig getAuthenticationGraphConfig() {
-        return authenticationGraphConfig;
-    }
-
-    public void setAuthenticationGraphConfig(AuthenticationGraphConfig authenticationGraphConfig) {
-        this.authenticationGraphConfig = authenticationGraphConfig;
     }
 
     public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}

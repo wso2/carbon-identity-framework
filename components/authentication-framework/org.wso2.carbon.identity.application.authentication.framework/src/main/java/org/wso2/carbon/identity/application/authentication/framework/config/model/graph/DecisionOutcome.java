@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.common.model.graph.Link;
-
 import java.io.Serializable;
 
 /**
@@ -29,22 +27,13 @@ public class DecisionOutcome implements Serializable {
 
     private static final long serialVersionUID = -6026213391911495321L;
     private AuthGraphNode destination;
-    private Link config;
 
-    public DecisionOutcome(AuthGraphNode destination, Link config) {
+    public DecisionOutcome(AuthGraphNode destination) {
         this.destination = destination;
-        this.config = config;
     }
 
     public AuthGraphNode getDestination() {
         return destination;
     }
 
-    public String getName() {
-        return config == null ? null : config.getName();
-    }
-
-    public Link getConfig() {
-        return config;
-    }
 }

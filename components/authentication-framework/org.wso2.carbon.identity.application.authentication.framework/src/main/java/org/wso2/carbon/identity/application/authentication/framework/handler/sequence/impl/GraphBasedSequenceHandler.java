@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -33,12 +32,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -46,13 +41,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
     private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
-    private Map<String, AuthenticationDecisionEvaluator> authenticationDecisionEvaluatorMap = new HashMap<>();
     private volatile boolean isInitialized = false;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
             throws FrameworkException {
-        lazyInit();
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }
@@ -78,27 +71,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 isInterrupted = handleInitialize(request, response, context, sequenceConfig, graph);
             } else {
                 isInterrupted = handleNode(request, response, context, sequenceConfig, currentNode);
-            }
-        }
-    }
-
-    /**
-     * Initialize the class on demand.
-     * This is done because the IS constructs the sequence handler with reflection, but at the time other contributions
-     * from OSGI may not be ready.
-     * We can remove the lazy initialize method if we change the SequenceHandler extension point to use OSGI wiring.
-     */
-    protected void lazyInit() {
-        if (!isInitialized) {
-            synchronized (this) {
-                if (!isInitialized) {
-                    List<AuthenticationDecisionEvaluator> evaluatorList = FrameworkServiceDataHolder.getInstance()
-                            .getAuthenticationDecisionEvaluators();
-                    for (AuthenticationDecisionEvaluator evaluator : evaluatorList) {
-                        addDecisionEvaluator(evaluator);
-                    }
-                    isInitialized = true;
-                }
             }
         }
     }
@@ -243,23 +215,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if(evaluator2 != null) {
             nextOutcome = evaluator2.evaluate(context);
             if (log.isDebugEnabled()) {
-                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + decisionPointNode
-                        .getEvaluatorName());
-            }
-        }
-
-        AuthenticationDecisionEvaluator evaluator = authenticationDecisionEvaluatorMap
-                .get(decisionPointNode.getEvaluatorName());
-        if (evaluator == null) {
-            String errorMessage = String.format("No evaluator registered for the evaluator name : %s,"
-                            + " at Decision : %s, on Service Provider: %s", decisionPointNode.getEvaluatorName(),
-                    decisionPointNode.getName(), sequenceConfig.getApplicationId());
-            log.error(errorMessage);
-        } else {
-            nextOutcome = evaluator.evaluate(context, null, decisionPointNode.getConfig());
-            if (log.isDebugEnabled()) {
-                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + decisionPointNode
-                        .getEvaluatorName());
+                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + evaluator2);
             }
         }
 
@@ -272,7 +228,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 String errorMessage = String
                         .format("Could not find the next outcome node for the outcome decision result : %s,"
                                         + "  at Decision : %s, on Service Provider: %s", nextOutcome,
-                                decisionPointNode.getName(), sequenceConfig.getApplicationId());
+                                evaluator2, sequenceConfig.getApplicationId());
 
                 log.error(errorMessage);
             }
@@ -280,20 +236,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (nextNode == null) {
             nextNode = decisionPointNode.getDefaultEdge();
             if (log.isDebugEnabled()) {
-                String nextNodeName = nextNode == null ? null : nextNode.getName();
-                String message = String.format("Selecting default outcome : %s, "
-                                + "as evaluator : %s , could not select an outcome at the decision Point : %s", nextNodeName,
-                        evaluator, decisionPointNode.getName());
-                log.debug(message);
+                log.debug("Selecting default outcome");
             }
         }
 
         context.setProperty(PROP_CURRENT_NODE, nextNode);
-    }
-
-    public void addDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
-        authenticationDecisionEvaluatorMap.put(evaluator.getClass().getName(), evaluator);
-        authenticationDecisionEvaluatorMap.put(evaluator.getClass().getSimpleName(), evaluator);
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

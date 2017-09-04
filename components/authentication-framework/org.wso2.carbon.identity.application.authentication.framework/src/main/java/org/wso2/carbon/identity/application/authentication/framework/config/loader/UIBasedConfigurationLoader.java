@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
@@ -82,24 +81,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             }
         }
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
-
-        //Load the authentication graph only if the Steps Array is not present.
-        if ((authenticationSteps == null || authenticationSteps.length <= 0)
-                && localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() != null) {
-            GraphBuilder graphBuilder = new GraphBuilder();
-            graphBuilder
-                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig());
-            AuthenticationGraph graph = graphBuilder.getGraph();
-            for (AuthGraphNode node : graphBuilder.getNodes()) {
-                if (node instanceof StepConfigGraphNode) {
-                    StepConfigGraphNode stepConfigGraphNode = (StepConfigGraphNode) node;
-                    AuthenticationStep authenticationStep = stepConfigGraphNode.getConfig().getAuthenticationStep();
-                    loadFederatedAuthenticators(authenticationStep, stepConfigGraphNode, tenantDomain);
-                    loadLocalAuthenticators(authenticationStep, stepConfigGraphNode);
-                }
-            }
-            sequenceConfig.setAuthenticationGraph(graph);
-        }
 
         //Use script based evaluation if script is present.
         if (localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig() != null) {
