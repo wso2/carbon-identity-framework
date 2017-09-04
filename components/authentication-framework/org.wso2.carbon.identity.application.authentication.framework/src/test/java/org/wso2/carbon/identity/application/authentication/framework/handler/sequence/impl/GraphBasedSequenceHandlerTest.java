@@ -39,76 +39,8 @@ import static org.testng.Assert.assertTrue;
 @Test
 public class GraphBasedSequenceHandlerTest extends GraphBasedSequenceHandlerAbstractTest {
 
-
-    public void testHandle_DefaultFlow() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
-
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
-        context.setSequenceConfig(sequenceConfig);
-
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
-        UserCoreUtil.setDomainInThreadLocal("test_domain");
-
-        graphBasedSequenceHandler.handle(req, resp, context);
-
-        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
-        assertNotNull(authHistories);
-        assertEquals(2, authHistories.size());
-    }
-
-    public void testHandle_Acr_PwdOnly() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
-
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
-
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
-        context.setSequenceConfig(sequenceConfig);
-        context.getSequenceConfig().addRequestedAcr("pwd");
-
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
-        UserCoreUtil.setDomainInThreadLocal("test_domain");
-
-        graphBasedSequenceHandler.handle(req, resp, context);
-
-        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
-        assertNotNull(authHistories);
-        assertEquals(1, authHistories.size());
-    }
-
     public void testHandle_Acr_HwkOnly2_Javascript() throws Exception {
         ServiceProvider sp1 = getTestServiceProvider("js-sp-2.xml");
-
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
-
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
-        context.setSequenceConfig(sequenceConfig);
-        context.getSequenceConfig().addRequestedAcr("hwk");
-
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
-        UserCoreUtil.setDomainInThreadLocal("test_domain");
-
-        graphBasedSequenceHandler.handle(req, resp, context);
-
-        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
-        assertNotNull(authHistories);
-        assertEquals(2, authHistories.size());
-    }
-
-    public void testHandle_Acr_HwkOnly() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
 

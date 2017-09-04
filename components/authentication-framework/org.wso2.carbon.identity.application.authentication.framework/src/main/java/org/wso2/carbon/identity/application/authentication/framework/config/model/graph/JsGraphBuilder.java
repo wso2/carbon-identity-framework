@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
-import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -276,11 +275,7 @@ public class JsGraphBuilder {
      */
     private static StepConfigGraphNode wrap(StepConfig stepConfig) {
 
-        StepNode stepNode = new StepNode();
-        stepNode.setName("TODO:SetName");
-        stepNode.setAuthenticationStep(null);
         StepConfigGraphNode stepConfigGraphNode = new StepConfigGraphNode(stepConfig);
-        stepConfigGraphNode.setConfig(stepNode);
         return stepConfigGraphNode;
     }
 
@@ -336,7 +331,7 @@ public class JsGraphBuilder {
             if (outcomeName == null) {
                 decisionNode.setDefaultEdge(newNode);
             } else {
-                decisionNode.putOutcome(outcomeName, new DecisionOutcome(newNode, null));
+                decisionNode.putOutcome(outcomeName, new DecisionOutcome(newNode));
             }
             return this;
         }

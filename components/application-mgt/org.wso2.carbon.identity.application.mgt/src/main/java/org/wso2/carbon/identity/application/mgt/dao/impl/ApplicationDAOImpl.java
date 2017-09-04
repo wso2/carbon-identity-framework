@@ -27,7 +27,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.*;
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
@@ -787,25 +786,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         String authType = localAndOutboundAuthConfig.getAuthenticationType();
 
-        String STORE_AUTH_GRAPH = "INSERT INTO SP_AUTH_GRAPH (TENANT_ID, APP_ID, NAME, DESCRIPTION) " +
-                "VALUES (?,?,?,?)";
-
-        if ("graph".equals(authType)) {
-            PreparedStatement storeAuthGraphPrepStmt = null;
-            try {
-                storeAuthGraphPrepStmt = connection
-                        .prepareStatement(STORE_AUTH_GRAPH);
-                storeAuthGraphPrepStmt.setInt(1, tenantID);
-                storeAuthGraphPrepStmt.setInt(2, applicationId);
-                storeAuthGraphPrepStmt.setString(3, localAndOutboundAuthConfig.
-                        getAuthenticationGraphConfig().getName());
-                storeAuthGraphPrepStmt.setString(4, "");
-                storeAuthGraphPrepStmt.execute();
-            } finally {
-                IdentityApplicationManagementUtil.closeStatement(storeAuthGraphPrepStmt);
-            }
-        }
-
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
                     .getAuthenticationScriptConfig();
@@ -898,7 +878,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
 
-        if (!"graph".equals(authType) && (authSteps == null || authSteps.length == 0)) {
+        if (authSteps == null || authSteps.length == 0) {
             // if no authentication steps defined - it should be the default behavior.
             localAndOutboundAuthConfig
                     .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
@@ -1949,11 +1929,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     = new LocalAndOutboundAuthenticationConfig();
             localAndOutboundConfiguration.setAuthenticationType(authType);
 
-            if ("graph".equals(authType)) {
-                localAndOutboundConfiguration.setAuthenticationGraphConfig(
-                        getGraphConfiguration(applicationId, connection));
-            }
-
             AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
             if(authenticationScriptConfig != null) {
                 localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
@@ -2107,24 +2082,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(getStepInfoPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(stepInfoResultSet);
         }
-    }
-
-    private AuthenticationGraphConfig getGraphConfiguration(int applicationId, Connection connection)
-            throws SQLException {
-
-        AuthenticationGraphConfig authenticationGraphConfig = new AuthenticationGraphConfig();
-        AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
-        PreparedStatement localAndOutboundConfigGraphPrepStmt = null;
-        PreparedStatement localAndOutboundConfigScriptPrepStmt = null;
-        ResultSet localAndOutboundConfigGraphResultSet = null;
-        String LOAD_AUTH_GRAPH_CONFIG = "SELECT NAME FROM SP_AUTH_GRAPH WHERE APP_ID = ?";
-        localAndOutboundConfigGraphPrepStmt = connection.prepareStatement(LOAD_AUTH_GRAPH_CONFIG);
-        localAndOutboundConfigGraphPrepStmt.setInt(1, applicationId);
-        localAndOutboundConfigGraphResultSet = localAndOutboundConfigGraphPrepStmt.executeQuery();
-        if (localAndOutboundConfigGraphResultSet.next()) {
-            authenticationGraphConfig.setName(localAndOutboundConfigGraphResultSet.getString(1));
-        }
-        return authenticationGraphConfig;
     }
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)

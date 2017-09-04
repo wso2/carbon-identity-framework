@@ -33,7 +33,6 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -43,7 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AcrDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
@@ -66,9 +64,9 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import javax.servlet.Servlet;
 import java.util.Collections;
 import java.util.List;
-import javax.servlet.Servlet;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
@@ -196,7 +194,6 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
-        FrameworkServiceDataHolder.getInstance().addAuthenticationDecisionEvaluator(new AcrDecisionEvaluator());
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -440,18 +437,4 @@ public class FrameworkServiceComponent {
         }
     }
 
-    @Reference(
-            name = "identity.authentication.step.selection.evaluator",
-            service = AuthenticationDecisionEvaluator.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetAuthenticationDecisionEvaluator"
-    )
-    protected void setAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
-       FrameworkServiceDataHolder.getInstance().addAuthenticationDecisionEvaluator(evaluator);
-    }
-
-    protected void unsetAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
-        FrameworkServiceDataHolder.getInstance().removeAuthenticationDecisionEvaluator(evaluator);
-    }
 }

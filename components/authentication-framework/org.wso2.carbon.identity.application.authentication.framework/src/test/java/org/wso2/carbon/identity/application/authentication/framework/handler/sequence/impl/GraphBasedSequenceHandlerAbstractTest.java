@@ -99,6 +99,5 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         URL url = this.getClass().getResource(APPLICATION_AUTHENTICATION_FILE_NAME);
         configFilePathField.set(null, url.getPath());
 
-        graphBasedSequenceHandler.addDecisionEvaluator(new AcrDecisionEvaluator());
     }
 }
