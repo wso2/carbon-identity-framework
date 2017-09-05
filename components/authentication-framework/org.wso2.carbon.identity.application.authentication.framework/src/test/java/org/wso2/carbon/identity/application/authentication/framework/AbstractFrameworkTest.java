@@ -40,6 +40,7 @@ public class AbstractFrameworkTest {
             ServiceProvider serviceProvider)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
         AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setServiceProviderName(serviceProvider.getApplicationName());
         authenticationContext.setTenantDomain("test_domain");
         authenticationContext.setCurrentStep(1);
         return authenticationContext;

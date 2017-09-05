@@ -79,16 +79,16 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript"><![CDATA[
 
 function(context) {
     var acr = selectAcrFrom(context, ["acr1", "acr2"]);
     log.debug("ACR selected "+acr);
     
     switch(acr) {
-        case "acr1" : execute('0'); break;
-        case "acr2" : execute('0'); execute("1"); break;
-        default :  execute('0'); execute("1"); execute("2");
+        case "acr1" : executeStep({id :'0'}); break;
+        case "acr2" : executeStep({id :'0'}); executeStep({id :'1'}); break;
+        default :  executeStep({id :'0'}); executeStep({id :'1'}); executeStep({id : '2'});
     }
 }
 

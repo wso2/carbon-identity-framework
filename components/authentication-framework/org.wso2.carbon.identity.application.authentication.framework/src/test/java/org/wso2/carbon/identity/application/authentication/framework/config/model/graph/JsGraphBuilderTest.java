@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractFra
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.HashMap;
@@ -41,10 +43,13 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     private JsGraphBuilderFactory jsGraphBuilderFactory;
+    protected JavascriptCache javascriptCache;
 
     @BeforeTest
     public void setUp() {
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        javascriptCache = new JavascriptCacheImpl();
+        jsGraphBuilderFactory.setJavascriptCache(javascriptCache);
         jsGraphBuilderFactory.init();
     }
 
@@ -64,7 +69,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     public void testCreate_Javascript() throws Exception {
-        String script = "function(context) {" + "execute('1');" + "makeDecisionWith(function(c) {return 's';})"
+        String script = "function(context) {" + "executeStep({id :'0'});" + "makeDecisionWith(function(c) {return 's';})"
                 + ".when('s').thenExecute('2')" + ".whenNoMatch().thenExecute('1')" + "}";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");

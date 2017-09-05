@@ -36,4 +36,7 @@ public class DecisionOutcome implements Serializable {
         return destination;
     }
 
+    public void setDestination(AuthGraphNode destination) {
+        this.destination = destination;
+    }
 }

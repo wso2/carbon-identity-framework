@@ -23,6 +23,11 @@ import java.util.Map;
 import javax.script.Bindings;
 import javax.script.CompiledScript;
 
+/**
+ * Implementation for Javascript cache.
+ * Hides the complexities of expiring, loading and purging on cached data.
+ * 
+ */
 public class JavascriptCacheImpl implements JavascriptCache {
     private Map<String, CompiledScript> applicationVsScriptMap = new HashMap<>();
     private Map<String, Bindings> applicationVsBindings = new HashMap<>();

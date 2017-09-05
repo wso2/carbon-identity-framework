@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.RequestPath
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
@@ -51,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -83,7 +85,9 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
-    private JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+    private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private JavascriptCacheImpl javascriptCache;
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -150,7 +154,7 @@ public class FrameworkServiceComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistrar, null);
+        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistry, null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -191,9 +195,16 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
+        javascriptCache = new JavascriptCacheImpl();
+        jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        jsGraphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+        jsGraphBuilderFactory.setJavascriptCache(javascriptCache);
+        jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
-        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistry);
         FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
+        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();

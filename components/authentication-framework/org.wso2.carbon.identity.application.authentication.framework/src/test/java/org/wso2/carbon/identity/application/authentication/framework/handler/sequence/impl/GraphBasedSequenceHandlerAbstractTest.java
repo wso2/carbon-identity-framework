@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.File;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.net.URL;
 
@@ -62,6 +63,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         graphBuilderFactory.setJavascriptCache(javascriptCache);
         graphBuilderFactory.init();
         configurationLoader.setJsGraphBuilderFactory(graphBuilderFactory);
+        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
     }
 
     @BeforeMethod
@@ -71,13 +73,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         File file = new File(root.getPath());
         System.setProperty("carbon.home", file.toString());
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockAuthenticator("BasicMockAuthenticator", new SubjectCallback() {
-
-                    @Override
-                    public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
-                        return AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
-                    }
-                }));
+                .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
 
@@ -98,6 +94,15 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         configFilePathField.setAccessible(true);
         URL url = this.getClass().getResource(APPLICATION_AUTHENTICATION_FILE_NAME);
         configFilePathField.set(null, url.getPath());
+    }
 
+    private static class MockSubjectCallback implements SubjectCallback, Serializable {
+
+        private static final long serialVersionUID = 597048141496121100L;
+
+        @Override
+        public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
+            return AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+        }
     }
 }

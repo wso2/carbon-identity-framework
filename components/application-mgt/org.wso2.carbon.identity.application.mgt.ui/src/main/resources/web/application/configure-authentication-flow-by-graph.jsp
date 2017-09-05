@@ -69,17 +69,6 @@
 			localAuthTypes.append(startOption + Encode.forHtmlAttribute(auth.getName()) + middleOption + Encode.forHtmlContent(auth.getDisplayName()) + endOption);
 		}
 	}
-
-	String[] graphs = appBean.getGraphs();
-	for(String graph : graphs) {
-	    if(graph.equals(selectedGraph)){
-            graphsStr.append(startOption + Encode.forHtmlContent(graph) + middleOptionWithSelected +
-            Encode.forHtmlContent(graph) + endOption);
-        } else {
-            graphsStr.append(startOption + Encode.forHtmlContent(graph) + middleOption + Encode.forHtmlContent(graph) + endOption);
-        }
-	}
-
 %>
 <script type="text/javascript" >
 var authMap = {};

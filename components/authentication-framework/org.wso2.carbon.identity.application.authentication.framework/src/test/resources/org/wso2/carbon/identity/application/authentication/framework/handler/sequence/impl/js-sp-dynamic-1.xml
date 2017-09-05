@@ -31,7 +31,7 @@
     <LocalAndOutBoundAuthenticationConfig>
         <AuthenticationSteps>
             <AuthenticationStep>
-                <StepOrder>0</StepOrder>
+                <StepOrder>1</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
                         <Name>BasicMockAuthenticator</Name>
@@ -43,7 +43,7 @@
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>1</StepOrder>
+                <StepOrder>2</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
@@ -61,7 +61,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>2</StepOrder>
+                <StepOrder>3</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
@@ -79,13 +79,26 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript"><![CDATA[
+var jsFn1 = function(context, a) {
+    log.debug('Test fn1 '+a);
+}
 
 function(context) {
-	execute('0');
-	makeDecisionWith(function(context) {return fn1(context);})
-		.when('testResult1').thenExecute('1');
-	execute('2');
+Log.info('Test0');
+	executeStep({
+	    id : '1',
+	    on : {
+	        success : function(context){
+	                Log.info('Test1');
+	                executeStep({
+	                    context : context,
+	                    id : 2});
+	            },
+	        fail : fn1
+	    }
+	})
+	executeStep({id : '3'});
 }
 
 ]]></AuthenticationScript>

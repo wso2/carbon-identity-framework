@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
 
 import java.util.Map;
@@ -35,7 +37,7 @@ import javax.script.ScriptEngineManager;
 public class JsGraphBuilderFactory {
 
     private JavascriptCache javascriptCache;
-    private JsFunctionRegistryImpl jsFunctionRegistrar;
+    private JsFunctionRegistryImpl jsFunctionRegistry;
     private ScriptEngine engine = null;
 
     private static final Log jsLog = LogFactory
@@ -43,23 +45,34 @@ public class JsGraphBuilderFactory {
 
     public void init() {
         engine = new ScriptEngineManager().getEngineByName("nashorn");
-        engine.put("log", jsLog);
+        engine.put("log", jsLog); //TODO: Depricated. Remove log.x()
+        engine.put("Log", jsLog);
+        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+        engine.put("selectAcrFrom", (SelectOneFunction) selectAcrFromFunction::evaluate);
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
             Map<Integer, StepConfig> stepConfigMap) {
         JsGraphBuilder result =   new JsGraphBuilder(authenticationContext, stepConfigMap, engine);
         result.setJavascriptCache(javascriptCache);
-        result.setJsFunctionRegistrar(jsFunctionRegistrar);
+        result.setJsFunctionRegistry(jsFunctionRegistry);
         return result;
     }
 
-    public JsFunctionRegistryImpl getJsFunctionRegistrar() {
-        return jsFunctionRegistrar;
+    public ScriptEngine getEngine() {
+        return engine;
     }
 
-    public void setJsFunctionRegistrar(JsFunctionRegistryImpl jsFunctionRegistrar) {
-        this.jsFunctionRegistrar = jsFunctionRegistrar;
+    public JavascriptCache getJavascriptCache() {
+        return javascriptCache;
+    }
+
+    public JsFunctionRegistryImpl getJsFunctionRegistry() {
+        return jsFunctionRegistry;
+    }
+
+    public void setJsFunctionRegistry(JsFunctionRegistryImpl jsFunctionRegistry) {
+        this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
     public void setJavascriptCache(JavascriptCache javascriptCache) {

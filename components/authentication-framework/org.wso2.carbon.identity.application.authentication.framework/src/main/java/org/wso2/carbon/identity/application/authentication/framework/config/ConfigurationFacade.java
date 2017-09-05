@@ -18,19 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -45,13 +41,14 @@ import java.util.Map;
 public class ConfigurationFacade {
 
     private static final Log log = LogFactory.getLog(ConfigurationFacade.class);
-    private UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+    private UIBasedConfigurationLoader uiBasedConfigurationLoader;
     private static volatile ConfigurationFacade instance;
     private SequenceLoader sequenceBuilder;
 
     public ConfigurationFacade() {
         // Read the default config from the files
         FileBasedConfigurationBuilder.getInstance();
+        uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
     }
 
     public static ConfigurationFacade getInstance() {
@@ -75,6 +72,7 @@ public class ConfigurationFacade {
      * @param tenantDomain
      * @return
      * @throws FrameworkException
+     * TODO: Test this.
      * @deprecated Please use  #getSequenceConfig(AuthenticationContext, Map) instead.
      */
     @Deprecated

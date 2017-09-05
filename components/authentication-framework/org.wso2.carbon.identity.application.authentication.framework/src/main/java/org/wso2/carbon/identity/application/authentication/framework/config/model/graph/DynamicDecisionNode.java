@@ -18,43 +18,39 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-
-import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Authentication Graph.
+ * Decision making node on graph execution model.
+ * This node will construct its child nodes upon execution on asynchronous events.
+ * @see AuthDecisionPointNode in contrast builds the static graph model with full child nodes.
  */
-public class AuthenticationGraph implements Serializable {
+public class DynamicDecisionNode implements AuthGraphNode {
 
-    private static final long serialVersionUID = 7602728707258687636L;
-    private String name;
-    private AuthGraphNode startNode;
-    private Map<Integer, StepConfig> stepMap = new HashMap<>();
+    private Map<String, Object> functionMap = new HashMap<>();
+    private AuthGraphNode defaultEdge;
 
+    @Override
     public String getName() {
-        return name;
+        //TODO: Implement this.
+        return null;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Map<String, Object> getFunctionMap() {
+        return Collections.unmodifiableMap(functionMap);
     }
 
-    public AuthGraphNode getStartNode() {
-        return startNode;
+    public void addFunction(String outcome, Object function) {
+        functionMap.put(outcome, function);
     }
 
-    public void setStartNode(AuthGraphNode startNode) {
-        this.startNode = startNode;
+    public AuthGraphNode getDefaultEdge() {
+        return defaultEdge;
     }
 
-    public Map<Integer, StepConfig> getStepMap() {
-        return stepMap;
-    }
-
-    public void setStepMap(Map<Integer, StepConfig> stepMap) {
-        this.stepMap = stepMap;
+    public void setDefaultEdge(AuthGraphNode defaultEdge) {
+        this.defaultEdge = defaultEdge;
     }
 }

@@ -20,16 +20,18 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+import java.io.Serializable;
+
 /**
  * Definition for dynamic Authentication Decision evaluation.
  * Custom functions can be added supporting this contract to the dynamic sequence handler.
  *
  * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler
  *
- * TODO: remove the deprecated AuthenticationDecisionEvaluator and rename this class as AuthenticationDecisionEvaluator, once the XML model is removed.
+ * TODO: Rename this class as AuthenticationDecisionEvaluator, since the XML model is removed.
  */
 @FunctionalInterface
-public interface AuthenticationDecisionEvaluator2 {
+public interface AuthenticationDecisionEvaluator2 extends Serializable {
 
     /**
      * Selects the authentication decision outcome based on current context.

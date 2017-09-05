@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
@@ -38,36 +39,37 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.Mockito.mock;
-
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertNotNull;
 
 @Test
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
+    @Test
     public void testHandle_Dynamic_Javascript_1() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) this::customFunction1);
-        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2",
-                new CustomFunctionImpl2());
+                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
 
-        AuthenticationContext context = getAuthenticationContextAcrStatic(new String[] { "acr1" });
+        AuthenticationContext context = processSequenceWithAcr(new String[] { "acr1" });
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(3, authHistories.size());
+        assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicMockAuthenticator");
+        assertEquals(authHistories.get(1).getAuthenticatorName(), "HwkMockAuthenticator");
+        assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
     }
 
-    @Test(enabled = false)
+    @Test
     public void testHandle_Dynamic_Javascript_Serialization() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) this::customFunction1);
+                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -76,14 +78,29 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
-        
+
         byte[] serialized = SerializationUtils.serialize(context);
 
-        AuthenticationContext context1 = (AuthenticationContext) SerializationUtils.deserialize(serialized);
-        assertNotNull(context1);
+        AuthenticationContext deseralizedContext = (AuthenticationContext) SerializationUtils.deserialize(serialized);
+        assertNotNull(deseralizedContext);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
+
+        List<AuthHistory> authHistories = deseralizedContext.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertEquals(3, authHistories.size());
+        assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicMockAuthenticator");
+        assertEquals(authHistories.get(1).getAuthenticatorName(), "HwkMockAuthenticator");
+        assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
     }
 
-    private AuthenticationContext getAuthenticationContextAcrStatic(String[] acrArray)
+    private AuthenticationContext processSequenceWithAcr(String[] acrArray)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException,
             XMLStreamException {
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
@@ -109,12 +126,12 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         return context;
     }
 
-    public String customFunction1(AuthenticationContext context) {
+    public static String customFunction1(AuthenticationContext context) {
         return "testResult1";
     }
 
     @FunctionalInterface
-    public interface CustomFunctionInterface2 {
+    public interface CustomFunctionInterface2 extends Serializable {
 
         String customFunction2(AuthenticationContext context, String param1, String param2);
     }
