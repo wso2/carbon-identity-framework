@@ -197,15 +197,4 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         applicationMgtService = ApplicationManagementService.getInstance();
         return applicationMgtService.getAllLocalClaimUris(getTenantDomain());
     }
-
-    /**
-     * Provide all available graphs
-     * @return
-     */
-    public String[] getGraphs() {
-
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllGraphs();
-    }
-
 }

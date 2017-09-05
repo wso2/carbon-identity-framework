@@ -21,17 +21,51 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import javax.script.Bindings;
 import javax.script.CompiledScript;
 
+/**
+ * Local cache for Javascript and Bindings per Application (Service Provider).
+ * Keeps the compiled scripts for performance reasons.
+ * Most importantly the Javascript and bindings are not serializable. Hence this cache will be used to
+ * re-attach the respective javascript Objects to the de-serialized Authentication Context.
+ */
 public interface JavascriptCache {
 
+    /**
+     * Puts a compiled script for application by its unique name.
+     * @param appName
+     * @param script
+     */
     void putScript(String appName, CompiledScript script);
 
+    /**
+     * Returns the  compiled script for application by its unique name.
+     * @param appName
+     * @return
+     */
     CompiledScript getScript(String appName);
 
+    /**
+     * Removes the compiled script for application by its unique name.
+     * @param appName
+     */
     void removeScript(String appName);
 
+    /**
+     * Puts a Bindings for application by its unique name.
+     * @param appName
+     * @param bindings
+     */
     void putBindings(String appName, Bindings bindings);
 
+    /**
+     * Returns the Bindings for application by its unique name.
+     * @param appName
+     * @return
+     */
     Bindings getBindings(String appName);
 
+    /**
+     * Removes the Bindings for application by its unique name.
+     * @param appName
+     */
     void removeBindings(String appName);
 }

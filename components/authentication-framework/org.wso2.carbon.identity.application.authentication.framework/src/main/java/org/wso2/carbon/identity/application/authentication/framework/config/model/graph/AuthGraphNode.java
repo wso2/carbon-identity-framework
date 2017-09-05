@@ -25,5 +25,11 @@ import java.io.Serializable;
  */
 public interface AuthGraphNode extends Serializable {
 
+    /**
+     * Name is for identification purpose and logging purposes only.
+     * Should not be used to make any decision as it may not be unique.
+     * 
+     * @return
+     */
     String getName();
 }

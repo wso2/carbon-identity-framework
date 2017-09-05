@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
@@ -48,6 +49,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
+    private JsGraphBuilderFactory JsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
 
     private FrameworkServiceDataHolder() {
@@ -148,5 +150,12 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
+    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+        return JsGraphBuilderFactory;
+    }
 
+    public void setJsGraphBuilderFactory(
+            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+        JsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
 }

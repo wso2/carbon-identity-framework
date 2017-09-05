@@ -79,7 +79,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript"><![CDATA[
 
 fn1  = function (context) {
   log.debug("Test");
@@ -87,7 +87,7 @@ fn1  = function (context) {
 }
 
 function(context) {
-	execute('0');
+	executeStep({id :'0'});
 	makeDecisionWith(function(context) {return fn1(context);})
 		.when('acr1').thenExecute('1')
 		.when('acr2').thenExecute('1').thenExecute('2')

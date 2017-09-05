@@ -889,11 +889,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
-    public String[] getAllGraphs() {
-
-        return null;
-    }
-
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
         List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);

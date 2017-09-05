@@ -31,8 +31,9 @@ public class AuthenticationScriptConfig implements Serializable {
     private static final long serialVersionUID = -16127229981193884L;
 
     public static final QName ATTR_TYPE = new QName(null, "language");
+    public static final String LANGUAGE_JAVASCRIPT = "application/javascript";
 
-    private String language;
+    private String language = LANGUAGE_JAVASCRIPT;
     private String content;
 
     /**

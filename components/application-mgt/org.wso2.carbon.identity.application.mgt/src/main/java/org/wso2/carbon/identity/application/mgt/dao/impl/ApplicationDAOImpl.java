@@ -2587,7 +2587,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
 
         PreparedStatement deleteLocalAndOutboundAuthConfigPrepStmt = null;
-        PreparedStatement deleteLocalAndOutboundAuthGraphConfigPrepStmt = null;
         PreparedStatement deleteLocalAndOutboundAuthScriptConfigPrepStmt = null;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 

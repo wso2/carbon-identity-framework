@@ -85,16 +85,17 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         //Use script based evaluation if script is present.
         if (localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig() != null) {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
-            Map<Integer, StepConfig> stepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
+            Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
 
-            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-            jsGraphBuilder.setJsFunctionRegistrar(jsFunctionRegistrar);
+            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
+            jsGraphBuilder.setJsFunctionRegistry(jsFunctionRegistrar);
 
             AuthenticationGraph graph = jsGraphBuilder
                     .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
                     .build();
             sequenceConfig.setAuthenticationGraph(graph);
+            graph.setStepMap(originalStepConfigMap);
         }
         return sequenceConfig;
     }

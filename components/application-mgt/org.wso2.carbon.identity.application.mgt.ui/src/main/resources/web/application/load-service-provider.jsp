@@ -71,7 +71,6 @@
 		
 				IdentityProvider[] federatedIdPs = serviceClient.getAllFederatedIdentityProvider();
 				String[] claimUris = serviceClient.getAllClaimUris();
-				String[] graphs = serviceClient.getGraphs();
 				LocalAuthenticatorConfig[] localAuthenticatorConfigs = serviceClient.getAllLocalAuthenticators();
 				RequestPathAuthenticatorConfig[] requestPathAuthenticators = serviceClient.getAllRequestPathAuthenticators();
 				appBean.setServiceProvider(serviceProvider);
@@ -79,7 +78,6 @@
 				appBean.setFederatedIdentityProviders(federatedIdPs);
 				appBean.setRequestPathAuthenticators(requestPathAuthenticators);
 				appBean.setClaimUris(claimUris);
-				appBean.setGraphs(graphs);
 
 			} catch (Exception e) {
 				String message = resourceBundle.getString("alert.error.while.reading.service.provider") + " : " + e.getMessage();

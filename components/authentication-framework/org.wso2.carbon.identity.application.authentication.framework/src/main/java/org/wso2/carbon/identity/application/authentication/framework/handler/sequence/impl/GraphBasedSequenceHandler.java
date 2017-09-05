@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DecisionOutcome;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -81,6 +82,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isInterrupt = false;
         if (currentNode instanceof AuthDecisionPointNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (AuthDecisionPointNode) currentNode);
+        } else if (currentNode instanceof DynamicDecisionNode) {
+            handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
             isInterrupt = handleAuthenticationStep(request, response, context, sequenceConfig,
                     (StepConfigGraphNode) currentNode);
@@ -201,6 +204,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         context.setReturning(false);
         return false;
     }
+
+    private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationContext context, SequenceConfig sequenceConfig, DynamicDecisionNode dynamicDecisionNode)
+            throws FrameworkException {
+        if (dynamicDecisionNode == null) {
+            log.error("Dynamic decision node is null");
+            return;
+        }
+        Object fn = dynamicDecisionNode.getFunctionMap().get("success");
+        if (fn instanceof AuthenticationDecisionEvaluator2) {
+             ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
+        }
+
+        AuthGraphNode nextNode = dynamicDecisionNode.getDefaultEdge();
+
+        context.setProperty(PROP_CURRENT_NODE, nextNode);
+    }
+
 
     private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context, SequenceConfig sequenceConfig, AuthDecisionPointNode decisionPointNode)

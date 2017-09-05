@@ -233,18 +233,6 @@ public class ApplicationManagementServiceClient {
         }
     }
 
-    /**
-     *
-     * @return
-     * @throws AxisFault
-     */
-    public String[] getGraphs() throws AxisFault {
-        try {
-            return stub.getGraphs();
-        } catch (RemoteException e) {
-            throw new AxisFault("Error occurred while retrieving authentication graphs");
-        }
-    }
 
     private void handleException(Exception e) throws AxisFault {
         String errorMessage = "Unknown error occurred.";
