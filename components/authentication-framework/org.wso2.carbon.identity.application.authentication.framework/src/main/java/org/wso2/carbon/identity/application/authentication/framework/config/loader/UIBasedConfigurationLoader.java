@@ -90,6 +90,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
             JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
             jsGraphBuilder.setJsFunctionRegistry(jsFunctionRegistrar);
+            context.setServiceProviderName(serviceProvider.getApplicationName());
 
             AuthenticationGraph graph = jsGraphBuilder
                     .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())

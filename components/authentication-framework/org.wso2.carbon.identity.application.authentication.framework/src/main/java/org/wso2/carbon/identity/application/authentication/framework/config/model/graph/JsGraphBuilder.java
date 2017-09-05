@@ -56,6 +56,7 @@ public class JsGraphBuilder {
     private ScriptEngine engine;
     private JavascriptCache javascriptCache;
     private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node"; //TODO: same constant
+    private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
 
     /**
      * Constructs the builder with the given authentication context.
@@ -165,21 +166,22 @@ public class JsGraphBuilder {
     public void executeStepInAsyncEvent(Map<String, Object> parameterMap) {
         //TODO: Use Step Name instead of Step ID (integer)
         //TODO: can get the context from ThreadLocal. so that javascript does not have context as a parameter.
-        AuthenticationContext context = (AuthenticationContext) parameterMap.get("context");
+        AuthenticationContext context = contextForJs.get();
 
-        Integer id = (Integer) parameterMap.get("id");
-        if(log.isDebugEnabled()) {
-            log.debug("Execute Step on async event. Step ID : "+id);
+        Object idObj = parameterMap.get("id");
+        Integer id = idObj instanceof Integer ? (Integer) idObj : Integer.parseInt(String.valueOf(idObj));
+        if (log.isDebugEnabled()) {
+            log.debug("Execute Step on async event. Step ID : " + id);
         }
         AuthenticationGraph graph = context.getSequenceConfig().getAuthenticationGraph();
-        if(graph == null) {
-            log.error("The graph happens to be null on the sequence config. Can not execute step : "+id);
+        if (graph == null) {
+            log.error("The graph happens to be null on the sequence config. Can not execute step : " + id);
             return;
         }
 
         StepConfig stepConfig = graph.getStepMap().get(id);
-        if(log.isDebugEnabled()) {
-            log.debug("Found step for the Step ID : "+id+ ", Step Config "+stepConfig);
+        if (log.isDebugEnabled()) {
+            log.debug("Found step for the Step ID : " + id + ", Step Config " + stepConfig);
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
         AuthGraphNode currentNode = (AuthGraphNode) context.getProperty(PROP_CURRENT_NODE);
@@ -487,18 +489,21 @@ public class JsGraphBuilder {
             if (isFunction) {
                 Compilable compilable = (Compilable) getEngine();
                 try {
+                    JsGraphBuilder.contextForJs.set(authenticationContext);
                     CompiledScript compiledScript = compilable.compile(source);
                     JSObject builderFunction = (JSObject) compiledScript.eval(bindings);
                     Object scriptResult = builderFunction.call(null, authenticationContext);
                 } catch (ScriptException e) {
                     //TODO: do proper error handling
-                    e.printStackTrace();
+                    log.error("Error in executing the javascript for service provider : " + authenticationContext
+                            .getServiceProviderName(), e);
+                } finally {
+                    contextForJs.remove();
                 }
 
             } else {
                 result = source;
-            }
-            return result;
+            } return result;
         }
 
         private ScriptEngine getEngine() {

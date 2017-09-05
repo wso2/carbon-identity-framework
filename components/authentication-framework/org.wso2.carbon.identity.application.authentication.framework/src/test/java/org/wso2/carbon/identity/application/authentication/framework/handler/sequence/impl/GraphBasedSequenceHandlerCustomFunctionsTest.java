@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.IsExistsStringFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -61,6 +62,39 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicMockAuthenticator");
         assertEquals(authHistories.get(1).getAuthenticatorName(), "HwkMockAuthenticator");
         assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
+    }
+
+    public void testHandle_Dynamic_Boolean() throws Exception {
+
+        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
+                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
+                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
+                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
+
+        String script =
+                "function(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
+                        + "    Log.info(\"My Bool Value \"+myBool);\n" + "    if(myBool) {\n"
+                        + "        Log.info(\"My Bool Is Selected \"+myBool);\n" + "        executeStep({id :'1',\n"
+                        + "        on : {\n" + "            success : function(context) {executeStep({id :'3'});}\n"
+                        + "        }});\n" + "        executeStep({id :'2'});\n" + "    }  else {\n"
+                        + "        Log.info(\"My Bool Not Selected \"+myBool);\n" + "        executeStep({id :'1'});\n"
+                        + "        executeStep({id :'3'});\n" + "    }\n" + "}\n";
+        sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().setContent(script);
+
+        AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
+        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertEquals( authHistories.size(), 3);
+        assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicMockAuthenticator");
+        assertEquals(authHistories.get(1).getAuthenticatorName(), "FptMockAuthenticator");
+        assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
     }
 
     @Test
@@ -105,6 +139,11 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
             XMLStreamException {
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
+        return processAndGetAuthenticationContext(acrArray, sp1);
+    }
+
+    private AuthenticationContext processAndGetAuthenticationContext(String[] acrArray, ServiceProvider sp1)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
         AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
         if (acrArray != null) {
             for (String acr : acrArray) {
@@ -128,6 +167,14 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public static String customFunction1(AuthenticationContext context) {
         return "testResult1";
+    }
+
+    public static Boolean customBoolean(AuthenticationContext context) {
+        return true;
+    }
+
+    public static Boolean customBoolean2(AuthenticationContext context, String value) {
+        return true;
     }
 
     @FunctionalInterface
