@@ -189,7 +189,24 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     @Override
     public String getClaimDialectURI() {
-        return null;
+        String claimDialectUri = null;
+        AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(getName());
+        if (authConfig != null) {
+            Map<String, String> parameters = authConfig.getParameterMap();
+            if (parameters != null && parameters.containsKey(FrameworkConstants.CLAIM_DIALECT_URI_PROPERTY)) {
+                claimDialectUri = parameters.get(FrameworkConstants.CLAIM_DIALECT_URI_PROPERTY);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Found no Parameter map for connector " + getName());
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("FileBasedConfigBuilder returned null AuthenticatorConfigs for the connector " +
+                        getName());
+            }
+        }
+        return claimDialectUri;
     }
 
     @Override

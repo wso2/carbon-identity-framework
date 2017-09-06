@@ -74,6 +74,8 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
     public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
+    public static final String CLAIM_DIALECT_URI_PROPERTY = "ClaimDialectUri";
+
     private FrameworkConstants() {
 
     }
