@@ -141,7 +141,7 @@
     <h2><fmt:message key="pdp.configuration"/></h2>
     <div id="workArea">
         <%
-            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/pdp/manage")) {
+            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/manage")) {
         %>
         <table style="border:none; margin-bottom:10px">
             <tr>
@@ -181,7 +181,7 @@
                         href="#" style="background-image: url(images/view.png);" class="icon-link">
                         <fmt:message key='view'/></a>
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/pdp/manage")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/manage")) {
                         %>
                         <a onclick="refreshFinder('<%=policyFinder%>', 'policy');return false;"
                         href="#" style="background-image: url(images/icon-refresh.gif);" class="icon-link">
@@ -216,7 +216,7 @@
                         href="#" style="background-image: url(images/view.png);" class="icon-link">
                         <fmt:message key='view'/></a>
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/pdp/manage")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/manage")) {
                         %>
                         <a onclick="refreshFinder('<%=pipAttributeFinder%>', 'attribute');return false;"
                         href="#" style="background-image: url(images/icon-refresh.gif);" class="icon-link">
@@ -251,7 +251,7 @@
                         href="#" style="background-image: url(images/view.png);" class="icon-link">
                         <fmt:message key='view'/></a>
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/pdp/manage")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/manage")) {
                         %>
                         <a onclick="refreshFinder('<%=pipResourceFinder%>', 'resource');return false;"
                         href="#" style="background-image: url(images/icon-refresh.gif);" class="icon-link">
