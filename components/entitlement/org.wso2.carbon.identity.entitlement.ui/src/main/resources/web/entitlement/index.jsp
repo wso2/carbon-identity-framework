@@ -294,7 +294,7 @@
     <div id="workArea">
 
     <%
-        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/add")) {
+        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/create")) {
     %>
     <table style="border:none; margin-bottom:10px">
         <tr>
@@ -387,7 +387,7 @@
             </td>
             <td width="20%">&nbsp;</td>
             <%
-                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/delete")) {
+                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/delete")) {
             %>
             <td>
                 <a onclick="deleteServices();return false;"  href="#"  class="icon-link"
@@ -395,7 +395,7 @@
             </td>
             <%
                 }
-                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/publish")) {
+                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/publish")) {
             %>
             <td>
                 <a onclick="publishPolicies();return false;"  href="#" class="icon-link"
@@ -403,7 +403,7 @@
             </td>
             <%
                 }
-                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/publish")) {
+                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/publish")) {
             %>
             <td>
                 <a onclick="publishAllPolicies();return false;"  class="icon-link" href="#"
@@ -456,11 +456,11 @@
                 </td>
                 
                 <%
-                    boolean canEdit = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/edit");
-                    boolean canViewVersions = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/view");
-                    boolean canPublish = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/publish");
-                    boolean canTryIt  = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/test");
-                    boolean canViewStatus = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/view");
+                    boolean canEdit = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/update");
+                    boolean canViewVersions = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/view");
+                    boolean canPublish = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/publish");
+                    boolean canTryIt  = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/test");
+                    boolean canViewStatus = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/view");
                 %>
 
 
