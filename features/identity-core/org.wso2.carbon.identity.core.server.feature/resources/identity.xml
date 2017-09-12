@@ -186,6 +186,8 @@
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
         <!-- Process the token before storing it in database, e.g. encrypting -->
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
+        <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
+        <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
         <!-- Supported Client Authentication Methods -->
         <ClientAuthHandlers>
             <ClientAuthHandler Class="org.wso2.carbon.identity.oauth2.token.handlers.clientauth.BasicAuthClientAuthHandler">
@@ -285,9 +287,18 @@
             <SignatureAlgorithm>SHA256withRSA</SignatureAlgorithm>
             <AuthorizationContextTTL>15</AuthorizationContextTTL>
         </AuthorizationContextTokenGeneration>
+
         <SAML2Grant>
             <!--SAML2TokenHandler></SAML2TokenHandler-->
+            <!-- UserType conifg decides whether the SAML assertion carrying user is local user or a federated user.
+            Only Local Users can access claims from local userstore. LEGACY users will have to have tenant domain appended username.
+            They will not be able to access claims from local userstore. To get claims by mapping users with exact same username from local
+            userstore (for non LOCAL scenarios) use mapFederatedUsersToLocal config -->
+            <UserType>LOCAL</UserType>
+            <!--UserType>FEDERATED</UserType-->
+            <!--UserType>LEGACY</UserType-->
         </SAML2Grant>
+
         <OpenIDConnect>
             <IDTokenBuilder>org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder</IDTokenBuilder>
             <SignatureAlgorithm>SHA256withRSA</SignatureAlgorithm>
