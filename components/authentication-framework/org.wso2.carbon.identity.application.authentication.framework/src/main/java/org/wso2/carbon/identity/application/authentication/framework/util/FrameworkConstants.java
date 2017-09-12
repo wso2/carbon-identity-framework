@@ -68,6 +68,13 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
+    public static final String IDP_ID = "idpId";
+    public static final String ASSOCIATED_ID = "associatedID";
+
+    // Error details sent from authenticators
+    public static final String AUTH_ERROR_CODE = "AuthErrorCode";
+    public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
+    public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
     private FrameworkConstants() {
 

@@ -290,6 +290,63 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
                 extAttibutesValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
 
+
+                if (stepConfig.isSubjectAttributeStep()) {
+
+                    subjectAttributesFoundInStep = true;
+
+                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
+
+                    // Get the mapped user roles according to the mapping in the IDP configuration.
+                    // Include the unmapped roles as it is.
+                    List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+
+                    String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
+                            identityProviderMappedUserRolesUnmappedInclusive);
+                    if (StringUtils.isNotBlank(idpRoleClaimUri)
+                            && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                    }
+
+                    if (mappedAttrs == null || mappedAttrs.isEmpty()) {
+                        // do claim handling
+                        mappedAttrs = handleClaimMappings(stepConfig, context,
+                                extAttibutesValueMap, true);
+                        // external claim values mapped to local claim uris.
+                        localClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+
+                        idpClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+                    }
+
+                }
+
+                // Do user provisioning if provisioning is enabled.
+                // We should provision the user with the original external subject identifier.
+                if (externalIdPConfig.isProvisioningEnabled()) {
+
+                    if (localClaimValues == null) {
+                        localClaimValues = new HashMap<>();
+                    }
+
+                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
+                    Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(
+                            extAttrs, false);
+
+                    // Get the mapped user roles according to the mapping in the IDP configuration.
+                    // Exclude the unmapped from the returned list.
+                    List<String> identityProviderMappedUserRolesUnmappedExclusive = getIdentityProvideMappedUserRoles(
+                            externalIdPConfig, originalExternalAttributeValueMap, idpRoleClaimUri, true);
+
+                    localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, originalExternalIdpSubjectValueForThisStep);
+                    localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
+
+                    handleJitProvisioning(originalExternalIdpSubjectValueForThisStep, context,
+                            identityProviderMappedUserRolesUnmappedExclusive, localClaimValues);
+                }
+
                 if (stepConfig.isSubjectIdentifierStep()) {
                     // there can be only step for subject attributes.
 
@@ -402,34 +459,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 if (stepConfig.isSubjectAttributeStep()) {
 
-                    subjectAttributesFoundInStep = true;
-
-                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
-
-                    // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // Include the unmapped roles as it is.
-                    List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
-
-                    String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
-                            identityProviderMappedUserRolesUnmappedInclusive);
-                    if (StringUtils.isNotBlank(idpRoleClaimUri)
-                            && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
-                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
-                    }
-
-                    if (mappedAttrs == null || mappedAttrs.isEmpty()) {
-                        // do claim handling
-                        mappedAttrs = handleClaimMappings(stepConfig, context,
-                                extAttibutesValueMap, true);
-                        // external claim values mapped to local claim uris.
-                        localClaimValues = (Map<String, String>) context
-                                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
-
-                        idpClaimValues = (Map<String, String>) context
-                                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
-                    }
-
                     if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {
                         // if we found the mapped subject - then we do not need to worry about
                         // finding attributes.
@@ -447,27 +476,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
                     }
 
-                }
-
-                // Do user provisioning if provisioning is enabled.
-                // We should provision the user with the original external subject identifier.
-                if (externalIdPConfig.isProvisioningEnabled()) {
-
-                    if (localClaimValues == null) {
-                        localClaimValues = new HashMap<>();
-                    }
-
-                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
-                    Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(
-                            extAttrs, false);
-
-                    // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // Exclude the unmapped from the returned list.
-                    List<String> identityProviderMappedUserRolesUnmappedExclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, originalExternalAttributeValueMap, idpRoleClaimUri, true);
-
-                    handleJitProvisioning(originalExternalIdpSubjectValueForThisStep, context,
-                            identityProviderMappedUserRolesUnmappedExclusive, localClaimValues);
                 }
 
             } else {

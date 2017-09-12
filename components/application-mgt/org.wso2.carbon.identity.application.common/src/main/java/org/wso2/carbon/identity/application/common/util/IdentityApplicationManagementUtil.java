@@ -78,6 +78,8 @@ public class IdentityApplicationManagementUtil {
     
     private static final Map<String, String> xmlSignatureAlgorithms;
     private static final Map<String, String> xmlDigestAlgorithms;
+    private static final Map<String, String> xmlAssertionEncryptionAlgorithms;
+    private static final Map<String, String> xmlKeyEncryptionAlgorithms;
     private static final Map<String, String> samlAuthnContextClasses;
     private static final List<String> samlAuthnContextComparisonLevels;
     
@@ -115,7 +117,7 @@ public class IdentityApplicationManagementUtil {
                 IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA512,
                 IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA512);
         xmlSignatureAlgorithms = Collections.unmodifiableMap(xmlSignatureAlgorithmMap);
-        
+
         //initialize xmlDigestAlgorithms
         Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<String, String>();
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.MD5,
@@ -131,6 +133,34 @@ public class IdentityApplicationManagementUtil {
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA512,
                 IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA512);
         xmlDigestAlgorithms = Collections.unmodifiableMap(xmlDigestAlgorithmMap);
+
+        // initialize xmlAssertionEncryptionAlgorithms
+        Map<String, String> xmlAssertionEncryptionAlgorithmMap = new LinkedHashMap<String, String>();
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES256,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES256);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES192,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES192);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES128,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES128);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.TRIPLEDES,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.TRIPLEDES);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES128_GCM,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES128_GCM);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES192_GCM,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES192_GCM);
+        xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES256_GCM,
+                IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES256_GCM);
+        xmlAssertionEncryptionAlgorithms = Collections.unmodifiableMap(xmlAssertionEncryptionAlgorithmMap);
+
+        // initialize xmlKeyEncryptionAlgorithms
+        Map<String, String> xmlKeyEncryptionAlgorithmMap = new LinkedHashMap<String, String>();
+        xmlKeyEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.KeyEncryptionAlgorithm.RSAOAEP,
+                IdentityApplicationConstants.XML.KeyEncryptionAlgorithmURI.RSAOAEP);
+        xmlKeyEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.KeyEncryptionAlgorithm.RSA15,
+                IdentityApplicationConstants.XML.KeyEncryptionAlgorithmURI.RSA15);
+        xmlKeyEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.KeyEncryptionAlgorithm.RSAOAEP11,
+                IdentityApplicationConstants.XML.KeyEncryptionAlgorithmURI.RSAOAEP11);
+        xmlKeyEncryptionAlgorithms = Collections.unmodifiableMap(xmlKeyEncryptionAlgorithmMap);
         
         //initialize samlAuthnContextClasses
         Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<String, String>();
@@ -679,6 +709,14 @@ public class IdentityApplicationManagementUtil {
     
     public static Map<String, String> getXMLDigestAlgorithms() {
         return xmlDigestAlgorithms;
+    }
+
+    public static Map<String, String> getXMLAssertionEncryptionAlgorithms() {
+        return xmlAssertionEncryptionAlgorithms;
+    }
+
+    public static Map<String, String> getXMLKeyEncryptionAlgorithms() {
+        return xmlKeyEncryptionAlgorithms;
     }
     
     public static Map<String, String> getSAMLAuthnContextClasses() {

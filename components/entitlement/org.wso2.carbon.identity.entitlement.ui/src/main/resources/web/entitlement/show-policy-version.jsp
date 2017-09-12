@@ -181,7 +181,7 @@
                 <%
                     if(!EntitlementPolicyConstants.ENTITLEMENT_CURRENT_VERSION.equals(selectedVersion) &&
                             CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/configure/entitlement/policy/manage/rollback")){
+                                    "/permission/admin/manage/identity/entitlement/pap/policy/rollback")) {
                 %>
                 <button class="button" onclick="submitForm(); return false;"><fmt:message key="rollaback"/></button>
                 <%
