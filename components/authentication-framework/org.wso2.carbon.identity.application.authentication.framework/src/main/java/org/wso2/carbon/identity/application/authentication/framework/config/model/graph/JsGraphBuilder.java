@@ -76,7 +76,6 @@ public class JsGraphBuilder {
 
     /**
      * Returns the built graph.
-     *
      * @return
      */
     public AuthenticationGraph build() {
@@ -187,7 +186,6 @@ public class JsGraphBuilder {
             log.debug("Found step for the Step ID : " + id + ", Step Config " + stepConfig);
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
-
         if (currentNode == null) {
             log.debug("Setting a new node at the first time. Node : " + newNode.getName());
             dynamicallyBuitBaseNode.set(newNode);

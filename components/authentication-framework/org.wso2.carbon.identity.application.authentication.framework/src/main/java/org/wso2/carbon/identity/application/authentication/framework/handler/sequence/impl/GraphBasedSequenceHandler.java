@@ -198,7 +198,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
         if (flowStatus == AuthenticatorFlowStatus.SUCCESS_COMPLETED ) {
-
             context.setRequestAuthenticated(true);
         } else {
             stepConfig.setSubjectAttributeStep(false);
@@ -242,7 +241,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
-
+        
         Object fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         if (fn instanceof AuthenticationDecisionEvaluator2) {
             ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
