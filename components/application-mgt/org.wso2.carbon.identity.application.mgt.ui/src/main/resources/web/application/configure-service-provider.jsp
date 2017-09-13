@@ -1586,14 +1586,9 @@ function updateBeanAndPostTo(postURL, data) {
                         	<td>
                         	<% if(ApplicationBean.AUTH_TYPE_FLOW.equals(appBean.getAuthenticationType())) { %>
                         		<input type="radio" id="advanced" name="auth_type" value="flow" onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>');" checked><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow"/></label>
-                        	<% } else if("graph".equals(appBean.getAuthenticationType())){%>
-                                <input type="radio" id="advanced" name="auth_type" value="graph" onclick="updateBeanAndRedirect('configure-authentication-flow-by-graph.jsp?spName=<%=Encode.forUriComponent(spName)%>');" checked><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow.graph"/></label></br></br>
-                                <input type="radio" id="advanced" name="auth_type" value="flow" onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow"/></label></br></br>
-
-                           <% }else { %>
-                        		<input type="radio" id="advanced" name="auth_type" value="flow" onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow"/></label></br></br>
-                        		<input type="radio" id="advanced" name="auth_type" value="graph" onclick="updateBeanAndRedirect('configure-authentication-flow-by-graph.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow.graph"/></label>
-                        		<% } %>
+								<% } else { %>
+								<input type="radio" id="advanced" name="auth_type" value="flow" onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label style="cursor: pointer; color: #2F7ABD;" for="advanced"><fmt:message key="config.authentication.type.flow"/></label>
+								<% } %>
                         	</td>
                     	</tr>               
                   </table>

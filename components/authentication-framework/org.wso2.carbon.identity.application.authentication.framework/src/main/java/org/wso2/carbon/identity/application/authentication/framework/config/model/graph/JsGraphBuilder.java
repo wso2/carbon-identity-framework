@@ -57,15 +57,16 @@ public class JsGraphBuilder {
     private JavascriptCache javascriptCache;
     private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node"; //TODO: same constant
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
+    private static ThreadLocal<AuthGraphNode> dynamicallyBuitBaseNode = new ThreadLocal<>();
 
     /**
      * Constructs the builder with the given authentication context.
      *
-     * @param authenticationContext  current authentication context.
-     * @param stepConfigMap The Step map from the service provider configuration.
+     * @param authenticationContext current authentication context.
+     * @param stepConfigMap         The Step map from the service provider configuration.
      */
     public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-            ScriptEngine scriptEngine) {
+                          ScriptEngine scriptEngine) {
 
         this.engine = scriptEngine;
         this.authenticationContext = authenticationContext;
@@ -167,6 +168,7 @@ public class JsGraphBuilder {
         //TODO: Use Step Name instead of Step ID (integer)
         //TODO: can get the context from ThreadLocal. so that javascript does not have context as a parameter.
         AuthenticationContext context = contextForJs.get();
+        AuthGraphNode currentNode = dynamicallyBuitBaseNode.get();
 
         Object idObj = parameterMap.get("id");
         Integer id = idObj instanceof Integer ? (Integer) idObj : Integer.parseInt(String.valueOf(idObj));
@@ -184,11 +186,11 @@ public class JsGraphBuilder {
             log.debug("Found step for the Step ID : " + id + ", Step Config " + stepConfig);
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
-        AuthGraphNode currentNode = (AuthGraphNode) context.getProperty(PROP_CURRENT_NODE);
         if (currentNode == null) {
-            log.error("No current graph node to attach the dynamic executed event.");
+            log.debug("Setting a new node at the first time. Node : " + newNode.getName());
+            dynamicallyBuitBaseNode.set(newNode);
         } else {
-            infuse(currentNode, newNode);
+            attachToLeaf(currentNode, newNode);
         }
 
         attachEventListeners((Map<String, Object>) parameterMap.get("on"), newNode);
@@ -347,39 +349,39 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Attach the new node to end of the destination node.
+     * Attach the new node to end of the base node.
      * The new node is added to each leaf node of the Tree structure given in the destination node.
      * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
      *
-     * @param destination
-     * @param newNode
+     * @param baseNode
+     * @param nodeToAttach
      */
-    private static void attachToLeaf(AuthGraphNode destination, AuthGraphNode newNode) {
+    private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
 
-        if (destination instanceof StepConfigGraphNode) {
-            StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
+        if (baseNode instanceof StepConfigGraphNode) {
+            StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
             if (stepConfigGraphNode.getNext() == null) {
-                stepConfigGraphNode.setNext(newNode);
+                stepConfigGraphNode.setNext(nodeToAttach);
             } else {
-                attachToLeaf(stepConfigGraphNode.getNext(), newNode);
+                attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
             }
-        } else if (destination instanceof AuthDecisionPointNode) {
-            AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) destination;
+        } else if (baseNode instanceof AuthDecisionPointNode) {
+            AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) baseNode;
             if (decisionPointNode.getDefaultEdge() == null) {
-                decisionPointNode.setDefaultEdge(newNode);
+                decisionPointNode.setDefaultEdge(nodeToAttach);
             } else {
-                attachToLeaf(decisionPointNode.getDefaultEdge(), newNode);
+                attachToLeaf(decisionPointNode.getDefaultEdge(), nodeToAttach);
             }
-            decisionPointNode.getOutcomes().stream().forEach(o -> attachToLeaf(o.getDestination(), newNode));
-        } else if (destination instanceof DynamicDecisionNode) {
-            DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
-            dynamicDecisionNode.setDefaultEdge(newNode);
-        } else if (destination instanceof EndStep) {
+            decisionPointNode.getOutcomes().stream().forEach(o -> attachToLeaf(o.getDestination(), nodeToAttach));
+        } else if (baseNode instanceof DynamicDecisionNode) {
+            DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
+            dynamicDecisionNode.setDefaultEdge(nodeToAttach);
+        } else if (baseNode instanceof EndStep) {
             if (log.isDebugEnabled()) {
-                log.debug("The destination is an End Step. Unable to attach the node : " + newNode);
+                log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);
             }
         } else {
-            log.error("Unknown graph node found : " + destination);
+            log.error("Unknown graph node found : " + baseNode);
         }
     }
 
@@ -397,7 +399,6 @@ public class JsGraphBuilder {
 
     /**
      * Builder Object to build a decision logic.
-     *
      */
     public static class DecisionBuilder {
 
@@ -406,7 +407,7 @@ public class JsGraphBuilder {
         private Map<String, StepConfig> stepNamedMap;
 
         public DecisionBuilder(AuthDecisionPointNode decisionNode, AuthenticationDecisionEvaluator2 evaluatorFunction,
-                Map<String, StepConfig> stepNamedMap) {
+                               Map<String, StepConfig> stepNamedMap) {
 
             this.decisionNode = decisionNode;
             this.decisionNode.setAuthenticationDecisionEvaluator(evaluatorFunction);
@@ -424,7 +425,6 @@ public class JsGraphBuilder {
      * Build object to build a conditional execution.
      * This builds the graph nodes on the first run of the javascript.
      * This means graph nodes are statically built upon flow initialization.
-     *
      */
     public static class ConditionalExecutionBuilder {
 
@@ -434,7 +434,7 @@ public class JsGraphBuilder {
         private Map<String, StepConfig> stepNamedMap;
 
         public ConditionalExecutionBuilder(String outcomeName, DecisionBuilder decisionBuilder,
-                AuthDecisionPointNode decisionNode, Map<String, StepConfig> stepNamedMap) {
+                                           AuthDecisionPointNode decisionNode, Map<String, StepConfig> stepNamedMap) {
 
             this.outcomeName = outcomeName;
             this.decisionNode = decisionNode;
@@ -493,17 +493,26 @@ public class JsGraphBuilder {
                     CompiledScript compiledScript = compilable.compile(source);
                     JSObject builderFunction = (JSObject) compiledScript.eval(bindings);
                     Object scriptResult = builderFunction.call(null, authenticationContext);
+
+                    //TODO: New method ...
+                    AuthGraphNode executingNode = (AuthGraphNode) authenticationContext.getProperty(PROP_CURRENT_NODE);
+                    if (executingNode instanceof DynamicDecisionNode) {
+                        infuse(executingNode, dynamicallyBuitBaseNode.get());
+                    }
+
                 } catch (ScriptException e) {
                     //TODO: do proper error handling
                     log.error("Error in executing the javascript for service provider : " + authenticationContext
                             .getServiceProviderName(), e);
                 } finally {
                     contextForJs.remove();
+                    dynamicallyBuitBaseNode.remove();
                 }
 
             } else {
                 result = source;
-            } return result;
+            }
+            return result;
         }
 
         private ScriptEngine getEngine() {
