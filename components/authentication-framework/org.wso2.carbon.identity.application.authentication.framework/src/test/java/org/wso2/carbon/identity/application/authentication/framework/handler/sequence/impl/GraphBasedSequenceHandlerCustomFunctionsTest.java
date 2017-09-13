@@ -19,13 +19,21 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.IsExistsStringFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -33,15 +41,20 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
@@ -97,6 +110,34 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
     }
 
+    public void testHandle_Dynamic_OnFail() throws Exception {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticators()
+                .add(new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
+
+        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
+                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
+                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
+                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fail.xml");
+
+        AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
+        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertEquals( authHistories.size(), 3);
+        assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicFailingMockAuthenticator");
+        assertEquals(authHistories.get(1).getAuthenticatorName(), "BasicMockAuthenticator");
+        assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
+
+        assertTrue(context.isRequestAuthenticated());
+    }
+
     @Test
     public void testHandle_Dynamic_Javascript_Serialization() throws Exception {
 
@@ -119,6 +160,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertNotNull(deseralizedContext);
 
         HttpServletRequest req = mock(HttpServletRequest.class);
+        addMockAttributes(req);
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
@@ -156,6 +198,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = mock(HttpServletRequest.class);
+        addMockAttributes(req);
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
@@ -188,5 +231,45 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         public String customFunction2(AuthenticationContext context, String param1, String param2) {
             return "testResult2";
         }
+    }
+
+    public static class MockFailingAuthenticator extends MockAuthenticator{
+
+        public MockFailingAuthenticator(String name) {
+            super(name);
+        }
+
+        @Override
+        public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
+                                               AuthenticationContext context) throws AuthenticationFailedException,
+                LogoutFailedException {
+
+            return AuthenticatorFlowStatus.FAIL_COMPLETED;
+        }
+    }
+
+    private void addMockAttributes(HttpServletRequest request) {
+        Map<String, Object> attributes = new HashMap<>();
+        Mockito.doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                String key = (String) invocation.getArguments()[0];
+                Object value = invocation.getArguments()[1];
+                attributes.put(key, value);
+                System.out.println("put attribute key="+key+", value="+value);
+                return null;
+            }
+        }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
+
+        // Mock getAttribute
+        Mockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                String key = (String) invocation.getArguments()[0];
+                Object value = attributes.get(key);
+                System.out.println("get attribute value for key="+key+" : "+value);
+                return value;
+            }
+        }).when(request).getAttribute(Mockito.anyString());
     }
 }

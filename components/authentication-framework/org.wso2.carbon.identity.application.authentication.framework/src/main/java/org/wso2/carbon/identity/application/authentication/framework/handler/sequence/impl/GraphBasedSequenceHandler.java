@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthDecisionPointNode;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -118,6 +120,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("There are no more steps to execute");
         }
 
+        context.getSequenceConfig().setCompleted(true);
+
         // if no step failed at authentication we should do post authentication work (e.g.
         // claim handling, provision etc)
         if (context.isRequestAuthenticated()) {
@@ -126,9 +130,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 log.debug("Request is successfully authenticated");
             }
 
-            context.getSequenceConfig().setCompleted(true);
             handlePostAuthentication(request, response, context);
-
         }
 
         // we should get out of steps now.
@@ -193,6 +195,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         FrameworkUtils.getStepHandler().handle(request, response, context);
 
+        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
+
+        if (flowStatus == AuthenticatorFlowStatus.SUCCESS_COMPLETED ) {
+
+            context.setRequestAuthenticated(true);
+        } else {
+            stepConfig.setSubjectAttributeStep(false);
+            stepConfig.setSubjectIdentifierStep(false);
+        }
+
         // if step is not completed, that means step wants to redirect to outside
         if (!stepConfig.isCompleted()) {
             if (log.isDebugEnabled()) {
@@ -212,16 +224,30 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.error("Dynamic decision node is null");
             return;
         }
-        Object fn = dynamicDecisionNode.getFunctionMap().get("success");
-        if (fn instanceof AuthenticationDecisionEvaluator2) {
-             ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
-        }
+        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
+       if(flowStatus != null) {
+           switch (flowStatus) {
+               case SUCCESS_COMPLETED:
+                   executeFunction("success", dynamicDecisionNode, context);
+                   break;
+               case FAIL_COMPLETED:
+                   executeFunction("fail", dynamicDecisionNode, context);
+                   break;
+           }
+       }
+
 
         AuthGraphNode nextNode = dynamicDecisionNode.getDefaultEdge();
-
         context.setProperty(PROP_CURRENT_NODE, nextNode);
     }
 
+    private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
+
+        Object fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        if (fn instanceof AuthenticationDecisionEvaluator2) {
+            ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
+        }
+    }
 
     private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context, SequenceConfig sequenceConfig, AuthDecisionPointNode decisionPointNode)
@@ -267,6 +293,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context, SequenceConfig sequenceConfig, AuthenticationGraph graph)
             throws FrameworkException {
+        context.setRequestAuthenticated(false);
         AuthGraphNode startNode = graph.getStartNode();
         if (startNode == null) {
             throw new FrameworkException("Start node is not set for authentication graph:" + graph.getName());
