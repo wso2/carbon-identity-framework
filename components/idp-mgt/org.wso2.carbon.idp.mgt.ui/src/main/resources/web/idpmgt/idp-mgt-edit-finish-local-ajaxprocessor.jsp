@@ -40,6 +40,12 @@
         return;
     }
 
+    if(session.isNew()){
+        response.sendRedirect("../admin/login_action.jsp");
+        return;
+    }
+
+
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     try {
