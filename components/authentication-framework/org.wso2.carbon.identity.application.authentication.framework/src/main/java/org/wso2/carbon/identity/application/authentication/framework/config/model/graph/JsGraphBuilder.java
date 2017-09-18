@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Javas
 
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -315,6 +314,7 @@ public class JsGraphBuilder {
     }
 
     /**
+
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
      * is happening.
