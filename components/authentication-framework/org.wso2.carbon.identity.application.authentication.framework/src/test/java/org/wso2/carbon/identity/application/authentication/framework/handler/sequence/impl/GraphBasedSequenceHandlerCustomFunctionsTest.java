@@ -302,7 +302,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 String key = (String) invocation.getArguments()[0];
                 Object value = invocation.getArguments()[1];
                 attributes.put(key, value);
-                System.out.println("put attribute key="+key+", value="+value);
                 return null;
             }
         }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
@@ -313,7 +312,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 String key = (String) invocation.getArguments()[0];
                 Object value = attributes.get(key);
-                System.out.println("get attribute value for key="+key+" : "+value);
                 return value;
             }
         }).when(request).getAttribute(Mockito.anyString());

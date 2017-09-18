@@ -47,7 +47,6 @@ public class GraphBasedSequenceHandlerTest extends GraphBasedSequenceHandlerAbst
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
-        context.getSequenceConfig().addRequestedAcr("hwk");
 
         HttpServletRequest req = mock(HttpServletRequest.class);
 
