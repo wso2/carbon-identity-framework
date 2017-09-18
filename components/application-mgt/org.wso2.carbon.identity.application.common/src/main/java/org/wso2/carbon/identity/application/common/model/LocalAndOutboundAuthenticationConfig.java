@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,9 +39,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_STEP_FOR_SUBJECT = "AuthenticationStepForSubject";
     private static final String AUTHENTICATION_STEPS = "AuthenticationSteps";
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
+    private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
 
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
-    private AuthenticationGraphConfig authenticationGraphConfig;
     private String authenticationType;
     private AuthenticationStep authenticationStepForSubject;
     private AuthenticationStep authenticationStepForAttributes;
@@ -52,6 +50,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
+    private AuthenticationScriptConfig authenticationScriptConfig;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -75,12 +74,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         while (iter.hasNext()) {
             OMElement member = (OMElement) iter.next();
 
-            if (AUTHENTICATION_GRAPH.equals(member.getLocalName())) {
-
-                String graphRef = member.getAttribute(new QName(IdentityApplicationConstants.REF)).getAttributeValue();
-                localAndOutboundAuthenticationConfig.authenticationGraphConfig = AuthenticationGraphConfig
+            if (AUTHENTICATION_SCRIPT.equals(member.getLocalName())) {
+                localAndOutboundAuthenticationConfig.authenticationScriptConfig = AuthenticationScriptConfig
                         .build(member);
-                localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig().setReference(graphRef);
             } else if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
 
                 Iterator<?> authenticationStepsIter = member.getChildElements();
@@ -254,11 +250,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.enableAuthorization = enableAuthorization;
     }
 
-    public AuthenticationGraphConfig getAuthenticationGraphConfig() {
-        return authenticationGraphConfig;
-    }
+    public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}
 
-    public void setAuthenticationGraphConfig(AuthenticationGraphConfig authenticationGraphConfig) {
-        this.authenticationGraphConfig = authenticationGraphConfig;
+    public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
+        this.authenticationScriptConfig = authenticationScriptConfig;
     }
 }

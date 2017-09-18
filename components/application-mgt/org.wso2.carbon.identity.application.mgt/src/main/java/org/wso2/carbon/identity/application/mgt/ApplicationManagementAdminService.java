@@ -261,15 +261,4 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         }
     }
-
-    /**
-     * Provide all available graphs
-     * @return
-     */
-    public String[] getGraphs() {
-
-        applicationMgtService = ApplicationManagementService.getInstance();
-        return applicationMgtService.getAllGraphs();
-    }
-
 }

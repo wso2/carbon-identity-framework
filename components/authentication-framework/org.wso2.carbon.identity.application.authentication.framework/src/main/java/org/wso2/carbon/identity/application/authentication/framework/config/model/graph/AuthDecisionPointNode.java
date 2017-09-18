@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.common.model.graph.DecisionNode;
-
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Authentication Decision Node.
@@ -29,12 +30,11 @@ import java.util.Map;
  */
 public class AuthDecisionPointNode implements AuthGraphNode {
 
-    private static final long serialVersionUID = 472460403477952823L;
-    private DecisionNode config;
+    private static final long serialVersionUID = 9217119784147648132L;
     private Map<String, DecisionOutcome> outcomes = new HashMap<>();
+    private AuthenticationDecisionEvaluator2 authenticationDecisionEvaluator;
 
-    public AuthDecisionPointNode(DecisionNode config) {
-        this.config = config;
+    public AuthDecisionPointNode() {
     }
 
     public void setDefaultEdge(AuthGraphNode defaultEdge) {
@@ -55,15 +55,21 @@ public class AuthDecisionPointNode implements AuthGraphNode {
         outcomes.put(name, outcome);
     }
 
+    public AuthenticationDecisionEvaluator2 getAuthenticationDecisionEvaluator() {
+        return authenticationDecisionEvaluator;
+    }
+
+    public void setAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator2 authenticationDecisionEvaluator) {
+        this.authenticationDecisionEvaluator = authenticationDecisionEvaluator;
+    }
+
+    public List<DecisionOutcome> getOutcomes() {
+        return outcomes.entrySet().stream().map(e ->e.getValue()).collect(Collectors.toList());
+    }
+
+    @Override
     public String getName() {
-        return config == null ? null : config.getName();
-    }
-
-    public String getEvaluatorName() {
-        return config == null ? null : config.getEvaluatorName();
-    }
-
-    public DecisionNode getConfig() {
-        return config;
+        //TODO: Implement this
+        return null;
     }
 }

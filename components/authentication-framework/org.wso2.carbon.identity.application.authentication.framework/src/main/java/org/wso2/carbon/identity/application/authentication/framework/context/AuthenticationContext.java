@@ -79,7 +79,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     //Adaptive Authentication control and status
     private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
-    private List<String> amrRequested = new ArrayList<>();
+    private List<String> requestedAcr;
     private AcrRule acrRule = AcrRule.EXACT;
     private String selectedAcr;
 
@@ -385,14 +385,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         return Collections.unmodifiableList(authenticationStepHistory);
     }
 
-    public List<String> getAmrRequested() {
-        return amrRequested;
-    }
-
-    public void setAmrRequested(List<String> amrRequested) {
-        this.amrRequested = amrRequested;
-    }
-
     public AcrRule getAcrRule() {
         return acrRule;
     }
@@ -407,6 +399,20 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSelectedAcr(String selectedAcr) {
         this.selectedAcr = selectedAcr;
+    }
+
+    public List<String> getRequestedAcr() {
+        if (requestedAcr == null) {
+            return Collections.EMPTY_LIST;
+        }
+        return Collections.unmodifiableList(requestedAcr);
+    }
+
+    public void addRequestedAcr(String acr) {
+        if (requestedAcr == null) {
+            requestedAcr = new ArrayList<>();
+        }
+        requestedAcr.add(acr);
     }
 
     /**

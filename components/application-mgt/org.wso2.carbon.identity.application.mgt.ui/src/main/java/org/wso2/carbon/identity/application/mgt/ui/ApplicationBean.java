@@ -20,35 +20,15 @@ package org.wso2.carbon.identity.application.mgt.ui;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.application.common.model.graph.xsd.AuthenticationGraphConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.xsd.Claim;
-import org.wso2.carbon.identity.application.common.model.xsd.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.InboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.LocalRole;
-import org.wso2.carbon.identity.application.common.model.xsd.OutboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.Property;
-import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.common.model.xsd.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 public class ApplicationBean {
 
@@ -83,15 +63,6 @@ public class ApplicationBean {
     private String[] claimUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
-    private String[] graphs = new String[0];
-
-    public String[] getGraphs() {
-        return graphs;
-    }
-
-    public void setGraphs(String[] graphs) {
-        this.graphs = graphs;
-    }
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -899,22 +870,7 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
-
-        String graph = request.getParameter("graph");
-
-        if (StringUtils.isNotBlank(graph)) {
-
-            AuthenticationGraphConfig authenticationGraphConfig = new AuthenticationGraphConfig();
-            authenticationGraphConfig.setName(graph);
-
-            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new
-                    LocalAndOutboundAuthenticationConfig();
-            localAndOutboundAuthenticationConfig.setAuthenticationType("graph");
-            localAndOutboundAuthenticationConfig.setAuthenticationGraphConfig(authenticationGraphConfig);
-
-            serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
-        }
-
+        
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
@@ -1016,8 +972,14 @@ public class ApplicationBean {
             }
 
             if (CollectionUtils.isNotEmpty(authStepList)) {
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
-                        authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+                String flawByScript = request.getParameter("scriptTextarea");
+                if (StringUtils.isNotBlank(flawByScript)) {
+                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+                    authenticationScriptConfig.setContent(flawByScript);
+                    localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+                }
             }
 
         }

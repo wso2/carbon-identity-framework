@@ -60,7 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Request Coordinator
  */
-public class DefaultRequestCoordinator implements RequestCoordinator {
+public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
     private static volatile DefaultRequestCoordinator instance;
@@ -369,10 +369,15 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
     protected void findPreviousAuthenticatedSession(HttpServletRequest request,
                                                     AuthenticationContext context) throws FrameworkException {
 
-        // Get service provider chain
-        SequenceConfig effectiveSequence = ConfigurationFacade.getInstance()
-                .getSequenceConfig(context, request.getParameterMap());
         List<String> acrRequested = getAcrRequested(request);
+        if(acrRequested != null) {
+            for(String acr: acrRequested) {
+                context.addRequestedAcr(acr);
+            }
+        }
+        // Get service provider chain
+        SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
+
         if(acrRequested != null) {
             for(String acr: acrRequested) {
                 effectiveSequence.addRequestedAcr(acr);
@@ -470,10 +475,16 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
     }
 
     private boolean isDifferent(List<String> newAcrList, List<String> previousAcrList) {
+
         if(previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
             return true;
         }
-        return !(newAcrList.get(0).equals(previousAcrList.get(0))); //TODO: Scan All list.
+        for(int i=0; i< previousAcrList.size(); i++) {
+            if(! newAcrList.get(i).equals(previousAcrList.get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void buildOutboundQueryString(HttpServletRequest request, AuthenticationContext context)

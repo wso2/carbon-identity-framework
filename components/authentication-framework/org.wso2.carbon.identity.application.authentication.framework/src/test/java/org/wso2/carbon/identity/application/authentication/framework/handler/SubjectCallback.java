@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
-public interface SubjectCallback {
+import java.io.Serializable;
+
+public interface SubjectCallback extends Serializable {
 
     AuthenticatedUser getAuthenticatedUser(AuthenticationContext context);
 

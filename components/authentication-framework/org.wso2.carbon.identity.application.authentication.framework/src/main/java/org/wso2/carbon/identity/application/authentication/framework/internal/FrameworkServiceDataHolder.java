@@ -18,13 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
@@ -50,7 +49,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private List<AuthenticationDecisionEvaluator> authenticationDecisionEvaluatorList = new ArrayList<>();
+    private JsGraphBuilderFactory JsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
 
     private FrameworkServiceDataHolder() {
@@ -142,18 +141,6 @@ public class FrameworkServiceDataHolder {
         this.sequenceLoader = sequenceLoader;
     }
 
-    public void addAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
-        authenticationDecisionEvaluatorList.add(evaluator);
-    }
-
-    public void removeAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator evaluator) {
-        authenticationDecisionEvaluatorList.remove(evaluator);
-    }
-
-    public List<AuthenticationDecisionEvaluator> getAuthenticationDecisionEvaluators() {
-        return Collections.unmodifiableList(authenticationDecisionEvaluatorList);
-    }
-
     public AuthenticationMethodNameTranslator getAuthenticationMethodNameTranslator() {
         return authenticationMethodNameTranslator;
     }
@@ -161,5 +148,14 @@ public class FrameworkServiceDataHolder {
     public void setAuthenticationMethodNameTranslator(
             AuthenticationMethodNameTranslator authenticationMethodNameTranslator) {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
+    }
+
+    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+        return JsGraphBuilderFactory;
+    }
+
+    public void setJsGraphBuilderFactory(
+            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+        JsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 }

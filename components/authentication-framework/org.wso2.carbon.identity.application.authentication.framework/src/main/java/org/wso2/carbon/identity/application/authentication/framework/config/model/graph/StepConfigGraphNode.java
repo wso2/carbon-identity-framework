@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 
 /**
  * Graph node extending traditional authentication step.
@@ -28,11 +27,16 @@ import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
 
     private static final long serialVersionUID = -5648175409277330725L;
-    private StepNode config;
     private AuthGraphNode nextLink;
+    private StepConfig stepConfig;
 
-    public StepConfigGraphNode(StepNode config) {
-        this.config = config;
+
+    public StepConfigGraphNode(StepConfig stepConfig) {
+        this.stepConfig = stepConfig;
+    }
+
+    public StepConfig getStepConfig() {
+        return stepConfig == null ? this : stepConfig;
     }
 
     public void setNext(AuthGraphNode nextLink) {
@@ -43,13 +47,9 @@ public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
         return nextLink;
     }
 
-    public StepNode getConfig() {
-        return config;
-    }
-
     @Override
     public String getName() {
-        return config == null ? null : config.getName();
+        //todo:need to more name generation
+        return stepConfig == null ? null : "Step: "+stepConfig.getOrder();
     }
-
 }

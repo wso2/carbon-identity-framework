@@ -186,6 +186,4 @@ public abstract class ApplicationManagementService {
     public abstract ServiceProvider getServiceProviderByClientId(String clientId, String clientType,
                                                                  String tenantDomain)
             throws IdentityApplicationManagementException;
-
-    public abstract String[] getAllGraphs();
 }

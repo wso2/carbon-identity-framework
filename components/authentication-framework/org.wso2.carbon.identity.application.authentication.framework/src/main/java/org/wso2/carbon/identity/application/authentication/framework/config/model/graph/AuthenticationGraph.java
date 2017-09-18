@@ -18,7 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Authentication Graph.
@@ -28,7 +32,7 @@ public class AuthenticationGraph implements Serializable {
     private static final long serialVersionUID = 7602728707258687636L;
     private String name;
     private AuthGraphNode startNode;
-    private AuthGraphNode endNode;
+    private Map<Integer, StepConfig> stepMap = new HashMap<>();
 
     public String getName() {
         return name;
@@ -46,12 +50,11 @@ public class AuthenticationGraph implements Serializable {
         this.startNode = startNode;
     }
 
-    public AuthGraphNode getEndNode() {
-        return endNode;
+    public Map<Integer, StepConfig> getStepMap() {
+        return stepMap;
     }
 
-    public void setEndNode(AuthGraphNode endNode) {
-        this.endNode = endNode;
+    public void setStepMap(Map<Integer, StepConfig> stepMap) {
+        this.stepMap = stepMap;
     }
-
 }
