@@ -78,18 +78,48 @@
                 <SubjectStep>fales</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>4</StepOrder>
+                <LocalAuthenticatorConfigs>
+                    <LocalAuthenticatorConfig>
+                        <Name>MockFallbackAuthenticator</Name>
+                        <DisplayName>basicauthfallback</DisplayName>
+                        <IsEnabled>true</IsEnabled>
+                    </LocalAuthenticatorConfig>
+                </LocalAuthenticatorConfigs>
+                <SubjectStep>true</SubjectStep>
+                <AttributeStep>true</AttributeStep>
+            </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript"><![CDATA[
-
-fn1  = function (context) {
-  return "acr1";
+var jsFn1 = function(context, a) {
+    log.debug('Test fn1 '+a);
 }
 
 function(context) {
-	executeStep({id :'1'});
-    switch(fn1(context)) {
-		case "acr1" : executeStep({id :'2'});
-    }
+Log.info('Test0');
+	executeStep({
+	    id : '4',
+	    on : {
+	        success : function(context){
+	                Log.info('Test1');
+	                executeStep({
+	                    context : context,
+	                    id : 2});
+	        },
+	        fail : function(context){
+	                Log.info('Test On Fail');
+	                executeStep({id : 1, context : context});
+	                executeStep({context : context, id : 3});
+	        },
+	        fallback : function(context){
+	                Log.info('Test On Fallback');
+	                executeStep({id : 1, context : context});
+	                executeStep({context : context, id : 2});
+	                executeStep({context : context, id : 3});
+	        }
+	    }
+	})
 }
 
 ]]></AuthenticationScript>

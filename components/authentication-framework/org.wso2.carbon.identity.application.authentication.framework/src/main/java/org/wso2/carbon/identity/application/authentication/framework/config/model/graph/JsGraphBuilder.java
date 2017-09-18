@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Javas
 
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -104,7 +103,6 @@ public class JsGraphBuilder {
             }
             Bindings bindings = engine.createBindings();
             bindings.put("executeStep", (Consumer<Map>) this::executeStep);
-            bindings.put("makeDecisionWith", (Function<Object, DecisionBuilder>) this::makeDecisionWith);
             if (jsFunctionRegistrar != null) {
                 jsFunctionRegistrar.stream(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, entry -> {
                     bindings.put(entry.getKey(), entry.getValue());
@@ -127,28 +125,15 @@ public class JsGraphBuilder {
     /**
      * Adds the step given by step ID tp the authentication graph.
      *
-     * @param stepId unique identifier for the step.
-     */
-    public void execute(String stepId) {
-        //TODO: Use Step Name instead of Step ID (integer)
-        StepConfig stepConfig = stepNamedMap.get(stepId);
-        StepConfigGraphNode newNode = wrap(stepConfig);
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-        currentNode = newNode;
-    }
-
-    /**
-     * Adds the step given by step ID tp the authentication graph.
-     *
      * @param parameterMap parameterMap
      */
     public void executeStep(Map<String, Object> parameterMap) {
         //TODO: Use Step Name instead of Step ID (integer)
         StepConfig stepConfig = stepNamedMap.get(parameterMap.get("id"));
+        if (stepConfig == null) {
+            log.error("Given Authentication Step :" + parameterMap.get("id") + " is not in Environment");
+            return;
+        }
         StepConfigGraphNode newNode = wrap(stepConfig);
         if (currentNode == null) {
             result.setStartNode(newNode);
@@ -237,75 +222,6 @@ public class JsGraphBuilder {
 
         JsBasedEvaluator evaluator2 = new JsBasedEvaluator(source, isFunction);
         return evaluator2;
-    }
-
-    /**
-     * Javascript exposed function to execute a dynamic decision based on javascript.
-     *
-     * @param objectMirror Script Object.
-     * @return a DecisionBuilder which can be used to further build the graph using the builder pattern.
-     */
-    public DecisionBuilder makeDecisionWith(final Object objectMirror) {
-        AuthDecisionPointNode decisionNode = new AuthDecisionPointNode();
-        if (currentNode == null) {
-            result.setStartNode(decisionNode);
-        } else {
-            if (currentNode instanceof StepConfigGraphNode) {
-                ((StepConfigGraphNode) currentNode).setNext(decisionNode);
-            } else {
-                log.error("The Decision Node can not be attached to the Node: " + currentNode);
-            }
-        }
-        currentNode = decisionNode;
-
-        AuthenticationDecisionEvaluator2 evaluator2 = new AuthenticationDecisionEvaluator2() {
-
-            @Override
-            public String evaluate(AuthenticationContext context) {
-                Object result = null;
-                try {
-                    if (objectMirror instanceof ScriptObjectMirror) {
-                        ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) objectMirror;
-                        scriptObjectMirror.getProto();
-                        result = ((ScriptObjectMirror) objectMirror).call(this, context);
-                    } else {
-                        result = String.valueOf(objectMirror);
-                    }
-                } catch (Throwable t) {
-                    //Need to catch all exceptions here and log the error. We can not bubble up the exception as
-                    //that will cause the runtime to crash for any user-script errors.
-                    //TODO: Handle and create proper Exception
-                    log.error(
-                            "Unhandled Javascript error occurred while executing dynamic authentication flow in the application: "
-                                    + authenticationContext.getServiceProviderName(), t);
-                }
-                if (result instanceof String) {
-                    return (String) result;
-                } else {
-                    //TODO: throw error
-                }
-                return null;
-            }
-        };
-        DecisionBuilder builder = new DecisionBuilder(decisionNode, evaluator2, stepNamedMap);
-        return builder;
-    }
-
-    public DecisionBuilder makeDecisionWith(Function<AuthenticationContext, String> decisionFunction) {
-
-        AuthDecisionPointNode decisionNode = new AuthDecisionPointNode();
-        if (currentNode == null) {
-            result.setStartNode(decisionNode);
-        } else {
-            if (currentNode instanceof StepConfigGraphNode) {
-                ((StepConfigGraphNode) currentNode).setNext(decisionNode);
-            } else {
-                log.error(currentNode + " is not supported in execute()");
-            }
-        }
-        currentNode = decisionNode;
-
-        return new DecisionBuilder(decisionNode, context -> decisionFunction.apply(context), stepNamedMap);
     }
 
     /**
@@ -398,74 +314,7 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Builder Object to build a decision logic.
-     */
-    public static class DecisionBuilder {
 
-        private AuthenticationDecisionEvaluator2 evaluatorFunction;
-        private AuthDecisionPointNode decisionNode;
-        private Map<String, StepConfig> stepNamedMap;
-
-        public DecisionBuilder(AuthDecisionPointNode decisionNode, AuthenticationDecisionEvaluator2 evaluatorFunction,
-                               Map<String, StepConfig> stepNamedMap) {
-
-            this.decisionNode = decisionNode;
-            this.decisionNode.setAuthenticationDecisionEvaluator(evaluatorFunction);
-            this.evaluatorFunction = evaluatorFunction;
-            this.stepNamedMap = stepNamedMap;
-        }
-
-        public ConditionalExecutionBuilder when(String s) {
-
-            return new ConditionalExecutionBuilder(s, this, decisionNode, stepNamedMap);
-        }
-    }
-
-    /**
-     * Build object to build a conditional execution.
-     * This builds the graph nodes on the first run of the javascript.
-     * This means graph nodes are statically built upon flow initialization.
-     */
-    public static class ConditionalExecutionBuilder {
-
-        private DecisionBuilder decisionBuilder;
-        private AuthDecisionPointNode decisionNode;
-        private String outcomeName;
-        private Map<String, StepConfig> stepNamedMap;
-
-        public ConditionalExecutionBuilder(String outcomeName, DecisionBuilder decisionBuilder,
-                                           AuthDecisionPointNode decisionNode, Map<String, StepConfig> stepNamedMap) {
-
-            this.outcomeName = outcomeName;
-            this.decisionNode = decisionNode;
-            this.decisionBuilder = decisionBuilder;
-            this.stepNamedMap = stepNamedMap;
-        }
-
-        public ConditionalExecutionBuilder thenExecute(String stepId) {
-
-            StepConfig stepConfig = stepNamedMap.get(stepId);
-            StepConfigGraphNode newNode = wrap(stepConfig);
-            if (outcomeName == null) {
-                decisionNode.setDefaultEdge(newNode);
-            } else {
-                decisionNode.putOutcome(outcomeName, new DecisionOutcome(newNode));
-            }
-            return this;
-        }
-
-        public ConditionalExecutionBuilder when(String s) {
-
-            return new ConditionalExecutionBuilder(s, decisionBuilder, decisionNode, stepNamedMap);
-        }
-
-        public ConditionalExecutionBuilder whenNoMatch() {
-
-            return new ConditionalExecutionBuilder(null, decisionBuilder, decisionNode, stepNamedMap);
-        }
-    }
-
-    /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
      * is happening.

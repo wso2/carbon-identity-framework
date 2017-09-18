@@ -232,6 +232,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                case FAIL_COMPLETED:
                    executeFunction("fail", dynamicDecisionNode, context);
                    break;
+               case FALLBACK:
+                   executeFunction("fallback", dynamicDecisionNode, context);
+                   break;
            }
        }
 
@@ -241,7 +244,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
-        
         Object fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         if (fn instanceof AuthenticationDecisionEvaluator2) {
             ((AuthenticationDecisionEvaluator2)fn).evaluate(context);

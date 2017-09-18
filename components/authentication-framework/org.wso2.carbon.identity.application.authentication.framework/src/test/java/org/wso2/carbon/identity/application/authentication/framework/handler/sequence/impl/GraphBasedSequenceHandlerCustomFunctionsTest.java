@@ -110,6 +110,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
     }
 
+    @Test
     public void testHandle_Dynamic_OnFail() throws Exception {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
@@ -134,6 +135,36 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicFailingMockAuthenticator");
         assertEquals(authHistories.get(1).getAuthenticatorName(), "BasicMockAuthenticator");
         assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
+
+        assertTrue(context.isRequestAuthenticated());
+    }
+
+    @Test
+    public void testHandle_Dynamic_OnFallback() throws Exception {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticators()
+                .add(new MockFallbackAuthenticator("MockFallbackAuthenticator"));
+
+        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
+                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
+                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
+                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fallback.xml");
+
+        AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
+        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertEquals( authHistories.size(), 4);
+        assertEquals(authHistories.get(0).getAuthenticatorName(), "MockFallbackAuthenticator");
+        assertEquals(authHistories.get(1).getAuthenticatorName(), "BasicMockAuthenticator");
+        assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
+        assertEquals(authHistories.get(3).getAuthenticatorName(), "FptMockAuthenticator");
 
         assertTrue(context.isRequestAuthenticated());
     }
@@ -248,6 +279,21 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         }
     }
 
+    public static class MockFallbackAuthenticator extends MockAuthenticator{
+
+        public MockFallbackAuthenticator(String name) {
+            super(name);
+        }
+
+        @Override
+        public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
+                                               AuthenticationContext context) throws AuthenticationFailedException,
+                LogoutFailedException {
+
+            return AuthenticatorFlowStatus.FALLBACK;
+        }
+    }
+
     private void addMockAttributes(HttpServletRequest request) {
         Map<String, Object> attributes = new HashMap<>();
         Mockito.doAnswer(new Answer<Void>() {
@@ -256,7 +302,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 String key = (String) invocation.getArguments()[0];
                 Object value = invocation.getArguments()[1];
                 attributes.put(key, value);
-                System.out.println("put attribute key="+key+", value="+value);
                 return null;
             }
         }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
@@ -267,7 +312,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 String key = (String) invocation.getArguments()[0];
                 Object value = attributes.get(key);
-                System.out.println("get attribute value for key="+key+" : "+value);
                 return value;
             }
         }).when(request).getAttribute(Mockito.anyString());
