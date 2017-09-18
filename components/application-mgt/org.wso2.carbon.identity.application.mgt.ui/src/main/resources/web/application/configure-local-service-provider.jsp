@@ -39,9 +39,15 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 
-
 <%
-    ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
+	ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
+	if (appBean == null || appBean.getServiceProvider() == null) {
+%>
+<script type="text/javascript">
+	location.href = "load-service-provider.jsp?spName=wso2carbon-local-sp";
+</script>
+<%
+} else {
 	String spName = appBean.getServiceProvider().getApplicationName();
 	      
 	StringBuffer localAuthTypes = new StringBuffer();
@@ -371,3 +377,4 @@
     </div>
 
 </fmt:bundle>
+<% } %>

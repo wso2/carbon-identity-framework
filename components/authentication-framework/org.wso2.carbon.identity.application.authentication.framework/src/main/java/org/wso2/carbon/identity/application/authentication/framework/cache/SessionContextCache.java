@@ -18,14 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
@@ -55,7 +56,15 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
         entry.setAccessedTime();
         super.addToCache(key, entry);
-        SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
+        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authUser != null && authUser instanceof AuthenticatedUser) {
+            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            SessionDataStore.getInstance()
+                    .storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
+        } else {
+            SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
+        }
     }
 
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {

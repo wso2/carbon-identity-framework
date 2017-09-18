@@ -205,18 +205,22 @@
             UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
-            countableUserStores = countClient.getCountableUserStores();
 
-            if(countableUserStores != null && countableUserStores.size() > 0) {
-                countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
-                countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
-                countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
-            }
+            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/userstore/count/view")) {
 
-            if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
-                roleCount = countClient.countRoles(countFilter);
-            } else {
-                roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain)));
+                countableUserStores = countClient.getCountableUserStores();
+
+                if (countableUserStores != null && countableUserStores.size() > 0) {
+                    countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+                    countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
+                    countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
+                }
+
+                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                    roleCount = countClient.countRoles(countFilter);
+                } else {
+                    roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain)));
+                }
             }
 
             boolean sharedRoleEnabled = client.isSharedRolesEnabled();
@@ -438,6 +442,8 @@
                 </table>
             </form>
 
+            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/userstore/count/view")) { %>
+
             <form name="countForm" method="post" action="role-mgt.jsp">
                 <table class="styledLeft">
                     <%
@@ -520,6 +526,8 @@
                     %>
                 </table>
             </form>
+
+            <%}%>
             <p>&nbsp;</p>
 
             <carbon:paginator pageNumber="<%=pageNumber%>"
@@ -638,30 +646,41 @@
                          <%}%>--%>
                     <td>
                         <%if (!data.getShared()) { %>
-                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) && !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable()) {%>
+                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) &&
+                                !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable() &&
+                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/update")) {%>
+
                         <a href="#" onclick="updateUserGroup('<%=Encode.forJavaScriptAttribute(roleName)%>')"
                            class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message
                                 key="rename"/></a>
                         <% } %>
-                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole())) {%>
+                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) &&
+                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/update")) {%>
                         <a href="edit-permissions.jsp?roleName=<%=Encode.forUriComponent(roleName)%>" class="icon-link"
                            style="background-image:url(images/edit.gif);"><fmt:message key="edit.permissions"/></a>
                         <% }
                         }%>
 
-                        <% if (!userRealmInfo.getEveryOneRole().equals(data.getItemName()) && data.getEditable()) { %>
+                        <% if (!userRealmInfo.getEveryOneRole().equals(data.getItemName()) && data.getEditable() &&
+                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/update"))
+                        { %>
                         <a href="edit-users.jsp?roleName=<%=Encode.forUriComponent(roleName)%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%=!data.getEditable()%>"
                            class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message
                                 key="edit.users"/></a>
                         <% } %>
-                        <% if (!userRealmInfo.getEveryOneRole().equals(data.getItemName())) { %>
+                        <% if (!userRealmInfo.getEveryOneRole().equals(data.getItemName()) &&
+                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/view"))
+                        { %>
                         <a href="view-users.jsp?roleName=<%=Encode.forUriComponent(roleName)%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%=!data.getEditable()%>"
                            class="icon-link" style="background-image:url(images/view.gif);"><fmt:message
                                 key="view.users"/></a>
                         <% } %>
                         <%if (!data.getShared()) { %>
 
-                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) && !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable()) {%>
+                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) &&
+                                !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable() &&
+                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/delete"))
+                        {%>
                         <a href="#" onclick="deleteUserGroup('<%=Encode.forJavaScriptAttribute(roleName)%>')"
                            class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message
                                 key="delete"/></a>

@@ -34,6 +34,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
@@ -258,9 +259,11 @@ public class ApiClient {
         List<Pair> params = new ArrayList<Pair>();
 
         // preconditions
-        if (name == null || name.isEmpty() || value == null) return params;
+        if (StringUtils.isEmpty(name) || value == null) {
+            return params;
+        }
 
-        Collection<?> valueCollection = null;
+        Collection<?> valueCollection;
         if (value instanceof Collection<?>) {
             valueCollection = (Collection<?>) value;
         } else {
@@ -427,6 +430,16 @@ public class ApiClient {
     }
 
     private ClientResponse getAPIResponse(String path, String method, List<Pair> queryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[] authNames) throws ApiException {
+
+        final String AUTHORIZATION          = "Authorization";
+        final String CLIENT                 = "Client ";
+        final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
+        final String PATCH                  = "PATCH";
+        final String GET                    = "GET";
+        final String POST                   = "POST";
+        final String PUT                    = "PUT";
+        final String DELETE                 = "DELETE";
+
         if (body != null && !formParams.isEmpty()) {
             throw new ApiException(500, "Cannot have body and form params");
         }
@@ -439,32 +452,36 @@ public class ApiClient {
             builder = httpClient.resource(url).accept(accept);
         }
 
-        for (String key : headerParams.keySet()) {
-            builder = builder.header(key, headerParams.get(key));
+        for (Entry<String, String> entry : headerParams.entrySet()) {
+            builder = builder.header(entry.getKey(), entry.getValue());
         }
-        for (String key : defaultHeaderMap.keySet()) {
-            if (!headerParams.containsKey(key)) {
-                builder = builder.header(key, defaultHeaderMap.get(key));
+        for (Entry<String, String> entry : defaultHeaderMap.entrySet()) {
+            if (!headerParams.containsKey(entry.getKey())) {
+                builder = builder.header(entry.getKey(), entry.getValue());
             }
         }
 
-        ClientResponse response = null;
-        String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":" + String.valueOf(IdentityManagementServiceUtil
-                .getInstance().getAppPassword());
+        ClientResponse response;
+        String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
+                + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
 
-        if ("GET".equals(method)) {
-            response = (ClientResponse) builder.header("Authorization", "Client "+ authHeader).get(ClientResponse.class);
-        } else if ("POST".equals(method)) {
-            response = builder.type(contentType).header("Authorization", "Client "+ authHeader).post(ClientResponse.class,
+        if (GET.equals(method)) {
+            response = (ClientResponse) builder.header(AUTHORIZATION,  CLIENT + authHeader).get(ClientResponse.class);
+        } else if (POST.equals(method)) {
+            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).post(ClientResponse.class,
                     serialize(body, contentType, formParams));
-        } else if ("PUT".equals(method)) {
-            response = builder.type(contentType).header("Authorization", "Client " + authHeader).put(ClientResponse.class, serialize(body, contentType, formParams));
-        } else if ("DELETE".equals(method)) {
-            response = builder.type(contentType).header("Authorization", "Client " + authHeader).delete(ClientResponse.class, serialize(body, contentType, formParams));
-        } else if ("PATCH".equals(method)) {
-            response = builder.type(contentType).header("X-HTTP-Method-Override", "PATCH").header("Authorization", "Client "+ authHeader).post(ClientResponse.class, serialize(body, contentType, formParams));
+        } else if (PUT.equals(method)) {
+            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).put(ClientResponse.class,
+                    serialize(body, contentType, formParams));
+        } else if (DELETE.equals(method)) {
+            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).delete
+                    (ClientResponse.class, serialize(body, contentType, formParams));
+        } else if (PATCH.equals(method)) {
+            response = builder.type(contentType).header(X_HTTP_METHOD_OVERRIDE, PATCH).header
+                    (AUTHORIZATION, CLIENT + authHeader).post
+                    (ClientResponse.class, serialize(body, contentType, formParams));
         } else {
             throw new ApiException(500, "unknown method type " + method);
         }
@@ -497,10 +514,11 @@ public class ApiClient {
             throw new ApiException(204, "No content Found");
 
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
-            if (returnType == null)
+            if (returnType == null) {
                 return null;
-            else
+            } else {
                 return response.getEntity(returnType);
+            }
         } else {
             String message = "error";
             String respBody = null;

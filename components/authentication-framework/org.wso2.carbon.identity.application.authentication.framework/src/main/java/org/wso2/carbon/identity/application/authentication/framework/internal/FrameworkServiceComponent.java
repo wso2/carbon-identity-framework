@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
+import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -82,6 +83,8 @@ public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
     private static final String IDENTITY_SERVLET_URL = "/identity";
+    private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
+
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
@@ -180,9 +183,13 @@ public class FrameworkServiceComponent {
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
                                                                  IDENTITY_SERVLET_URL);
+
+        Servlet loginContextServlet = new ContextPathServletAdaptor(new LoginContextServlet(),
+                LOGIN_CONTEXT_SERVLET_URL);
         try {
             httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
             httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
+            httpService.registerServlet(LOGIN_CONTEXT_SERVLET_URL, loginContextServlet, null, null);
         } catch (Exception e) {
             String errMsg = "Error when registering servlets via the HttpService.";
             log.error(errMsg, e);

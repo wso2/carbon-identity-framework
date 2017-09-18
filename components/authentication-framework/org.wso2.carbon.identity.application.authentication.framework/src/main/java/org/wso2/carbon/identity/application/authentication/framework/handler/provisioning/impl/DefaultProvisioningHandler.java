@@ -22,6 +22,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
@@ -213,12 +214,24 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private Collection<String> getRolesToAdd(UserStoreManager userStoreManager, String[] newRoles)
             throws UserStoreException {
-        Collection<String> addingRoles = new ArrayList<>();
-        Collections.addAll(addingRoles, newRoles);
-        Collection<String> allExistingRoles = removeDomainFromNamesExcludeInternal(
+
+        List<String> rolesToAdd = Arrays.asList(newRoles);
+        List<String> updatedRolesToAdd = new ArrayList<>();
+
+        // Make Internal domain name case insensitive
+        for (String role : rolesToAdd) {
+            if (StringUtils.containsIgnoreCase(role, UserCoreConstants.INTERNAL_DOMAIN +
+                    CarbonConstants.DOMAIN_SEPARATOR)) {
+                updatedRolesToAdd.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
+                        UserCoreUtil.removeDomainFromName(role));
+            } else {
+                updatedRolesToAdd.add(role);
+            }
+        }
+        List<String> allExistingRoles = removeDomainFromNamesExcludeInternal(
                 Arrays.asList(userStoreManager.getRoleNames()), userStoreManager.getTenantId());
-        addingRoles.retainAll(allExistingRoles);
-        return addingRoles;
+        updatedRolesToAdd.retainAll(allExistingRoles);
+        return updatedRolesToAdd;
     }
 
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)

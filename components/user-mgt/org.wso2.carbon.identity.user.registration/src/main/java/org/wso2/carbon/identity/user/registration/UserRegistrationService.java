@@ -154,7 +154,6 @@ public class UserRegistrationService {
         String tenantAwareUserName = MultitenantUtils.getTenantAwareUsername(user.getUserName());
         String tenantName = MultitenantUtils.getTenantDomain(user.getUserName());
         realm = IdentityTenantUtil.getRealm(tenantName, null);
-        Registry registry = IdentityTenantUtil.getRegistry(null, null);
         addUser(tenantAwareUserName, user.getPassword(), userClaims, null, realm);
     }
 
@@ -255,15 +254,15 @@ public class UserRegistrationService {
 
             for (int i = 0; i < identityRoleNames.length; i++) {
                 // if this is the first time a user signs up, needs to create role
-                doAddUser(i,admin, identityRoleNames,userName,permission);
+                doAddUser(i, admin, identityRoleNames, userName, permission);
             }
         } catch (UserStoreException e) {
             throw IdentityException.error("Error occurred while adding user : " + userName + ". " + e.getMessage(), e);
         }
     }
 
-    private void doAddUser(int i, UserStoreManager admin, String[] identityRoleNames, String userName,Permission
-            permission) throws IdentityException, UserStoreException {
+    private void doAddUser(int i, UserStoreManager admin, String[] identityRoleNames, String userName,
+                           Permission permission) throws IdentityException, UserStoreException {
         try {
             if (!admin.isExistingRole(identityRoleNames[i], false)) {
                 permission = new Permission("/permission/admin/login", UserMgtConstants.EXECUTE_ACTION);

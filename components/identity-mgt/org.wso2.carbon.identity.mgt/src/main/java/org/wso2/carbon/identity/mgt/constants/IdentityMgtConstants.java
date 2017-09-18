@@ -92,6 +92,8 @@ public class IdentityMgtConstants {
 
     public static final String LAST_LOGIN_TIME = "http://wso2.org/claims/identity/lastLogonTime";
 
+    public static final String EMAIL_TEMPLATE_PATH = "identity/config/emailTemplate";
+
     public static final String LAST_PASSWORD_UPDATE_TIME = "http://wso2.org/claims/identity/lastPasswordUpdateTime";
 
     private IdentityMgtConstants() {
@@ -240,5 +242,11 @@ public class IdentityMgtConstants {
 
         public static final String USER_ACCOUNT = " No user account found for user ";
 
+    }
+
+    public enum LockedReason {
+        ADMIN_INITIATED,
+        MAX_ATTEMT_EXCEEDED,
+        UNVERIFIED
     }
 }

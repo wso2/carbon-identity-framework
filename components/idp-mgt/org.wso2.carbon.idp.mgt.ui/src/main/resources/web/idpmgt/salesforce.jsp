@@ -298,7 +298,7 @@
                     <div>
                         <input class="text-box-big" id="sf-prov-pattern"
                                name="sf-prov-pattern" type="text"
-                               value=<%=Encode.forHtmlAttribute(sfProvPattern)%>>
+                               value="<%=Encode.forHtmlAttribute(sfProvPattern)%>">
                     </div>
                     <div class="sectionHelp">
                         <fmt:message key='sf_prov_pattern.help'/>

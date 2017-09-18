@@ -69,5 +69,16 @@
             <DisplayName>Delete</DisplayName>
             <ResourceId>/permission/admin/manage/identity/rolemgt/delete</ResourceId>
         </ManagementPermission>
+
+        <!--User/Role UI Management Permissions-->
+        <ManagementPermission>
+            <DisplayName>User Role UI Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userroleuimgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>UI-Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userroleuimgt/create</ResourceId>
+        </ManagementPermission>
+
     </ManagementPermissions>
  </component>

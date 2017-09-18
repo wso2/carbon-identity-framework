@@ -475,6 +475,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private boolean isDifferent(List<String> newAcrList, List<String> previousAcrList) {
+
         if(previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
             return true;
         }

@@ -18,33 +18,48 @@
 
 package org.wso2.carbon.user.mgt.ui;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.governance.stub.IdentityGovernanceAdminServiceIdentityGovernanceExceptionException;
+import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
+import org.wso2.carbon.identity.governance.stub.bean.Property;
+import org.wso2.carbon.ui.CarbonUIUtil;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
+import org.wso2.carbon.user.mgt.common.RandomPasswordGenerator;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
+import org.wso2.carbon.user.mgt.ui.client.IdentityGovernanceAdminClient;
 import org.wso2.carbon.utils.DataPaginator;
-
+import org.wso2.carbon.utils.ServerConstants;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.mail.util.ByteArrayDataSource;
-
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 
 public class Util {
 
     public static final String ALL = "ALL";
     private static final Log log = LogFactory.getLog(Util.class);
+    private static final String EMAIL_VERIFICATION_ENABLE_PROP_NAME = "EmailVerification.Enable";
+    private static final String ASK_PASSWORD_TEMP_PASSWORD_GENERATOR = "EmailVerification.AskPassword.PasswordGenerator";
+
     private static boolean isAskPasswordEnabled = true;
 
     static {
@@ -56,9 +71,9 @@ public class Util {
             if (identityEventListenerConfig != null) {
                 identityMgtListenerEnabled = Boolean.parseBoolean(identityEventListenerConfig.getEnable());
             }
-            if(identityMgtListenerEnabled){
+            if (identityMgtListenerEnabled) {
                 File file = new File(IdentityUtil.getIdentityConfigDirPath() + "/identity-mgt.properties");
-                if(file.exists() && file.isFile()) {
+                if (file.exists() && file.isFile()) {
                     is = new FileInputStream(file);
                     Properties identityMgtProperties = new Properties();
                     identityMgtProperties.load(is);
@@ -66,7 +81,7 @@ public class Util {
                             ".Password.Enable"));
                     boolean acctVerificationEnabled = Boolean.parseBoolean(identityMgtProperties.getProperty
                             ("UserAccount.Verification.Enable"));
-                    if(!tempPasswordEnabled || !acctVerificationEnabled){
+                    if (!tempPasswordEnabled || !acctVerificationEnabled) {
                         isAskPasswordEnabled = false;
                     }
                 } else {
@@ -76,14 +91,14 @@ public class Util {
                 isAskPasswordEnabled = false;
             }
         } catch (FileNotFoundException e) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("identity-mgt.properties file not found in " + IdentityUtil.getIdentityConfigDirPath());
             }
             isAskPasswordEnabled = false;
         } catch (IOException e) {
             log.error("Error while reading identity-mgt.properties file");
         } finally {
-            if(is != null){
+            if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
@@ -159,8 +174,8 @@ public class Util {
         if (selectedBoxesStr != null || unselectedBoxesStr != null) {
             if (selectedBoxesStr != null && ALL.equals(selectedBoxesStr) || unselectedBoxesStr != null && ALL.equals(unselectedBoxesStr)) {
                 if (selectedBoxesStr != null && ALL.equals(selectedBoxesStr) && flaggedNamesMap != null) {
-                    for (int key : flaggedNamesMap.keySet()) {
-                        FlaggedName[] flaggedNames = flaggedNamesMap.get(key).getNames();
+                    for (Map.Entry<Integer, PaginatedNamesBean> entry : flaggedNamesMap.entrySet()) {
+                        FlaggedName[] flaggedNames = entry.getValue().getNames();
                         for (FlaggedName flaggedName : flaggedNames) {
                             if (flaggedName.getEditable()) {
                                 checkBoxMap.put(flaggedName.getItemName(), true);
@@ -198,8 +213,116 @@ public class Util {
         }
     }
 
-    public static boolean isAskPasswordEnabled(){
+    public static boolean isAskPasswordEnabled() {
         return isAskPasswordEnabled;
     }
 
+    public static boolean isUserOnBoardingEnabled(ServletContext context, HttpSession session) {
+
+        String backendServerURL = CarbonUIUtil.getServerURL(context, session);
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        ConfigurationContext configContext =
+                (ConfigurationContext) context.getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+        Map<String, Map<String, List<ConnectorConfig>>> connectorList;
+        try {
+            IdentityGovernanceAdminClient client =
+                    new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
+            connectorList = client.getConnectorList();
+        } catch (Exception e) {
+            log.error("Error while getting connector list from governance service, at URL :" +
+                    backendServerURL, e);
+            return false;
+        }
+
+        if (connectorList != null) {
+            for (String key : connectorList.keySet()) {
+                Map<String, List<ConnectorConfig>> subCatList = connectorList.get(key);
+                for (String subCatKey : subCatList.keySet()) {
+                    List<ConnectorConfig> connectorConfigs = subCatList.get(subCatKey);
+                    for (ConnectorConfig connectorConfig : connectorConfigs) {
+                        Property[] properties = connectorConfig.getProperties();
+                        for (Property property : properties) {
+                            if (EMAIL_VERIFICATION_ENABLE_PROP_NAME.equals(property.getName())) {
+                                String propValue = property.getValue();
+                                boolean isEmailVerificationEnabled = false;
+
+                                if (!StringUtils.isEmpty(propValue)) {
+                                    isEmailVerificationEnabled = Boolean.parseBoolean(propValue);
+                                }
+                                return isEmailVerificationEnabled;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static char[] generateRandomPassword(ServletContext context, HttpSession session) {
+        char[] tempPass = "password".toCharArray();
+        try {
+            return getAskPasswordTempPassGenerator(context, session).generatePassword();
+        } catch (Exception e) {
+            log.error("Error while generating the temporary password. Used the default password as temp password", e);
+            return tempPass;
+        }
+    }
+
+    public static RandomPasswordGenerator getAskPasswordTempPassGenerator(ServletContext context, HttpSession session) {
+
+        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.password.DefaultPasswordGenerator";
+
+
+        if (isUserOnBoardingEnabled(context, session)) {
+
+            String backendServerURL = CarbonUIUtil.getServerURL(context, session);
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            ConfigurationContext configContext =
+                    (ConfigurationContext) context.getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            Map<String, Map<String, List<ConnectorConfig>>> connectorList;
+            try {
+                IdentityGovernanceAdminClient client =
+                        new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
+                connectorList = client.getConnectorList();
+
+                if (connectorList != null) {
+                    for (String key : connectorList.keySet()) {
+                        Map<String, List<ConnectorConfig>> subCatList = connectorList.get(key);
+                        for (String subCatKey : subCatList.keySet()) {
+                            List<ConnectorConfig> connectorConfigs = subCatList.get(subCatKey);
+                            for (ConnectorConfig connectorConfig : connectorConfigs) {
+                                Property[] properties = connectorConfig.getProperties();
+                                for (Property property : properties) {
+                                    if (ASK_PASSWORD_TEMP_PASSWORD_GENERATOR.equals(property.getName())) {
+                                        randomPasswordGenerationClass = property.getValue();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error while getting connector list from governance service, at URL :" +
+                        backendServerURL, e);
+            }
+
+        } else {
+            String randomPasswordGenerationClassFromFile =
+                    IdentityUtil.getProperty(ASK_PASSWORD_TEMP_PASSWORD_GENERATOR);
+            if (StringUtils.isNotBlank(randomPasswordGenerationClassFromFile)) {
+                randomPasswordGenerationClass = randomPasswordGenerationClassFromFile;
+            }
+        }
+
+        try {
+            Class clazz = Class.forName(randomPasswordGenerationClass);
+            return (RandomPasswordGenerator) clazz.newInstance();
+        } catch (Exception e) {
+            log.error("Error while loading random password generator class. " +
+                    "Default random password generator would be used", e);
+        }
+
+        return new DefaultPasswordGenerator();
+    }
 }

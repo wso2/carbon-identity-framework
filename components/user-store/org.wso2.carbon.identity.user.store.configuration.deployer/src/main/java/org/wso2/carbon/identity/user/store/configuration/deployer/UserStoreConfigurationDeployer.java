@@ -121,6 +121,11 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
      */
     public void deploy(DeploymentFileData deploymentFileData) throws DeploymentException {
 
+        if (deploymentFileData.getName().startsWith("FEDERATED")) {
+            throw new DeploymentException("'FEDERATED' is a reserved user store domain prefix. "
+                    + "Please start the file name with a different domain name.");
+        }
+
         ServerConfigurationService config = UserStoreConfigComponent.getServerConfigurationService();
         if (config != null) {
             String absolutePath = deploymentFileData.getAbsolutePath();
