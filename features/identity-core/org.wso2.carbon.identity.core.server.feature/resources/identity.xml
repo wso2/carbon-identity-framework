@@ -582,23 +582,47 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
-        <Resource context="/scim2/Users" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+        <Resource context="/scim2/Users" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
         </Resource>
-        <Resource context="/scim2/Groups" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/rolemgt</Permissions>
+        <Resource context="/scim2/Users" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
         </Resource>
-        <Resource context="/scim2/Users/*" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+        <Resource context="/scim2/Groups" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
         </Resource>
-        <Resource context="/scim2/Groups/*" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/rolemgt</Permissions>
+        <Resource context="/scim2/Groups" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        </Resource>
+        <Resource context="/scim2/Users/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+        <Resource context="/scim2/Users/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
+        <Resource context="/scim2/Users/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
+        <Resource context="/scim2/Users/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
+        </Resource>
+        <Resource context="/scim2/Groups/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        </Resource>
+        <Resource context="/scim2/Groups/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        </Resource>
+        <Resource context="/scim2/Groups/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        </Resource>
+        <Resource context="/scim2/Groups/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
         </Resource>
         <Resource context="/scim2/Me" secured="true"    http-method="GET">
             <Permissions>/permission/admin/login</Permissions>
         </Resource>
         <Resource context="/scim2/Me" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+            <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
         </Resource>
         <Resource context="/scim2/Me" secured="true"    http-method="PUT">
             <Permissions>/permission/admin/login</Permissions>
