@@ -156,16 +156,16 @@
             <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
         </AuthenticatorConfig>
 	<AuthenticatorConfig name="totp" enabled="true">
-		<Parameter name="encodingMethod">Base32</Parameter>
-		<Parameter name="timeStepSize">30</Parameter>
-		<Parameter name="windowSize">3</Parameter>
-		<Parameter name="authenticationMandatory">true</Parameter>
-		<Parameter name="enrolUserInAuthenticationFlow">true</Parameter>
-		<Parameter name="usecase">local</Parameter>
-		<Parameter name="secondaryUserstore">primary</Parameter>
-		<Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
-		<Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
-		<Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
+	    <Parameter name="encodingMethod">Base32</Parameter>
+	    <Parameter name="timeStepSize">30</Parameter>
+	    <Parameter name="windowSize">3</Parameter>
+	    <Parameter name="authenticationMandatory">true</Parameter>
+	    <Parameter name="enrolUserInAuthenticationFlow">true</Parameter>
+	    <Parameter name="usecase">local</Parameter>
+	    <Parameter name="secondaryUserstore">primary</Parameter>
+	    <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
+	    <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
+	    <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
 	</AuthenticatorConfig>
 	</AuthenticatorConfigs> 
 
