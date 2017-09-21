@@ -18,25 +18,25 @@
 <ApplicationAuthentication xmlns="http://wso2.org/projects/carbon/application-authentication.xml">
 
 	<!--
-		ProxyMode allows framework to operate in either 'smart' mode 
+		ProxyMode allows framework to operate in either 'smart' mode
 		or 'dumb' mode.
 		smart = both local and federated authentication is supported
 		dumb = only federated authentication is supported
 	-->
-	<ProxyMode>smart</ProxyMode>	
-	 
-	<!-- 
-		AuthenticationEndpointURL is location of the web app containing 
-		the authentication related pages 
-	--> 
+	<ProxyMode>smart</ProxyMode>
+
+	<!--
+		AuthenticationEndpointURL is location of the web app containing
+		the authentication related pages
+	-->
 	<AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
 	<AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
-	
+
 	<!--
 		Extensions allow extending the default behaviour of the authentication
-		process. 	
+		process.
 	-->
-	<Extensions> 
+	<Extensions>
 		<RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
 		<AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
 		<LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
@@ -51,10 +51,10 @@
 
 	<!--
 		AuthenticatorNameMappings allow specifying an authenticator
-		against a pre-defined alias (which will be used by other components. 
-		E.g. Application Mgt component). This enables the usage of a custom 
-		authenticator in place of an authenticator that gets packed with the 
-		distribution.	
+		against a pre-defined alias (which will be used by other components.
+		E.g. Application Mgt component). This enables the usage of a custom
+		authenticator in place of an authenticator that gets packed with the
+		distribution.
 	-->
     <AuthenticatorNameMappings>
         <AuthenticatorNameMapping name="BasicAuthenticator" alias="basic" />
@@ -79,7 +79,7 @@
 	<AuthenticatorConfigs>
 		<AuthenticatorConfig name="BasicAuthenticator" enabled="true">
 			<!--Parameter name="UserNameAttributeClaimUri">http://wso2.org/claims/emailaddress</Parameter-->
-			<!--Parameter name="showAuthFailureReason">true</Parameter-->	
+			<!--Parameter name="showAuthFailureReason">true</Parameter-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true" />
 		<AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true" />
@@ -89,7 +89,7 @@
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="OpenIDConnectAuthenticator" enabled="true">
 			<!--Parameter name="IDTokenHandler">org.wso2.carbon.identity.application.authenticator.oidc.DefaultIDTokenHandler</Parameter-->
-			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->	
+			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="OpenIDAuthenticator" enabled="true">
 			<Parameter name="LoginPage">/authenticationendpoint/login.do</Parameter>
@@ -155,26 +155,26 @@
         <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
             <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
         </AuthenticatorConfig>
-		<AuthenticatorConfig name="totp" enabled="true">
-			<Parameter name="encodingMethod">Base32</Parameter>
-			<Parameter name="timeStepSize">30</Parameter>
-			<Parameter name="windowSize">3</Parameter>
-			<Parameter name="authenticationMandatory">true</Parameter>
-			<Parameter name="enrolUserInAuthenticationFlow">true</Parameter>
-			<Parameter name="usecase">local</Parameter>
-			<Parameter name="secondaryUserstore">primary</Parameter>
-			<Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
-			<Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
-			<Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
-		</AuthenticatorConfig>
-	</AuthenticatorConfigs> 
+        <AuthenticatorConfig name="totp" enabled="true">
+            <Parameter name="encodingMethod">Base32</Parameter>
+            <Parameter name="timeStepSize">30</Parameter>
+            <Parameter name="windowSize">3</Parameter>
+            <Parameter name="authenticationMandatory">true</Parameter>
+            <Parameter name="enrolUserInAuthenticationFlow">true</Parameter>
+            <Parameter name="usecase">local</Parameter>
+            <Parameter name="secondaryUserstore">primary</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
+        </AuthenticatorConfig>
+    </AuthenticatorConfigs>
 
     <!--
 		Sequences allow specifying authentication flows for different
 		registered applications. \'default\' sequence is taken if an
 		application specific sequence doesn't exist in this file or
 		in the Application Mgt module.
-    -->	
+    -->
 	<Sequences>
 		<!-- Default Sequence. This is mandatory -->
 		<Sequence appId="default">
@@ -183,24 +183,24 @@
 			</Step>
 		</Sequence>
 	</Sequences>
-	
-	<!-- 
-        	AuthenticationEndpointQueryParams are the request parameters 
-        	that would be sent to the AuthenticationEndpoint. 
-        	'action' defines the behaviour: if 'include', only the defined 
-        	parameters would be included in the request. 
-        	If 'exclude' specified, all the parameters received by the 
-        	Authentication Framework would be sent in the request except 
-        	the ones specified. 
-        	'sessionDataKey', 'type', 'relyingParty', 'sp' and 'authenticators' 
-        	parameters will be always sent. They should not be specified here.  
+
+	<!--
+        	AuthenticationEndpointQueryParams are the request parameters
+        	that would be sent to the AuthenticationEndpoint.
+        	'action' defines the behaviour: if 'include', only the defined
+        	parameters would be included in the request.
+        	If 'exclude' specified, all the parameters received by the
+        	Authentication Framework would be sent in the request except
+        	the ones specified.
+        	'sessionDataKey', 'type', 'relyingParty', 'sp' and 'authenticators'
+        	parameters will be always sent. They should not be specified here.
     	-->
     	<AuthenticationEndpointQueryParams action="exclude">
         	<AuthenticationEndpointQueryParam name="username"/>
         	<AuthenticationEndpointQueryParam name="password"/>
             <AuthenticationEndpointQueryParam name="SAMLRequest"/>
         </AuthenticationEndpointQueryParams>
-	
+
 	    <!--TenantDomainDropDownEnabled>true</TenantDomainDropDownEnabled>
 	    <TenantDataListenerURLs>
 		  <TenantDataListenerURL>/authenticationendpoint/tenantlistrefresher.do</TenantDataListenerURL>
