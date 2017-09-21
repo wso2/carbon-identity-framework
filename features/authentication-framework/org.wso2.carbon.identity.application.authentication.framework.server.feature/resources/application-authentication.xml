@@ -165,7 +165,6 @@
 			<Parameter name="secondaryUserstore">primary</Parameter>
 			<Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
 			<Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
-			<Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
 		</AuthenticatorConfig>
 	</AuthenticatorConfigs> 
 
