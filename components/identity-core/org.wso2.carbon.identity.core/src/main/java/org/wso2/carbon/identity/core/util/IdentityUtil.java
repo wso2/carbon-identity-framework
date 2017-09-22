@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.core.util;
 import org.apache.axiom.om.impl.dom.factory.OMDOMFactory;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
+import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -932,5 +936,24 @@ public class IdentityUtil {
             }
         }
         return isOperationSupported;
+    }
+
+    /**
+     * This method creates a HttpClient instance with Protocol set to use SSLProtocolSocketFactory for https
+     *
+     * @param scheme
+     * @param host
+     * @return
+     */
+    public static HttpClient getHttpClientWithSSLSocketFactory(String scheme, String host) {
+        HttpClient client = new HttpClient();
+
+        if ("https".equals(scheme)) {
+            ProtocolSocketFactory sslSocketFactory = new SSLProtocolSocketFactory();
+            Protocol sslProtocol = new Protocol(scheme, sslSocketFactory, IdentityCoreConstants.DEFAULT_HTTPS_PORT);
+            Protocol.registerProtocol(scheme, sslProtocol);
+            client.getHostConfiguration().setHost(host, IdentityCoreConstants.DEFAULT_HTTPS_PORT, sslProtocol);
+        }
+        return client;
     }
 }

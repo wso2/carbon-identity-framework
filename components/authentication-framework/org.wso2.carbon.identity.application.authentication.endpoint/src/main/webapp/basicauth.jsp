@@ -29,6 +29,8 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="org.apache.commons.httpclient.HttpClient" %>
+<%@ page import="org.apache.commons.httpclient.methods.HeadMethod" %>
 
 <script>
         function submitCredentials () {
@@ -160,7 +162,15 @@
                 identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
             }
 
-            String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+            HttpClient client = IdentityUtil.getHttpClientWithSSLSocketFactory(scheme, serverName);
+            String validationPointUrl = identityMgtEndpointContext + "/error.jsp";
+            HeadMethod head = new HeadMethod(validationPointUrl);
+            head.setFollowRedirects(false);
+
+            int status = client.executeMethod(head);
+            head.releaseConnection();
+            if (status == HttpURLConnection.HTTP_OK) {
+                String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
         %>
         <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
         <br/><br/>
@@ -176,6 +186,9 @@
         %>
         Don't have an account?
         <a id="registerLink" href="<%=url%>">Register Now</a>
+        <%
+            }
+        %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
         Not received confirmation email ?
