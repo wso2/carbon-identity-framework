@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
+<%@ page import="java.net.URL" %>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -293,6 +294,20 @@
                                 </div>
                                 <%
                                             }
+                                    if (localAuthenticatorNames.contains("totp")) {
+                                %>
+                                <div>
+                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                forUriComponent(idpEntry.getKey()))%>',
+                                        'totp')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
+                                    <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
+                                         data-placement="top" title="Sign in with TOTP"/>
+                                </a>
+                                <label for="icon-<%=iconId%>">TOTP</label>
+
+                                </div>
+                                <%
+                                            }
                                         }
 
                                     }
@@ -377,8 +392,16 @@
         }
 
         function handleNoDomain(key, value) {
+            <%
+                String multiOptionURIParam = "";
+                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping.size() > 1) {
+                    multiOptionURIParam = "&multiOptionURI=" + Encode.forUriComponent(request.getRequestURI() +
+                        (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
+                }
+            %>
             document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
-                    "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>";
+                    "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>" +
+                    "<%=multiOptionURIParam%>";
         }
 
         $('#popover').popover({
