@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -30,7 +29,6 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -118,7 +116,6 @@ public class ApplicationAuthenticationServiceTest {
 
         mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> localAuthenticators = applicationAuthenticationService.getLocalAuthenticators();
-        System.out.println("All: " + FrameworkServiceComponent.getAuthenticators());
         Assert.assertEquals(localAuthenticators.size(), 1);
         Assert.assertEquals(localAuthenticators.get(0).getName(), LOCAL_AUTHENTICATOR_NAME);
     }
