@@ -81,38 +81,33 @@ public class ClaimMetadataUtils {
 
         // Convert List<AttributeMapping> to AttributeMappingDTO[]
         List<AttributeMapping> attributeMappings = localClaim.getMappedAttributes();
-        if (attributeMappings != null) {
-            AttributeMappingDTO[] attributeMappingDTOs = new AttributeMappingDTO[attributeMappings.size()];
+        AttributeMappingDTO[] attributeMappingDTOs = new AttributeMappingDTO[attributeMappings.size()];
 
-            int i = 0;
-            for (AttributeMapping attributeMapping : attributeMappings) {
-                AttributeMappingDTO attributeMappingDTO = new AttributeMappingDTO();
-                attributeMappingDTO.setUserStoreDomain(attributeMapping.getUserStoreDomain());
-                attributeMappingDTO.setAttributeName(attributeMapping.getAttributeName());
-                attributeMappingDTOs[i] = attributeMappingDTO;
-                i++;
-            }
-
-            localClaimDTO.setAttributeMappings(attributeMappingDTOs);
+        int i = 0;
+        for (AttributeMapping attributeMapping : attributeMappings) {
+            AttributeMappingDTO attributeMappingDTO = new AttributeMappingDTO();
+            attributeMappingDTO.setUserStoreDomain(attributeMapping.getUserStoreDomain());
+            attributeMappingDTO.setAttributeName(attributeMapping.getAttributeName());
+            attributeMappingDTOs[i] = attributeMappingDTO;
+            i++;
         }
+
+        localClaimDTO.setAttributeMappings(attributeMappingDTOs);
 
         // Convert Map<String, String> to ClaimPropertyDTO[]
         Map<String, String> claimProperties = localClaim.getClaimProperties();
-        if (claimProperties != null) {
+        ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[claimProperties.size()];
 
-            ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[claimProperties.size()];
-
-            int i = 0;
-            for (Map.Entry<String, String> claimPropertyEntry : claimProperties.entrySet()) {
-                ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
-                claimProperty.setPropertyName(claimPropertyEntry.getKey());
-                claimProperty.setPropertyValue(claimPropertyEntry.getValue());
-                claimPropertyDTOs[i] = claimProperty;
-                i++;
-            }
-
-            localClaimDTO.setClaimProperties(claimPropertyDTOs);
+        int j = 0;
+        for (Map.Entry<String, String> claimPropertyEntry : claimProperties.entrySet()) {
+            ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
+            claimProperty.setPropertyName(claimPropertyEntry.getKey());
+            claimProperty.setPropertyValue(claimPropertyEntry.getValue());
+            claimPropertyDTOs[j] = claimProperty;
+            j++;
         }
+
+        localClaimDTO.setClaimProperties(claimPropertyDTOs);
 
         return localClaimDTO;
     }
