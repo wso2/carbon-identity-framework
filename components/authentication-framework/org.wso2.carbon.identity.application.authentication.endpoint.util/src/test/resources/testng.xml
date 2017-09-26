@@ -16,13 +16,11 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="IdentityFrameworkTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="AuthenticationEndpointUtilTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
 
-    <test name="IdentityFrameworkTests" preserve-order="true" parallel="false">
+    <test name="AuthenticationEndpointUtilTests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticatorTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtilTest"/>
         </classes>
     </test>
 
