@@ -852,14 +852,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
 
-            if (serviceProvider == null
-                && serviceProviderName != null
-                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                    serviceProviderName)) {
-                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                        serviceProviderName);
+            if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
+                    .getFileBasedSPs().containsKey(serviceProviderName)) {
+                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
             }
-        }finally {
+        } finally {
             endTenantFlow();
         }
 
