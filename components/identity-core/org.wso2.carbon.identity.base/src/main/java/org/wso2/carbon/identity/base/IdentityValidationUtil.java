@@ -72,6 +72,9 @@ public class IdentityValidationUtil {
         }
     }
 
+    private IdentityValidationUtil() {
+    }
+
     /**
      * Validates the provided input against the given white list patterns
      *
