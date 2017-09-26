@@ -16,10 +16,14 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.claim.metadata.mgt.dto.*;
+import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dto.ExternalClaimDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dto.LocalClaimDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -27,9 +31,15 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-
+/**
+ * Covers unit tests for ClaimMetadataUtils class
+ */
 public class ClaimMetadataUtilsTest {
 
     ClaimDialect claimDialect;
@@ -50,8 +60,7 @@ public class ClaimMetadataUtilsTest {
 
     ExternalClaimDTO externalClaimDTO;
 
-
-    @BeforeMethod
+    @BeforeClass
     public void setUp() throws Exception {
         setUpClaimDialects();
         setUpLocalClaims();
@@ -140,7 +149,6 @@ public class ClaimMetadataUtilsTest {
 
         externalClaim = new ExternalClaim(claimDialectURI, externalClaimURI, mappedLocalClaimURI);
 
-
         int arraySize = 2;
         externalClaims = new ExternalClaim[arraySize];
 
@@ -191,7 +199,6 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(localClaimDTO2.getAttributeMappings().length, localClaim2.getMappedAttributes().size());
         Assert.assertEquals(localClaimDTO2.getClaimProperties().length, localClaim2.getClaimProperties().size());
 
-        // TODO:
         for (int i = 0; i < localClaimDTO2.getAttributeMappings().length; i++) {
             Assert.assertEquals(localClaimDTO2.getAttributeMappings()[i].getUserStoreDomain(),
                     localClaim2.getMappedAttributes().get(i).getUserStoreDomain());
@@ -199,7 +206,6 @@ public class ClaimMetadataUtilsTest {
                     localClaim2.getMappedAttributes().get(i).getAttributeName());
         }
 
-        // TODO:
         for (int i = 0; i < localClaimDTO2.getClaimProperties().length; i++) {
             ClaimPropertyDTO claimPropertyDTO = localClaimDTO2.getClaimProperties()[i];
             String propertyName = claimPropertyDTO.getPropertyName();
@@ -215,7 +221,6 @@ public class ClaimMetadataUtilsTest {
         LocalClaimDTO[] localClaimDTOs = ClaimMetadataUtils.convertLocalClaimsToLocalClaimDTOs(localClaims);
         Assert.assertEquals(localClaimDTOs.length, localClaims.length);
 
-        // TODO:
         for (int i = 0; i < localClaimDTOs.length; i++) {
 
             LocalClaim localClaim = localClaims[i];
@@ -225,7 +230,6 @@ public class ClaimMetadataUtilsTest {
             Assert.assertEquals(localClaimDTO.getAttributeMappings().length, localClaim.getMappedAttributes().size());
             Assert.assertEquals(localClaimDTO.getClaimProperties().length, localClaim.getClaimProperties().size());
 
-            // TODO:
             for (int j = 0; j < localClaimDTO.getAttributeMappings().length; j++) {
                 Assert.assertEquals(localClaimDTO.getAttributeMappings()[j].getUserStoreDomain(),
                         localClaim.getMappedAttributes().get(j).getUserStoreDomain());
@@ -233,7 +237,6 @@ public class ClaimMetadataUtilsTest {
                         localClaim.getMappedAttributes().get(j).getAttributeName());
             }
 
-            // TODO:
             for (int j = 0; j < localClaimDTO.getClaimProperties().length; j++) {
                 ClaimPropertyDTO claimPropertyDTO = localClaimDTO.getClaimProperties()[j];
                 String propertyName = claimPropertyDTO.getPropertyName();
@@ -257,7 +260,6 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(localClaim2.getMappedAttributes().size(), localClaimDTO2.getAttributeMappings().length);
         Assert.assertEquals(localClaim2.getClaimProperties().size(), localClaimDTO2.getClaimProperties().length);
 
-        // TODO: Do not expect the order, loop through localClaimDTO2.getAttributeMappings()
         for (int i = 0; i < localClaimDTO2.getAttributeMappings().length; i++) {
             Assert.assertEquals(localClaim2.getMappedAttributes().get(i).getUserStoreDomain(),
                     localClaimDTO2.getAttributeMappings()[i].getUserStoreDomain());
@@ -283,8 +285,6 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(externalClaimDTO.getExternalClaimURI(), externalClaim.getClaimURI());
         Assert.assertEquals(externalClaimDTO.getMappedLocalClaimURI(), externalClaim.getMappedLocalClaim());
 
-        // TODO: Pass null reference
-//        ExternalClaimDTO externalClaimDTO = ClaimMetadataUtils.convertExternalClaimToExternalClaimDTO(null);
     }
 
     @Test
@@ -337,7 +337,6 @@ public class ClaimMetadataUtilsTest {
 
         LocalClaim localClaim3 = new LocalClaim(localClaimURI3, attributeMappingList, claimPropertiesMap);
 
-
         String localClaimURI4 = "testLocalClaimURI4";
 
         Map<String, String> claimPropertiesMap2 = new HashMap<>();
@@ -350,7 +349,7 @@ public class ClaimMetadataUtilsTest {
         claimPropertiesMap2.put(ClaimConstants.READ_ONLY_PROPERTY, "false");
         claimPropertiesMap2.put(ClaimConstants.DEFAULT_ATTRIBUTE, "uid");
 
-        LocalClaim localClaim4 = new LocalClaim(localClaimURI3, attributeMappingList, claimPropertiesMap2);
+        LocalClaim localClaim4 = new LocalClaim(localClaimURI4, attributeMappingList, claimPropertiesMap2);
 
         return new Object[][] {{localClaim1}, {localClaim2}, {localClaim3}, {localClaim4}};
 
@@ -363,7 +362,6 @@ public class ClaimMetadataUtilsTest {
 
         Assert.assertEquals(claimMapping.getClaim().getDialectURI(), localClaim.getClaimDialectURI());
         Assert.assertEquals(claimMapping.getClaim().getClaimUri(), localClaim.getClaimURI());
-
 
         Map<String, String> claimProperties = localClaim.getClaimProperties();
 
@@ -455,12 +453,10 @@ public class ClaimMetadataUtilsTest {
                     ClaimConstants.READ_ONLY_PROPERTY)));
         }
 
-
         for (AttributeMapping attributeMapping : localClaim2.getMappedAttributes()) {
             Assert.assertEquals(claimMapping.getMappedAttribute(attributeMapping.getUserStoreDomain()),
                     attributeMapping.getAttributeName());
         }
-
 
         ClaimMapping claimMapping2 = ClaimMetadataUtils.convertExternalClaimToClaimMapping(externalClaim, null, -1234);
 
@@ -468,10 +464,5 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(claimMapping2.getClaim().getClaimUri(), externalClaim.getClaimURI());
 
     }
-//
-//    @AfterMethod
-//    public void tearDown() throws Exception {
-//
-//    }
 
 }

@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
-
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
@@ -46,7 +44,6 @@ import java.util.Map;
 public class ClaimMetadataUtils {
 
     private ClaimMetadataUtils() {
-
     }
 
     public static ClaimDialectDTO convertClaimDialectToClaimDialectDTO(ClaimDialect claimDialect) {
@@ -279,7 +276,13 @@ public class ClaimMetadataUtils {
                     break;
                 }
             }
-        } else {
+        }
+
+        if (claimMapping == null) {
+            claimMapping = new ClaimMapping();
+        }
+
+        if (claimMapping.getClaim() == null) {
             Claim claim = new Claim();
             claimMapping.setClaim(claim);
         }
