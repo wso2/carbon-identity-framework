@@ -173,6 +173,21 @@ public class IdentityValidationUtilTest {
         assertTrue(IdentityValidationUtil.patternExists(SIMPLE_LETTERS_KEY));
     }
 
+    @DataProvider
+    public Object[][] getAddPatternNegativeTestData() {
+        return new Object[][]{
+                {"", SIMPLE_LETTERS_REGEX},
+                {"EMPTY", ""},
+                {DIGITS, "Already Contains"},
+                {"INVALID_PATTERN", "{)!\\"}
+        };
+    }
+
+    @Test(dataProvider = "getAddPatternNegativeTestData", expectedExceptions = IllegalArgumentException.class)
+    public void testAddPatternNegative(String key, String pattern) throws Exception {
+        IdentityValidationUtil.addPattern(key, pattern);
+    }
+
     @Test
     public void testPatternExists() throws Exception {
         assertTrue(IdentityValidationUtil.patternExists(DIGITS));

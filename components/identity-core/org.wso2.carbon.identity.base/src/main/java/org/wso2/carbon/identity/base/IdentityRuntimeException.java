@@ -74,7 +74,9 @@ public class IdentityRuntimeException extends RuntimeException {
     public static IdentityRuntimeException error(String errorCode, String message,
                                                  Throwable cause) {
         return new IdentityRuntimeException(errorCode, message, cause);
-    }public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String message) {
+    }
+
+    public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String message) {
         T exception = null;
         try {
             exception = exceptionClass.getConstructor(String.class).newInstance(message);
@@ -105,7 +107,7 @@ public class IdentityRuntimeException extends RuntimeException {
     }
 
     public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String errorCode, String message,
-                                                        Throwable cause) {
+                                                               Throwable cause) {
         T exception = null;
         try {
             exception = exceptionClass.getConstructor(String.class, String.class, Throwable.class).
@@ -115,7 +117,6 @@ public class IdentityRuntimeException extends RuntimeException {
         }
         return exception;
     }
-
 
 
     public String getErrorCode() {
