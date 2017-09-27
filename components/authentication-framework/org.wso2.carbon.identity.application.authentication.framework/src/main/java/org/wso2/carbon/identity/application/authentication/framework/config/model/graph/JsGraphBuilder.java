@@ -126,10 +126,11 @@ public class JsGraphBuilder {
     /**
      * Add authentication fail node to the authentication graph.
      * @param parameterMap
+     * TODO: This method works in conditional mode and need to implement separate method for dynamic mode
      */
     public void sendError(Map<String, Object> parameterMap) {
 
-        FailStep newNode = new FailStep();
+        FailNode newNode = new FailNode();
 
         if (parameterMap.get("showErrorPage") != null) {
             newNode.setShowErrorPage((boolean)parameterMap.get("showErrorPage"));
@@ -319,7 +320,7 @@ public class JsGraphBuilder {
             if (log.isDebugEnabled()) {
                 log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);
             }
-        } else if (baseNode instanceof FailStep) {
+        } else if (baseNode instanceof FailNode) {
             if (log.isDebugEnabled()) {
                 log.debug("The destination is an Fail Step. Unable to attach the node : " + nodeToAttach);
             }
