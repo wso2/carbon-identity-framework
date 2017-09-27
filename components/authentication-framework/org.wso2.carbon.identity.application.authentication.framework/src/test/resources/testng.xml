@@ -23,6 +23,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticatorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandlerTest"/>
         </classes>
     </test>
 
