@@ -170,6 +170,7 @@ public abstract class FrameworkConstants {
         public static final String TO_COMMONAUTH = "tocommonauth";
         public static final String MAX_AGE = "max_age";
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
+        public static final String REMEMBER_ME = "chkRemember";
 
         private RequestParams() {
         }

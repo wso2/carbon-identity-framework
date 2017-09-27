@@ -170,6 +170,18 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <!--
+                        Below classes are excluded from coverage since it is not possible correct to write
+                        unit tests for them. They either make use of admin service stubs or require mocking to the
+                        extend that there will be no functionality left to unit test after mocking.
+                         -->
+                        <exclude>**/TenantMgtAdminServiceClient*</exclude>
+                        <exclude>**/UserRegistrationAdminServiceClient*</exclude>
+                        <exclude>**/TenantDataManager*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
