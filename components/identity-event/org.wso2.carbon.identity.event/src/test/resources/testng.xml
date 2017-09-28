@@ -21,6 +21,9 @@
     <test name="Util-Tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.event.IdentityEventUtilsTest" />
+            <class name="org.wso2.carbon.identity.event.event.EventTest" />
+            <class name="org.wso2.carbon.identity.event.IdentityEventConfigBuilderTest" />
+
         </classes>
     </test>
 </suite>
