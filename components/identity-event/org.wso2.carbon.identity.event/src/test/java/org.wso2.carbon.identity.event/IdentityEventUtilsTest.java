@@ -17,18 +17,17 @@
  */
 package org.wso2.carbon.identity.event;
 
-
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import java.io.*;
 import java.util.Properties;
 
-
 public class IdentityEventUtilsTest {
 
     private Properties properties;
-    private IdentityEventUtils identityEventUtils;
+    private Properties loadedProperties;
+    private Properties subProperties;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -36,14 +35,22 @@ public class IdentityEventUtilsTest {
     }
 
     private void setProperties() {
+
         properties = new Properties();
         properties.setProperty("key", "replaced");
-
+        loadedProperties = new Properties();
+        loadedProperties.setProperty("x.1","value");
+        loadedProperties.setProperty("x.2","value");
+        loadedProperties.setProperty("y.1","value");
+        loadedProperties.setProperty("z.1","value");
+        loadedProperties.setProperty("z.2","value");
+        subProperties = new Properties();
+        subProperties.setProperty("x.1","value");
+        subProperties.setProperty("x.2","value");
     }
 
-
     @Test
-    public void testreadMessageTemplate() throws IOException {
+    public void testReadMessageTemplate() throws IOException {
 
         String identityEventUtils = IdentityEventUtils.readMessageTemplate("src/test/resources/sample-file.xml");
         String fileContent = "<file></file>\n";
@@ -52,17 +59,31 @@ public class IdentityEventUtilsTest {
     }
 
     @Test
-    public void testreplacePlaceHolder() {
+    public void testReplacePlaceHolder() {
 
         String replaceRegexStartsWit = "start";
         String replaceRegexEndsWit = "end";
-        String key = "key";
         String finalContent = "replacedextra";
         String contentBefore = "startkeyendextra";
         String replacePlaceHolder = IdentityEventUtils.replacePlaceHolders(contentBefore, replaceRegexStartsWit, replaceRegexEndsWit, properties);
         Assert.assertEquals(finalContent, replacePlaceHolder);
     }
 
+    @Test
+    public void testGetPropertiesWithPrefix(){
+
+
+        Properties finalProperties = IdentityEventUtils.getPropertiesWithPrefix("x",loadedProperties);
+        Assert.assertEquals(finalProperties,subProperties);
+    }
+
+    @Test
+    public void testGetSubProperties(){
+
+        Properties finalProperties1 = IdentityEventUtils.getSubProperties("x",loadedProperties);
+        Assert.assertTrue(((Integer)2).equals(finalProperties1.size()));
+
+    }
 
 }
 
