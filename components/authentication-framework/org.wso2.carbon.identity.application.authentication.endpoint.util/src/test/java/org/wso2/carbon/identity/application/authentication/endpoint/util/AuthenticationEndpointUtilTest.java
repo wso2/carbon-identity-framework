@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -26,10 +24,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
@@ -92,30 +88,20 @@ public class AuthenticationEndpointUtilTest {
     @DataProvider(name = "queryStringProvider")
     public Object[][] queryStringProvider() {
 
+        final String singleQueryParam = "xyz=111";
         final String baseQueryString = "x=abcd&y=abz";
         final String authFailureParam = Constants.AUTH_FAILURE + "=true";
         final String errorCode = Constants.ERROR_CODE + "=17900";
 
 
         return new Object[][]{
-                {
-                        baseQueryString, baseQueryString
-                },
-                {
-                        null, ""
-                },
-                {
-                        authFailureParam + "&" + baseQueryString, baseQueryString
-                },
-                {
-                        baseQueryString + "&" + errorCode, baseQueryString
-                },
-                {
-                        authFailureParam + "&" + errorCode, ""
-                },
-                {
-                        authFailureParam + "&" , ""
-                }
+                {baseQueryString, baseQueryString},
+                {null, ""},
+                {singleQueryParam, singleQueryParam},
+                {authFailureParam + "&" + baseQueryString, baseQueryString},
+                {baseQueryString + "&" + errorCode, baseQueryString},
+                {authFailureParam + "&" + errorCode, ""},
+                {authFailureParam + "&", ""}
         };
     }
 
@@ -134,7 +120,6 @@ public class AuthenticationEndpointUtilTest {
 
         Assert.assertNull(AuthenticationEndpointUtil.getUser(null));
     }
-
 
     @DataProvider(name = "username-provider")
     public Object[][] dataProviderMethod() {
@@ -159,7 +144,6 @@ public class AuthenticationEndpointUtilTest {
                 }
         };
     }
-
 
     @Test(dataProvider = "username-provider")
     public void testGetUser(String username,
