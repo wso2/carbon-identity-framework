@@ -58,10 +58,19 @@ public class Util {
     private static final Log log = LogFactory.getLog(Util.class);
     private static final String EMAIL_VERIFICATION_ENABLE_PROP_NAME = "EmailVerification.Enable";
     private static final String ASK_PASSWORD_TEMP_PASSWORD_GENERATOR = "EmailVerification.AskPassword.PasswordGenerator";
+    // This property will be used to enable the new Ask Password feature.
+    private static final String ASK_PASSWORD_ADMIN_UI_ENABLE_PROP_NAME = "EnableAskPasswordAdminUI";
 
+    private static boolean isAskPasswordAdminUIEnabled;
     private static boolean isAskPasswordEnabled = true;
 
     static {
+
+        String isAskPasswordAdminUIEnabledProperty = IdentityUtil.getProperty(ASK_PASSWORD_ADMIN_UI_ENABLE_PROP_NAME);
+        if (StringUtils.isNotBlank(isAskPasswordAdminUIEnabledProperty)) {
+            isAskPasswordAdminUIEnabled = Boolean.parseBoolean(isAskPasswordAdminUIEnabledProperty);
+        }
+
         InputStream is = null;
         try {
             boolean identityMgtListenerEnabled = true;
@@ -216,6 +225,10 @@ public class Util {
 
     public static boolean isUserOnBoardingEnabled(ServletContext context, HttpSession session) {
 
+        if (!isAskPasswordAdminUIEnabled) {
+            return false;
+        }
+
         String backendServerURL = CarbonUIUtil.getServerURL(context, session);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         ConfigurationContext configContext =
@@ -268,8 +281,11 @@ public class Util {
 
     public static RandomPasswordGenerator getAskPasswordTempPassGenerator(ServletContext context, HttpSession session) {
 
-        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator";
+        if (!isAskPasswordAdminUIEnabled) {
+            return new DefaultPasswordGenerator();
+        }
 
+        String randomPasswordGenerationClass = "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator";
 
         if (isUserOnBoardingEnabled(context, session)) {
 
