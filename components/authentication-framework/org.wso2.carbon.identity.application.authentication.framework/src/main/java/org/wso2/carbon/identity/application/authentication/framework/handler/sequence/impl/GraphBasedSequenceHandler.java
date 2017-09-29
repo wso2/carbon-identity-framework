@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DecisionOutcome;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -94,6 +95,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             }
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
+        } else if (currentNode instanceof FailNode) {
+            handleAuthFail(request, response, context, sequenceConfig, currentNode);
         }
         return isInterrupt;
     }
@@ -137,6 +140,27 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Step processing is completed");
         }
+    }
+
+    /**
+     * Process FailNode.
+     * @param request
+     * @param response
+     * @param context
+     * @param sequenceConfig
+     * @param node
+     * @throws FrameworkException
+     */
+    private void handleAuthFail(HttpServletRequest request, HttpServletResponse response,
+                                AuthenticationContext context, SequenceConfig sequenceConfig, AuthGraphNode node)
+            throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Found a Fail Node in conditional authentication");
+        }
+        context.setRequestAuthenticated(false);
+        context.getSequenceConfig().setCompleted(true);
+        //TODO:Need to consider sending error message to provided error page Uri instead of oauth redirect Uri
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,

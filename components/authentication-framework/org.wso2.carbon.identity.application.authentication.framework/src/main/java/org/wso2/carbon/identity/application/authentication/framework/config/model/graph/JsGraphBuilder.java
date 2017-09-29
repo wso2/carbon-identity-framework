@@ -103,6 +103,7 @@ public class JsGraphBuilder {
             }
             Bindings bindings = engine.createBindings();
             bindings.put("executeStep", (Consumer<Map>) this::executeStep);
+            bindings.put("sendError", (Consumer<Map>) this::sendError);
             if (jsFunctionRegistrar != null) {
                 jsFunctionRegistrar.stream(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, entry -> {
                     bindings.put(entry.getKey(), entry.getValue());
@@ -120,6 +121,29 @@ public class JsGraphBuilder {
             log.error("Error in executing the Javascript.", e);
         }
         return this;
+    }
+
+    /**
+     * Add authentication fail node to the authentication graph.
+     * @param parameterMap
+     * TODO: This method works in conditional mode and need to implement separate method for dynamic mode
+     */
+    public void sendError(Map<String, Object> parameterMap) {
+
+        FailNode newNode = new FailNode();
+
+        if (parameterMap.get("showErrorPage") != null) {
+            newNode.setShowErrorPage((boolean)parameterMap.get("showErrorPage"));
+        }
+        if (parameterMap.get("pageUri") != null) {
+            newNode.setErrorPageUri((String) parameterMap.get("pageUri"));
+        }
+
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
     }
 
     /**
@@ -295,6 +319,10 @@ public class JsGraphBuilder {
         } else if (baseNode instanceof EndStep) {
             if (log.isDebugEnabled()) {
                 log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);
+            }
+        } else if (baseNode instanceof FailNode) {
+            if (log.isDebugEnabled()) {
+                log.debug("The destination is an Fail Step. Unable to attach the node : " + nodeToAttach);
             }
         } else {
             log.error("Unknown graph node found : " + baseNode);
