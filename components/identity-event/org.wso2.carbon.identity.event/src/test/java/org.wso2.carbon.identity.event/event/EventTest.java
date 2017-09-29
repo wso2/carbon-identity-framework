@@ -41,21 +41,21 @@ public class EventTest {
     @Test
     public void testGetEventName(){
 
-        Assert.assertEquals(event.getEventName(),"name");
+        Assert.assertEquals(event.getEventName(), "name");
     }
 
    @Test
     public void testEvent(){
 
-        Assert.assertEquals(event.getEventName(),"name");
+        Assert.assertEquals(event.getEventName(), "name");
    }
 
    @Test
     public void testAddEventProperty(){
 
-        event.addEventProperty("key","value");
+        event.addEventProperty("key", "value");
         Map<String,Object> map =new HashMap<String,Object>();
-        map.put("key","value");
-        Assert.assertEquals(event.getEventProperties(),map);
+        map.put("key", "value");
+        Assert.assertEquals(event.getEventProperties(), map);
    }
 }

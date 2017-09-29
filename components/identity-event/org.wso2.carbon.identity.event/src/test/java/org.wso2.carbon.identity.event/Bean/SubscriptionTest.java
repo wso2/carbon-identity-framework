@@ -51,7 +51,7 @@ public class SubscriptionTest {
     @Test
     public void testGetSubscriptionProperties(){
 
-        Assert.assertEquals(subscription.getSubscriptionProperties(),properties);
+        Assert.assertEquals(subscription.getSubscriptionProperties(), properties);
     }
 
     @Test
@@ -59,13 +59,13 @@ public class SubscriptionTest {
 
         Properties setProperties = new Properties();
         subscription.setSubscriptionProperties(setProperties);
-        Assert.assertEquals(subscription.getSubscriptionProperties(),setProperties);
+        Assert.assertEquals(subscription.getSubscriptionProperties(), setProperties);
     }
 
     @Test
     public void testModuleConfiguration(){
 
         ModuleConfiguration moduleConfiguration = new ModuleConfiguration();
-        Assert.assertEquals(moduleConfiguration.getModuleProperties(),properties);
+        Assert.assertEquals(moduleConfiguration.getModuleProperties(), properties);
     }
 }

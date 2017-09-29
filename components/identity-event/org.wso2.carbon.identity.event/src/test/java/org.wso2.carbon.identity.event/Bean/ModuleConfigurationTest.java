@@ -43,18 +43,18 @@ public class ModuleConfigurationTest {
 
         properties = new Properties();
         subscriptions = new ArrayList();
-        moduleConfiguration = new ModuleConfiguration(properties,subscriptions);
+        moduleConfiguration = new ModuleConfiguration(properties, subscriptions);
     }
 
     @Test
     public void testGetModuleProperties(){
 
-        Assert.assertEquals(moduleConfiguration.getModuleProperties(),properties);
+        Assert.assertEquals(moduleConfiguration.getModuleProperties(), properties);
     }
 
     @Test
     public void testGetSubscriptions(){
 
-        Assert.assertEquals(moduleConfiguration.getSubscriptions(),subscriptions);
+        Assert.assertEquals(moduleConfiguration.getSubscriptions(), subscriptions);
     }
 }

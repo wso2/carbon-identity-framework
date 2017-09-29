@@ -58,7 +58,7 @@ public class IdentityEventMessageContextTest {
         Event setEvent = new Event("setEvent");
         IdentityEventMessageContext identityEventMessageContext = new IdentityEventMessageContext(event);
         identityEventMessageContext.setEvent(setEvent);
-        Assert.assertEquals(identityEventMessageContext.getEvent(),setEvent);
+        Assert.assertEquals(identityEventMessageContext.getEvent(), setEvent);
     }
 
 }

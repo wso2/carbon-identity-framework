@@ -40,14 +40,14 @@ public class IdentityEventUtilsTest {
         properties = new Properties();
         properties.setProperty("key", "replaced");
         loadedProperties = new Properties();
-        loadedProperties.setProperty("x.1","value");
-        loadedProperties.setProperty("x.2","value");
-        loadedProperties.setProperty("y.1","value");
-        loadedProperties.setProperty("z.1","value");
-        loadedProperties.setProperty("z.2","value");
+        loadedProperties.setProperty("x.1", "value");
+        loadedProperties.setProperty("x.2", "value");
+        loadedProperties.setProperty("y.1", "value");
+        loadedProperties.setProperty("z.1", "value");
+        loadedProperties.setProperty("z.2", "value");
         subProperties = new Properties();
-        subProperties.setProperty("x.1","value");
-        subProperties.setProperty("x.2","value");
+        subProperties.setProperty("x.1", "value");
+        subProperties.setProperty("x.2", "value");
     }
 
     @Test
@@ -72,14 +72,14 @@ public class IdentityEventUtilsTest {
     @Test
     public void testGetPropertiesWithPrefix(){
 
-        Properties finalProperties = IdentityEventUtils.getPropertiesWithPrefix("x",loadedProperties);
-        Assert.assertEquals(finalProperties,subProperties);
+        Properties finalProperties = IdentityEventUtils.getPropertiesWithPrefix("x", loadedProperties);
+        Assert.assertEquals(finalProperties, subProperties);
     }
 
     @Test
     public void testGetSubProperties(){
 
-        Properties finalProperties1 = IdentityEventUtils.getSubProperties("x",loadedProperties);
+        Properties finalProperties1 = IdentityEventUtils.getSubProperties("x", loadedProperties);
         Assert.assertTrue(((Integer)2).equals(finalProperties1.size()));
     }
 }
