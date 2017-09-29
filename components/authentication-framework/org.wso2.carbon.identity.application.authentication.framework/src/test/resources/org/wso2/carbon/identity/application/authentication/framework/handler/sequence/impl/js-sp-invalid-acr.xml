@@ -88,7 +88,7 @@ function(context) {
     switch(acr) {
         case "acr1" : executeStep({id :'0'}); break;
         case "acr2" : executeStep({id :'0'}); executeStep({id :'1'}); break;
-        default : sendError({"showErrorPage" : true, "pageUri":"123", "displayFor" : "2000"});
+        default : sendError({"showErrorPage" : false, "pageUri":"123", "displayFor" : "2000"});
     }
 }
 

@@ -143,7 +143,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     /**
-     * Process FailNode
+     * Process FailNode.
      * @param request
      * @param response
      * @param context
@@ -156,7 +156,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             throws FrameworkException {
 
         if (log.isDebugEnabled()) {
-            log.debug("There are no more steps to execute");
+            log.debug("Found a Fail Node in conditional authentication");
         }
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
