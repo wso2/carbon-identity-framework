@@ -31,6 +31,7 @@ public class IdentityEventUtilsTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
         setProperties();
     }
 
@@ -55,7 +56,6 @@ public class IdentityEventUtilsTest {
         String identityEventUtils = IdentityEventUtils.readMessageTemplate("src/test/resources/sample-file.xml");
         String fileContent = "<file></file>\n";
         Assert.assertTrue(fileContent.equals(identityEventUtils));
-
     }
 
     @Test
@@ -72,7 +72,6 @@ public class IdentityEventUtilsTest {
     @Test
     public void testGetPropertiesWithPrefix(){
 
-
         Properties finalProperties = IdentityEventUtils.getPropertiesWithPrefix("x",loadedProperties);
         Assert.assertEquals(finalProperties,subProperties);
     }
@@ -82,9 +81,7 @@ public class IdentityEventUtilsTest {
 
         Properties finalProperties1 = IdentityEventUtils.getSubProperties("x",loadedProperties);
         Assert.assertTrue(((Integer)2).equals(finalProperties1.size()));
-
     }
-
 }
 
 

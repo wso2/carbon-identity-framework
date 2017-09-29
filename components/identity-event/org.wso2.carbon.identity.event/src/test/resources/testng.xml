@@ -20,10 +20,12 @@
 <suite name="Local-Auth-IWA-Kerberos-Test-Suite">
     <test name="Util-Tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.event.IdentityEventUtilsTest" />
-            <class name="org.wso2.carbon.identity.event.event.EventTest" />
-            <class name="org.wso2.carbon.identity.event.IdentityEventConfigBuilderTest" />
-
+            <class name="org.wso2.carbon.identity.event.IdentityEventUtilsTest"/>
+            <class name="org.wso2.carbon.identity.event.event.EventTest"/>
+            <class name="org.wso2.carbon.identity.event.IdentityEventConfigBuilderTest"/>
+            <class name="org.wso2.carbon.identity.event.Bean.IdentityEventMessageContextTest"/>
+            <class name="org.wso2.carbon.identity.event.Bean.SubscriptionTest"/>
+            <class name="org.wso2.carbon.identity.event.Bean.ModuleConfigurationTest"/>
         </classes>
     </test>
 </suite>
