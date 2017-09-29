@@ -17,25 +17,19 @@
  */
 package org.wso2.carbon.identity.event;
 
-
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
-import org.junit.runner.RunWith;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-
-import java.io.File;
-
 import static org.testng.Assert.*;
 
 public class IdentityEventConfigBuilderTest {
 
     @BeforeSuite
     public void setup(){
+
         String home = IdentityEventConfigBuilder.class.getResource("/").getFile();
         String config = IdentityEventConfigBuilder.class.getResource("/").getFile();
         System.setProperty("carbon.home", home);
-        System.setProperty("carbon.config.dir.path",config);
+        System.setProperty("carbon.config.dir.path", config);
 
     }
 
@@ -44,12 +38,6 @@ public class IdentityEventConfigBuilderTest {
 
         IdentityEventConfigBuilder identityEventConfigBuilder =  IdentityEventConfigBuilder.getInstance();
         assertNotNull(identityEventConfigBuilder);
-
-
-
     }
-
-
-
 
 }

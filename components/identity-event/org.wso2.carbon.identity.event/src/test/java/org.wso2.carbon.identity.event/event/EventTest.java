@@ -18,49 +18,44 @@
 package org.wso2.carbon.identity.event.event;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EventTest {
 
-    @Test
-    public void testGetEventName(){
+    Event event;
 
-        Event event = new Event("name");
-        Assert.assertEquals(event.getEventName(),"name");
+    @BeforeMethod
+    public void setUp(){
+
+        setEvents();
+    }
+
+    private void setEvents() {
+
+        event = new Event("name");
     }
 
     @Test
-    public void testGetEventProperties(){
+    public void testGetEventName(){
 
-       Event event = new Event("name");
-        event.addEventProperty("value","value");
-
-        Map<String,Object> map =new HashMap<String,Object>();
-        map.put("value","value");
-
-        Assert.assertEquals(event.getEventProperties(),map);
+        Assert.assertEquals(event.getEventName(),"name");
     }
 
    @Test
     public void testEvent(){
 
-        Event event = new Event("name");
         Assert.assertEquals(event.getEventName(),"name");
    }
 
    @Test
     public void testAddEventProperty(){
-        Event event = new Event("name");
-        event.addEventProperty("key","value");
 
+        event.addEventProperty("key","value");
         Map<String,Object> map =new HashMap<String,Object>();
         map.put("key","value");
-
         Assert.assertEquals(event.getEventProperties(),map);
-
    }
-
-
 }
