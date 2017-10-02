@@ -43,8 +43,11 @@ public abstract class AbstractDAO<T> {
     protected Registry registry = null;
 
     /**
-     * @param path
-     * @return
+     * Returns all objects for a given registry path.
+     *
+     * @param path registry path
+     * @return list of all objects in the given registry path
+     * @throws IdentityException if an error occurs while reading the registry
      */
     public List<T> getAllObjects(String path) throws IdentityException {
         List<T> list = null;
@@ -52,7 +55,7 @@ public abstract class AbstractDAO<T> {
         String[] children = null;
 
         if (log.isErrorEnabled()) {
-            log.debug("Retreving all objects from the registry path " + path);
+            log.debug("Retrieving all objects from the registry path " + path);
         }
 
         try {
@@ -74,8 +77,8 @@ public abstract class AbstractDAO<T> {
                 list.add(obj);
             }
         } catch (RegistryException e) {
-            log.error("Error while retreving all objects from the registry path", e);
-            throw IdentityException.error("Error while retreving all objects from the registry path",
+            log.error("Error while retrieving all objects from the registry path", e);
+            throw IdentityException.error("Error while retrieving all objects from the registry path",
                     e);
         }
 
@@ -83,10 +86,13 @@ public abstract class AbstractDAO<T> {
     }
 
     /**
-     * @param path
-     * @param propName
-     * @param value
-     * @return
+     * Returns all the objects in a given registry path with a given property values.
+     *
+     * @param path registry path
+     * @param propName name of the property to be matched
+     * @param value value of the property to be matched
+     * @return list of all objects matching the given property value in the given registry path
+     * @throws IdentityException if an error occurs while reading the registry
      */
     public List<T> getAllObjectsWithPropertyValue(String path, String propName, String value)
             throws IdentityException {
@@ -98,7 +104,7 @@ public abstract class AbstractDAO<T> {
         Resource resource = null;
 
         if (log.isErrorEnabled()) {
-            log.debug("Retreving all objects from the registry path with property values " + path);
+            log.debug("Retrieving all objects from the registry path with property values " + path);
         }
 
         try {
@@ -126,7 +132,7 @@ public abstract class AbstractDAO<T> {
                 retList.add(resourceToObject(resource));
             }
         } catch (RegistryException e) {
-            String message = "Error while retreving all objects from the registry path  with property values";
+            String message = "Error while retrieving all objects from the registry path  with property values";
             log.error(message, e);
             throw IdentityException.error(message, e);
         }
@@ -134,10 +140,13 @@ public abstract class AbstractDAO<T> {
     }
 
     /**
-     * @param path
-     * @param propName
-     * @param value
-     * @return
+     * Returns the first object in a registry path with a given property value.
+     *
+     * @param path registry path
+     * @param propName name of the property to be matched
+     * @param value value of the property to be matched
+     * @return first objects matching the given property value in the given registry path
+     * @throws IdentityException if an error occurs while reading the registry
      */
     public T getFirstObjectWithPropertyValue(String path, String propName, String value)
             throws IdentityException {
@@ -149,7 +158,7 @@ public abstract class AbstractDAO<T> {
         try {
 
             if (log.isErrorEnabled()) {
-                log.debug("Retreving first object from the registry path with property value "
+                log.debug("Retrieving first object from the registry path with property value "
                         + path);
             }
             params = new HashMap<String, String>();
@@ -162,7 +171,7 @@ public abstract class AbstractDAO<T> {
                 resource = registry.get(paths[0]);
             }
         } catch (RegistryException e) {
-            String message = "Error while retreving first object from the registry path  with property value";
+            String message = "Error while retrieving first object from the registry path with property value";
             log.error(message, e);
             throw IdentityException.error(message, e);
         }
@@ -171,8 +180,10 @@ public abstract class AbstractDAO<T> {
     }
 
     /**
-     * @param resource
-     * @return
+     * Converts a registry resource to an object.
+     *
+     * @param resource registry resource
+     * @return output object after converting the registry resource
      */
     protected abstract T resourceToObject(Resource resource);
 

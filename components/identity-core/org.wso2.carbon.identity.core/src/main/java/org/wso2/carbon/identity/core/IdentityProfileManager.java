@@ -52,14 +52,18 @@ public class IdentityProfileManager {
     }
 
     /**
-     * @return
+     * Returns user realm set for IdentityProfileManager.
+     *
+     * @return user realm
      */
     public UserRealm getRealm() {
         return realm;
     }
 
     /**
-     * @param realm
+     * Set user realm for IdentityProfileManager.
+     *
+     * @param realm user realm to be set
      */
     public void setRealm(UserRealm realm) {
         this.realm = realm;
