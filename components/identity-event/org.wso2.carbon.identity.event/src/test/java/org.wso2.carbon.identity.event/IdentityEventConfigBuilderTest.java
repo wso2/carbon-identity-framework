@@ -30,7 +30,6 @@ public class IdentityEventConfigBuilderTest {
         String config = IdentityEventConfigBuilder.class.getResource("/").getFile();
         System.setProperty("carbon.home", home);
         System.setProperty("carbon.config.dir.path", config);
-
     }
 
    @Test
@@ -39,5 +38,4 @@ public class IdentityEventConfigBuilderTest {
         IdentityEventConfigBuilder identityEventConfigBuilder =  IdentityEventConfigBuilder.getInstance();
         assertNotNull(identityEventConfigBuilder);
     }
-
 }

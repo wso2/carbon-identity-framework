@@ -58,6 +58,12 @@ public class IdentityEventUtilsTest {
         Assert.assertTrue(fileContent.equals(identityEventUtils));
     }
 
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testReadMessageTemplateException() {
+
+        IdentityEventUtils.readMessageTemplate("");
+    }
+
     @Test
     public void testReplacePlaceHolder() {
 
@@ -69,6 +75,12 @@ public class IdentityEventUtilsTest {
         Assert.assertEquals(finalContent, replacePlaceHolder);
     }
 
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testReplacePlaceHolderException() {
+
+        IdentityEventUtils.replacePlaceHolders("","","", properties);
+    }
+
     @Test
     public void testGetPropertiesWithPrefix(){
 
@@ -76,11 +88,24 @@ public class IdentityEventUtilsTest {
         Assert.assertEquals(finalProperties, subProperties);
     }
 
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testGetPropertiesWithPrefixException() {
+
+        IdentityEventUtils.getPropertiesWithPrefix("", properties);
+    }
+
+
     @Test
     public void testGetSubProperties(){
 
         Properties finalProperties1 = IdentityEventUtils.getSubProperties("x", loadedProperties);
         Assert.assertTrue(((Integer)2).equals(finalProperties1.size()));
+    }
+
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testGetSubPropertiesException() {
+
+        IdentityEventUtils.getSubProperties("", properties);
     }
 }
 
