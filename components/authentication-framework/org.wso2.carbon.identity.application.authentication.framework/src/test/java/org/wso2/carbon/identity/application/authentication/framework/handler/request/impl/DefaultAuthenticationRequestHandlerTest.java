@@ -17,28 +17,32 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+@PrepareForTest(FrameworkUtils.class)
 public class DefaultAuthenticationRequestHandlerTest {
 
     @Mock
@@ -99,7 +103,7 @@ public class DefaultAuthenticationRequestHandlerTest {
     @DataProvider(name = "rememberMeParamProvider")
     public Object[][] provideRememberMeParam() {
 
-        return new Object[][] {
+        return new Object[][]{
                 {null, false},
                 {"on", true},
                 // any string other than "on"
@@ -109,7 +113,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test(dataProvider = "rememberMeParamProvider")
     public void testHandleRememberMeOptionFromLoginPage(String rememberMeParam,
-                                                        boolean expectedResult) throws Exception{
+                                                        boolean expectedResult) throws Exception {
 
         doReturn(rememberMeParam).when(request).getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
@@ -181,9 +185,9 @@ public class DefaultAuthenticationRequestHandlerTest {
     }
 
     @DataProvider(name = "postAuthExtensionParam")
-    public Object[][] getPostAuthExtensionParam(){
+    public Object[][] getPostAuthExtensionParam() {
 
-        return new Object[][] {
+        return new Object[][]{
                 {Boolean.TRUE, true},
                 {Boolean.FALSE, false},
                 {null, false},
@@ -191,7 +195,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         };
     }
 
-    @Test(dataProvider="postAuthExtensionParam")
+    @Test(dataProvider = "postAuthExtensionParam")
     public void testIsPostAuthenticationExtensionCompleted(Object postAuthExtensionCompleted,
                                                            boolean expectedResult) throws Exception {
 
@@ -205,8 +209,57 @@ public class DefaultAuthenticationRequestHandlerTest {
         );
     }
 
-    @Test
-    public void testPopulateErrorInformation() throws Exception {
+    @DataProvider(name = "errorInfoDataProvider")
+    public Object[][] getErrorInfoFormationData() {
+
+        return new Object[][]{
+                {"error_code", "error_message", "error_uri", "samlsso"},
+                {null, "error_message", "error_uri", "other"},
+                {"error_code", null, "error_uri", "other"},
+                {"error_code", "error_message", null, "other"},
+                {"error_code", "error_message", "error_uri", "other"}
+        };
+
+    }
+
+
+    @Test(dataProvider = "errorInfoDataProvider")
+    public void testPopulateErrorInformation(String errorCode,
+                                             String errorMessage,
+                                             String errorUri,
+                                             String requestType) throws Exception {
+
+        AuthenticationResult authenticationResult = new AuthenticationResult();
+        doReturn(authenticationResult).when(request).getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+
+        // Populate the context with error details
+        AuthenticationContext context = new AuthenticationContext();
+        context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
+        context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
+        context.setProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
+
+
+        // request type is does not cache authentication result
+        context.setRequestType(requestType);
+        response = spy(new CommonAuthResponseWrapper(response));
+
+        // if request type caches authentication result we need to mock required dependent objects
+        AuthenticationResultCacheEntry cacheEntry = spy(new AuthenticationResultCacheEntry());
+        when(cacheEntry.getResult()).thenReturn(authenticationResult);
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getAuthenticationResultFromCache(anyString())).thenReturn(cacheEntry);
+
+
+        authenticationRequestHandler.populateErrorInformation(request, response, context);
+
+        // Assert stuff
+        AuthenticationResult modifiedAuthenticationResult =
+                (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+
+        Assert.assertNotNull(modifiedAuthenticationResult);
+        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
+        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
+        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
     }
 
 }
