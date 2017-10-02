@@ -72,6 +72,9 @@ public class IdentityValidationUtil {
         }
     }
 
+    private IdentityValidationUtil() {
+    }
+
     /**
      * Validates the provided input against the given white list patterns
      *
@@ -94,11 +97,9 @@ public class IdentityValidationUtil {
 
         boolean isValid = false;
         for (String key : whiteListPatterns) {
-            if (validatorConfig.getPattern(key) != null) {
-                isValid = validatorConfig.getPattern(key).matcher(input).matches();
-                if (isValid) {
-                    break;
-                }
+            isValid = validatorConfig.getPattern(key).matcher(input).matches();
+            if (isValid) {
+                break;
             }
         }
 
@@ -127,11 +128,9 @@ public class IdentityValidationUtil {
 
         boolean isValid = false;
         for (String key : blackListPatterns) {
-            if (validatorConfig.getPattern(key) != null) {
-                isValid = !validatorConfig.getPattern(key).matcher(input).matches();
-                if (!isValid) {
-                    break;
-                }
+            isValid = !validatorConfig.getPattern(key).matcher(input).matches();
+            if (!isValid) {
+                break;
             }
         }
 

@@ -82,19 +82,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
-                    boolean stepHasMultiOption = false;
                     publishAuthenticationStepAttempt(request, context, e.getUser(), false);
-
-                    if (stepMap != null && !stepMap.isEmpty()) {
-                        StepConfig stepConfig = stepMap.get(context.getCurrentStep());
-
-                        if (stepConfig != null) {
-                            stepHasMultiOption = stepConfig.isMultiOption();
-                        }
-                    }
-
-                    if (retryAuthenticationEnabled() && !stepHasMultiOption) {
+                    if (retryAuthenticationEnabled()) {
                         context.setRetrying(true);
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);

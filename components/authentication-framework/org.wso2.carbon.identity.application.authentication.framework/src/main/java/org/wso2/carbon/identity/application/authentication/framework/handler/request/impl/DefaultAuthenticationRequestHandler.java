@@ -155,7 +155,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     private void handleRememberMeOptionFromLoginPage(HttpServletRequest request, AuthenticationContext context) {
-        String rememberMe = request.getParameter("chkRemember");
+        String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (rememberMe != null && "on".equalsIgnoreCase(rememberMe)) {
             context.setRememberMe(true);
@@ -175,7 +175,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @throws IOException
      * @throws FrameworkException
      */
-    protected boolean handleSequenceStart(HttpServletRequest request, HttpServletResponse response,
+    protected boolean handleSequenceStart(HttpServletRequest request,
+                                          HttpServletResponse response,
                                           AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
@@ -184,10 +185,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // "forceAuthenticate" - go in the full authentication flow even if user
         // is already logged in.
-        boolean forceAuthenticate = request
-                                            .getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ? Boolean
-                                            .valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE))
-                                                                                                                       : false;
+        boolean forceAuthenticate = request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ?
+                Boolean.valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE)) : false;
 
         context.setForceAuthenticate(forceAuthenticate);
 
@@ -196,10 +195,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // "reAuthenticate" - authenticate again with the same IdPs as before.
-        boolean reAuthenticate = request
-                                         .getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ? Boolean
-                                         .valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE))
-                                                                                                                 : false;
+        boolean reAuthenticate = request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ?
+                Boolean.valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE)) : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Re-Authenticate : " + reAuthenticate);
@@ -209,11 +206,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // "checkAuthentication" - passive mode. just send back whether user is
         // *already* authenticated or not.
-        boolean passiveAuthenticate = request
-                                              .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION) != null ? Boolean
-                                              .valueOf(request
-                                                               .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION))
-                                                                                                                             : false;
+        String passiveAuthReqParam = request.getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION);
+        boolean passiveAuthenticate = passiveAuthReqParam != null ? Boolean.valueOf(passiveAuthReqParam) : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Passive Authenticate : " + passiveAuthenticate);

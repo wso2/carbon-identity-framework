@@ -94,7 +94,7 @@ public class IdPManagementConstants {
                 "PROPERTY_VALUE = ?, IS_SECRET = ? WHERE AUTHENTICATOR_ID = ? AND PROPERTY_KEY = ?";
 
         public static final String DELETE_IDP_AUTH_PROP_WITH_KEY_SQL = "DELETE FROM IDP_AUTHENTICATOR_PROPERTY "
-                + "WHERE PROPERTY_KEY = ?";
+                + "WHERE PROPERTY_KEY = ? AND TENANT_ID = ?";
 
         public static final String ADD_IDP_CLAIMS_SQL = "INSERT INTO IDP_CLAIM (IDP_ID, TENANT_ID, CLAIM) "
                 + "VALUES (?, ?, ?)";
