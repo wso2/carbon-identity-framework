@@ -186,11 +186,11 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @DataProvider(name = "sendResponseDataProvider")
     public Object[][] provideSendResponseData() {
-        return new Object[][] {
-                {true ,true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key&chkRemember=on"},
-                {true ,false, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
-                {false ,true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
-
+        return new Object[][]{
+                {true, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key&chkRemember=on"},
+                {true, false, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {false, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {true, true, "/samlsso", null, "/samlsso?chkRemember=on"}
         };
     }
 

@@ -517,10 +517,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String commonauthCallerPath = context.getCallerPath();
 
         try {
-            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
-                    URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            String queryParamsString = "";
+            if (context.getCallerSessionKey() != null) {
+                queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                        URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            }
 
-            String queryParamsString = sessionDataKeyParam;
             if (StringUtils.isNotEmpty(rememberMeParam)) {
                 queryParamsString += "&" + rememberMeParam;
             }
