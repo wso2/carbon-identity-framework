@@ -60,8 +60,9 @@ public class IdentityClaimManager {
     /**
      * Returns all supported claims.
      *
-     * @return
-     * @throws IdentityException
+     * @param realm user realm
+     * @return array of all supported claims
+     * @throws IdentityException if error occurs while building supported claims
      */
     public Claim[] getAllSupportedClaims(UserRealm realm) throws IdentityException {
         try {
@@ -86,8 +87,10 @@ public class IdentityClaimManager {
     /**
      * Returns all supported claims for the given dialect.
      *
-     * @return
-     * @throws IdentityException
+     * @param dialectUri claim dialect URI
+     * @param realm user realm
+     * @return array of all supported claims
+     * @throws IdentityException if error occurs while building supported claims
      */
     public Claim[] getAllSupportedClaims(String dialectUri, UserRealm realm)
             throws IdentityException {
@@ -122,7 +125,7 @@ public class IdentityClaimManager {
      *
      * @param message Error message
      * @param e       Exception
-     * @throws IdentityException
+     * @throws IdentityException constructed exception based on input parameters
      */
     private void getException(String message, Exception e) throws IdentityException {
         log.error(message, e);
