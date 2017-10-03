@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtilsTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
         </classes>
     </test>
 
