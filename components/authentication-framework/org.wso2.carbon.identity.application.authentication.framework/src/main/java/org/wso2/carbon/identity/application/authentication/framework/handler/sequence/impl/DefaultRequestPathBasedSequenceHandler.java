@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -37,12 +39,13 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedSequenceHandler {
 
@@ -222,31 +225,50 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
 
-        if (locallyMappedUserRoles != null && !locallyMappedUserRoles.isEmpty()) {
-
-            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig()
-                    .getRoleMappings();
-
-            boolean roleMappingDefined = false;
-
-            if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
-                roleMappingDefined = true;
-            }
-
-            StringBuilder spMappedUserRoles = new StringBuilder();
-
-            for (String role : locallyMappedUserRoles) {
-                if (roleMappingDefined) {
-                    if (localToSpRoleMapping.containsKey(role)) {
-                        spMappedUserRoles.append(role).append(",");
-                    }
-                } else {
-                    spMappedUserRoles.append(role).append(",");
-                }
-            }
+        if (log.isDebugEnabled()) {
+            AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+            String serviceProvider = sequenceConfig.getApplicationConfig().getApplicationName();
+            log.debug("Getting Service Provider mapped roles of application: " + serviceProvider +
+                    " of user: " + authenticatedUser);
         }
 
-        return null;
+        // comma separated SP role mapped role values
+        String spMappedRoles = null;
+        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
+            // Get SP Role mappings
+            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
+            List<String> spMappedRoleList = new ArrayList<>();
+            // check whether there are any SpRoleMappings
+            if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
+                for (String locallyMappedRole : locallyMappedUserRoles) {
+                    if (localToSpRoleMapping.containsKey(locallyMappedRole)) {
+                        // add the SP mapped role
+                        String spMappedRole = localToSpRoleMapping.get(locallyMappedRole);
+                        spMappedRoleList.add(spMappedRole);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Mapping local role: " + locallyMappedRole + " to service provider role: "
+                                    + spMappedRole);
+                        }
+                    } else {
+                        // add local role to the list since there are no SP mapped roles for this one
+                        spMappedRoleList.add(locallyMappedRole);
+                    }
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("No local roles to map to Service Provider role mappings. Sending back all local roles " +
+                            "as service provider mapped roles.");
+                }
+                // we don't have any sp role mappings
+                spMappedRoleList = locallyMappedUserRoles;
+            }
+            spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), ",");
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Service Provider Mapped Roles: " + spMappedRoles);
+        }
+        return spMappedRoles;
     }
 
     /**
@@ -274,10 +296,15 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         if (spRoleClaimUri == null) {
-            return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            if (log.isDebugEnabled()) {
+                String serviceProvider = appConfig.getApplicationName();
+                log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +
+                        ". Defaulting to " + spRoleClaimUri);
+            }
         }
 
-        return null;
+        return spRoleClaimUri;
     }
 
     /**
