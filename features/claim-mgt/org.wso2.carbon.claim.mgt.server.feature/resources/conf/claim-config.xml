@@ -1993,6 +1993,26 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
 			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>
+				<DisplayName>Ask Password</DisplayName>
+				<AttributeID>postOfficeBox</AttributeID>
+				<Description>Temporary claim to invoke email ask Password feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/askPassword</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</ClaimURI>
+				<DisplayName>Verify Email</DisplayName>
+				<AttributeID>manager</AttributeID>
+				<Description>Temporary claim to invoke email verified feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/verifyEmail</MappedLocalClaim>
+			</Claim>
 		</Dialect>
 	</Dialects>
 </ClaimConfig>
