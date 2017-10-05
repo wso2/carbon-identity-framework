@@ -16,8 +16,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -29,10 +29,11 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@PrepareForTest(FrameworkServiceComponent.class)
+@PrepareForTest({FrameworkServiceComponent.class, LogFactory.class})
 public class ApplicationAuthenticationServiceTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
@@ -54,9 +55,9 @@ public class ApplicationAuthenticationServiceTest {
 
     @BeforeTest
     public void setUp() throws Exception {
-        applicationAuthenticationService = new ApplicationAuthenticationService();
-        MockitoAnnotations.initMocks(this);
+        initMocks(this);
         initAuthenticators();
+        applicationAuthenticationService = new ApplicationAuthenticationService();
     }
 
     private void initAuthenticators() {

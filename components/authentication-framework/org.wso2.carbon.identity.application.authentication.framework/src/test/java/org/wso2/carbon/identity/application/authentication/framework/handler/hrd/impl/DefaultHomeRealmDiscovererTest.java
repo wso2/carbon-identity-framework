@@ -19,8 +19,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.hr
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
 public class DefaultHomeRealmDiscovererTest {
 
 

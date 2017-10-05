@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -51,6 +52,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
     private static volatile DefaultRequestPathBasedSequenceHandler instance;
+//    private String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
     public static DefaultRequestPathBasedSequenceHandler getInstance() {
 
@@ -67,7 +69,8 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
+    public void handle(HttpServletRequest request,
+                       HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
@@ -79,8 +82,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
         for (AuthenticatorConfig reqPathAuthenticator : reqPathAuthenticators) {
 
-            ApplicationAuthenticator authenticator = reqPathAuthenticator
-                    .getApplicationAuthenticator();
+            ApplicationAuthenticator authenticator = reqPathAuthenticator.getApplicationAuthenticator();
 
             if (log.isDebugEnabled()) {
                 log.debug("Executing " + authenticator.getName());
@@ -97,16 +99,19 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
 
                     if (log.isDebugEnabled()) {
-                        log.debug(authenticator.getName() + ".authenticate() returned: "
-                                  + status.toString());
+                        log.debug(authenticator.getName() + ".authenticate() returned: " + status.toString());
                     }
 
                     AuthenticatedUser authenticatedUser = context.getSubject();
                     seqConfig.setAuthenticatedUser(authenticatedUser);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " + authenticatedUser.getAuthenticatedSubjectIdentifier());
-                        log.debug("Authenticated User Tenant Domain: " + seqConfig.getAuthenticatedUser().getTenantDomain());
+                        if (authenticatedUser != null) {
+                            log.debug("Authenticated User: " + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            log.debug("Authenticated User Tenant Domain: " + authenticatedUser.getTenantDomain());
+                        } else {
+                            log.debug("Authenticated User is NULL.");
+                        }
                     }
 
                     AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
@@ -121,9 +126,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
                     seqConfig.setAuthenticatedReqPathAuthenticator(reqPathAuthenticator);
 
-
-                    context.getCurrentAuthenticatedIdPs().put(FrameworkConstants.LOCAL_IDP_NAME,
-                                                              authenticatedIdPData);
+                    context.getCurrentAuthenticatedIdPs().put(FrameworkConstants.LOCAL_IDP_NAME, authenticatedIdPData);
 
                     handlePostAuthentication(request, response, context, authenticatedIdPData);
 
@@ -172,31 +175,25 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         jsonBuilder.append("}");
         jsonBuilder.append("]");
 
-        sequenceConfig
-                .setAuthenticatedIdPs(IdentityApplicationManagementUtil.getSignedJWT(jsonBuilder
-                                                                                             .toString(), sequenceConfig.getApplicationConfig().getServiceProvider()));
+        sequenceConfig.setAuthenticatedIdPs(IdentityApplicationManagementUtil.getSignedJWT(jsonBuilder.toString(),
+                        sequenceConfig.getApplicationConfig().getServiceProvider()));
 
         mappedAttrs = handleClaimMappings(context);
         String spRoleUri = getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
         String roleAttr = mappedAttrs.get(spRoleUri);
 
-        if (roleAttr != null && roleAttr.trim().length() > 0) {
-
-            String[] roles = roleAttr.split(",");
-            mappedAttrs.put(spRoleUri,
-                            getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
+        if (StringUtils.isNotBlank(roleAttr)) {
+            String[] roles = roleAttr.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+            mappedAttrs.put(spRoleUri, getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
         }
 
         sequenceConfig.getAuthenticatedUser().setUserAttributes(FrameworkUtils.buildClaimMappings(mappedAttrs));
 
-        if (context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri() != null
-            && context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri().trim()
-                       .length() > 0) {
-            Map<String, String> unfilteredClaimValues = (Map<String, String>) context
-                    .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+        if (StringUtils.isNotBlank(context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri())) {
+            Map<String, String> unfilteredClaimValues =
+                    (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
 
-            String subjectValue = null;
-
+            String subjectValue;
             if (unfilteredClaimValues != null) {
                 subjectValue = unfilteredClaimValues.get(context.getSequenceConfig()
                                                                  .getApplicationConfig().getSubjectClaimUri().trim());
@@ -232,13 +229,13 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     " of user: " + authenticatedUser);
         }
 
-        // comma separated SP role mapped role values
+        // Comma separated SP role mapped role values
         String spMappedRoles = null;
         if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
             // Get SP Role mappings
             Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
             List<String> spMappedRoleList = new ArrayList<>();
-            // check whether there are any SpRoleMappings
+            // Check whether there are any SpRoleMappings
             if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
                 for (String locallyMappedRole : locallyMappedUserRoles) {
                     if (localToSpRoleMapping.containsKey(locallyMappedRole)) {
@@ -250,7 +247,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                                     + spMappedRole);
                         }
                     } else {
-                        // add local role to the list since there are no SP mapped roles for this one
+                        // Add local role to the list since there are no SP mapped roles for this one
                         spMappedRoleList.add(locallyMappedRole);
                     }
                 }
@@ -259,10 +256,10 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     log.debug("No local roles to map to Service Provider role mappings. Sending back all local roles " +
                             "as service provider mapped roles.");
                 }
-                // we don't have any sp role mappings
+                // We don't have any sp role mappings
                 spMappedRoleList = locallyMappedUserRoles;
             }
-            spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), ",");
+            spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), FrameworkUtils.getMultiAttributeSeparator());
         }
 
         if (log.isDebugEnabled()) {
@@ -312,14 +309,10 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
      * @return
      * @throws FrameworkException
      */
-    protected Map<String, String> handleClaimMappings(AuthenticationContext context)
-            throws FrameworkException {
-
-        Map<String, String> mappedAttrs = null;
-
+    protected Map<String, String> handleClaimMappings(AuthenticationContext context) throws FrameworkException {
+        Map<String, String> mappedAttrs;
         try {
-            mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(null, context, null,
-                                                                               false);
+            mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(null, context, null, false);
             return mappedAttrs;
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);

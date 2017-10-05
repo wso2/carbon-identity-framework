@@ -17,18 +17,31 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
+import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -36,10 +49,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -51,15 +69,55 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
 
-    DefaultRequestPathBasedSequenceHandler sequenceHandler;
+    private DefaultRequestPathBasedSequenceHandler sequenceHandler;
 
-    @BeforeMethod
+    @Mock
+    HttpServletRequest request;
+
+    @Mock
+    HttpServletResponse response;
+
+    @Mock
+    RequestPathApplicationAuthenticator requestPathAuthenticator;
+
+    @Spy
+    private SequenceConfig sequenceConfig;
+
+    @Spy
+    private AuthenticatorConfig authenticatorConfig;
+
+
+    private AuthenticationContext context;
+
+
+    @BeforeClass
     public void setUp() throws Exception {
+
+        initMocks(this);
+//        mockStatic(FrameworkUtils.class);
+//        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
+
         sequenceHandler = new DefaultRequestPathBasedSequenceHandler();
+        // Mock authentication context and sequence config for request path authentication
+        context = new AuthenticationContext();
+
+        authenticatorConfig = spy(new AuthenticatorConfig());
+        doReturn(requestPathAuthenticator).when(authenticatorConfig).getApplicationAuthenticator();
+
+        sequenceConfig = spy(new SequenceConfig());
+        doReturn(Arrays.asList(new AuthenticatorConfig[]{authenticatorConfig}))
+                .when(sequenceConfig).getReqPathAuthenticators();
+
+        context.setSequenceConfig(sequenceConfig);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
+    }
+
+    @ObjectFactory
+    public IObjectFactory getObjectFactory() {
+        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @Test
@@ -74,16 +132,105 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         Assert.assertEquals(sequenceHandler, anotherSequenceHandler);
     }
 
+    /*
+        None of the available request path authenticators can handle the request.
+     */
     @Test
-    public void testHandle() throws Exception {
+    public void testHandleNoneCanHandle() throws Exception {
+        // mock the behaviour of the request path authenticator
+        when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(false);
+        sequenceHandler.handle(request, response, context);
+        Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
+    }
 
+    /*
+        Request path authenticator throws an InvalidCredentialsException
+     */
+    @Test
+    public void testHandleInvalidCredentialException() throws Exception {
+        // mock the behaviour of the request path authenticator
+        when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
+        doThrow(new InvalidCredentialsException("Invalid Credentials."))
+                .when(requestPathAuthenticator).process(request, response, context);
 
+        sequenceHandler.handle(request, response, context);
+        Assert.assertEquals(context.isRequestAuthenticated(), false);
+    }
+
+    /*
+        Request path authenticator throws an InvalidCredentialsException
+    */
+    @Test
+    public void testHandleAuthenticatorFailedException() throws Exception {
+
+        // mock the behaviour of the request path authenticator
+        when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
+        doThrow(new AuthenticationFailedException("Authentication Failed."))
+                .when(requestPathAuthenticator).process(request, response, context);
+
+        sequenceHandler.handle(request, response, context);
+        Assert.assertEquals(context.isRequestAuthenticated(), false);
+    }
+
+    /*
+        Request path authenticator throws a LogoutFailedException
+    */
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testHandleLogoutFailedException() throws Exception {
+
+        // mock the behaviour of the request path authenticator
+        when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
+        doThrow(new LogoutFailedException("Logout Failed."))
+                .when(requestPathAuthenticator).process(request, response, context);
+
+        sequenceHandler.handle(request, response, context);
+    }
+
+    /*
+        Request path authenticator can handle the request successfully and authentication succeeds
+     */
+    @Test
+    public void testHandleAuthSuccess() throws Exception {
+
+        // mock the behaviour of the request path authenticator
+        when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
+        doReturn(AuthenticatorFlowStatus.SUCCESS_COMPLETED).when(requestPathAuthenticator)
+                .process(any(HttpServletRequest.class), any(HttpServletResponse.class), any(AuthenticationContext.class));
+
+        String subjectIdentifier = "H2/alice@t1.com";
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+        authenticatedUser.setFederatedUser(false);
+
+        context.setSubject(authenticatedUser);
+
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
+
+        sequenceHandler = spy(new DefaultRequestPathBasedSequenceHandler());
+        // mock triggering post authentication
+        doNothing().when(sequenceHandler).handlePostAuthentication(any(HttpServletRequest.class), any
+                (HttpServletResponse.class), any(AuthenticationContext.class), any(AuthenticatedIdPData.class));
+
+        sequenceHandler.handle(request, response, context);
+
+        Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
+        Assert.assertNotNull(context.getCurrentAuthenticatedIdPs());
+        Assert.assertEquals(context.getCurrentAuthenticatedIdPs().size(), 1);
+
+        AuthenticatedIdPData authenticatedIdPData = context.getCurrentAuthenticatedIdPs()
+                .get(FrameworkConstants.LOCAL_IDP_NAME);
+
+        Assert.assertNotNull(authenticatedIdPData);
+        Assert.assertEquals(authenticatedIdPData.getIdpName(), FrameworkConstants.LOCAL_IDP_NAME);
+        Assert.assertNotNull(authenticatedIdPData.getUser());
+        Assert.assertEquals(authenticatedIdPData.getUser().getAuthenticatedSubjectIdentifier(), subjectIdentifier);
+        Assert.assertEquals(authenticatedIdPData.getAuthenticator(), authenticatorConfig);
     }
 
     @Test
     public void testHandlePostAuthentication() throws Exception {
     }
-
 
     @DataProvider(name = "spRoleMappingDataProvider")
     public Object[][] provideSpRoleMappingData() {
@@ -100,15 +247,19 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                 {null, localUserRoles, localRoles},
                 {new HashMap<>(), localUserRoles, localRoles},
                 {spRoleMappings, new ArrayList<>(), null},
-                {spRoleMappings, null, null}
+                {spRoleMappings, null, null},
+                {null, null, null}
         };
     }
-
 
     @Test(dataProvider = "spRoleMappingDataProvider")
     public void testGetServiceProviderMappedUserRoles(Map<String, String> spRoleMappings,
                                                       List<String> localUserRoles,
                                                       String expectedRoles) throws Exception {
+
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
+
 
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
@@ -176,7 +327,6 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         // Get the default role claim URI
         roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
         Assert.assertEquals(roleClaim, FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
-
     }
 
 
@@ -198,7 +348,6 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     public void testHandleClaimMappings() throws Exception {
 
         ClaimHandler claimHandler = mock(ClaimHandler.class);
-
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
 
@@ -211,5 +360,4 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         claims = sequenceHandler.handleClaimMappings(new AuthenticationContext());
         Assert.assertNotNull(claims);
     }
-
 }
