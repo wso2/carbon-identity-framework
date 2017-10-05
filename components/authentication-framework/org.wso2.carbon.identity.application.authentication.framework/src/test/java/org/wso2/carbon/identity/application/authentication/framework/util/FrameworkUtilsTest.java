@@ -41,12 +41,10 @@ public class FrameworkUtilsTest extends PowerMockTestCase {
 
     @BeforeTest
     public void setUp() {
-
         testPostAuthenticationHandler = new DefaultPostAuthenticationHandler();
     }
 
     private void setMockedConfigurationFacade() {
-
         mockStatic(ConfigurationFacade.class);
         when(ConfigurationFacade.getInstance()).thenReturn(mockedConfigurationFacade);
     }
@@ -60,13 +58,13 @@ public class FrameworkUtilsTest extends PowerMockTestCase {
         Map<String, Object> map2 = new HashMap<>();
         map2.put(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER, new Object());
 
-        return new Object[][] {
-                { map1, true },
-                { map2, false }
+        return new Object[][]{
+                {map1, true},
+                {map2, false}
         };
     }
 
-    @Test (dataProvider = "providePostAuthenticationData")
+    @Test(dataProvider = "providePostAuthenticationData")
     public void getPostAuthenticationHandler(Map<String, Object> configMap, boolean isMockedObjectReturned) {
 
         setMockedConfigurationFacade();

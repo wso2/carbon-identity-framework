@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -27,7 +28,6 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -40,11 +40,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@PrepareForTest({UserCoreUtil.class, FileBasedConfigurationBuilder.class})
+@PrepareForTest({UserCoreUtil.class, FileBasedConfigurationBuilder.class, LogFactory.class})
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -71,7 +70,6 @@ public class AbstractApplicationAuthenticatorTest {
 
     @BeforeTest
     public void setUp() throws Exception {
-
         initMocks(this);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
