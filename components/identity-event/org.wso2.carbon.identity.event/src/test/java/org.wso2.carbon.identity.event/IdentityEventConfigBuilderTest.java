@@ -24,7 +24,7 @@ import static org.testng.Assert.*;
 public class IdentityEventConfigBuilderTest {
 
     @BeforeSuite
-    public void setup(){
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
 
         String home = IdentityEventConfigBuilder.class.getResource("/").getFile();
         String config = IdentityEventConfigBuilder.class.getResource("/").getFile();
