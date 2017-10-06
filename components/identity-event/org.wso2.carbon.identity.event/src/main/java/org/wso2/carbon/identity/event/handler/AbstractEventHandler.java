@@ -90,13 +90,6 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
                     return false;
                 }
             }
-            if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                    .getName() + ".subscription." + eventName + "" +
-                    ".operationAsync"))) {
-                return true;
-            } else {
-                return false;
-            }
         }
         return false;
     }
