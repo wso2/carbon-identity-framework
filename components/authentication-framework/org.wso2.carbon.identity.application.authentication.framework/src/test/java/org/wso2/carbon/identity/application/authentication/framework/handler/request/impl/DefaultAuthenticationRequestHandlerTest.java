@@ -16,25 +16,37 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
+import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.io.IOException;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -51,12 +63,15 @@ public class DefaultAuthenticationRequestHandlerTest {
     @Mock
     HttpServletResponse response;
 
-    private DefaultAuthenticationRequestHandler authenticationRequestHandler;
-
+    DefaultAuthenticationRequestHandler authenticationRequestHandler;
+    
+    @ObjectFactory
+    public IObjectFactory getObjectFactory() {
+        return new org.powermock.modules.testng.PowerMockObjectFactory();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
-
         initMocks(this);
         authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
     }
@@ -76,6 +91,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         Assert.assertEquals(instance, anotherInstance);
     }
+
 
     @Test
     public void testHandleDenyFromLoginPage() throws Exception {
@@ -176,8 +192,58 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void testConcludeFlow() throws Exception {
     }
 
-    @Test
-    public void testSendResponse() throws Exception {
+
+    @DataProvider(name = "sendResponseDataProvider")
+    public Object[][] provideSendResponseData() {
+        return new Object[][]{
+                {true, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key&chkRemember=on"},
+                {true, false, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {false, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {true, true, "/samlsso", null, "/samlsso?chkRemember=on"}
+        };
+    }
+
+    @Test(dataProvider = "sendResponseDataProvider")
+    public void testSendResponse(boolean isRequestAuthenticated,
+                                 boolean isRememberMe,
+                                 String callerPath,
+                                 String sessionDataKey,
+                                 String expectedRedirectUrl) throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setRequestAuthenticated(isRequestAuthenticated);
+        context.setRememberMe(isRememberMe);
+        context.setCallerPath(callerPath);
+        context.setCallerSessionKey(sessionDataKey);
+
+        SequenceConfig sequenceConfig = spy(new SequenceConfig());
+        context.setSequenceConfig(sequenceConfig);
+
+        DefaultAuthenticationRequestHandler requestHandler = spy(new DefaultAuthenticationRequestHandler());
+        doNothing().when(requestHandler).populateErrorInformation(request, response, context);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        requestHandler.sendResponse(request, response, context);
+        verify(response).sendRedirect(captor.capture());
+        Assert.assertEquals(captor.getValue(), expectedRedirectUrl);
+    }
+
+
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testSendResponseException() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setRequestAuthenticated(true);
+        context.setRememberMe(true);
+        context.setCallerPath("/samlsso");
+        String sessionDataKey = UUID.randomUUID().toString();
+        context.setCallerSessionKey(sessionDataKey);
+
+        SequenceConfig sequenceConfig = spy(new SequenceConfig());
+        context.setSequenceConfig(sequenceConfig);
+
+        doThrow(new IOException()).when(response).sendRedirect(anyString());
+        authenticationRequestHandler.sendResponse(request, response, context);
     }
 
     @Test

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -66,7 +67,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
-    private static String multiAttributeSeparator;
+//    private static String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -211,19 +212,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         int stepCount = 1;
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
-
-        try {
-            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-        } catch (UserStoreException e) {
-            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm. Switching to default MultiAttributeSeparator.");
-            if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
-            }
-        }
-        if (StringUtils.isBlank(multiAttributeSeparator)) {
-            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
-        }
 
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -504,11 +492,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         //Need to convert multiAttributeSeparator value into a regex literal before calling
                         // split function. Otherwise split can produce misleading results in case
                         // multiAttributeSeparator contains regex special meaning characters like .*
-                        String[] roles = roleAttr.split(Pattern.quote(multiAttributeSeparator));
+                        String[] roles = roleAttr.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
                         mappedAttrs.put(
                                 spRoleUri,
                                 getServiceProviderMappedUserRoles(sequenceConfig,
-                                        Arrays.asList(roles)));
+                                Arrays.asList(roles))
+                        );
                     }
 
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
@@ -569,41 +558,31 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     /**
      * @param sequenceConfig
-     * @param locallyMappedUserRoles
+     * @param locallyMappedUserRoles String of user roles mapped according to Service Provider role mappings
+     *                               seperated by the multi attribute separator
      * @return
      */
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
 
-        if (locallyMappedUserRoles != null && !locallyMappedUserRoles.isEmpty()) {
-
-            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig()
-                    .getRoleMappings();
-
-            boolean roleMappingDefined = false;
-
-            if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
-                roleMappingDefined = true;
-            }
-
-            StringBuilder spMappedUserRoles = new StringBuilder();
-
+        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
+            // Local user roles available for user
+            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
+            List<String> spMappedUserRoles = new ArrayList<>();
             for (String role : locallyMappedUserRoles) {
-                if (roleMappingDefined) {
+                if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
+                    // Service Provider Role Mapping are defined
                     if (localToSpRoleMapping.containsKey(role)) {
-                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + multiAttributeSeparator);
+                        spMappedUserRoles.add(localToSpRoleMapping.get(role));
                     } else {
-                        spMappedUserRoles.append(role + multiAttributeSeparator);
+                        spMappedUserRoles.add(role);
                     }
                 } else {
-                    spMappedUserRoles.append(role + multiAttributeSeparator);
+                    spMappedUserRoles.add(role);
                 }
             }
-
-            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().
-                    substring(0, spMappedUserRoles.length() - multiAttributeSeparator.length()) : null;
+            return StringUtils.join(spMappedUserRoles.toArray(), FrameworkUtils.getMultiAttributeSeparator());
         }
-
         return null;
     }
 
