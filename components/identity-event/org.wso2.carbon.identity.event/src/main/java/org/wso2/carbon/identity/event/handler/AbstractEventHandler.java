@@ -76,14 +76,13 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         ModuleConfiguration moduleConfiguration = moduleConfigurationList.get(this.getName());
         List<Subscription> subscriptions = moduleConfiguration.getSubscriptions();
         for (Subscription sub : subscriptions) {
-            if (sub.getSubscriptionName().equals(eventName))
+            if (sub.getSubscriptionName().equals(eventName)) {
                 if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
                         .getName() + ".subscription." + eventName +
-                        ".operationAsync"))) {
+                        ".operationAsync")))
                     return true;
-                } else {
-                    return false;
-                }
+                else return false;
+            }
         }
         return false;
     }
