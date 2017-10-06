@@ -83,7 +83,7 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         for (Subscription sub : subscriptions) {
             if (sub.getSubscriptionName().equals(eventName)) {
                 if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                        .getName() + ".subscription." + eventName + "" +
+                        .getName() + ".subscription." + eventName +
                         ".operationAsync"))) {
                     return true;
                 } else {
