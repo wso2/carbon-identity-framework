@@ -60,5 +60,4 @@ public class IdentityEventMessageContextTest {
         identityEventMessageContext.setEvent(setEvent);
         Assert.assertEquals(identityEventMessageContext.getEvent(), setEvent);
     }
-
 }

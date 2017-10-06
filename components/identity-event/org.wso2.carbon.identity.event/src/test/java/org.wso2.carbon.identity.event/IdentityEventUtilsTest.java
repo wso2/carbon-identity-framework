@@ -78,7 +78,7 @@ public class IdentityEventUtilsTest {
     @Test (expectedExceptions = {IllegalArgumentException.class})
     public void testReplacePlaceHolderException() {
 
-        IdentityEventUtils.replacePlaceHolders("","","", properties);
+        IdentityEventUtils.replacePlaceHolders("", "", "", properties);
     }
 
     @Test
@@ -106,6 +106,15 @@ public class IdentityEventUtilsTest {
     public void testGetSubPropertiesException() {
 
         IdentityEventUtils.getSubProperties("", properties);
+    }
+
+    @Test
+    public void testBuildSingleWordKeyProperties(){
+
+        Properties propertiesFromMethod = IdentityEventUtils.buildSingleWordKeyProperties("x.1", subProperties);
+        Properties expectedProperties = new Properties();
+        expectedProperties.setProperty("1", "value");
+        Assert.assertEquals(propertiesFromMethod, expectedProperties);
     }
 }
 
