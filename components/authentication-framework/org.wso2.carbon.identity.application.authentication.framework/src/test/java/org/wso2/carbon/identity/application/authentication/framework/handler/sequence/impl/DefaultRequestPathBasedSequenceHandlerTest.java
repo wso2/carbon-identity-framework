@@ -24,10 +24,10 @@ import org.testng.Assert;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -44,8 +44,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -69,7 +69,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
 
-    private DefaultRequestPathBasedSequenceHandler sequenceHandler;
+    private DefaultRequestPathBasedSequenceHandler requestPathBasedSequenceHandler;
 
     @Mock
     HttpServletRequest request;
@@ -97,7 +97,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 //        mockStatic(FrameworkUtils.class);
 //        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
 
-        sequenceHandler = new DefaultRequestPathBasedSequenceHandler();
+        requestPathBasedSequenceHandler = new DefaultRequestPathBasedSequenceHandler();
         // Mock authentication context and sequence config for request path authentication
         context = new AuthenticationContext();
 
@@ -122,14 +122,10 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
-
-        DefaultRequestPathBasedSequenceHandler sequenceHandler = DefaultRequestPathBasedSequenceHandler.getInstance();
-        Assert.assertNotNull(sequenceHandler);
-
-        DefaultRequestPathBasedSequenceHandler anotherSequenceHandler = DefaultRequestPathBasedSequenceHandler
-                .getInstance();
-        Assert.assertNotNull(anotherSequenceHandler);
-        Assert.assertEquals(sequenceHandler, anotherSequenceHandler);
+        CommonTestUtils.testSingleton(
+                DefaultRequestPathBasedSequenceHandler.getInstance(),
+                DefaultRequestPathBasedSequenceHandler.getInstance()
+        );
     }
 
     /*
@@ -139,7 +135,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     public void testHandleNoneCanHandle() throws Exception {
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(false);
-        sequenceHandler.handle(request, response, context);
+        requestPathBasedSequenceHandler.handle(request, response, context);
         Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
     }
 
@@ -153,7 +149,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         doThrow(new InvalidCredentialsException("Invalid Credentials."))
                 .when(requestPathAuthenticator).process(request, response, context);
 
-        sequenceHandler.handle(request, response, context);
+        requestPathBasedSequenceHandler.handle(request, response, context);
         Assert.assertEquals(context.isRequestAuthenticated(), false);
     }
 
@@ -168,7 +164,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         doThrow(new AuthenticationFailedException("Authentication Failed."))
                 .when(requestPathAuthenticator).process(request, response, context);
 
-        sequenceHandler.handle(request, response, context);
+        requestPathBasedSequenceHandler.handle(request, response, context);
         Assert.assertEquals(context.isRequestAuthenticated(), false);
     }
 
@@ -183,7 +179,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         doThrow(new LogoutFailedException("Logout Failed."))
                 .when(requestPathAuthenticator).process(request, response, context);
 
-        sequenceHandler.handle(request, response, context);
+        requestPathBasedSequenceHandler.handle(request, response, context);
     }
 
     /*
@@ -207,12 +203,12 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
 
-        sequenceHandler = spy(new DefaultRequestPathBasedSequenceHandler());
+        requestPathBasedSequenceHandler = spy(new DefaultRequestPathBasedSequenceHandler());
         // mock triggering post authentication
-        doNothing().when(sequenceHandler).handlePostAuthentication(any(HttpServletRequest.class), any
+        doNothing().when(requestPathBasedSequenceHandler).handlePostAuthentication(any(HttpServletRequest.class), any
                 (HttpServletResponse.class), any(AuthenticationContext.class), any(AuthenticatedIdPData.class));
 
-        sequenceHandler.handle(request, response, context);
+        requestPathBasedSequenceHandler.handle(request, response, context);
 
         Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
         Assert.assertNotNull(context.getCurrentAuthenticatedIdPs());
@@ -228,107 +224,191 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         Assert.assertEquals(authenticatedIdPData.getAuthenticator(), authenticatorConfig);
     }
 
-    @Test
-    public void testHandlePostAuthentication() throws Exception {
+    @DataProvider
+    public Object[][] getPostAuthenticationData() {
+
+        final String SUBJECT_CLAIM_URI = "subjectClaimUri";
+
+        return new Object[][]{
+                // unfiltered local claims | mapped attributes | subjectClaimUri
+                {
+                        // No subject claim URI defined
+                        null,
+                        new HashMap<>(),
+                        null,
+                        null
+                },
+                {
+                        // Subject claim URI defined. But we can't find the subject claim in unfiltered or mapped claims
+                        null,
+                        new HashMap<>(),
+                        SUBJECT_CLAIM_URI,
+                        null
+                },
+                {
+                        // Subject claim found in unfiltered claims
+                        new HashMap<String, String>() {{
+                            put(SUBJECT_CLAIM_URI, "unfiltered_claim_subject");
+                        }},
+                        new HashMap<Object, Object>() {
+                            {
+                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                            }
+                        },
+                        SUBJECT_CLAIM_URI,
+                        "unfiltered_claim_subject"
+
+                },
+                {
+                        // Unfiltered claims available. But subject claim is not among them
+                        new HashMap<String, String>() {{
+                            put("local_claim_uri", "local_claim");
+                        }},
+                        new HashMap<Object, Object>() {
+                            {
+                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                                put(SUBJECT_CLAIM_URI, "mapped_attribute_claim_subject");
+                            }
+                        }, SUBJECT_CLAIM_URI,
+                        null
+                },
+                {
+                        // Unfiltered claims not available. Pick subject claim from mapped attributes.
+                        null,
+                        new HashMap<Object, Object>() {
+                            {
+                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                                put(SUBJECT_CLAIM_URI, "mapped_attribute_claim_subject");
+                            }
+                        }, SUBJECT_CLAIM_URI,
+                        "mapped_attribute_claim_subject"
+                }
+
+        };
+    }
+
+    @Test(dataProvider = "getPostAuthenticationData")
+    public void testHandlePostAuthentication(Map<String, String> unfilteredLocalClaims,
+                                             Map<String, String> mappedAttributes,
+                                             String subjectClaimUri,
+                                             String expectedSubjectIdentifier) throws Exception {
+
+        requestPathBasedSequenceHandler = spy(new DefaultRequestPathBasedSequenceHandler());
+        doReturn(mappedAttributes)
+                .when(requestPathBasedSequenceHandler)
+                .handleClaimMappings(any(AuthenticationContext.class));
+
+        doReturn("spRole1,spRole2")
+                .when(requestPathBasedSequenceHandler)
+                .getServiceProviderMappedUserRoles(any(SequenceConfig.class), anyList());
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUri);
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setApplicationConfig(applicationConfig);
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName("alice");
+
+        sequenceConfig.setAuthenticatedUser(new AuthenticatedUser());
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, unfilteredLocalClaims);
+        context.setSequenceConfig(sequenceConfig);
+
+        ApplicationAuthenticator applicationAuthenticator = mock(ApplicationAuthenticator.class);
+        when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
+
+        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+        authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
+
+        AuthenticatedIdPData idPData = new AuthenticatedIdPData();
+        idPData.setIdpName("LOCAL");
+
+        idPData.setAuthenticator(authenticatorConfig);
+
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
+
+        requestPathBasedSequenceHandler.handlePostAuthentication(request, response, context, idPData);
+
+        Assert.assertNotNull(context.getSequenceConfig().getAuthenticatedUser());
+        Assert.assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), expectedSubjectIdentifier);
     }
 
     @DataProvider(name = "spRoleMappingDataProvider")
     public Object[][] provideSpRoleMappingData() {
-
-        Map<String, String> spRoleMappings = new HashMap<>();
-        spRoleMappings.put("LOCAL_ROLE1", "SP_ROLE1");
-        spRoleMappings.put("LOCAL_ROLE2", "SP_ROLE2");
-
-        List<String> localUserRoles = Arrays.asList(new String[]{"LOCAL_ROLE1", "ADMIN", "LOCAL_ROLE2"});
-        String localRoles = "LOCAL_ROLE1,ADMIN,LOCAL_ROLE2";
-
-        return new Object[][]{
-                {spRoleMappings, localUserRoles, "SP_ROLE1,ADMIN,SP_ROLE2"},
-                {null, localUserRoles, localRoles},
-                {new HashMap<>(), localUserRoles, localRoles},
-                {spRoleMappings, new ArrayList<>(), null},
-                {spRoleMappings, null, null},
-                {null, null, null}
-        };
+        return Util.getSpRoleMappingData();
     }
 
     @Test(dataProvider = "spRoleMappingDataProvider")
     public void testGetServiceProviderMappedUserRoles(Map<String, String> spRoleMappings,
                                                       List<String> localUserRoles,
+                                                      String multiAttributeSeparator,
                                                       String expectedRoles) throws Exception {
-
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-
-
-        SequenceConfig sequenceConfig = spy(new SequenceConfig());
-        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
-        when(applicationConfig.getApplicationName()).thenReturn("APP");
-        when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
-        when(applicationConfig.getRoleMappings()).thenReturn(spRoleMappings);
-
-        String mappedRoles = sequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
+        Util.mockMultiAttributeSeparator(multiAttributeSeparator);
+        SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
+        String mappedRoles = requestPathBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         Assert.assertEquals(mappedRoles, expectedRoles);
     }
 
-    @Test
-    public void testGetSpRoleClaimUri() throws Exception {
-
-        String roleClaim;
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-
-        // IDP mapped Role claim
-        when(appConfig.getRoleClaim()).thenReturn("IDP_ROLE_CLAIM");
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, "IDP_ROLE_CLAIM");
-
-        // No IDP mapped Role claim or SP mapped Role claim available
-        reset(appConfig);
-        when(appConfig.getRoleClaim()).thenReturn(null);
-        // Get the default role claim URI
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+    @DataProvider(name = "spRoleClaimUriProvider")
+    private Object[][] getSpRoleClaimUriData() {
+        return new Object[][]{
+                {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
+                {null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI}
+        };
     }
 
     /*
-        Get role claim from SP mapped roles
+        Get Service Provider mapped role claim URI
      */
-    @Test
-    public void testGetSpRoleClaimUriSpMappedClaim() throws Exception {
+    @Test(dataProvider = "spRoleClaimUriProvider")
+    public void testGetSpRoleClaimUri(String spRoleClaimUri,
+                                      String expectedRoleClaimUri) throws Exception {
 
-        String roleClaim;
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
-
-        // SP mapped role claim
-        reset(appConfig);
-        Map<String, String> claimMappings = new HashMap<>();
-        claimMappings.put("SP_ROLE_CLAIM", FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
-        when(appConfig.getClaimMappings()).thenReturn(claimMappings);
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, "SP_ROLE_CLAIM");
-
-        // Role not among SP mapped claims
-        reset(appConfig);
-        claimMappings = new HashMap<>();
-        claimMappings.put("SP_MAPPED_CLAIM", "DUMMY");
-        when(appConfig.getClaimMappings()).thenReturn(claimMappings);
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
-
-        // No IDP mapped Role claim or SP mapped Role claim available
-        reset(appConfig);
-        when(appConfig.getClaimMappings()).thenReturn(new HashMap<String, String>());
-        // Get the default role claim URI
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
-
-        reset(appConfig);
-        when(appConfig.getClaimMappings()).thenReturn(null);
-        // Get the default role claim URI
-        roleClaim = sequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+        when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
+        Assert.assertEquals(requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
     }
 
+    @DataProvider(name = "spClaimMappingProvider")
+    public Object[][] getSpClaimMappingProvider() {
+        return new Object[][]{
+                {       // SP mapped role claim
+                        new HashMap<String, String>() {{
+                            put("SP_ROLE_CLAIM", FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+                        }},
+                        "SP_ROLE_CLAIM"
+                },
+                {       // Role claim not among SP mapped claims
+                        new HashMap<String, String>() {{
+                            put("SP_CLAIM", "LOCAL_CLAIM");
+                        }},
+                        FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                },
+                {      // No SP mapped claims
+                        new HashMap<>(), FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                },
+                {
+                        null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                }
+        };
+    }
+
+    /*
+        Get role claim URI from SP mapped claims
+     */
+    @Test(dataProvider = "spClaimMappingProvider")
+    public void testGetSpRoleClaimUriSpMappedClaim(Map<String, String> claimMappings,
+                                                   String expectedRoleClaim) throws Exception {
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getClaimMappings()).thenReturn(claimMappings);
+        String roleClaim = requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig);
+        Assert.assertEquals(roleClaim, expectedRoleClaim);
+    }
 
     @Test
     public void testHandleClaimMappingsErrorFlow() throws Exception {
@@ -340,8 +420,9 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
 
-        Map<String, String> claims = sequenceHandler.handleClaimMappings(new AuthenticationContext());
-        Assert.assertNull(claims);
+        Map<String, String> claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
+        Assert.assertNotNull(claims);
+        Assert.assertEquals(claims.size(), 0);
     }
 
     @Test
@@ -357,7 +438,23 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
 
-        claims = sequenceHandler.handleClaimMappings(new AuthenticationContext());
+        claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
         Assert.assertNotNull(claims);
+    }
+
+    @Test
+    public void testHandleClaimMappingsFailed() throws Exception {
+
+        ClaimHandler claimHandler = mock(ClaimHandler.class);
+        doThrow(new FrameworkException("Claim Handling failed"))
+                .when(claimHandler)
+                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class), any(Map.class), anyBoolean());
+
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
+
+        Map<String, String> claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
+        Assert.assertNotNull(claims);
+        Assert.assertEquals(claims.size(), 0);
     }
 }

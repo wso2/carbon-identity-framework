@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
@@ -27,17 +26,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -64,7 +61,7 @@ public class DefaultAuthenticationRequestHandlerTest {
     HttpServletResponse response;
 
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
-    
+
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
@@ -82,14 +79,10 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
-
-        DefaultAuthenticationRequestHandler instance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(instance);
-
-        DefaultAuthenticationRequestHandler anotherInstance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(anotherInstance);
-
-        Assert.assertEquals(instance, anotherInstance);
+        CommonTestUtils.testSingleton(
+                DefaultAuthenticationRequestHandler.getInstance(),
+                DefaultAuthenticationRequestHandler.getInstance()
+        );
     }
 
 
@@ -329,3 +322,4 @@ public class DefaultAuthenticationRequestHandlerTest {
     }
 
 }
+

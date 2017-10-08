@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,7 +53,6 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
     private static volatile DefaultRequestPathBasedSequenceHandler instance;
-//    private String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
     public static DefaultRequestPathBasedSequenceHandler getInstance() {
 
@@ -193,17 +193,16 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             Map<String, String> unfilteredClaimValues =
                     (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
 
-            String subjectValue;
+            String subjectClaimUri = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri().trim();
+            String subjectClaimValue;
             if (unfilteredClaimValues != null) {
-                subjectValue = unfilteredClaimValues.get(context.getSequenceConfig()
-                                                                 .getApplicationConfig().getSubjectClaimUri().trim());
+                subjectClaimValue = unfilteredClaimValues.get(subjectClaimUri);
             } else {
-                subjectValue = mappedAttrs.get(context.getSequenceConfig().getApplicationConfig()
-                                                       .getSubjectClaimUri().trim());
+                subjectClaimValue = mappedAttrs.get(subjectClaimUri);
             }
-            if (subjectValue != null) {
+            if (subjectClaimValue != null) {
                 AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-                authenticatedUser.setAuthenticatedSubjectIdentifier(subjectValue);
+                authenticatedUser.setAuthenticatedSubjectIdentifier(subjectClaimValue);
 
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
@@ -317,7 +316,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);
         }
-
-        return null;
+        // Claim handling failed so we return an empty map
+        return Collections.emptyMap();
     }
 }
