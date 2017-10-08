@@ -192,6 +192,16 @@ public class EntitlementServiceComponent {
             builder.setBundleContext(ctxt.getBundleContext());
             builder.buildEntitlementConfig(EntitlementConfigHolder.getInstance());
 
+            boolean balanaConfig = Boolean.parseBoolean((String) EntitlementServiceComponent.getEntitlementConfig().
+                    getEngineProperties().get(PDPConstants.BALANA_CONFIG_ENABLE));
+
+
+            if (balanaConfig) {
+                System.setProperty("org.wso2.balana.PDPConfigFile", CarbonUtils.getCarbonConfigDirPath()
+                        + File.separator + "security" + File.separator +
+                        "balana-config.xml");
+            }
+
             // Start loading schema.
             new Thread(new SchemaBuilder(EntitlementConfigHolder.getInstance())).start();
 
