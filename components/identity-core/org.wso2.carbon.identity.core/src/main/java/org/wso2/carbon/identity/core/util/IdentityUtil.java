@@ -615,7 +615,7 @@ public class IdentityUtil {
      * @return application name with domain name
      */
     public static String addDomainToName(String name, String domainName) {
-        if (domainName != null && !StringUtils.contains(name, UserCoreConstants.DOMAIN_SEPARATOR)) {
+        if (domainName != null && name != null && !name.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
             if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(domainName)) {
                 if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domainName) ||
                         "Workflow".equalsIgnoreCase(domainName) || "Application".equalsIgnoreCase(domainName)) {
