@@ -17,9 +17,10 @@
  */
 package org.wso2.carbon.identity.core.util;
 
-import org.apache.axiom.om.impl.dom.factory.OMDOMFactory;
+import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,6 +61,13 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -71,28 +79,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 public class IdentityUtil {
 
     public static final ThreadLocal<Map<String, Object>> threadLocalProperties = new
             ThreadLocal<Map<String, Object>>() {
-        @Override
-        protected Map<String, Object> initialValue() {
-            return new HashMap<>();
-        }
-    };
+                @Override
+                protected Map<String, Object> initialValue() {
+                    return new HashMap<>();
+                }
+            };
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private final static char[] ppidDisplayCharMap = new char[]{'Q', 'L', '2', '3', '4', '5',
             '6', '7', '8', '9', 'A', 'B', 'C',
@@ -100,9 +101,9 @@ public class IdentityUtil {
             'M', 'N', 'P', 'R', 'S', 'T', 'U',
             'V', 'W', 'X', 'Y', 'Z'};
     public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
-                                                         "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
+            "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
-    private static Map<String, Object> configuration = new HashMap<String, Object>();
+    private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
@@ -148,14 +149,15 @@ public class IdentityUtil {
         Object value = configuration.get(key);
         String strValue;
 
-        if (value instanceof ArrayList) {
-            strValue = (String) ((ArrayList) value).get(0);
-        } else {
-            strValue = (String) value;
+        if (value instanceof List) {
+            value = ((List) value).get(0);
         }
-
+        if (value instanceof String) {
+            strValue = (String) value;
+        } else {
+            strValue = String.valueOf(value);
+        }
         strValue = fillURLPlaceholders(strValue);
-
         return strValue;
     }
 
@@ -169,26 +171,24 @@ public class IdentityUtil {
      * This reads the &lt;CacheConfig&gt; configuration in identity.xml.
      * Since the name of the cache is different between the distributed mode and local mode,
      * that is specially handled.
-     *
+     * <p>
      * When calling this method, only pass the cacheManagerName and cacheName parameters considering
      * how the names are set in a clustered environment i.e. without the CachingConstants.LOCAL_CACHE_PREFIX.
-     *
      */
     public static IdentityCacheConfig getIdentityCacheConfig(String cacheManagerName, String cacheName) {
         IdentityCacheConfigKey configKey = new IdentityCacheConfigKey(cacheManagerName, cacheName);
         IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(configKey);
         if (identityCacheConfig == null && cacheName.startsWith(CachingConstants.LOCAL_CACHE_PREFIX)) {
             configKey = new IdentityCacheConfigKey(cacheManagerName,
-                            cacheName.replace(CachingConstants.LOCAL_CACHE_PREFIX, ""));
+                    cacheName.replace(CachingConstants.LOCAL_CACHE_PREFIX, ""));
             identityCacheConfig = identityCacheConfigurationHolder.get(configKey);
         }
         return identityCacheConfig;
     }
 
-    public static IdentityCookieConfig getIdentityCookieConfig(String cookieName)   {
+    public static IdentityCookieConfig getIdentityCookieConfig(String cookieName) {
         return identityCookiesConfigurationHolder.get(cookieName);
     }
-
 
 
     public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
@@ -203,7 +203,9 @@ public class IdentityUtil {
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
-        log.info("Generating display value of PPID : " + value);
+        if (log.isDebugEnabled()) {
+            log.debug("Generating display value of PPID : " + value);
+        }
         byte[] rawPpid = Base64.decode(value);
         MessageDigest sha1 = MessageDigest.getInstance("SHA1");
         sha1.update(rawPpid);
@@ -230,14 +232,7 @@ public class IdentityUtil {
      * @return The serialized node as a java.lang.String instance.
      */
     public static String nodeToString(Node node) {
-
-        if (importerDoc == null) {
-            OMDOMFactory fac = new OMDOMFactory();
-            importerDoc = (Document) fac.createOMDocument();
-        }
-        // Import the node as an AXIOM-DOOM node and use toSting()
-        Node axiomNode = importerDoc.importNode(node, true);
-        return axiomNode.toString();
+        return DOM2Writer.nodeToString(node);
     }
 
     public static String getHMAC(String secretKey, String baseString) throws SignatureException {
@@ -343,6 +338,9 @@ public class IdentityUtil {
         if (mgtTransportPort <= 0) {
             mgtTransportPort = CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
         }
+        if (hostName.endsWith("/")) {
+            hostName = hostName.substring(0, hostName.length() - 1);
+        }
         StringBuilder serverUrl = new StringBuilder(mgtTransport).append("://").append(hostName.toLowerCase());
         // If it's well known HTTPS port, skip adding port
         if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
@@ -350,15 +348,13 @@ public class IdentityUtil {
         }
 
         // If ProxyContextPath is defined then append it
-        if(addProxyContextPath) {
+        if (addProxyContextPath) {
             // If ProxyContextPath is defined then append it
             String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                     .PROXY_CONTEXT_PATH);
             if (StringUtils.isNotBlank(proxyContextPath)) {
-                if (!serverUrl.toString().endsWith("/") && proxyContextPath.trim().charAt(0) != '/') {
+                if (proxyContextPath.trim().charAt(0) != '/') {
                     serverUrl.append("/").append(proxyContextPath.trim());
-                } else if (serverUrl.toString().endsWith("/") && proxyContextPath.trim().charAt(0) == '/') {
-                    serverUrl.append(proxyContextPath.trim().substring(1));
                 } else {
                     serverUrl.append(proxyContextPath.trim());
                 }
@@ -370,10 +366,8 @@ public class IdentityUtil {
             String webContextRoot = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                     .WEB_CONTEXT_ROOT);
             if (StringUtils.isNotBlank(webContextRoot)) {
-                if (!serverUrl.toString().endsWith("/") && webContextRoot.trim().charAt(0) != '/') {
+                if (webContextRoot.trim().charAt(0) != '/') {
                     serverUrl.append("/").append(webContextRoot.trim());
-                } else if (serverUrl.toString().endsWith("/") && webContextRoot.trim().charAt(0) == '/') {
-                    serverUrl.append(webContextRoot.trim().substring(1));
                 } else {
                     serverUrl.append(webContextRoot.trim());
                 }
@@ -389,7 +383,7 @@ public class IdentityUtil {
             }
         }
         if (serverUrl.toString().endsWith("/")) {
-            serverUrl.deleteCharAt(serverUrl.length() - 1);
+            serverUrl.setLength(serverUrl.length() - 1);
         }
         return serverUrl.toString();
     }
@@ -446,7 +440,7 @@ public class IdentityUtil {
         } catch (ParserConfigurationException e) {
             log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
                     Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
-                    " or secure-processing." );
+                    " or secure-processing.");
         }
 
         SecurityManager securityManager = new SecurityManager();
@@ -501,7 +495,7 @@ public class IdentityUtil {
     public static boolean isUserStoreCaseSensitive(String userStoreDomain, int tenantId) {
 
         boolean isUsernameCaseSensitive = true;
-        if (tenantId == MultitenantConstants.INVALID_TENANT_ID){
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
             //this is to handle federated scenarios
             return true;
         }
@@ -605,7 +599,7 @@ public class IdentityUtil {
 
     public static String extractDomainFromName(String nameWithDomain) {
 
-        if(nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0){
+        if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
             String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
             return domain.toUpperCase();
         } else {
@@ -621,7 +615,7 @@ public class IdentityUtil {
      * @return application name with domain name
      */
     public static String addDomainToName(String name, String domainName) {
-        if (domainName != null && name != null && name.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) < 0) {
+        if (domainName != null && !StringUtils.contains(name, UserCoreConstants.DOMAIN_SEPARATOR)) {
             if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(domainName)) {
                 if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domainName) ||
                         "Workflow".equalsIgnoreCase(domainName) || "Application".equalsIgnoreCase(domainName)) {
@@ -636,7 +630,7 @@ public class IdentityUtil {
 
     public static String getPrimaryDomainName() {
         RealmConfiguration realmConfiguration = IdentityTenantUtil.getRealmService().getBootstrapRealmConfiguration();
-        if(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME) != null){
+        if (realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME) != null) {
             return realmConfiguration.getUserStoreProperty(
                     UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME).toUpperCase();
         } else {
@@ -644,21 +638,22 @@ public class IdentityUtil {
         }
     }
 
-    public static boolean isValidFileName(String fileName){
+    public static boolean isValidFileName(String fileName) {
         String fileNameRegEx = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.FILE_NAME_REGEX);
 
-        if(isBlank(fileNameRegEx)){
+        if (isBlank(fileNameRegEx)) {
             fileNameRegEx = DEFAULT_FILE_NAME_REGEX;
         }
 
         Pattern pattern = Pattern.compile(fileNameRegEx, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE |
-                                                                   Pattern.COMMENTS);
+                Pattern.COMMENTS);
         Matcher matcher = pattern.matcher(fileName);
         return matcher.matches();
     }
 
     /**
      * Replace the placeholders with the related values in the URL.
+     *
      * @param urlWithPlaceholders URL with the placeholders.
      * @return URL filled with the placeholder values.
      */
@@ -780,6 +775,7 @@ public class IdentityUtil {
 
     /**
      * Check whether the given token value is appropriate to log.
+     *
      * @param tokenName Name of the token.
      * @return True if token is appropriate to log.
      */
@@ -793,6 +789,7 @@ public class IdentityUtil {
 
     /**
      * Get the host name of the server.
+     *
      * @return Hostname
      */
     public static String getHostName() {
@@ -819,16 +816,16 @@ public class IdentityUtil {
     }
 
     public static String buildQueryUrl(String baseUrl, Map<String, String[]> parameterMap) throws
-                                                                                              UnsupportedEncodingException {
+            UnsupportedEncodingException {
 
 
-        if(StringUtils.isBlank(baseUrl)) {
+        if (StringUtils.isBlank(baseUrl)) {
             throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
-        } else if(baseUrl.contains("#")) {
+        } else if (baseUrl.contains("#")) {
             throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
-        if(queryString.indexOf("?") < 0) {
+        if (queryString.indexOf("?") < 0) {
             queryString.append("?");
         }
         queryString.append(buildQueryComponent(parameterMap));
@@ -836,16 +833,16 @@ public class IdentityUtil {
     }
 
     public static String buildFragmentUrl(String baseUrl, Map<String, String[]> parameterMap) throws
-                                                                                    UnsupportedEncodingException {
+            UnsupportedEncodingException {
 
 
-        if(StringUtils.isBlank(baseUrl)) {
+        if (StringUtils.isBlank(baseUrl)) {
             throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
-        } else if(baseUrl.contains("?")) {
+        } else if (baseUrl.contains("?")) {
             throw IdentityRuntimeException.error("Fragment URL cannot contain \'?\': " + baseUrl);
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
-        if(queryString.indexOf("#") < 0) {
+        if (queryString.indexOf("#") < 0) {
             queryString.append("#");
         }
         queryString.append(buildQueryComponent(parameterMap));
@@ -853,11 +850,20 @@ public class IdentityUtil {
     }
 
     public static String buildQueryComponent(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
-
+        if (MapUtils.isEmpty(parameterMap)) {
+            return StringUtils.EMPTY;
+        }
         StringBuilder queryString = new StringBuilder("");
         boolean isFirst = true;
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+            //param value may be empty, hence empty check is avoided.
+            if (StringUtils.isBlank(entry.getKey()) || entry.getValue() == null) {
+                continue;
+            }
             for (String paramValue : entry.getValue()) {
+                if (paramValue == null) {
+                    continue;
+                }
                 if (isFirst) {
                     isFirst = false;
                 } else {
