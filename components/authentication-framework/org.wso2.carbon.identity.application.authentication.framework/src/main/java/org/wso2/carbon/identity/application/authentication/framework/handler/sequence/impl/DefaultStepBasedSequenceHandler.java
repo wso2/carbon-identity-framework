@@ -68,7 +68,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
-//    private static String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -755,8 +754,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         try {
             @SuppressWarnings("unchecked")
             String userStoreDomain = null;
-            String provisioningClaimUri = context.getExternalIdP()
-                    .getProvisioningUserStoreClaimURI();
+            String provisioningClaimUri = context.getExternalIdP().getProvisioningUserStoreClaimURI();
             String provisioningUserStoreId = context.getExternalIdP().getProvisioningUserStoreId();
 
             if (provisioningUserStoreId != null) {
@@ -773,8 +771,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setJustInTimeProvisioning(true);
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
-            IdentityApplicationManagementUtil
-                    .setThreadLocalProvisioningServiceProvider(serviceProvider);
+            IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
                                                            extAttributesValueMap, userStoreDomain, context.getTenantDomain());
