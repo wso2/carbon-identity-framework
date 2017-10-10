@@ -17,27 +17,23 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -53,6 +49,9 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
 public class DefaultAuthenticationRequestHandlerTest {
@@ -64,7 +63,7 @@ public class DefaultAuthenticationRequestHandlerTest {
     HttpServletResponse response;
 
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
-    
+
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
@@ -82,14 +81,10 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
-
-        DefaultAuthenticationRequestHandler instance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(instance);
-
-        DefaultAuthenticationRequestHandler anotherInstance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(anotherInstance);
-
-        Assert.assertEquals(instance, anotherInstance);
+        CommonTestUtils.testSingleton(
+                DefaultAuthenticationRequestHandler.getInstance(),
+                DefaultAuthenticationRequestHandler.getInstance()
+        );
     }
 
 
@@ -112,7 +107,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         authenticationRequestHandler.handle(request, response, context);
 
-        Assert.assertFalse(context.isRequestAuthenticated());
+        assertFalse(context.isRequestAuthenticated());
     }
 
 
@@ -152,7 +147,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         authenticationRequestHandler.handle(request, response, context);
 
-        Assert.assertEquals(context.isRememberMe(), expectedResult);
+        assertEquals(context.isRememberMe(), expectedResult);
     }
 
 
@@ -174,18 +169,18 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         // ForceAuth
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isForceAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isForceAuthenticate(), expectedResult);
 
         // Reauthenticate
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isReAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isReAuthenticate(), expectedResult);
 
         // PassiveAuth
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isPassiveAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isPassiveAuthenticate(), expectedResult);
     }
 
     @Test
@@ -225,7 +220,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         requestHandler.sendResponse(request, response, context);
         verify(response).sendRedirect(captor.capture());
-        Assert.assertEquals(captor.getValue(), expectedRedirectUrl);
+        assertEquals(captor.getValue(), expectedRedirectUrl);
     }
 
 
@@ -269,7 +264,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         authenticationContext
                 .setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, postAuthExtensionCompleted);
 
-        Assert.assertEquals(
+        assertEquals(
                 authenticationRequestHandler.isPostAuthenticationExtensionCompleted(authenticationContext),
                 expectedResult
         );
@@ -322,10 +317,11 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticationResult modifiedAuthenticationResult =
                 (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
 
-        Assert.assertNotNull(modifiedAuthenticationResult);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
+        assertNotNull(modifiedAuthenticationResult);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
     }
 
 }
+

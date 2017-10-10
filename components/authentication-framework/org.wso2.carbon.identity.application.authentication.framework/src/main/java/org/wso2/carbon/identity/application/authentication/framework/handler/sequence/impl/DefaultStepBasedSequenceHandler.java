@@ -54,6 +54,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -604,9 +605,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
                     if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
-                        return entry.getKey();
+                        spRoleClaimUri = entry.getKey();
+                        break;
                     }
                 }
+            }
+        }
+
+        if (StringUtils.isEmpty(spRoleClaimUri)) {
+            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            if (log.isDebugEnabled()) {
+                String serviceProvider = appConfig.getApplicationName();
+                log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +
+                        ". Defaulting to " + spRoleClaimUri);
             }
         }
 
@@ -617,8 +628,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @param externalIdPConfig
      * @return
      */
-    protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig)
-            throws FrameworkException {
+    protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) throws FrameworkException {
         // get external identity provider role claim uri.
         String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
 
@@ -672,7 +682,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         String[] idpRoles;
 
         if (idpRoleAttrValue != null) {
-            idpRoles = idpRoleAttrValue.split(",");
+            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
         } else {
             // No identity provider role values found.
             if (log.isDebugEnabled()) {
@@ -718,22 +728,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return
      */
     protected Map<String, String> handleClaimMappings(StepConfig stepConfig,
-                                                      AuthenticationContext context, Map<String, String> extAttrs,
-                                                      boolean isFederatedClaims)
-            throws FrameworkException {
-
-        Map<String, String> mappedAttrs = new HashMap<String, String>();
-
+                                                      AuthenticationContext context,
+                                                      Map<String, String> extAttrs,
+                                                      boolean isFederatedClaims) throws FrameworkException {
+        Map<String, String> mappedAttrs;
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,
                                                                                extAttrs, isFederatedClaims);
+            return mappedAttrs;
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);
         }
-        if(mappedAttrs == null){
-            mappedAttrs = new HashMap<>();
-        }
-        return mappedAttrs;
+        // Claim handling failed. So we are returning an empty map.
+        return Collections.emptyMap();
     }
 
     /**
@@ -779,8 +786,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
-    protected void resetAuthenticationContext(AuthenticationContext context)
-            throws FrameworkException {
+    protected void resetAuthenticationContext(AuthenticationContext context) throws FrameworkException {
 
         context.setSubject(null);
         context.setStateInfo(null);
