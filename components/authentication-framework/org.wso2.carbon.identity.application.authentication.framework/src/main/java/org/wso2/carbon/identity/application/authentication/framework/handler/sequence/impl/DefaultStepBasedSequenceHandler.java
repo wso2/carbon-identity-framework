@@ -118,8 +118,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // if the request didn't fail during the step execution
                 if (context.isRequestAuthenticated()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Step " + stepConfig.getOrder()
-                                + " is completed. Going to get the next one.");
+                        log.debug("Step " + stepConfig.getOrder() + " is completed. Going to get the next one.");
                     }
 
                     currentStep = context.getCurrentStep() + 1;
@@ -129,8 +128,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 } else {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authentication has failed in the Step "
-                                + (context.getCurrentStep()));
+                        log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
 
                     // if the step contains multiple login options, we should give the user to retry
@@ -152,7 +150,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (stepConfig == null) {
 
                 if (log.isDebugEnabled()) {
-                    log.debug("There are no more steps to execute");
+                    log.debug("There are no more steps to execute.");
                 }
 
                 // if no step failed at authentication we should do post authentication work (e.g.
@@ -160,7 +158,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (context.isRequestAuthenticated()) {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Request is successfully authenticated");
+                        log.debug("Request is successfully authenticated.");
                     }
 
                     context.getSequenceConfig().setCompleted(true);
@@ -170,7 +168,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 // we should get out of steps now.
                 if (log.isDebugEnabled()) {
-                    log.debug("Step processing is completed");
+                    log.debug("Step processing is completed.");
                 }
                 continue;
             }
@@ -663,9 +661,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return ArrayList<string>
      */
     protected List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
-                                                 Map<String, String> extAttributesValueMap,
-                                                 String idpRoleClaimUri,
-                                                 Boolean excludeUnmapped) throws FrameworkException {
+                                                             Map<String, String> extAttributesValueMap,
+                                                             String idpRoleClaimUri,
+                                                             Boolean excludeUnmapped) throws FrameworkException {
 
         if (idpRoleClaimUri == null) {
             // Since idpRoleCalimUri is not defined cannot do role mapping.
@@ -676,10 +674,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             return new ArrayList<>();
         }
 
-        String idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        String idpRoleAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        }
 
         String[] idpRoles;
-
         if (idpRoleAttrValue != null) {
             idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
         } else {
