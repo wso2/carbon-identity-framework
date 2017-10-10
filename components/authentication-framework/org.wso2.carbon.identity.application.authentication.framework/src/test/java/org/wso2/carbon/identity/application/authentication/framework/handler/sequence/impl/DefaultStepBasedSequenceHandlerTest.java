@@ -17,9 +17,9 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioning
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,6 @@ import static org.testng.Assert.fail;
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class})
 public class DefaultStepBasedSequenceHandlerTest {
 
-    @Spy
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
 
     @Mock
@@ -101,6 +101,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @BeforeMethod
     public void setUp() throws Exception {
         initMocks(this);
+        stepBasedSequenceHandler = spy(new DefaultStepBasedSequenceHandler());
         context = spy(new AuthenticationContext());
     }
 
@@ -288,9 +289,99 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "idpMappedUserRoleDataProvider")
     public Object[][] getIdpMappedUserRolesData() {
+
+        final String IDP_ROLE_CLAIM_URI = "idpClaimURI";
+        final String[] idpRoles = new String[]{"IDP_ROLE1", "IDP_ROLE2", "IDP_ROLE3"};
+        final String[] localRoles = new String[]{"LOCAL_ROLE1", "LOCAL_ROLE2", "LOCAL_ROLE3"};
+        final String MULTI_ATTRIBUTE_SEPARATOR_1 = ",";
+        final String MULTI_ATTRIBUTE_SEPARATOR_2 = ",,,";
+
         return new Object[][]{
-                // IDP mapped user role is null
-                {null, null, true, null}
+                // AttributeValueMap, IDP Role Claim URI, Exclude Unmapped Roles, Multi Attribute Separator,
+                // IDP to Local Role mappings, Expected Output
+                {
+                        // IDP Role Claim URI is null
+                        null,
+                        null,
+                        true,
+                        MULTI_ATTRIBUTE_SEPARATOR_1,
+                        null,
+                        Collections.emptyList()
+                },
+                {
+                        // IDP Role Claim URI defined but cannot find the value in attributeValueMap
+                        null,
+                        IDP_ROLE_CLAIM_URI,
+                        true,
+                        MULTI_ATTRIBUTE_SEPARATOR_1,
+                        null,
+                        Collections.emptyList()
+                },
+                {
+                        // No IDP to Local claim mappings and exclude unmapped roles
+                        new HashMap<String, String>() {{
+                            put(IDP_ROLE_CLAIM_URI, StringUtils.join(idpRoles, MULTI_ATTRIBUTE_SEPARATOR_1));
+                        }},
+                        IDP_ROLE_CLAIM_URI,
+                        true,
+                        MULTI_ATTRIBUTE_SEPARATOR_1,
+                        null,
+                        Collections.emptyList()
+                },
+                {
+                        // No IDP to Local claim mappings and we do not exclude unmapped roles
+                        new HashMap<String, String>() {{
+                            put(IDP_ROLE_CLAIM_URI, StringUtils.join(idpRoles, MULTI_ATTRIBUTE_SEPARATOR_2));
+                        }},
+                        IDP_ROLE_CLAIM_URI,
+                        false,
+                        MULTI_ATTRIBUTE_SEPARATOR_2,
+                        null,
+                        Arrays.asList(idpRoles)
+                },
+                {
+                        // Complete IDP to Local Role Mappings available
+                        new HashMap<String, String>() {{
+                            put(IDP_ROLE_CLAIM_URI, StringUtils.join(idpRoles, MULTI_ATTRIBUTE_SEPARATOR_2));
+                        }},
+                        IDP_ROLE_CLAIM_URI,
+                        false,
+                        MULTI_ATTRIBUTE_SEPARATOR_2,
+                        new HashMap<String, String>() {{
+                            for (int index = 0; index < idpRoles.length; index++) {
+                                put(idpRoles[index], localRoles[index]);
+                            }
+                        }},
+                        Arrays.asList(localRoles)
+                },
+                {
+                        // Partial IDP to Local Role Mappings available and we do not exclude unmapped roles
+                        new HashMap<String, String>() {{
+                            put(IDP_ROLE_CLAIM_URI, StringUtils.join(idpRoles, MULTI_ATTRIBUTE_SEPARATOR_2));
+                        }},
+                        IDP_ROLE_CLAIM_URI,
+                        false,
+                        MULTI_ATTRIBUTE_SEPARATOR_2,
+                        new HashMap<String, String>() {{
+                            put(idpRoles[0], localRoles[0]);
+                            put(idpRoles[1], localRoles[1]);
+                        }},
+                        Arrays.asList(localRoles[0], localRoles[1], idpRoles[2])
+                },
+                {
+                        // Partial IDP to Local Role Mappings available and we exclude unmapped roles
+                        new HashMap<String, String>() {{
+                            put(IDP_ROLE_CLAIM_URI, StringUtils.join(idpRoles, MULTI_ATTRIBUTE_SEPARATOR_2));
+                        }},
+                        IDP_ROLE_CLAIM_URI,
+                        true,
+                        MULTI_ATTRIBUTE_SEPARATOR_2,
+                        new HashMap<String, String>() {{
+                            put(idpRoles[0], localRoles[0]);
+                            put(idpRoles[1], localRoles[1]);
+                        }},
+                        Arrays.asList(localRoles[0], localRoles[1])
+                }
         };
     }
 
@@ -298,9 +389,15 @@ public class DefaultStepBasedSequenceHandlerTest {
     public void testGetIdentityProviderMappedUserRoles(Map<String, String> attributeValueMap,
                                                        String idpRoleClaimUri,
                                                        boolean excludeUnmapped,
+                                                       String multiAttributeSeparator,
+                                                       Map<String, String> idpToLocalRoleMappings,
                                                        List<String> expected) throws Exception {
 
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
+
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
+        when(externalIdPConfig.getRoleMappings()).thenReturn(idpToLocalRoleMappings);
 
         List<String> mappedUserRoles = stepBasedSequenceHandler.getIdentityProvideMappedUserRoles(externalIdPConfig,
                 attributeValueMap, idpRoleClaimUri, excludeUnmapped);
@@ -385,7 +482,6 @@ public class DefaultStepBasedSequenceHandlerTest {
         };
     }
 
-
     @Test(dataProvider = "jitProvisioningDataProvider")
     public void testHandleJitProvisioning(String provisioningUserStoreId,
                                           String provisioningUserStoreClaimUri,
@@ -405,7 +501,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doNothing().when(provisioningHandler).handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
 
         // Mock framework util to returned mocked provisoning handler
-        returnMockedProvisoningHandlerFromFramework(provisioningHandler);
+        returnMockProvisioningHandler(provisioningHandler);
         mockHandlerThreadLocalProvisioningServiceProvider();
 
         stepBasedSequenceHandler.handleJitProvisioning(subjectIdentifier, context, mappedRoles, externalAttributeValues);
@@ -440,7 +536,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         when(externalIdPConfig.getProvisioningUserStoreId()).thenReturn(provisioningUserStoreId);
         when(externalIdPConfig.getProvisioningUserStoreClaimURI()).thenReturn(provisioningUserStoreClaimUri);
 
-        ApplicationConfig applicationConfig = new ApplicationConfig(mock(ServiceProvider.class));
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
         applicationConfig.setApplicationName("DUMMY_NAME");
 
         SequenceConfig sequenceConfig = new SequenceConfig();
@@ -466,7 +562,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doThrow(new FrameworkException("Provisioning Failed"))
                 .when(provisioningHandler).handle(anyList(), anyString(), anyMap(), anyString(), anyString());
 
-        returnMockedProvisoningHandlerFromFramework(provisioningHandler);
+        returnMockProvisioningHandler(provisioningHandler);
 
         try {
             stepBasedSequenceHandler
@@ -476,10 +572,10 @@ public class DefaultStepBasedSequenceHandlerTest {
         }
     }
 
-    private void returnMockedProvisoningHandlerFromFramework(ProvisioningHandler provisioningHandler) throws FrameworkException {
+    private void returnMockProvisioningHandler(ProvisioningHandler mockProvisioningHandler) throws FrameworkException {
         // Mock framework util to returned mocked provisioning handler
         mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getProvisioningHandler()).thenReturn(provisioningHandler);
+        when(FrameworkUtils.getProvisioningHandler()).thenReturn(mockProvisioningHandler);
     }
 
     /**
@@ -564,17 +660,18 @@ public class DefaultStepBasedSequenceHandlerTest {
         return new Object[][]{
                 {
                         // Intermediate step is authenticated
-                        true
+                        true, true
                 },
                 {
                         // Intermediate step failed to authenticate
-                        false
+                        false, false
                 }
         };
     }
 
     @Test(dataProvider = "stepData")
-    public void testHandleIntermediateStep(boolean secondStepAuthenticated) throws Exception {
+    public void testHandleLastStep(boolean isRequestAuthenticated,
+                                   boolean isOverallAuthenticationSucceeded) throws Exception {
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepHandler()).thenReturn(stepHandler);
@@ -597,9 +694,12 @@ public class DefaultStepBasedSequenceHandlerTest {
         // currently we have completed second step
         context.setCurrentStep(2);
         context.setSequenceConfig(sequenceConfig);
-        context.setRequestAuthenticated(secondStepAuthenticated);
+        context.setRequestAuthenticated(isRequestAuthenticated);
 
         stepBasedSequenceHandler.handle(request, response, context);
+        assertResetContext(context);
+        assertEquals(context.isRequestAuthenticated(), isOverallAuthenticationSucceeded);
+        assertTrue(context.getSequenceConfig().isCompleted());
     }
 
     @Test
