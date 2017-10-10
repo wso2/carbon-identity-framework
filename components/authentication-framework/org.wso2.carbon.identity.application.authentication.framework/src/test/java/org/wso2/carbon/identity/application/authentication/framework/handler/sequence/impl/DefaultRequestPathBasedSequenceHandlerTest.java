@@ -20,7 +20,6 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -64,6 +63,8 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
 public class DefaultRequestPathBasedSequenceHandlerTest {
@@ -94,9 +95,6 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     public void setUp() throws Exception {
 
         initMocks(this);
-//        mockStatic(FrameworkUtils.class);
-//        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-
         requestPathBasedSequenceHandler = new DefaultRequestPathBasedSequenceHandler();
         // Mock authentication context and sequence config for request path authentication
         context = new AuthenticationContext();
@@ -136,7 +134,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(false);
         requestPathBasedSequenceHandler.handle(request, response, context);
-        Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
+        assertEquals(context.getSequenceConfig().isCompleted(), true);
     }
 
     /*
@@ -150,7 +148,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                 .when(requestPathAuthenticator).process(request, response, context);
 
         requestPathBasedSequenceHandler.handle(request, response, context);
-        Assert.assertEquals(context.isRequestAuthenticated(), false);
+        assertEquals(context.isRequestAuthenticated(), false);
     }
 
     /*
@@ -165,7 +163,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                 .when(requestPathAuthenticator).process(request, response, context);
 
         requestPathBasedSequenceHandler.handle(request, response, context);
-        Assert.assertEquals(context.isRequestAuthenticated(), false);
+        assertEquals(context.isRequestAuthenticated(), false);
     }
 
     /*
@@ -210,18 +208,18 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
         requestPathBasedSequenceHandler.handle(request, response, context);
 
-        Assert.assertEquals(context.getSequenceConfig().isCompleted(), true);
-        Assert.assertNotNull(context.getCurrentAuthenticatedIdPs());
-        Assert.assertEquals(context.getCurrentAuthenticatedIdPs().size(), 1);
+        assertEquals(context.getSequenceConfig().isCompleted(), true);
+        assertNotNull(context.getCurrentAuthenticatedIdPs());
+        assertEquals(context.getCurrentAuthenticatedIdPs().size(), 1);
 
         AuthenticatedIdPData authenticatedIdPData = context.getCurrentAuthenticatedIdPs()
                 .get(FrameworkConstants.LOCAL_IDP_NAME);
 
-        Assert.assertNotNull(authenticatedIdPData);
-        Assert.assertEquals(authenticatedIdPData.getIdpName(), FrameworkConstants.LOCAL_IDP_NAME);
-        Assert.assertNotNull(authenticatedIdPData.getUser());
-        Assert.assertEquals(authenticatedIdPData.getUser().getAuthenticatedSubjectIdentifier(), subjectIdentifier);
-        Assert.assertEquals(authenticatedIdPData.getAuthenticator(), authenticatorConfig);
+        assertNotNull(authenticatedIdPData);
+        assertEquals(authenticatedIdPData.getIdpName(), FrameworkConstants.LOCAL_IDP_NAME);
+        assertNotNull(authenticatedIdPData.getUser());
+        assertEquals(authenticatedIdPData.getUser().getAuthenticatedSubjectIdentifier(), subjectIdentifier);
+        assertEquals(authenticatedIdPData.getAuthenticator(), authenticatorConfig);
     }
 
     @DataProvider
@@ -334,8 +332,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
         requestPathBasedSequenceHandler.handlePostAuthentication(request, response, context, idPData);
 
-        Assert.assertNotNull(context.getSequenceConfig().getAuthenticatedUser());
-        Assert.assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), expectedSubjectIdentifier);
+        assertNotNull(context.getSequenceConfig().getAuthenticatedUser());
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), expectedSubjectIdentifier);
     }
 
     @DataProvider(name = "spRoleMappingDataProvider")
@@ -351,7 +349,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         String mappedRoles = requestPathBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
-        Assert.assertEquals(mappedRoles, expectedRoles);
+        assertEquals(mappedRoles, expectedRoles);
     }
 
     @DataProvider(name = "spRoleClaimUriProvider")
@@ -371,7 +369,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
-        Assert.assertEquals(requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
+        assertEquals(requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
     }
 
     @DataProvider(name = "spClaimMappingProvider")
@@ -407,7 +405,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
         String roleClaim = requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, expectedRoleClaim);
+        assertEquals(roleClaim, expectedRoleClaim);
     }
 
     @Test
@@ -421,8 +419,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
 
         Map<String, String> claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
-        Assert.assertNotNull(claims);
-        Assert.assertEquals(claims.size(), 0);
+        assertNotNull(claims);
+        assertEquals(claims.size(), 0);
     }
 
     @Test
@@ -439,7 +437,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
 
         claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
-        Assert.assertNotNull(claims);
+        assertNotNull(claims);
     }
 
     @Test
@@ -454,7 +452,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
 
         Map<String, String> claims = requestPathBasedSequenceHandler.handleClaimMappings(new AuthenticationContext());
-        Assert.assertNotNull(claims);
-        Assert.assertEquals(claims.size(), 0);
+        assertNotNull(claims);
+        assertEquals(claims.size(), 0);
     }
 }

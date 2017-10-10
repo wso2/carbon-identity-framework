@@ -20,7 +20,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -54,6 +53,10 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 @PrepareForTest(FrameworkUtils.class)
 public class DefaultStepBasedSequenceHandlerTest {
@@ -104,7 +107,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         String mappedRoles = stepBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
-        Assert.assertEquals(mappedRoles, expectedRoles, "Service Provider Mapped Role do not have the expect value.");
+        assertEquals(mappedRoles, expectedRoles, "Service Provider Mapped Role do not have the expect value.");
     }
 
     @DataProvider(name = "spRoleClaimUriProvider")
@@ -124,7 +127,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                                       String expectedRoleClaimUri) throws Exception {
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
-        Assert.assertEquals(stepBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
+        assertEquals(stepBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
     }
 
     @DataProvider(name = "spClaimMappingProvider")
@@ -160,7 +163,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
         String roleClaim = stepBasedSequenceHandler.getSpRoleClaimUri(appConfig);
-        Assert.assertEquals(roleClaim, expectedRoleClaim);
+        assertEquals(roleClaim, expectedRoleClaim);
     }
 
     @DataProvider(name = "idpRoleClaimUriProvider")
@@ -181,7 +184,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getRoleClaimUri()).thenReturn(idpRoleClaimUri);
-        Assert.assertEquals(stepBasedSequenceHandler.getIdpRoleClaimUri(externalIdPConfig), expectedRoleClaimUri);
+        assertEquals(stepBasedSequenceHandler.getIdpRoleClaimUri(externalIdPConfig), expectedRoleClaimUri);
     }
 
     @DataProvider(name = "idpClaimMappingProvider")
@@ -222,7 +225,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
 
         String roleClaim = stepBasedSequenceHandler.getIdpRoleClaimUri(externalIdPConfig);
-        Assert.assertEquals(roleClaim, expectedRoleClaimUri);
+        assertEquals(roleClaim, expectedRoleClaimUri);
 
     }
 
@@ -237,7 +240,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                 new AuthenticationContext(),
                 new HashMap<String, String>(),
                 false);
-        Assert.assertNotNull(claims);
+        assertNotNull(claims);
     }
 
     @Test
@@ -257,8 +260,8 @@ public class DefaultStepBasedSequenceHandlerTest {
                 new HashMap<String, String>(),
                 false);
 
-        Assert.assertNotNull(claims);
-        Assert.assertEquals(claims.size(), 0);
+        assertNotNull(claims);
+        assertEquals(claims.size(), 0);
     }
 
     @DataProvider(name = "idpMappedUserRoleDataProvider")
@@ -290,7 +293,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         Collections.sort(mappedUserRoles);
         Collections.sort(expected);
-        Assert.assertEquals(mappedUserRoles, expected);
+        assertEquals(mappedUserRoles, expected);
     }
 
     @Test
@@ -311,13 +314,13 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         stepBasedSequenceHandler.resetAuthenticationContext(context);
 
-        Assert.assertNull(context.getSubject());
-        Assert.assertNull(context.getStateInfo());
-        Assert.assertNull(context.getExternalIdP());
-        Assert.assertEquals(context.getAuthenticatorProperties().size(), 0);
-        Assert.assertEquals(context.getRetryCount(), 0);
-        Assert.assertFalse(context.isRetrying());
-        Assert.assertNull(context.getCurrentAuthenticator());
+        assertNull(context.getSubject());
+        assertNull(context.getStateInfo());
+        assertNull(context.getExternalIdP());
+        assertEquals(context.getAuthenticatorProperties().size(), 0);
+        assertEquals(context.getRetryCount(), 0);
+        assertFalse(context.isRetrying());
+        assertNull(context.getCurrentAuthenticator());
     }
 
 }

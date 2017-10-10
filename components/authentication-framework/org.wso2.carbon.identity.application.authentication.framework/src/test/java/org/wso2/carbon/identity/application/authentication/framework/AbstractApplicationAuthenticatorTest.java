@@ -42,6 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({UserCoreUtil.class, FileBasedConfigurationBuilder.class, LogFactory.class})
 public class AbstractApplicationAuthenticatorTest {
@@ -77,25 +78,6 @@ public class AbstractApplicationAuthenticatorTest {
         doCallRealMethod().when(abstractApplicationAuthenticator).process(request, response, context);
     }
 
-//    @Test(expectedExceptions = AuthenticationFailedException.class)
-//    public void testAuthenticationFailedWhenLoginRequest() throws Exception {
-//
-//        // login request
-//        when(context.isLogoutRequest()).thenReturn(false);
-//
-//        // can handle
-//        doReturn(true).when(abstractApplicationAuthenticator).canHandle(request);
-//
-////        AuthenticationFailedException authenticationFailedException = new AuthenticationFailedException("");
-//        doThrow().when(abstractApplicationAuthenticator)
-//                .processAuthenticationResponse(request, response, context);
-//
-//        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
-//        // no multi options, no retry for this authenticator
-//        abstractApplicationAuthenticator.process(request, response, context);
-//    }
-
-
     /**
      * Test login request processing by an authenticator. The authenticator cannot handle the login request
      */
@@ -109,8 +91,8 @@ public class AbstractApplicationAuthenticatorTest {
         doNothing().when(abstractApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(context.getCurrentAuthenticator(), abstractApplicationAuthenticator.getName());
-        Assert.assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
+        assertEquals(context.getCurrentAuthenticator(), abstractApplicationAuthenticator.getName());
+        assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
     }
 
 
@@ -126,8 +108,8 @@ public class AbstractApplicationAuthenticatorTest {
         doNothing().when(abstractApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(context.getCurrentAuthenticator(), abstractApplicationAuthenticator.getName());
-        Assert.assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
+        assertEquals(context.getCurrentAuthenticator(), abstractApplicationAuthenticator.getName());
+        assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
     }
 
 
@@ -142,7 +124,7 @@ public class AbstractApplicationAuthenticatorTest {
         doNothing().when(abstractApplicationAuthenticator).processLogoutResponse(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
+        assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
     }
 
     @Test
@@ -156,7 +138,7 @@ public class AbstractApplicationAuthenticatorTest {
         doNothing().when(abstractApplicationAuthenticator).initiateLogoutRequest(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
+        assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
     }
 
     /**
@@ -174,7 +156,7 @@ public class AbstractApplicationAuthenticatorTest {
 
         // case1 canHandle
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
+        assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
     }
 
 
@@ -192,7 +174,7 @@ public class AbstractApplicationAuthenticatorTest {
 
         // case2 can't Handle
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
-        Assert.assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
+        assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -260,6 +242,6 @@ public class AbstractApplicationAuthenticatorTest {
         when(UserCoreUtil.getDomainFromThreadLocal()).thenReturn(threadLocalUserStoreDomain);
         String username = abstractApplicationAuthenticator.getUserStoreAppendedName(testedUserName);
 
-        Assert.assertEquals(username, expectedUserName);
+        assertEquals(username, expectedUserName);
     }
 }

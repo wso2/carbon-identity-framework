@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
-import org.junit.Assert;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
@@ -31,6 +30,8 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
 public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
@@ -59,7 +60,6 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     public void testHandle() throws Exception {
     }
 
-
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
@@ -87,7 +87,7 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     @Test
     public void testGeneratePassword() throws Exception {
         String randomPassword = provisioningHandler.generatePassword();
-        Assert.assertNotNull(randomPassword);
-        Assert.assertEquals(randomPassword.length(), 12);
+        assertNotNull(randomPassword);
+        assertEquals(randomPassword.length(), 12);
     }
 }

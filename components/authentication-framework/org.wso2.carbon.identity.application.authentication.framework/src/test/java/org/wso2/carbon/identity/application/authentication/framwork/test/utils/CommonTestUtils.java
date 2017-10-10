@@ -16,8 +16,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framwork.test.utils;
 
-import org.junit.Assert;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Hold common utility methods
@@ -27,13 +29,11 @@ public class CommonTestUtils {
     private CommonTestUtils() {
     }
 
-
     public static void testSingleton(Object instance, Object anotherInstance) {
-        Assert.assertNotNull(instance);
-        Assert.assertNotNull(anotherInstance);
-        Assert.assertEquals(instance, anotherInstance);
+        assertNotNull(instance);
+        assertNotNull(anotherInstance);
+        assertEquals(instance, anotherInstance);
     }
-
 
     public static void initPrivilegedCarbonContext() throws Exception {
         System.setProperty("carbon.home", "");
