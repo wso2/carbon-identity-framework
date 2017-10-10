@@ -98,14 +98,14 @@ public class AbstractEventHandlerTest {
         subscriptionList.add(new Subscription("testEvent", new Properties()));
         isAssociationAsync = testEventHandler.isAssociationAsync("testEvent");
 
-        Assert.assertFalse(isAssociationAsync, "testEvent is not an asynchronous event");
+        Assert.assertFalse(isAssociationAsync, "testEvent is an asynchronous event");
 
         Properties asyncProperties = new Properties();
         asyncProperties.setProperty("TestEventHandler.subscription.testAsyncEvent.operationAsync", "true");
         subscriptionList.add(new Subscription("testAsyncEvent", asyncProperties));
 
         isAssociationAsync = testEventHandler.isAssociationAsync("testAsyncEvent");
-        Assert.assertTrue(isAssociationAsync, "testAsyncEvent is an asynchronous event");
+        Assert.assertTrue(isAssociationAsync, "testAsyncEvent is not an asynchronous event");
     }
 
     private class TestEventHandler extends AbstractEventHandler {
