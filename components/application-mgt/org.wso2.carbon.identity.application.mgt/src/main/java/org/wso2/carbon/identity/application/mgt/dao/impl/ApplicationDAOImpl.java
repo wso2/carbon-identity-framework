@@ -361,10 +361,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     serviceProvider.getOutboundProvisioningConfig(), connection);
 
             deletePermissionAndRoleConfiguration(applicationId, connection);
-            updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
-                    serviceProvider.getPermissionAndRoleConfig(), connection);
-            deleteAssignedPermissions(connection, serviceProvider.getApplicationName(),
-                    serviceProvider.getPermissionAndRoleConfig().getPermissions());
+
+            if (serviceProvider.getPermissionAndRoleConfig() != null) {
+                updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
+                        serviceProvider.getPermissionAndRoleConfig(), connection);
+                deleteAssignedPermissions(connection, serviceProvider.getApplicationName(),
+                        serviceProvider.getPermissionAndRoleConfig().getPermissions());
+            }
 
             if (serviceProvider.getSpProperties() != null) {
                 updateServiceProviderProperties(connection, applicationId, Arrays.asList(serviceProvider
@@ -596,6 +599,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     private void updateInboundProvisioningConfiguration(int applicationId,
                                                         InboundProvisioningConfig inBoundProvisioningConfig, Connection connection)
             throws SQLException {
+
+        if (inBoundProvisioningConfig == null) {
+            return;
+        }
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         PreparedStatement inboundProConfigPrepStmt = null;
@@ -1212,9 +1219,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                                                       PermissionsAndRoleConfig permissionsAndRoleConfiguration, Connection connection)
             throws SQLException {
 
-        if (permissionsAndRoleConfiguration == null
-                || permissionsAndRoleConfiguration.getRoleMappings() == null
-                || permissionsAndRoleConfiguration.getRoleMappings().length == 0) {
+        if (permissionsAndRoleConfiguration == null || permissionsAndRoleConfiguration.getRoleMappings() == null ||
+                ArrayUtils.isEmpty(permissionsAndRoleConfiguration.getRoleMappings())) {
             return;
         }
 

@@ -28,7 +28,7 @@
             <order>60</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/pap</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pap/policy/view</require-permission>
         </menu>
 		<menu>         
             <id>policy_pap_menu</id>
@@ -40,7 +40,7 @@
             <order>5</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policies.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/pap</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pap/policy/view</require-permission>
         </menu>
         <menu>
             <id>policy_publish_menu</id>
@@ -52,7 +52,7 @@
             <order>9</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/publish.gif</icon>
-            <require-permission>//permission/admin/manage/identity/entitlement/pap</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pap/subscriber</require-permission>
         </menu>
 
         <!--  PDP -->
@@ -66,7 +66,7 @@
             <order>70</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp/view</require-permission>
         </menu>
         <menu>
             <id>pdp_policy_menu</id>
@@ -78,7 +78,7 @@
             <order>6</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policies.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp/view</require-permission>
         </menu>
 		<menu>
             <id>pdp_config_menu</id>
@@ -90,7 +90,7 @@
             <order>7</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/config.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp/view</require-permission>
         </menu>
          <menu>
             <id>policy_search_menu</id>

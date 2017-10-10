@@ -281,7 +281,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
 
-            ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
                     .PATH_SEPARATOR + storedAppName;
             org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
@@ -292,8 +291,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, serviceProvider.getApplicationName());
             }
 
-            if (ArrayUtils.isNotEmpty(permissions)) {
-                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(), permissions);
+            if (serviceProvider.getPermissionAndRoleConfig() != null &&
+                    ArrayUtils.isNotEmpty(serviceProvider.getPermissionAndRoleConfig().getPermissions())) {
+                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(),
+                        serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
         } catch (Exception e) {
             String error = "Error occurred while updating the application: " + serviceProvider.getApplicationName();
@@ -825,40 +826,39 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         } finally {
             endTenantFlow();
-            startTenantFlow(tenantDomain);
         }
 
-        if (serviceProviderName != null) {
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
+        try {
+            startTenantFlow(tenantDomain);
+            if (serviceProviderName != null) {
+                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+                serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
-            if (serviceProvider != null) {
-                // if "Authentication Type" is "Default" we must get the steps from the default SP
-                AuthenticationStep[] authenticationSteps = serviceProvider
-                        .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+                if (serviceProvider != null) {
+                    // if "Authentication Type" is "Default" we must get the steps from the default SP
+                    AuthenticationStep[] authenticationSteps = serviceProvider
+                            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
 
-                loadApplicationPermissions(serviceProviderName, serviceProvider);
+                    loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-                if (authenticationSteps == null || authenticationSteps.length == 0) {
-                    ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                            .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                            .getAuthenticationSteps();
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                            .setAuthenticationSteps(authenticationSteps);
+                    if (authenticationSteps == null || authenticationSteps.length == 0) {
+                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                                .getAuthenticationSteps();
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationSteps(authenticationSteps);
+                    }
                 }
             }
-        }
 
-        if (serviceProvider == null
-            && serviceProviderName != null
-            && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                serviceProviderName)) {
-            serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                    serviceProviderName);
+            if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
+                    .getFileBasedSPs().containsKey(serviceProviderName)) {
+                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
+            }
+        } finally {
+            endTenantFlow();
         }
-
-        endTenantFlow();
 
         try {
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);

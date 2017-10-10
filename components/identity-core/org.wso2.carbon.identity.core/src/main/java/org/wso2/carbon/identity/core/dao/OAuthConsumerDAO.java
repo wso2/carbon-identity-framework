@@ -34,15 +34,17 @@ public class OAuthConsumerDAO extends AbstractDAO<OAuthConsumerDO> {
     protected Log log = LogFactory.getLog(OAuthConsumerDAO.class);
 
     /**
-     * @param registry
+     * @param registry registry instance
      */
     public OAuthConsumerDAO(Registry registry) {
         this.registry = registry;
     }
 
     /**
-     * @param ppid
-     * @throws IdentityException
+     * Register an oAuth consumer.
+     *
+     * @param consumer oauth consumer
+     * @throws IdentityException if error occurs while registering the consumer
      */
     public void registerOAuthConsumer(OAuthConsumerDO consumer) throws IdentityException {
 
@@ -97,9 +99,11 @@ public class OAuthConsumerDAO extends AbstractDAO<OAuthConsumerDO> {
     }
 
     /**
-     * @param ppid
-     * @return
-     * @throws IdentityException
+     * Returns oAuth consumer secret for a give consumer key.
+     *
+     * @param consumerKey consumer key
+     * @return oAuth consumer secret
+     * @throws IdentityException if error occurs while obtaining the consumer secret
      */
     public String getOAuthConsumerSecret(String consumerKey) throws IdentityException {
         String path = null;

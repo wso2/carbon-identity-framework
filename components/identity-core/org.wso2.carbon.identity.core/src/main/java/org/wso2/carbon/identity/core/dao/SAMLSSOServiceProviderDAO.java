@@ -70,6 +70,18 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     .PROP_SAML_SSO_DIGEST_ALGORITHM));
         }
 
+        if (StringUtils.isNotEmpty(resource.getProperty(IdentityRegistryResources
+                .PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM))) {
+            serviceProviderDO.setAssertionEncryptionAlgorithmUri(resource.getProperty(IdentityRegistryResources
+                    .PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM));
+        }
+
+        if (StringUtils.isNotEmpty(resource.getProperty(IdentityRegistryResources
+                .PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM))) {
+            serviceProviderDO.setKeyEncryptionAlgorithmUri(resource.getProperty(IdentityRegistryResources
+                    .PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM));
+        }
+
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT) != null) {
             serviceProviderDO.setDoSingleLogout(new Boolean(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT).trim()));
@@ -240,6 +252,10 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 .getSigningAlgorithmUri());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM, serviceProviderDO
                 .getDigestAlgorithmUri());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO
+                .getAssertionEncryptionAlgorithmUri());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM, serviceProviderDO
+                .getKeyEncryptionAlgorithmUri());
         if (serviceProviderDO.getNameIdClaimUri() != null
                 && serviceProviderDO.getNameIdClaimUri().trim().length() > 0) {
             resource.addProperty(

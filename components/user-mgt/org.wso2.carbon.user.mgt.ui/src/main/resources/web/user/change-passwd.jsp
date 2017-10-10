@@ -58,6 +58,14 @@
         username = (String) session.getAttribute("logged-user");
     }
 
+    String displayName = request.getParameter("displayName");
+    if (StringUtils.isBlank(displayName)) {
+        displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
+        if (StringUtils.isBlank(displayName)) {
+            displayName = username;
+        }
+    }
+
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
@@ -187,7 +195,7 @@
     </script>
     <jsp:include page="../userstore/display-messages.jsp"/>
     <div id="middle">
-        <h2><fmt:message key="change.password"/></h2>
+        <h2><fmt:message key="change.password.for.user"/> <%=Encode.forHtml(displayName)%></h2>
 
         <div id="workArea">
             <form name="chgPassWdForm" method="post"
