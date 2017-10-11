@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -92,6 +93,9 @@ public class DefaultStepBasedSequenceHandlerTest {
     private AuthenticationContext context;
 
     private ThreadLocalProvisioningServiceProvider threadLocalProvisioningSp;
+
+    private static final String FOO_TENANT = "foo.com";
+    private static final String XY_USER_STORE_DOMAIN = "XY";
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -782,5 +786,148 @@ public class DefaultStepBasedSequenceHandlerTest {
         assertResetContext(context);
         assertTrue(context.getSequenceConfig().isCompleted());
         assertFalse(context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).isRetrying());
+    }
+
+    @DataProvider(name = "postAuthenticationDataProvider")
+    public Object[][] providePostAuthenticationSubjectIdentifierData() {
+
+        final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
+        final String AUTH_USER_NAME_IN_SEQUENCE_CONFIG = "userNameInSeq";
+        final String SP_SUBJECT_CLAIM_VALUE = "spSubject";
+
+        return new Object[][]{
+                // subjectClaimUriFromAppConfig,
+                // spSubjectClaimValue,
+                // appendTenantDomainToSubject,
+                // appendUserStoreDomainToSubject,
+                // authenticatedUserNameInSequence
+                // expected subject identifier
+                {
+                        null,
+                        null,
+                        true,
+                        true,
+                        null,
+                        null
+                },
+                {
+                        // No SP Subject Claim Value
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        null,
+                        false,
+                        false,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG
+                },
+                {
+                        null,
+                        null,
+                        true,
+                        false,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addTenantDomainToEntry(AUTH_USER_NAME_IN_SEQUENCE_CONFIG, FOO_TENANT)
+                },
+                {
+                        null,
+                        null,
+                        false,
+                        true,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addDomainToName(AUTH_USER_NAME_IN_SEQUENCE_CONFIG, XY_USER_STORE_DOMAIN)
+                },
+                {
+                        null,
+                        null,
+                        true,
+                        true,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addTenantDomainToEntry(
+                                UserCoreUtil.addDomainToName(AUTH_USER_NAME_IN_SEQUENCE_CONFIG, XY_USER_STORE_DOMAIN),
+                                FOO_TENANT
+                        )
+                },
+                {
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        null,
+                        true,
+                        true,
+                        null,
+                        null
+                },
+                {
+                        // SP Subject Claim Value present with tenantDomain and UserStoreDomain appending enabled
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        SP_SUBJECT_CLAIM_VALUE,
+                        true,
+                        true,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addDomainToName(
+                                UserCoreUtil.addTenantDomainToEntry(SP_SUBJECT_CLAIM_VALUE, FOO_TENANT),
+                                XY_USER_STORE_DOMAIN
+                        )
+                },
+                {
+                        // SP Subject Claim Value present with tenantDomain appending enabled
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        SP_SUBJECT_CLAIM_VALUE,
+                        true,
+                        false,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addTenantDomainToEntry(SP_SUBJECT_CLAIM_VALUE, FOO_TENANT)
+                },
+                {
+                        // SP Subject Claim Value present with userStoreDomain appending enabled
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        SP_SUBJECT_CLAIM_VALUE,
+                        false,
+                        true,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        UserCoreUtil.addDomainToName(SP_SUBJECT_CLAIM_VALUE, XY_USER_STORE_DOMAIN)
+
+                },
+                {
+                        // SP Subject Claim Value present
+                        SUBJECT_CLAIM_URI_IN_APP_CONFIG,
+                        SP_SUBJECT_CLAIM_VALUE,
+                        false,
+                        false,
+                        AUTH_USER_NAME_IN_SEQUENCE_CONFIG,
+                        SP_SUBJECT_CLAIM_VALUE
+                }
+        };
+    }
+
+    @Test(dataProvider = "postAuthenticationDataProvider")
+    public void testHandlePostAuthenticationSubjectIdentifier(String subjectClaimUriFromAppConfig,
+                                                              String spSubjectClaimValue,
+                                                              boolean appendTenantDomainToSubject,
+                                                              boolean appendUserStoreDomainToSubject,
+                                                              String authenticatedUserNameInSequence,
+                                                              String expectedSubjectIdentifier) throws Exception {
+
+        stepBasedSequenceHandler = new DefaultStepBasedSequenceHandler();
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(new ServiceProvider()));
+        when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUriFromAppConfig);
+        when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(appendTenantDomainToSubject);
+        when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier())
+                .thenReturn(appendUserStoreDomainToSubject);
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName(authenticatedUserNameInSequence);
+        authenticatedUser.setTenantDomain(FOO_TENANT);
+        authenticatedUser.setUserStoreDomain(XY_USER_STORE_DOMAIN);
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setAuthenticatedUser(authenticatedUser);
+        sequenceConfig.setApplicationConfig(applicationConfig);
+
+        // SP subject claim value
+        context.setProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE, spSubjectClaimValue);
+        context.setSequenceConfig(sequenceConfig);
+
+        stepBasedSequenceHandler.handlePostAuthentication(request, response, context);
+
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                expectedSubjectIdentifier);
     }
 }
