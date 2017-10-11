@@ -195,8 +195,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     @SuppressWarnings("unchecked")
     protected void handlePostAuthentication(HttpServletRequest request,
-                                            HttpServletResponse response, AuthenticationContext context)
-            throws FrameworkException {
+                                            HttpServletResponse response,
+                                            AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Handling Post Authentication tasks");
@@ -504,7 +504,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
-        String subjectValue = (String) context.getProperty("ServiceProviderSubjectClaimValue");
+        String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         if (StringUtils.isNotBlank(subjectClaimURI)) {
             if (subjectValue != null) {
                 sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
@@ -512,16 +512,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
                 // append it.
                 if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addTenantDomainToEntry(subjectValue, sequenceConfig.getAuthenticatedUser()
-                                    .getTenantDomain()));
+                    String tenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+                    subjectValue = UserCoreUtil.addTenantDomainToEntry(subjectValue, tenantDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 // Check whether the user store domain should be appended to the subject identifier for this SP and
                 // if yes, append it.
                 if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addDomainToName(subjectValue, sequenceConfig.getAuthenticatedUser().getUserStoreDomain()));
+                    String userStoreDomain = sequenceConfig.getAuthenticatedUser().getUserStoreDomain();
+                    subjectValue = UserCoreUtil.addDomainToName(subjectValue, userStoreDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 if (log.isDebugEnabled()) {
