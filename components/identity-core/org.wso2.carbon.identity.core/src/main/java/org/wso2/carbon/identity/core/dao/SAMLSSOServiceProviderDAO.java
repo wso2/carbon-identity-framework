@@ -15,6 +15,7 @@
  */
 
 package org.wso2.carbon.identity.core.dao;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,12 +56,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     .PROP_SAML_SSO_SIGNING_ALGORITHM));
         }
 
-        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED) != null) {
-            serviceProviderDO.setAssertionQueryRequestProfileEnabled(new Boolean(resource.getProperty(
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED) !=
+                null) {
+            serviceProviderDO.setAssertionQueryRequestProfileEnabled(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED).trim()));
         }
 
-        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) != null) {
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) !=
+                null) {
             serviceProviderDO.setSupportedAssertionQueryRequestTypes(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES).trim());
         }
@@ -83,7 +86,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         }
 
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT) != null) {
-            serviceProviderDO.setDoSingleLogout(new Boolean(resource.getProperty(
+            serviceProviderDO.setDoSingleLogout(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT).trim()));
         }
 
@@ -94,9 +97,8 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
         if (resource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI) != null) {
-            if (new Boolean(resource.getProperty(
-                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI)
-                    .trim())) {
+            if (Boolean.valueOf(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI).trim())) {
                 serviceProviderDO.setNameIdClaimUri(resource.
                         getProperty(IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI));
             }
@@ -106,7 +108,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 getProperty(IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL));
 
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE) != null) {
-            serviceProviderDO.setDoSignResponse(new Boolean(resource.getProperty(
+            serviceProviderDO.setDoSignResponse(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE).trim()));
         }
 
@@ -118,7 +120,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         }
 
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS) != null) {
-            serviceProviderDO.setDoSignAssertions(new Boolean(resource.getProperty(
+            serviceProviderDO.setDoSignAssertions(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
         }
 
@@ -151,18 +153,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT) != null) {
             String enableAttrByDefault = resource
                     .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT);
-            if ("true".equals(enableAttrByDefault)) {
-                serviceProviderDO.setEnableAttributesByDefault(true);
-            } else {
-                serviceProviderDO.setEnableAttributesByDefault(false);
-            }
+            serviceProviderDO.setEnableAttributesByDefault(Boolean.valueOf(enableAttrByDefault));
         }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED) != null) {
-            serviceProviderDO.setIdPInitSSOEnabled(new Boolean(resource.getProperty(
+            serviceProviderDO.setIdPInitSSOEnabled(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED).trim()));
         }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED) != null) {
-            serviceProviderDO.setIdPInitSLOEnabled(new Boolean(resource.getProperty(
+            serviceProviderDO.setIdPInitSLOEnabled(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED).trim()));
             if (serviceProviderDO.isIdPInitSLOEnabled() && resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS) != null) {
@@ -171,11 +169,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
         }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION) != null) {
-            serviceProviderDO.setDoEnableEncryptedAssertion(new Boolean(resource.getProperty(
+            serviceProviderDO.setDoEnableEncryptedAssertion(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION).trim()));
         }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS) != null) {
-            serviceProviderDO.setDoValidateSignatureInRequests(new Boolean(resource.getProperty(
+            serviceProviderDO.setDoValidateSignatureInRequests(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS).trim()));
         }
         return serviceProviderDO;
@@ -305,7 +303,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX,
                     serviceProviderDO.getAttributeConsumingServiceIndex());
         }
-        if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedAudiencesList()) ) {
+        if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedAudiencesList())) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES,
                     serviceProviderDO.getRequestedAudiencesList());
         }
@@ -357,7 +355,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     }
 
     /**
-     * Remove the service provider with the given name
+     * Remove the service provider with the given name.
      *
      * @param issuer
      * @throws IdentityException
@@ -401,7 +399,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     }
 
     /**
-     * Get the service provider
+     * Get the service provider.
      *
      * @param issuer
      * @return
@@ -416,7 +414,8 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String tenantDomain = null;
         try {
             userRegistry = (UserRegistry) registry;
-            tenantDomain = IdentityTenantUtil.getRealmService().getTenantManager().getDomain(userRegistry.getTenantId());
+            tenantDomain = IdentityTenantUtil.getRealmService().getTenantManager().getDomain(userRegistry.
+                    getTenantId());
             if (registry.resourceExists(path)) {
                 serviceProviderDO = resourceToObject(registry.get(path));
                 serviceProviderDO.setTenantDomain(tenantDomain);
@@ -448,15 +447,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     }
 
     /**
-     * Upload service Provider
+     * Upload service Provider.
      *
      * @param serviceProviderDO
      * @return
      * @throws IdentityException
      */
-
-
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
+            IdentityException {
 
         if (serviceProviderDO.getIssuer() != null && serviceProviderDO.getAssertionConsumerUrl() != null) {
             String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO
