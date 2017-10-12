@@ -68,7 +68,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
-//    private static String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -119,8 +118,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // if the request didn't fail during the step execution
                 if (context.isRequestAuthenticated()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Step " + stepConfig.getOrder()
-                                + " is completed. Going to get the next one.");
+                        log.debug("Step " + stepConfig.getOrder() + " is completed. Going to get the next one.");
                     }
 
                     currentStep = context.getCurrentStep() + 1;
@@ -130,8 +128,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 } else {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authentication has failed in the Step "
-                                + (context.getCurrentStep()));
+                        log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
 
                     // if the step contains multiple login options, we should give the user to retry
@@ -153,7 +150,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (stepConfig == null) {
 
                 if (log.isDebugEnabled()) {
-                    log.debug("There are no more steps to execute");
+                    log.debug("There are no more steps to execute.");
                 }
 
                 // if no step failed at authentication we should do post authentication work (e.g.
@@ -161,7 +158,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (context.isRequestAuthenticated()) {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Request is successfully authenticated");
+                        log.debug("Request is successfully authenticated.");
                     }
 
                     context.getSequenceConfig().setCompleted(true);
@@ -171,7 +168,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 // we should get out of steps now.
                 if (log.isDebugEnabled()) {
-                    log.debug("Step processing is completed");
+                    log.debug("Step processing is completed.");
                 }
                 continue;
             }
@@ -198,8 +195,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     @SuppressWarnings("unchecked")
     protected void handlePostAuthentication(HttpServletRequest request,
-                                            HttpServletResponse response, AuthenticationContext context)
-            throws FrameworkException {
+                                            HttpServletResponse response,
+                                            AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Handling Post Authentication tasks");
@@ -507,7 +504,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
-        String subjectValue = (String) context.getProperty("ServiceProviderSubjectClaimValue");
+        String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         if (StringUtils.isNotBlank(subjectClaimURI)) {
             if (subjectValue != null) {
                 sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
@@ -515,16 +512,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
                 // append it.
                 if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addTenantDomainToEntry(subjectValue, sequenceConfig.getAuthenticatedUser()
-                                    .getTenantDomain()));
+                    String tenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+                    subjectValue = UserCoreUtil.addTenantDomainToEntry(subjectValue, tenantDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 // Check whether the user store domain should be appended to the subject identifier for this SP and
                 // if yes, append it.
                 if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addDomainToName(subjectValue, sequenceConfig.getAuthenticatedUser().getUserStoreDomain()));
+                    String userStoreDomain = sequenceConfig.getAuthenticatedUser().getUserStoreDomain();
+                    subjectValue = UserCoreUtil.addDomainToName(subjectValue, userStoreDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 if (log.isDebugEnabled()) {
@@ -664,9 +662,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return ArrayList<string>
      */
     protected List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
-                                                 Map<String, String> extAttributesValueMap,
-                                                 String idpRoleClaimUri,
-                                                 Boolean excludeUnmapped) throws FrameworkException {
+                                                             Map<String, String> extAttributesValueMap,
+                                                             String idpRoleClaimUri,
+                                                             Boolean excludeUnmapped) throws FrameworkException {
 
         if (idpRoleClaimUri == null) {
             // Since idpRoleCalimUri is not defined cannot do role mapping.
@@ -677,10 +675,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             return new ArrayList<>();
         }
 
-        String idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        String idpRoleAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        }
 
         String[] idpRoles;
-
         if (idpRoleAttrValue != null) {
             idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
         } else {
@@ -755,8 +755,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         try {
             @SuppressWarnings("unchecked")
             String userStoreDomain = null;
-            String provisioningClaimUri = context.getExternalIdP()
-                    .getProvisioningUserStoreClaimURI();
+            String provisioningClaimUri = context.getExternalIdP().getProvisioningUserStoreClaimURI();
             String provisioningUserStoreId = context.getExternalIdP().getProvisioningUserStoreId();
 
             if (provisioningUserStoreId != null) {
@@ -773,8 +772,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setJustInTimeProvisioning(true);
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
-            IdentityApplicationManagementUtil
-                    .setThreadLocalProvisioningServiceProvider(serviceProvider);
+            IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
                                                            extAttributesValueMap, userStoreDomain, context.getTenantDomain());

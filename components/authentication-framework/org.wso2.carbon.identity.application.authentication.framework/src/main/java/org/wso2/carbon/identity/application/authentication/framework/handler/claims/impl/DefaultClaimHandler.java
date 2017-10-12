@@ -60,7 +60,8 @@ import java.util.Set;
 
 public class DefaultClaimHandler implements ClaimHandler {
 
-    public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
+    public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE =
+            FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE;
     private static final Log log = LogFactory.getLog(DefaultClaimHandler.class);
     private static volatile DefaultClaimHandler instance;
 
