@@ -90,7 +90,7 @@ public class EntitlementServiceComponent {
     /**
      * Property used to specify the configuration file.
      */
-    public static final String PDP_CONFIG_PROPERTY = "org.wso2.balana.PDPConfigFile";
+    public static final String PDP_CONFIG_FILE_PATH = "org.wso2.balana.PDPConfigFile";
     
     private static final Log log = LogFactory.getLog(EntitlementServiceComponent.class);
     private static RegistryService registryService = null;
@@ -200,18 +200,18 @@ public class EntitlementServiceComponent {
             boolean balanaConfig = Boolean.parseBoolean((String) EntitlementServiceComponent.getEntitlementConfig().
                     getEngineProperties().get(PDPConstants.BALANA_CONFIG_ENABLE));
             
-            String configProperty = System.getProperty(PDP_CONFIG_PROPERTY);
+            String configProperty = System.getProperty(PDP_CONFIG_FILE_PATH);
 
             if (balanaConfig && configProperty == null) {
                 String configFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "security" 
                     + File.separator + "balana-config.xml";
                 
-                System.setProperty(PDP_CONFIG_PROPERTY, configFilePath);
+                System.setProperty(PDP_CONFIG_FILE_PATH, configFilePath);
             }
             
             if (log.isDebugEnabled()) {
                 log.debug("Setting org.wso2.balana.PDPConfigFile property to " 
-                          + System.getProperty(PDP_CONFIG_PROPERTY));
+                          + System.getProperty(PDP_CONFIG_FILE_PATH));
             }
 
             // Start loading schema.
