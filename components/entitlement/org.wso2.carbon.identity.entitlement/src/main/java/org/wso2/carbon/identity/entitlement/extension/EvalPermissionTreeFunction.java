@@ -53,6 +53,7 @@ public class EvalPermissionTreeFunction extends FunctionBase {
     }
 
     public static Set getSupportedIdentifiers() {
+        
         Set set = new HashSet();
         set.add(SUBJECT_HAS_PERMISSION);
 
@@ -63,8 +64,9 @@ public class EvalPermissionTreeFunction extends FunctionBase {
 
         AttributeValue[] argValues = new AttributeValue[inputs.size()];
         EvaluationResult result = evalArgs(inputs, context, argValues);
-        if (result != null)
+        if (result != null) {
             return result;
+        }
 
         switch (getFunctionId()) {
             case ID_EVAL_PERMISSION_TREE:
