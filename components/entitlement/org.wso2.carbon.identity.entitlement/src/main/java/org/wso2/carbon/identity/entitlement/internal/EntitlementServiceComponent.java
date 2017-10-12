@@ -201,9 +201,11 @@ public class EntitlementServiceComponent {
                 String configFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "security" 
                         + File.separator + "balana-config.xml";
                 
-                System.setProperty("org.wso2.balana.PDPConfigFile", configFilePath);
+                if (log.isDebugEnabled()) {
+                    log.debug("Setting org.wso2.balana.PDPConfigFile property to " + configFilePath);
+                }
                 
-                log.debug("Setting org.wso2.balana.PDPConfigFile property to " + configFilePath);
+                System.setProperty("org.wso2.balana.PDPConfigFile", configFilePath);
             }
 
             // Start loading schema.
