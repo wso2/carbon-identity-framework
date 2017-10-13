@@ -78,7 +78,16 @@ public class IdentityEventUtilsTest {
     @Test (expectedExceptions = {IllegalArgumentException.class})
     public void testReplacePlaceHolderException() {
 
-        IdentityEventUtils.replacePlaceHolders("", "", "", properties);
+        IdentityEventUtils.replacePlaceHolders("", "value", "value", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "", "value", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "value", "", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "value", "value", null);
+    }
+
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testReplacePlaceHolderException2() {
+
+        IdentityEventUtils.replacePlaceHolders("value", "", "", null);
     }
 
     @Test
@@ -94,7 +103,6 @@ public class IdentityEventUtilsTest {
         IdentityEventUtils.getPropertiesWithPrefix("", properties);
     }
 
-
     @Test
     public void testGetSubProperties(){
 
@@ -106,6 +114,7 @@ public class IdentityEventUtilsTest {
     public void testGetSubPropertiesException() {
 
         IdentityEventUtils.getSubProperties("", properties);
+        IdentityEventUtils.getSubProperties("x", null);
     }
 
     @Test
@@ -115,6 +124,13 @@ public class IdentityEventUtilsTest {
         Properties expectedProperties = new Properties();
         expectedProperties.setProperty("1", "value");
         Assert.assertEquals(propertiesFromMethod, expectedProperties);
+    }
+
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testBuildSingleWordKeyPropertiesException() {
+
+        IdentityEventUtils.getSubProperties("", properties);
+        IdentityEventUtils.getSubProperties("x", null);
     }
 }
 
