@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.event;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import java.io.*;
+
+import java.io.IOException;
 import java.util.Properties;
 
 public class IdentityEventUtilsTest {
