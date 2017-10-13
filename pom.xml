@@ -1455,7 +1455,7 @@
         <slf4j.api.version>1.7.12</slf4j.api.version>
         <powermock-module-testng.version>1.6.6</powermock-module-testng.version>
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.17</carbon.kernel.version>
+        <carbon.kernel.version>4.4.19-SNAPSHOT</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
 
