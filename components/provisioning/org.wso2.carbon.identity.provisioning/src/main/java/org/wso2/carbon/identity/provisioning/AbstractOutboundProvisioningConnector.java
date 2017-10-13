@@ -24,6 +24,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -124,7 +125,7 @@ public abstract class AbstractOutboundProvisioningConnector implements Serializa
                 if (!(IdentityProvisioningConstants.GROUP_CLAIM_URI.equals(claimUri)
                         || IdentityProvisioningConstants.PASSWORD_CLAIM_URI.equals(claimUri) || IdentityProvisioningConstants.USERNAME_CLAIM_URI
                         .equals(claimUri))) {
-                    if (entry.getValue() != null && entry.getValue().get(0) != null) {
+                    if (CollectionUtils.isNotEmpty(entry.getValue()) && entry.getValue().get(0) != null) {
                         claimValues.put(claimUri, entry.getValue().get(0));
                     } else {
                         claimValues.put(claimUri, mapping.getDefaultValue());
@@ -196,11 +197,14 @@ public abstract class AbstractOutboundProvisioningConnector implements Serializa
 
     private String getDomainFromUserName(String username) {
         int index;
-        if ((index = username.indexOf("/")) > 0) {
-            String domain = username.substring(0, index);
+        String domain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+        if (StringUtils.isNotBlank(username)) {
+            if ((index = username.indexOf("/")) > 0) {
+                 domain = username.substring(0, index);
+            }
             return domain;
         }
-        return "PRIMARY";
+        return domain;
     }
 
     private String removeDomainFromUserName(String username) {

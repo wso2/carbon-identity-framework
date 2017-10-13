@@ -111,7 +111,7 @@ public class ProvisioningUtil {
     public static String getAttributeValue(ProvisioningEntity provisioningEntity, String claimURI){
         Map<org.wso2.carbon.identity.application.common.model.ClaimMapping, List<String>> attributes =
                 provisioningEntity.getAttributes();
-        if(!attributes.isEmpty()){
+        if (MapUtils.isNotEmpty(attributes)) {
             List<String> valueList = attributes.get(org.wso2.carbon.identity.application.common.model.ClaimMapping
                                                             .build(claimURI, null, null, false));
             if (valueList != null && !valueList.isEmpty()) {
