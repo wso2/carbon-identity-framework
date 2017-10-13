@@ -18,23 +18,22 @@
 package org.wso2.carbon.identity.event;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
-public class EventDistributionTaskTest {
+
+public class EventDistributionTaskTest extends PowerMockTestCase{
 
     @Mock
     AbstractEventHandler module;
@@ -42,32 +41,19 @@ public class EventDistributionTaskTest {
     @Test
     public void testRun() throws IdentityEventException {
 
-        module = mock(AbstractEventHandler.class);
-        doReturn(true).when(module).isEnabled(any(MessageContext.class));
-
+       PowerMockito.when(module.isEnabled(any(MessageContext.class))).thenReturn(true);
         Event event = new Event("event");
         event.addEventProperty("value","value");
 
         List notificationModules = new ArrayList();
         notificationModules.add(module);
 
-        final EventDistributionTask eventDistributionTask = new EventDistributionTask(notificationModules , 1);
+        EventDistributionTask eventDistributionTask = new EventDistributionTask(notificationModules , 1);
         eventDistributionTask.addEventToQueue(event);
 
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-        Runnable task = new Runnable() {
-            public void run() {
-                eventDistributionTask.run();
-                Mockito.verify(module).isEnabled(any(MessageContext.class));
-            }
-        };
-
-        int delay = 5;
-        scheduler.schedule(task, delay, TimeUnit.SECONDS);
-        scheduler.shutdown();
+        Thread thread = new Thread(eventDistributionTask);
+        thread.start();
 
         eventDistributionTask.shutdown();
-
     }
 }
