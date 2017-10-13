@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.testutil.LogUtil;
  * @see org.wso2.carbon.identity.testutil.IdentityBaseTest
  */
 
-@PowerMockIgnore({ "javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.ietf.jgss.*"})
 public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 
 	public PowerMockIdentityBaseTest() {
