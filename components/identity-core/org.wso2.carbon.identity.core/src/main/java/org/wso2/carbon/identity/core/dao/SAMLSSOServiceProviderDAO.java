@@ -456,7 +456,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
             IdentityException {
 
-        if (serviceProviderDO.getIssuer() != null && serviceProviderDO.getAssertionConsumerUrl() != null) {
+        if (serviceProviderDO.getIssuer() != null && serviceProviderDO.getDefaultAssertionConsumerUrl() != null) {
             String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO
                     .getIssuer());
             Resource resource;

@@ -18,18 +18,31 @@
 
 package org.wso2.carbon.identity.core.dao;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.mockito.Mock;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.registry.core.CollectionImpl;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.ResourceImpl;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
+import org.wso2.carbon.registry.core.session.UserRegistry;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,31 +51,62 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doAnswer;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * Test class for SAMLSSOServiceProviderDAO.
  */
-public class SAMLSSOServiceProviderDAOTest {
+@PrepareForTest({Transaction.class, IdentityTenantUtil.class})
+public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
 
     private SAMLSSOServiceProviderDAO objUnderTest;
+    private boolean transactionStarted = false;
 
-    @Mock
     private Registry mockRegistry;
 
-    @BeforeClass
+    private Map<String, List<String>> dummyBasicProperties;
+    private Map<String, List<String>> dummyAdvProperties;
+
+    @BeforeMethod
     public void setUp() throws Exception {
+        mockStatic(Transaction.class);
+        mockRegistry = mock(UserRegistry.class);
+        when(Transaction.isStarted()).thenReturn(transactionStarted);
+        //Mock commit transaction
+        doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                transactionStarted = false;
+                return null;
+            }
+        }).when(mockRegistry).commitTransaction();
+        //Mock begin transaction
+        doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                transactionStarted = true;
+                return null;
+            }
+        }).when(mockRegistry).beginTransaction();
+
         objUnderTest = new SAMLSSOServiceProviderDAO(mockRegistry);
+        when(mockRegistry.newResource()).thenReturn(new ResourceImpl());
     }
 
-    @AfterClass
-    public void tearDown() throws Exception {
-    }
-
-    @DataProvider(name = "ResourceToObjectData")
-    public Object[][] getResourceToObjectData() {
-        Map<String, List<String>> dummyBasicProperties = new HashMap<>();
+    private void setUpResources() throws Exception {
+        dummyBasicProperties = new HashMap<>();
         dummyBasicProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections.singletonList
                 ("DummyIssuer"));
         dummyBasicProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS, Arrays.asList
@@ -74,7 +118,9 @@ public class SAMLSSOServiceProviderDAOTest {
         dummyBasicProperties.put(IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL, Collections.singletonList
                 ("loginPage"));
 
-        Map<String, List<String>> dummyAdvProperties = new HashMap<>();
+        dummyAdvProperties = new HashMap<>();
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections.singletonList
+                ("DummyAdvIssuer"));
         dummyAdvProperties.putAll(dummyBasicProperties);
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM, Collections.singletonList
                 ("RSASHA1"));
@@ -94,6 +140,8 @@ public class SAMLSSOServiceProviderDAOTest {
                 ("email"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI, Collections
                 .singletonList("true"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI, Collections
+                .singletonList("wso2.org/nameid"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE, Collections.singletonList
                 ("true"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL, Collections.singletonList
@@ -122,7 +170,15 @@ public class SAMLSSOServiceProviderDAOTest {
                 ("recipient1", "recipient2"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX, Collections
                 .singletonList("attribConsumingSvcIndex"));
+    }
 
+    @AfterMethod
+    public void tearDown() throws Exception {
+    }
+
+    @DataProvider(name = "ResourceToObjectData")
+    public Object[][] getResourceToObjectData() throws Exception {
+        setUpResources();
         return new Object[][]{
                 {dummyBasicProperties},
                 {dummyAdvProperties}
@@ -155,7 +211,7 @@ public class SAMLSSOServiceProviderDAOTest {
 
         assertEquals(serviceProviderDO.getSigningAlgorithmUri(), sigAlg, "Sign algorithm mismatch");
         assertEquals(serviceProviderDO.isAssertionQueryRequestProfileEnabled(), Boolean.parseBoolean(dummyResource
-                .getProperty((IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED))),
+                        .getProperty((IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED))),
                 "Query profile enable mismatch");
         assertEquals(serviceProviderDO.getSupportedAssertionQueryRequestTypes(), dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES)), "Query request " +
@@ -188,8 +244,8 @@ public class SAMLSSOServiceProviderDAOTest {
         assertEquals(serviceProviderDO.isDoSignAssertions(), Boolean.parseBoolean(dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS))), "Is sign assertions mismatch");
         assertEquals(serviceProviderDO.isEnableAttributesByDefault(), Boolean.parseBoolean(dummyResource.getProperty(
-                (IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT))), "Enable attribs by default " +
-                "mismatch");
+                (IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT))), "Enable attributes " +
+                "by default mismatch");
         assertEquals(serviceProviderDO.isIdPInitSSOEnabled(), Boolean.parseBoolean(dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED))), "Idp SSO enabled mismatch");
         assertEquals(serviceProviderDO.isIdPInitSLOEnabled(), Boolean.parseBoolean(dummyResource.getProperty(
@@ -250,44 +306,163 @@ public class SAMLSSOServiceProviderDAOTest {
                 "index Mismatch.");
     }
 
+    @Test(dataProvider = "ResourceToObjectData")
+    public void testAddServiceProvider(Object paramMapObj) throws Exception {
+        Properties properties = new Properties();
+        properties.putAll((Map<?, ?>) paramMapObj);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(properties);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        String expectedPath = getPath(dummyResource
+                .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        objUnderTest.addServiceProvider(serviceProviderDO);
+        verify(mockRegistry).put(captor.capture(), any(Resource.class));
+        assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");
+    }
+
     @Test
-    public void testAddServiceProvider() throws Exception {
+    public void testAddExistingServiceProvider() throws Exception {
+        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+        String existingPath = getPath("existingIssuer");
+        serviceProviderDO.setIssuer("existingIssuer");
+        when(mockRegistry.resourceExists(existingPath)).thenReturn(true);
+        assertFalse(objUnderTest.addServiceProvider(serviceProviderDO), "Resource should not have added.");
+    }
+
+    @Test
+    public void testAddServiceProviderRegistryError() throws Exception {
+        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+        String existingPath = getPath("erringIssuer");
+        serviceProviderDO.setIssuer("erringIssuer");
+        doThrow(RegistryException.class).when(mockRegistry).put(eq(existingPath), any(Resource.class));
+        try {
+            objUnderTest.addServiceProvider(serviceProviderDO);
+        } catch (IdentityException e) {
+            assertEquals(e.getMessage(), "Error while adding Service Provider", "Invalid error thrown for SP registry" +
+                    " add operation");
+        }
     }
 
     @Test
     public void testGetServiceProviders() throws Exception {
+        when(mockRegistry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)).thenReturn(true);
+        Resource collection = new CollectionImpl();
+        String[] paths = new String[]{
+                getPath("DummyIssuer"), getPath("DummyAdvIssuer")
+        };
+        Properties dummyResourceProperties = new Properties();
+        dummyResourceProperties.putAll(dummyBasicProperties);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(dummyResourceProperties);
+
+        Properties dummyAdvProperties = new Properties();
+        dummyAdvProperties.putAll((Map<?, ?>) dummyAdvProperties);
+        Resource dummyAdvResource = new ResourceImpl();
+        dummyAdvResource.setProperties(dummyAdvProperties);
+        Resource[] spResources = new Resource[]{dummyResource, dummyAdvResource};
+        collection.setContent(paths);
+        when(mockRegistry.get(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)).thenReturn(collection);
+        when(mockRegistry.get(paths[0])).thenReturn(spResources[0]);
+        when(mockRegistry.get(paths[1])).thenReturn(spResources[1]);
+        SAMLSSOServiceProviderDO[] serviceProviders = objUnderTest.getServiceProviders();
+        assertEquals(serviceProviders.length, 2, "Should have returned 2 service providers.");
     }
 
     @Test
     public void testRemoveServiceProvider() throws Exception {
+        String existingIssuer = "ExistingIssuer";
+        String path = getPath(existingIssuer);
+        when(mockRegistry.resourceExists(path)).thenReturn(true);
+        assertTrue(objUnderTest.removeServiceProvider(existingIssuer), "SP Resource is not deleted from path");
+    }
+
+    @Test
+    public void testRemoveNonExistingServiceProvider() throws Exception {
+        String nonExistingIssuer = "NonExistingIssuer";
+        String path = getPath(nonExistingIssuer);
+        when(mockRegistry.resourceExists(path)).thenReturn(false);
+        assertFalse(objUnderTest.removeServiceProvider(nonExistingIssuer), "SP Resource should not have existed to " +
+                "delete.");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testRemoveEmptyServiceProvider() throws Exception {
+        objUnderTest.removeServiceProvider("");
+        fail("SP Resource with empty name could not have been deleted.");
     }
 
     @Test
     public void testGetServiceProvider() throws Exception {
+        mockStatic(IdentityTenantUtil.class);
+        RealmService mockRealmService = mock(RealmService.class);
+        TenantManager mockTenantManager = mock(TenantManager.class);
+        when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
+        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
+
+        Properties dummyResourceProperties = new Properties();
+        dummyResourceProperties.putAll(dummyBasicProperties);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(dummyResourceProperties);
+
+        String path = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        when(mockRegistry.resourceExists(path)).thenReturn(true);
+        when(mockRegistry.get(path)).thenReturn(dummyResource);
+
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.getServiceProvider(dummyResource.getProperty
+                (IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        assertEquals(serviceProviderDO.getTenantDomain(), "test.com", "Retrieved resource's tenant domain mismatch");
     }
 
     @Test
     public void testIsServiceProviderExists() throws Exception {
+        String validSP = "ValidSP";
+        String path = getPath(validSP);
+        when(mockRegistry.resourceExists(path)).thenReturn(true);
+        assertTrue(objUnderTest.isServiceProviderExists(validSP));
+    }
+
+    @Test
+    public void testNonExistingSPIsServiceProviderExists() throws Exception {
+        String invalidSP = "InvalidSP";
+        String path = getPath(invalidSP);
+        when(mockRegistry.resourceExists(path)).thenReturn(false);
+        assertFalse(objUnderTest.isServiceProviderExists(invalidSP));
     }
 
     @Test
     public void testUploadServiceProvider() throws Exception {
+        setUpResources();
+        Properties properties = new Properties();
+        properties.putAll(dummyBasicProperties);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(properties);
+        String expectedPath = getPath(dummyResource
+                .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        when(mockRegistry.resourceExists(expectedPath)).thenReturn(false);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        assertEquals(objUnderTest.uploadServiceProvider(serviceProviderDO), serviceProviderDO, "Same resource should" +
+                " have returned after successful upload.");
     }
 
-    @Test
-    public void testGetAllObjects() throws Exception {
+    @Test(expectedExceptions = IdentityException.class)
+    public void testUploadExistingServiceProvider() throws Exception {
+        setUpResources();
+        Properties properties = new Properties();
+        properties.putAll(dummyAdvProperties);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(properties);
+        String expectedPath = getPath(dummyResource
+                .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        objUnderTest.uploadServiceProvider(serviceProviderDO);
+        fail("Uploading an existing SP should have failed");
     }
 
-    @Test
-    public void testGetAllObjectsWithPropertyValue() throws Exception {
+    private String getPath(String path) {
+        String encodedStr = new String(Base64.encodeBase64(path.getBytes()));
+        return IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodedStr.replace("=", "");
     }
-
-    @Test
-    public void testGetFirstObjectWithPropertyValue() throws Exception {
-    }
-
-    @Test
-    public void testResourceToObject1() throws Exception {
-    }
-
 }
