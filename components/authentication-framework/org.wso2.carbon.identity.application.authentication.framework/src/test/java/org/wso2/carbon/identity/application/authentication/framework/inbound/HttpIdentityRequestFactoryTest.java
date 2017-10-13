@@ -19,8 +19,8 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -28,9 +28,10 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponse.HttpIdentityResponseBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest.IdentityRequestBuilder;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
@@ -46,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -55,7 +55,8 @@ import static org.testng.Assert.assertTrue;
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
 @PrepareForTest(IdentityUtil.class)
-public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
+@PowerMockIgnore({"org.xml.*","org.w3c.*"})
+public class HttpIdentityRequestFactoryTest extends PowerMockIdentityBaseTest {
 
     @Mock
     HttpServletRequest request;
@@ -69,10 +70,12 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
     public void setUp() throws Exception {
         initMocks(this);
         httpIdentityRequestFactory = new HttpIdentityRequestFactory();
+        CommonTestUtils.initPrivilegedCarbonContext();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
+        PrivilegedCarbonContext.endTenantFlow();
     }
 
     @Test
@@ -158,8 +161,6 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
         when(request.getCookies()).thenReturn(cookies);
         when(request.getRequestURI()).thenReturn("https://localhost/identity");
 
-        System.setProperty("carbon.home", "");
-        PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainInContext);
 
         IdentityRequestBuilder identityRequestBuilder = httpIdentityRequestFactory.create(request, response);

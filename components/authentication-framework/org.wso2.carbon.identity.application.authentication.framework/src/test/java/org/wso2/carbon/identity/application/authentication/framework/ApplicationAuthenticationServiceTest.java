@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 @PrepareForTest({FrameworkServiceComponent.class, LogFactory.class})
-public class ApplicationAuthenticationServiceTest {
+public class ApplicationAuthenticationServiceTest extends IdentityBaseTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
     private static final String LOCAL_AUTHENTICATOR_NAME = "LocalAuthenticator";

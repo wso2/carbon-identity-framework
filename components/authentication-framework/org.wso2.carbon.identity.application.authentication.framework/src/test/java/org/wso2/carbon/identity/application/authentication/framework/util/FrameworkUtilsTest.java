@@ -23,6 +23,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ConfigurationFacade.class})
-public class FrameworkUtilsTest extends PowerMockTestCase {
+public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
     @Mock
     ConfigurationFacade mockedConfigurationFacade;

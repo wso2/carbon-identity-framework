@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
-public class DefaultRequestPathBasedSequenceHandlerTest {
+public class DefaultRequestPathBasedSequenceHandlerTest extends IdentityBaseTest {
 
 
     private DefaultRequestPathBasedSequenceHandler requestPathBasedSequenceHandler;

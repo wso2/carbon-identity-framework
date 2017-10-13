@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -45,7 +46,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({UserCoreUtil.class, FileBasedConfigurationBuilder.class, LogFactory.class})
-public class AbstractApplicationAuthenticatorTest {
+public class AbstractApplicationAuthenticatorTest extends IdentityBaseTest {
 
     @Mock
     AbstractApplicationAuthenticator abstractApplicationAuthenticator;

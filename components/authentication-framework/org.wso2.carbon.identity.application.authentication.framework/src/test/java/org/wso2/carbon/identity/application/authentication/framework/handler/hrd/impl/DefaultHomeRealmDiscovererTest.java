@@ -18,10 +18,11 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.hr
 
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import static org.testng.Assert.assertEquals;
 
-public class DefaultHomeRealmDiscovererTest {
+public class DefaultHomeRealmDiscovererTest extends IdentityBaseTest {
 
 
     @Test
