@@ -77,7 +77,7 @@ public class EvalPermissionTreeFunction extends FunctionBase {
                     isAuthorised = EntitlementServiceComponent.getRealmservice().getBootstrapRealm().
                             getAuthorizationManager().isUserAuthorized(subject, resource, "ui.execute");
                 } catch (UserStoreException e) {
-                    log.error("Error while authorising" + subject + " to " + resource, e);
+                    log.error("Error while authorising" + subject + " to perform ui.execute on " + resource, e);
                 }
 
                 result = new EvaluationResult(BooleanAttribute.getInstance(isAuthorised));
