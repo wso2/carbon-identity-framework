@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,6 +54,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +68,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
-    private static String multiAttributeSeparator;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -117,8 +118,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // if the request didn't fail during the step execution
                 if (context.isRequestAuthenticated()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Step " + stepConfig.getOrder()
-                                + " is completed. Going to get the next one.");
+                        log.debug("Step " + stepConfig.getOrder() + " is completed. Going to get the next one.");
                     }
 
                     currentStep = context.getCurrentStep() + 1;
@@ -128,8 +128,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 } else {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authentication has failed in the Step "
-                                + (context.getCurrentStep()));
+                        log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
 
                     // if the step contains multiple login options, we should give the user to retry
@@ -151,7 +150,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (stepConfig == null) {
 
                 if (log.isDebugEnabled()) {
-                    log.debug("There are no more steps to execute");
+                    log.debug("There are no more steps to execute.");
                 }
 
                 // if no step failed at authentication we should do post authentication work (e.g.
@@ -159,7 +158,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (context.isRequestAuthenticated()) {
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Request is successfully authenticated");
+                        log.debug("Request is successfully authenticated.");
                     }
 
                     context.getSequenceConfig().setCompleted(true);
@@ -169,7 +168,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 // we should get out of steps now.
                 if (log.isDebugEnabled()) {
-                    log.debug("Step processing is completed");
+                    log.debug("Step processing is completed.");
                 }
                 continue;
             }
@@ -196,8 +195,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     @SuppressWarnings("unchecked")
     protected void handlePostAuthentication(HttpServletRequest request,
-                                            HttpServletResponse response, AuthenticationContext context)
-            throws FrameworkException {
+                                            HttpServletResponse response,
+                                            AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Handling Post Authentication tasks");
@@ -211,19 +210,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         int stepCount = 1;
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
-
-        try {
-            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-        } catch (UserStoreException e) {
-            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm. Switching to default MultiAttributeSeparator.");
-            if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
-            }
-        }
-        if (StringUtils.isBlank(multiAttributeSeparator)) {
-            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
-        }
 
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -504,11 +490,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         //Need to convert multiAttributeSeparator value into a regex literal before calling
                         // split function. Otherwise split can produce misleading results in case
                         // multiAttributeSeparator contains regex special meaning characters like .*
-                        String[] roles = roleAttr.split(Pattern.quote(multiAttributeSeparator));
+                        String[] roles = roleAttr.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
                         mappedAttrs.put(
                                 spRoleUri,
                                 getServiceProviderMappedUserRoles(sequenceConfig,
-                                        Arrays.asList(roles)));
+                                Arrays.asList(roles))
+                        );
                     }
 
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
@@ -517,7 +504,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
-        String subjectValue = (String) context.getProperty("ServiceProviderSubjectClaimValue");
+        String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         if (StringUtils.isNotBlank(subjectClaimURI)) {
             if (subjectValue != null) {
                 sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
@@ -525,16 +512,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
                 // append it.
                 if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addTenantDomainToEntry(subjectValue, sequenceConfig.getAuthenticatedUser()
-                                    .getTenantDomain()));
+                    String tenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+                    subjectValue = UserCoreUtil.addTenantDomainToEntry(subjectValue, tenantDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 // Check whether the user store domain should be appended to the subject identifier for this SP and
                 // if yes, append it.
                 if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
-                            .addDomainToName(subjectValue, sequenceConfig.getAuthenticatedUser().getUserStoreDomain()));
+                    String userStoreDomain = sequenceConfig.getAuthenticatedUser().getUserStoreDomain();
+                    subjectValue = UserCoreUtil.addDomainToName(subjectValue, userStoreDomain);
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
                 }
 
                 if (log.isDebugEnabled()) {
@@ -569,41 +557,31 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     /**
      * @param sequenceConfig
-     * @param locallyMappedUserRoles
+     * @param locallyMappedUserRoles String of user roles mapped according to Service Provider role mappings
+     *                               seperated by the multi attribute separator
      * @return
      */
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
 
-        if (locallyMappedUserRoles != null && !locallyMappedUserRoles.isEmpty()) {
-
-            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig()
-                    .getRoleMappings();
-
-            boolean roleMappingDefined = false;
-
-            if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
-                roleMappingDefined = true;
-            }
-
-            StringBuilder spMappedUserRoles = new StringBuilder();
-
+        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
+            // Local user roles available for user
+            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
+            List<String> spMappedUserRoles = new ArrayList<>();
             for (String role : locallyMappedUserRoles) {
-                if (roleMappingDefined) {
+                if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
+                    // Service Provider Role Mapping are defined
                     if (localToSpRoleMapping.containsKey(role)) {
-                        spMappedUserRoles.append(localToSpRoleMapping.get(role) + multiAttributeSeparator);
+                        spMappedUserRoles.add(localToSpRoleMapping.get(role));
                     } else {
-                        spMappedUserRoles.append(role + multiAttributeSeparator);
+                        spMappedUserRoles.add(role);
                     }
                 } else {
-                    spMappedUserRoles.append(role + multiAttributeSeparator);
+                    spMappedUserRoles.add(role);
                 }
             }
-
-            return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().
-                    substring(0, spMappedUserRoles.length() - multiAttributeSeparator.length()) : null;
+            return StringUtils.join(spMappedUserRoles.toArray(), FrameworkUtils.getMultiAttributeSeparator());
         }
-
         return null;
     }
 
@@ -625,9 +603,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
                     if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
-                        return entry.getKey();
+                        spRoleClaimUri = entry.getKey();
+                        break;
                     }
                 }
+            }
+        }
+
+        if (StringUtils.isEmpty(spRoleClaimUri)) {
+            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            if (log.isDebugEnabled()) {
+                String serviceProvider = appConfig.getApplicationName();
+                log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +
+                        ". Defaulting to " + spRoleClaimUri);
             }
         }
 
@@ -638,8 +626,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @param externalIdPConfig
      * @return
      */
-    protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig)
-            throws FrameworkException {
+    protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) throws FrameworkException {
         // get external identity provider role claim uri.
         String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
 
@@ -675,9 +662,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return ArrayList<string>
      */
     protected List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
-                                                 Map<String, String> extAttributesValueMap,
-                                                 String idpRoleClaimUri,
-                                                 Boolean excludeUnmapped) throws FrameworkException {
+                                                             Map<String, String> extAttributesValueMap,
+                                                             String idpRoleClaimUri,
+                                                             Boolean excludeUnmapped) throws FrameworkException {
 
         if (idpRoleClaimUri == null) {
             // Since idpRoleCalimUri is not defined cannot do role mapping.
@@ -688,12 +675,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             return new ArrayList<>();
         }
 
-        String idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        String idpRoleAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        }
 
         String[] idpRoles;
-
         if (idpRoleAttrValue != null) {
-            idpRoles = idpRoleAttrValue.split(",");
+            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
         } else {
             // No identity provider role values found.
             if (log.isDebugEnabled()) {
@@ -739,22 +728,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return
      */
     protected Map<String, String> handleClaimMappings(StepConfig stepConfig,
-                                                      AuthenticationContext context, Map<String, String> extAttrs,
-                                                      boolean isFederatedClaims)
-            throws FrameworkException {
-
-        Map<String, String> mappedAttrs = new HashMap<String, String>();
-
+                                                      AuthenticationContext context,
+                                                      Map<String, String> extAttrs,
+                                                      boolean isFederatedClaims) throws FrameworkException {
+        Map<String, String> mappedAttrs;
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,
                                                                                extAttrs, isFederatedClaims);
+            return mappedAttrs;
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);
         }
-        if(mappedAttrs == null){
-            mappedAttrs = new HashMap<>();
-        }
-        return mappedAttrs;
+        // Claim handling failed. So we are returning an empty map.
+        return Collections.emptyMap();
     }
 
     /**
@@ -769,8 +755,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         try {
             @SuppressWarnings("unchecked")
             String userStoreDomain = null;
-            String provisioningClaimUri = context.getExternalIdP()
-                    .getProvisioningUserStoreClaimURI();
+            String provisioningClaimUri = context.getExternalIdP().getProvisioningUserStoreClaimURI();
             String provisioningUserStoreId = context.getExternalIdP().getProvisioningUserStoreId();
 
             if (provisioningUserStoreId != null) {
@@ -787,8 +772,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setJustInTimeProvisioning(true);
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
-            IdentityApplicationManagementUtil
-                    .setThreadLocalProvisioningServiceProvider(serviceProvider);
+            IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
                                                            extAttributesValueMap, userStoreDomain, context.getTenantDomain());
@@ -800,8 +784,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
-    protected void resetAuthenticationContext(AuthenticationContext context)
-            throws FrameworkException {
+    protected void resetAuthenticationContext(AuthenticationContext context) throws FrameworkException {
 
         context.setSubject(null);
         context.setStateInfo(null);

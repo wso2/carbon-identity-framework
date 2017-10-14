@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.8.140-SNAPSHOT</version>
+    <version>5.10.4-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -72,6 +72,7 @@
         <module>features/workflow-mgt</module>
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
+        <module>test-utils/org.wso2.carbon.identity.testutil</module>
     </modules>
 
     <repositories>
@@ -154,6 +155,23 @@
             <!--Components Dependencies Starts-->
 
             <!-- Carbon Kernel Dependencies-->
+
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <version>${jacoco.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${powermock-module-testng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock-module-testng.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.osgi</groupId>
                 <artifactId>org.eclipse.osgi</artifactId>
@@ -1418,11 +1436,11 @@
                 <artifactId>org.wso2.carbon.identity.governance.stub</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <classifier>runtime</classifier>
-                <version>${jacoco.version}</version>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng-common</artifactId>
+                <version>${org.powermock.version}</version>
             </dependency>
         </dependencies>
 
@@ -1430,7 +1448,12 @@
     <properties>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+        <!-- Unit test versions -->
+        <testng.version>6.9.10</testng.version>
+        <jacoco.version>0.7.9</jacoco.version>
+        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <slf4j.api.version>1.7.12</slf4j.api.version>
+        <powermock-module-testng.version>1.6.6</powermock-module-testng.version>
         <!-- Carbon kernel version -->
         <carbon.kernel.version>4.4.17</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
@@ -1669,6 +1692,7 @@
         <testng.version>6.9.10</testng.version>
         <jacoco.version>0.7.9</jacoco.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <org.powermock.version>1.7.3</org.powermock.version>
     </properties>
 
     <build>

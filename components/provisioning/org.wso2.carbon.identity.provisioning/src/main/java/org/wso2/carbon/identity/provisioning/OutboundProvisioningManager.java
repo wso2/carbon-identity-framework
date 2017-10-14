@@ -147,7 +147,8 @@ public class OutboundProvisioningManager {
         if (!connectors.isEmpty()) {
             addToCache(serviceProvider, connectors, tenantDomain, tenantId);
             if (log.isDebugEnabled()) {
-                log.debug("Entry added successfully ");
+                log.debug("Provisioning Connectors added to Cache successfully for SP: " + serviceProvider +
+                        " & tenant domain: " + tenantDomain);
             }
         }
         return connectors;
@@ -303,7 +304,7 @@ public class OutboundProvisioningManager {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
 
-            if (tenantDomain != null) {
+            if (StringUtils.isNotBlank(tenantDomain)) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
             }
@@ -343,7 +344,7 @@ public class OutboundProvisioningManager {
         // identity provider.
         ProvisioningConnectorConfig[] provisioningConfigs = fIdP.getProvisioningConnectorConfigs();
 
-        if(ArrayUtils.isEmpty(provisioningConfigs)) {
+        if (ArrayUtils.isEmpty(provisioningConfigs)) {
             return null;
         }
         for (ProvisioningConnectorConfig defaultProvisioningConfig : provisioningConfigs) {
@@ -665,7 +666,7 @@ public class OutboundProvisioningManager {
             return new ClaimMapping[0];
         }
         // if we know the serviceProviderClaimDialect - we do not need to find it again.
-        if (inboundClaimDialect != null) {
+        if (StringUtils.isNotBlank(inboundClaimDialect)) {
             return new ClaimMapping[0];
         }
         if (serviceProvider.getClaimConfig() != null) {
@@ -795,36 +796,44 @@ public class OutboundProvisioningManager {
     private void updateProvisioningUserWithMappedRoles(ProvisioningEntity provisioningEntity,
                                                        RoleMapping[] idPRoleMapping) {
 
-        if (provisioningEntity.getEntityType() != ProvisioningEntityType.USER
-            || idPRoleMapping == null || idPRoleMapping.length == 0) {
+        if (ArrayUtils.isEmpty(idPRoleMapping)) {
             return;
         }
 
-        List<String> userGroups = getGroupNames(provisioningEntity.getAttributes());
+        updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
+                IdentityProvisioningConstants.GROUP_CLAIM_URI);
+        updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
+                IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI);
+        updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
+                IdentityProvisioningConstants.DELETED_GROUP_CLAIM_URI);
 
-        if (CollectionUtils.isEmpty(userGroups)) {
-            return;
+    }
+
+    /**
+     * Get mapped idp roles for given role list
+     *
+     * @param groupList
+     * @param idPRoleMapping
+     * @return
+     */
+    private List<String> getMappedGroups(List<String> groupList, RoleMapping[] idPRoleMapping) {
+
+        if (CollectionUtils.isEmpty(groupList)) {
+            return new ArrayList<>();
         }
-
         Map<String, String> mappedRoles = new HashMap<>();
-
         for (RoleMapping mapping : idPRoleMapping) {
             mappedRoles.put(mapping.getLocalRole().getLocalRoleName(), mapping.getRemoteRole());
         }
-
         List<String> mappedUserGroups = new ArrayList<>();
-
-        for (Iterator<String> iterator = userGroups.iterator(); iterator.hasNext(); ) {
+        for (Iterator<String> iterator = groupList.iterator(); iterator.hasNext(); ) {
             String userGroup = iterator.next();
             String mappedGroup = null;
             if ((mappedGroup = mappedRoles.get(userGroup)) != null) {
                 mappedUserGroups.add(mappedGroup);
             }
         }
-
-        ProvisioningUtil.setClaimValue(IdentityProvisioningConstants.GROUP_CLAIM_URI,
-                                       provisioningEntity.getAttributes(), mappedUserGroups);
-
+        return mappedUserGroups;
     }
 
     /**
@@ -903,7 +912,7 @@ public class OutboundProvisioningManager {
      */
     private String getUserName(Map<ClaimMapping, List<String>> attributeMap) {
         List<String> userList = ProvisioningUtil.getClaimValues(attributeMap,
-                                                                IdentityProvisioningConstants.USERNAME_CLAIM_URI, null);
+                IdentityProvisioningConstants.USERNAME_CLAIM_URI, null);
 
         if (CollectionUtils.isNotEmpty(userList)) {
             return userList.get(0);
@@ -976,7 +985,7 @@ public class OutboundProvisioningManager {
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
 
         UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                      realmService, tenantDomain);
+                realmService, tenantDomain);
 
         UserStoreManager userstore = null;
         userstore = realm.getUserStoreManager();
@@ -1144,5 +1153,25 @@ public class OutboundProvisioningManager {
         provisioningEntity
                 .setEntityName(UserCoreUtil.addDomainToName(provisionedEntityName, userStoreDomain));
         return provisioningEntity;
+    }
+
+
+    /**
+     * Update the value of given group attribute with mapped roles
+     *
+     * @param provisioningEntity
+     * @param idPRoleMapping
+     * @param groupAttributeName
+     */
+    private void updateMappedGroupForAttribute(ProvisioningEntity provisioningEntity, RoleMapping[] idPRoleMapping,
+                                               String groupAttributeName) {
+
+        List<String> groupList = ProvisioningUtil.getClaimValues(provisioningEntity.getAttributes(),
+                groupAttributeName, null);
+        List<String> mappedGroups = getMappedGroups(groupList, idPRoleMapping);
+
+        if (mappedGroups != null && !mappedGroups.isEmpty()) {
+            ProvisioningUtil.setClaimValue(groupAttributeName, provisioningEntity.getAttributes(), mappedGroups);
+        }
     }
 }
