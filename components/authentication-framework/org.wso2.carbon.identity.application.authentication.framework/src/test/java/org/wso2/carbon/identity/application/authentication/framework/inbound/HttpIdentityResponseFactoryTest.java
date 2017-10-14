@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse.IdentityResponseBuilder;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.util.Properties;
 
@@ -40,7 +41,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest(IdentityUtil.class)
-public class HttpIdentityResponseFactoryTest extends PowerMockTestCase {
+public class HttpIdentityResponseFactoryTest extends PowerMockIdentityBaseTest {
 
     private HttpIdentityResponseFactory httpIdentityResponseFactory;
 

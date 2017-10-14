@@ -16,17 +16,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -34,7 +36,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
-public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
+@PowerMockIgnore({"org.xml.*","org.w3c.*"})
+public class DefaultProvisioningHandlerTest extends PowerMockIdentityBaseTest {
 
     private DefaultProvisioningHandler provisioningHandler;
 
@@ -46,6 +49,7 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+        PrivilegedCarbonContext.endTenantFlow();
     }
 
     @Test

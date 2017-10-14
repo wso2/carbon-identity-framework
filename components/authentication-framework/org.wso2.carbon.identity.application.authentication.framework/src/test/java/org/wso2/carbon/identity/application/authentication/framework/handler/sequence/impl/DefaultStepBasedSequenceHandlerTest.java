@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
@@ -80,7 +81,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class})
-public class DefaultStepBasedSequenceHandlerTest {
+public class DefaultStepBasedSequenceHandlerTest extends IdentityBaseTest {
 
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
 
