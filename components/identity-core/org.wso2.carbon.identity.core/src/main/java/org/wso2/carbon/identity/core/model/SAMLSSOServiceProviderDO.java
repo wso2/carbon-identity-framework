@@ -65,8 +65,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String digestAlgorithmUri;
     private String assertionEncryptionAlgorithmUri;
     private String keyEncryptionAlgorithmUri;
-    private String signingCertificate ;
-    private String encryptionCertificate ;
+    private String signingCertificate;
+    private String encryptionCertificate;
     private X509Certificate x509Certificate;
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
@@ -124,7 +124,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     public void setEncryptionCertificate(String encryptionCertificate) {
-        this.encryptionCertificate= encryptionCertificate;
+        this.encryptionCertificate = encryptionCertificate;
     }
 
     public String getNameIdClaimUri() {
@@ -210,7 +210,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     public void setLoginPageURL(String loginPageURL) {
-        if(StringUtils.isNotBlank(loginPageURL)) {
+        if (StringUtils.isNotBlank(loginPageURL)) {
             this.loginPageURL = loginPageURL.replaceAll("[\n\r]", "").trim();
         } else {
             this.loginPageURL = null;
@@ -272,6 +272,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
             this.keyEncryptionAlgorithmUri = keyEncryptionAlgorithmUri;
         }
     }
+
     /**
      * @return the requestedClaims
      */
@@ -489,7 +490,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     public void setDefaultAssertionConsumerUrl(String defaultAssertionConsumerUrl) {
-        if(StringUtils.isNotBlank(defaultAssertionConsumerUrl)) {
+        if (StringUtils.isNotBlank(defaultAssertionConsumerUrl)) {
             this.defaultAssertionConsumerUrl = defaultAssertionConsumerUrl.replaceAll("[\n\r]", "").trim();
         } else {
             this.defaultAssertionConsumerUrl = null;
@@ -501,7 +502,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     public void setSloRequestURL(String sloRequestURL) {
-        if(StringUtils.isNotBlank(sloRequestURL)) {
+        if (StringUtils.isNotBlank(sloRequestURL)) {
             this.sloRequestURL = sloRequestURL.replaceAll("[\n\r]", "").trim();
         } else {
             this.sloRequestURL = null;
@@ -545,7 +546,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIdpInitSLOReturnToURLs(List<String> idpInitSLOReturnToURLList) {
         this.idpInitSLOReturnToURLList = idpInitSLOReturnToURLList;
         if (idpInitSLOReturnToURLList != null) {
-            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList.toArray(new String[idpInitSLOReturnToURLList.size()]);
+            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList.toArray(
+                    new String[idpInitSLOReturnToURLList.size()]);
         } else {
             this.idpInitSLOReturnToURLs = null;
         }
