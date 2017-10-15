@@ -19,8 +19,8 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
@@ -55,8 +54,8 @@ import static org.testng.Assert.assertTrue;
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
 @PrepareForTest(IdentityUtil.class)
-@PowerMockIgnore({"org.xml.*","org.w3c.*"})
-public class HttpIdentityRequestFactoryTest extends PowerMockIdentityBaseTest {
+//@PowerMockIgnore({"org.xml.*","org.w3c.*"})
+public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
 
     @Mock
     HttpServletRequest request;

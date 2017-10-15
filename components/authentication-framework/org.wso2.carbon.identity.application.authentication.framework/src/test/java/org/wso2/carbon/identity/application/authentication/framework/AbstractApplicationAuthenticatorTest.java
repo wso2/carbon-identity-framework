@@ -24,10 +24,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -44,7 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({UserCoreUtil.class})
-public class AbstractApplicationAuthenticatorTest extends IdentityBaseTest {
+public class AbstractApplicationAuthenticatorTest {
 
     @Mock
     AbstractApplicationAuthenticator abstractApplicationAuthenticator;
@@ -57,9 +55,6 @@ public class AbstractApplicationAuthenticatorTest extends IdentityBaseTest {
 
     @Spy
     AuthenticationContext context;
-
-    @Spy
-    SequenceConfig sequenceConfig;
 
     private static final String AUTHENTICATOR = "AbstractAuthenticator";
     private static final String USER_NAME = "DummyUser";
