@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
@@ -36,7 +35,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
-@PrepareForTest({FrameworkServiceComponent.class, LogFactory.class})
+@PrepareForTest({FrameworkServiceComponent.class})
 public class ApplicationAuthenticationServiceTest extends IdentityBaseTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
