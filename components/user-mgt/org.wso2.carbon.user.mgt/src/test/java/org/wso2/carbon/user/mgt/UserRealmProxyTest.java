@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -48,6 +47,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Matchers.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -80,11 +80,6 @@ public class UserRealmProxyTest {
         claimManager = mock(ClaimManager.class);
         userRealmProxy = new UserRealmProxy(realm);
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
-
-    }
-
-    @AfterMethod
-    public void tearDown() throws Exception {
     }
 
     @Test
@@ -109,7 +104,6 @@ public class UserRealmProxyTest {
         Assert.assertEquals(userList.length, 3);
     }
 
-
     @Test
     public void testGetAllSharedRoleNames() throws Exception {
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("test", 10)).thenReturn(new String[]{"test1", "test2"});
@@ -124,11 +118,9 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
         Object cc = userStoreManagerWithAb;
-        //  HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
         Field f1 = cc.getClass().getSuperclass().getDeclaredField("hybridRoleManager");
         f1.setAccessible(true);
         f1.set(cc, hybridRoleManager);
-
         String[] test = {"role3x", "role4x"};
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
@@ -144,16 +136,12 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getClaimManager()).thenReturn(claimManager);
         Mockito.when(authorizationManager.isUserAuthorized("admin",
                 "/permission/admin/manage/identity", CarbonConstants.UI_PERMISSION_ACTION)).thenReturn(true);
-
-
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         ClaimMapping claimMapping = new ClaimMapping();
         claimMapping.setMappedAttribute("test1");
         claimMapping.setMappedAttribute("test2");
         claimMapping.setMappedAttribute("test3");
-
-
         Claim claim = new Claim();
         claim.setClaimUri("testURI");
         claim.setValue("testClaim");
@@ -165,7 +153,6 @@ public class UserRealmProxyTest {
         UserRealmInfo realmInfo = userRealmProxy.getUserRealmInfo();
         Assert.assertEquals(realmInfo.getEveryOneRole(), "everyone");
         Assert.assertEquals(realmInfo.getAdminRole(), "admin");
-
     }
 
     @Test
@@ -175,7 +162,7 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(authorizationManager.isRoleAuthorized("role1", PERMISSION, UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
         userRealmProxy.addUser("testUser", "password", new String[]{"role1", "role2"}, getSampleClaims(), "default");
-        Assert.assertTrue(true);
+        verify(realm.getUserStoreManager()).addUser(anyString(), anyString(), eq(new String[]{"role1", "role2"}), anyMap(), anyString(), eq(false));
     }
 
     @Test(expectedExceptions = UserStoreException.class)
@@ -196,12 +183,11 @@ public class UserRealmProxyTest {
                 isUserAuthorized("admin2", PERMISSION, UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         userRealmProxy.changePassword("admin2", "newPassword");
-        Assert.assertTrue(true);
+        verify(userStoreManager).updateCredentialByAdmin(anyString(), anyString());
     }
 
     @Test
     public void testDeleteUser() throws Exception {
-
         Registry registry = mock(Registry.class);
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
@@ -273,5 +259,4 @@ public class UserRealmProxyTest {
         claimValue.setValue("testClaim");
         return new ClaimValue[]{claimValue};
     }
-
 }
