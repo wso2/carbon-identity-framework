@@ -109,7 +109,9 @@ public class UserRealmProxyTest {
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("test", 10)).thenReturn(new String[]{"test1", "test2"});
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         FlaggedName[] roleList = userRealmProxy.getAllSharedRoleNames("test", 10);
-        Assert.assertTrue(roleList[0].getItemName().equals("test1") && roleList[1].getItemName().equals("test2"), "Role List doesnot contain intended values in order");
+        Assert.assertTrue(roleList[0].getItemName().equals("test1")
+                        && roleList[1].getItemName().equals("test2"),
+                "Role List doesnot contain intended values in order");
         Assert.assertEquals(roleList.length, 3);
     }
 
@@ -124,8 +126,10 @@ public class UserRealmProxyTest {
         String[] test = {"role3x", "role4x"};
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
-        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getRoleNames("role",
-                10, true, true, true)).thenReturn(null);
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
+                .getRoleNames("role", 10,
+                        true, true, true))
+                .thenReturn(null);
         FlaggedName[] roleList = userRealmProxy.getAllRolesNames("role", 10);
         Assert.assertEquals(roleList.length, 3);
     }
@@ -160,9 +164,14 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
-        Mockito.when(authorizationManager.isRoleAuthorized("role1", PERMISSION, UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
-        userRealmProxy.addUser("testUser", "password", new String[]{"role1", "role2"}, getSampleClaims(), "default");
-        verify(realm.getUserStoreManager()).addUser(anyString(), anyString(), eq(new String[]{"role1", "role2"}), anyMap(), anyString(), eq(false));
+        Mockito.when(authorizationManager.isRoleAuthorized("role1", PERMISSION,
+                UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
+        userRealmProxy.addUser("testUser",
+                "password", new String[]{"role1", "role2"},
+                getSampleClaims(), "default");
+        verify(realm.getUserStoreManager()).addUser(anyString(),
+                anyString(), eq(new String[]{"role1", "role2"}),
+                anyMap(), anyString(), eq(false));
     }
 
     @Test(expectedExceptions = UserStoreException.class)
@@ -180,7 +189,8 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(authorizationManager.
-                isUserAuthorized("admin2", PERMISSION, UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
+                isUserAuthorized("admin2", PERMISSION, UserMgtConstants.EXECUTE_ACTION))
+                .thenReturn(true);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         userRealmProxy.changePassword("admin2", "newPassword");
         verify(userStoreManager).updateCredentialByAdmin(anyString(), anyString());
@@ -193,7 +203,8 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(authorizationManager.
-                isUserAuthorized(anyString(), eq(PERMISSION), eq(UserMgtConstants.EXECUTE_ACTION))).thenReturn(true);
+                isUserAuthorized(anyString(), eq(PERMISSION),
+                        eq(UserMgtConstants.EXECUTE_ACTION))).thenReturn(true);
         userRealmProxy.deleteUser("testUser", registry);
         verify(userStoreManager).deleteUser(anyString());
     }
@@ -201,7 +212,9 @@ public class UserRealmProxyTest {
     @Test(dataProvider = "userListCount")
     public void testGetRolesOfUser(int listCount, int assertCount) throws Exception {
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
-        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getRoleListOfUser("admin2")).thenReturn(new String[]{"PRIMARY/role1", "PRIMARY/role2"});
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
+                .getRoleListOfUser("admin2"))
+                .thenReturn(new String[]{"PRIMARY/role1", "PRIMARY/role2"});
         Object cc = userStoreManagerWithAb;
         HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
         Field f1 = cc.getClass().getSuperclass().getDeclaredField("hybridRoleManager");
@@ -209,10 +222,12 @@ public class UserRealmProxyTest {
         f1.set(cc, hybridRoleManager);
         String[] test = {"PRIMARY/role3", "PRIMARY/role4"};
         String[] test2 = {"role3", "role4"};
-        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getRoleNames("role", listCount,
-                true, true, true)).thenReturn(null);
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
+                .getRoleNames("role", listCount,
+                        true, true, true)).thenReturn(null);
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
-        FlaggedName[] flaggedNames = userRealmProxy.getRolesOfUser("admin2", "role", listCount);
+        FlaggedName[] flaggedNames = userRealmProxy
+                .getRolesOfUser("admin2", "role", listCount);
         Assert.assertEquals(flaggedNames.length, assertCount);
     }
 
@@ -222,7 +237,8 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(authorizationManager.
-                isRoleAuthorized(anyString(), eq(PERMISSION), eq(UserMgtConstants.EXECUTE_ACTION))).thenReturn(true);
+                isRoleAuthorized(anyString(),
+                        eq(PERMISSION), eq(UserMgtConstants.EXECUTE_ACTION))).thenReturn(true);
         userRealmProxy.updateRoleName("testRole", "testNewRole");
         verify(userStoreManager).updateRoleName("testRole", "testNewRole");
     }
