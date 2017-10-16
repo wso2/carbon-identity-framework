@@ -30,7 +30,11 @@ import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.RealmConfiguration;
-import org.wso2.carbon.user.core.*;
+import org.wso2.carbon.user.core.AuthorizationManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.hybrid.HybridRoleManager;
@@ -44,7 +48,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.user.mgt.UserRealmProxy.PERMISSION;
 
@@ -52,29 +59,28 @@ import static org.wso2.carbon.user.mgt.UserRealmProxy.PERMISSION;
 @PrepareForTest({UserRealm.class, AuthorizationManager.class, AbstractUserStoreManager.class})
 public class UserRealmProxyTest {
     private UserRealm realm;
-    UserRealmProxy userRealmProxy;
-    UserStoreManager userStoreManagerWithAb;
-    UserStoreManager userStoreManager;
-    AuthorizationManager authorizationManager;
-    ClaimManager claimManager;
+    private UserRealmProxy userRealmProxy;
+    private UserStoreManager userStoreManagerWithAb;
+    private UserStoreManager userStoreManager;
+    private AuthorizationManager authorizationManager;
+    private ClaimManager claimManager;
 
     @DataProvider(name = "userListCount")
-
     public static Object[][] itrCount() {
-
         return new Object[][]{{10, 3}, {0, 1}};
-
     }
 
     @BeforeTest
     public void setUp() throws Exception {
-        this.startTenantFlow("carbon.super");
+        startTenantFlow("carbon.super");
         realm = mock(UserRealm.class);
         userStoreManagerWithAb = mock(AbstractUserStoreManager.class);
         userStoreManager = mock(UserStoreManager.class);
         authorizationManager = mock(AuthorizationManager.class);
         claimManager = mock(ClaimManager.class);
         userRealmProxy = new UserRealmProxy(realm);
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+
     }
 
     @AfterMethod
@@ -103,21 +109,6 @@ public class UserRealmProxyTest {
         Assert.assertEquals(userList.length, 3);
     }
 
-//    @Test
-//    public void testListAllUsers() throws Exception {
-//        Map<String, Integer> maxListCount = new HashMap();
-//        maxListCount.put(null, 100);
-//        Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
-//        Object cc = userStoreManagerWithAb;
-//        Field f1 = cc.getClass().getSuperclass().getDeclaredField("hybridRoleManager");
-//        f1.setAccessible(true);
-//        f1.set(cc, userStoreManagerWithAb);
-//        f1.set(cc, userStoreManagerWithAb);
-//
-//        FlaggedName[] userList = userRealmProxy.listAllUsers("test", 10);
-//        Assert.assertEquals(userList, new String[]{"test1", "test2"});
-//
-//    }
 
     @Test
     public void testGetAllSharedRoleNames() throws Exception {
@@ -179,17 +170,11 @@ public class UserRealmProxyTest {
 
     @Test
     public void testAddUser() throws Exception {
-        Claim claim = new Claim();
-        claim.setClaimUri("testURI");
-        claim.setValue("testClaim");
-        ClaimValue claimValue = new ClaimValue();
-        claimValue.setClaimURI("testURI");
-        claimValue.setValue("testClaim");
         Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(authorizationManager.isRoleAuthorized("role1", PERMISSION, UserMgtConstants.EXECUTE_ACTION)).thenReturn(true);
-        userRealmProxy.addUser("testUser", "password", new String[]{"role1", "role2"}, new ClaimValue[]{claimValue}, "default");
+        userRealmProxy.addUser("testUser", "password", new String[]{"role1", "role2"}, getSampleClaims(), "default");
         Assert.assertTrue(true);
     }
 
@@ -223,32 +208,9 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(authorizationManager.
                 isUserAuthorized(anyString(), eq(PERMISSION), eq(UserMgtConstants.EXECUTE_ACTION))).thenReturn(true);
-
         userRealmProxy.deleteUser("testUser", registry);
         verify(userStoreManager).deleteUser(anyString());
     }
-
-    @Test
-    public void testAddRole() throws Exception {
-
-    }
-
-    @Test
-    public void testAddInternalRole() throws Exception {
-    }
-
-    @Test
-    public void testUpdateRoleName() throws Exception {
-    }
-
-    @Test
-    public void testDeleteRole() throws Exception {
-    }
-
-    @Test
-    public void testGetUsersOfRole() throws Exception {
-    }
-
 
     @Test(dataProvider = "userListCount")
     public void testGetRolesOfUser(int listCount, int assertCount) throws Exception {
@@ -279,52 +241,7 @@ public class UserRealmProxyTest {
         verify(userStoreManager).updateRoleName("testRole", "testNewRole");
     }
 
-    @Test
-    public void testUpdateRolesOfUser() throws Exception {
-
-    }
-
-    @Test
-    public void testUpdateUsersOfRole1() throws Exception {
-    }
-
-    @Test
-    public void testUpdateRolesOfUser1() throws Exception {
-    }
-
-    @Test
-    public void testGetAllUIPermissions() throws Exception {
-    }
-
-    @Test
-    public void testGetRolePermissions() throws Exception {
-    }
-
-    @Test
-    public void testSetRoleUIPermission() throws Exception {
-    }
-
-    @Test
-    public void testBulkImportUsers() throws Exception {
-    }
-
-    @Test
-    public void testChangePasswordByUser() throws Exception {
-    }
-
-    @Test
-    public void testHasMultipleUserStores() throws Exception {
-    }
-
-    @Test
-    public void testIsSharedRolesEnabled() throws Exception {
-    }
-
-    @Test
-    public void testConcatArrays() throws Exception {
-    }
-
-    public static void startTenantFlow(String tenantDomain) {
+    private static void startTenantFlow(String tenantDomain) {
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
         System.setProperty("carbon.home", carbonHome);
         PrivilegedCarbonContext.startTenantFlow();
@@ -341,7 +258,20 @@ public class UserRealmProxyTest {
         realmConfig.setEveryOneRoleName("everyone");
         realmConfig.setPrimary(true);
         realmConfig.setAdminUserName("admin");
+        Map<String, String> userStoreProperties = new HashMap<>();
+        userStoreProperties.put("WriteGroups", "true");
+        realmConfig.setUserStoreProperties(userStoreProperties);
         return realmConfig;
+    }
+
+    private ClaimValue[] getSampleClaims() {
+        Claim claim = new Claim();
+        claim.setClaimUri("testURI");
+        claim.setValue("testClaim");
+        ClaimValue claimValue = new ClaimValue();
+        claimValue.setClaimURI("testURI");
+        claimValue.setValue("testClaim");
+        return new ClaimValue[]{claimValue};
     }
 
 }
