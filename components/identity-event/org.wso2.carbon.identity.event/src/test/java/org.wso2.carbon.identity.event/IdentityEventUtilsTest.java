@@ -127,14 +127,4 @@ public class IdentityEventUtilsTest extends IdentityBaseTest {
         expectedProperties.setProperty("1", "value");
         Assert.assertEquals(propertiesFromMethod, expectedProperties);
     }
-
-    @Test (expectedExceptions = {IllegalArgumentException.class})
-    public void testBuildSingleWordKeyPropertiesException() {
-
-        IdentityEventUtils.getSubProperties("", properties);
-        IdentityEventUtils.getSubProperties("x", null);
-    }
 }
-
-
-

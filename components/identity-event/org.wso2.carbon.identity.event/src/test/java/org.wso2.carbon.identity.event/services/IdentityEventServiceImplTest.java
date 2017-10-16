@@ -62,7 +62,7 @@ public class IdentityEventServiceImplTest extends IdentityBaseTest {
 
         List abstractEventHandlerList = new ArrayList();
         abstractEventHandlerList.add(abstractEventHandler);
-         IdentityEventService identityEventService = new IdentityEventServiceImpl(abstractEventHandlerList,1);
+        IdentityEventService identityEventService = new IdentityEventServiceImpl(abstractEventHandlerList,1);
         identityEventService.handleEvent(event);
 
         Mockito.verify(abstractEventHandler).canHandle(any(MessageContext.class));
