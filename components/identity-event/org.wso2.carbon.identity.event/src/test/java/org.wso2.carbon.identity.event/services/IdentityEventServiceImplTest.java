@@ -16,8 +16,6 @@
  * under the License.
  */
 package org.wso2.carbon.identity.event.services;
-
-
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -27,18 +25,16 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.internal.IdentityEventServiceComponent;
-
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 
-
-public class IdentityEventServiceImplTest {
+public class IdentityEventServiceImplTest extends IdentityBaseTest {
 
     @Mock
     AbstractEventHandler abstractEventHandler;
@@ -71,5 +67,4 @@ public class IdentityEventServiceImplTest {
 
         Mockito.verify(abstractEventHandler).canHandle(any(MessageContext.class));
     }
-
 }

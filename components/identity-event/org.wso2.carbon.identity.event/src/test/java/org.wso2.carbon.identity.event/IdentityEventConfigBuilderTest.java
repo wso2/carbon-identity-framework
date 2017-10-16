@@ -17,12 +17,13 @@
  */
 package org.wso2.carbon.identity.event;
 
-import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import static org.testng.Assert.assertNotNull;
 
-public class IdentityEventConfigBuilderTest {
+
+public class IdentityEventConfigBuilderTest extends IdentityBaseTest {
 
     @BeforeSuite
     public void setup() throws NoSuchFieldException, IllegalAccessException {
@@ -38,11 +39,5 @@ public class IdentityEventConfigBuilderTest {
 
         IdentityEventConfigBuilder identityEventConfigBuilder =  IdentityEventConfigBuilder.getInstance();
         assertNotNull(identityEventConfigBuilder);
-    }
-
-    @Test
-    public void testGetThreadPoolSize() throws IdentityEventException {
-
-        Assert.assertEquals("10",IdentityEventConfigBuilder.getInstance().getThreadPoolSize());
     }
 }
