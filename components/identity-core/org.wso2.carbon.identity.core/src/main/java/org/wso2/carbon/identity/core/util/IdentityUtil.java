@@ -149,6 +149,9 @@ public class IdentityUtil {
         Object value = configuration.get(key);
         String strValue;
 
+        if (value == null) {
+            return null;
+        }
         if (value instanceof List) {
             value = ((List) value).get(0);
         }

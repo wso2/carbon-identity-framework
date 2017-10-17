@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
@@ -34,6 +35,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
+//@PowerMockIgnore({"org.xml.*","org.w3c.*"})
 public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
     private DefaultProvisioningHandler provisioningHandler;
@@ -46,6 +48,7 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+        PrivilegedCarbonContext.endTenantFlow();
     }
 
     @Test
