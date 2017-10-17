@@ -41,11 +41,12 @@ import java.util.Map;
 public abstract class AbstractRequestCoordinator implements RequestCoordinator {
 
     /**
-     * TODO: Move this to better place
-     * @param context
-     * @param parameterMap
-     * @return
-     * @throws FrameworkException
+     * Returns the sequence config related to current Authentication Context.
+     * @param context  Authentication Context
+     * @param parameterMap Parameter Map, retrieved from (Http/etc) Request.
+     * @return Generated Sequence Config.
+     * @throws FrameworkException when there is an error in loading the Sequence Config, most probably error
+     * in underlying data persistence layer.
      */
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap)
             throws FrameworkException {
@@ -63,14 +64,15 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
             return sequenceBuilder.getSequenceConfig(context, parameterMap, serviceProvider);
         } else {
             //Backward compatibility, Using the deprecated method.
+            //TODO: Need to remove the dependency to this.
             return ConfigurationFacade.getInstance().getSequenceConfig(issuer, requestType, tenantDomain);
         }
 
     }
 
-    /*
-     TODO: Move this to better place
-      */
+    /**
+     * Returns the service provider form persistence layer.
+     */
     protected ServiceProvider getServiceProvider(String reqType, String clientId, String tenantDomain)
             throws FrameworkException {
 

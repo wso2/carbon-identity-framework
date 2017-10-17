@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -158,6 +159,32 @@ public class AuthenticatedUser extends User {
      * @param authenticatedSubjectIdentifier the authenticated subject identifier
      */
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier) {
+        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+    }
+
+    /**
+     * Sets authenticated subject identifier according to the useTenantDomainInLocalSubjectIdentifier and
+     * useUserstoreDomainInLocalSubjectIdentifier properties.
+     *
+     * @param authenticatedSubjectIdentifier authenticated subject identifier
+     * @param serviceProvider service provider
+     */
+
+    public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier, ServiceProvider serviceProvider) {
+
+        if (!isFederatedUser() && serviceProvider != null) {
+            boolean useUserstoreDomainInLocalSubjectIdentifier = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                    .isUseUserstoreDomainInLocalSubjectIdentifier();
+            boolean useTenantDomainInLocalSubjectIdentifier = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                    .isUseTenantDomainInLocalSubjectIdentifier();
+            if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
+                authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
+            }
+            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain)) {
+                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
+                        tenantDomain);
+            }
+        }
         this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
     }
 

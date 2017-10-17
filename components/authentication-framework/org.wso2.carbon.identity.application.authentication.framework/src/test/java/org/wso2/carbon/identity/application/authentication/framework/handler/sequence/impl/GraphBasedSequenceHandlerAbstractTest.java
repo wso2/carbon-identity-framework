@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -35,6 +39,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.File;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.net.URL;
 
@@ -46,7 +51,20 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
-    protected UIBasedConfigurationLoader configurationLoader = new UIBasedConfigurationLoader();
+    protected UIBasedConfigurationLoader configurationLoader;
+    protected JsGraphBuilderFactory graphBuilderFactory;
+    protected JavascriptCache javascriptCache;
+
+    @BeforeClass
+    protected void setupSuite() {
+        configurationLoader = new UIBasedConfigurationLoader();
+        graphBuilderFactory = new JsGraphBuilderFactory();
+        javascriptCache = new JavascriptCacheImpl();
+        graphBuilderFactory.setJavascriptCache(javascriptCache);
+        graphBuilderFactory.init();
+        configurationLoader.setJsGraphBuilderFactory(graphBuilderFactory);
+        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+    }
 
     @BeforeMethod
     protected void setUp()
@@ -55,13 +73,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         File file = new File(root.getPath());
         System.setProperty("carbon.home", file.toString());
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockAuthenticator("BasicMockAuthenticator", new SubjectCallback() {
-
-                    @Override
-                    public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
-                        return AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
-                    }
-                }));
+                .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
 
@@ -82,7 +94,15 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         configFilePathField.setAccessible(true);
         URL url = this.getClass().getResource(APPLICATION_AUTHENTICATION_FILE_NAME);
         configFilePathField.set(null, url.getPath());
+    }
 
-        graphBasedSequenceHandler.addDecisionEvaluator(new AcrDecisionEvaluator());
+    private static class MockSubjectCallback implements SubjectCallback, Serializable {
+
+        private static final long serialVersionUID = 597048141496121100L;
+
+        @Override
+        public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
+            return AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+        }
     }
 }

@@ -31,7 +31,7 @@
     <LocalAndOutBoundAuthenticationConfig>
         <AuthenticationSteps>
             <AuthenticationStep>
-                <StepOrder>0</StepOrder>
+                <StepOrder>1</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
                         <Name>BasicMockAuthenticator</Name>
@@ -43,7 +43,7 @@
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>1</StepOrder>
+                <StepOrder>2</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
@@ -61,7 +61,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>2</StepOrder>
+                <StepOrder>3</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
@@ -79,24 +79,17 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript"><![CDATA[
 
 fn1  = function (context) {
-  log.debug("Test");
   return "acr1";
 }
 
 function(context) {
-	execute('0');
-	makeDecisionWith(function(context) {return fn1(context);})
-		.when('acr1').thenExecute('1')
-		.when('acr2').thenExecute('1').thenExecute('2')
-		.whenNoMatch().thenExecute('0');
-}
-
-
-function selectAcrFrom2(context, possibleList) {
-    return "acr1";
+	executeStep({id :'1'});
+    switch(fn1(context)) {
+		case "acr1" : executeStep({id :'2'});
+    }
 }
 
 ]]></AuthenticationScript>

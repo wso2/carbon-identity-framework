@@ -30,6 +30,13 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
 
+<script>
+        function submitCredentials () {
+            var userName = document.getElementById("username");
+            userName.value = userName.value.trim();
+            document.getElementById("loginForm").submit();
+        }
+</script>
 
 <%
     String resendUsername = request.getParameter("resend_username");
@@ -132,7 +139,7 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit">Sign in
+                    type="submit" onclick="submitCredentials()">Sign in
             </button>
         </div>
     </div>
@@ -147,22 +154,21 @@
             String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
             String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
 
-            if (request.getParameter("relyingParty").equals("wso2.my.dashboard")) {
-                String identityMgtEndpointContext =
-                        application.getInitParameter("IdentityManagementEndpointContextURL");
-                if (StringUtils.isBlank(identityMgtEndpointContext)) {
-                    identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
-                }
+            String identityMgtEndpointContext =
+                    application.getInitParameter("IdentityManagementEndpointContextURL");
+            if (StringUtils.isBlank(identityMgtEndpointContext)) {
+                identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+            }
 
-                URL url = null;
-                HttpURLConnection httpURLConnection = null;
+            URL url = null;
+            HttpURLConnection httpURLConnection = null;
 
-                url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback="+Encode.forHtmlAttribute
-                        (urlEncodedURL ));
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestMethod("HEAD");
-                httpURLConnection.connect();
-                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute
+                    (urlEncodedURL));
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setRequestMethod("HEAD");
+            httpURLConnection.connect();
+            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
         %>
         <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
         <br/><br/>
@@ -194,7 +200,6 @@
         Don't have an account?
         <a id="registerLink" href="<%=url%>">Register Now</a>
         <%
-                }
             }
         %>
         <br/>

@@ -59,6 +59,8 @@ public class ApplicationMgtDBQueries {
                                                  "IS_SUBJECT_STEP, IS_ATTRIBUTE_STEP) VALUES (?,?,?,?,?)";
     public static final String STORE_STEP_IDP_AUTH = "INSERT INTO SP_FEDERATED_IDP (ID, TENANT_ID, AUTHENTICATOR_ID) " +
                                                      "VALUES (?,?,?)";
+    public static final String STORE_SP_AUTH_SCRIPT = "INSERT INTO SP_AUTH_SCRIPT (TENANT_ID, APP_ID, TYPE, CONTENT)" +
+                                                        " VALUES (?,?,?,?)";
     public static final String STORE_CLAIM_MAPPING = "INSERT INTO SP_CLAIM_MAPPING (TENANT_ID, IDP_CLAIM, SP_CLAIM, " +
                                                      "APP_ID, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE) VALUES (?,?,?,?,?,?,?)";
     public static final String STORE_ROLE_MAPPING = "INSERT INTO SP_ROLE_MAPPING (TENANT_ID, IDP_ROLE, SP_ROLE, APP_ID)" +
@@ -116,6 +118,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_LOCAL_AND_OUTBOUND_CONFIG_BY_APP_ID = "SELECT IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                           "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI FROM " +
                                                                           "SP_APP WHERE TENANT_ID= ? AND ID = ?";
+    public static final String LOAD_SCRIPT_BY_APP_ID_QUERY = "SELECT CONTENT FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
 
     public static final String LOAD_REQ_PATH_AUTHENTICATORS_BY_APP_ID = "SELECT AUTHENTICATOR_NAME FROM " +
                                                                         "SP_REQ_PATH_AUTHENTICATOR WHERE APP_ID = ? AND TENANT_ID = ?";
@@ -136,6 +139,7 @@ public class ApplicationMgtDBQueries {
                                                                   "AND TENANT_ID = ?";
     public static final String REMOVE_STEP_FROM_APPMGT_STEP = "DELETE FROM SP_AUTH_STEP WHERE APP_ID = ? AND " +
                                                               "TENANT_ID = ?";
+    public static final String REMOVE_AUTH_SCRIPT = "DELETE FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
     public static final String REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING = "DELETE FROM SP_CLAIM_MAPPING " +
                                                                                  "WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String REMOVE_ROLE_MAPPINGS_FROM_APPMGT_ROLE_MAPPING = "DELETE FROM SP_ROLE_MAPPING " +

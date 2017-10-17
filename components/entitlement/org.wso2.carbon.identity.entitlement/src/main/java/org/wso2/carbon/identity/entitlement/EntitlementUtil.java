@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.entitlement;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
@@ -72,7 +73,6 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -381,8 +381,9 @@ public class EntitlementUtil {
                 + "identity" + File.separator + "policies" + File.separator + "xacml"
                 + File.separator + "default");
 
-        if (policyFolder.exists()) {
-            for (File policyFile : policyFolder.listFiles()) {
+        File[] fileList;
+        if (policyFolder.exists() && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
+            for (File policyFile : fileList) {
                 if (policyFile.isFile()) {
                     PolicyDTO policyDTO = new PolicyDTO();
                     try {

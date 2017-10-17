@@ -28,6 +28,7 @@
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <jsp:useBean id="userBean" type="org.wso2.carbon.user.mgt.ui.UserBean"
              class="org.wso2.carbon.user.mgt.ui.UserBean" scope="session"/>
 <jsp:setProperty name="userBean" property="*" />
@@ -52,12 +53,23 @@
 
         ClaimValue[] claims = null;
         String userPassword = (userBean.getPassword());
-        if(userBean.getEmail().trim().length() > 0 ){
+        boolean isUserOnBoardingEnabled = Util.isUserOnBoardingEnabled(config.getServletContext(), session);
+        boolean isOldAskPasswordEnabled = Util.isAskPasswordEnabled();
+
+        if (userBean.getEmail().trim().length() > 0) {
             ClaimValue emailClaim = new ClaimValue();
             emailClaim.setClaimURI(UserAdminUIConstants.EMAIL_CLAIM_URI);
             emailClaim.setValue(userBean.getEmail());
             claims = new ClaimValue[]{emailClaim};
-            userPassword = null;
+            if (isOldAskPasswordEnabled) {
+                userPassword = null;
+            } else if (isUserOnBoardingEnabled) {
+                ClaimValue askPassword = new ClaimValue();
+                askPassword.setClaimURI(UserAdminUIConstants.ASK_PASSWORD_CLAIM_URI);
+                askPassword.setValue(Boolean.TRUE.toString());
+                claims = new ClaimValue[]{emailClaim, askPassword};
+                userPassword = new String(Util.generateRandomPassword(config.getServletContext(), session));
+            }
         }
         userBean.addUserRoles((Map<String,Boolean>)session.getAttribute("checkedRolesMap"));
         client.addUser(username, userPassword, userBean.getUserRoles(), claims, null);

@@ -18,7 +18,6 @@
 package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
-import org.wso2.carbon.identity.application.mgt.AuthenticationGraphConfigReaderService;
 import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -37,16 +36,6 @@ public class ApplicationManagementServiceComponentHolder {
     private RealmService realmService;
 
     private ConfigurationContextService configContextService;
-
-    public AuthenticationGraphConfigReaderService getAuthenticationGraphConfigReaderService() {
-        return authenticationGraphConfigReaderService;
-    }
-
-    public void setAuthenticationGraphConfigReaderService(AuthenticationGraphConfigReaderService authenticationGraphConfigReaderService) {
-        this.authenticationGraphConfigReaderService = authenticationGraphConfigReaderService;
-    }
-
-    private AuthenticationGraphConfigReaderService authenticationGraphConfigReaderService;
 
     private ApplicationManagementServiceComponentHolder(){
     }

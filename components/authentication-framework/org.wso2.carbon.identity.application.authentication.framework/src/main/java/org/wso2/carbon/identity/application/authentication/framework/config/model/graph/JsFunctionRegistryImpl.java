@@ -18,20 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistrar;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public class JsFunctionRegistrarImpl implements JsFunctionRegistrar {
+/**
+ * Default implementation for the JsFunctionRegistry.
+ */
+public class JsFunctionRegistryImpl implements JsFunctionRegistry {
+
     private Map<Subsystem, Map<String, Object>> subsystemMap = new HashMap<>();
 
     @Override
     public void register(Subsystem subsystem, String functionName, Object function) {
-        Map<String, Object> functionNameMap =  subsystemMap.get(subsystem);
-        if(functionNameMap == null) {
+        Map<String, Object> functionNameMap = subsystemMap.get(subsystem);
+        if (functionNameMap == null) {
             functionNameMap = new HashMap<>();
             subsystemMap.put(subsystem, functionNameMap);
         }
@@ -39,10 +42,15 @@ public class JsFunctionRegistrarImpl implements JsFunctionRegistrar {
     }
 
     public void stream(Subsystem subsystem, Consumer<Map.Entry<String, Object>> consumer) {
-        Map<String, Object> functionNameMap =  subsystemMap.get(subsystem);
+        Map<String, Object> functionNameMap = subsystemMap.get(subsystem);
 
-        if(functionNameMap != null) {
+        if (functionNameMap != null) {
             functionNameMap.entrySet().stream().forEach(e -> consumer.accept(e));
         }
+    }
+
+    @Override
+    public void deRegister(Subsystem subsystem, String functionName) {
+
     }
 }

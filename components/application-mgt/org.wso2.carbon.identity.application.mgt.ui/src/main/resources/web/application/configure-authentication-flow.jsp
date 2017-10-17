@@ -555,7 +555,7 @@ var img = "";
                 <input type="button" value="<fmt:message key='button.cancel'/>" onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
             </div>
 			<h2 id="lambda_function" class="sectionSeperator trigger active" style="font-size:large "  >
-				<a href="#">Code in Lambda</a>
+				<a href="#">JavaScript based Conditional Steps</a>
 			</h2>
 
 			<div class="sectionSeperator togglebleTitle" style="margin-bottom:10px;" id="lamda_func_dropdown">

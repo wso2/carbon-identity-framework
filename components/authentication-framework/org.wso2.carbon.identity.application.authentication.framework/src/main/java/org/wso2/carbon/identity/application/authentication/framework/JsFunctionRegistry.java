@@ -18,10 +18,32 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-public interface JsFunctionRegistrar {
+/**
+ * Registry to add or remove custom functions implemented in Java to javascript based execution engine.
+ */
+public interface JsFunctionRegistry {
 
-    enum Subsystem{
+    /**
+     * Identifies the user-programmable subsystem.
+     */
+    enum Subsystem {
         SEQUENCE_HANDLER
     }
+
+    /**
+     * Register the custom function with the given name to the given subsystem.
+     * @param subsystem
+     * @param functionName
+     * @param function
+     */
     void register(Subsystem subsystem, String functionName, Object function);
+
+    /**
+     * Removes the custom functions with the given name from the given subsystem.
+     * All the functions contributed will be removed, irrespective of what component registered it.
+     *
+     * @param subsystem
+     * @param functionName
+     */
+    void deRegister(Subsystem subsystem, String functionName);
 }

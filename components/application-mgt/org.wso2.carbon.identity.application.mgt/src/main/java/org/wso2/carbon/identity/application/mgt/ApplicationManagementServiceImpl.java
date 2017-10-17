@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
@@ -258,7 +257,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProvider.getApplicationName());
+                    serviceProvider.getApplicationName(), tenantDomain);
 
             IdentityServiceProviderCache.getInstance().clearCacheEntry(cacheKey);
 
@@ -821,7 +820,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+                    serviceProviderName, tenantDomain);
             IdentityServiceProviderCacheEntry entry = IdentityServiceProviderCache.getInstance().
                     getValueFromCache(cacheKey);
 
@@ -847,24 +846,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
                 loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-                AuthenticationGraphConfig authenticationGraphConfig =
-                        localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig();
-                if (authenticationGraphConfig != null){
-                    String graphName = authenticationGraphConfig.getName();
-                    AuthenticationGraphConfigReaderService authenticationGraphConfigReaderService =
-                            ApplicationManagementServiceComponentHolder.getInstance().
-                                    getAuthenticationGraphConfigReaderService();
-                    localAndOutboundAuthenticationConfig.
-                            setAuthenticationGraphConfig(authenticationGraphConfigReaderService.getGraph(graphName));
-                } else {
-                    if (authenticationSteps == null || authenticationSteps.length == 0){
-                        ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
-                                .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
-                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                                .setAuthenticationSteps(authenticationSteps);
-                    }
+                if (authenticationSteps == null || authenticationSteps.length == 0) {
+                    ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
+                            .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationSteps(authenticationSteps);
                 }
+
             }
         }
 
@@ -883,7 +872,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+                    serviceProviderName, tenantDomain);
             IdentityServiceProviderCacheEntry entry = new IdentityServiceProviderCacheEntry();
             entry.setServiceProvider(serviceProvider);
             IdentityServiceProviderCache.getInstance().addToCache(cacheKey, entry);
@@ -898,12 +887,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return serviceProvider;
-    }
-
-    public String[] getAllGraphs() {
-
-        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationGraphConfigReaderService().
-                getAllGraphs();
     }
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)

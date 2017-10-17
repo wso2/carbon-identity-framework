@@ -462,12 +462,14 @@
                                         </label>
                                     </td>
                                     <td>
-                                        <% if (!userRealmInfo.getAdminRole().equals(name.getItemName())) {%>
+                                        <% if (!userRealmInfo.getAdminRole().equals(name.getItemName()) &&
+                                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/update")) {%>
                                         <a style="background-image:url(images/edit.gif);" class="icon-link"
                                            href="../role/edit-permissions.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>"><fmt:message
                                                 key="edit.permissions"/></a>
                                         <%} %>
-                                        <% if (!userRealmInfo.getEveryOneRole().equals(name.getItemName())) {%>
+                                        <% if (!userRealmInfo.getEveryOneRole().equals(name.getItemName()) &&
+                                                CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/view")) {%>
                                         <a style="background-image:url(images/view.gif);" class="icon-link"
                                            href="../role/view-users.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%if (!name.getEditable()) { %>true<% }else{ %>false<% } %>"><fmt:message
                                                 key="view.users"/></a>
@@ -538,7 +540,8 @@
 
                 <tr>
                     <td class="buttonRow">
-                        <% if (!showFilterMessage) { %>
+                        <% if (!showFilterMessage && CarbonUIUtil.isUserAuthorized(request,
+                                "/permission/admin/manage/identity/rolemgt/update")) { %>
                         <input class="button" type="button" value="<fmt:message key="update"/>"
                                onclick="enableCheckBoxes();doUpdate()"/>
                         <input class="button" type="button" value="<fmt:message key="finish"/>"

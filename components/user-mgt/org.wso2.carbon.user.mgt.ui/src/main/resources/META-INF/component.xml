@@ -28,7 +28,9 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/user-store.gif</icon>
-            <require-permission>/permission/admin/login</require-permission>
+
+            <at-least>/permission/admin/manage/identity/userroleuimgt/create</at-least>
+            <at-least>/permission/admin/login</at-least>
         </menu>
 
         <menu>
@@ -41,7 +43,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/add.gif</icon>
-            <require-permission>/permission/admin/manage/identity/usermgt</require-permission>
+            <require-permission>/permission/admin/manage/identity/userroleuimgt/create</require-permission>
         </menu>
 
         <menu>

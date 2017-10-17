@@ -91,7 +91,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         if (claimConfig.getClaims() != null) {
 
             // Adding local claims
-            String primaryDomainName = null;
+            String primaryDomainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
             UserRealm realm;
             try {
                 realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
@@ -116,7 +116,18 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
                     List<AttributeMapping> mappedAttributes = new ArrayList<>();
-                    mappedAttributes.add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
+                    if (StringUtils.isNotBlank(claimMapping.getMappedAttribute())) {
+                        mappedAttributes
+                                .add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
+                    }
+
+                    if (claimMapping.getMappedAttributes() != null) {
+                        for (Map.Entry<String, String> claimMappingEntry : claimMapping.getMappedAttributes()
+                                .entrySet()) {
+                            mappedAttributes.add(new AttributeMapping(claimMappingEntry.getKey(),
+                                    claimMappingEntry.getValue()));
+                        }
+                    }
 
                     Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
                     claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);

@@ -48,15 +48,17 @@
 
     List<String> domainNames = null;
     String selectedDomain = null;
+    boolean isAskPasswordEnabled = false;
+    boolean isUserOnBoardingEnabled = false;
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
         userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         if (userRealmInfo == null) {
-            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext =
                     (ConfigurationContext) config.getServletContext()
                                                  .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
@@ -92,6 +94,12 @@
         selectedDomain = userBean.getDomain();
         if (selectedDomain == null || selectedDomain.trim().length() == 0) {
             selectedDomain = primaryDomainName;
+        }
+
+        isAskPasswordEnabled = Util.isAskPasswordEnabled();
+        isUserOnBoardingEnabled = Util.isUserOnBoardingEnabled(config.getServletContext(), session);
+        if (!isAskPasswordEnabled) {
+            isAskPasswordEnabled = isUserOnBoardingEnabled;
         }
 
     } catch (Exception e) {
@@ -146,7 +154,6 @@
 
             var e = document.getElementById("domain");
 
-            var passwordRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getPasswordRegEx())%>";
             var usrRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getUserNameRegEx())%>";
 
             if (e != null) {
@@ -378,7 +385,7 @@
                                                style="width:150px"/></td>
                                 </tr>
                                 <%
-                                    if (Util.isAskPasswordEnabled()) {
+                                    if (isAskPasswordEnabled) {
                                 %>
 
                                 <tr>
@@ -401,11 +408,11 @@
                                 %>
                                 <tr id="passwordRow">
                                     <td><fmt:message key="password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="password" style="width:150px" autocomplete="off"/></td>
+                                    <td><input type="password" name="password" id="password" style="width:150px" autocomplete="off"/></td>
                                 </tr>
                                 <tr id="retypeRow">
                                     <td><fmt:message key="password.repeat"/><font color="red">*</font></td>
-                                    <td><input type="password" autocomplete="off" name="retype" style="width:150px"/></td>
+                                    <td><input type="password" id="password-repeat" autocomplete="off" name="retype" style="width:150px"/></td>
                                 </tr>
                             </table>
                         </td>
@@ -413,7 +420,7 @@
                     <tr>
                         <td class="buttonRow">
                             <%
-                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
+                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
                             %>
                             <input type="button" class="button" value="<fmt:message key="next"/> >"
                                    onclick="doNext();"/>

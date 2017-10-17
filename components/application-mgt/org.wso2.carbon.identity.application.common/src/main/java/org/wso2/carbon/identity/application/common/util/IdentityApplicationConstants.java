@@ -131,6 +131,9 @@ public class IdentityApplicationConstants {
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
 
+            public static final String UNSPECIFIED_NAME_ID_FORMAT =
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
+
 
             private SAML2SSO() {
                 throw new AssertionError("Must not initiate an object of SAMLSSO class");

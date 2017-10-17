@@ -29,50 +29,12 @@
         </InboundAuthenticationRequestConfigs>
     </InboundAuthenticationConfig>
     <LocalAndOutBoundAuthenticationConfig>
-        <AuthenticationGraph start="basic_auth">
-            <AuthenticationStep name="basic_auth" nextLink="basic_auth">
-                <StepOrder>1</StepOrder>
-                <LocalAuthenticatorConfigs>
-                    <LocalAuthenticatorConfig>
-                        <Name>BasicAuthenticator</Name>
-                        <DisplayName>basicauth</DisplayName>
-                        <IsEnabled>true</IsEnabled>
-                    </LocalAuthenticatorConfig>
-                </LocalAuthenticatorConfigs>
-                <SubjectStep>true</SubjectStep>
-                <AttributeStep>true</AttributeStep>
-            </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="foo">
-                <Evaluator>AcrEvaluator</Evaluator>
-                <Link name="end" nextLink="" />
-                <Link name="hwk" nextLink="sample_auth" expression="hwk" />
-                <Link name="default" nextLink="sample_auth" />
-            </AuthenticationDecision>
-            <AuthenticationStep name="sample_auth" nextLink="basic_auth">
-                <StepOrder>2</StepOrder>
-                <FederatedIdentityProviders>
-                    <IdentityProvider>
-                        <IdentityProviderName>SampleHardwareKeyAuthenticator</IdentityProviderName>
-                        <IsEnabled>true</IsEnabled>
-                        <DefaultAuthenticatorConfig>SampleHardwareKeyAuthenticator</DefaultAuthenticatorConfig>
-                        <FederatedAuthenticatorConfigs>
-                            <FederatedAuthenticatorConfig>
-                                <Name>SampleHardwareKeyAuthenticator</Name>
-                                <IsEnabled>true</IsEnabled>
-                            </FederatedAuthenticatorConfig>
-                        </FederatedAuthenticatorConfigs>
-                    </IdentityProvider>
-                </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
-                <AttributeStep>false</AttributeStep>
-            </AuthenticationStep>
-        </AuthenticationGraph>
         <AuthenticationSteps>
             <AuthenticationStep>
                 <StepOrder>1</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
-                        <Name>BasicAuthenticator</Name>
+                        <Name>BasicMockAuthenticator</Name>
                         <DisplayName>basicauth</DisplayName>
                         <IsEnabled>true</IsEnabled>
                     </LocalAuthenticatorConfig>
@@ -84,12 +46,12 @@
                 <StepOrder>2</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
-                        <IdentityProviderName>SampleHardwareKeyAuthenticator</IdentityProviderName>
+                        <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
                         <IsEnabled>true</IsEnabled>
-                        <DefaultAuthenticatorConfig>SampleHardwareKeyAuthenticator</DefaultAuthenticatorConfig>
+                        <DefaultAuthenticatorConfig>HwkMockAuthenticator</DefaultAuthenticatorConfig>
                         <FederatedAuthenticatorConfigs>
                             <FederatedAuthenticatorConfig>
-                                <Name>SampleHardwareKeyAuthenticator</Name>
+                                <Name>HwkMockAuthenticator</Name>
                                 <IsEnabled>true</IsEnabled>
                             </FederatedAuthenticatorConfig>
                         </FederatedAuthenticatorConfigs>
@@ -98,7 +60,63 @@
                 <SubjectStep>fales</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>3</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>FptMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>FptMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>fales</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>4</StepOrder>
+                <LocalAuthenticatorConfigs>
+                    <LocalAuthenticatorConfig>
+                        <Name>BasicFailingMockAuthenticator</Name>
+                        <DisplayName>basicauthfialing</DisplayName>
+                        <IsEnabled>true</IsEnabled>
+                    </LocalAuthenticatorConfig>
+                </LocalAuthenticatorConfigs>
+                <SubjectStep>true</SubjectStep>
+                <AttributeStep>true</AttributeStep>
+            </AuthenticationStep>
         </AuthenticationSteps>
+        <AuthenticationScript type="application/javascript"><![CDATA[
+var jsFn1 = function(context, a) {
+    log.debug('Test fn1 '+a);
+}
+
+function(context) {
+Log.info('Test0');
+	executeStep({
+	    id : '4',
+	    on : {
+	        success : function(context){
+	                Log.info('Test1');
+	                executeStep({
+	                    context : context,
+	                    id : 2});
+	            },
+	        fail : function(context){
+	                Log.info('Test On Fail');
+	                executeStep({id : 1, context : context});
+	                executeStep({context : context, id : 3});
+	            }
+	    }
+	})
+}
+
+]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

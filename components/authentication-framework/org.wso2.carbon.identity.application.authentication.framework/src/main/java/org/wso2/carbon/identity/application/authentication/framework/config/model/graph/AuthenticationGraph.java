@@ -32,7 +32,6 @@ public class AuthenticationGraph implements Serializable {
     private static final long serialVersionUID = 7602728707258687636L;
     private String name;
     private AuthGraphNode startNode;
-    private AuthGraphNode endNode;
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
 
     public String getName() {
@@ -49,14 +48,6 @@ public class AuthenticationGraph implements Serializable {
 
     public void setStartNode(AuthGraphNode startNode) {
         this.startNode = startNode;
-    }
-
-    public AuthGraphNode getEndNode() {
-        return endNode;
-    }
-
-    public void setEndNode(AuthGraphNode endNode) {
-        this.endNode = endNode;
     }
 
     public Map<Integer, StepConfig> getStepMap() {

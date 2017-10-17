@@ -25,6 +25,7 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1418,7 +1420,8 @@ public class IdPManagementUIUtil {
         if ("on".equals(paramMap.get("saml2SSODefault"))) {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
-        Property[] properties  = new Property[25];
+
+        List<Property> properties  = new ArrayList<>();
 
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);
@@ -1432,17 +1435,17 @@ public class IdPManagementUIUtil {
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
         property.setValue(paramMap.get("idPEntityId"));
-        properties[0] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID);
         property.setValue(paramMap.get("spEntityId"));
-        properties[1] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
         property.setValue(paramMap.get("ssoUrl"));
-        properties[2] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_REQ_SIGNED);
@@ -1451,7 +1454,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[3] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED);
@@ -1460,12 +1463,12 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[4] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
         property.setValue(paramMap.get("logoutUrl"));
-        properties[5] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED);
@@ -1474,7 +1477,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[6] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED);
@@ -1483,7 +1486,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[7] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_USER_ID_IN_CLAIMS);
@@ -1492,7 +1495,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[8] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION);
@@ -1501,7 +1504,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[9] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_SIGNING);
@@ -1510,7 +1513,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[10] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName("commonAuthQueryParams");
@@ -1520,31 +1523,31 @@ public class IdPManagementUIUtil {
             property.setValue(paramMap.get("samlQueryParam"));
         }
 
-        properties[11] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD));
-        properties[12] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM));
-        properties[13] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM));
-        properties[14] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL));
-        properties[15] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_NAME_ID_POLICY);
@@ -1554,19 +1557,19 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[16] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.FORCE_AUTHENTICATION);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.FORCE_AUTHENTICATION));
-        properties[17] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST));
-        properties[18] = property;
+        properties.add(property);
 
         String authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         if (IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
@@ -1575,13 +1578,13 @@ public class IdPManagementUIUtil {
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         property.setValue(authenticationContextClass);
-        properties[19] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX));
-        properties[20] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_CERT);
@@ -1591,13 +1594,13 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[21] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT));
-        properties[22] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
@@ -1607,7 +1610,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[23] = property;
+        properties.add(property);
 
         property = new Property();
         property.setName(IdPManagementUIUtil.META_DATA_SAML);
@@ -1616,10 +1619,15 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue(null);
         }
-        properties[24] = property;
+        properties.add(property);
 
+        // NameIDFormat
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE);
+        property.setValue(paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE));
+        properties.add(property);
 
-        saml2SSOAuthnConfig.setProperties(properties);
+        saml2SSOAuthnConfig.setProperties(properties.toArray(new Property[properties.size()]));
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
         if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {

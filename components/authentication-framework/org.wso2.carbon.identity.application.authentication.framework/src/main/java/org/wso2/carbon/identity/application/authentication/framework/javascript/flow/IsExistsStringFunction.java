@@ -16,22 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.model.graph;
+package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
 
-import java.io.Serializable;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 /**
- * Abstract definition of a graph node.
+ * Function definition for checking/matching string from the context.
  */
-public abstract class Node implements Serializable {
+@FunctionalInterface
+public interface IsExistsStringFunction {
 
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    Boolean contains(AuthenticationContext context, String string);
 }
