@@ -102,9 +102,6 @@
             prevString = "role-mgt.jsp";
          }
         %>
-        <%
-        System.out.println("view-users.jsp -> prevString ===" + prevString);
-        %>
         location.href = '<%=Encode.forJavaScriptBlock(prevString)%>';
     }
 </script>

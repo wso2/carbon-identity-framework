@@ -19,46 +19,83 @@ package org.wso2.carbon.identity.user.profile.ui.client;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreException;
+
+import java.util.Map;
 
 public class UserProfileUIUtil {
 
     private static final Log log = LogFactory.getLog(UserProfileUIUtil.class);
 
+    private static final String ENCRYPT_USERNAME_IN_URL = "encryptUsernameInUrl";
+
     /**
-     * Encrypt and Base64 encode the username with Carbon server's private key.
+     * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
+     * set to true in user-mgt.xml, else return the username without encrypting.
      * @param username Username to encrypt
-     * @return Encrypted and Base64Encoded username
+     * @return Encrypted and base64Encoded username if usernameEncryptionInUrl property is set to true user-mgt.xml,
+     * else return the username without encrypting
      * @throws UserProfileUIException
      */
     public static String getEncryptedAndBase64encodedUsername(String username) throws UserProfileUIException{
         String encryptedAndBase64EncodedUsername = null;
         try {
             if (username != null) {
-                encryptedAndBase64EncodedUsername = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(username.getBytes());
+                boolean isUsernameEncryptionEnabled = isUsernameEncryptionEnabled();
+                if (isUsernameEncryptionEnabled) {
+                    encryptedAndBase64EncodedUsername = CryptoUtil.getDefaultCryptoUtil().
+                            encryptAndBase64Encode(username.getBytes());
+                } else {
+                    return username;
+                }
             }
         } catch (CryptoException e) {
             log.error(String.format("Error while trying to encrypt the username : '%s' ", username), e);
             throw new UserProfileUIException(e);
+        } catch (CarbonException | UserStoreException e) {
+            log.error("Error while trying to get UserRealm", e);
+            throw new UserProfileUIException("Error while trying to get UserRealm", e);
         }
 
         return encryptedAndBase64EncodedUsername;
     }
 
     /**
-     * Decrypt the encrypted username using Carbon server's public key.
-     * @param encryptedAndBase64EncodedUsername Encrypted and Base64Encoded username which is encrypted by Carbon
-     *                                          server's private key
-     * @return Decrypted username
+     * Decrypt the encrypted username using Carbon server's private key.
+     * @param encryptedAndBase64EncodedUsername Encrypted username which is encrypted by Carbon server's private key
+     * @return Decrypted username if usernameEncryptionInUrl property is set to true user-mgt.xml, else return the
+     * provided input parameter as it is.
      * @throws UserProfileUIException
      */
     public static String getDecryptedUsername(String encryptedAndBase64EncodedUsername) throws UserProfileUIException {
         try {
-            return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(encryptedAndBase64EncodedUsername));
+            boolean isUsernameEncryptionEnabled = isUsernameEncryptionEnabled();
+            if (isUsernameEncryptionEnabled) {
+                return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(encryptedAndBase64EncodedUsername));
+            } else {
+                return encryptedAndBase64EncodedUsername;
+            }
         } catch (CryptoException e) {
             log.error(String.format("Error while trying to decrypt the username : '%s' ", encryptedAndBase64EncodedUsername), e);
             throw new UserProfileUIException(e);
+        } catch (CarbonException | UserStoreException e) {
+            log.error("Error while trying to get UserRealm", e);
+            throw new UserProfileUIException("Error while trying to get UserRealm", e);
         }
+    }
+
+    private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
+        boolean isUsernameEncryptionEnabled = false;
+        Map<String,String> realmProperties = AdminServicesUtil.getUserRealm().getRealmConfiguration()
+                .getRealmProperties();
+        if (realmProperties != null) {
+            isUsernameEncryptionEnabled = Boolean.parseBoolean(realmProperties.get(ENCRYPT_USERNAME_IN_URL));
+        }
+        return isUsernameEncryptionEnabled;
     }
 }
