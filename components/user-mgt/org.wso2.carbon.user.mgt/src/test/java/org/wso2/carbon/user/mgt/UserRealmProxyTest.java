@@ -106,7 +106,8 @@ public class UserRealmProxyTest {
 
     @Test
     public void testGetAllSharedRoleNames() throws Exception {
-        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("test", 10)).thenReturn(new String[]{"test1", "test2"});
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
+                .getSharedRoleNames("test", 10)).thenReturn(new String[]{"test1", "test2"});
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         FlaggedName[] roleList = userRealmProxy.getAllSharedRoleNames("test", 10);
         Assert.assertTrue(roleList[0].getItemName().equals("test1")
@@ -125,7 +126,8 @@ public class UserRealmProxyTest {
         f1.set(cc, hybridRoleManager);
         String[] test = {"role3x", "role4x"};
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
-        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
+                .getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
                 .getRoleNames("role", 10,
                         true, true, true))
@@ -151,7 +153,8 @@ public class UserRealmProxyTest {
         claim.setValue("testClaim");
         claimMapping.setClaim(claim);
 
-        Mockito.when(claimManager.getAllClaimMappings(UserCoreConstants.DEFAULT_CARBON_DIALECT)).thenReturn(new ClaimMapping[]{claimMapping});
+        Mockito.when(claimManager.getAllClaimMappings(UserCoreConstants.DEFAULT_CARBON_DIALECT))
+                .thenReturn(new ClaimMapping[]{claimMapping});
         Mockito.when(userStoreManagerWithAb.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
         Mockito.when(userStoreManagerWithAb.isBulkImportSupported()).thenReturn(false);
         UserRealmInfo realmInfo = userRealmProxy.getUserRealmInfo();
