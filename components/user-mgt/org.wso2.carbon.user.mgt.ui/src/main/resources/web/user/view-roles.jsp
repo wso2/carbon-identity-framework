@@ -29,11 +29,6 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.PaginatedNamesBean" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
@@ -44,6 +39,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.*" %>
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
@@ -118,12 +114,22 @@
         }
     }
 
-    String userName = request.getParameter("username");
     String displayName = request.getParameter("displayName");
+    String encryptedUsername = request.getParameter("username");
+    String decryptedUsername = null;
+
+    if (encryptedUsername != null) {
+        try {
+            decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
+        } catch (UserManagementUIException e) {
+            //ToDo:
+        }
+    }
+
     if (StringUtils.isBlank(displayName)) {
         displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
         if (StringUtils.isBlank(displayName)) {
-            displayName = userName;
+            displayName = decryptedUsername;
         }
     } else {
         session.setAttribute(UserAdminUIConstants.USER_DISPLAY_NAME, displayName);
@@ -142,8 +148,8 @@
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
-            if (filter.length() > 0 && userName != null) {
-                FlaggedName[] data = client.getRolesOfUser(userName, filter, 0);
+            if (filter.length() > 0 && decryptedUsername != null) {
+                FlaggedName[] data = client.getRolesOfUser(decryptedUsername, filter, 0);
                 if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
                     String[] DeletePendingRolesList = UserMgtClient.
                             listAllEntityNames("DELETE_ROLE", "PENDING", "ROLE", filter);
@@ -194,7 +200,7 @@
             }
         } catch (Exception e) {
             String message = MessageFormat.format(resourceBundle.getString("error.while.loading.roles.of"),
-                    userName, e.getMessage());
+                    decryptedUsername, e.getMessage());
 %>
 <script type="text/javascript">
     jQuery(document).ready(function () {
@@ -248,7 +254,7 @@
             var form = document.createElement("form");
             form.id = "paginateForm";
             form.setAttribute("method", "POST");
-            form.setAttribute("action", page + "?" + pageNumberParameterName + "=" + pageNumber + "&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(userName))%>');
+            form.setAttribute("action", page + "?" + pageNumberParameterName + "=" + pageNumber + "&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(encryptedUsername))%>');
             var selectedRolesStr = "";
             $("input[type='checkbox']:checked").each(function (index) {
                 if (!$(this).is(":disabled")) {
@@ -290,7 +296,7 @@
             var form = document.createElement("form");
             form.id = "selectAllRetrievedForm";
             form.setAttribute("method", "POST");
-            form.setAttribute("action", "view-roles.jsp?pageNumber=" + <%=pageNumber%> +"&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(userName))%>');
+            form.setAttribute("action", "view-roles.jsp?pageNumber=" + <%=pageNumber%> +"&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(encryptedUsername))%>');
             var selectedRolesElem = document.createElement("input");
             selectedRolesElem.setAttribute("type", "hidden");
             selectedRolesElem.setAttribute("name", "selectedRoles");
@@ -309,7 +315,7 @@
             var form = document.createElement("form");
             form.id = "unSelectAllRetrievedForm";
             form.setAttribute("method", "POST");
-            form.setAttribute("action", "view-roles.jsp?pageNumber=" + <%=pageNumber%> +"&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(userName))%>');
+            form.setAttribute("action", "view-roles.jsp?pageNumber=" + <%=pageNumber%> +"&username=" + '<%=Encode.forJavaScript(Encode.forUriComponent(encryptedUsername))%>');
             var unselectedRolesElem = document.createElement("input");
             unselectedRolesElem.setAttribute("type", "hidden");
             unselectedRolesElem.setAttribute("name", "unselectedRoles");
@@ -346,7 +352,7 @@
         </script>
         <div id="workArea">
             <form name="filterForm" method="post"
-                  action="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>">
+                  action="view-roles.jsp?username=<%=Encode.forUriComponent(encryptedUsername)%>">
                 <table class="normal">
                     <tr>
                         <td><fmt:message key="list.roles"/></td>
@@ -369,10 +375,10 @@
                               numberOfPages="<%=numberOfPages%>"
                               noOfPageLinksToDisplay="<%=noOfPageLinksToDisplay%>"
                               page="view-roles.jsp" pageNumberParameterName="pageNumber"
-                              parameters="<%="username=" + Encode.forHtmlAttribute(userName)%>"/>
+                              parameters="<%="username=" + Encode.forHtmlAttribute(decryptedUsername)%>"/>
             <form method="post" action="edit-user-roles-finish-ajaxprocessor.jsp?viewRoles=true" onsubmit="return doValidation();"
                   name="edit_users" id="edit_users">
-                <input type="hidden" id="username" name="username" value="<%=Encode.forHtmlAttribute(userName)%>"/>
+                <input type="hidden" id="username" name="username" value="<%=Encode.forHtmlAttribute(decryptedUsername)%>"/>
                 <input type="hidden" id="logout" name="logout" value="false"/>
                 <input type="hidden" id="finish" name="finish" value="false"/>
 
@@ -380,7 +386,7 @@
                 <table class="styledLeft" id="table_users_list_of_role">
                     <thead>
                     <tr>
-                        <th><fmt:message key="roles.in.the.user"/> <strong><%=Encode.forHtml(userName)%>
+                        <th><fmt:message key="roles.in.the.user"/> <strong><%=Encode.forHtml(decryptedUsername)%>
                         </strong></th>
                     </tr>
                     </thead>
@@ -465,13 +471,13 @@
                                         <% if (!userRealmInfo.getAdminRole().equals(name.getItemName()) &&
                                                 CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/update")) {%>
                                         <a style="background-image:url(images/edit.gif);" class="icon-link"
-                                           href="../role/edit-permissions.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>"><fmt:message
+                                           href="../role/edit-permissions.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(encryptedUsername)%>&prevPageNumber=<%=pageNumber%>"><fmt:message
                                                 key="edit.permissions"/></a>
                                         <%} %>
                                         <% if (!userRealmInfo.getEveryOneRole().equals(name.getItemName()) &&
                                                 CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/view")) {%>
                                         <a style="background-image:url(images/view.gif);" class="icon-link"
-                                           href="../role/view-users.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%if (!name.getEditable()) { %>true<% }else{ %>false<% } %>"><fmt:message
+                                           href="../role/view-users.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=view&prevUser=<%=Encode.forUriComponent(encryptedUsername)%>&prevPageNumber=<%=pageNumber%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%if (!name.getEditable()) { %>true<% }else{ %>false<% } %>"><fmt:message
                                                 key="view.users"/></a>
                                         <% } %>
                                     </td>
@@ -491,7 +497,7 @@
                                   numberOfPages="<%=numberOfPages%>"
                                   noOfPageLinksToDisplay="<%=noOfPageLinksToDisplay%>"
                                   page="view-roles.jsp" pageNumberParameterName="pageNumber"
-                                  parameters="<%="username="+Encode.forHtmlAttribute(userName)%>"/>
+                                  parameters="<%="username="+Encode.forHtmlAttribute(decryptedUsername)%>"/>
                 <%
                     if (ArrayUtils.isNotEmpty(roles) && exceededDomains != null) {
                         if (exceededDomains.getItemName() != null || exceededDomains.getItemDisplayName() != null) {

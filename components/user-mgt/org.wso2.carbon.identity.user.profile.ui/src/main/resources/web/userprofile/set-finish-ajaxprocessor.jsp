@@ -31,6 +31,8 @@
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
 <jsp:include page="../dialog/display_messages.jsp" />
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -62,6 +64,14 @@
 <%
         return;
     }
+
+    String encryptedUsername = null;
+    try {
+        encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
+    } catch (UserProfileUIException e) {
+        //ToDo:
+    }
+
     if (StringUtils.isBlank(fromUserMgt)) {
         fromUserMgt = "false";
     }
@@ -78,7 +88,7 @@
             if (UserCoreConstants.DEFAULT_PROFILE.equals(profile)||profileDTO!=null && profileDTO.getProfileName()!=null) {
                 String message = resourceBundle.getString("user.profile.with.given.name.exists");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-                forwardTo ="add.jsp?username="+ Encode.forUriComponent(username);
+                forwardTo ="add.jsp?username="+ Encode.forUriComponent(encryptedUsername);
 %>
                 <script type="text/javascript">
                     location.href = "<%=Encode.forJavaScriptBlock(forwardTo)%>";
@@ -107,7 +117,7 @@
         String message = resourceBundle.getString("user.profile.added.successfully");
         CarbonUIMessage.sendCarbonUIMessage(message,CarbonUIMessage.INFO, request);
         if ("true".equals(fromUserMgt)) {
-        	forwardTo = "index.jsp?username=" + Encode.forUriComponent(username) + "&fromUserMgt=" +
+        	forwardTo = "index.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&fromUserMgt=" +
                     Encode.forUriComponent(fromUserMgt);
         }else{
         	forwardTo ="index.jsp?region=region5&item=userprofiles_menu&ordinal=0";        	
@@ -117,7 +127,7 @@
                                           username, e.getMessage());
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo =
-            "edit.jsp?username=" + Encode.forUriComponent(username) + "&profile=" + Encode.forUriComponent(profile) +
+            "edit.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&profile=" + Encode.forUriComponent(profile) +
             "&fromUserMgt=" + Encode.forUriComponent(fromUserMgt);
 }
 %>

@@ -23,6 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
@@ -337,5 +339,40 @@ public class Util {
         }
 
         return new DefaultPasswordGenerator();
+    }
+
+    /**
+     * Encrypt and Base64 encode the username with Carbon server's private key.
+     * @param username Username to encrypt
+     * @return Encrypted username
+     * @throws UserManagementUIException
+     */
+    public static String getEncryptedAndBase64encodedUsername(String username) throws UserManagementUIException{
+        String encryptedAndBase64EncodedUsername = null;
+        try {
+            if (username != null) {
+                encryptedAndBase64EncodedUsername = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(username.getBytes());
+            }
+        } catch (CryptoException e) {
+            log.error(String.format("Error while trying to encrypt the username : '%s' ", username), e);
+            throw new UserManagementUIException(e);
+        }
+
+        return encryptedAndBase64EncodedUsername;
+    }
+
+    /**
+     * Decrypt the encrypted username using Carbon server's public key.
+     * @param encryptedAndBase64EncodedUsername Encrypted username which is encrypted by Carbon server's private key
+     * @return Decrypted username
+     * @throws UserManagementUIException
+     */
+    public static String getDecryptedUsername(String encryptedAndBase64EncodedUsername) throws UserManagementUIException {
+        try {
+            return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(encryptedAndBase64EncodedUsername));
+        } catch (CryptoException e) {
+            log.error(String.format("Error while trying to decrypt the username : '%s' ", encryptedAndBase64EncodedUsername), e);
+            throw new UserManagementUIException(e);
+        }
     }
 }

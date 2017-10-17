@@ -67,7 +67,8 @@
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.wso2.carbon.identity.user.profile.stub.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}
+                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.user.profile.ui.*;

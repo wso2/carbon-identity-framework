@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -41,6 +43,13 @@
     String isUserChange = request.getParameter("isUserChange");
     String returnPath = request.getParameter("returnPath");
     String currentPassword = request.getParameter("currentPassword");
+    String encryptedUsername = null;
+
+    try {
+        encryptedUsername = Util.getEncryptedAndBase64encodedUsername(username);
+    } catch (UserManagementUIException e) {
+        //ToDo:
+    }
 
     String trustedReturnPath = "../userstore/index.jsp";
     if ("user-mgt.jsp".equals(returnPath)) {
@@ -78,7 +87,7 @@
         if (isUserChange != null) {
             forwardTo = "change-passwd.jsp?ordinal=2&returnPath=" + trustedReturnPath + "&isUserChange=true";
         } else {
-            forwardTo = "change-passwd.jsp?username=" + Encode.forUriComponent(username) + "&ordinal=2";
+            forwardTo = "change-passwd.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&ordinal=2";
         }
     }
 %>

@@ -25,6 +25,9 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.core.util.CryptoException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -42,12 +45,20 @@
     if (request.getParameter("prevPage") != null && request.getParameter("prevUser") != null) {
         String prevPage = request.getParameter("prevPage");
         String prevUser = request.getParameter("prevUser");
+        String encryptedPrevUser = null;
+        try {
+            encryptedPrevUser = Util.getEncryptedAndBase64encodedUsername(prevUser);
+        } catch (UserManagementUIException e) {
+            String message = MessageFormat.format(resourceBundle.getString("role.cannot.update"), roleName, e.getMessage());
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        }
+
         String prevPageNumber = request.getParameter("prevPageNumber");
         if ("view".equals(prevPage)) {
-            forwardTo = "../user/view-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+            forwardTo = "../user/view-roles.jsp?username=" + Encode.forUriComponent(encryptedPrevUser) + "&pageNumber=" +
                         Encode.forUriComponent(prevPageNumber);
         } else if ("edit".equals(prevPage)) {
-            forwardTo = "../user/edit-user-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+            forwardTo = "../user/edit-user-roles.jsp?username=" + Encode.forUriComponent(encryptedPrevUser) + "&pageNumber=" +
                         Encode.forUriComponent(prevPageNumber);
         }
     }
