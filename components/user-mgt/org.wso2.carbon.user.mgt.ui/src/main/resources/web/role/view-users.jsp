@@ -28,11 +28,6 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.PaginatedNamesBean" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
@@ -43,6 +38,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.*" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
@@ -76,18 +73,17 @@
 
     // find out jsp to send back
     String prevPage = request.getParameter("prevPage");
-    String prevUser = request.getParameter("prevUser");
     String prevPageNumber = request.getParameter("prevPageNumber");
     String prevString = null;
+    String encryptedPrevUser = request.getParameter("prevUser");
 
-
-    if (StringUtils.isNotBlank(prevPage) && StringUtils.isNotBlank(prevUser)) {
+    if (StringUtils.isNotBlank(prevPage) && StringUtils.isNotBlank(encryptedPrevUser)) {
         showUpdate = false;
         if ("view".equals(prevPage)) {
-            prevString = "../user/view-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+            prevString = "../user/view-roles.jsp?username=" + Encode.forUriComponent(encryptedPrevUser) + "&pageNumber=" +
                     Encode.forUriComponent(prevPageNumber);
         } else if ("edit".equals(prevPage)) {
-            prevString = "../user/edit-user-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+            prevString = "../user/edit-user-roles.jsp?username=" + Encode.forUriComponent(encryptedPrevUser) + "&pageNumber=" +
                     Encode.forUriComponent(prevPageNumber);
         }
         session.setAttribute("prevString", prevString);
