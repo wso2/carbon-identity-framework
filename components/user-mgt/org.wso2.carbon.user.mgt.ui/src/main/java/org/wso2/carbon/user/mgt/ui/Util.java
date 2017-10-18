@@ -368,11 +368,13 @@ public class Util {
                 }
             }
         } catch (CryptoException e) {
-            log.error(String.format("Error while trying to encrypt the username : '%s' ", username), e);
-            throw new UserManagementUIException(e);
+            String message = String.format("Error while trying to encrypt the username : '%s' ", username);
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
         } catch (CarbonException | UserStoreException e) {
-            log.error("Error while trying to get User Realm", e);
-            throw new UserManagementUIException("Error while trying to get UserRealm", e);
+            String message = "Error while trying to get User Realm";
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
         }
 
         return encryptedAndBase64EncodedUsername;

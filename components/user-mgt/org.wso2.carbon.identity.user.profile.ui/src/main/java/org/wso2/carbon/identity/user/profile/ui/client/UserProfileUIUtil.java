@@ -90,12 +90,14 @@ public class UserProfileUIUtil {
                 return encryptedAndBase64EncodedUsername;
             }
         } catch (CryptoException e) {
-            log.error(String.format("Error while trying to decrypt the username : '%s' ",
-                    encryptedAndBase64EncodedUsername), e);
-            throw new UserProfileUIException(e);
+            String message = String.format("Error while trying to decrypt the username : '%s' ",
+                    encryptedAndBase64EncodedUsername);
+            log.error(message, e);
+            throw new UserProfileUIException(message, e);
         } catch (CarbonException | UserStoreException e) {
-            log.error("Error while trying to get UserRealm", e);
-            throw new UserProfileUIException("Error while trying to get UserRealm", e);
+            String message = "Error while trying to get UserRealm";
+            log.error(message, e);
+            throw new UserProfileUIException(message, e);
         }
     }
 
