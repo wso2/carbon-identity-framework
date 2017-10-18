@@ -37,12 +37,13 @@ public class UserProfileUIUtil {
     /**
      * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
      * set to true in user-mgt.xml, else return the username without encrypting.
+     *
      * @param username Username to encrypt
      * @return Encrypted and base64Encoded username if usernameEncryptionInUrl property is set to true user-mgt.xml,
      * else return the username without encrypting
      * @throws UserProfileUIException
      */
-    public static String getEncryptedAndBase64encodedUsername(String username) throws UserProfileUIException{
+    public static String getEncryptedAndBase64encodedUsername(String username) throws UserProfileUIException {
         String encryptedAndBase64EncodedUsername = null;
         try {
             if (username != null) {
@@ -67,6 +68,7 @@ public class UserProfileUIUtil {
 
     /**
      * Decrypt the encrypted username using Carbon server's private key.
+     *
      * @param encryptedAndBase64EncodedUsername Encrypted username which is encrypted by Carbon server's private key
      * @return Decrypted username if usernameEncryptionInUrl property is set to true user-mgt.xml, else return the
      * provided input parameter as it is.

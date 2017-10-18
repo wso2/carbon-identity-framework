@@ -51,6 +51,7 @@
     String fromUserMgt = request.getParameter("fromUserMgt");
     String noOfProfiles = request.getParameter("noOfProfiles");
     String encryptedUsername;
+
     try {
         encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
     } catch (UserProfileUIException e) {

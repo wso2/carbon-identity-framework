@@ -58,7 +58,9 @@
 
     fromUserMgt = request.getParameter("fromUserMgt");
 
-    if (fromUserMgt==null) fromUserMgt = "false";
+    if (fromUserMgt == null) {
+        fromUserMgt = "false";
+    }
 
     UserProfileDTO[] profiles = new UserProfileDTO[0];
     String BUNDLE = "org.wso2.carbon.identity.user.profile.ui.i18n.Resources";

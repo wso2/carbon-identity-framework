@@ -31,6 +31,8 @@
 
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 
 <%
     String fromUserMgt =  request.getParameter("fromUserMgt");
@@ -47,6 +49,7 @@
         if (encryptedUsername != null) {
             decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
         }
+
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -94,11 +97,6 @@ function validateTextForIllegal(fld,fldName) {
     }
 %>
 
-
-
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
-<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 <fmt:bundle
         basename="org.wso2.carbon.identity.user.profile.ui.i18n.Resources">
     <carbon:breadcrumb label="add.profile"
