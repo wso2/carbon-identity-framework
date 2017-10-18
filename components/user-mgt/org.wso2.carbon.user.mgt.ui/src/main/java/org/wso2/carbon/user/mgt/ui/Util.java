@@ -358,7 +358,7 @@ public class Util {
     public static String getEncryptedAndBase64encodedUsername(String username) throws UserManagementUIException {
         String encryptedAndBase64EncodedUsername = null;
         try {
-            if (username != null) {
+            if (StringUtils.isNotBlank(username)) {
                 boolean isUsernameEncryptionEnabled = isUsernameEncryptionEnabled();
                 if (isUsernameEncryptionEnabled) {
                     encryptedAndBase64EncodedUsername = CryptoUtil.getDefaultCryptoUtil().
@@ -395,21 +395,19 @@ public class Util {
                 return encryptedAndBase64EncodedUsername;
             }
         } catch (CryptoException e) {
-            log.error(String.format("Error while trying to decrypt the username : '%s' ", encryptedAndBase64EncodedUsername), e);
-            throw new UserManagementUIException(e);
+            String message = String.format("Error while trying to decrypt the username : '%s' ",
+                    encryptedAndBase64EncodedUsername);
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
         } catch (CarbonException | UserStoreException e) {
-            log.error("Error while trying to get User Realm", e);
-            throw new UserManagementUIException("Error while trying to get UserRealm", e);
+            String message = "Error while trying to get User Realm";
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
         }
     }
 
     private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
-        boolean isUsernameEncryptionEnabled = false;
-        Map<String,String> realmProperties = AdminServicesUtil.getUserRealm().getRealmConfiguration()
-                .getRealmProperties();
-        if (realmProperties != null) {
-            isUsernameEncryptionEnabled = Boolean.parseBoolean(realmProperties.get(ENCRYPT_USERNAME_IN_URL));
-        }
-        return isUsernameEncryptionEnabled;
+        return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
+                .getRealmProperties().get(ENCRYPT_USERNAME_IN_URL));
     }
 }

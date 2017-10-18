@@ -20,7 +20,7 @@ package org.wso2.carbon.user.mgt.ui;
 /*
 Exception class for User Management UI failures.
  */
-public class UserManagementUIException extends Exception{
+public class UserManagementUIException extends Exception {
 
     public UserManagementUIException(String message, Throwable e) {
         super(message, e);
