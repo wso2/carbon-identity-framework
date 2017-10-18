@@ -40,6 +40,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.*" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
@@ -122,7 +123,13 @@
         try {
             decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
         } catch (UserManagementUIException e) {
-            //ToDo:
+            String message = MessageFormat.format(resourceBundle.getString("error.while.loading.roles"), e.getMessage());
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+        <script type="text/javascript">
+            location.href = "user-mgt.jsp?ordinal=1";
+        </script>
+<%
         }
     }
 

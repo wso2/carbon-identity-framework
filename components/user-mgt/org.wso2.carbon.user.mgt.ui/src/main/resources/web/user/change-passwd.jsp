@@ -41,7 +41,6 @@
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String returnPath = request.getParameter("returnPath");
-    //String username = null;
     String cancelPath = null;
     String encryptedUsername = null;
     String decryptedUsername = null;
@@ -56,18 +55,6 @@
     } else {
         encryptedUsername = request.getParameter("username");
         cancelPath = "user-mgt.jsp?ordinal=1";
-
-        if (encryptedUsername != null) {
-            try {
-                decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
-            } catch (UserManagementUIException e) {
-                //ToDo:
-            }
-        }
-    }
-
-    if (decryptedUsername == null) {
-        decryptedUsername = (String) session.getAttribute("logged-user");
     }
 
     String displayName = request.getParameter("displayName");
@@ -82,7 +69,12 @@
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
     try {
-
+        if (encryptedUsername != null) {
+            decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
+        }
+        if (decryptedUsername == null) {
+            decryptedUsername = (String) session.getAttribute("logged-user");
+        }
         userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
         if (userRealmInfo == null) {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);

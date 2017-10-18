@@ -50,13 +50,22 @@
     String profileConfiguration = request.getParameter("profileConfiguration");
     String fromUserMgt = request.getParameter("fromUserMgt");
     String noOfProfiles = request.getParameter("noOfProfiles");
-    String encryptedUsername = null;
+    String encryptedUsername;
     try {
         encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
     } catch (UserProfileUIException e) {
-        //ToDo:
+        String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+        <script type="text/javascript">
+            location.href = "../user/user-mgt.jsp?ordinal=1";
+        </script>
+<%
+        return;
     }
+%>
 
+<%
     if (StringUtils.isBlank(username) || StringUtils.isBlank(profile)) {
         String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);

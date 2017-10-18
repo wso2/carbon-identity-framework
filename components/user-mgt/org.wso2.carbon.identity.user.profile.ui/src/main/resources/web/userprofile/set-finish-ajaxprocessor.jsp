@@ -54,6 +54,7 @@
 	UserFieldDTO[] fieldDTOs = null;
 	UserProfileDTO profileDTO = null;
 	String forwardTo = null;
+    String encryptedUsername = null;
     if(StringUtils.isBlank(username) || StringUtils.isBlank(profile)){
         String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -65,18 +66,24 @@
         return;
     }
 
-    String encryptedUsername = null;
-    try {
-        encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
-    } catch (UserProfileUIException e) {
-        //ToDo:
-    }
-
     if (StringUtils.isBlank(fromUserMgt)) {
         fromUserMgt = "false";
     }
 	
     try {
+        try {
+            encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
+        } catch (UserProfileUIException e) {
+            String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+            <script type="text/javascript">
+                location.href = "../user/user-mgt.jsp?ordinal=1";
+            </script>
+<%
+        return;
+        }
+
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =

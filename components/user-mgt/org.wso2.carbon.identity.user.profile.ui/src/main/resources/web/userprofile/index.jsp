@@ -45,7 +45,6 @@
 
 <%
     boolean readOnlyUserStore = false;
-    //String username = request.getParameter("username");
     String forwardTo = null;
     String fromUserMgt = null;
     UserProfileCient client = null;
@@ -57,18 +56,6 @@
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
 
-    if (encryptedUsername != null) {
-        try {
-            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
-        } catch (UserProfileUIException e) {
-            //ToDo:
-        }
-    }
-
-    if (decryptedUsername == null) {
-        decryptedUsername = (String) request.getSession().getAttribute("logged-user");
-    }
-
     fromUserMgt = request.getParameter("fromUserMgt");
 
     if (fromUserMgt==null) fromUserMgt = "false";
@@ -78,6 +65,12 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
+        if (encryptedUsername != null) {
+            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
+        }
+        if (decryptedUsername == null) {
+            decryptedUsername = (String) request.getSession().getAttribute("logged-user");
+        }
         String cookie = (String) session
 				.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config
@@ -107,7 +100,6 @@
 
             }
         }
-
 
         //read the domain of the user
         String userDomain = UserProfileCient.extractDomainFromName(decryptedUsername);

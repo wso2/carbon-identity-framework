@@ -52,20 +52,11 @@
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
 
-    if (encryptedUsername != null) {
-        try {
-            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
-        } catch (UserProfileUIException e) {
-            //ToDo:
-        }
-    }
-
     if (noOfProfiles == null) {
         noOfProfiles = "0";
     }
 
     if (fromUserMgt == null) fromUserMgt = "false";
-
 
     UserProfileDTO userProfile = null;
     UserFieldDTO[] userFields = null;
@@ -75,6 +66,9 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
+        if (encryptedUsername != null) {
+            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
+        }
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(),
                 session);

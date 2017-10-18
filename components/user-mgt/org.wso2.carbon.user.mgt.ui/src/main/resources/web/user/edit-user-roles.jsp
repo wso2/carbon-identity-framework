@@ -119,27 +119,22 @@
     UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
-    if (encryptedUsername != null) {
-        try {
-            decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
-        } catch (UserManagementUIException e) {
-            //ToDo:
-        }
-    }
-
     String displayName = request.getParameter("displayName");
-    if (StringUtils.isBlank(displayName)) {
-        displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
-        if (StringUtils.isBlank(displayName)) {
-            displayName = decryptedUsername;
-        }
-    } else {
-        session.setAttribute(UserAdminUIConstants.USER_DISPLAY_NAME, displayName);
-    }
     exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_UNASSIGNED_ROLE_CACHE_EXCEEDED);
 
     if (doUserList || newFilter) {
         try {
+            if (encryptedUsername != null) {
+                decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
+            }
+            if (StringUtils.isBlank(displayName)) {
+                displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
+                if (StringUtils.isBlank(displayName)) {
+                    displayName = decryptedUsername;
+                }
+            } else {
+                session.setAttribute(UserAdminUIConstants.USER_DISPLAY_NAME, displayName);
+            }
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext =

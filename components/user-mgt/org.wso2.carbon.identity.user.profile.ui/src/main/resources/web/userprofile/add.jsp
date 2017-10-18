@@ -43,15 +43,10 @@
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
 
-    if (encryptedUsername != null) {
-        try {
-            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
-        } catch (UserProfileUIException e) {
-            //ToDo:
-        }
-    }
-	
     try {
+        if (encryptedUsername != null) {
+            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
+        }
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =

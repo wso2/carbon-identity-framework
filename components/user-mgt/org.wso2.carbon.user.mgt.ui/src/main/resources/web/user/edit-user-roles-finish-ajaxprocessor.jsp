@@ -55,7 +55,13 @@
     try {
         encryptedUsername = Util.getEncryptedAndBase64encodedUsername(username);
     } catch (UserManagementUIException e) {
-        //ToDo:
+        String message = MessageFormat.format(resourceBundle.getString("role.list.cannot.update.error"), e.getMessage());
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+        <script type="text/javascript">
+            location.href = "user-mgt.jsp?ordinal=1";
+        </script>
+<%
     }
 
     String displayName = request.getParameter("displayName");

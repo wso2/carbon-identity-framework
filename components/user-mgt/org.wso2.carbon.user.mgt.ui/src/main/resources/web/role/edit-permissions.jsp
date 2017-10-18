@@ -108,18 +108,13 @@
     String encryptedPrevUser = request.getParameter("prevUser");
     String prevPageNumber = request.getParameter("prevPageNumber");
     String decryptedPrevUser = null;
-    if (encryptedPrevUser != null) {
-        try {
-            decryptedPrevUser = Util.getDecryptedUsername(encryptedPrevUser);
-        } catch (UserManagementUIException e) {
-            //ToDo:
-        }
-    }
-
     UIPermissionNode rootNode = null;
     String roleName = request.getParameter("roleName");
 
     try {
+        if (encryptedPrevUser != null) {
+            decryptedPrevUser = Util.getDecryptedUsername(encryptedPrevUser);
+        }
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
