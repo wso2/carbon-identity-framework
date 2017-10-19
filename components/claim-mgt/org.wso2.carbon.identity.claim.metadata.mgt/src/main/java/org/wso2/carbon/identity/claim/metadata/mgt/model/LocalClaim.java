@@ -65,6 +65,9 @@ public class LocalClaim extends Claim {
     }
 
     public void setMappedAttributes(List<AttributeMapping> mappedAttributes) {
+        if (mappedAttributes == null) {
+            mappedAttributes = new ArrayList<>();
+        }
         this.mappedAttributes = mappedAttributes;
     }
 
@@ -84,6 +87,9 @@ public class LocalClaim extends Claim {
     }
 
     public void setClaimProperties(Map<String, String> claimProperties) {
+        if (claimProperties == null) {
+            claimProperties = new HashMap<>();
+        }
         this.claimProperties = claimProperties;
     }
 
