@@ -147,10 +147,10 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
       return ret("operator", "operator", stream.current());
     } else if (wordRE.test(ch)) {
       stream.eatWhile(wordRE);
-      var word = stream.current();
+      var word = stream.current()
       if (state.lastType != ".") {
         if (keywords.propertyIsEnumerable(word)) {
-          var kw = keywords[word];
+          var kw = keywords[word]
           return ret(kw.type, kw.style, word)
         }
         if (word == "async" && stream.match(/^\s*[\(\w]/, false))
@@ -214,7 +214,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (arrow < 0) return;
 
     if (isTS) { // Try to skip TypeScript return type declarations after the arguments
-      var m = /:\s*(?:\w+(?:<[^>]*>|\[\])?|\{[^}]*\})\s*$/.exec(stream.string.slice(stream.start, arrow));
+      var m = /:\s*(?:\w+(?:<[^>]*>|\[\])?|\{[^}]*\})\s*$/.exec(stream.string.slice(stream.start, arrow))
       if (m) arrow = m.index
     }
 
@@ -347,8 +347,8 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
       if (type == wanted) return cont();
       else if (wanted == ";") return pass();
       else return cont(exp);
-    }
-      return exp;
+    };
+    return exp;
   }
 
   function statement(type, value) {
@@ -366,7 +366,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == "for") return cont(pushlex("form"), forspec, statement, poplex);
     if (type == "variable") {
       if (isTS && value == "type") {
-        cx.marked = "keyword";
+        cx.marked = "keyword"
         return cont(typeexpr, expect("operator"), typeexpr, expect(";"));
       } else {
         return cont(pushlex("stat"), maybelabel);
@@ -381,9 +381,9 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == "class") return cont(pushlex("form"), className, poplex);
     if (type == "export") return cont(pushlex("stat"), afterExport, poplex);
     if (type == "import") return cont(pushlex("stat"), afterImport, poplex);
-    if (type == "module") return cont(pushlex("form"), pattern, expect("{"), pushlex("}"), block, poplex, poplex);
-    if (type == "async") return cont(statement);
-    if (value == "@") return cont(expression, statement);
+    if (type == "module") return cont(pushlex("form"), pattern, expect("{"), pushlex("}"), block, poplex, poplex)
+    if (type == "async") return cont(statement)
+    if (value == "@") return cont(expression, statement)
     return pass(pushlex("stat"), expression, expect(";"), poplex);
   }
   function expression(type) {
@@ -393,7 +393,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     return expressionInner(type, true);
   }
   function parenExpr(type) {
-    if (type != "(") return pass();
+    if (type != "(") return pass()
     return cont(pushlex(")"), expression, expect(")"), poplex)
   }
   function expressionInner(type, noComma) {
@@ -522,7 +522,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
         var lex = cx.state.lexical;
         if (lex.info == "call") lex.pos = (lex.pos || 0) + 1;
         return cont(function(type, value) {
-          if (type == end || value == end) return pass();
+          if (type == end || value == end) return pass()
           return pass(what)
         }, proceed);
       }
@@ -552,7 +552,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   function typeexpr(type) {
     if (type == "variable") {cx.marked = "type"; return cont(afterType);}
     if (type == "string" || type == "number" || type == "atom") return cont(afterType);
-    if (type == "{") return cont(pushlex("}"), commasep(typeprop, "}", ",;"), poplex, afterType);
+    if (type == "{") return cont(pushlex("}"), commasep(typeprop, "}", ",;"), poplex, afterType)
     if (type == "(") return cont(commasep(typearg, ")"), maybeReturnType)
   }
   function maybeReturnType(type) {
@@ -560,7 +560,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   }
   function typeprop(type, value) {
     if (type == "variable" || cx.style == "keyword") {
-      cx.marked = "property";
+      cx.marked = "property"
       return cont(typeprop)
     } else if (value == "?") {
       return cont(typeprop)
@@ -571,20 +571,20 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     }
   }
   function typearg(type) {
-    if (type == "variable") return cont(typearg);
+    if (type == "variable") return cont(typearg)
     else if (type == ":") return cont(typeexpr)
   }
   function afterType(type, value) {
-    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, afterType);
-    if (value == "|" || type == ".") return cont(typeexpr);
-    if (type == "[") return cont(expect("]"), afterType);
+    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, afterType)
+    if (value == "|" || type == ".") return cont(typeexpr)
+    if (type == "[") return cont(expect("]"), afterType)
     if (value == "extends") return cont(typeexpr)
   }
   function vardef() {
     return pass(pattern, maybetype, maybeAssign, vardefCont);
   }
   function pattern(type, value) {
-    if (type == "modifier") return cont(pattern);
+    if (type == "modifier") return cont(pattern)
     if (type == "variable") { register(value); return cont(); }
     if (type == "spread") return cont(pattern);
     if (type == "[") return contCommasep(pattern, "]");
@@ -649,7 +649,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == "variable") {register(value); return cont(classNameAfter);}
   }
   function classNameAfter(type, value) {
-    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, classNameAfter);
+    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, classNameAfter)
     if (value == "extends" || value == "implements" || (isTS && type == ","))
       return cont(isTS ? typeexpr : expression, classNameAfter);
     if (type == "{") return cont(pushlex("}"), classBody, poplex);
@@ -666,7 +666,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
       return cont(isTS ? classfield : functiondef, classBody);
     }
     if (type == "[")
-      return cont(expression, expect("]"), isTS ? classfield : functiondef, classBody);
+      return cont(expression, expect("]"), isTS ? classfield : functiondef, classBody)
     if (value == "*") {
       cx.marked = "keyword";
       return cont(classBody);
@@ -676,9 +676,9 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (value == "@") return cont(expression, classBody)
   }
   function classfield(type, value) {
-    if (value == "?") return cont(classfield);
-    if (type == ":") return cont(typeexpr, maybeAssign);
-    if (value == "=") return cont(expressionNoComma);
+    if (value == "?") return cont(classfield)
+    if (type == ":") return cont(typeexpr, maybeAssign)
+    if (value == "=") return cont(expressionNoComma)
     return pass(functiondef)
   }
   function afterExport(type, value) {
@@ -756,7 +756,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     indent: function(state, textAfter) {
       if (state.tokenize == tokenComment) return CodeMirror.Pass;
       if (state.tokenize != tokenBase) return 0;
-      var firstChar = textAfter && textAfter.charAt(0), lexical = state.lexical, top;
+      var firstChar = textAfter && textAfter.charAt(0), lexical = state.lexical, top
       // Kludge to prevent 'maybelse' from blocking lexical scope pops
       if (!/^\s*else\b/.test(textAfter)) for (var i = state.cc.length - 1; i >= 0; --i) {
         var c = state.cc[i];
@@ -796,7 +796,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
 
     expressionAllowed: expressionAllowed,
     skipExpression: function(state) {
-      var top = state.cc[state.cc.length - 1];
+      var top = state.cc[state.cc.length - 1]
       if (top == expression || top == expressionNoComma) state.cc.pop()
     }
   };
