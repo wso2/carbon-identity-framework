@@ -112,7 +112,7 @@
   map["Shift-Ctrl-K"] = "deleteLine";
 
   function insertLine(cm, above) {
-    if (cm.isReadOnly()) return CodeMirror.Pass;
+    if (cm.isReadOnly()) return CodeMirror.Pass
     cm.operation(function() {
       var len = cm.listSelections().length, newSelection = [], last = -1;
       for (var i = 0; i < len; i++) {
@@ -158,7 +158,7 @@
         found = cur.findNext();
       }
       if (!found || isSelectedRange(cm.listSelections(), cur.from(), cur.to()))
-        return CodeMirror.Pass;
+        return CodeMirror.Pass
       cm.addSelection(cur.from(), cur.to());
     }
     if (fullWord)
@@ -184,13 +184,13 @@
 
   function isSelectedRange(ranges, from, to) {
     for (var i = 0; i < ranges.length; i++)
-      if (ranges[i].from() == from && ranges[i].to() == to) return true;
+      if (ranges[i].from() == from && ranges[i].to() == to) return true
     return false
   }
 
   var mirror = "(){}[]";
   function selectBetweenBrackets(cm) {
-    var ranges = cm.listSelections(), newRanges = [];
+    var ranges = cm.listSelections(), newRanges = []
     for (var i = 0; i < ranges.length; i++) {
       var range = ranges[i], pos = range.head, opening = cm.scanForBracket(pos, -1);
       if (!opening) return false;
@@ -228,7 +228,7 @@
   var swapLineCombo = mac ? "Cmd-Ctrl-" : "Shift-Ctrl-";
 
   cmds[map[swapLineCombo + "Up"] = "swapLineUp"] = function(cm) {
-    if (cm.isReadOnly()) return CodeMirror.Pass;
+    if (cm.isReadOnly()) return CodeMirror.Pass
     var ranges = cm.listSelections(), linesToMove = [], at = cm.firstLine() - 1, newSels = [];
     for (var i = 0; i < ranges.length; i++) {
       var range = ranges[i], from = range.from().line - 1, to = range.to().line;
@@ -255,7 +255,7 @@
   };
 
   cmds[map[swapLineCombo + "Down"] = "swapLineDown"] = function(cm) {
-    if (cm.isReadOnly()) return CodeMirror.Pass;
+    if (cm.isReadOnly()) return CodeMirror.Pass
     var ranges = cm.listSelections(), linesToMove = [], at = cm.lastLine() + 1;
     for (var i = ranges.length - 1; i >= 0; i--) {
       var range = ranges[i], from = range.to().line + 1, to = range.from().line;
@@ -280,7 +280,7 @@
 
   cmds[map[ctrl + "/"] = "toggleCommentIndented"] = function(cm) {
     cm.toggleComment({ indent: true });
-  };
+  }
 
   cmds[map[ctrl + "J"] = "joinLines"] = function(cm) {
     var ranges = cm.listSelections(), joined = [];
@@ -327,7 +327,7 @@
   if (!mac) map[ctrl + "T"] = "transposeChars";
 
   function sortLines(cm, caseSensitive) {
-    if (cm.isReadOnly()) return CodeMirror.Pass;
+    if (cm.isReadOnly()) return CodeMirror.Pass
     var ranges = cm.listSelections(), toSort = [], selected;
     for (var i = 0; i < ranges.length; i++) {
       var range = ranges[i];
@@ -582,8 +582,8 @@
       else if (target.word)
         cm.setSelection(target.from, target.to);
     }
-  }
-    cmds[map[ctrl + "F3"] = "findUnder"] = function(cm) { findAndGoTo(cm, true); };
+  };
+  cmds[map[ctrl + "F3"] = "findUnder"] = function(cm) { findAndGoTo(cm, true); };
   cmds[map["Shift-" + ctrl + "F3"] = "findUnderPrevious"] = function(cm) { findAndGoTo(cm,false); };
   cmds[map["Alt-F3"] = "findAllUnder"] = function(cm) {
     var target = getTarget(cm);
