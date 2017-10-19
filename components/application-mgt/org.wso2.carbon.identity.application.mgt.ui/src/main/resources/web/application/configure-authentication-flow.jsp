@@ -15,10 +15,39 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/keymap/sublime.js"></script>
+<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+<script src="codemirror/mode/javascript/javascript.js"></script>
+<script src="codemirror/addon/hint/show-hint.js"></script>
+<script src="codemirror/addon/hint/javascript-hint.js"></script>
+<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
+<script src="codemirror/addon/hint/anyword-hint.js"></script>
 <script>
-	function clearText() {
-        document.getElementById("scriptTextarea").value = ""; // clear scriptTextarea
-	}
+    jQuery(document).ready(function () {
+        var myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, { //Adding CodeMirror IDE
+            lineNumbers: true,
+            mode: "javascript",
+            keymap: "sublime",
+            lineWiseCopyCut: true,
+            pasteLinesPerSelection: true,
+            extraKeys: {"Ctrl-Space": "autocomplete"},
+            indentWithTabs: true
+        });
+    });
+
+    editor.on('cursorActivity', function () {							// Giving custom hint list
+        var options = {
+            hint: function () {
+                return {
+                    from: editor.getDoc().getCursor(),
+                    to: editor.getDoc().getCursor(),
+                    list: ['acr', 'ACR selected']
+                }
+            }
+        };
+        editor.showHint(options);
+    });
 </script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
 
@@ -526,16 +555,17 @@ var img = "";
 				<a href="#">JavaScript based Conditional Steps</a>
 			</h2>
 
-			<div class="sectionSeperator togglebleTitle" style="margin-bottom:10px;" id="lamda_func_dropdown">
-				<textarea id="scriptTextarea" name="scriptTextarea"  style="height: 500px;width: 100%"><%
-				    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null){
-                    						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null){
-                    						    out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
-                    						}
-                    					}
-				%></textarea>
-				<input type="button" value="clear" onclick="clearText();"/>
-			</div>
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="lamda_func_dropdown">
+                    <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
+				<textarea id="scriptTextarea" name="scriptTextarea" style="height: 500px;width: 100%"><%
+                    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+                        if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+                            out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
+                        }
+                    }
+                %></textarea>
+                    </div>
+                </div>
 			</form>
     </div>
 
