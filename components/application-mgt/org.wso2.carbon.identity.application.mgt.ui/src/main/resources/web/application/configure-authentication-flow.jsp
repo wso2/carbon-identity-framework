@@ -36,7 +36,7 @@
         });
     });
 
-    editor.on('cursorActivity', function () {		// Giving custom hint list
+    editor.on('cursorActivity', function () {	// Giving custom hint list
         var options = {
             hint: function () {
                 return {
