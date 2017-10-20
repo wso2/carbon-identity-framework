@@ -25,7 +25,8 @@
 <script src="codemirror/addon/hint/anyword-hint.js"></script>
 <script>
     jQuery(document).ready(function () {
-        var myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, { //Adding CodeMirror IDE
+        //Adding CodeMirror IDE
+        var myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, {
             lineNumbers: true,
             mode: "javascript",
             keymap: "sublime",
@@ -36,13 +37,14 @@
         });
     });
 
-    editor.on('cursorActivity', function () {	// Giving custom hint list
+    // Giving custom hint list
+    editor.on('cursorActivity', function () {
         var options = {
             hint: function () {
                 return {
                     from: editor.getDoc().getCursor(),
                     to: editor.getDoc().getCursor(),
-					list:  ['selectAcrFrom']
+                    list: ['selectAcrFrom']
                 }
             }
         };
