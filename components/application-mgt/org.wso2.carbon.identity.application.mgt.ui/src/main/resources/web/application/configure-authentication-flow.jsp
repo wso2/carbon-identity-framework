@@ -42,7 +42,7 @@
                 return {
                     from: editor.getDoc().getCursor(),
                     to: editor.getDoc().getCursor(),
-                    list: ['selectAcrFrom','ACR selected']
+                    list: ['ACR selected']
                 }
             }
         };
