@@ -16,7 +16,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framwork.test.utils;
 
+import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,7 +39,10 @@ public class CommonTestUtils {
     }
 
     public static void initPrivilegedCarbonContext() throws Exception {
-        System.setProperty("carbon.home", "");
+        System.setProperty(
+                CarbonBaseConstants.CARBON_HOME,
+                Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString()
+        );
         PrivilegedCarbonContext.startTenantFlow();
     }
 

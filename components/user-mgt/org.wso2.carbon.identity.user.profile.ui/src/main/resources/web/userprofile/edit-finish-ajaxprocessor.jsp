@@ -30,6 +30,8 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants"%><script type="text/javascript" src="extensions/js/vui.js"></script>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
 <jsp:include page="../dialog/display_messages.jsp" />
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
@@ -48,6 +50,23 @@
     String profileConfiguration = request.getParameter("profileConfiguration");
     String fromUserMgt = request.getParameter("fromUserMgt");
     String noOfProfiles = request.getParameter("noOfProfiles");
+    String encryptedUsername;
+
+    try {
+        encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
+    } catch (UserProfileUIException e) {
+        String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+        <script type="text/javascript">
+            location.href = "../user/user-mgt.jsp?ordinal=1";
+        </script>
+<%
+        return;
+    }
+%>
+
+<%
     if (StringUtils.isBlank(username) || StringUtils.isBlank(profile)) {
         String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile"), null);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -99,7 +118,7 @@
             if ((!client.isAddProfileEnabled()) && ((Integer.parseInt(noOfProfiles)) == 1)) {
                 forwardTo = "../user/user-mgt.jsp?ordinal=1";
             } else {
-                forwardTo = "index.jsp?username=" + Encode.forUriComponent(username) + "&fromUserMgt=" +
+                forwardTo = "index.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&fromUserMgt=" +
                         Encode.forUriComponent(fromUserMgt);
             }
         } else {
@@ -110,7 +129,7 @@
         String message = MessageFormat.format(resourceBundle.getString("error.while.updating.profile.user"),
                 username, e.getMessage());
     	CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "edit.jsp?username=" + Encode.forUriComponent(username) + "&profile=" +
+        forwardTo = "edit.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&profile=" +
                 Encode.forUriComponent(profile) + "&fromUserMgt=true&noOfProfiles=" + Encode.forUriComponent(noOfProfiles);
     }
 %>

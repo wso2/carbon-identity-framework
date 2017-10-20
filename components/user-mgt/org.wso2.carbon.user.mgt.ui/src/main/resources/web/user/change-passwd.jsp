@@ -30,6 +30,8 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
@@ -39,8 +41,9 @@
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String returnPath = request.getParameter("returnPath");
-    String username = null;
     String cancelPath = null;
+    String encryptedUsername = null;
+    String decryptedUsername = null;
 
     String trustedReturnPath = "../userstore/index.jsp";
     if ("user-mgt.jsp".equals(returnPath)) {
@@ -50,12 +53,8 @@
     if (isUserChange != null) {
         cancelPath = trustedReturnPath;
     } else {
-        username = request.getParameter("username");
+        encryptedUsername = request.getParameter("username");
         cancelPath = "user-mgt.jsp?ordinal=1";
-    }
-
-    if (username == null) {
-        username = (String) session.getAttribute("logged-user");
     }
 
     String displayName = request.getParameter("displayName");
@@ -70,7 +69,12 @@
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
     try {
-
+        if (encryptedUsername != null) {
+            decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
+        }
+        if (decryptedUsername == null) {
+            decryptedUsername = (String) session.getAttribute("logged-user");
+        }
         userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
         if (userRealmInfo == null) {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -102,8 +106,8 @@
 
     String regEx = userStoreInfo.getPasswordRegEx();
 
-    if (username.indexOf("/") > 0) {
-        String domain = username.substring(0, username.indexOf("/"));
+    if (decryptedUsername.indexOf("/") > 0) {
+        String domain = decryptedUsername.substring(0, decryptedUsername.indexOf("/"));
         allUserStoreInfo = userRealmInfo.getUserStoresInfo();
         if (allUserStoreInfo != null && allUserStoreInfo.length > 0) {
             for (int i = 0; i < allUserStoreInfo.length; i++) {
@@ -202,7 +206,7 @@
                   onsubmit="return doValidation();" action="change-passwd-finish-ajaxprocessor.jsp">
                 <input type="hidden" id="pwd_regex" name="pwd_regex" value=<%=Encode.forHtmlAttribute(regEx)%>>
 
-                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
+                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(decryptedUsername)%>"/>
                 <% if (isUserChange != null) { %>
                 <input type="hidden" name="isUserChange" value="<%=Encode.forHtmlAttribute(isUserChange)%>"/>
                 <input type="hidden" name="returnPath" value="<%=Encode.forHtmlAttribute(trustedReturnPath)%>"/>

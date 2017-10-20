@@ -20,6 +20,7 @@
 package org.wso2.carbon.identity.testutil;
 
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 
 /**
@@ -48,7 +49,7 @@ public abstract class IdentityBaseTest {
 
 	@Parameters({"log-level"})
 	@BeforeMethod
-	public void setUp(String logLevel) throws Exception {
+	public void setUp(@Optional String logLevel) throws Exception {
 		LogUtil.configureLogLevel(logLevel);
 	}
 }
