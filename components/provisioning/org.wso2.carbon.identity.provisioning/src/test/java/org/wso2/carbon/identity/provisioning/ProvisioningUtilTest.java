@@ -155,11 +155,11 @@ public class ProvisioningUtilTest {
     }
 
     @Test(dataProvider = "getClaimValueData")
-    public void testGetClaimValues(Map<ClaimMapping, List<String>> attributeMap,
-                                   String claimUri, String userStoreDomainName) throws Exception {
+    public void testGetClaimValues(Map<ClaimMapping, List<String>> attributeMap, String claimUri, String
+            userStoreDomainName, List expected, String message) throws Exception {
 
-        assertNotNull(ProvisioningUtil.getClaimValues(attributeMap, claimUri, userStoreDomainName), "claim values " +
-                "cannot be null.");
+        List actual = ProvisioningUtil.getClaimValues(attributeMap, claimUri, userStoreDomainName);
+        assertEquals(actual, expected, message);
     }
 
     @Test
@@ -195,8 +195,7 @@ public class ProvisioningUtilTest {
             throws Exception {
 
         Map<ClaimMapping, List<String>> result;
-        result = ProvisioningUtil
-                .getMappedClaims(outboundClaimDialect, inboundClaimValueMap, (ClaimMapping[]) inboundClaimMappings,
+        result = ProvisioningUtil.getMappedClaims(outboundClaimDialect, inboundClaimValueMap, (ClaimMapping[]) inboundClaimMappings,
                         outboundClaimValueMappings, tenantDomain);
         assertEquals(result, expected, message);
     }
@@ -263,19 +262,22 @@ public class ProvisioningUtilTest {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @DataProvider(name = "getClaimValueData")
     public Object[][] claimValueData() {
 
+        setUpAttributeMaps();
+
         return new Object[][]{
-                {attributeMap, localClaimUri, "PRIMARY"},
-                {attributeMap, localClaimUri + "1", "PRIMARY"},
-                {attributeMap, localClaimUri, null},
-                {attributeMap2, localClaimUri, "PRIMARY"},
-                {new HashMap<>(), localClaimUri, "PRIMARY"},
-                {null, localClaimUri, "PRIMARY"}
+                {attributeMap, localClaimUri, "PRIMARY", valueList, "test"},
+                {attributeMap, localClaimUri + "1", "PRIMARY", valueList1, "test"},
+                {attributeMap, localClaimUri, null, valueList, "test"},
+                {attributeMap2, localClaimUri, "PRIMARY", new ArrayList<>(), "test"},
+                {new HashMap<>(), localClaimUri, "PRIMARY", new ArrayList<>(), "test"},
+                {null, localClaimUri, "PRIMARY", new ArrayList<>(), "test"}
         };
     }
 
@@ -297,8 +299,7 @@ public class ProvisioningUtilTest {
 
         Map expected = new HashMap();
         expected.putAll(outboundClaimValueMappings);
-        expected.put(ClaimMapping.build(remoteClaimUri, "testOutboundUser", null,
-                false),
+        expected.put(ClaimMapping.build(remoteClaimUri, "testOutboundUser", null, false),
                 Arrays.asList(new String[]{"testuser3"}));
         expected.put(ClaimMapping.build(remoteClaimUri + "1", "testOutboundUser1", null, false), Arrays.asList(new
                 String[]{"testuser4"}));

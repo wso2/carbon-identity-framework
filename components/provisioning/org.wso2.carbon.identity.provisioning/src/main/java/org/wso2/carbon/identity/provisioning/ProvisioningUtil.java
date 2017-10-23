@@ -51,8 +51,7 @@ public class ProvisioningUtil {
         if (MapUtils.isNotEmpty(attributeMap)) {
             for (Map.Entry<ClaimMapping, List<String>> entry : attributeMap.entrySet()) {
                 ClaimMapping mapping = entry.getKey();
-                if (mapping.getLocalClaim() != null
-                        && claimUri.equals(mapping.getLocalClaim().getClaimUri())) {
+                if (mapping.getLocalClaim() != null && claimUri.equals(mapping.getLocalClaim().getClaimUri())) {
                     claimValues = entry.getValue();
                     break;
                 }
