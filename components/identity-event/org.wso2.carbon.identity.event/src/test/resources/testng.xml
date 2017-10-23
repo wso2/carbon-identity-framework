@@ -26,6 +26,8 @@
             <class name="org.wso2.carbon.identity.event.Bean.IdentityEventMessageContextTest"/>
             <class name="org.wso2.carbon.identity.event.Bean.SubscriptionTest"/>
             <class name="org.wso2.carbon.identity.event.Bean.ModuleConfigurationTest"/>
+            <class name="org.wso2.carbon.identity.event.handler.AbstractEventHandlerTest"/>
+            <class name="org.wso2.carbon.identity.event.Internal.IdentityEventServiceDataHolderTest"/>
         </classes>
     </test>
 </suite>

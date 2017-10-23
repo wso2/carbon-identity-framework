@@ -17,8 +17,6 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -30,9 +28,11 @@ import java.util.Map;
 
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ConfigurationFacade.class})
-public class FrameworkUtilsTest extends PowerMockTestCase {
+public class FrameworkUtilsTest {
 
     @Mock
     ConfigurationFacade mockedConfigurationFacade;
@@ -41,12 +41,10 @@ public class FrameworkUtilsTest extends PowerMockTestCase {
 
     @BeforeTest
     public void setUp() {
-
         testPostAuthenticationHandler = new DefaultPostAuthenticationHandler();
     }
 
     private void setMockedConfigurationFacade() {
-
         mockStatic(ConfigurationFacade.class);
         when(ConfigurationFacade.getInstance()).thenReturn(mockedConfigurationFacade);
     }
@@ -60,13 +58,13 @@ public class FrameworkUtilsTest extends PowerMockTestCase {
         Map<String, Object> map2 = new HashMap<>();
         map2.put(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER, new Object());
 
-        return new Object[][] {
-                { map1, true },
-                { map2, false }
+        return new Object[][]{
+                {map1, true},
+                {map2, false}
         };
     }
 
-    @Test (dataProvider = "providePostAuthenticationData")
+    @Test(dataProvider = "providePostAuthenticationData")
     public void getPostAuthenticationHandler(Map<String, Object> configMap, boolean isMockedObjectReturned) {
 
         setMockedConfigurationFacade();
@@ -74,9 +72,10 @@ public class FrameworkUtilsTest extends PowerMockTestCase {
         when(mockedConfigurationFacade.getExtensions()).thenReturn(configMap);
         Object object = FrameworkUtils.getPostAuthenticationHandler();
         if (isMockedObjectReturned) {
-            Assert.assertEquals(object, testPostAuthenticationHandler);
+            assertEquals(object, testPostAuthenticationHandler);
         } else {
-            Assert.assertTrue(object instanceof DefaultPostAuthenticationHandler);
+            assertTrue(object instanceof DefaultPostAuthenticationHandler);
         }
     }
 }
+

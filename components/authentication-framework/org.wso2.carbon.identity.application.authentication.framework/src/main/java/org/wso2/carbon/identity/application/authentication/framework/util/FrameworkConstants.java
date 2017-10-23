@@ -76,6 +76,10 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
     public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
+    public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
+
+    public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
+
     private FrameworkConstants() {
 
     }

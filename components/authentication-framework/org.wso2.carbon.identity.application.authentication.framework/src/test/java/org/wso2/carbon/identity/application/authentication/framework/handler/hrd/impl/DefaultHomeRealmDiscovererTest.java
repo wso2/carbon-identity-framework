@@ -16,25 +16,25 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class DefaultHomeRealmDiscovererTest {
-
 
     @Test
     public void testGetInstance() throws Exception {
 
-        Assert.assertNotNull(DefaultHomeRealmDiscoverer.getInstance());
+        CommonTestUtils.testSingleton(DefaultHomeRealmDiscoverer.getInstance(),
+                DefaultHomeRealmDiscoverer.getInstance());
     }
 
     @Test
     public void testDiscover() throws Exception {
 
         final String HOME_REALM = "HOME_REALM";
-        Assert.assertEquals(DefaultHomeRealmDiscoverer.getInstance().discover(HOME_REALM), HOME_REALM);
+        assertEquals(DefaultHomeRealmDiscoverer.getInstance().discover(HOME_REALM), HOME_REALM);
     }
 
 }

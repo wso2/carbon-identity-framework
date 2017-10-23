@@ -129,6 +129,7 @@ public class IdentityApplicationConstants {
             public static final String AUTHENTICATION_CONTEXT_COMPARISON_LEVEL = "AuthnContextComparisonLevel";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
+            public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";

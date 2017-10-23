@@ -16,31 +16,42 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
+import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
+import java.io.IOException;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest(FrameworkUtils.class)
 public class DefaultAuthenticationRequestHandlerTest {
@@ -51,12 +62,15 @@ public class DefaultAuthenticationRequestHandlerTest {
     @Mock
     HttpServletResponse response;
 
-    private DefaultAuthenticationRequestHandler authenticationRequestHandler;
+    DefaultAuthenticationRequestHandler authenticationRequestHandler;
 
+    @ObjectFactory
+    public IObjectFactory getObjectFactory() {
+        return new org.powermock.modules.testng.PowerMockObjectFactory();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
-
         initMocks(this);
         authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
     }
@@ -67,15 +81,12 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
-
-        DefaultAuthenticationRequestHandler instance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(instance);
-
-        DefaultAuthenticationRequestHandler anotherInstance = DefaultAuthenticationRequestHandler.getInstance();
-        Assert.assertNotNull(anotherInstance);
-
-        Assert.assertEquals(instance, anotherInstance);
+        CommonTestUtils.testSingleton(
+                DefaultAuthenticationRequestHandler.getInstance(),
+                DefaultAuthenticationRequestHandler.getInstance()
+        );
     }
+
 
     @Test
     public void testHandleDenyFromLoginPage() throws Exception {
@@ -96,7 +107,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         authenticationRequestHandler.handle(request, response, context);
 
-        Assert.assertFalse(context.isRequestAuthenticated());
+        assertFalse(context.isRequestAuthenticated());
     }
 
 
@@ -136,7 +147,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         authenticationRequestHandler.handle(request, response, context);
 
-        Assert.assertEquals(context.isRememberMe(), expectedResult);
+        assertEquals(context.isRememberMe(), expectedResult);
     }
 
 
@@ -158,26 +169,76 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         // ForceAuth
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isForceAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isForceAuthenticate(), expectedResult);
 
         // Reauthenticate
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isReAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isReAuthenticate(), expectedResult);
 
         // PassiveAuth
         doReturn(paramValue).when(request).getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION);
-        Assert.assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
-        Assert.assertEquals(context.isPassiveAuthenticate(), expectedResult);
+        assertFalse(authenticationRequestHandler.handleSequenceStart(request, response, context));
+        assertEquals(context.isPassiveAuthenticate(), expectedResult);
     }
 
     @Test
     public void testConcludeFlow() throws Exception {
     }
 
-    @Test
-    public void testSendResponse() throws Exception {
+
+    @DataProvider(name = "sendResponseDataProvider")
+    public Object[][] provideSendResponseData() {
+        return new Object[][]{
+                {true, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key&chkRemember=on"},
+                {true, false, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {false, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
+                {true, true, "/samlsso", null, "/samlsso?chkRemember=on"}
+        };
+    }
+
+    @Test(dataProvider = "sendResponseDataProvider")
+    public void testSendResponse(boolean isRequestAuthenticated,
+                                 boolean isRememberMe,
+                                 String callerPath,
+                                 String sessionDataKey,
+                                 String expectedRedirectUrl) throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setRequestAuthenticated(isRequestAuthenticated);
+        context.setRememberMe(isRememberMe);
+        context.setCallerPath(callerPath);
+        context.setCallerSessionKey(sessionDataKey);
+
+        SequenceConfig sequenceConfig = spy(new SequenceConfig());
+        context.setSequenceConfig(sequenceConfig);
+
+        DefaultAuthenticationRequestHandler requestHandler = spy(new DefaultAuthenticationRequestHandler());
+        doNothing().when(requestHandler).populateErrorInformation(request, response, context);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        requestHandler.sendResponse(request, response, context);
+        verify(response).sendRedirect(captor.capture());
+        assertEquals(captor.getValue(), expectedRedirectUrl);
+    }
+
+
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testSendResponseException() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setRequestAuthenticated(true);
+        context.setRememberMe(true);
+        context.setCallerPath("/samlsso");
+        String sessionDataKey = UUID.randomUUID().toString();
+        context.setCallerSessionKey(sessionDataKey);
+
+        SequenceConfig sequenceConfig = spy(new SequenceConfig());
+        context.setSequenceConfig(sequenceConfig);
+
+        doThrow(new IOException()).when(response).sendRedirect(anyString());
+        authenticationRequestHandler.sendResponse(request, response, context);
     }
 
     @Test
@@ -203,7 +264,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         authenticationContext
                 .setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, postAuthExtensionCompleted);
 
-        Assert.assertEquals(
+        assertEquals(
                 authenticationRequestHandler.isPostAuthenticationExtensionCompleted(authenticationContext),
                 expectedResult
         );
@@ -256,10 +317,11 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticationResult modifiedAuthenticationResult =
                 (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
 
-        Assert.assertNotNull(modifiedAuthenticationResult);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
-        Assert.assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
+        assertNotNull(modifiedAuthenticationResult);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
+        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
     }
 
 }
+
