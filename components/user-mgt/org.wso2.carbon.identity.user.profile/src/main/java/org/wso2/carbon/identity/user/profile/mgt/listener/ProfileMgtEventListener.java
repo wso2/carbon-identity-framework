@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.base.IdentityValidationUtil;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -56,7 +57,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
 
     @Override
     public boolean doPreSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
-                                           UserStoreManager userStoreManager) throws UserStoreException {
+            UserStoreManager userStoreManager) throws UserStoreException {
         if (!isEnable()) {
             return true;
         }
@@ -75,7 +76,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
         // stored XSS attack.
         String[] whiteListPatternKeys = {ALPHANUMERICS_ONLY, DIGITS_ONLY};
         String[] blackListPatternKeys = {WHITESPACE_EXISTS, URI_RESERVED_EXISTS, HTML_META_EXISTS, XML_META_EXISTS,
-                REGEX_META_EXISTS, URL};
+                                         REGEX_META_EXISTS, URL};
 
         if (!IdentityValidationUtil.isValid(profileName, whiteListPatternKeys, blackListPatternKeys)) {
             throw new UserStoreException("profile name contains invalid characters!");
@@ -93,7 +94,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
      */
     @Override
     public boolean doPreDeleteUser(String userName,
-                                   UserStoreManager userStoreManager) throws UserStoreException {
+            UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -124,9 +125,13 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
      * @throws UserStoreException
      */
     private void deleteFederatedIdpAccountAssociations(String tenantAwareUsername,
-                                                       String userStoreDomain,
-                                                       int tenantId) throws UserStoreException {
+            String userStoreDomain,
+            int tenantId) throws UserStoreException {
 
+        // Run this code only if IDN_ASSOCIATED_ID table presents.
+        if (!ServiceHodler.isIDNTableExist()) {
+            return;
+        }
         String sql = "DELETE FROM IDN_ASSOCIATED_ID WHERE USER_NAME=? AND DOMAIN_NAME=? AND TENANT_ID=?";
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
@@ -137,7 +142,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement prepStmt = connection.prepareStatement(sql)) {
+                PreparedStatement prepStmt = connection.prepareStatement(sql)) {
             prepStmt.setString(1, tenantAwareUsername);
             prepStmt.setString(2, userStoreDomain);
             prepStmt.setInt(3, tenantId);
@@ -151,11 +156,12 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     }
 
     private String getFullQualifiedUsername(String tenantAwareUsername,
-                                            String userStoreDomain,
-                                            String tenantDomain) {
+            String userStoreDomain,
+            String tenantDomain) {
 
         String fullyQualifiedUsername = UserCoreUtil.addDomainToName(tenantAwareUsername, userStoreDomain);
         fullyQualifiedUsername = UserCoreUtil.addTenantDomainToEntry(fullyQualifiedUsername, tenantDomain);
         return fullyQualifiedUsername;
     }
 }
+
