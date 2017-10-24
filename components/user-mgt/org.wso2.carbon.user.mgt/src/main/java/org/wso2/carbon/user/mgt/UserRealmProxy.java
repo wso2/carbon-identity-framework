@@ -59,6 +59,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -1492,6 +1493,15 @@ public class UserRealmProxy {
                     flaggedNames.add(fname);
                 }
             }
+
+            // Sort the roles by role name.
+            Collections.sort(flaggedNames, new Comparator<FlaggedName>() {
+                @Override
+                public int compare(FlaggedName role1, FlaggedName role2) {
+                    return role1.getItemName().compareToIgnoreCase(role2.getItemName());
+                }
+            });
+
             String exceededDomains = "";
             boolean isPrimaryExceeding = false;
             Map<String, Integer> maxUserListCount = ((AbstractUserStoreManager) realm.
