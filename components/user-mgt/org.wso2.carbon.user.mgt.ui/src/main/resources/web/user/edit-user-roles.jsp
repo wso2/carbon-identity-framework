@@ -501,8 +501,12 @@
                                 <%
                                             }
                                         }
-                                    }
+                                    } else {
                                 %>
+                                <tr>
+                                    <div style="padding:10px"><fmt:message key="no.unassigned.roles"/></div>
+                                </tr>
+                                <%  } %>
                             </table>
                             <carbon:paginator pageNumber="<%=pageNumber%>"
                                               action="post"
