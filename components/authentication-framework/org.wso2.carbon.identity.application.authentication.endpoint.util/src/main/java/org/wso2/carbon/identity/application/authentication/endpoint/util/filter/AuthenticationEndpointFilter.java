@@ -47,7 +47,7 @@ import java.util.Map;
 public class AuthenticationEndpointFilter implements Filter {
     private static final Log log = LogFactory.getLog(AuthenticationEndpointFilter.class);
 
-    private static final String REQUEST_PARAM_SP = "sp";
+    private static final String REQUEST_PARAM_SP = "spName";
     private static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String REQUEST_PARAM_AUTHENTICATORS = "authenticators";
     private static final String REQUEST_PARAM_HRD = "hrd";
