@@ -134,8 +134,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
         }
 
-        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
-                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherImpl() != null) {
             // Retrieve session information from cache in order to publish event
             SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
             if (sessionContext != null) {

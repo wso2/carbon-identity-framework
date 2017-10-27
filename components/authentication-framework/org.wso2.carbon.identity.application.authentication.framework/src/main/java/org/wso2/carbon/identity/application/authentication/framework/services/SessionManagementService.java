@@ -85,9 +85,7 @@ public class SessionManagementService extends AbstractAdmin {
     // TODO : Session ID should be a property of the SessionContext.
     private void terminateSession(SessionContext sessionContext, String sessionId) {
 
-        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
-                .getInstance().getAuthnDataPublisherProxy().isEnabled(null) && sessionContext != null) {
-
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherImpl() != null && sessionContext != null) {
             Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
             if (authenticatedUserObj != null) {

@@ -91,9 +91,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -109,6 +106,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class FrameworkUtils {
 
@@ -1198,21 +1198,21 @@ public class FrameworkUtils {
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user, String status) {
-        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherProxy();
-        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+        AuthenticationDataPublisher authnDataPublisherImpl = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherImpl();
+        if (authnDataPublisherImpl != null ) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
-                authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,
+                authnDataPublisherImpl.publishSessionCreation(request, context, sessionContext,
                         unmodifiableParamMap);
             } else if (FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE.equalsIgnoreCase(status)) {
-                authnDataPublisherProxy.publishSessionUpdate(request, context, sessionContext,
+                authnDataPublisherImpl.publishSessionUpdate(request, context, sessionContext,
                         unmodifiableParamMap);
             } else if (FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE.equalsIgnoreCase(status)) {
-                authnDataPublisherProxy.publishSessionTermination(request, context, sessionContext,
+                authnDataPublisherImpl.publishSessionTermination(request, context, sessionContext,
                         unmodifiableParamMap);
             }
         }

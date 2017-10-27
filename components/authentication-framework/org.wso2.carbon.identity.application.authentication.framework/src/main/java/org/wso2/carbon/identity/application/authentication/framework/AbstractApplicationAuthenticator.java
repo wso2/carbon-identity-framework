@@ -116,9 +116,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
                                                   User user, boolean success) {
 
-        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherProxy();
-        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+        AuthenticationDataPublisher authnDataPublisherImpl = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherImpl();
+        if (authnDataPublisherImpl != null) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
@@ -133,11 +133,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
-                authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
+                authnDataPublisherImpl.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
-
             } else {
-                authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
+                authnDataPublisherImpl.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
             }
         }
