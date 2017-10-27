@@ -186,10 +186,10 @@
 
             reason = validateString("roleName", roleRegEx);
             if (reason != "") {
-                if (reason == "Empty string") {
-                    CARBON.showWarningDialog("<fmt:message key="enter.role.name.empty"/>");
-                } else if (reason == "No conformance") {
+                if (reason == "No conformance") {
                     CARBON.showWarningDialog("<fmt:message key="enter.role.name.not.conforming"/>");
+                } else if (reason == "Empty string") {
+                    CARBON.showWarningDialog("<fmt:message key="enter.role.name.empty"/>");
                 } else if (reason == "Domain") {
                     CARBON.showWarningDialog("<fmt:message key="enter.role.name.domain"/>");
                 }
