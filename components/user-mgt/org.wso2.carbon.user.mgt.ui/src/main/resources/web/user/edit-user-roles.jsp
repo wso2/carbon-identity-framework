@@ -504,7 +504,7 @@
                                     } else {
                                 %>
                                 <tr>
-                                    <div style="padding:10px"><fmt:message key="no.unassigned.roles"/></div>
+                                    <div style="padding:10px"><fmt:message key="all.roles.assigned"/></div>
                                 </tr>
                                 <%  } %>
                             </table>
