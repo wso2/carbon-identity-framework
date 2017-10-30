@@ -33,7 +33,7 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisherImpl;
+import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublisherProxy;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
@@ -49,7 +49,6 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Au
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -184,7 +183,7 @@ public class FrameworkServiceComponent {
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
 
-        bundleContext.registerService(AuthenticationDataPublisher.class.getName(), new AuthenticationDataPublisherImpl(), null);
+        bundleContext.registerService(AuthenticationDataPublisher.class.getName(), new AuthnDataPublisherProxy(), null);
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
@@ -412,11 +411,11 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticationDataPublisher"
     )
     protected void setAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
-            FrameworkServiceDataHolder.getInstance().setAuthDataPublisherImpl(publisher);
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(publisher);
     }
 
     protected void unsetAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
-            FrameworkServiceDataHolder.getInstance().setAuthDataPublisherImpl(null);
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
     }
 
     @Reference(

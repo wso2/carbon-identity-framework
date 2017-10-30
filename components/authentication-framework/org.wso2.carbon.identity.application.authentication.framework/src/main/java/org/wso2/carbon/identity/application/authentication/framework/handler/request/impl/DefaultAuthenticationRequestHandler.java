@@ -415,13 +415,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
 
-        AuthenticationDataPublisher authnDataPublisherImpl = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherImpl();
-        if (authnDataPublisherImpl != null ) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null ) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            authnDataPublisherImpl.publishAuthenticationSuccess(request, context,
+            authnDataPublisherProxy.publishAuthenticationSuccess(request, context,
                     unmodifiableParamMap);
         }
     }
@@ -429,13 +429,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
 
-        AuthenticationDataPublisher authnDataPublisherImpl = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherImpl();
-        if (authnDataPublisherImpl != null ) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null ) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            authnDataPublisherImpl.publishAuthenticationFailure(request, context,
+            authnDataPublisherProxy.publishAuthenticationFailure(request, context,
                     unmodifiableParamMap);
         }
     }

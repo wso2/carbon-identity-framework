@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -12,16 +13,17 @@ import org.wso2.carbon.identity.event.event.Event;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
-public class AuthenticationDataPublisherImpl extends AbstractIdentityMessageHandler implements AuthenticationDataPublisher {
+public class AuthnDataPublisherProxy extends AbstractIdentityMessageHandler implements AuthenticationDataPublisher {
 
     public boolean canHandle(MessageContext messageContext) {
 
         return true;
     }
 
-    private static final Log log = LogFactory.getLog(AuthenticationDataPublisherImpl.class);
+    private static final Log log = LogFactory.getLog(AuthnDataPublisherProxy.class);
 
     private Event getEvent(HttpServletRequest request, AuthenticationContext context, SessionContext sessionContext, Map<String, Object> params, String eventName) {
 
@@ -120,6 +122,33 @@ public class AuthenticationDataPublisherImpl extends AbstractIdentityMessageHand
     public void publishSessionTermination(HttpServletRequest request, AuthenticationContext context, SessionContext sessionContext, Map<String, Object> params) {
 
         Event event = getEvent(request, context, sessionContext, params, "SESSION_TERMINATE");
+        try {
+            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(event);
+        } catch (IdentityEventException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("there is an error while handling the event: " + event.getEventName() + ".", e);
+            }
+        }
+        publishSingleLogout(request,context);
+    }
+
+    public void publishSingleLogout(HttpServletRequest request, AuthenticationContext context) {
+
+        Map<String, Object> params = new HashMap<>();
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (StringUtils.equals(cookie.getName(), "commonAuthId")) {
+                    params.put("commonAuthId", cookie.getValue());
+                }
+                if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
+                    params.put("samlssoTokenId", cookie.getValue());
+                }
+            }
+        }
+        params.put("serviceProvider", context.getServiceProviderName());
+
+        Event event = getEvent(null, null, null, params, "SINGLE_LOGOUT");
         try {
             FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(event);
         } catch (IdentityEventException e) {

@@ -43,7 +43,7 @@ public class FrameworkServiceDataHolder {
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
-    private AuthenticationDataPublisher authnDataPublisherImpl = null;
+    private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private IdentityEventService identityEventService;
 
     private FrameworkServiceDataHolder() {
@@ -111,12 +111,12 @@ public class FrameworkServiceDataHolder {
         return httpIdentityResponseFactories;
     }
 
-    public AuthenticationDataPublisher getAuthnDataPublisherImpl() {
-        return authnDataPublisherImpl;
+    public AuthenticationDataPublisher getAuthnDataPublisherProxy() {
+        return authnDataPublisherProxy;
     }
 
-    public void setAuthDataPublisherImpl(AuthenticationDataPublisher authnDataPublisherImpl) {
-        this.authnDataPublisherImpl = authnDataPublisherImpl;
+    public void setAuthnDataPublisherProxy(AuthenticationDataPublisher authnDataPublisherProxy) {
+        this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
     public IdentityEventService getIdentityEventService() {
