@@ -134,6 +134,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
+
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);

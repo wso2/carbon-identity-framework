@@ -120,12 +120,10 @@ public class FrameworkServiceDataHolder {
     }
 
     public IdentityEventService getIdentityEventService() {
-
         return identityEventService;
     }
 
     public void setIdentityEventService(IdentityEventService identityEventService) {
-
         this.identityEventService = identityEventService;
     }
 
