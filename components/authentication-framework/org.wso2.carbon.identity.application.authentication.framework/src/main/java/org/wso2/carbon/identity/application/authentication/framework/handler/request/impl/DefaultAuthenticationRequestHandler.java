@@ -417,7 +417,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
-        if (authnDataPublisherProxy != null ) {
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
@@ -431,8 +431,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
-        if (authnDataPublisherProxy != null ) {
-            Map<String, Object> paramMap = new HashMap<>();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            Map<String, Object> paramMap = new  HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             authnDataPublisherProxy.publishAuthenticationFailure(request, context,
