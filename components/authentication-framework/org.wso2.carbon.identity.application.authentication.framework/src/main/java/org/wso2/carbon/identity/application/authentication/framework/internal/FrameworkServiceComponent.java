@@ -421,7 +421,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "identity.event.services.IdentityEventService",
             service = org.wso2.carbon.identity.event.services.IdentityEventService.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
+            cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetIdentityEventService"
     )
