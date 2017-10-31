@@ -181,6 +181,7 @@ public class FrameworkServiceComponent {
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
+
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -419,5 +420,4 @@ public class FrameworkServiceComponent {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
     }
-
 }

@@ -424,6 +424,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authnDataPublisherProxy.publishAuthenticationSuccess(request, context,
                     unmodifiableParamMap);
         }
+
     }
 
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
@@ -438,6 +439,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authnDataPublisherProxy.publishAuthenticationFailure(request, context,
                     unmodifiableParamMap);
         }
+
     }
 
 
