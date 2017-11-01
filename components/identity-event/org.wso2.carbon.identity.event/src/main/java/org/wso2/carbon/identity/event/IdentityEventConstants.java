@@ -82,16 +82,28 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
 
-        public static final String AUTHENTICATION_STEP_SUCCESS = "AUTHENTICATION_STEP_SUCCESS";
-        public static final String AUTHENTICATION_STEP_FAILURE = "AUTHENTICATION_STEP_FAILURE";
-        public static final String AUTHENTICATION_SUCCESS = "AUTHENTICATION_SUCCESS";
-        public static final String AUTHENTICATION_FAILURE = "AUTHENTICATION_FAILURE";
-        public static final String SESSION_CREATE = "SESSION_CREATE";
-        public static final String SESSION_UPDATE = "SESSION_UPDATE";
-        public static final String SESSION_TERMINATE = "SESSION_TERMINATE";
-
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 
+    }
+
+    public enum EventName {
+        AUTHENTICATION_STEP_SUCCESS("AUTHENTICATION_STEP_SUCCESS"),
+        AUTHENTICATION_STEP_FAILURE("AUTHENTICATION_STEP_FAILURE"),
+        AUTHENTICATION_SUCCESS("AUTHENTICATION_SUCCESS"),
+        AUTHENTICATION_FAILURE("AUTHENTICATION_FAILURE"),
+        SESSION_CREATE("SESSION_CREATE"),
+        SESSION_UPDATE("SESSION_UPDATE"),
+        SESSION_TERMINATE("SESSION_TERMINATE");
+
+        private final String eventName;
+
+        EventName(String eventName) {
+            this.eventName = eventName; }
+
+        @Override
+        public String toString() {
+            return eventName;
+        }
     }
 
     public class EventProperty {
@@ -125,7 +137,10 @@ public class IdentityEventConstants {
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
 
-
+        public static final String REQUEST = "request";
+        public static final String CONTEXT = "context";
+        public static final String SESSION_CONTEXT = "sessionContext";
+        public static final String PARAMS = "params";
 
     }
 
