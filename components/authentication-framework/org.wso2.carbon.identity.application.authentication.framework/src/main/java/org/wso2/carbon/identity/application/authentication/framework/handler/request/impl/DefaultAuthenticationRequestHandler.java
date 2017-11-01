@@ -423,8 +423,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             authnDataPublisherProxy.publishAuthenticationSuccess(request, context,
                     unmodifiableParamMap);
-        }
 
+        }
     }
 
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
@@ -433,13 +433,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
-            Map<String, Object> paramMap = new  HashMap<>();
+            Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             authnDataPublisherProxy.publishAuthenticationFailure(request, context,
                     unmodifiableParamMap);
-        }
 
+        }
     }
 
 
