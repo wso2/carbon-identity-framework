@@ -413,7 +413,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         try {
             outboundQueryStringBuilder.append("sessionDataKey=").append(context.getContextIdentifier())
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8")).append("&type=")
-                    .append(context.getRequestType()).append("&sp=")
+                    .append(context.getRequestType()).append("&").append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
                     .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {

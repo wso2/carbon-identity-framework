@@ -30,6 +30,8 @@ public class Constants {
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL" ;
+    public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String REQUEST_PARAM_SP = "sp";
 
 
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success" ;
