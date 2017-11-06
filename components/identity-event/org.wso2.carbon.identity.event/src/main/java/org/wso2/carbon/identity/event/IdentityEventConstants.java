@@ -87,23 +87,15 @@ public class IdentityEventConstants {
     }
 
     public enum EventName {
-        AUTHENTICATION_STEP_SUCCESS("AUTHENTICATION_STEP_SUCCESS"),
-        AUTHENTICATION_STEP_FAILURE("AUTHENTICATION_STEP_FAILURE"),
-        AUTHENTICATION_SUCCESS("AUTHENTICATION_SUCCESS"),
-        AUTHENTICATION_FAILURE("AUTHENTICATION_FAILURE"),
-        SESSION_CREATE("SESSION_CREATE"),
-        SESSION_UPDATE("SESSION_UPDATE"),
-        SESSION_TERMINATE("SESSION_TERMINATE");
 
-        private final String eventName;
+        AUTHENTICATION_STEP_SUCCESS,
+        AUTHENTICATION_STEP_FAILURE,
+        AUTHENTICATION_SUCCESS,
+        AUTHENTICATION_FAILURE,
+        SESSION_CREATE,
+        SESSION_UPDATE,
+        SESSION_TERMINATE,
 
-        EventName(String eventName) {
-            this.eventName = eventName; }
-
-        @Override
-        public String toString() {
-            return eventName;
-        }
     }
 
     public class EventProperty {
