@@ -295,6 +295,15 @@ public class AuthenticatedUser extends User {
     }
 
     @Override
+    public String getFullQualifiedUsername() {
+        if (isFederatedUser && StringUtils.isBlank(userName)) {
+            //username,userstore domain may be null for federated users
+            return authenticatedSubjectIdentifier;
+        }
+        return super.getFullQualifiedUsername();
+    }
+
+    @Override
     public String toString() {
 
         if (isFederatedUser && StringUtils.isBlank(userName)) {
