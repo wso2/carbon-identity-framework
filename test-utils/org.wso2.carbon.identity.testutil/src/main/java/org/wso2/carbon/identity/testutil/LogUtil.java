@@ -19,10 +19,9 @@
 
 package org.wso2.carbon.identity.testutil;
 
-import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
-import org.apache.log4j.PatternLayout;
+import org.wso2.carbon.identity.testutil.log.NullAppender;
 
 /**
  * This utility class is used to configure log Appenders and log levels by IdentityBaseTest and
@@ -31,17 +30,13 @@ import org.apache.log4j.PatternLayout;
  */
 public class LogUtil {
 
-	public static final String LOG_PATTERN = "%d [%p|%c|%C{1}] %m%n";
 	public static final String DEBUG_LEVEL = "debug";
 
+
 	public static void configureAndAddConsoleAppender() {
-		//create an appender
-		ConsoleAppender console = new ConsoleAppender();
-		//configure the appender
-		String PATTERN = LOG_PATTERN;
-		console.setLayout(new PatternLayout(PATTERN));
-		console.activateOptions();
-		LogManager.getRootLogger().addAppender(console);
+        //create an appender
+        NullAppender nullAppender = new NullAppender();
+        LogManager.getRootLogger().addAppender(nullAppender);
 	}
 
 	public static void configureLogLevel(String logLevel) {
@@ -52,11 +47,11 @@ public class LogUtil {
 		}
 	}
 
-	private static void setLogLevelDebug() {
-		LogManager.getRootLogger().setLevel(Level.DEBUG);
-	}
+    private static void setLogLevelDebug() {
+        LogManager.getRootLogger().setLevel(Level.DEBUG);
+    }
 
-	private static void setLogLevelInfo() {
-		LogManager.getRootLogger().setLevel(Level.INFO);
-	}
+    private static void setLogLevelInfo() {
+        LogManager.getRootLogger().setLevel(Level.INFO);
+    }
 }
