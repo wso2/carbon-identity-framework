@@ -181,7 +181,7 @@ public class User implements Serializable {
     }
 
     /**
-     * Get full qualified username of the {@link User} object.
+     * Returns full qualified username of the {@link User} object.
      * ie. We append the tenantDomain and userStoreDomain to the username.
      * <p>
      * Note that the PRIMARY domain will not be appended to username when building the full qualified username.
@@ -190,7 +190,7 @@ public class User implements Serializable {
      *
      * @return full qualified username
      */
-    public String getFullQualifiedUsername() {
+    public String toFullQualifiedUsername() {
         String username = null;
         if (StringUtils.isNotBlank(this.userName)) {
             username = this.userName;
