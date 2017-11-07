@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.testutil.powermock;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
@@ -56,4 +55,5 @@ public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 	@BeforeMethod public void setUp(@Optional String logLevel) throws Exception {
 		LogUtil.configureLogLevel(logLevel);
 	}
+
 }
