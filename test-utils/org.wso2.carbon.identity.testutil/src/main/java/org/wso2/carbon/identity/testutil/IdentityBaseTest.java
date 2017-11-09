@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.testutil;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
+import org.wso2.carbon.identity.testutil.log.LogUtil;
 
 /**
  * TestNG test that extended from IdentityBaseTest class can read "log-level" parameter from testng.xml configuration
