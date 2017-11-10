@@ -94,7 +94,9 @@ public class LogLevelChangeListener implements IAlterSuiteListener, ISuiteListen
     @Override
     public void onStart(ISuite iSuite) {
         String logLevel = iSuite.getParameter(LOG_LEVEL_PARAM_NAME);
-        LogUtil.configureLogLevel(logLevel);
+        if (StringUtils.isNotEmpty(logLevel)) {
+            LogUtil.configureLogLevel(logLevel);
+        }
     }
 
     @Override
