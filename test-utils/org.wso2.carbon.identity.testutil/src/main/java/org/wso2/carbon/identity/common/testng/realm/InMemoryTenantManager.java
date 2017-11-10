@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.common.testng.realm;
 
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -28,14 +29,12 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
  */
 public class InMemoryTenantManager implements TenantManager {
 
-    private static final String UNIVERSAL_TENANT = "Universe";
-    private static final int UNIVERSAL_TENANT_ID = Short.MAX_VALUE;
-    private Tenant universalTenant;
+    private Tenant tenant;
 
     public InMemoryTenantManager() {
-        universalTenant = new Tenant();
-        universalTenant.setId(UNIVERSAL_TENANT_ID);
-        universalTenant.setDomain(UNIVERSAL_TENANT);
+        tenant = new Tenant();
+        tenant.setId(MultitenantConstants.SUPER_TENANT_ID);
+        tenant.setDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     @Override
@@ -55,22 +54,22 @@ public class InMemoryTenantManager implements TenantManager {
 
     @Override
     public Tenant[] getAllTenants() throws org.wso2.carbon.user.api.UserStoreException {
-        return new Tenant[] { universalTenant };
+        return new Tenant[]{tenant};
     }
 
     @Override
     public Tenant[] getAllTenantsForTenantDomainStr(String s) throws org.wso2.carbon.user.api.UserStoreException {
-        return new Tenant[] { universalTenant };
+        return new Tenant[]{tenant};
     }
 
     @Override
     public String getDomain(int i) throws org.wso2.carbon.user.api.UserStoreException {
-        return UNIVERSAL_TENANT;
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
     @Override
     public int getTenantId(String s) throws org.wso2.carbon.user.api.UserStoreException {
-        return UNIVERSAL_TENANT_ID;
+        return MultitenantConstants.SUPER_TENANT_ID;
     }
 
     @Override
