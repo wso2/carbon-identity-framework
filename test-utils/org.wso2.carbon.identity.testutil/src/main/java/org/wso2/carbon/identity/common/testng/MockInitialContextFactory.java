@@ -29,6 +29,7 @@ import org.mockito.stubbing.Answer;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -152,7 +153,9 @@ public class MockInitialContextFactory implements InitialContextFactory {
         try (Connection connection = dataSource.getConnection()) {
             for (String f : files) {
                 String scriptPath = Paths.get(basePath, f).toString();
-                connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
+                try (Statement statement = connection.createStatement()  ) {
+                    statement.executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");   //NOSONAR
+                }
             }
         } catch (SQLException e) {
             log.error("Error while creating the in-memory H2 Database.", e);
