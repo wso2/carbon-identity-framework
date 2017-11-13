@@ -22,6 +22,7 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.testng.IClassListener;
 import org.testng.IMethodInstance;
 import org.testng.ITestClass;
@@ -29,11 +30,16 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
+import org.wso2.carbon.identity.testutil.ReadCertStoreSampleUtil;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -44,6 +50,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -183,6 +195,38 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                 log.error("Error setting the realm.", e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+        if (annotationPresent(realClass, WithKeyStore.class)) {
+            Annotation annotation = realClass.getAnnotation(WithKeyStore.class);
+            WithKeyStore withKeyStore = (WithKeyStore) annotation;
+            try {
+                KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
+                ServerConfigurationService serverConfigurationService = mock(ServerConfigurationService.class);
+                RegistryService registryService = mock(RegistryService.class);
+                ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
+                mtKeyStoreManagers.put(String.valueOf(withKeyStore.tenantId()), keyStoreManager);
+                Whitebox.setInternalState(keyStoreManager, "mtKeyStoreManagers", mtKeyStoreManagers);
+                KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
+                Whitebox.setInternalState(keyStoreManager, "primaryKeyStore", keyStore);
+                Whitebox.setInternalState(keyStoreManager, "registryKeyStore", keyStore);
+                CarbonCoreDataHolder carbonCoreDataHolder = mock(CarbonCoreDataHolder.class);
+                CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
+                CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
+                carbonCoreDataHolder.setServerConfigurationService(serverConfigurationService);
+                carbonCoreDataHolder.setRegistryService(registryService);
+                when(keyStoreManager.getDefaultPrimaryCertificate()).thenReturn(
+                        (X509Certificate) keyStore.getCertificate(withKeyStore.alias()));
+            } catch (NoSuchAlgorithmException e) {
+                log.error("Error while reading cert.", e);
+            } catch (UnrecoverableKeyException e) {
+                log.error("Error while reading cert.", e);
+            } catch (IllegalAccessException e) {
+                log.error("Error while reading cert.", e);
+            } catch (KeyStoreException e) {
+                log.error("Error while reading cert.", e);
+            } catch (Exception e) {
+                log.error("Error while reading cert.", e);
             }
         }
         Field[] fields = realClass.getDeclaredFields();
