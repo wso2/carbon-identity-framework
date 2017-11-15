@@ -37,6 +37,7 @@ import java.util.Map;
 public class MockUserStoreManager implements UserStoreManager {
 
     private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
+    private RealmConfiguration inMemoryRealmConfiguration = null;
 
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
@@ -297,6 +298,10 @@ public class MockUserStoreManager implements UserStoreManager {
 
     @Override
     public RealmConfiguration getRealmConfiguration() {
-        return null;
+        return this.inMemoryRealmConfiguration;
+    }
+
+    public void setRealmConfiguration(RealmConfiguration realmConfiguration) {
+        this.inMemoryRealmConfiguration = realmConfiguration;
     }
 }
