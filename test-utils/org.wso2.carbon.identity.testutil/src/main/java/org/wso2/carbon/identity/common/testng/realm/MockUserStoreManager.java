@@ -28,12 +28,15 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.tenant.Tenant;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Simple mocked  UserStore Manager for testing.
  */
 public class MockUserStoreManager implements UserStoreManager {
+
+    private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
 
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
@@ -281,13 +284,15 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public UserStoreManager getSecondaryUserStoreManager(String s) {
-        return null;
+    public UserStoreManager getSecondaryUserStoreManager(String userDomain) {
+        return userDomain == null?null:(UserStoreManager)this.secondaryUserStoreManagerMap.get(userDomain.toUpperCase());
     }
 
     @Override
-    public void addSecondaryUserStoreManager(String s, UserStoreManager userStoreManager) {
-
+    public void addSecondaryUserStoreManager(String userDomain, UserStoreManager userStoreManager) {
+        if(userDomain != null) {
+            this.secondaryUserStoreManagerMap.put(userDomain.toUpperCase(), userStoreManager);
+        }
     }
 
     @Override

@@ -35,13 +35,15 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
-import org.wso2.carbon.identity.testutil.ReadCertStoreSampleUtil;
+import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.testutil.ReadCertStoreSampleUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -179,6 +181,9 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
                 RealmService realmService = new InMemoryRealmService(tenantId);
+                UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+                ((MockUserStoreManager) userStoreManager)
+                        .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
                 IdentityTenantUtil.setRealmService(realmService);
 
                 Class[] singletonClasses = withRealmService.injectToSingletons();
