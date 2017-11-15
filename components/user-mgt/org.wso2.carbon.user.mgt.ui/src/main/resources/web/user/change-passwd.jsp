@@ -57,14 +57,6 @@
         cancelPath = "user-mgt.jsp?ordinal=1";
     }
 
-    String displayName = request.getParameter("displayName");
-    if (StringUtils.isBlank(displayName)) {
-        displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
-        if (StringUtils.isBlank(displayName)) {
-            displayName = username;
-        }
-    }
-
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
@@ -102,6 +94,14 @@
     });
 </script>
 <%
+    }
+
+    String displayName = request.getParameter("displayName");
+    if (StringUtils.isBlank(displayName)) {
+        displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
+        if (StringUtils.isBlank(displayName)) {
+            displayName = decryptedUsername;
+        }
     }
 
     String regEx = userStoreInfo.getPasswordRegEx();
