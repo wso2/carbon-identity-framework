@@ -41,6 +41,7 @@
             <Property name="SuperDomain">wso2.com</Property>
             <Property name="IsUsersOfRoleListing">true</Property>
             <Property name="MaxUserNameListLength">100</Property>
+            <Property name="CaseInsensitiveUsername">true</Property>
             <!-- writing sqls follow-->
             <Property name="AddRoleSQL">INSERT INTO UM_ROLE (UM_ROLE_NAME, UM_TENANT_ID) VALUES (?, ?)</Property>
             <Property name="TenantManager">org.wso2.carbon.user.core.tenant.JDBCTenantManager</Property>

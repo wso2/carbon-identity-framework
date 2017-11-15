@@ -45,6 +45,7 @@ public class MockRealm implements UserRealm {
             Map<String, ProfileConfiguration> map1, int tenantId) throws UserStoreException {
         this.realmConfiguration = realmConfiguration;
         this.tenantId = tenantId;
+        ((MockUserStoreManager)this.userStoreManager).setRealmConfiguration(this.realmConfiguration);
     }
 
     @Override
