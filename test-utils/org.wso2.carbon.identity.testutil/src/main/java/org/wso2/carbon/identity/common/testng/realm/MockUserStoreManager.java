@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public class MockUserStoreManager implements UserStoreManager {
 
-    private Map<String, UserStoreManager> userStoreManagerHolder = new HashMap();
+    private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
 
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
@@ -285,13 +285,13 @@ public class MockUserStoreManager implements UserStoreManager {
 
     @Override
     public UserStoreManager getSecondaryUserStoreManager(String userDomain) {
-        return userDomain == null?null:(UserStoreManager)this.userStoreManagerHolder.get(userDomain.toUpperCase());
+        return userDomain == null?null:(UserStoreManager)this.secondaryUserStoreManagerMap.get(userDomain.toUpperCase());
     }
 
     @Override
     public void addSecondaryUserStoreManager(String userDomain, UserStoreManager userStoreManager) {
         if(userDomain != null) {
-            this.userStoreManagerHolder.put(userDomain.toUpperCase(), userStoreManager);
+            this.secondaryUserStoreManagerMap.put(userDomain.toUpperCase(), userStoreManager);
         }
     }
 
