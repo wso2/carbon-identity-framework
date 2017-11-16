@@ -28,7 +28,7 @@ public class MockAuthorizationManager implements AuthorizationManager {
 
     @Override
     public boolean isUserAuthorized(String s, String s1, String s2) throws UserStoreException {
-        return false;
+        return true;
     }
 
     @Override
