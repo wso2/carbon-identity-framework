@@ -144,15 +144,14 @@
         function validateString(fld1name, regString) {
             var stringValue = document.getElementsByName(fld1name)[0].value;
             var errorMessage = "";
-            if (regString != "null" && !stringValue.match(new RegExp(regString.trim()))) {
+
+            if (stringValue == "") {
+                errorMessage = "Empty string";
+                return errorMessage;
+            } else if (regString != "null" && !stringValue.match(new RegExp(regString.trim()))) {
                 errorMessage = "No conformance";
                 return errorMessage;
             } else if (regString != "null" && stringValue == "") {
-                return errorMessage;
-            }
-
-            if (stringValue == '') {
-                errorMessage = "Empty string";
                 return errorMessage;
             }
 

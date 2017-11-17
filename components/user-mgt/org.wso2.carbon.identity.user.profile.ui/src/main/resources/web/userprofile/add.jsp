@@ -31,9 +31,10 @@
 
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 
 <%
-    String username =  request.getParameter("username");
     String fromUserMgt =  request.getParameter("fromUserMgt");
     UserFieldDTO[] userFields = null;
     UserProfileDTO profile = null;
@@ -41,8 +42,14 @@
     String[] profileConfigs = null;
 	String BUNDLE = "org.wso2.carbon.identity.user.profile.ui.i18n.Resources";
 	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-	
+    String encryptedUsername = request.getParameter("username");
+    String decryptedUsername = null;
+
     try {
+        if (encryptedUsername != null) {
+            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
+        }
+
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -90,9 +97,6 @@ function validateTextForIllegal(fld,fldName) {
     }
 %>
 
-
-
-<%@ page import="java.util.ResourceBundle" %>
 <fmt:bundle
         basename="org.wso2.carbon.identity.user.profile.ui.i18n.Resources">
     <carbon:breadcrumb label="add.profile"
@@ -105,7 +109,7 @@ function validateTextForIllegal(fld,fldName) {
 
     <div id="middle">
         <%if ("true".equals(fromUserMgt)) {%>
-        <h2><fmt:message key='add.new.profile1'/><%=Encode.forHtml(username)%></h2>
+        <h2><fmt:message key='add.new.profile1'/><%=Encode.forHtml(decryptedUsername)%></h2>
         <%} else {%>
         <h2><fmt:message key='add.new.profile2'/></h2>
         <%}%>
@@ -173,7 +177,7 @@ function validateTextForIllegal(fld,fldName) {
 
             <form method="post" name="addProfileform"
                   action="set-finish-ajaxprocessor.jsp?fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>" target="_self">
-                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
+                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(decryptedUsername)%>"/>
                 <table style="width: 100%" class="styledLeft">
                     <thead>
                     <tr>
@@ -255,7 +259,7 @@ function validateTextForIllegal(fld,fldName) {
                             <input type="button" class="button"
                                   <%if ("true".equals(fromUserMgt)) {%>
                                    onclick="javascript:location.href='index.jsp?username='+
-                                           '<%=Encode.forJavaScript(Encode.forUriComponent(username))%>&fromUserMgt=true'"
+                                           '<%=Encode.forJavaScript(Encode.forUriComponent(encryptedUsername))%>&fromUserMgt=true'"
                                   <%}else{%>
                                    onclick="javascript:location.href='index.jsp?region=region5&item=userprofiles_menu&ordinal=0'"
                                   <%}%>

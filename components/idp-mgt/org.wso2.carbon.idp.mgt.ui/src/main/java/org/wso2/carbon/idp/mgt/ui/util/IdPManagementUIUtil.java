@@ -1632,6 +1632,12 @@ public class IdPManagementUIUtil {
         property.setValue(paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE));
         properties.add(property);
 
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.RESPONSE_AUTHN_CONTEXT_CLASS_REF);
+        property.setValue(paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO
+                .RESPONSE_AUTHN_CONTEXT_CLASS_REF));
+        properties.add(property);
+
         saml2SSOAuthnConfig.setProperties(properties.toArray(new Property[properties.size()]));
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();

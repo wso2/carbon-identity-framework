@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.8.140-SNAPSHOT</version>
+        <version>5.10.34-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -173,9 +173,9 @@
                 <configuration>
                     <excludes>
                         <!--
-                        Below classes are excluded from coverage since it is not possible correct to write
-                        unit tests for them. They either make use of admin service stubs or require mocking to the
-                        extend that there will be no functionality left to unit test after mocking.
+                        Below classes are excluded from coverage since it is not possible to write unit tests for
+                        them. They either make use of admin service stubs or require mocking to the extend that there
+                         will be no functionality left to unit test after mocking.
                          -->
                         <exclude>**/TenantMgtAdminServiceClient*</exclude>
                         <exclude>**/UserRegistrationAdminServiceClient*</exclude>

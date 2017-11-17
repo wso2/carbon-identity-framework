@@ -236,6 +236,12 @@
 				<Description>Honoric Suffix</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/resourceType</ClaimURI>
+				<DisplayName>Resource Type</DisplayName>
+				<AttributeID>ref</AttributeID>
+				<Description>Resource Type</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/userType</ClaimURI>
 				<DisplayName>User Type</DisplayName>
 				<AttributeID>userType</AttributeID>
@@ -1566,12 +1572,12 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</ClaimURI>
 				<DisplayName>Meta - Location</DisplayName>
-				<AttributeID>mail</AttributeID>
+				<AttributeID>ref</AttributeID>
 				<Description>Meta - Location</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.version</ClaimURI>
@@ -1986,6 +1992,26 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>
+				<DisplayName>Ask Password</DisplayName>
+				<AttributeID>postOfficeBox</AttributeID>
+				<Description>Temporary claim to invoke email ask Password feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/askPassword</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</ClaimURI>
+				<DisplayName>Verify Email</DisplayName>
+				<AttributeID>manager</AttributeID>
+				<Description>Temporary claim to invoke email verified feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/verifyEmail</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>

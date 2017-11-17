@@ -24,13 +24,12 @@ import static org.testng.Assert.*;
 public class IdentityEventConfigBuilderTest {
 
     @BeforeSuite
-    public void setup(){
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
 
         String home = IdentityEventConfigBuilder.class.getResource("/").getFile();
         String config = IdentityEventConfigBuilder.class.getResource("/").getFile();
         System.setProperty("carbon.home", home);
         System.setProperty("carbon.config.dir.path", config);
-
     }
 
    @Test
@@ -39,5 +38,4 @@ public class IdentityEventConfigBuilderTest {
         IdentityEventConfigBuilder identityEventConfigBuilder =  IdentityEventConfigBuilder.getInstance();
         assertNotNull(identityEventConfigBuilder);
     }
-
 }

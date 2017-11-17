@@ -81,8 +81,6 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param whiteListPatterns a String array of white list pattern keys
      * @return true if matches with any of the white list patterns
-     * @throws IdentityValidationException if a white list pattern key provided does not correspond to a registered
-     *                                     regex.
      */
     public static boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns)) {
@@ -112,8 +110,6 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param blackListPatterns a String array of black list pattern keys
      * @return true if does not match with any of the black list patterns
-     * @throws IdentityValidationException if a black list pattern key provided does not correspond to a registered
-     *                                     regex.
      */
     public static boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
         if (ArrayUtils.isEmpty(blackListPatterns)) {
@@ -163,6 +159,8 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param whiteListPatterns a String array of white list pattern keys
      * @return input if valid over the given white list patterns else throws an IdentityValidationException
+     * @throws IdentityValidationException if a white list pattern key provided does not correspond to a registered
+     *                                     regex.
      */
     public static String getValidInputOverWhiteListPatterns(String input, String... whiteListPatterns)
             throws IdentityValidationException {
@@ -181,6 +179,8 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param blackListPatterns a String array of black list pattern keys
      * @return input if valid over the given black list patterns else throws an IdentityValidationException
+     * @throws IdentityValidationException if a black list pattern key provided does not correspond to a registered
+     *                                     regex.
      */
     public static String getValidInputOverBlackListPatterns(String input, String... blackListPatterns)
             throws IdentityValidationException {
@@ -202,6 +202,7 @@ public class IdentityValidationUtil {
      * @param blackListPatterns a String array of black list pattern keys
      * @return input if valid over the given white list and black list patterns else throws an
      * IdentityValidationException
+     * @throws  IdentityValidationException if input is invalid for the he given white list and black list patterns
      */
     public static String getValidInput(String input, String[] whiteListPatterns, String[] blackListPatterns)
             throws IdentityValidationException {

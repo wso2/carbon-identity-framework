@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -84,6 +85,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -1248,6 +1250,29 @@ public class FrameworkUtils {
         if (commonAuthIdCookieConfig.isSecure()) {
             cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
         }
+    }
+
+    public static String getMultiAttributeSeparator() {
+
+        String multiAttributeSeparator = null;
+        try {
+            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+            }
+        }
+
+        if (StringUtils.isBlank(multiAttributeSeparator)) {
+            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+            if (log.isDebugEnabled()) {
+                log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
+            }
+        }
+
+        return multiAttributeSeparator;
     }
 }
 
