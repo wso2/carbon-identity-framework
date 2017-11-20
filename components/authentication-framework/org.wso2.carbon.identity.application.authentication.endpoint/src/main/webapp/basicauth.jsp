@@ -29,8 +29,6 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
-<%@ page import="org.apache.commons.httpclient.HttpClient" %>
-<%@ page import="org.apache.commons.httpclient.methods.HeadMethod" %>
 
 <script>
         function submitCredentials () {
@@ -148,45 +146,46 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
 
-            String scheme = request.getScheme();
-            String serverName = request.getServerName();
-            int serverPort = request.getServerPort();
-            String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
-            String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
-            String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
-            String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
-
-            String identityMgtEndpointContext =
-                    application.getInitParameter("IdentityManagementEndpointContextURL");
-            if (StringUtils.isBlank(identityMgtEndpointContext)) {
-                identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+            boolean enableRecoveryEPUrl = false;
+            boolean enableSelfSignUpEPUrl = false;
+            String enableRecoveryEPUrlProperty = IdentityUtil.getProperty("EnableRecoveryEndpointURL");
+            String enableSelfSignEPUpUrlProperty = IdentityUtil.getProperty("EnableSelfSignUpEndpointURL");
+            if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
+                enableRecoveryEPUrl = Boolean.parseBoolean(enableRecoveryEPUrlProperty);
+            }
+            if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
+                enableSelfSignUpEPUrl = Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
             }
 
-            HttpClient client = IdentityUtil.getHttpClientWithSSLSocketFactory(scheme, serverName);
-            String validationPointUrl = identityMgtEndpointContext + "/error.jsp";
-            HeadMethod head = new HeadMethod(validationPointUrl);
-            head.setFollowRedirects(false);
+            if (enableRecoveryEPUrl || enableSelfSignUpEPUrl) {
+                String scheme = request.getScheme();
+                String serverName = request.getServerName();
+                int serverPort = request.getServerPort();
+                String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
+                String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
+                String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
+                String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
 
-            int status = client.executeMethod(head);
-            head.releaseConnection();
-            if (status == HttpURLConnection.HTTP_OK) {
-                String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+                String identityMgtEndpointContext =
+                        application.getInitParameter("IdentityManagementEndpointContextURL");
+                if (StringUtils.isBlank(identityMgtEndpointContext)) {
+                    identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+                }
+
+                if (enableRecoveryEPUrl) {
         %>
-        <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
+        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Password </a>
         <br/><br/>
-    <%
-
-        url = identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
-    %>
-        <a id="usernameRecoverLink" href="<%=url%>">Forgot Username </a>
+        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Username </a>
         <br/><br/>
-    <%
-
-        url = identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
+        <%
+                }
+                if (enableSelfSignUpEPUrl) {
         %>
         Don't have an account?
-        <a id="registerLink" href="<%=url%>">Register Now</a>
+        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">Register Now</a>
         <%
+                }
             }
         %>
         <br/>
@@ -198,4 +197,15 @@
     </div>
 
     <div class="clearfix"></div>
+    <%!
+    private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/recoverusername.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    %>
 </form>

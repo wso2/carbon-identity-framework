@@ -498,6 +498,9 @@
 
     <EnableAskPasswordAdminUI>false</EnableAskPasswordAdminUI>
 
+    <EnableRecoveryEndpointURL>true</EnableRecoveryEndpointURL>
+    <EnableSelfSignUpEndpointURL>true</EnableSelfSignUpEndpointURL>
+
     <AuthenticationPolicy>
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>

@@ -20,10 +20,6 @@ package org.wso2.carbon.identity.core.util;
 import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
-import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
@@ -65,13 +61,6 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +77,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class IdentityUtil {
 
@@ -945,24 +941,5 @@ public class IdentityUtil {
             }
         }
         return isOperationSupported;
-    }
-
-    /**
-     * This method creates a HttpClient instance with Protocol set to use SSLProtocolSocketFactory for https
-     *
-     * @param scheme
-     * @param host
-     * @return
-     */
-    public static HttpClient getHttpClientWithSSLSocketFactory(String scheme, String host) {
-        HttpClient client = new HttpClient();
-
-        if ("https".equals(scheme)) {
-            ProtocolSocketFactory sslSocketFactory = new SSLProtocolSocketFactory();
-            Protocol sslProtocol = new Protocol(scheme, sslSocketFactory, IdentityCoreConstants.DEFAULT_HTTPS_PORT);
-            Protocol.registerProtocol(scheme, sslProtocol);
-            client.getHostConfiguration().setHost(host, IdentityCoreConstants.DEFAULT_HTTPS_PORT, sslProtocol);
-        }
-        return client;
     }
 }
