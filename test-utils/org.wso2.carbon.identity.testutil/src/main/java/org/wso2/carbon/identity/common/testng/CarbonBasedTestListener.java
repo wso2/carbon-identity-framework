@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.ReadCertStoreSampleUtil;
 import org.wso2.carbon.registry.core.config.RegistryContext;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
 import org.wso2.carbon.registry.core.jdbc.EmbeddedRegistryService;
 import org.wso2.carbon.registry.core.jdbc.dataaccess.JDBCDataAccessManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -242,6 +243,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             ((MockUserStoreManager) userStoreManager)
                     .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
             IdentityTenantUtil.setRealmService(realmService);
+            RegistryDataHolder.getInstance().setRealmService(realmService);
 
             Class[] singletonClasses = withRealmService.injectToSingletons();
             for (Class singletonClass : singletonClasses) {

@@ -27,8 +27,10 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.tenant.Tenant;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,6 +40,8 @@ public class MockUserStoreManager implements UserStoreManager {
 
     private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
     private RealmConfiguration inMemoryRealmConfiguration = null;
+    private Map<String, List<String>> usersOfRole = new HashMap<>();
+    private Map<String, List<String>> userRoleMap = new HashMap<>();
 
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
@@ -80,7 +84,11 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public String[] getRoleListOfUser(String s) throws UserStoreException {
+    public String[] getRoleListOfUser(String userName) throws UserStoreException {
+        List<String> roles = userRoleMap.get(userName);
+        if (roles != null) {
+            return roles.toArray(new String[roles.size()]);
+        }
         return new String[0];
     }
 
@@ -142,15 +150,24 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public void addRole(String s, String[] strings, Permission[] permissions, boolean b)
+    public void addRole(String role, String[] users, Permission[] permissions, boolean b)
             throws org.wso2.carbon.user.api.UserStoreException {
-
+        if (users != null) {
+            for (String user : users) {
+                List<String> roles = userRoleMap.get(user);
+                if (roles == null) {
+                    roles = new ArrayList<>();
+                    userRoleMap.put(user, roles);
+                }
+                roles.add(role);
+            }
+        }
     }
 
     @Override
     public void addRole(String s, String[] strings, Permission[] permissions)
             throws org.wso2.carbon.user.api.UserStoreException {
-
+        addRole(s, strings, permissions, true);
     }
 
     @Override
@@ -286,12 +303,14 @@ public class MockUserStoreManager implements UserStoreManager {
 
     @Override
     public UserStoreManager getSecondaryUserStoreManager(String userDomain) {
-        return userDomain == null?null:(UserStoreManager)this.secondaryUserStoreManagerMap.get(userDomain.toUpperCase());
+        return userDomain == null ?
+                null :
+                (UserStoreManager) this.secondaryUserStoreManagerMap.get(userDomain.toUpperCase());
     }
 
     @Override
     public void addSecondaryUserStoreManager(String userDomain, UserStoreManager userStoreManager) {
-        if(userDomain != null) {
+        if (userDomain != null) {
             this.secondaryUserStoreManagerMap.put(userDomain.toUpperCase(), userStoreManager);
         }
     }

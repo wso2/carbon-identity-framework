@@ -133,11 +133,11 @@
         <!--<IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</IdentityOAuthTokenGenerator>-->
 
         <!-- True, if access token alias is stored in the database instead of access token.
-         Eg. token alias and token is same when default AccessTokenValueGenerator is used.
+             Eg. token alias and token is same when default AccessTokenValueGenerator is used.
              When JWTTokenIssuer is used, jti is used as the token alias
-                 Default: true.
-                 Applicable values: true,false
-            -->
+             Default: true.
+             Applicable values: true,false
+        -->
         <!--<PersistAccessTokenAlias>false</PersistAccessTokenAlias>-->
 
         <!-- This configuration is used to specify the access token value generator.
