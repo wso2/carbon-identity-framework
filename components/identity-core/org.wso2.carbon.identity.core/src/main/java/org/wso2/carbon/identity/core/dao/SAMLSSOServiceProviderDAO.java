@@ -179,17 +179,23 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         return serviceProviderDO;
     }
 
-    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
-            throws IdentityException {
-        String path = null;
+    /**
+     * Add the service provider information to the registry.
+     * @param serviceProviderDO Service provider information object.
+     * @return True if addition successful.
+     * @throws IdentityException Error while persisting to the registry.
+     */
+    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
-
-        if (serviceProviderDO.getIssuer() != null) {
-            path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS
-                    + encodePath(serviceProviderDO.getIssuer());
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Required values are missing in the provided argument.");
         }
 
+        String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
+
         boolean isTransactionStarted = Transaction.isStarted();
+        boolean isErrorOccurred = false;
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
@@ -200,34 +206,23 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
 
             Resource resource = createResource(serviceProviderDO);
-            try {
-                if (!isTransactionStarted) {
-                    registry.beginTransaction();
-                }
-
-                registry.put(path, resource);
-
-                if (!isTransactionStarted) {
-                    registry.commitTransaction();
-                }
-
-            } catch (RegistryException e) {
-                if (!isTransactionStarted) {
-                    registry.rollbackTransaction();
-                }
-                throw e;
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
             }
-
+            registry.put(path, resource);
+            if (log.isDebugEnabled()) {
+                log.debug("Service Provider " + serviceProviderDO.getIssuer()
+                        + " is added successfully.");
+            }
+            return true;
         } catch (RegistryException e) {
-            log.error("Error While adding Service Provider", e);
-            throw IdentityException.error("Error while adding Service Provider", e);
+            isErrorOccurred = true;
+            String msg = "Error while adding Service Provider";
+            log.error(msg, e);
+            throw IdentityException.error(msg, e);
+        } finally {
+            commitOrRollbackTransaction(isErrorOccurred);
         }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Service Provider " + serviceProviderDO.getIssuer()
-                    + " is added successfully.");
-        }
-        return true;
     }
 
     private Resource createResource(SAMLSSOServiceProviderDO serviceProviderDO) throws RegistryException {
@@ -356,9 +351,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
     /**
      * Remove the service provider with the given name.
-     *
-     * @param issuer
-     * @throws IdentityException
+     * @return True if deletion success.
+     * @param issuer Name of the SAML issuer.
+     * @throws IdentityException Error occurred while removing the SAML service provider from registry.
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
 
@@ -368,34 +363,27 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         boolean isTransactionStarted = Transaction.isStarted();
+        boolean isErrorOccurred = false;
         try {
-            if (registry.resourceExists(path)) {
-                try {
-                    if (!isTransactionStarted) {
-                        registry.beginTransaction();
-                    }
-
-                    registry.delete(path);
-
-                    if (!isTransactionStarted) {
-                        registry.commitTransaction();
-                    }
-
-                    return true;
-
-                } catch (RegistryException e) {
-                    if (!isTransactionStarted) {
-                        registry.rollbackTransaction();
-                    }
-                    throw e;
-                }
+            if (!registry.resourceExists(path)) {
+                return false;
             }
-        } catch (RegistryException e) {
-            log.error("Error removing the service provider from the registry", e);
-            throw IdentityException.error("Error removing the service provider from the registry", e);
-        }
 
-        return false;
+            // Since we are getting a global registry object, better to check whether this is a task inside already
+            // started transaction.
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+            registry.delete(path);
+            return true;
+        } catch (RegistryException e) {
+            isErrorOccurred = true;
+            String msg = "Error removing the service provider from the registry";
+            log.error(msg, e);
+            throw IdentityException.error(msg, e);
+        } finally {
+            commitOrRollbackTransaction(isErrorOccurred);
+        }
     }
 
     /**
@@ -447,63 +435,66 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     }
 
     /**
-     * Upload service Provider.
-     *
-     * @param serviceProviderDO
-     * @return
-     * @throws IdentityException
+     * Upload service Provider using metadata file..
+     * @param serviceProviderDO Service provider information object.
+     * @return True if upload success.
+     * @throws IdentityException Error occurred while adding the information to registry.
      */
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
             IdentityException {
 
-        if (serviceProviderDO.getIssuer() != null && serviceProviderDO.getDefaultAssertionConsumerUrl() != null) {
-            String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO
-                    .getIssuer());
-            Resource resource;
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
+            throw new IdentityException("Invalid Service Provider Metadata.");
+        }
 
-            boolean isTransactionStarted = Transaction.isStarted();
-            try {
-                if (registry.resourceExists(path)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Service Provider already exists with the same issuer name" + serviceProviderDO
-                                .getIssuer());
-                    }
-                    throw IdentityException.error("Service provider already exists");
+        String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
+
+        boolean isTransactionStarted = Transaction.isStarted();
+        boolean isErrorOccurred = false;
+        try {
+            if (registry.resourceExists(path)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Service Provider already exists with the same issuer name" + serviceProviderDO
+                            .getIssuer());
                 }
-
-                resource = createResource(serviceProviderDO);
-
-                try {
-                    if (!isTransactionStarted) {
-                        registry.beginTransaction();
-                    }
-
-                    registry.put(path, resource);
-
-                    if (!isTransactionStarted) {
-                        registry.commitTransaction();
-                    }
-
-                } catch (RegistryException e) {
-                    if (!isTransactionStarted) {
-                        registry.rollbackTransaction();
-                    }
-                    throw e;
-                }
-
-            } catch (RegistryException e) {
-                throw IdentityException.error("Error while adding Service Provider.", e);
+                throw IdentityException.error("Service provider already exists");
             }
 
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+
+            Resource resource = createResource(serviceProviderDO);
+            registry.put(path, resource);
             if (log.isDebugEnabled()) {
                 log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
             }
-        } else {
-            throw IdentityException.error("Invalid Service Provider Metadata.");
+            return serviceProviderDO;
+        } catch (RegistryException e) {
+            isErrorOccurred = true;
+            throw IdentityException.error("Error while adding Service Provider.", e);
+        } finally {
+            commitOrRollbackTransaction(isErrorOccurred);
         }
+    }
 
+    /**
+     * Commit or rollback the registry operation depends on the error condition.
+     * @param isErrorOccurred Identifier for error transactions.
+     * @throws IdentityException Error while committing or running rollback on the transaction.
+     */
+    private void commitOrRollbackTransaction(boolean isErrorOccurred) throws IdentityException {
 
-        return serviceProviderDO;
-
+        try {
+            // Rollback the transaction if there is an error, Otherwise try to commit.
+            if (isErrorOccurred) {
+                registry.rollbackTransaction();
+            } else {
+                registry.commitTransaction();
+            }
+        } catch (RegistryException ex) {
+            throw new IdentityException("Error occurred while trying to commit or rollback the registry operation.", ex);
+        }
     }
 }
