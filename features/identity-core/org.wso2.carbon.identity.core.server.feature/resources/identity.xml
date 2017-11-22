@@ -507,6 +507,9 @@
 
     <EnableAskPasswordAdminUI>false</EnableAskPasswordAdminUI>
 
+    <EnableRecoveryEndpoint>true</EnableRecoveryEndpoint>
+    <EnableSelfSignUpEndpoint>true</EnableSelfSignUpEndpoint>
+
     <AuthenticationPolicy>
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
