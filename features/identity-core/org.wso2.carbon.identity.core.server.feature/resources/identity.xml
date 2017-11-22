@@ -678,6 +678,11 @@
         <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
     </ClientAppAuthentication>
 
+    <CXFHeaderValidaton>
+        <Context>(.*)/oauth2/(.*)</Context>
+        <Context>(.*)/api/identity/(.*)</Context>
+    </CXFHeaderValidaton>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v0.9/</Context>
