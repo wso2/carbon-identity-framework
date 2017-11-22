@@ -189,7 +189,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
                 StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Required values are missing in the provided argument.");
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
@@ -211,13 +211,12 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
-                log.debug("Service Provider " + serviceProviderDO.getIssuer()
-                        + " is added successfully.");
+                log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
             }
             return true;
         } catch (RegistryException e) {
             isErrorOccurred = true;
-            String msg = "Error while adding Service Provider";
+            String msg = "Error while adding Service Provider for issuer: " + serviceProviderDO.getIssuer();
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         } finally {
@@ -366,6 +365,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         boolean isErrorOccurred = false;
         try {
             if (!registry.resourceExists(path)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Registry resource does not exist for the path: " + path);
+                }
                 return false;
             }
 
@@ -378,7 +380,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             return true;
         } catch (RegistryException e) {
             isErrorOccurred = true;
-            String msg = "Error removing the service provider from the registry";
+            String msg = "Error removing the service provider from the registry with name: " + issuer;
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         } finally {
@@ -443,9 +445,13 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
             IdentityException {
 
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
-            throw new IdentityException("Invalid Service Provider Metadata.");
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
+        }
+
+        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
+            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
+                    serviceProviderDO.getIssuer());
         }
 
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
@@ -455,10 +461,10 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Service Provider already exists with the same issuer name" + serviceProviderDO
+                    log.debug("A Service Provider already exists with the same issuer name" + serviceProviderDO
                             .getIssuer());
                 }
-                throw IdentityException.error("Service provider already exists");
+                throw IdentityException.error("A Service Provider already exists.");
             }
 
             if (!isTransactionStarted) {
