@@ -304,8 +304,8 @@
             Only Local Users can access claims from local userstore. LEGACY users will have to have tenant domain appended username.
             They will not be able to access claims from local userstore. To get claims by mapping users with exact same username from local
             userstore (for non LOCAL scenarios) use mapFederatedUsersToLocal config -->
-            <UserType>LOCAL</UserType>
-            <!--UserType>FEDERATED</UserType-->
+            <!--<UserType>LOCAL</UserType>-->
+            <UserType>FEDERATED</UserType>
             <!--UserType>LEGACY</UserType-->
         </SAML2Grant>
 
