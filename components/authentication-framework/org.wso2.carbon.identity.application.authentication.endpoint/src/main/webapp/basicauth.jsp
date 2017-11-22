@@ -29,6 +29,9 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
 
 <script>
         function submitCredentials () {
@@ -38,6 +41,11 @@
         }
 </script>
 
+<%!
+    private static final String JAVAX_SERVLET_FORWARD_REQUEST_URI = "javax.servlet.forward.request_uri";
+    private static final String JAVAX_SERVLET_FORWARD_QUERY_STRING = "javax.servlet.forward.query_string";
+    private static final String UTF_8 = "UTF-8";
+%>
 <%
     String resendUsername = request.getParameter("resend_username");
     if (StringUtils.isNotBlank(resendUsername)) {
@@ -146,33 +154,22 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
 
-            boolean enableRecoveryEPUrl = false;
-            boolean enableSelfSignUpEPUrl = false;
-            String enableRecoveryEPUrlProperty = IdentityUtil.getProperty("EnableRecoveryEndpointURL");
-            String enableSelfSignEPUpUrlProperty = IdentityUtil.getProperty("EnableSelfSignUpEndpointURL");
-            if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
-                enableRecoveryEPUrl = Boolean.parseBoolean(enableRecoveryEPUrlProperty);
-            }
-            if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
-                enableSelfSignUpEPUrl = Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
-            }
-
-            if (enableRecoveryEPUrl || enableSelfSignUpEPUrl) {
+            if (isRecoveryEPAvailable() || isSelfSignUpEPAvailable()) {
                 String scheme = request.getScheme();
                 String serverName = request.getServerName();
                 int serverPort = request.getServerPort();
-                String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
-                String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
+                String uri = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_REQUEST_URI);
+                String prmstr = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_QUERY_STRING);
                 String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
-                String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
+                String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, UTF_8);
 
                 String identityMgtEndpointContext =
                         application.getInitParameter("IdentityManagementEndpointContextURL");
                 if (StringUtils.isBlank(identityMgtEndpointContext)) {
-                    identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+                    identityMgtEndpointContext = getServerURL("/accountrecoveryendpoint", true, true);
                 }
 
-                if (enableRecoveryEPUrl) {
+                if (isRecoveryEPAvailable()) {
         %>
         <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Password </a>
         <br/><br/>
@@ -180,7 +177,7 @@
         <br/><br/>
         <%
                 }
-                if (enableSelfSignUpEPUrl) {
+                if (isSelfSignUpEPAvailable()) {
         %>
         Don't have an account?
         <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">Register Now</a>
