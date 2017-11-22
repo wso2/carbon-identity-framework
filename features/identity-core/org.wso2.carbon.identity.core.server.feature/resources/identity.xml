@@ -132,6 +132,14 @@
         -->
         <!--<IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</IdentityOAuthTokenGenerator>-->
 
+        <!-- True, if access token alias is stored in the database instead of access token.
+             Eg. token alias and token is same when default AccessTokenValueGenerator is used.
+             When JWTTokenIssuer is used, jti is used as the token alias
+             Default: true.
+             Applicable values: true,false
+        -->
+        <!--<PersistAccessTokenAlias>false</PersistAccessTokenAlias>-->
+
         <!-- This configuration is used to specify the access token value generator.
              Default: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator
              Applicable values: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator,
@@ -671,12 +679,12 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            <Context>/api/identity/user/v0.9</Context>
-            <Context>/api/identity/recovery/v0.9</Context>
-            <Context>/oauth2</Context>
-            <Context>/scim2</Context>
-            <Context>/api/identity/entitlement</Context>
-            <Context>/api/identity/oauth2/dcr/v1.0</Context>
+            <Context>/api/identity/user/v0.9/</Context>
+            <Context>/api/identity/recovery/v0.9/</Context>
+            <Context>/oauth2/</Context>
+            <Context>/scim2/</Context>
+            <Context>/api/identity/entitlement/</Context>
+            <Context>/api/identity/oauth2/dcr/v1.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
