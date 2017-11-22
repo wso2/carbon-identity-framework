@@ -48,12 +48,13 @@ public class ProvisioningUtil {
                                               String claimUri, String userStoreDomainName) {
 
         List<String> claimValues = new ArrayList<>();
-        for (Map.Entry<ClaimMapping, List<String>> entry : attributeMap.entrySet()) {
-            ClaimMapping mapping = entry.getKey();
-            if (mapping.getLocalClaim() != null
-                    && claimUri.equals(mapping.getLocalClaim().getClaimUri())) {
-                claimValues = entry.getValue();
-                break;
+        if (MapUtils.isNotEmpty(attributeMap)) {
+            for (Map.Entry<ClaimMapping, List<String>> entry : attributeMap.entrySet()) {
+                ClaimMapping mapping = entry.getKey();
+                if (mapping.getLocalClaim() != null && claimUri.equals(mapping.getLocalClaim().getClaimUri())) {
+                    claimValues = entry.getValue();
+                    break;
+                }
             }
         }
 
@@ -395,13 +396,14 @@ public class ProvisioningUtil {
                 String outboundClaimUri = entry.getKey();
 
                 String inboundClaim = inboundToCarbonClaimMaping.get(localClaimUri);
-                claimMap.put(outboundClaimUri, inboundClaim);
+                if (StringUtils.isNotEmpty(inboundClaim)) {
+                    claimMap.put(outboundClaimUri, inboundClaim);
+                }
             }
 
             if (claimMap.isEmpty()) {
                 return outboundClaimValueMappings;
             }
-
             for (Iterator<Map.Entry<String, String>> iterator = claimMap.entrySet().iterator(); iterator
                     .hasNext(); ) {
 
@@ -415,10 +417,16 @@ public class ProvisioningUtil {
                             false), Arrays.asList(new String[]{inboundClaimValueMap
                             .get(inboundClaimUri)}));
                 } else {
-                    outboundClaimValueMappings.put(ClaimMapping.build(inboundClaimUri,
-                            outboundClaimUri, outboundClaimDefaultValues.get(outboundClaimUri),
-                            false), Arrays.asList(new String[]{outboundClaimDefaultValues
-                            .get(outboundClaimUri)}));
+                    String defaultClaimValue = outboundClaimDefaultValues.get(outboundClaimUri);
+                    if (StringUtils.isNotBlank(defaultClaimValue)) {
+                        outboundClaimValueMappings.put(ClaimMapping.build(inboundClaimUri,
+                                outboundClaimUri, defaultClaimValue, false),
+                                Arrays.asList(new String[]{defaultClaimValue}));
+                    } else {
+                        outboundClaimValueMappings.put(ClaimMapping.build(inboundClaimUri,
+                                outboundClaimUri, outboundClaimDefaultValues.get(outboundClaimUri),
+                                false), new ArrayList<String>());
+                    }
                 }
             }
 
@@ -487,7 +495,9 @@ public class ProvisioningUtil {
                             .getLocalClaim().getClaimUri());
                 }
 
-                claimMap.put(outboundClaimMapping.getRemoteClaim().getClaimUri(), inboundClaim);
+                if (StringUtils.isNotEmpty(inboundClaim)) {
+                    claimMap.put(outboundClaimMapping.getRemoteClaim().getClaimUri(), inboundClaim);
+                }
 
                 outboundClaimDefaultValues.put(outboundClaimMapping.getRemoteClaim().getClaimUri(),
                         outboundClaimMapping.getDefaultValue());
