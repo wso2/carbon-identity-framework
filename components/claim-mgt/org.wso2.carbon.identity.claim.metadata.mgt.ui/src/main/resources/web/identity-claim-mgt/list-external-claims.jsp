@@ -67,7 +67,7 @@
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources">
-    <carbon:breadcrumb label="claim.view"
+    <carbon:breadcrumb label="list.title"
                        resourceBundle="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 

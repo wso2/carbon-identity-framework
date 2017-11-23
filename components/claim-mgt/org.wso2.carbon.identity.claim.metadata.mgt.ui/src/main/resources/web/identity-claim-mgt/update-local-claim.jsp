@@ -41,7 +41,9 @@
 
 <style>
     .sectionHelp {
-        padding-left: 17px;
+        padding-bottom: 4px;
+        display: inline-block;
+        color: #555;
     }
 </style>
 
@@ -422,21 +424,23 @@
                                         <input type="text" name="localClaimURI" id="localClaimURI"
                                                value="<%=Encode.forHtmlAttribute(localClaimURI)%>" readonly
                                                class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.uri.help"/></div>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='display.name'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big">
                                         <input type="text" name="displayName" id="displayName"
                                                value="<%=Encode.forHtmlAttribute(displayName)%>" class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.display.name.help"/></div>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='description'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big">
                                         <input type="text" name="description" id="description"
                                                value="<%=Encode.forHtmlAttribute(description)%>" class="text-box-big"/>
@@ -445,7 +449,7 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big">
                                         <a id="attributeAddLink" class="icon-link"
                                            style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
@@ -513,6 +517,7 @@
                                         <div style="clear:both"/>
                                         <input type="hidden" name="number_of_AttributeMappings"
                                                id="number_of_AttributeMappings" value="<%=attributeMappings.length%>"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.mapped.attr.help"/></div>
                                     </td>
                                 </tr>
 
@@ -522,10 +527,12 @@
                                     <td class="leftCol-big">
                                         <input type="text" name="regex" id="regex"
                                                value="<%=Encode.forHtmlAttribute(regex)%>" class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.regex.help"/></div>
                                     </td>
                                     <%} else { %>
                                     <td class="leftCol-big">
                                         <input type="text" name="regex" id="regex" class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.regex.help"/></div>
                                     </td>
                                     <%} %>
                                 </tr>
@@ -536,6 +543,7 @@
                                         <input type="text" name="displayOrder" id="displayOrder"
                                                value="<%=Encode.forHtmlAttribute(displayOrder)%>"
                                                class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.display.order.help"/></div>
                                     </td>
                                 </tr>
 
@@ -546,12 +554,14 @@
                                         <input type='checkbox' name='supported' id='supported' checked='checked'
                                                onclick="setType('supported','supportedhidden')"/>
                                         <input type='hidden' name='supportedhidden' id='supportedhidden' value='true'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.supported.default.help"/></div>
                                     </td>
                                     <% } else { %>
                                     <td>
                                         <input type='checkbox' name='supported' id='supported'
                                                onclick="setType('supported','supportedhidden')"/>
                                         <input type='hidden' name='supportedhidden' id='supportedhidden' value='false'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.supported.default.help"/></div>
                                     </td>
                                     <%} %>
                                 </tr>
@@ -563,12 +573,14 @@
                                         <input type='checkbox' name='required' id='required' checked='checked'
                                                onclick="setType('required','requiredhidden')"/>
                                         <input type='hidden' name='requiredhidden' id='requiredhidden' value='true'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.required.help"/></div>
                                     </td>
                                     <% } else { %>
                                     <td>
                                         <input type='checkbox' name='required' id='required'
                                                onclick="setType('required','requiredhidden')"/>
                                         <input type='hidden' name='requiredhidden' id='requiredhidden' value='false'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.required.help"/></div>
                                     </td>
                                     <%} %>
                                 </tr>
@@ -580,12 +592,14 @@
                                         <input type='checkbox' name='readonly' id='readonly' checked='checked'
                                                onclick="setType('readonly','readonlyhidden')"/>
                                         <input type='hidden' name='requiredhidden' id='requiredhidden' value='true'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.readonly.help"/></div>
                                     </td>
                                     <% } else { %>
                                     <td>
                                         <input type='checkbox' name='readonly' id='readonly'
                                                onclick="setType('readonly','readonlyhidden')"/>
                                         <input type='hidden' name='readonlyhidden' id='readonlyhidden' value='false'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.readonly.help"/></div>
                                     </td>
                                     <%} %>
                                 </tr>
