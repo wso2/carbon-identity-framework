@@ -534,7 +534,7 @@ public class IdentityProviderManager implements IdpManager {
 
         // Override few endpoint URLs which are initially persisted in the database and can be out dated with hostname
         // changes.
-        updateSuperTenantIdpWithNewEPUrls(identityProvider);
+        overrideResidentIdpEPUrls(identityProvider);
 
         return identityProvider;
     }
@@ -1769,11 +1769,11 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Updates the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
+     * Overrides the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
      * @param residentIDP
      * @throws IdentityProviderManagementException
      */
-    private void updateSuperTenantIdpWithNewEPUrls(IdentityProvider residentIDP)
+    private void overrideResidentIdpEPUrls(IdentityProvider residentIDP)
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
