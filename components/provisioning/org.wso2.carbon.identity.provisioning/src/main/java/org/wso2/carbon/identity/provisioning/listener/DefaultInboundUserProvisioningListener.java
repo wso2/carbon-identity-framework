@@ -79,13 +79,13 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         if (credential != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.PASSWORD_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.PASSWORD_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{((StringBuffer) credential).toString()}));
         }
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
 
@@ -157,7 +157,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
 
@@ -214,11 +214,15 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     public boolean doPreDeleteUserClaimValues(String userName, String[] attributesToDelete,
                                               String profileName, UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
+
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
 
@@ -279,12 +283,14 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     @Override
     public boolean doPreDeleteUserClaimValue(String userName, String attributeToDelete, String profileName,
                                              UserStoreManager userStoreManager) throws UserStoreException {
-
+        if (!isEnable()) {
+            return true;
+        }
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
 
@@ -421,7 +427,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
                 .asList(newUsers));
 
         outboundAttributes.put(ClaimMapping.build(
-                IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false),
+                        IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false),
                 Arrays.asList(deletedUsers));
 
         String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
@@ -483,7 +489,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
 
@@ -495,13 +501,13 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         if (newRoles != null && roleList.length > 0) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI, null, null, false),
                     Arrays.asList(newRoles));
         }
 
         if (deletedRoles != null && deletedRoles.length > 0) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.DELETED_GROUP_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.DELETED_GROUP_CLAIM_URI, null, null, false),
                     Arrays.asList(deletedRoles));
         }
 
@@ -701,17 +707,20 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<ClaimMapping, List<String>>();
 
         if (credential != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.PASSWORD_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.PASSWORD_CLAIM_URI, null, null, false),
                     Arrays.asList(credential.toString()));
         }
 
         if (userName != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
+                            IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(userName));
         }
 
@@ -764,6 +773,10 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     @Override
     public boolean doPostUpdateCredentialByAdmin(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
         return doPostUpdateCredential(userName, credential, userStoreManager);
     }
 }
