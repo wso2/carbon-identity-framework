@@ -334,7 +334,8 @@ public class EntitlementEngine {
                 log.debug("XACML Response : " + xacmlResponse);
             }
 
-            Element node = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
+            Element node = documentBuilderFactory.newDocumentBuilder().parse
                     (new ByteArrayInputStream(xacmlResponse.getBytes())).getDocumentElement();
 
 
