@@ -29,6 +29,9 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
+<%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
 
 <script>
         function submitCredentials () {
@@ -38,6 +41,11 @@
         }
 </script>
 
+<%!
+    private static final String JAVAX_SERVLET_FORWARD_REQUEST_URI = "javax.servlet.forward.request_uri";
+    private static final String JAVAX_SERVLET_FORWARD_QUERY_STRING = "javax.servlet.forward.query_string";
+    private static final String UTF_8 = "UTF-8";
+%>
 <%
     String resendUsername = request.getParameter("resend_username");
     if (StringUtils.isNotBlank(resendUsername)) {
@@ -146,36 +154,37 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
 
-            String scheme = request.getScheme();
-            String serverName = request.getServerName();
-            int serverPort = request.getServerPort();
-            String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
-            String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
-            String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
-            String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
+            if (isRecoveryEPAvailable() || isSelfSignUpEPAvailable()) {
+                String scheme = request.getScheme();
+                String serverName = request.getServerName();
+                int serverPort = request.getServerPort();
+                String uri = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_REQUEST_URI);
+                String prmstr = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_QUERY_STRING);
+                String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
+                String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, UTF_8);
 
-            String identityMgtEndpointContext =
-                    application.getInitParameter("IdentityManagementEndpointContextURL");
-            if (StringUtils.isBlank(identityMgtEndpointContext)) {
-                identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
-            }
+                String identityMgtEndpointContext =
+                        application.getInitParameter("IdentityManagementEndpointContextURL");
+                if (StringUtils.isBlank(identityMgtEndpointContext)) {
+                    identityMgtEndpointContext = getServerURL("/accountrecoveryendpoint", true, true);
+                }
 
-            String url = identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+                if (isRecoveryEPAvailable()) {
         %>
-        <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
+        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Password </a>
         <br/><br/>
-    <%
-
-        url = identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
-    %>
-        <a id="usernameRecoverLink" href="<%=url%>">Forgot Username </a>
+        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Username </a>
         <br/><br/>
-    <%
-
-        url = identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute(urlEncodedURL);
+        <%
+                }
+                if (isSelfSignUpEPAvailable()) {
         %>
         Don't have an account?
-        <a id="registerLink" href="<%=url%>">Register Now</a>
+        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">Register Now</a>
+        <%
+                }
+            }
+        %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
         Not received confirmation email ?
@@ -185,4 +194,15 @@
     </div>
 
     <div class="clearfix"></div>
+    <%!
+    private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/recoverusername.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+    }
+    %>
 </form>

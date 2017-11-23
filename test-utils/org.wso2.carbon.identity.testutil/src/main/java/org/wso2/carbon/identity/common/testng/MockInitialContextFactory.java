@@ -131,17 +131,18 @@ public class MockInitialContextFactory implements InitialContextFactory {
      * @param clazz
      * @param files
      */
-    public static void initializeDatasource(String datasourceName, Class clazz, String[] files) {
+    public static BasicDataSource initializeDatasource(String datasourceName, Class clazz, String[] files) {
         Map<String, Object> jndiObjectsMap = jndiContextData.get();
         if (jndiObjectsMap != null) {
             BasicDataSource basicDataSource = (BasicDataSource) jndiObjectsMap.get(datasourceName);
             if (basicDataSource != null && !basicDataSource.isClosed()) {
-                return;
+                return basicDataSource;
             }
         }
         String basePath = clazz.getResource("/").getFile();
         BasicDataSource dataSource = createDb(datasourceName, basePath, files);
         addContextLookup(datasourceName, dataSource);
+        return dataSource;
     }
 
     private static BasicDataSource createDb(String dbName, String basePath, String[] files) {

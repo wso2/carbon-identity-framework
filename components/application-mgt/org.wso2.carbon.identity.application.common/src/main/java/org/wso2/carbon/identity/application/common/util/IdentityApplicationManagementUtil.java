@@ -564,9 +564,11 @@ public class IdentityApplicationManagementUtil {
     public static FederatedAuthenticatorConfig getFederatedAuthenticator(
             FederatedAuthenticatorConfig[] federatedAuthenticators, String authenticatorName) {
 
-        for (FederatedAuthenticatorConfig authenticator : federatedAuthenticators) {
-            if (authenticator.getName().equals(authenticatorName)) {
-                return authenticator;
+        if (ArrayUtils.isNotEmpty(federatedAuthenticators)) {
+            for (FederatedAuthenticatorConfig authenticator : federatedAuthenticators) {
+                if (authenticator != null && authenticator.getName().equals(authenticatorName)) {
+                    return authenticator;
+                }
             }
         }
         return null;

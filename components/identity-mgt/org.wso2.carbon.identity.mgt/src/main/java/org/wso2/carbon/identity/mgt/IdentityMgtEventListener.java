@@ -646,28 +646,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                     // set recovery data
                     RecoveryProcessor processor = new RecoveryProcessor();
-                    VerificationBean verificationBean;
-
-                    try {
-                        verificationBean = processor.updateConfirmationCode(1, userName, userStoreManager.getTenantId());
-                    } catch (IdentityException e) {
-                        //roleback user
-                        userStoreManager.deleteUser(userName);
-                        throw new UserStoreException(
-                                "Error while updating confirmation code for user : " + userName, e);
-                    }
-
-                    // preparing a bean to send the email
-                    UserIdentityMgtBean bean = new UserIdentityMgtBean();
-                    bean.setUserId(userName).setConfirmationCode(verificationBean.getKey())
-                            .setRecoveryType(IdentityMgtConstants.Notification.TEMPORARY_PASSWORD)
-                            .setEmail(claims.get(config.getAccountRecoveryClaim()));
 
                     UserRecoveryDTO recoveryDto = new UserRecoveryDTO(userName);
                     recoveryDto.setNotification(IdentityMgtConstants.Notification.ASK_PASSWORD);
                     recoveryDto.setNotificationType("EMAIL");
                     recoveryDto.setTenantId(userStoreManager.getTenantId());
-                    recoveryDto.setConfirmationCode(verificationBean.getKey());
 
                     NotificationDataDTO notificationDto = null;
 

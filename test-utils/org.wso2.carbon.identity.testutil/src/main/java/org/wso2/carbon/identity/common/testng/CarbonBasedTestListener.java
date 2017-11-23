@@ -32,6 +32,8 @@ import org.testng.ITestResult;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
@@ -40,6 +42,11 @@ import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.ReadCertStoreSampleUtil;
+import org.wso2.carbon.registry.core.config.RegistryContext;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
+import org.wso2.carbon.registry.core.jdbc.EmbeddedRegistryService;
+import org.wso2.carbon.registry.core.jdbc.dataaccess.JDBCDataAccessManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -58,6 +65,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.sql.DataSource;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -69,6 +77,8 @@ import static org.mockito.Mockito.when;
 public class CarbonBasedTestListener implements ITestListener, IClassListener {
 
     private Log log = LogFactory.getLog(CarbonBasedTestListener.class);
+    private static final String REG_DB_JNDI_NAME = "jdbc/WSO2RegDB";
+    private static final String REG_DB_SQL_FILE = "dbScripts/registry.sql";
 
     @Override
     public void onTestStart(ITestResult iTestResult) {
@@ -167,75 +177,121 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             Annotation annotation = realClass.getAnnotation(WithH2Database.class);
             WithH2Database withH2Database = (WithH2Database) annotation;
             MockInitialContextFactory
-                    .initializeDatasource(withH2Database.jndiName(), realClass, withH2Database.files());
+                    .initializeDatasource(withH2Database.jndiName(), this.getClass(), withH2Database.files());
             setInternalState(JDBCPersistenceManager.class, "instance", null);
         }
         if (annotationPresent(realClass, WithRealmService.class)) {
             Annotation annotation = realClass.getAnnotation(WithRealmService.class);
             WithRealmService withRealmService = (WithRealmService) annotation;
-            try {
-                int tenantId = withRealmService.tenantId();
-                String tenantDomain = withRealmService.tenantDomain();
-
-                PrivilegedCarbonContext.startTenantFlow();
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-                RealmService realmService = new InMemoryRealmService(tenantId);
-                UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
-                ((MockUserStoreManager) userStoreManager)
-                        .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
-                IdentityTenantUtil.setRealmService(realmService);
-
-                Class[] singletonClasses = withRealmService.injectToSingletons();
-                for (Class singletonClass : singletonClasses) {
-                    Object instance = getSingletonInstance(singletonClass);
-                    if (instance != null) {
-                        setInstanceValue(realmService, singletonClass, instance);
-                    } else {
-                        setInstanceValue(realmService, singletonClass, null);
-                    }
-
-                }
-            } catch (UserStoreException e) {
-                log.error("Error setting the realm.", e);
-            } finally {
-                PrivilegedCarbonContext.endTenantFlow();
-            }
+            createRealmService(withRealmService);
+        }
+        if (annotationPresent(realClass, WithRegistry.class)) {
+            Annotation annotation = realClass.getAnnotation(WithRegistry.class);
+            WithRegistry withRegistry = (WithRegistry) annotation;
+            createRegistryService(realClass, withRegistry);
         }
         if (annotationPresent(realClass, WithKeyStore.class)) {
             Annotation annotation = realClass.getAnnotation(WithKeyStore.class);
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
-            try {
-                KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
-                ServerConfigurationService serverConfigurationService = mock(ServerConfigurationService.class);
-                RegistryService registryService = mock(RegistryService.class);
-                ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
-                mtKeyStoreManagers.put(String.valueOf(withKeyStore.tenantId()), keyStoreManager);
-                Whitebox.setInternalState(keyStoreManager, "mtKeyStoreManagers", mtKeyStoreManagers);
-                KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
-                Whitebox.setInternalState(keyStoreManager, "primaryKeyStore", keyStore);
-                Whitebox.setInternalState(keyStoreManager, "registryKeyStore", keyStore);
-                CarbonCoreDataHolder carbonCoreDataHolder = mock(CarbonCoreDataHolder.class);
-                CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
-                CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
-                carbonCoreDataHolder.setServerConfigurationService(serverConfigurationService);
-                carbonCoreDataHolder.setRegistryService(registryService);
-                when(keyStoreManager.getDefaultPrimaryCertificate()).thenReturn(
-                        (X509Certificate) keyStore.getCertificate(withKeyStore.alias()));
-            } catch (NoSuchAlgorithmException e) {
-                log.error("Error while reading cert.", e);
-            } catch (UnrecoverableKeyException e) {
-                log.error("Error while reading cert.", e);
-            } catch (IllegalAccessException e) {
-                log.error("Error while reading cert.", e);
-            } catch (KeyStoreException e) {
-                log.error("Error while reading cert.", e);
-            } catch (Exception e) {
-                log.error("Error while reading cert.", e);
-            }
+            createKeyStore(withKeyStore);
         }
         Field[] fields = realClass.getDeclaredFields();
         processFields(fields, iMethodInstance.getInstance());
+    }
+
+    private void createKeyStore(WithKeyStore withKeyStore) {
+        try {
+            KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
+            ServerConfigurationService serverConfigurationService = mock(ServerConfigurationService.class);
+            RegistryService registryService = mock(RegistryService.class);
+            ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
+            mtKeyStoreManagers.put(String.valueOf(withKeyStore.tenantId()), keyStoreManager);
+            Whitebox.setInternalState(keyStoreManager, "mtKeyStoreManagers", mtKeyStoreManagers);
+            KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
+            Whitebox.setInternalState(keyStoreManager, "primaryKeyStore", keyStore);
+            Whitebox.setInternalState(keyStoreManager, "registryKeyStore", keyStore);
+            CarbonCoreDataHolder carbonCoreDataHolder = mock(CarbonCoreDataHolder.class);
+            CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
+            CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
+            carbonCoreDataHolder.setServerConfigurationService(serverConfigurationService);
+            carbonCoreDataHolder.setRegistryService(registryService);
+            when(keyStoreManager.getDefaultPrimaryCertificate())
+                    .thenReturn((X509Certificate) keyStore.getCertificate(withKeyStore.alias()));
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error while reading cert.", e);
+        } catch (UnrecoverableKeyException e) {
+            log.error("Error while reading cert.", e);
+        } catch (IllegalAccessException e) {
+            log.error("Error while reading cert.", e);
+        } catch (KeyStoreException e) {
+            log.error("Error while reading cert.", e);
+        } catch (Exception e) {
+            log.error("Error while reading cert.", e);
+        }
+    }
+
+    private void createRealmService(WithRealmService withRealmService) {
+        try {
+            int tenantId = withRealmService.tenantId();
+            String tenantDomain = withRealmService.tenantDomain();
+
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+            RealmService realmService = new InMemoryRealmService(tenantId);
+            UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+            ((MockUserStoreManager) userStoreManager)
+                    .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
+            IdentityTenantUtil.setRealmService(realmService);
+            RegistryDataHolder.getInstance().setRealmService(realmService);
+
+            Class[] singletonClasses = withRealmService.injectToSingletons();
+            for (Class singletonClass : singletonClasses) {
+                Object instance = getSingletonInstance(singletonClass);
+                if (instance != null) {
+                    setInstanceValue(realmService, RealmService.class, singletonClass, instance);
+                } else {
+                    setInstanceValue(realmService, RealmService.class, singletonClass, null);
+                }
+
+            }
+        } catch (UserStoreException e) {
+            log.error("Error setting the realm.", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    private void injectSingletonVariables(Object value, Class valueType, Class[] singletonClasses) {
+        for (Class singletonClass : singletonClasses) {
+            Object instance = getSingletonInstance(singletonClass);
+            if (instance != null) {
+                setInstanceValue(value, valueType, singletonClass, instance);
+            } else {
+                setInstanceValue(value, valueType, singletonClass, null);
+            }
+
+        }
+    }
+
+    private void createRegistryService(Class realClass, WithRegistry withRegistry) {
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(withRegistry.tenantDomain());
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(withRegistry.tenantId());
+            RegistryContext registryContext = RegistryContext.getBaseInstance(IdentityTenantUtil.getRealmService());
+            DataSource dataSource = MockInitialContextFactory
+                    .initializeDatasource(REG_DB_JNDI_NAME, realClass, new String[] { REG_DB_SQL_FILE });
+            registryContext.setDataAccessManager(new JDBCDataAccessManager(dataSource));
+            RegistryService registryService = new EmbeddedRegistryService(registryContext);
+
+            OSGiDataHolder.getInstance().setRegistryService(registryService);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .setRegistry(RegistryType.USER_GOVERNANCE, registryService.getRegistry());
+            Class[] singletonClasses = withRegistry.injectToSingletons();
+            injectSingletonVariables(registryService, RegistryService.class, singletonClasses);
+        } catch (RegistryException e) {
+            log.error("Error creating the registry.", e);
+        }
     }
 
     private Object getSingletonInstance(Class singletonClass) {
@@ -253,9 +309,9 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
         return null;
     }
 
-    private void setInstanceValue(Object value, Class clazz, Object instance) {
+    private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {
         for (Field field1 : clazz.getDeclaredFields()) {
-            if (field1.getType().isAssignableFrom(RealmService.class)) {
+            if (field1.getType().isAssignableFrom(valueType)) {
                 field1.setAccessible(true);
 
                 if (java.lang.reflect.Modifier.isStatic(field1.getModifiers())) {

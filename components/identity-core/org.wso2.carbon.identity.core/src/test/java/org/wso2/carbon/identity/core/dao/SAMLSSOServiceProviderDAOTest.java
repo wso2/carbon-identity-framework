@@ -330,18 +330,14 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertFalse(objUnderTest.addServiceProvider(serviceProviderDO), "Resource should not have added.");
     }
 
-    @Test
+    @Test(expectedExceptions = {IdentityException.class})
     public void testAddServiceProviderRegistryError() throws Exception {
+
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
         String existingPath = getPath("erringIssuer");
         serviceProviderDO.setIssuer("erringIssuer");
         doThrow(RegistryException.class).when(mockRegistry).put(eq(existingPath), any(Resource.class));
-        try {
-            objUnderTest.addServiceProvider(serviceProviderDO);
-        } catch (IdentityException e) {
-            assertEquals(e.getMessage(), "Error while adding Service Provider", "Invalid error thrown for SP registry" +
-                    " add operation");
-        }
+        objUnderTest.addServiceProvider(serviceProviderDO);
     }
 
     @Test
