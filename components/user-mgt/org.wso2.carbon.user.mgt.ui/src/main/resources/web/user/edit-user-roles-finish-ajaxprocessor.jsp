@@ -32,6 +32,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -48,6 +50,20 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     String username = request.getParameter("username");
+    String encryptedUsername = null;
+
+    try {
+        encryptedUsername = Util.getEncryptedAndBase64encodedUsername(username);
+    } catch (UserManagementUIException e) {
+        String message = MessageFormat.format(resourceBundle.getString("role.list.cannot.update.error"), e.getMessage());
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+        <script type="text/javascript">
+            location.href = "user-mgt.jsp?ordinal=1";
+        </script>
+<%
+    }
+
     String displayName = request.getParameter("displayName");
     if (displayName == null || displayName.trim().length() == 0) {
         displayName = username;
@@ -121,13 +137,13 @@
 } else if (viewUsers) {
 %>
 <script type="text/javascript">
-    location.href = "view-roles.jsp?username=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(username))%>";
+    location.href = "view-roles.jsp?username=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(encryptedUsername))%>";
 </script>
 <%
 } else {
 %>
 <script type="text/javascript">
-    location.href = "edit-user-roles.jsp?username=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(username))%>" + "&pageNumber=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(pageNumber))%>";
+    location.href = "edit-user-roles.jsp?username=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(encryptedUsername))%>" + "&pageNumber=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(pageNumber))%>";
 </script>
 <%
     }

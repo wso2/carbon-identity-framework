@@ -180,6 +180,32 @@ public class User implements Serializable {
         return user;
     }
 
+    /**
+     * Returns full qualified username of the {@link User} object.
+     * ie. We append the tenantDomain and userStoreDomain to the username.
+     * <p>
+     * Note that the PRIMARY domain will not be appended to username when building the full qualified username.
+     * Therefore a full qualified name without the userStoreDomain indicates the user belongs to the PRIMARY
+     * userStoreDomain.
+     *
+     * @return full qualified username
+     */
+    public String toFullQualifiedUsername() {
+        String username = null;
+        if (StringUtils.isNotBlank(this.userName)) {
+            username = this.userName;
+
+            if (StringUtils.isNotBlank(this.tenantDomain)) {
+                username = UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+            }
+
+            if (StringUtils.isNotBlank(this.userStoreDomain)) {
+                username = IdentityUtil.addDomainToName(username, userStoreDomain);
+            }
+        }
+        return username;
+    }
+
 
     @Override
     public int hashCode() {
@@ -199,12 +225,13 @@ public class User implements Serializable {
         String username = null;
         if (StringUtils.isNotBlank(this.userName)) {
             username = this.userName;
-        }
-        if (StringUtils.isNotBlank(this.userStoreDomain)) {
-            username = UserCoreUtil.addDomainToName(username, userStoreDomain);
-        }
-        if (StringUtils.isNotBlank(this.tenantDomain)) {
-            username = UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+
+            if (StringUtils.isNotBlank(this.userStoreDomain)) {
+                username = UserCoreUtil.addDomainToName(username, userStoreDomain);
+            }
+            if (StringUtils.isNotBlank(this.tenantDomain)) {
+                username = UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+            }
         }
         return username;
     }

@@ -23,7 +23,6 @@ import static org.testng.Assert.assertEquals;
 
 public class DefaultHomeRealmDiscovererTest {
 
-
     @Test
     public void testGetInstance() throws Exception {
 

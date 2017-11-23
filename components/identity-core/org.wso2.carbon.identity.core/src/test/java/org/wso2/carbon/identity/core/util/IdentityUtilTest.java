@@ -185,7 +185,7 @@ public class IdentityUtilTest {
                 {"testInt", 5, "5"},
                 {"testString", "dummyValue", "dummyValue"},
                 {"testEmpty", "", ""},
-                {"testNull", null, "null"},
+                {"testNull", null, null},
                 {"testList", Arrays.asList("one", "two"), "one"},
         };
     }

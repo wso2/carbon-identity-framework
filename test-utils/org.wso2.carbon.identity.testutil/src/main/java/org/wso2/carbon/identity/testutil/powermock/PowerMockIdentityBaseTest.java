@@ -19,11 +19,11 @@
 
 package org.wso2.carbon.identity.testutil.powermock;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
-import org.wso2.carbon.identity.testutil.LogUtil;
+import org.wso2.carbon.identity.testutil.log.LogUtil;
 
 /**
  * PowerMock based TestNG test that extended from PowerMockIdentityBaseTest class can read "log-level" parameter from
@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.testutil.LogUtil;
  * @see org.wso2.carbon.identity.testutil.IdentityBaseTest
  */
 
-@PowerMockIgnore({ "javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.ietf.jgss.*"})
 public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 
 	public PowerMockIdentityBaseTest() {
@@ -53,7 +52,8 @@ public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 	}
 
 	@Parameters({"log-level"})
-	@BeforeMethod public void setUp(String logLevel) throws Exception {
+	@BeforeMethod public void setUp(@Optional String logLevel) throws Exception {
 		LogUtil.configureLogLevel(logLevel);
 	}
+
 }

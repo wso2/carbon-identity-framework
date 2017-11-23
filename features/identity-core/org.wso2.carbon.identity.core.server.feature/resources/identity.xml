@@ -132,6 +132,14 @@
         -->
         <!--<IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</IdentityOAuthTokenGenerator>-->
 
+        <!-- True, if access token alias is stored in the database instead of access token.
+             Eg. token alias and token is same when default AccessTokenValueGenerator is used.
+             When JWTTokenIssuer is used, jti is used as the token alias
+             Default: true.
+             Applicable values: true,false
+        -->
+        <!--<PersistAccessTokenAlias>false</PersistAccessTokenAlias>-->
+
         <!-- This configuration is used to specify the access token value generator.
              Default: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator
              Applicable values: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator,
@@ -168,7 +176,7 @@
         <OIDCWebFingerEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/.well-known/webfinger</OIDCWebFingerEPUrl>
 
         <!-- For tenants below urls will be modified as https://<hostname>:<port>/t/<tenant domain>/<path>-->
-        <OAuth2DCREPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/identity/connect/register</OAuth2DCREPUrl>
+        <OAuth2DCREPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/api/identity/oauth2/dcr/v1.0/register</OAuth2DCREPUrl>
         <OAuth2JWKSPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/jwks</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/oidcdiscovery</OIDCDiscoveryEPUrl>
 
@@ -250,9 +258,10 @@
         <OAuthCallbackHandlers>
             <OAuthCallbackHandler Class="org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"/>
         </OAuthCallbackHandlers>
-        <!--TokenValidators>
+        <TokenValidators>
             <TokenValidator type="bearer" class="org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator"/>
-        </TokenValidators-->
+            <TokenValidator type="jwt" class="org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator"/>
+        </TokenValidators>
 
         <!-- Scope validators list. The validators registered here wil be executed during token validation. -->
         <ScopeValidators>
@@ -295,8 +304,8 @@
             Only Local Users can access claims from local userstore. LEGACY users will have to have tenant domain appended username.
             They will not be able to access claims from local userstore. To get claims by mapping users with exact same username from local
             userstore (for non LOCAL scenarios) use mapFederatedUsersToLocal config -->
-            <UserType>LOCAL</UserType>
-            <!--UserType>FEDERATED</UserType-->
+            <!--<UserType>LOCAL</UserType>-->
+            <UserType>FEDERATED</UserType>
             <!--UserType>LEGACY</UserType-->
         </SAML2Grant>
 
@@ -498,6 +507,9 @@
 
     <EnableAskPasswordAdminUI>false</EnableAskPasswordAdminUI>
 
+    <EnableRecoveryEndpoint>true</EnableRecoveryEndpoint>
+    <EnableSelfSignUpEndpoint>true</EnableSelfSignUpEndpoint>
+
     <AuthenticationPolicy>
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
@@ -573,6 +585,18 @@
         <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        </Resource>
         <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
         </Resource>
@@ -656,12 +680,12 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            <Context>/api/identity/user/v0.9</Context>
-            <Context>/api/identity/recovery/v0.9</Context>
-            <Context>/oauth2</Context>
-            <Context>/scim2</Context>
-            <Context>/api/identity/entitlement</Context>
-            <Context>/api/identity/oauth2/dcr/v1.0</Context>
+            <Context>/api/identity/user/v0.9/</Context>
+            <Context>/api/identity/recovery/v0.9/</Context>
+            <Context>/oauth2/</Context>
+            <Context>/scim2/</Context>
+            <Context>/api/identity/entitlement/</Context>
+            <Context>/api/identity/oauth2/dcr/v1.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

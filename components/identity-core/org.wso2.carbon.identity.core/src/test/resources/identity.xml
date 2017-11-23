@@ -197,6 +197,9 @@
 
         </OpenIDConnect>
 
+        <!-- This property controls whether the display name of an OAuth app(if available) should be shown instead of SP name in the consent screen. Introduced for IDENTITY-6791-->
+        <ShowDisplayNameInConsentPage>false</ShowDisplayNameInConsentPage>
+
         <TokenPersistence>
             <Enable>true</Enable>
             <PoolSize>0</PoolSize>

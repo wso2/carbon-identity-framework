@@ -61,13 +61,6 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +77,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class IdentityUtil {
 
@@ -102,6 +102,8 @@ public class IdentityUtil {
             'V', 'W', 'X', 'Y', 'Z'};
     public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
             "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
+    private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
+    private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -149,6 +151,9 @@ public class IdentityUtil {
         Object value = configuration.get(key);
         String strValue;
 
+        if (value == null) {
+            return null;
+        }
         if (value instanceof List) {
             value = ((List) value).get(0);
         }
@@ -938,5 +943,21 @@ public class IdentityUtil {
             }
         }
         return isOperationSupported;
+    }
+
+    public static boolean isRecoveryEPAvailable() {
+        String enableRecoveryEPUrlProperty = getProperty(ENABLE_RECOVERY_ENDPOINT);
+        if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
+            return Boolean.parseBoolean(enableRecoveryEPUrlProperty);
+        }
+        return false;
+    }
+
+    public static boolean isSelfSignUpEPAvailable() {
+        String enableSelfSignEPUpUrlProperty = getProperty(ENABLE_SELF_SIGN_UP_ENDPOINT);
+        if (StringUtils.isNotBlank(enableSelfSignEPUpUrlProperty)) {
+            return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
+        }
+        return false;
     }
 }

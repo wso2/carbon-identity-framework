@@ -27,202 +27,209 @@
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
 
 <%
-    int rowNumber = 0;
-    int targetRowIndex = -1;
-    int obligationRowIndex = -1;
+    String forwardTo = "";
 
-    int maxTargetRows = 0;
-    int maxObligationRows = 0;
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        forwardTo = "update-policy-ajaxprocessor.jsp";
+    } else {
+        int rowNumber = 0;
+        int targetRowIndex = -1;
+        int obligationRowIndex = -1;
 
-    String categoryType = null;
-    String selectedAttributeDataType = null;
-    String selectedAttributeId = null;
-    TargetDTO targetDTO = new TargetDTO();
-    entitlementPolicyBean.setPolicyReferenceOrder(null);
+        int maxTargetRows = 0;
+        int maxObligationRows = 0;
 
-    String action = request.getParameter("action");
-    String policyRefId = request.getParameter("policyRefId");
-    String policySearchString = request.getParameter("policySearchString");
-    if(policyRefId != null && policyRefId.trim().length() > 0){
-        PolicyRefIdDTO policyRefIdDTO = new PolicyRefIdDTO();
-        policyRefIdDTO.setId(policyRefId);
-        policyRefIdDTO.setReferenceOnly(true);
-        String policyType = request.getParameter("policyType");
-        if("PolicySet".equals(policyType)){
-            policyRefIdDTO.setPolicySet(true);
-        }
-        entitlementPolicyBean.addPolicyRefId(policyRefIdDTO);
-    }
+        String categoryType = null;
+        String selectedAttributeDataType = null;
+        String selectedAttributeId = null;
+        TargetDTO targetDTO = new TargetDTO();
+        entitlementPolicyBean.setPolicyReferenceOrder(null);
 
-
-    String targetRowIndexString = request.getParameter("targetRowIndex");
-    String obligationRowIndexString = request.getParameter("obligationRowIndex");
-
-    String maxTargetRowsString = request.getParameter("maxTargetRows");
-    String maxObligationRowsString = request.getParameter("maxObligationRows");
-
-    try{
-        if(maxTargetRowsString != null && maxTargetRowsString.trim().length() > 0){
-            maxTargetRows = Integer.parseInt(maxTargetRowsString);
-        }
-        if(maxObligationRowsString != null && maxObligationRowsString.trim().length() > 0){
-            maxObligationRows = Integer.parseInt(maxObligationRowsString);
-        }
-
-        if(targetRowIndexString != null && targetRowIndexString.trim().length() > 0){
-            targetRowIndex = Integer.parseInt(targetRowIndexString);
-        }
-        if(obligationRowIndexString != null && obligationRowIndexString.trim().length() > 0){
-            obligationRowIndex = Integer.parseInt(obligationRowIndexString);
-        }
-    } catch (Exception e){
-        //if number format exceptions.. just ignore
-    }
-
-    String policyReferenceOrder = request.getParameter("policyReferenceOrder");
-
-    for(rowNumber = 0; rowNumber < maxTargetRows + 1; rowNumber ++){
-
-        RowDTO  rowDTO = new RowDTO();
-        String targetCategory = request.getParameter("targetCategory_" + rowNumber);
-        if(targetRowIndex == rowNumber){
-            categoryType = targetCategory;
-            rowDTO.setNotCompleted(true);
-        }
-        if(targetCategory != null && targetCategory.trim().length() > 0){
-            rowDTO.setCategory(targetCategory);
-        } else {
-            continue;
-        }
-
-        String targetPreFunction = request.getParameter("targetPreFunction_" + rowNumber);
-        if(targetPreFunction != null){
-            rowDTO.setPreFunction(targetPreFunction);
-        }
-
-        String targetFunction = request.getParameter("targetFunction_" + rowNumber);
-        if(targetFunction != null){
-            rowDTO.setFunction(targetFunction);
-        }
-
-
-        String targetAttributeId = request.getParameter("targetAttributeId_" + rowNumber);
-        if(targetAttributeId != null){
-            rowDTO.setAttributeId(targetAttributeId);
-            if(targetRowIndex == rowNumber){
-                selectedAttributeId = targetAttributeId;
+        String action = request.getParameter("action");
+        String policyRefId = request.getParameter("policyRefId");
+        String policySearchString = request.getParameter("policySearchString");
+        if(policyRefId != null && policyRefId.trim().length() > 0){
+            PolicyRefIdDTO policyRefIdDTO = new PolicyRefIdDTO();
+            policyRefIdDTO.setId(policyRefId);
+            policyRefIdDTO.setReferenceOnly(true);
+            String policyType = request.getParameter("policyType");
+            if("PolicySet".equals(policyType)){
+                policyRefIdDTO.setPolicySet(true);
             }
+            entitlementPolicyBean.addPolicyRefId(policyRefIdDTO);
         }
 
-        String targetAttributeType = request.getParameter("targetAttributeTypes_" + rowNumber);
-        if(targetAttributeType != null){
-            rowDTO.setAttributeDataType(targetAttributeType);
-            if(targetRowIndex == rowNumber){
-                selectedAttributeDataType = targetAttributeType;
+
+        String targetRowIndexString = request.getParameter("targetRowIndex");
+        String obligationRowIndexString = request.getParameter("obligationRowIndex");
+
+        String maxTargetRowsString = request.getParameter("maxTargetRows");
+        String maxObligationRowsString = request.getParameter("maxObligationRows");
+
+        try{
+            if(maxTargetRowsString != null && maxTargetRowsString.trim().length() > 0){
+                maxTargetRows = Integer.parseInt(maxTargetRowsString);
             }
+            if(maxObligationRowsString != null && maxObligationRowsString.trim().length() > 0){
+                maxObligationRows = Integer.parseInt(maxObligationRowsString);
+            }
+
+            if(targetRowIndexString != null && targetRowIndexString.trim().length() > 0){
+                targetRowIndex = Integer.parseInt(targetRowIndexString);
+            }
+            if(obligationRowIndexString != null && obligationRowIndexString.trim().length() > 0){
+                obligationRowIndex = Integer.parseInt(obligationRowIndexString);
+            }
+        } catch (Exception e){
+            //if number format exceptions.. just ignore
         }
 
-        String targetCombineFunction = request.getParameter("targetCombineFunctions_" + rowNumber);
-        if(targetCombineFunction != null){
-            rowDTO.setCombineFunction(targetCombineFunction);
-        }
+        String policyReferenceOrder = request.getParameter("policyReferenceOrder");
 
-        String targetAttributeValue = request.getParameter("targetAttributeValue_" + rowNumber);
-        if(targetAttributeValue != null && targetAttributeValue.trim().length() > 0){
-            rowDTO.setAttributeValue(targetAttributeValue);
-        } else {
+        for(rowNumber = 0; rowNumber < maxTargetRows + 1; rowNumber ++){
+
+            RowDTO  rowDTO = new RowDTO();
+            String targetCategory = request.getParameter("targetCategory_" + rowNumber);
+            if(targetRowIndex == rowNumber){
+                categoryType = targetCategory;
+                rowDTO.setNotCompleted(true);
+            }
+            if(targetCategory != null && targetCategory.trim().length() > 0){
+                rowDTO.setCategory(targetCategory);
+            } else {
+                continue;
+            }
+
+            String targetPreFunction = request.getParameter("targetPreFunction_" + rowNumber);
+            if(targetPreFunction != null){
+                rowDTO.setPreFunction(targetPreFunction);
+            }
+
+            String targetFunction = request.getParameter("targetFunction_" + rowNumber);
+            if(targetFunction != null){
+                rowDTO.setFunction(targetFunction);
+            }
+
+
+            String targetAttributeId = request.getParameter("targetAttributeId_" + rowNumber);
+            if(targetAttributeId != null){
+                rowDTO.setAttributeId(targetAttributeId);
+                if(targetRowIndex == rowNumber){
+                    selectedAttributeId = targetAttributeId;
+                }
+            }
+
+            String targetAttributeType = request.getParameter("targetAttributeTypes_" + rowNumber);
+            if(targetAttributeType != null){
+                rowDTO.setAttributeDataType(targetAttributeType);
+                if(targetRowIndex == rowNumber){
+                    selectedAttributeDataType = targetAttributeType;
+                }
+            }
+
+            String targetCombineFunction = request.getParameter("targetCombineFunctions_" + rowNumber);
+            if(targetCombineFunction != null){
+                rowDTO.setCombineFunction(targetCombineFunction);
+            }
+
+            String targetAttributeValue = request.getParameter("targetAttributeValue_" + rowNumber);
             if(targetAttributeValue != null && targetAttributeValue.trim().length() > 0){
                 rowDTO.setAttributeValue(targetAttributeValue);
             } else {
-                if(targetRowIndex == rowNumber){
-                    targetDTO.addRowDTO(rowDTO);
+                if(targetAttributeValue != null && targetAttributeValue.trim().length() > 0){
+                    rowDTO.setAttributeValue(targetAttributeValue);
+                } else {
+                    if(targetRowIndex == rowNumber){
+                        targetDTO.addRowDTO(rowDTO);
+                    }
+                    continue;
                 }
+            }
+            targetDTO.addRowDTO(rowDTO);
+        }
+
+        // set target element to entitlement bean
+        entitlementPolicyBean.setTargetDTO(targetDTO);
+
+        List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+        for(rowNumber = 0; rowNumber < maxObligationRows + 1; rowNumber ++){
+
+            ObligationDTO dto = new ObligationDTO();
+            String obligationType = request.getParameter("obligationType_" + rowNumber);
+            if(obligationRowIndex == rowNumber){
+                categoryType = null;          // TODO
+                dto.setNotCompleted(true);
+            }
+            if(obligationType != null){
+                dto.setType(obligationType);
+            } else{
                 continue;
             }
-        }
-        targetDTO.addRowDTO(rowDTO);
-    }
+            String obligationId = request.getParameter("obligationId_" + rowNumber);
+            if(obligationId != null && obligationId.trim().length() > 0){
+                dto.setObligationId(obligationId);
+            } else {
+                continue;
+            }
 
-    // set target element to entitlement bean
-    entitlementPolicyBean.setTargetDTO(targetDTO);
+            String obligationAttributeValue = request.getParameter("obligationAttributeValue_" + rowNumber);
+            if(obligationAttributeValue != null){
+                dto.setAttributeValue(obligationAttributeValue);
+            }
 
-    List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
-    for(rowNumber = 0; rowNumber < maxObligationRows + 1; rowNumber ++){
+            String obligationAttributeId = request.getParameter("obligationAttributeId_" + rowNumber);
+            if(obligationAttributeId != null){
+                dto.setResultAttributeId(obligationAttributeId);
+            }
 
-        ObligationDTO dto = new ObligationDTO();
-        String obligationType = request.getParameter("obligationType_" + rowNumber);
-        if(obligationRowIndex == rowNumber){
-            categoryType = null;          // TODO
-            dto.setNotCompleted(true);
+            String obligationEffect = request.getParameter("obligationEffect_" + rowNumber);
+            if(obligationEffect != null){
+                dto.setEffect(obligationEffect);
+            }
+            // Set obligations
+            obligationDTOs.add(dto);
         }
-        if(obligationType != null){
-            dto.setType(obligationType);
-        } else{
-            continue;
-        }
-        String obligationId = request.getParameter("obligationId_" + rowNumber);
-        if(obligationId != null && obligationId.trim().length() > 0){
-            dto.setObligationId(obligationId);
-        } else {
-            continue;
-        }
+        entitlementPolicyBean.setObligationDTOs(obligationDTOs);
 
-        String obligationAttributeValue = request.getParameter("obligationAttributeValue_" + rowNumber);
-        if(obligationAttributeValue != null){
-            dto.setAttributeValue(obligationAttributeValue);
-        }
-
-        String obligationAttributeId = request.getParameter("obligationAttributeId_" + rowNumber);
-        if(obligationAttributeId != null){
-            dto.setResultAttributeId(obligationAttributeId);
+        if(policyReferenceOrder != null && policyReferenceOrder.trim().length() > 0){
+            if (policyRefId != null && policyRefId.trim().length() > 0 && !"delete".equals(action)) {
+                entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder + "," + policyRefId);
+            } else {
+                entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder);
+            }
         }
 
-        String obligationEffect = request.getParameter("obligationEffect_" + rowNumber);
-        if(obligationEffect != null){
-            dto.setEffect(obligationEffect);
-        }
-        // Set obligations
-        obligationDTOs.add(dto);
-    }
-    entitlementPolicyBean.setObligationDTOs(obligationDTOs);
-
-    if(policyReferenceOrder != null && policyReferenceOrder.trim().length() > 0){
-        if (policyRefId != null && policyRefId.trim().length() > 0 && !"delete".equals(action)) {
-            entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder + "," + policyRefId);
-        } else {
-            entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder);
-        }
-    }
-
-    String forwardTo = "create-policy-set.jsp";
-    if ("complete".equals(action)) {
-        forwardTo = "finish-policy-set.jsp";
-    } else if ("delete".equals(action)) {
-        forwardTo = "delete-policy-entry.jsp";
-        if(policyRefId != null && policyRefId.trim().length() > 0){
-            forwardTo = forwardTo + "?policyRefId=" + Encode.forUriComponent(policyRefId);
-        }
-    } else if ("selectAttribute".equals(action)) {
-        forwardTo = "select-attribute.jsp";
-    } else if ("search".equals(action) || "paginate".equals(action) || "add".equals(action)) {
         forwardTo = "create-policy-set.jsp";
-    }
+        if ("complete".equals(action)) {
+            forwardTo = "finish-policy-set.jsp";
+        } else if ("delete".equals(action)) {
+            forwardTo = "delete-policy-entry.jsp";
+            if(policyRefId != null && policyRefId.trim().length() > 0){
+                forwardTo = forwardTo + "?policyRefId=" + Encode.forUriComponent(policyRefId);
+            }
+        } else if ("selectAttribute".equals(action)) {
+            forwardTo = "select-attribute.jsp";
+        } else if ("search".equals(action) || "paginate".equals(action) || "add".equals(action)) {
+            forwardTo = "create-policy-set.jsp";
+        }
 
-    if (!"delete".equals(action)) {
-        if (categoryType != null && categoryType.trim().length() > 0) {
-            forwardTo = forwardTo + "?category=" + categoryType;
-            if (selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0) {
-                forwardTo =
-                        forwardTo + "&selectedAttributeDataType=" + Encode.forUriComponent(selectedAttributeDataType);
+        if (!"delete".equals(action)) {
+            if (categoryType != null && categoryType.trim().length() > 0) {
+                forwardTo = forwardTo + "?category=" + categoryType;
+                if (selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0) {
+                    forwardTo =
+                            forwardTo + "&selectedAttributeDataType=" + Encode.forUriComponent(selectedAttributeDataType);
+                }
+                if (selectedAttributeId != null && selectedAttributeId.trim().length() > 0) {
+                    forwardTo = forwardTo + "&selectedAttributeId=" + Encode.forUriComponent(selectedAttributeId);
+                }
+                if ("selectAttribute".equals(action)) {
+                    forwardTo = forwardTo + "&initiatedFrom=create-policy-set";
+                }
+            } else if (policySearchString != null && policySearchString.trim().length() > 0) {
+                forwardTo = forwardTo + "?policySearchString=" + Encode.forUriComponent(policySearchString);
             }
-            if (selectedAttributeId != null && selectedAttributeId.trim().length() > 0) {
-                forwardTo = forwardTo + "&selectedAttributeId=" + Encode.forUriComponent(selectedAttributeId);
-            }
-            if ("selectAttribute".equals(action)) {
-                forwardTo = forwardTo + "&initiatedFrom=create-policy-set";
-            }
-        } else if (policySearchString != null && policySearchString.trim().length() > 0) {
-            forwardTo = forwardTo + "?policySearchString=" + Encode.forUriComponent(policySearchString);
         }
     }
 %>

@@ -27,6 +27,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -37,6 +38,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
@@ -362,9 +365,9 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                     context.setPreviousSessionFound(true);
                     sequenceConfig = previousAuthenticatedSeq.cloneObject();
                     AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-                    String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
 
                     if (authenticatedUser != null) {
+                        String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                         // set the user for the current authentication/logout flow
                         context.setSubject(authenticatedUser);
 
@@ -382,6 +385,9 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                             }
                         }
                     }
+                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
+                    // authentication step updates will be reflected.
+                    refreshAppConfig(sequenceConfig);
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
@@ -413,7 +419,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         try {
             outboundQueryStringBuilder.append("sessionDataKey=").append(context.getContextIdentifier())
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8")).append("&type=")
-                    .append(context.getRequestType()).append("&sp=")
+                    .append(context.getRequestType()).append("&").append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
                     .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
@@ -426,5 +432,22 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
         context.setContextIdIncludedQueryParams(outboundQueryStringBuilder.toString());
         context.setOrignalRequestQueryParams(outboundQueryStringBuilder.toString());
+    }
+
+    private void refreshAppConfig(SequenceConfig sequenceConfig) throws FrameworkException {
+        int applicationID = sequenceConfig.getApplicationConfig().getApplicationID();
+        String applicationName = sequenceConfig.getApplicationConfig().getApplicationName();
+        try {
+            ApplicationConfig appConfig = new ApplicationConfig(ApplicationManagementService.getInstance()
+                    .getServiceProvider(applicationID));
+            sequenceConfig.setApplicationConfig(appConfig);
+            if (log.isDebugEnabled()) {
+                log.debug("Refresh App config in sequence config for applicationID :" + applicationID);
+            }
+        } catch (IdentityApplicationManagementException e) {
+            String message = "No Application found for Application ID: " + applicationID + " Application Name :" +
+                    applicationName + " Probably, the Service Provider would have been removed.";
+            throw new FrameworkException(message, e);
+        }
     }
 }

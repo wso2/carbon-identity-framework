@@ -151,16 +151,6 @@ public class EntitlementEngine {
             isPAP = true;
         }
 
-        boolean balanaConfig = Boolean.parseBoolean((String) EntitlementServiceComponent.getEntitlementConfig().
-                getEngineProperties().get(PDPConstants.BALANA_CONFIG_ENABLE));
-
-
-        if (balanaConfig) {
-            System.setProperty("org.wso2.balana.PDPConfigFile", CarbonUtils.getCarbonConfigDirPath()
-                    + File.separator + "security" + File.separator +
-                    "balana-config.xml");
-        }
-
         // if PDP config file is not configured, then balana instance is created from default configurations
         balana = Balana.getInstance();
 

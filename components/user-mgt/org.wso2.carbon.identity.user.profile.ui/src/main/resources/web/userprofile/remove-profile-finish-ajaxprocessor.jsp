@@ -28,6 +28,8 @@
 <%@page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@page import="java.util.ResourceBundle"%>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
@@ -45,11 +47,12 @@
     String BUNDLE = "org.wso2.carbon.identity.user.profile.ui.i18n.Resources";
 	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 	String fromUserMgt = (String) request.getParameter("fromUserMgt");
-	
+    String encryptedUsername;
+
     if (fromUserMgt==null) fromUserMgt = "false";
 
-    
     try {
+        encryptedUsername = UserProfileUIUtil.getEncryptedAndBase64encodedUsername(username);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -59,7 +62,7 @@
         String message = resourceBundle.getString("user.profile.deleted.successfully");
         CarbonUIMessage.sendCarbonUIMessage(message,CarbonUIMessage.INFO, request);
         if ("true".equals(fromUserMgt)) {
-           forwardTo = "index.jsp?username="+ Encode.forUriComponent(username);
+           forwardTo = "index.jsp?username="+ Encode.forUriComponent(encryptedUsername);
         }else{
         	forwardTo = "index.jsp";
         }
