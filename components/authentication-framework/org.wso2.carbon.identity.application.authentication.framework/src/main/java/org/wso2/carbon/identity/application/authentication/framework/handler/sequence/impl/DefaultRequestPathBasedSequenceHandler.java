@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +38,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -220,51 +218,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
      */
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
-
-        if (log.isDebugEnabled()) {
-            AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-            String serviceProvider = sequenceConfig.getApplicationConfig().getApplicationName();
-            log.debug("Getting Service Provider mapped roles of application: " + serviceProvider +
-                    " of user: " + authenticatedUser);
-        }
-
-        // Comma separated SP role mapped role values
-        String spMappedRoles = null;
-        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
-            // Get SP Role mappings
-            Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
-            List<String> spMappedRoleList = new ArrayList<>();
-            // Check whether there are any SpRoleMappings
-            if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
-                for (String locallyMappedRole : locallyMappedUserRoles) {
-                    if (localToSpRoleMapping.containsKey(locallyMappedRole)) {
-                        // add the SP mapped role
-                        String spMappedRole = localToSpRoleMapping.get(locallyMappedRole);
-                        spMappedRoleList.add(spMappedRole);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Mapping local role: " + locallyMappedRole + " to service provider role: "
-                                    + spMappedRole);
-                        }
-                    } else {
-                        // Add local role to the list since there are no SP mapped roles for this one
-                        spMappedRoleList.add(locallyMappedRole);
-                    }
-                }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("No local roles to map to Service Provider role mappings. Sending back all local roles " +
-                            "as service provider mapped roles.");
-                }
-                // We don't have any sp role mappings
-                spMappedRoleList = locallyMappedUserRoles;
-            }
-            spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), FrameworkUtils.getMultiAttributeSeparator());
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Service Provider Mapped Roles: " + spMappedRoles);
-        }
-        return spMappedRoles;
+        return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
     }
 
     /**
