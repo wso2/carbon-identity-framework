@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.DefaultBootstrap;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
@@ -63,6 +62,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 
 public class IdentityCoreServiceComponent {
     private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom530to540";
+    private static final String MIGRATION_SERVICE_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.MigrationClient";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
 
@@ -145,6 +145,19 @@ public class IdentityCoreServiceComponent {
                 }
             } catch (Exception e) {
                 log.error("Error occurred while initializing the migration client." , e);
+            }
+
+            try {
+                Class<?> migrationClientClass = Class.forName(MIGRATION_SERVICE_CLIENT_CLASS_NAME);
+                Object migrationClientObject = migrationClientClass.newInstance();
+                if (migrationClientObject != null) {
+                    log.info("Migration Service class is loaded successfully and going start the process.");
+                }
+                migrationClientClass.getMethod("execute").invoke(migrationClientObject);
+            } catch (Throwable e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Migration client is not available, ", e);
+                }
             }
 
             //this is done to initialize primary key store
