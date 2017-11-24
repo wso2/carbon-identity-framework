@@ -27,6 +27,8 @@
 <%@ page import="java.io.IOException" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 
@@ -103,13 +105,16 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     String prevPage = request.getParameter("prevPage");
-    String prevUser = request.getParameter("prevUser");
+    String encryptedPrevUser = request.getParameter("prevUser");
     String prevPageNumber = request.getParameter("prevPageNumber");
-
+    String decryptedPrevUser = null;
     UIPermissionNode rootNode = null;
     String roleName = request.getParameter("roleName");
 
     try {
+        if (encryptedPrevUser != null) {
+            decryptedPrevUser = Util.getDecryptedUsername(encryptedPrevUser);
+        }
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -160,7 +165,7 @@
                 <table>
                     <tr>
                         <td class="buttonRow">
-                            <input type="hidden" value="<%=Encode.forHtmlAttribute(prevUser)%>" name="prevUser"/>
+                            <input type="hidden" value="<%=Encode.forHtmlAttribute(decryptedPrevUser)%>" name="prevUser"/>
                             <input type="hidden" value="<%=Encode.forHtmlAttribute(prevPage)%>" name="prevPage"/>
                             <input type="hidden" value="<%=Encode.forHtmlAttribute(roleName)%>" name="roleName"/>
                             <input type="hidden" value="<%=Encode.forHtmlAttribute(prevPageNumber)%>"

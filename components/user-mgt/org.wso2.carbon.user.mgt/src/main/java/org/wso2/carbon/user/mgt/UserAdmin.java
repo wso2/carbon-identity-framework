@@ -520,7 +520,7 @@ public class UserAdmin {
             if (isAuthenticated) {
                 getUserAdminProxy().changePasswordByUser(userName, oldPassword, newPassword);
             } else {
-                throw new UserAdminException("Error while updating password. Wrong old credential provided ");
+                throw new UserAdminException("The current password you entered is incorrect. ");
             }
         } catch (UserAdminException e) {
             throw e;

@@ -489,7 +489,10 @@ public class UserProfileAdmin extends AbstractAdmin {
             profile.setFieldValues(userFields.toArray(new UserFieldDTO[userFields.size()]));
 
         } catch (Exception e) {
-            // Not logging. Already logged.
+
+            log.error(String.format("An error occurred while getting the user profile '%s' of the user '%s'",
+                    profileName, username), e);
+
             throw new UserProfileException(e.getMessage(), e);
         }
         return profile;

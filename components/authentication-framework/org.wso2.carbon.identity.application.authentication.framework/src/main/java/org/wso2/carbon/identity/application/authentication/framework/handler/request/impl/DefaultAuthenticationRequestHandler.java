@@ -25,9 +25,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
@@ -36,23 +38,26 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.aut
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -153,7 +158,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     private void handleRememberMeOptionFromLoginPage(HttpServletRequest request, AuthenticationContext context) {
-        String rememberMe = request.getParameter("chkRemember");
+        String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (rememberMe != null && "on".equalsIgnoreCase(rememberMe)) {
             context.setRememberMe(true);
@@ -173,7 +178,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @throws IOException
      * @throws FrameworkException
      */
-    protected boolean handleSequenceStart(HttpServletRequest request, HttpServletResponse response,
+    protected boolean handleSequenceStart(HttpServletRequest request,
+                                          HttpServletResponse response,
                                           AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
@@ -182,10 +188,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // "forceAuthenticate" - go in the full authentication flow even if user
         // is already logged in.
-        boolean forceAuthenticate = request
-                                            .getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ? Boolean
-                                            .valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE))
-                                                                                                                       : false;
+        boolean forceAuthenticate = request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ?
+                Boolean.valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE)) : false;
 
         context.setForceAuthenticate(forceAuthenticate);
 
@@ -194,10 +198,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // "reAuthenticate" - authenticate again with the same IdPs as before.
-        boolean reAuthenticate = request
-                                         .getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ? Boolean
-                                         .valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE))
-                                                                                                                 : false;
+        boolean reAuthenticate = request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ?
+                Boolean.valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE)) : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Re-Authenticate : " + reAuthenticate);
@@ -207,11 +209,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // "checkAuthentication" - passive mode. just send back whether user is
         // *already* authenticated or not.
-        boolean passiveAuthenticate = request
-                                              .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION) != null ? Boolean
-                                              .valueOf(request
-                                                               .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION))
-                                                                                                                             : false;
+        String passiveAuthReqParam = request.getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION);
+        boolean passiveAuthenticate = passiveAuthReqParam != null ? Boolean.valueOf(passiveAuthReqParam) : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Passive Authenticate : " + passiveAuthenticate);
@@ -295,6 +294,50 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if(!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
+
+                List<AuthenticationContextProperty> authenticationContextProperties = new ArrayList<>();
+
+                // Authentication context properties from already authenticated IdPs
+                if (sessionContext.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
+                    List<AuthenticationContextProperty> existingAuthenticationContextProperties =
+                            (List<AuthenticationContextProperty>) sessionContext.getProperty(FrameworkConstants
+                                    .AUTHENTICATION_CONTEXT_PROPERTIES);
+                    for (AuthenticationContextProperty contextProperty : existingAuthenticationContextProperties) {
+                        for (StepConfig stepConfig : context.getSequenceConfig().getStepMap().values()) {
+                            if (stepConfig.getAuthenticatedIdP().equals(contextProperty.getIdPName())) {
+                                authenticationContextProperties.add(contextProperty);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Authentication context properties received from newly authenticated IdPs
+                if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
+                    authenticationContextProperties.addAll((List<AuthenticationContextProperty>) context
+                            .getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
+
+                    if (sessionContext.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) == null) {
+                        sessionContext.addProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES,
+                                authenticationContextProperties);
+                    } else {
+                        List<AuthenticationContextProperty> existingAuthenticationContextProperties =
+                                (List<AuthenticationContextProperty>) sessionContext.getProperty(FrameworkConstants
+                                        .AUTHENTICATION_CONTEXT_PROPERTIES);
+                        existingAuthenticationContextProperties.addAll((List<AuthenticationContextProperty>)
+                                context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
+
+                    }
+                }
+
+                if(!authenticationContextProperties.isEmpty()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("AuthenticationContextProperties are available.");
+                    }
+                    authenticationResult.addProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES,
+                            authenticationContextProperties);
+                }
+
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
@@ -309,6 +352,16 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
+                if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("AuthenticationContextProperties are available.");
+                    }
+                    authenticationResult.addProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES,
+                            context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
+                    // Add to session context
+                    sessionContext.addProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES,
+                            context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
+                }
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
@@ -454,15 +507,22 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             rememberMeParam = rememberMeParam + "chkRemember=on";
         }
 
+        // if request is not authenticated populate error information sent from authenticators/handlers
+        if (!context.isRequestAuthenticated()) {
+            populateErrorInformation(request, response, context);
+        }
+
         // redirect to the caller
         String redirectURL;
         String commonauthCallerPath = context.getCallerPath();
 
         try {
-            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
-                    URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            String queryParamsString = "";
+            if (context.getCallerSessionKey() != null) {
+                queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                        URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            }
 
-            String queryParamsString = sessionDataKeyParam;
             if (StringUtils.isNotEmpty(rememberMeParam)) {
                 queryParamsString += "&" + rememberMeParam;
             }
@@ -506,6 +566,75 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         } else {
             return false;
         }
+    }
+
+    /**
+     * Populate any error information sent from Authenticators to be sent in the Response from the authentication
+     * framework. By default we retrieve the error information from the AuthenticationContext and populate the error
+     * it within the AuthenticationResult as properties.
+     *
+     * @param request
+     * @param response
+     * @param context
+     */
+    protected void populateErrorInformation(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            AuthenticationContext context) {
+
+        // get the authentication result
+        AuthenticationResult authenticationResult = getAuthenticationResult(request, response, context);
+
+        String errorCode = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
+        String errorMessage = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG));
+        String errorUri = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_URI));
+
+
+        if (authenticationResult != null) {
+
+            if (IdentityUtil.isNotBlank(errorCode)) {
+                // set the custom error code
+                authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
+            }
+
+            if (IdentityUtil.isNotBlank(errorMessage)) {
+                // set the custom error message
+                authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
+            }
+
+            if (IdentityUtil.isNotBlank(errorUri)) {
+                // set the custom error uri
+                authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Populated errorCode=" + errorCode + ", errorMessage=" + errorMessage + ", errorUri=" +
+                        errorUri + " to the AuthenticationResult.");
+            }
+
+            // set the updated authentication result to request
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+        }
+    }
+
+    private AuthenticationResult getAuthenticationResult(HttpServletRequest request,
+                                                         HttpServletResponse response,
+                                                         AuthenticationContext context) {
+
+        AuthenticationResult authenticationResult = null;
+        if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
+                && (response instanceof CommonAuthResponseWrapper)) {
+            // Get the authentication result from the request
+            authenticationResult =
+                    (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+        } else {
+            // Retrieve the authentication result from cache
+            AuthenticationResultCacheEntry authenticationResultCacheEntry =
+                    FrameworkUtils.getAuthenticationResultFromCache(context.getCallerSessionKey());
+            if (authenticationResultCacheEntry != null) {
+                authenticationResult = authenticationResultCacheEntry.getResult();
+            }
+        }
+        return authenticationResult;
     }
 
 }

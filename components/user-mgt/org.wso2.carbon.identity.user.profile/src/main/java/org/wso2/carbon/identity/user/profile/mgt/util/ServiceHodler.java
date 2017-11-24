@@ -30,9 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ServiceHodler {
 
-
-
-
     private static final Log log = LogFactory.getLog(ServiceHodler.class);
 
     private static UserRealm internalUserStore;

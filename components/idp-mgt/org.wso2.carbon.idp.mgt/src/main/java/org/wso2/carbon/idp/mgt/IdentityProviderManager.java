@@ -532,6 +532,10 @@ public class IdentityProviderManager implements IdpManager {
         identityProvider
                 .setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
 
+        // Override few endpoint URLs which are initially persisted in the database and can be out dated with hostname
+        // changes.
+        overrideResidentIdpEPUrls(identityProvider);
+
         return identityProvider;
     }
 
@@ -1111,7 +1115,7 @@ public class IdentityProviderManager implements IdpManager {
                 Set<ClaimMapping> returnSet = new HashSet<ClaimMapping>();
                 for (String localClaimURI : localClaimURIs) {
                     for (ClaimMapping claimMapping : claimMappings) {
-                        if (claimMapping.equals(localClaimURI)) {
+                        if (claimMapping.getLocalClaim().getClaimUri().equals(localClaimURI)) {
                             returnSet.add(claimMapping);
                             break;
                         }
@@ -1335,7 +1339,7 @@ public class IdentityProviderManager implements IdpManager {
                                                 throw new IdentityProviderManagementException("SP name can't be empty");
                                             }
 
-                                            if(metaFederated!=null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
+                                            if (metaFederated != null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 for (int y = 0; y < metaFederated.getProperties().length; y++) {
                                                     if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null
                                                             && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
@@ -1357,7 +1361,7 @@ public class IdentityProviderManager implements IdpManager {
                                             identityProvider.setCertificate(certificate.toString());
 
                                         }
-                                    } catch (XMLStreamException e) {//
+                                    } catch (XMLStreamException e) {
                                         throw new IdentityProviderManagementException("Error while configuring metadata", e);
                                     }
                                     break;
@@ -1447,9 +1451,9 @@ public class IdentityProviderManager implements IdpManager {
                 idpName.toString().length() > 0 &&
                         metadata.toString().length() > 0
                 ) {
-            if(SAML2SSOMetadataConverter!=null) {
+            if (SAML2SSOMetadataConverter != null) {
                 SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
-            }else{
+            } else {
                 throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
             }
         }
@@ -1484,7 +1488,7 @@ public class IdentityProviderManager implements IdpManager {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        if(SAML2SSOMetadataConverter!=null) {
+        if (SAML2SSOMetadataConverter != null) {
             SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idPName.toString());
         }
 
@@ -1582,9 +1586,9 @@ public class IdentityProviderManager implements IdpManager {
                         metadata != null && metadata.toString().length() > 0
 
                 ) {
-            if(SAML2SSOMetadataConverter!=null) {
+            if (SAML2SSOMetadataConverter != null) {
                 SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
-            }else{
+            } else {
                 throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
             }
         }
@@ -1764,5 +1768,64 @@ public class IdentityProviderManager implements IdpManager {
 
     }
 
+    /**
+     * Overrides the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
+     * @param residentIDP
+     * @throws IdentityProviderManagementException
+     */
+    private void overrideResidentIdpEPUrls(IdentityProvider residentIDP)
+            throws IdentityProviderManagementException {
+
+        // Not all endpoints are persisted. So we need to update only a few properties.
+
+        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        updateFederationAuthenticationConfigProperty(residentIDP,
+                IdentityApplicationConstants.Authenticator
+                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
+
+        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);;
+        updateFederationAuthenticationConfigProperty(residentIDP,
+                IdentityApplicationConstants.Authenticator
+                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL, samlLogoutUrl);
+
+        String passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
+        updateFederationAuthenticationConfigProperty(residentIDP,
+                IdentityApplicationConstants.Authenticator.PassiveSTS.NAME, IdentityApplicationConstants
+                        .Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL, passiveStsUrl);
+    }
+
+    /**
+     * Updates the property values of the given property name of the given authenticator.
+     *
+     * @param residentIdentityProvider
+     * @param authenticatorName
+     * @param propertyName
+     * @param newValue
+     * @return true if the value was updated, false if the value is up to date.
+     */
+    private boolean updateFederationAuthenticationConfigProperty(IdentityProvider residentIdentityProvider, String
+            authenticatorName, String propertyName, String newValue) {
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = IdentityApplicationManagementUtil
+                .getFederatedAuthenticator(residentIdentityProvider.getFederatedAuthenticatorConfigs(),
+                        authenticatorName);
+
+        if (federatedAuthenticatorConfig != null) {
+
+            Property existingProperty = IdentityApplicationManagementUtil.getProperty(federatedAuthenticatorConfig
+                    .getProperties(), propertyName);
+
+            if (existingProperty != null) {
+                String existingPropertyValue = existingProperty.getValue();
+
+                if (!StringUtils.equalsIgnoreCase(existingPropertyValue, newValue)) {
+                    existingProperty.setValue(newValue);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
 }

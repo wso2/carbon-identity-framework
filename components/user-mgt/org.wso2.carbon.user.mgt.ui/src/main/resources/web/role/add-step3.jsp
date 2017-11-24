@@ -227,7 +227,7 @@
         <%if (UserAdminUIConstants.INTERNAL_ROLE.equalsIgnoreCase(roleType)) {%>
         <h2><fmt:message key="add.internal.user.role"/></h2>
         <%} else { %>
-        <h2><fmt:message key="add.user.role"/></h2>
+        <h2><fmt:message key="add.new.role"/></h2>
         <%} %>
 
         <script type="text/javascript">

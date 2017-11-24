@@ -52,7 +52,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
             if (StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
                 throw new IdentityProviderManagementException("Cannot delete Resident Identity Provider of Super " +
                         "Tenant");
-            } else if(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant){
+            } else if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant) {
                 throw new IdentityProviderManagementException("Tenant user of " + loggedInTenant + " cannot delete " +
                         "Resident Identity Provider of tenant " + tenantDomain);
             } else {
@@ -97,19 +97,15 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         if (StringUtils.isEmpty(oldIdPName)) {
             throw new IllegalArgumentException("The IdP name which need to be updated is empty");
         }
-        if (StringUtils.isEmpty(oldIdPName)) {
-            String msg = "Invalid argument: Existing Identity Provider Name value is empty";
-            throw new IdentityProviderManagementException(msg);
-        }
 
         if (StringUtils.isEmpty(identityProvider.getIdentityProviderName())) {
-            String msg = "Invalid argument: Identity Provider Name value is empty for \'newIdentityProvider\'";
+            String msg = "Invalid argument: The new value of the identity provider name is empty.";
             throw new IdentityProviderManagementException(msg);
         }
 
         //Updating a non-shared IdP's name to have shared prefix is not allowed
-        if (oldIdPName != null && !oldIdPName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX) &&
-                identityProvider != null && identityProvider.getIdentityProviderName() != null && identityProvider
+        if (!oldIdPName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX) &&
+                identityProvider.getIdentityProviderName() != null && identityProvider
                 .getIdentityProviderName().startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
             throw new IdentityProviderManagementException("Cannot update Idp name to have '" +
                     IdPManagementConstants.SHARED_IDP_PREFIX + "' as a prefix (previous name:" + oldIdPName + ", " +

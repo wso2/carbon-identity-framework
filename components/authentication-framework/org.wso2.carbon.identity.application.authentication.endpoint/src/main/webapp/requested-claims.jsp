@@ -37,11 +37,11 @@
         String[] missingClaimList = null;
         String appName = null;
         Boolean isFederated = false;
-        if (request.getParameter("missingClaims") != null) {
-            missingClaimList = request.getParameter("missingClaims").split(",");
+        if (request.getParameter(Constants.MISSING_CLAIMS) != null) {
+            missingClaimList = request.getParameter(Constants.MISSING_CLAIMS).split(",");
         }
-        if (request.getParameter("spName") != null) {
-            appName = request.getParameter("spName");
+        if (request.getParameter(Constants.REQUEST_PARAM_SP) != null) {
+            appName = request.getParameter(Constants.REQUEST_PARAM_SP);
         }
 
     %>

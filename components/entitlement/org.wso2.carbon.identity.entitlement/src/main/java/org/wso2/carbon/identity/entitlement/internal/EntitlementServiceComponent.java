@@ -48,7 +48,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -87,7 +86,12 @@ import java.util.concurrent.Executors;
 
 
 public class EntitlementServiceComponent {
-
+    
+    /**
+     * Property used to specify the configuration file.
+     */
+    public static final String PDP_CONFIG_FILE_PATH = "org.wso2.balana.PDPConfigFile";
+    
     private static final Log log = LogFactory.getLog(EntitlementServiceComponent.class);
     private static RegistryService registryService = null;
     private static RealmService realmservice;
@@ -193,6 +197,23 @@ public class EntitlementServiceComponent {
             builder.setBundleContext(ctxt.getBundleContext());
             builder.buildEntitlementConfig(EntitlementConfigHolder.getInstance());
 
+            boolean balanaConfig = Boolean.parseBoolean((String) EntitlementServiceComponent.getEntitlementConfig().
+                    getEngineProperties().get(PDPConstants.BALANA_CONFIG_ENABLE));
+            
+            String configProperty = System.getProperty(PDP_CONFIG_FILE_PATH);
+
+            if (balanaConfig && configProperty == null) {
+                String configFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "security" 
+                    + File.separator + "balana-config.xml";
+                
+                System.setProperty(PDP_CONFIG_FILE_PATH, configFilePath);
+            }
+            
+            if (log.isDebugEnabled()) {
+                log.debug("Setting org.wso2.balana.PDPConfigFile property to " 
+                          + System.getProperty(PDP_CONFIG_FILE_PATH));
+            }
+
             // Start loading schema.
             new Thread(new SchemaBuilder(EntitlementConfigHolder.getInstance())).start();
 
@@ -235,8 +256,10 @@ public class EntitlementServiceComponent {
 
                 boolean customPolicies = false;
 
-                if (policyFolder != null && policyFolder.exists()) {
-                    for (File policyFile : policyFolder.listFiles()) {
+                File[] fileList;
+                if (policyFolder != null && policyFolder.exists()
+                        && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
+                    for (File policyFile : fileList) {
                         if (policyFile.isFile()) {
                             PolicyDTO policyDTO = new PolicyDTO();
                             policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
@@ -250,7 +273,6 @@ public class EntitlementServiceComponent {
                                 }
                             }
                             customPolicies = true;
-
                         }
                     }
                 }
@@ -464,7 +486,7 @@ public class EntitlementServiceComponent {
                 byte[] byteAddress = new byte[4];
                 for (int i = 0; i < splittedString.length; i++) {
                     if (Integer.parseInt(splittedString[i]) > 127) {
-                        byteAddress[i] = new Integer(Integer.parseInt(splittedString[i]) - 256).byteValue();
+                        byteAddress[i] = Integer.valueOf(Integer.parseInt(splittedString[i]) - 256).byteValue();
                     } else {
                         byteAddress[i] = Byte.parseByte(splittedString[i]);
                     }

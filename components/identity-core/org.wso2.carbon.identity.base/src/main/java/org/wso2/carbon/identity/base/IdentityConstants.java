@@ -228,6 +228,10 @@ public class IdentityConstants {
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
+        public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
+                ".SAMLDefaultAssertionEncryptionAlgorithmURI";
+        public static final String SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM = "SSOService" +
+                ".SAMLDefaultKeyEncryptionAlgorithmURI";
         public static final String SLO_HOST_NAME_VERIFICATION_ENABLED = "SSOService.SLOHostNameVerificationEnabled";
 
         //Identity Persistence Manager

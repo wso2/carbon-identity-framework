@@ -94,7 +94,6 @@ public class UserIdentityManagementUtil {
                                                               int tenantId)
             throws IdentityException {
 
-        JDBCUserRecoveryDataStore metadatStore = new JDBCUserRecoveryDataStore();
         UserRecoveryDTO registrationDTO = new UserRecoveryDTO(userName);
         return registrationDTO;
     }
@@ -118,7 +117,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
         } catch (UserStoreException e) {
@@ -159,7 +158,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName + "to disable");
             }
         } catch (UserStoreException e) {
@@ -199,7 +198,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName + "to enable");
             }
         } catch (UserStoreException e) {
@@ -259,7 +258,7 @@ public class UserIdentityManagementUtil {
 
         try {
             if (!userStoreManager.isExistingUser(userName)) {
-                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
         } catch (UserStoreException e) {
@@ -647,7 +646,7 @@ public class UserIdentityManagementUtil {
                         " Credential not valid. Credential must be a non null for the user : " + userName, e);
             } else if (e.getMessage().contains(EXISTING_USER)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_INVALID_USER +
-                        " Username '" + userName + "' already exists in the system. Please pick another username.", e);
+                        " Username '" + userName + "' already exists in the system. Please enter another username.", e);
             } else if (e.getMessage().contains(INVALID_CLAIM_URL)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Invalid claim uri has been provided.", e);
             } else if (e.getMessage().contains(INVALID_USER_NAME)) {
@@ -661,13 +660,13 @@ public class UserIdentityManagementUtil {
                         " Cannot add role to Read Only user store unless it is primary.", e);
             } else if (e.getMessage().contains(INVALID_ROLE)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
-                        " Role name not valid. Role name must be a non null string.", e);
+                        " Invalid role name. Role name must be a non null string.", e);
             } else if (e.getMessage().contains(NO_READ_WRITE_PERMISSIONS)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
                         " Role cannot be added. User store is read only or cannot write groups.", e);
             } else if (e.getMessage().contains(EXISTING_ROLE)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
-                        " Role alreary exists in the system. Please pick another role name.", e);
+                        " Role already exists in the system. Please enter another role name.", e);
             } else if (e.getMessage().contains(SHARED_USER_ROLES)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
                         " User store doesn't support shared user roles functionality.", e);

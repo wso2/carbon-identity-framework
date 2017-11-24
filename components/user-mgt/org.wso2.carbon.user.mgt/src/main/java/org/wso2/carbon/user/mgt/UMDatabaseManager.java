@@ -102,19 +102,14 @@ public class UMDatabaseManager {
     }
 
     public void setProperty(String name, String value) throws SQLException {
-        Connection dbConnection = null;
-        PreparedStatement stmt = null;
-        try {
-            dataSource.getConnection();
-            dbConnection = dataSource.getConnection();
+        try (Connection dbConnection = dataSource.getConnection()) {
             dbConnection.setAutoCommit(false);
-            stmt = dbConnection.prepareStatement(SET_PROPERTY);
-            stmt.setString(1, name);
-            stmt.setString(2, value);
-            stmt.executeUpdate();
-            stmt.executeUpdate();
-        } finally {
-            DatabaseUtil.closeAllConnections(dbConnection, stmt);
+            try (PreparedStatement stmt = dbConnection.prepareStatement(SET_PROPERTY)) {
+                stmt.setString(1, name);
+                stmt.setString(2, value);
+                stmt.executeUpdate();
+                dbConnection.commit();
+            }
         }
     }
 

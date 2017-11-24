@@ -129,6 +129,7 @@ public class IdentityApplicationConstants {
             public static final String AUTHENTICATION_CONTEXT_COMPARISON_LEVEL = "AuthnContextComparisonLevel";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
+            public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
@@ -341,5 +342,38 @@ public class IdentityApplicationConstants {
             public static final String SHA384 = "http://www.w3.org/2001/04/xmldsig-more#sha384";
             public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
         }
+
+        public static class AssertionEncryptionAlgorithm {
+            public static final String AES256 = "AES256";
+            public static final String AES192 = "AES192";
+            public static final String AES128 = "AES128";
+            public static final String TRIPLEDES = "TRIPLEDES";
+            public static final String AES128_GCM = "AES128_GCM";
+            public static final String AES192_GCM = "AES192_GCM";
+            public static final String AES256_GCM = "AES256_GCM";
+        }
+
+        public static class AssertionEncryptionAlgorithmURI {
+            public static final String AES256 = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+            public static final String AES192 = "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
+            public static final String AES128 = "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
+            public static final String TRIPLEDES = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc";
+            public static final String AES128_GCM = "http://www.w3.org/2009/xmlenc11#aes128-gcm";
+            public static final String AES192_GCM = "http://www.w3.org/2009/xmlenc11#aes192-gcm";
+            public static final String AES256_GCM = "http://www.w3.org/2009/xmlenc11#aes256-gcm";
+        }
+
+        public static class KeyEncryptionAlgorithm {
+            public static final String RSAOAEP = "RSAOAEP";
+            public static final String RSA15 = "RSA15";
+            public static final String RSAOAEP11 = "RSAOAEP11";
+        }
+
+        public static class KeyEncryptionAlgorithmURI {
+            public static final String RSAOAEP = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+            public static final String RSA15 = "http://www.w3.org/2001/04/xmlenc#rsa-1_5";
+            public static final String RSAOAEP11 = "http://www.w3.org/2009/xmlenc11#rsa-oaep";
+        }
+
     }
 }

@@ -116,6 +116,7 @@
     String authzUrl = null;
     String tokenUrl = null;
     String callBackUrl = null;
+    String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
     boolean isPassiveSTSEnabled = false;
     boolean isPassiveSTSDefault = false;
@@ -136,6 +137,7 @@
     String fbOauth2TokenEndpoint = null;
     String fbUserInfoEndpoint = null;
     String fbCallBackUrl = null;
+    String responseAuthnContextClassRef = "default";
 
     // To check for existence of authenticator bundles
     boolean isOpenidAuthenticatorActive = false;
@@ -400,6 +402,11 @@
                         callBackUrl = callBackURLProp.getValue();
                     }
 
+                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
+                    if (userInfoEndpointProp != null) {
+                        userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
 
                     Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
@@ -559,6 +566,15 @@
                         requestMethod = requestMethodProp.getValue();
                     } else {
                         requestMethod = "redirect";
+                    }
+
+                    Property responseAuthnContextClassRefProp = IdPManagementUIUtil.getProperty(fedAuthnConfig
+                            .getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO
+                            .RESPONSE_AUTHN_CONTEXT_CLASS_REF);
+                    if (responseAuthnContextClassRefProp != null) {
+                        responseAuthnContextClassRef = responseAuthnContextClassRefProp.getValue();
+                    } else {
+                        responseAuthnContextClassRef = "default";
                     }
 
                     Property isSAMLSSOUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -1047,6 +1063,10 @@
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
     }
 
+    if (StringUtils.isBlank(userInfoEndpoint)) {
+        userInfoEndpoint = StringUtils.EMPTY;
+    }
+
     String passiveSTSEnabledChecked = "";
     String passiveSTSDefaultDisabled = "";
     if (identityProvider != null) {
@@ -1224,8 +1244,14 @@
         }
     }
 
+    // If SCIM Provisioning has not been Configured at all,
+    // make password provisioning enable by default.
+    // Since scimUserName is a required field,
+    // it being blank means that SCIM Provisioning has not been configured at all.
     if (scimUserName == null) {
         scimUserName = "";
+        scimPwdProvEnabledChecked = "checked=\'checked\'";
+        disableDefaultPwd = "disabled=\'disabled\'";
     }
     if (scimPassword == null) {
         scimPassword = "";
@@ -4197,6 +4223,23 @@
                                 </tr>
 
                                 <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='authn.context.class.ref'/>:</td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" name="ResponseAuthnContextClassRef" value="default"
+                                                   <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("default")){%>checked="checked"<%}%>/>Default
+                                        </label>
+                                        <label><input type="radio" name="ResponseAuthnContextClassRef" value="as_response"
+                                                      <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("as_response")){%>checked="checked"<%}%>/>As Per Response
+                                        </label>
+
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authn.context.class.ref.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
                                     <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
                                     <td>
                                         <%
@@ -4366,6 +4409,18 @@
                             </tr>
 
                             <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='userInfoEndpoint'/>
+                                <td>
+                                    <input id="userInfoEndpoint" name="userInfoEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(userInfoEndpoint)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='userInfoEndpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
                                 <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
                                 <td>
                                     <label>
@@ -4390,7 +4445,7 @@
                                 <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
                                 <td>
                                     <input id="oidcQueryParam" name="oidcQueryParam" type="text"
-                                           value=<%=Encode.forHtmlAttribute(oidcQueryParam)%>>
+                                           value="<%=Encode.forHtmlAttribute(oidcQueryParam)%>">
 
                                     <div class="sectionHelp">
                                         <fmt:message key='query.param.help'/>

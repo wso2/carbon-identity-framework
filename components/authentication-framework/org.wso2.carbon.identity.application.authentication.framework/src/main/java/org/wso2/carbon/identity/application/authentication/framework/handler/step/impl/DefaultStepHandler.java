@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +89,26 @@ public class DefaultStepHandler implements StepHandler {
 
         String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
 
-        Map<String, AuthenticatedIdPData> authenticatedIdPs = context.getPreviousAuthenticatedIdPs();
+        Map<String, AuthenticatedIdPData> authenticatedIdPs = context.getCurrentAuthenticatedIdPs();
+
+        // If there are no current authenticated IDPs, it means no authentication has been taken place yet.
+        // So see whether there are previously authenticated IDPs for this session.
+        // NOTE : currentAuthenticatedIdPs (if not null) always contains the previousAuthenticatedIdPs
+        if (MapUtils.isEmpty(authenticatedIdPs)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No current authenticated IDPs in the authentication context. " +
+                        "Continuing with the previous authenticated IDPs");
+            }
+            authenticatedIdPs = context.getPreviousAuthenticatedIdPs();
+        }
+
+        if (log.isDebugEnabled()) {
+            if (MapUtils.isEmpty(authenticatedIdPs)) {
+                log.debug("No previous authenticated IDPs found in the authentication context.");
+            } else {
+                log.debug(String.format("Found authenticated IdPs. Count: %d", authenticatedIdPs.size()));
+            }
+        }
 
         Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
                 .getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
@@ -497,7 +517,12 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
 
-            AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+            String idpName = FrameworkConstants.LOCAL_IDP_NAME;
+            if (context.getExternalIdP() != null) {
+                idpName = context.getExternalIdP().getIdPName();
+            }
+
+            AuthenticatedIdPData authenticatedIdPData = getAuthenticatedIdPData(context, idpName);
 
             // store authenticated user
             AuthenticatedUser authenticatedUser = context.getSubject();
@@ -507,16 +532,10 @@ public class DefaultStepHandler implements StepHandler {
             authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
             stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
 
-            String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-
-            if (context.getExternalIdP() != null) {
-                idpName = context.getExternalIdP().getIdPName();
-            }
-
             // store authenticated idp
             stepConfig.setAuthenticatedIdP(idpName);
             authenticatedIdPData.setIdpName(idpName);
-            authenticatedIdPData.setAuthenticator(authenticatorConfig);
+            authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
 
@@ -541,6 +560,58 @@ public class DefaultStepHandler implements StepHandler {
         stepConfig.setAuthenticatedUser(authenticatedIdPData.getUser());
         stepConfig.setAuthenticatedIdP(authenticatedIdPData.getIdpName());
         stepConfig.setAuthenticatedAutenticator(authenticatedIdPData.getAuthenticator());
+    }
+
+    /**
+     * Returns the {@link AuthenticatedIdPData} for the given IDP name if it is in the current authenticated IDPs.
+     * If the {@link AuthenticatedIdPData} is not available in the current authenticate IDPs, tries the previous ones.
+     * If both checks are false, returns a newly created {@link AuthenticatedIdPData}
+     *
+     * @param context
+     * @param idpName
+     * @return
+     */
+    private AuthenticatedIdPData getAuthenticatedIdPData(AuthenticationContext context, String idpName) {
+
+        AuthenticatedIdPData authenticatedIdPData = null;
+
+        if (context.getCurrentAuthenticatedIdPs() != null && context.getCurrentAuthenticatedIdPs().get(idpName) != null) {
+
+            authenticatedIdPData = context.getCurrentAuthenticatedIdPs().get(idpName);
+
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Authenticated IDP data of the IDP '%s' " +
+                        "could be found in current authenticated IDPs", idpName));
+            }
+        } else {
+
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Authenticated IDP data of the IDP '%s' " +
+                        "couldn't be found in current authenticate IDPs. Trying previous authenticated IDPs", idpName));
+            }
+
+            if (context.getPreviousAuthenticatedIdPs() != null &&
+                    context.getPreviousAuthenticatedIdPs().get(idpName) != null) {
+
+                authenticatedIdPData = context.getPreviousAuthenticatedIdPs().get(idpName);
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Authenticated IDP data of the IDP '%s' " +
+                            "could be found in previous authenticated IDPs", idpName));
+                }
+            } else {
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Authenticated IDP data for the IDP '%s' " +
+                            "couldn't be found in previous authenticate IDPs as well. " +
+                            "Using a fresh AuthenticatedIdPData object", idpName));
+                }
+
+                authenticatedIdPData = new AuthenticatedIdPData();
+            }
+        }
+
+        return authenticatedIdPData;
     }
 
     private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext

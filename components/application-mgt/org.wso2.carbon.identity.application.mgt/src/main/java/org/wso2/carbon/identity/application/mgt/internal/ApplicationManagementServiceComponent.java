@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -157,10 +158,10 @@ public class ApplicationManagementServiceComponent {
         FileInputStream fileInputStream = null;
         File spConfigDir = new File(spConfigDirPath);
         OMElement documentElement;
+        File[] fileList;
 
-        if (spConfigDir.exists()) {
-
-            for (final File fileEntry : spConfigDir.listFiles()) {
+        if (spConfigDir.exists() && ArrayUtils.isNotEmpty(fileList = spConfigDir.listFiles())) {
+            for (final File fileEntry : fileList) {
                 try {
                     if (!fileEntry.isDirectory()) {
                         fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));

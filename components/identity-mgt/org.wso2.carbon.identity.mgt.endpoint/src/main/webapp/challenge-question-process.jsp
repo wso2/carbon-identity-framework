@@ -43,6 +43,7 @@
         //Initiate Challenge Question flow with one by one questions
 
         User user = IdentityManagementServiceUtil.getInstance().getUser(userName);
+        session.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, user.getTenantDomain());
 
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();

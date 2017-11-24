@@ -189,6 +189,8 @@ public class FileBasedConfigurationBuilder {
             log.error(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG + " file is not available", e);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
+        } catch (Exception e) {
+            log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } finally {
             try {
                 if (inStream != null) {

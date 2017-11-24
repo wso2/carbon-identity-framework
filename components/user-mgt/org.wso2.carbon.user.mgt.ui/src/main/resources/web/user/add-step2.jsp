@@ -233,7 +233,7 @@
 
 
     <div id="middle">
-        <h2><fmt:message key="add.user"/></h2>
+        <h2><fmt:message key="add.new.user"/></h2>
 
         <script type="text/javascript">
 
@@ -255,7 +255,7 @@
                                    black-list-patterns="xml-meta-exists"/>
                         </td>
                         <td style="text-align:left;">
-                            <input class="button" type="submit" value="<fmt:message key="user.search"/>"/>
+                            <input class="button" type="submit" value="<fmt:message key="role.search"/>"/>
                         </td>
                     </tr>
                 </table>

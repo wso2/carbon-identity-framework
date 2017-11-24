@@ -20,6 +20,7 @@ package org.wso2.carbon.idp.mgt.internal;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -51,7 +52,6 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -234,9 +234,9 @@ public class IdPManagementServiceComponent {
         File spConfigDir = new File(spConfigDirPath);
         OMElement documentElement = null;
 
-        if (spConfigDir.exists()) {
-
-            for (final File fileEntry : spConfigDir.listFiles()) {
+        File[] fileList = spConfigDir.listFiles();
+        if (spConfigDir.exists() && ArrayUtils.isNotEmpty(fileList)) {
+            for (final File fileEntry : fileList) {
                 try {
                     if (!fileEntry.isDirectory()) {
                         fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));

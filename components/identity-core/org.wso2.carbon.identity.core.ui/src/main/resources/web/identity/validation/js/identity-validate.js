@@ -72,6 +72,9 @@ function getPattern(pattern) {
         case "registry-invalid-chars-exists":
             regex = /[~!@#;%^*()+={}|<>\\"'/,]+/;
             break;
+        case "fragment-free-url":
+            regex = /^(([^:/?#]+):)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?([^#])?/;
+            break;
         default:
             regex = new RegExp(pattern);
             break;

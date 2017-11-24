@@ -918,7 +918,7 @@ public class ApplicationBean {
                         if (name != null) {
                             LocalAuthenticatorConfig localAuth = new LocalAuthenticatorConfig();
                             localAuth.setName(name);
-                            if (name != null && localAuthenticatorConfigs != null) {
+                            if (localAuthenticatorConfigs != null) {
                                 for (LocalAuthenticatorConfig config : localAuthenticatorConfigs) {
                                     if (config.getName().equals(name)) {
                                         localAuth.setDisplayName(config.getDisplayName());

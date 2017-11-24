@@ -66,11 +66,11 @@ public class IdentityClaimManagementServiceComponent {
             ctxt.getBundleContext().registerService(ClaimMetadataManagementService.class.getName(),
                     claimManagementService, null);
             IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagementService(claimManagementService);
+            if (log.isDebugEnabled()) {
+                log.debug("Identity Claim Management Core bundle is activated");
+            }
         } catch (Throwable e) {
             log.error("Error occurred while activating Identity Claim Management Service Component", e);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Identity Claim Management Core bundle is activated");
         }
     }
 

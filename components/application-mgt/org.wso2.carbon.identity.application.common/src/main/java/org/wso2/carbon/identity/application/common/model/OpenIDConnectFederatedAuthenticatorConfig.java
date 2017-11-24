@@ -30,25 +30,14 @@ public class OpenIDConnectFederatedAuthenticatorConfig extends FederatedAuthenti
 
     @Override
     public boolean isValid() {
-        if (IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID)) &&
-                IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET)) &&
-                IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL)) &&
-                IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL))) {
-            return true;
-        }
-        return false;
+        return isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID))
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET))
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL))
+                && isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL));
     }
 
     @Override

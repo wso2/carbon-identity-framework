@@ -280,7 +280,7 @@
     <div id="workArea">
 
     <%
-        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/view")) {
+        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/view")) {
     %>
     <table class="styledLeft" style="margin-top:10px;margin-bottom:10px;">
         <tr>
@@ -308,7 +308,7 @@
                   </select>
                 </td>
                 <%
-                    if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/pdp/manage")) {
+                    if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp/manage")) {
                 %>
                 <td style="border:0; !important">
                     <input type="button" class="button"  tabindex="4" value="Update"
@@ -409,9 +409,9 @@
                 </td>
 
                 <%
-                    boolean canEnable = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/enable");
-                    boolean canDemote = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/demote");
-                    boolean canOrder = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/entitlement/policy/manage/order");
+                    boolean canEnable = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/enable");
+                    boolean canDemote = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/demote");
+                    boolean canOrder = CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pap/policy/order");
                 %>
 
                 <td width="60%">

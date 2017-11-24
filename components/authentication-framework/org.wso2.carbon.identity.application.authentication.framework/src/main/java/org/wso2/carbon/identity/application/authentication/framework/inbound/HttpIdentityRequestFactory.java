@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -27,14 +28,13 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
@@ -43,7 +43,7 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
     protected final Properties properties = new Properties();
 
     protected InitConfig initConfig;
-    
+
     public void init(InitConfig initConfig) {
 
         this.initConfig = initConfig;
@@ -55,11 +55,11 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String) property.getKey();
+                String value = (String) property.getValue();
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
@@ -72,8 +72,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         return true;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
-            throws FrameworkClientException {
+    public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request,
+                                                         HttpServletResponse response) throws FrameworkClientException {
 
         IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
         create(builder, request, response);
@@ -81,32 +81,40 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
     }
 
     public void create(IdentityRequest.IdentityRequestBuilder builder,
-                                                         HttpServletRequest request, HttpServletResponse response)
-            throws FrameworkClientException {
+                       HttpServletRequest request,
+                       HttpServletResponse response) throws FrameworkClientException {
 
         Enumeration<String> headerNames = request.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
+        while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             builder.addHeader(headerName, request.getHeader(headerName));
         }
-        builder.setParameters(request.getParameterMap());
+
+        // We need to create a new map with the parameters sent in servlet request to avoid having a reference.
+        Map<String, String[]> paramMap = new HashMap<>(request.getParameterMap());
+        builder.setParameters(paramMap);
+
         Enumeration<String> attrNames = request.getAttributeNames();
-        while(attrNames.hasMoreElements()) {
+        while (attrNames.hasMoreElements()) {
             String attrName = attrNames.nextElement();
             builder.addAttribute(attrName, request.getAttribute(attrName));
         }
         Cookie[] cookies = request.getCookies();
-        if(cookies!=null) {
+        if (cookies != null) {
             for (Cookie cookie : cookies) {
                 builder.addCookie(cookie.getName(), cookie);
             }
         }
+
         String requestURI = request.getRequestURI();
-        if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain() != null) {
-            builder.setTenantDomain(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            builder.setTenantDomain(tenantDomain);
         } else {
             builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         }
+
         builder.setContentType(request.getContentType());
         builder.setContextPath(request.getContextPath());
         builder.setMethod(request.getMethod());
