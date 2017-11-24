@@ -86,6 +86,18 @@ public class IdentityEventConstants {
 
     }
 
+    public enum EventName {
+
+        AUTHENTICATION_STEP_SUCCESS,
+        AUTHENTICATION_STEP_FAILURE,
+        AUTHENTICATION_SUCCESS,
+        AUTHENTICATION_FAILURE,
+        SESSION_CREATE,
+        SESSION_UPDATE,
+        SESSION_TERMINATE,
+
+    }
+
     public class EventProperty {
 
         private EventProperty(){}
@@ -117,7 +129,10 @@ public class IdentityEventConstants {
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
 
-
+        public static final String REQUEST = "request";
+        public static final String CONTEXT = "context";
+        public static final String SESSION_CONTEXT = "sessionContext";
+        public static final String PARAMS = "params";
 
     }
 
