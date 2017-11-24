@@ -37,6 +37,7 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.claim.ClaimKey;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
@@ -88,7 +89,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         }
 
 
-        if (claimConfig.getClaims() != null) {
+        if (claimConfig.getClaimMap() != null) {
 
             // Adding local claims
             String primaryDomainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
@@ -106,12 +107,13 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             // Adding external dialects and claims
             Set<String> claimDialectList = new HashSet<>();
 
-            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
-                String claimURI = entry.getKey();
+                ClaimKey claimKey = entry.getKey();
                 org.wso2.carbon.user.core.claim.ClaimMapping claimMapping = entry.getValue();
                 String claimDialectURI = claimMapping.getClaim().getDialectURI();
+                String claimURI = claimKey.getClaimUri();
 
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
@@ -129,7 +131,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         }
                     }
 
-                    Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
+                    Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
                     claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
                     claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
                     claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
@@ -182,15 +184,17 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
             }
 
-            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
-                String claimURI = entry.getKey();
+                ClaimKey claimKey = entry.getKey();
+                String claimURI = claimKey.getClaimUri();
+
                 String claimDialectURI = entry.getValue().getClaim().getDialectURI();
 
                 if (!ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
-                    String mappedLocalClaimURI = claimConfig.getPropertyHolder().get(claimURI).get(ClaimConstants
+                    String mappedLocalClaimURI = claimConfig.getPropertyHolderMap().get(claimKey).get(ClaimConstants
                             .MAPPED_LOCAL_CLAIM_PROPERTY);
                     ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
 
