@@ -71,11 +71,6 @@
     </OpenID>
 
     <OAuth>
-        <AppInfoCacheTimeout>-1</AppInfoCacheTimeout>
-        <AuthorizationGrantCacheTimeout>-1</AuthorizationGrantCacheTimeout>
-        <SessionDataCacheTimeout>-1</SessionDataCacheTimeout>
-        <ClaimCacheTimeout>-1</ClaimCacheTimeout>
-
         <OAuth1RequestTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/request-token</OAuth1RequestTokenUrl>
         <OAuth1AuthorizeUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/authorize-url</OAuth1AuthorizeUrl>
         <OAuth1AccessTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/access-token</OAuth1AccessTokenUrl>
@@ -221,8 +216,6 @@
     </MultifactorAuthentication>
 
     <SSOService>
-        <PersistanceCacheTimeout>157680000</PersistanceCacheTimeout>
-        <SessionIndexCacheTimeout>157680000</SessionIndexCacheTimeout>
         <EntityId>${carbon.host}</EntityId>
         <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlsso</IdentityProviderURL>
         <DefaultLogoutEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/samlsso_logout.do</DefaultLogoutEndpoint>
