@@ -30,6 +30,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.util.Constants;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -591,36 +592,57 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     public void associateID(String idpID, String associatedID) throws UserProfileException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
-        String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
+        String userStoreDomainName = UserCoreUtil.extractDomainFromName(tenantAwareUsername);
         String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
-        try {
-            sql = "INSERT INTO IDN_ASSOCIATED_ID (TENANT_ID, IDP_ID, IDP_USER_ID, DOMAIN_NAME, USER_NAME) " +
-                  "VALUES (? , (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = ? ), ? , ?, ?)";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(Constants.SQLQueries
+                     .RETRIEVE_EXISTING_ASSOCIATIONS)) {
+            prepStmt.setInt(1, tenantID);
+            prepStmt.setString(2, idpID);
+            prepStmt.setInt(3, tenantID);
+            prepStmt.setString(4, associatedID);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Federated ID '" + associatedID + "' for IdP '" + idpID + "' is " +
+                                "already associated with the local user account '" + UserCoreUtil.addDomainToName
+                                (resultSet.getString(1), resultSet.getString(2)) + UserCoreConstants
+                                .TENANT_DOMAIN_COMBINER + tenantDomain + "'.");
+                    }
+                    throw new UserProfileException("Federated ID '" + associatedID + "' for IdP '" + idpID + "' is " +
+                            "already associated with a local user account.");
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            log.error("Error occurred while retrieving existing association for federated user ID '" + associatedID
+                    + "' for IdP '" + idpID + "' in tenant '" + tenantDomain + "'.", e);
+            throw new UserProfileException("Error occurred while retrieving existing association for federated user " +
+                    "ID.");
+        }
 
-            prepStmt = connection.prepareStatement(sql);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(Constants.SQLQueries
+                     .ASSOCIATE_USER_ACCOUNTS)) {
             prepStmt.setInt(1, tenantID);
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
             prepStmt.setString(5, userStoreDomainName);
             prepStmt.setString(6, username);
-
-
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
-            log.error("Error occurred while persisting the federated user ID", e);
-            throw new UserProfileException("Error occurred while persisting the federated user ID", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            log.error("Error occurred while persisting association for federated user ID '" + associatedID + "' for" +
+                    " IdP '" + idpID + "' with the local user account '" + UserCoreUtil.addDomainToName
+                    (username, userStoreDomainName) + UserCoreConstants.TENANT_DOMAIN_COMBINER + tenantDomain
+                    + "'.", e);
+            throw new UserProfileException("Error occurred while persisting the federated user ID");
         }
-
     }
 
     public String getNameAssociatedWith(String idpID, String associatedID) throws UserProfileException {
