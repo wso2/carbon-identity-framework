@@ -32,9 +32,10 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
 import org.wso2.carbon.identity.governance.stub.bean.Property;
 import org.wso2.carbon.ui.CarbonUIUtil;
-import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 import org.wso2.carbon.user.mgt.common.RandomPasswordGenerator;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
@@ -406,6 +407,33 @@ public class Util {
             log.error(message, e);
             throw new UserManagementUIException(message, e);
         }
+    }
+
+    /**
+     * Provide whether the user referred is the logged-in user.
+     *
+     * @param currentUsername logged in username.
+     * @param username provided username.
+     * @param userRealmInfo User realm info.
+     * @return Returns 'true' if the provided user is the logged-in user.
+     */
+    public static boolean isCurrentUser(String currentUsername, String username, UserRealmInfo userRealmInfo) {
+
+        if (username.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            // username case sensitiveness can be changed in the database level or using the user-store configuration.
+            // So always consider username as case insensitive.
+            return currentUsername.equalsIgnoreCase(username);
+        }
+
+        if (currentUsername.contains(UserCoreConstants.DOMAIN_SEPARATOR)
+                && !UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME
+                .equalsIgnoreCase(UserCoreUtil.extractDomainFromName(currentUsername))) {
+            return false;
+        }
+
+        // username case sensitiveness can be changed in the database level or using the user-store configuration.
+        // So always consider username as case insensitive.
+        return UserCoreUtil.removeDomainFromName(currentUsername).equalsIgnoreCase(username);
     }
 
     private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
