@@ -274,6 +274,21 @@
             <UserName>false</UserName>
         </EnableAssertions>
 
+
+        <!-- This should be true if subject identifier in the token validation response needs to adhere to the
+        following SP configuration.
+
+        - Use tenant domain in local subject identifier.
+        - Use user store domain in local subject identifier.
+
+        if the value is false, subject identifier will be set as the fully qualified username.
+
+        Default value : false
+
+        Supported versions: IS 5.4.0 beta onwards
+        -->
+        <!--<BuildSubjectIdentifierFromSPConfig>true</BuildSubjectIdentifierFromSPConfig>-->
+
         <!-- This should be set to true when using multiple user stores and keys
             should saved into different tables according to the user store. By default
             all the application keys are saved in to the same table. UserName Assertion
