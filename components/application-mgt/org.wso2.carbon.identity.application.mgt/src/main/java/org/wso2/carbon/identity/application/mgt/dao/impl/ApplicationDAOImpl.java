@@ -797,6 +797,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
                 storeAuthScriptPrepStmt
                         .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
+                storeAuthScriptPrepStmt.setBoolean(5,authenticationScriptConfig.getEnabled());
                 storeAuthScriptPrepStmt.execute();
             }
         }
@@ -2097,6 +2098,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
 
                     try {
+                        boolean isEnabled = localAndOutboundConfigScriptResultSet.getBoolean(2);
                         StringBuilder sb = new StringBuilder();
                         BufferedReader br = new BufferedReader(
                                 localAndOutboundConfigScriptResultSet.getCharacterStream(1));
@@ -2106,6 +2108,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         }
                         String targetString = sb.toString();
                         authenticationScriptConfig.setContent(targetString);
+                        authenticationScriptConfig.setEnabled(isEnabled);
                     } catch (IOException e) {
                         throw new IdentityApplicationManagementException(
                                 "Could not read the Script for application : " + applicationId, e);
