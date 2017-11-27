@@ -212,30 +212,26 @@ public class UserStoreCountUtils {
 
     public static boolean isUserStoreEnabled(String domain) throws UserStoreCounterException {
 
-        RealmConfiguration secondaryRealmConfiguration = null;
-        boolean enabled = false;
-        UserStoreCountRetriever counter = null;
+        RealmConfiguration realmConfiguration;
+        boolean isEnabled = false;
         try {
-            secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                    getRealmConfiguration().getSecondaryRealmConfig();
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
 
-            if (secondaryRealmConfiguration == null) {
-                return false;
-            }
             do {
-                String userStoreDomain =
-                        secondaryRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                String userStoreDomain = realmConfiguration.
+                        getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+
                 if (domain.equals(userStoreDomain)) {
-                    enabled =
-                            !Boolean.valueOf(secondaryRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.USER_STORE_DISABLED));
+                    isEnabled = !Boolean.valueOf(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.
+                            USER_STORE_DISABLED));
                     break;
                 }
-                secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
-            } while (secondaryRealmConfiguration != null);
+                realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
+            } while (realmConfiguration != null);
 
         } catch (UserStoreException e) {
             throw new UserStoreCounterException("Error occurred while getting Secondary Realm Configuration", e);
         }
-        return enabled;
+        return isEnabled;
     }
 }
