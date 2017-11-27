@@ -831,7 +831,7 @@ public class IdentityUtil {
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
 
-        if (parameterMap.size() > 0) {
+        if (parameterMap != null && parameterMap.size() > 0) {
             if(queryString.indexOf("?") < 0) {
                 queryString.append("?");
             } else {
