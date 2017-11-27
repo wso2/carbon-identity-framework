@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.provisioning;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
@@ -58,8 +59,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -122,133 +123,45 @@ public class OutboundProvisioningManager {
     private Map<String, RuntimeProvisioningConfig> getOutboundProvisioningConnectors(
             ServiceProvider serviceProvider, String tenantDomainName) throws IdentityProvisioningException {
 
+        if (serviceProvider == null) {
+            throw new IdentityProvisioningException("Given Service Provider is null hence Outbound Provisioning " +
+                    "Connectors cannot be retrieved for tenant:" + tenantDomainName);
+        }
+
+        if (CarbonContext.getThreadLocalCarbonContext() == null) {
+            throw new IdentityProvisioningException("ThreadLocalCarbonContext cannot be null");
+        }
+
         Map<String, RuntimeProvisioningConfig> connectors = new HashMap<>();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        // maintain the provisioning connector cache in the super tenant.
-        // at the time of provisioning there may not be an authenticated user in the system -
-        // specially in the case of in-bound provisioning.
 
-        String tenantDomain = null;
-        int tenantId = -1234;
-        ServiceProviderProvisioningConnectorCacheKey key = null;
-        ServiceProviderProvisioningConnectorCacheEntry entry = null;
-
-        if (CarbonContext.getThreadLocalCarbonContext() != null) {
-            tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        connectors = getRuntimeProvisioningConfigFromCache(serviceProvider,
+                tenantDomainName, tenantDomain, tenantId);
+        if (!connectors.isEmpty()) {
+            return connectors;
         }
 
-        try {
-
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                    .getThreadLocalCarbonContext();
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            // reading from the cache
-            if (serviceProvider != null && tenantDomain != null) {
-                key = new ServiceProviderProvisioningConnectorCacheKey(serviceProvider.getApplicationName(), tenantDomain);
-
-                entry = ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key);
-
-                // cache hit
-                if (entry != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Provisioning cache HIT for " + serviceProvider + " of "
-                                + tenantDomainName);
-                    }
-                    return entry.getConnectors();
-                }
-            } else {
-                throw new IdentityProvisioningException("Error reading service provider from cache.");
-            }
-
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-
-            if (tenantDomain != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            }
-        }
-
-        // NOW build the Map
-
-        // a list of registered provisioning connector factories.
-        Map<String, AbstractProvisioningConnectorFactory> registeredConnectorFactories = IdentityProvisionServiceComponent
-                .getConnectorFactories();
-
-        // get all registered list of out-bound provisioning connectors registered for the local
-        // service provider.
-        OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider
-                .getOutboundProvisioningConfig();
-
-        if (outboundProvisioningConfiguration == null) {
+        connectors = getRuntimeProvisioningConfig(serviceProvider, tenantDomainName);
+        if (!connectors.isEmpty()) {
+            addToCache(serviceProvider, connectors, tenantDomain, tenantId);
             if (log.isDebugEnabled()) {
-                log.debug("No outbound provisioning configuration defined for local service provider.");
-            }
-            // no out-bound provisioning configuration defined for local service provider.return an
-            // empty list.
-            return new HashMap<String, RuntimeProvisioningConfig>();
-        }
-
-        // get the list of registered provisioning identity providers in out-bound provisioning
-        // configuration.
-        IdentityProvider[] provisionningIdPList = outboundProvisioningConfiguration
-                .getProvisioningIdentityProviders();
-
-        if (provisionningIdPList != null && provisionningIdPList.length > 0) {
-            // we have a set of provisioning identity providers registered in our system.
-
-            for (IdentityProvider fIdP : provisionningIdPList) {
-                // iterate through the provisioning identity provider list to find out the default
-                // provisioning connector of each of the,
-
-                try {
-
-                    AbstractOutboundProvisioningConnector connector;
-
-                    ProvisioningConnectorConfig defaultConnector = fIdP
-                            .getDefaultProvisioningConnectorConfig();
-                    if (defaultConnector != null) {
-                        // if no default provisioning connector defined for this identity provider,
-                        // we can safely ignore it - need not to worry about provisioning.
-
-                        String connectorType = fIdP.getDefaultProvisioningConnectorConfig()
-                                .getName();
-
-                        boolean enableJitProvisioning = false;
-
-                        if (fIdP.getJustInTimeProvisioningConfig() != null
-                            && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
-                            enableJitProvisioning = true;
-                        }
-
-                        connector = getOutboundProvisioningConnector(fIdP,
-                                                                     registeredConnectorFactories, tenantDomainName,
-                                                                     enableJitProvisioning);
-                        // add to the provisioning connectors list. there will be one item for each
-                        // provisioning identity provider found in the out-bound provisioning
-                        // configuration of the local service provider.
-                        if (connector != null) {
-                            RuntimeProvisioningConfig proConfig = new RuntimeProvisioningConfig();
-                            proConfig
-                                    .setProvisioningConnectorEntry(new SimpleEntry<>(
-                                            connectorType, connector));
-                            proConfig.setBlocking(defaultConnector.isBlocking());
-                            proConfig.setPolicyEnabled(defaultConnector.isRulesEnabled());
-                            connectors.put(fIdP.getIdentityProviderName(), proConfig);
-                        }
-                    }
-
-                } catch (IdentityProviderManagementException e) {
-                    throw new IdentityProvisioningException("Error while retrieving idp configuration for "
-                                                            + fIdP.getIdentityProviderName(), e);
-                }
+                log.debug("Provisioning Connectors added to Cache successfully for SP: " + serviceProvider +
+                        " & tenant domain: " + tenantDomain);
             }
         }
+        return connectors;
+    }
 
+    /**
+     *
+     * @param serviceProvider
+     * @param connectors
+     * @param tenantDomain
+     * @param tenantId
+     */
+    private void addToCache(ServiceProvider serviceProvider, Map<String, RuntimeProvisioningConfig> connectors, String tenantDomain, int tenantId) {
         try {
 
             PrivilegedCarbonContext.startTenantFlow();
@@ -256,8 +169,9 @@ public class OutboundProvisioningManager {
                     .getThreadLocalCarbonContext();
             carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
             carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            entry = new ServiceProviderProvisioningConnectorCacheEntry();
+            ServiceProviderProvisioningConnectorCacheKey key = new ServiceProviderProvisioningConnectorCacheKey(
+                    serviceProvider.getApplicationName(), tenantDomain);
+            ServiceProviderProvisioningConnectorCacheEntry entry = new ServiceProviderProvisioningConnectorCacheEntry();
             entry.setConnectors(connectors);
             ServiceProviderProvisioningConnectorCache.getInstance().addToCache(key, entry);
 
@@ -266,28 +180,149 @@ public class OutboundProvisioningManager {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         }
+    }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Entry added successfully ");
+    /**
+     *
+     * @param serviceProvider
+     * @param tenantDomainName
+     * @return
+     * @throws IdentityProvisioningException
+     */
+    private Map<String, RuntimeProvisioningConfig> getRuntimeProvisioningConfig(
+            ServiceProvider serviceProvider, String tenantDomainName) throws IdentityProvisioningException {
+
+        // get all registered list of out-bound provisioning connectors registered for the local
+        // service provider.
+        OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider.getOutboundProvisioningConfig();
+
+        Map<String, RuntimeProvisioningConfig> connectors = new HashMap<String, RuntimeProvisioningConfig>();
+        if (outboundProvisioningConfiguration == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No outbound provisioning configuration defined for local service provider.");
+            }
+            // no out-bound provisioning configuration defined for local service provider.return an
+            // empty list.
+            return connectors;
+        }
+
+        // get the list of registered provisioning identity providers in out-bound provisioning
+        // configuration.
+        IdentityProvider[] provisionningIdPList = outboundProvisioningConfiguration
+                .getProvisioningIdentityProviders();
+
+        if (provisionningIdPList != null && provisionningIdPList.length > 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cannot find Provisioning IDP list from Outbound Provisioning Configs for tenant: " +
+                        tenantDomainName);
+            }
+            return connectors;
+        }
+
+        // we have a set of provisioning identity providers registered in our system.
+        for (IdentityProvider fIdP : provisionningIdPList) {
+            // iterate through the provisioning identity provider list to find out the default
+            // provisioning connector of each of the,
+            collectConnector(tenantDomainName, fIdP, connectors);
         }
 
         return connectors;
     }
 
     /**
-     * @param fIdP
-     * @param registeredConnectorFactories
      * @param tenantDomainName
-     * @param enableJitProvisioning
+     * @param fIdP
+     * @param connectors
+     * @throws IdentityProvisioningException
+     */
+    private void collectConnector(String tenantDomainName, IdentityProvider fIdP, Map<String, RuntimeProvisioningConfig>
+            connectors) throws IdentityProvisioningException {
+
+        try {
+            ProvisioningConnectorConfig defaultConnector = fIdP.getDefaultProvisioningConnectorConfig();
+            if (defaultConnector == null) {
+                // if no default provisioning connector defined for this identity provider,
+                // we can safely ignore it - need not to worry about provisioning.
+                return;
+            }
+            AbstractOutboundProvisioningConnector connector = getOutboundProvisioningConnector(fIdP, tenantDomainName);
+            if (connector == null) {
+                return;
+            }
+            /** add to the provisioning connectors list. there will be one item for each
+             provisioning identity provider found in the out-bound provisioning
+             configuration of the local service provider**/
+            RuntimeProvisioningConfig proConfig = new RuntimeProvisioningConfig();
+            String connectorType = fIdP.getDefaultProvisioningConnectorConfig().getName();
+            proConfig.setProvisioningConnectorEntry(new SimpleEntry<>(connectorType, connector));
+            proConfig.setBlocking(defaultConnector.isBlocking());
+            proConfig.setPolicyEnabled(defaultConnector.isRulesEnabled());
+
+            connectors.put(fIdP.getIdentityProviderName(), proConfig);
+        } catch (IdentityProviderManagementException e) {
+            throw new IdentityProvisioningException("Error while retrieving idp configuration for "
+                    + fIdP.getIdentityProviderName(), e);
+        }
+    }
+
+    /**
+     *
+     * @param serviceProvider
+     * @param tenantDomainName
+     * @param tenantDomain
+     * @param tenantId
+     * @return
+     */
+    private Map<String, RuntimeProvisioningConfig> getRuntimeProvisioningConfigFromCache(
+            ServiceProvider serviceProvider, String tenantDomainName, String tenantDomain, int tenantId) {
+
+        try {
+            /** maintain the provisioning connector cache in the super tenant.
+             at the time of provisioning there may not be an authenticated user in the system -
+             specially in the case of in-bound provisioning.**/
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+            ServiceProviderProvisioningConnectorCacheKey key = new ServiceProviderProvisioningConnectorCacheKey(
+                    serviceProvider.getApplicationName(), tenantDomain);
+            ServiceProviderProvisioningConnectorCacheEntry entry = ServiceProviderProvisioningConnectorCache.
+                    getInstance().getValueFromCache(key);
+
+            // cache hit
+            if (entry != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Provisioning cache HIT for " + serviceProvider + " of "
+                            + tenantDomainName);
+                }
+                Map<String, RuntimeProvisioningConfig> connectors = entry.getConnectors();
+                if (MapUtils.isNotEmpty(connectors)) {
+                    return connectors;
+                }
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+            }
+        }
+        return new HashMap<String, RuntimeProvisioningConfig>();
+    }
+
+    /**
+     *
+     * @param fIdP
+     * @param tenantDomainName
      * @return
      * @throws IdentityProviderManagementException
-     * @throws UserStoreException
+     * @throws IdentityProvisioningException
      */
-    private AbstractOutboundProvisioningConnector getOutboundProvisioningConnector(
-            IdentityProvider fIdP,
-            Map<String, AbstractProvisioningConnectorFactory> registeredConnectorFactories,
-            String tenantDomainName, boolean enableJitProvisioning)
-            throws IdentityProviderManagementException, IdentityProvisioningException {
+    private AbstractOutboundProvisioningConnector getOutboundProvisioningConnector(IdentityProvider fIdP,
+                                                                                   String tenantDomainName) throws
+            IdentityProviderManagementException, IdentityProvisioningException {
 
         String idpName = fIdP.getIdentityProviderName();
 
@@ -305,64 +340,105 @@ public class OutboundProvisioningManager {
                     "Provisioning identity provider not available in the system. Idp Name : "
                     + idpName);
         }
-
         // get a list of provisioning connectors associated with the provisioning
         // identity provider.
         ProvisioningConnectorConfig[] provisioningConfigs = fIdP.getProvisioningConnectorConfigs();
 
-        if (provisioningConfigs != null && provisioningConfigs.length > 0) {
-
-            for (ProvisioningConnectorConfig defaultProvisioningConfig : provisioningConfigs) {
-
-                if (!connectorType.equals(defaultProvisioningConfig.getName())
+        if (ArrayUtils.isEmpty(provisioningConfigs)) {
+            return null;
+        }
+        for (ProvisioningConnectorConfig defaultProvisioningConfig : provisioningConfigs) {
+            if (!connectorType.equals(defaultProvisioningConfig.getName())
                     || !defaultProvisioningConfig.isEnabled()) {
-                    // we need to find the provisioning connector selected by the service provider.
-                    continue;
-                }
-
-                // this is how we match the configuration to the runtime. the provisioning
-                // connector factory should be registered with the system, with the exact
-                // name available in the corresponding configuration.
-                AbstractProvisioningConnectorFactory factory = registeredConnectorFactories
-                        .get(connectorType);
-
-                // get the provisioning properties associated with a given provisioning
-                // connector.
-                Property[] provisioningProperties = defaultProvisioningConfig
-                        .getProvisioningProperties();
-
-                if (enableJitProvisioning) {
-                    Property jitEnabled = new Property();
-                    jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
-                    jitEnabled.setValue("1");
-                    provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
-                            provisioningProperties, new Property[]{jitEnabled});
-                }
-
-                Property userIdClaimURL = new Property();
-                userIdClaimURL.setName("userIdClaimUri");
-
-                if (fIdP.getClaimConfig() != null && fIdP.getClaimConfig().getUserClaimURI() != null) {
-                    userIdClaimURL.setValue(fIdP.getClaimConfig().getUserClaimURI());
-                } else {
-                    userIdClaimURL.setValue("");
-                }
-
-                List<Property> provisioningPropertiesList = new ArrayList<>(Arrays.asList(provisioningProperties));
-
-                provisioningPropertiesList.add(userIdClaimURL);
-
-                provisioningProperties = new Property[provisioningPropertiesList.size()];
-                provisioningProperties = provisioningPropertiesList.toArray(provisioningProperties);
-
-                // get the runtime provisioning connector associate the provisioning
-                // identity provider. any given time, a given provisioning identity provider
-                // can only be associated with a single provisioning connector.
-                return factory.getConnector(idpName, provisioningProperties, tenantDomainName);
+                // we need to find the provisioning connector selected by the service provider.
+                continue;
             }
+            return getAbstractOutboundProvisioningConnector(fIdP, tenantDomainName, defaultProvisioningConfig);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param fIdP
+     * @param tenantDomainName
+     * @param defaultProvisioningConfig
+     * @return
+     * @throws IdentityProvisioningException
+     */
+    private AbstractOutboundProvisioningConnector getAbstractOutboundProvisioningConnector(IdentityProvider fIdP, String
+            tenantDomainName, ProvisioningConnectorConfig defaultProvisioningConfig) throws
+            IdentityProvisioningException {
+
+        // get the provisioning properties associated with a given provisioning
+        // connector.
+        Property[] provisioningProperties = setJitProperty(fIdP, defaultProvisioningConfig);
+        provisioningProperties = setUserIDClaimURL(fIdP, provisioningProperties);
+
+        // name of the default provisioning connector.
+        String connectorType = fIdP.getDefaultProvisioningConnectorConfig().getName();
+
+        // a list of registered provisioning connector factories.
+        Map<String, AbstractProvisioningConnectorFactory> registeredConnectorFactories =
+                IdentityProvisionServiceComponent.getConnectorFactories();
+
+        /** this is how we match the configuration to the runtime. the provisioning
+         connector factory should be registered with the system, with the exact
+         name available in the corresponding configuration.**/
+        AbstractProvisioningConnectorFactory factory = registeredConnectorFactories.get(connectorType);
+        // get the runtime provisioning connector associate the provisioning
+        // identity provider. any given time, a given provisioning identity provider
+        // can only be associated with a single provisioning connector.
+        return factory.getConnector(fIdP.getIdentityProviderName(), provisioningProperties, tenantDomainName);
+    }
+
+    /**
+     *
+     * @param fIdP
+     * @param provisioningProperties
+     * @return
+     */
+    private Property[] setUserIDClaimURL(IdentityProvider fIdP, Property[] provisioningProperties) {
+
+        Property userIdClaimURL = new Property();
+        userIdClaimURL.setName("userIdClaimUri");
+
+        if (fIdP.getClaimConfig() != null && fIdP.getClaimConfig().getUserClaimURI() != null) {
+            userIdClaimURL.setValue(fIdP.getClaimConfig().getUserClaimURI());
+        } else {
+            userIdClaimURL.setValue("");
+        }
+        return IdentityApplicationManagementUtil.concatArrays(provisioningProperties, new Property[]{userIdClaimURL});
+    }
+
+    /**
+     *
+     * @param fIdP
+     * @param defaultProvisioningConfig
+     * @return
+     */
+    private Property[] setJitProperty(IdentityProvider fIdP, ProvisioningConnectorConfig defaultProvisioningConfig) {
+
+        boolean enableJitProvisioning = false;
+
+        if (fIdP.getJustInTimeProvisioningConfig() != null
+                && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
+            enableJitProvisioning = true;
         }
 
-        return null;
+        if (enableJitProvisioning) {
+            return defaultProvisioningConfig.getProvisioningProperties();
+        }
+
+        // get the provisioning properties associated with a given provisioning
+        // connector.
+        Property[] provisioningProperties = defaultProvisioningConfig.getProvisioningProperties();
+
+        Property jitEnabled = new Property();
+        jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
+        jitEnabled.setValue("1");
+
+        return IdentityApplicationManagementUtil.concatArrays(provisioningProperties, new Property[]{jitEnabled});
     }
 
     /**
@@ -378,30 +454,13 @@ public class OutboundProvisioningManager {
             throws IdentityProvisioningException {
 
         try {
-            if (provisioningEntity.getEntityName() == null) {
-                setProvisioningEntityName(provisioningEntity);
-            }
-            // get details about the service provider.any in-bound provisioning request via
-            // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
-            // Authentication is considered as coming from the local service provider.
-            ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
-                    .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
+            setProvisioningEntityName(provisioningEntity);
+            ServiceProvider serviceProvider = getServiceProvider(serviceProviderIdentifier, tenantDomainName);
+            ClaimMapping[] spClaimMappings = getClaimMappings(inboundClaimDialect, serviceProvider);
 
-            if (serviceProvider == null) {
-                throw new IdentityProvisioningException("Invalid service provider name : "
-                                                        + serviceProviderIdentifier);
-            }
-
-            ClaimMapping[] spClaimMappings = null;
-
-            // if we know the serviceProviderClaimDialect - we do not need to find it again.
-            if (inboundClaimDialect == null && serviceProvider.getClaimConfig() != null) {
-                spClaimMappings = serviceProvider.getClaimConfig().getClaimMappings();
-            }
-
-            // get all the provisioning connectors associated with local service provider for
-            // out-bound provisioning.
-            // TODO: stop loading connectors all the time.
+            /** get all the provisioning connectors associated with local service provider for
+             out-bound provisioning.
+             TODO: stop loading connectors all the time.**/
             Map<String, RuntimeProvisioningConfig> connectors = getOutboundProvisioningConnectors(
                     serviceProvider, tenantDomainName);
 
@@ -499,7 +558,6 @@ public class OutboundProvisioningManager {
                     List<String> deletedUsersList = attributes.get(ClaimMapping.build(
                             IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false));
 
-                    Map<ClaimMapping, List<String>> mappedUserClaims;
                     ProvisionedIdentifier provisionedUserIdentifier;
 
                     for (String user : newUsersList) {
@@ -513,7 +571,7 @@ public class OutboundProvisioningManager {
                             continue;
                         }
 
-                        mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialect,
+                        Map<ClaimMapping, List<String>> mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialect,
                                                            inboundProvisioningEntity, spClaimMappings, idpClaimMappings, tenantDomainName);
 
                         outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
@@ -536,7 +594,7 @@ public class OutboundProvisioningManager {
                                                                                    inboundProvisioningEntity, tenantDomainName);
 
                         if (provisionedUserIdentifier != null && provisionedUserIdentifier.getIdentifier() != null) {
-                            mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialect,
+                            Map<ClaimMapping, List<String>> mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialect,
                                                                inboundProvisioningEntity, spClaimMappings, idpClaimMappings, tenantDomainName);
 
                             outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
@@ -595,6 +653,65 @@ public class OutboundProvisioningManager {
             throw new IdentityProvisioningException("Error occurred while checking for user " +
                                                     "provisioning", e);
         }
+    }
+
+    /**
+     * @param inboundClaimDialect
+     * @param serviceProvider
+     * @return
+     */
+    private ClaimMapping[] getClaimMappings(String inboundClaimDialect, ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            return new ClaimMapping[0];
+        }
+        // if we know the serviceProviderClaimDialect - we do not need to find it again.
+        if (StringUtils.isNotBlank(inboundClaimDialect)) {
+            return new ClaimMapping[0];
+        }
+        if (serviceProvider.getClaimConfig() != null) {
+            ClaimMapping[] spClaimMappings = serviceProvider.getClaimConfig().getClaimMappings();
+            if (ArrayUtils.isNotEmpty(spClaimMappings)) {
+                return spClaimMappings;
+            }
+        }
+        return new ClaimMapping[0];
+    }
+
+    /**
+     * @param serviceProviderIdentifier
+     * @param tenantDomainName
+     * @return
+     * @throws IdentityProvisioningException
+     */
+    private ServiceProvider getServiceProvider(String serviceProviderIdentifier, String tenantDomainName)
+            throws IdentityProvisioningException {
+
+        if (StringUtils.isBlank(serviceProviderIdentifier)) {
+            throw new IdentityProvisioningException("Service Provider name cannot be Empty or Null");
+        }
+
+        if (StringUtils.isBlank(tenantDomainName)) {
+            throw new IdentityProvisioningException("Tenant domain cannot be Empty or Null");
+        }
+
+        // get details about the service provider.any in-bound provisioning request via
+        // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
+        // Authentication is considered as coming from the local service provider.
+        ServiceProvider serviceProvider = null;
+        try {
+            serviceProvider = ApplicationManagementService.getInstance()
+                    .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityProvisioningException("Error occurred while retrieving Service Provider for name: " +
+                    serviceProviderIdentifier + " & tenant: " + tenantDomainName);
+        }
+
+        if (serviceProvider == null) {
+            throw new IdentityProvisioningException("Service Provider with name: " + serviceProviderIdentifier +
+                    " does not exist in tenant: " + tenantDomainName);
+        }
+        return serviceProvider;
     }
 
     private void executeOutboundProvisioning(ProvisioningEntity provisioningEntity, ExecutorService executors,
@@ -973,6 +1090,11 @@ public class OutboundProvisioningManager {
      */
     private ProvisioningEntity setProvisioningEntityName(ProvisioningEntity provisioningEntity)
             throws IdentityApplicationManagementException {
+
+        if (StringUtils.isNotBlank(provisioningEntity.getEntityName())) {
+            return provisioningEntity;
+        }
+
         String provisionedEntityName = dao.getProvisionedEntityNameByLocalId(
                 ProvisioningUtil.getAttributeValue(provisioningEntity, IdentityProvisioningConstants.ID_CLAIM_URI));
 
