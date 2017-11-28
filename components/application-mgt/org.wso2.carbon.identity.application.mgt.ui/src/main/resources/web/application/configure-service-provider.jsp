@@ -1475,6 +1475,15 @@ function updateBeanAndPostTo(postURL, data) {
 		                            Property[] properties = customAuthenticator.getProperties();
 
 		                            if (properties != null && properties.length > 0) {
+			                            // Remove invalid properties returned from custom authenticators
+			                            List<Property> nonNullProperties = new ArrayList<Property>();
+			                            for (Property property : properties) {
+				                            if (property != null && StringUtils.isNotBlank(property.getName()) &&
+						                            StringUtils.isNotBlank(property.getDisplayName())) {
+					                            nonNullProperties.add(property);
+				                            }
+			                            }
+			                            properties = nonNullProperties.toArray(new Property[nonNullProperties.size()]);
 			                            Arrays.sort(properties, new Comparator<Property>() {
 				                            public int compare(Property obj1, Property obj2) {
 
