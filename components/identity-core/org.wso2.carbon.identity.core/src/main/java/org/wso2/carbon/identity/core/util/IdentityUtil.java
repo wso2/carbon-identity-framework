@@ -830,10 +830,16 @@ public class IdentityUtil {
             throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
-        if (queryString.indexOf("?") < 0) {
-            queryString.append("?");
+
+        if (parameterMap != null && parameterMap.size() > 0) {
+            if(queryString.indexOf("?") < 0) {
+                queryString.append("?");
+            } else {
+                queryString.append("&");
+            }
+            queryString.append(buildQueryComponent(parameterMap));
         }
-        queryString.append(buildQueryComponent(parameterMap));
+
         return queryString.toString();
     }
 
