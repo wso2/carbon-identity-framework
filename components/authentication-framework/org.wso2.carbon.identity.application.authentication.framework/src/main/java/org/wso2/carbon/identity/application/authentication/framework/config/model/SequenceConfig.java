@@ -148,9 +148,9 @@ public class SequenceConfig implements Serializable, Cloneable {
      */
     public Object clone() throws CloneNotSupportedException {
         SequenceConfig sequenceConfig = (SequenceConfig) super.clone();
-        sequenceConfig.applicationConfig = (ApplicationConfig) applicationConfig.clone();
-        sequenceConfig.stepMap.putAll(this.stepMap);
-        sequenceConfig.reqPathAuthenticators.addAll(this.reqPathAuthenticators);
+        sequenceConfig.setApplicationConfig((ApplicationConfig) applicationConfig.clone());
+        sequenceConfig.setStepMap(new HashMap<>(this.stepMap));
+        sequenceConfig.setReqPathAuthenticators(new ArrayList<>(this.reqPathAuthenticators));
         return sequenceConfig;
     }
 

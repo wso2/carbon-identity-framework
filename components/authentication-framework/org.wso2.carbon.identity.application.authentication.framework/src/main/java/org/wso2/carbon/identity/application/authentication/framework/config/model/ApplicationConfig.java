@@ -272,11 +272,11 @@ public class ApplicationConfig implements Serializable, Cloneable {
      */
     public Object clone() throws CloneNotSupportedException {
         ApplicationConfig applicationConfig = (ApplicationConfig) super.clone();
-        applicationConfig.claimMappings.putAll(this.claimMappings);
-        applicationConfig.roleMappings.putAll(this.roleMappings);
-        applicationConfig.requestedClaims.putAll(this.requestedClaims);
-        applicationConfig.mandatoryClaims.putAll(this.mandatoryClaims);
-        applicationConfig.permissions = this.permissions.clone();
+        applicationConfig.setClaimMappings(new HashMap<>(this.claimMappings));
+        applicationConfig.setRoleMappings(new HashMap<>(this.roleMappings));
+        applicationConfig.requestedClaims = new HashMap<>(this.requestedClaims);
+        applicationConfig.mandatoryClaims = new HashMap<>(this.mandatoryClaims);
+        applicationConfig.setPermissions(this.permissions.clone());
         return applicationConfig;
     }
 }
