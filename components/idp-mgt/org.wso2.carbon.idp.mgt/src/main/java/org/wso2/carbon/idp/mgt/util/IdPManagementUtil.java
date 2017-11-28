@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -34,6 +35,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class IdPManagementUtil {
 
@@ -125,7 +128,7 @@ public class IdPManagementUtil {
                 continue;
             }
             properties = RandomPasswordProcessor.getInstance().removeOriginalPasswords(properties);
-            provisioningConnectorConfig.setProvisioningProperties(properties);
+            provisioningConnectorConfig.setProvisioningProperties(removeEmptyElements(properties));
         }
     }
 
@@ -146,7 +149,19 @@ public class IdPManagementUtil {
                 continue;
             }
             properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
-            provisioningConnectorConfig.setProvisioningProperties(properties);
+            provisioningConnectorConfig.setProvisioningProperties(removeEmptyElements(properties));
         }
+    }
+
+    private static Property[] removeEmptyElements(Property[] properties) {
+        List<Property> propertyList = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(properties)) {
+            for (Property property : properties) {
+                if (property != null && StringUtils.isNotBlank(property.getName())) {
+                    propertyList.add(property);
+                }
+            }
+        }
+        return propertyList.toArray(new Property[0]);
     }
 }
