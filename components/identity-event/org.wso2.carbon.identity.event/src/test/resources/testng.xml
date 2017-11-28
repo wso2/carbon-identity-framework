@@ -16,9 +16,18 @@
   -->
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
-
-<suite name="Local-Auth-IWA-Kerberos-Test-Suite">
+<suite name="Identity-Event-Test-Suite">
+    <test name="Util-Tests-with-debug-logs" preserve-order="true" parallel="false">
+        <parameter name="log-level" value="debug"/>
+        <classes>
+            <class name="org.wso2.carbon.identity.event.handler.AbstractEventHandlerTest"/>
+            <class name="org.wso2.carbon.identity.event.services.IdentityEventServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.event.IdentityEventConfigBuilderTest"/>
+            <class name="org.wso2.carbon.identity.event.IdentityEventUtilsTest"/>
+        </classes>
+    </test>
     <test name="Util-Tests" preserve-order="true" parallel="false">
+        <parameter name="log-level" value="info"/>
         <classes>
             <class name="org.wso2.carbon.identity.event.IdentityEventUtilsTest"/>
             <class name="org.wso2.carbon.identity.event.event.EventTest"/>
@@ -28,6 +37,7 @@
             <class name="org.wso2.carbon.identity.event.Bean.ModuleConfigurationTest"/>
             <class name="org.wso2.carbon.identity.event.handler.AbstractEventHandlerTest"/>
             <class name="org.wso2.carbon.identity.event.Internal.IdentityEventServiceDataHolderTest"/>
+            <class name="org.wso2.carbon.identity.event.services.IdentityEventServiceImplTest"/>
         </classes>
     </test>
 </suite>

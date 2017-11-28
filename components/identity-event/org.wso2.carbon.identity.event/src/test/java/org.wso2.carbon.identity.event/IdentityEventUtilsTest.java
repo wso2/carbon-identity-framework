@@ -20,10 +20,12 @@ package org.wso2.carbon.identity.event;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import java.io.*;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+
+import java.io.IOException;
 import java.util.Properties;
 
-public class IdentityEventUtilsTest {
+public class IdentityEventUtilsTest extends IdentityBaseTest {
 
     private Properties properties;
     private Properties loadedProperties;
@@ -78,7 +80,16 @@ public class IdentityEventUtilsTest {
     @Test (expectedExceptions = {IllegalArgumentException.class})
     public void testReplacePlaceHolderException() {
 
-        IdentityEventUtils.replacePlaceHolders("", "", "", properties);
+        IdentityEventUtils.replacePlaceHolders("", "value", "value", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "", "value", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "value", "", properties);
+        IdentityEventUtils.replacePlaceHolders("value", "value", "value", null);
+    }
+
+    @Test (expectedExceptions = {IllegalArgumentException.class})
+    public void testReplacePlaceHolderException2() {
+
+        IdentityEventUtils.replacePlaceHolders("value", "", "", null);
     }
 
     @Test
@@ -94,7 +105,6 @@ public class IdentityEventUtilsTest {
         IdentityEventUtils.getPropertiesWithPrefix("", properties);
     }
 
-
     @Test
     public void testGetSubProperties(){
 
@@ -106,6 +116,7 @@ public class IdentityEventUtilsTest {
     public void testGetSubPropertiesException() {
 
         IdentityEventUtils.getSubProperties("", properties);
+        IdentityEventUtils.getSubProperties("x", null);
     }
 
     @Test
@@ -117,6 +128,3 @@ public class IdentityEventUtilsTest {
         Assert.assertEquals(propertiesFromMethod, expectedProperties);
     }
 }
-
-
-

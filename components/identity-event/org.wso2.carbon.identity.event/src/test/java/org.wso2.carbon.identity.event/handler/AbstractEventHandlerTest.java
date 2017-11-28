@@ -24,16 +24,23 @@ import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-public class AbstractEventHandlerTest {
+public class AbstractEventHandlerTest extends IdentityBaseTest {
 
     List<Subscription> subscriptionList;
     ModuleConfiguration moduleConfiguration;
@@ -88,7 +95,6 @@ public class AbstractEventHandlerTest {
     @Test
     public void testIsAssociationAsync() throws IdentityEventException {
 
-        Properties properties = new Properties();
         subscriptionList.add(new Subscription("eventName", new Properties()));
         TestEventHandler testEventHandler = new TestEventHandler();
         boolean isAssociationAsync = testEventHandler.isAssociationAsync("unknownEvent");
@@ -106,6 +112,26 @@ public class AbstractEventHandlerTest {
 
         isAssociationAsync = testEventHandler.isAssociationAsync("testAsyncEvent");
         Assert.assertTrue(isAssociationAsync, "testAsyncEvent is not an asynchronous event");
+    }
+
+    @Test
+    public void testInit(){
+
+        InitConfig configuration = new ModuleConfiguration();
+        TestEventHandler testEventHandler = new TestEventHandler();
+        testEventHandler.init(configuration);
+
+        Assert.assertEquals(testEventHandler.configs,configuration);
+    }
+
+    @Test (expectedExceptions = {IdentityRuntimeException.class})
+    public void testInitException() {
+
+        InitConfig configuration = new InitConfig();
+        TestEventHandler testEventHandler = new TestEventHandler();
+        testEventHandler.init(configuration);
+
+        Assert.assertEquals(testEventHandler.configs,configuration);
     }
 
     private class TestEventHandler extends AbstractEventHandler {
