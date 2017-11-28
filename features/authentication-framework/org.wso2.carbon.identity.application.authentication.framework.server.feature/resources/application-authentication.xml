@@ -112,6 +112,7 @@
 			<Parameter name="AuthTokenEndpoint">https://graph.facebook.com/oauth/access_token</Parameter>
 			<Parameter name="AuthnEndpoint">http://www.facebook.com/dialog/oauth</Parameter>
 			<Parameter name="UserInfoEndpoint">https://graph.facebook.com/me</Parameter>
+                        <!--<Parameter name="ClaimDialectUri">http://wso2.org/facebook/claims</Parameter>-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig  name="FIDOAuthenticator" enabled="true">
 			<Parameter name="FidoAuth">/authenticationendpoint/fido-auth.jsp</Parameter>
