@@ -1674,12 +1674,6 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
-        if (currentIdentityProvider.isPrimary() == true && newIdentityProvider.isPrimary() == false) {
-            String msg = "Invalid argument: Cannot unset Identity Provider from primary. "
-                    + "Alternatively set new Identity Provider to primary";
-            throw new IdentityProviderManagementException(msg);
-        }
-
         if (newIdentityProvider.getPermissionAndRoleConfig() != null
                 && newIdentityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
             for (RoleMapping mapping : newIdentityProvider.getPermissionAndRoleConfig()
