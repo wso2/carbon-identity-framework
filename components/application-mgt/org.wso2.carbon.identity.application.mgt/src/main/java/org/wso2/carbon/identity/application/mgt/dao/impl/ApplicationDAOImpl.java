@@ -1889,8 +1889,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                             }
                         }
                         destinationMap.put(source.getName(), source);
+                    } else {
+                        property.setConfidential(source.isConfidential());
+                        property.setDefaultValue(source.getDefaultValue());
+                        property.setAdvanced(source.isAdvanced());
+                        property.setDescription(source.getDescription());
+                        property.setDisplayOrder(source.getDisplayOrder());
+                        property.setRequired(source.isRequired());
+                        property.setType(source.getType());
                     }
                 }
+
                 inboundAuthenticationRequestConfig
                         .setProperties(destinationMap.values().toArray(new Property[destinationMap.size()]));
             }
