@@ -690,7 +690,7 @@
                                     CarbonUIUtil.isUserAuthorized(request,
                                             "/permission/admin/manage/identity/identitymgt/update") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
-                                if (userName.equals(currentUser)) {
+                                if (Util.isCurrentUser(currentUser, userName, userRealmInfo)) {
                         %>
                         <a href="change-passwd.jsp?isUserChange=true&returnPath=user-mgt.jsp" class="icon-link"
                            style="background-image:url(../admin/images/edit.gif);"><fmt:message
@@ -767,7 +767,7 @@
                     <td>
                         <%
                             if (userRealmInfo.getAdminUser().equals(userName) &&
-                                    !userRealmInfo.getAdminUser().equals(currentUser)) {
+                                    !Util.isCurrentUser(currentUser, userName, userRealmInfo)) {
                         %>
                         <a href="#" class="icon-link" title="Operation is Disabled"
                            style="background-image:url(../admin/images/edit.gif);color:#CCC;"><fmt:message
@@ -797,7 +797,7 @@
                                     CarbonUIUtil.isUserAuthorized(request,
                                             "/permission/admin/manage/identity/identitymgt/update") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
-                                if (userName.equals(currentUser)) {
+                                if (Util.isCurrentUser(currentUser, userName, userRealmInfo)) {
                         %>
                         <a href="change-passwd.jsp?isUserChange=true&returnPath=user-mgt.jsp" class="icon-link"
                            style="background-image:url(../admin/images/edit.gif);"><fmt:message
@@ -842,16 +842,17 @@
 
                         <%
                             if (CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/delete") && !userName.equals(currentUser)
-                                    && !userName.equals(userRealmInfo.getAdminUser()) &&
-                                    users[i].getEditable()) {
+                                    "/permission/admin/manage/identity/usermgt/delete")
+                                    && !Util.isCurrentUser(currentUser, userName, userRealmInfo)
+                                    && !userName.equals(userRealmInfo.getAdminUser()) && users[i].getEditable()) {
                         %>
                         <a href="#" onclick="deleteUser('<%=Encode.forJavaScriptAttribute(userName)%>')"
                            class="icon-link"
                            style="background-image:url(images/delete.gif);"><fmt:message
                                 key="delete"/></a>
                         <%
-                        } else if (userName.equals(currentUser) || userName.equals(userRealmInfo.getAdminUser())) {
+                        } else if (Util.isCurrentUser(currentUser, userName, userRealmInfo) ||
+                                userName.equals(userRealmInfo.getAdminUser())) {
                         %>
                         <a href="#" class="icon-link" title="Operation is Disabled"
                            style="background-image:url(images/delete.gif);color:#CCC;"><fmt:message

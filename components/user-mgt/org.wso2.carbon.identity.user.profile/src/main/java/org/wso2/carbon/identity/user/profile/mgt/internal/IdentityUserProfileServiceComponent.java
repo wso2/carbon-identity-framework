@@ -50,6 +50,7 @@ public class IdentityUserProfileServiceComponent {
     private static final Log log = LogFactory.getLog(IdentityUserProfileServiceComponent.class);
 
     protected void activate(ComponentContext ctxt) {
+
         try {
             if (log.isDebugEnabled()) {
                 log.debug("User Profile Mgt bundle is activated ");
@@ -66,11 +67,13 @@ public class IdentityUserProfileServiceComponent {
             }
             ServiceRegistration profileMgtEventSR = ctxt.getBundleContext().registerService(
                     UserOperationEventListener.class.getName(), new ProfileMgtEventListener(), null);
+
             // Check whether the IDN tables exist at the beginning.
             ServiceHodler.setIsIDNTableExist(isIDNTablesExist());
             if (log.isDebugEnabled()) {
                 log.debug("Is IDN_ASSOCIATED_ID table exist: " + ServiceHodler.isIDNTableExist());
             }
+
             if (profileMgtEventSR != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("User profile management - ProfileMgtEventListener registered.");
@@ -85,14 +88,15 @@ public class IdentityUserProfileServiceComponent {
 
     // the below two methods are kept just to be sure the realm is available.
     protected void setUserRealmDefault(UserRealm userRealmDefault) {
+
         if (log.isDebugEnabled()) {
             log.debug("Setting DefaultRealm in User Profile Management");
         }
         ServiceHodler.setInternalUserStore(userRealmDefault);
     }
 
-
     protected void unsetUserRealmDefault(UserRealm userRealmDefault) {
+
         if (log.isDebugEnabled()) {
             log.info("Un-setting DefaultRealm in User Profile Management");
         }
@@ -110,9 +114,8 @@ public class IdentityUserProfileServiceComponent {
     }
 
     /**
-     *  Checks whether the IDN_ASSOCIATED_ID table is present.
-     *  @return True if table exist.
-     *
+     * Checks whether the IDN_ASSOCIATED_ID table is present.
+     * @return True if table exist.
      */
     private boolean isIDNTablesExist() {
 
@@ -120,7 +123,7 @@ public class IdentityUserProfileServiceComponent {
 
             // Try to find whether there is IDN_ASSOCIATED_ID table.
             DatabaseMetaData metaData = connection.getMetaData();
-            try (ResultSet resultSet = metaData.getTables(null, null, "IDN_ASSOCIATED_ID", new String[] { "TABLE" })) {
+            try (ResultSet resultSet = metaData.getTables(null, null, "IDN_ASSOCIATED_ID", new String[]{"TABLE"})) {
                 if (resultSet.next()) {
                     return true;
                 }
@@ -131,6 +134,5 @@ public class IdentityUserProfileServiceComponent {
 
         return false;
     }
-
 }
 

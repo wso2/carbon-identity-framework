@@ -128,10 +128,12 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
             String userStoreDomain,
             int tenantId) throws UserStoreException {
 
-        // Run this code only if IDN_ASSOCIATED_ID table presents.
+        // Run this code only if IDN_ASSOCIATED_ID table presents. We are doing this because of this feature can be used
+        // by products which does not have the IDN tables.
         if (!ServiceHodler.isIDNTableExist()) {
             return;
         }
+
         String sql = "DELETE FROM IDN_ASSOCIATED_ID WHERE USER_NAME=? AND DOMAIN_NAME=? AND TENANT_ID=?";
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
