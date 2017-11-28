@@ -60,7 +60,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * @scr.reference name="registry.loader.default"
  * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
  * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
- * @scr.reference name="is.migration"
+ * @scr.reference name="is.migration.client"
  * interface="org.wso2.carbon.identity.core.migrate.MigrationClient"
  * cardinality="0..1" policy="dynamic" bind="setMigrationClient" unbind="unsetMigrationClient"
  */
