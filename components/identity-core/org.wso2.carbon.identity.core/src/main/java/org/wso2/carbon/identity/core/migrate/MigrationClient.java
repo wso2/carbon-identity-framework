@@ -15,7 +15,17 @@
 */
 package org.wso2.carbon.identity.core.migrate;
 
+/**
+ * Migration client interface.
+ *
+ * When server is started with -Dmigrate option, Identity core bundle will wait for a implementation of this interface.
+ */
 public interface MigrationClient {
 
+    /**
+     * Execute migration procedure.
+     *
+     * @throws MigrationClientException
+     */
     void execute() throws MigrationClientException;
 }

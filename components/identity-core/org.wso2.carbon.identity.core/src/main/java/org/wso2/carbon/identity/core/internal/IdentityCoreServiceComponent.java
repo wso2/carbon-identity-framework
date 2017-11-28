@@ -187,6 +187,8 @@ public class IdentityCoreServiceComponent {
 
 
         } catch (MigrationClientException e) {
+            // Throwing migration client exception to wait till migration client implementation bundle starts if
+            // -Dmigrate option is used.
             throw e;
         } catch (Throwable e) {
             log.error("Error occurred while populating identity configuration properties", e);

@@ -17,6 +17,9 @@ package org.wso2.carbon.identity.core.migrate;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ * This exception will be thrown in case of an error in migration client.
+ */
 public class MigrationClientException extends IdentityException {
     public MigrationClientException(String message) {
         super(message);
