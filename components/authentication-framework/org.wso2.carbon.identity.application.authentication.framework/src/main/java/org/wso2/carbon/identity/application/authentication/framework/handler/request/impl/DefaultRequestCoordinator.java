@@ -392,7 +392,8 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                     }
                     // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
                     // authentication step updates will be reflected.
-                    refreshAppConfig(sequenceConfig);
+                    refreshAppConfig(sequenceConfig, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
+                            context.getRequestType(), context.getTenantDomain());
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
@@ -439,19 +440,20 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         context.setOrignalRequestQueryParams(outboundQueryStringBuilder.toString());
     }
 
-    private void refreshAppConfig(SequenceConfig sequenceConfig) throws FrameworkException {
-        int applicationID = sequenceConfig.getApplicationConfig().getApplicationID();
-        String applicationName = sequenceConfig.getApplicationConfig().getApplicationName();
+    private void refreshAppConfig(SequenceConfig sequenceConfig, String clientId, String clientType, String
+            tenantDomain) throws FrameworkException {
+
         try {
             ApplicationConfig appConfig = new ApplicationConfig(ApplicationManagementService.getInstance()
-                    .getServiceProvider(applicationID));
+                    .getServiceProviderByClientId(clientId, clientType, tenantDomain));
             sequenceConfig.setApplicationConfig(appConfig);
             if (log.isDebugEnabled()) {
-                log.debug("Refresh App config in sequence config for applicationID :" + applicationID);
+                log.debug("Refresh application config in sequence config for application id: " + sequenceConfig
+                        .getApplicationId() + " in tenant: " + tenantDomain);
             }
         } catch (IdentityApplicationManagementException e) {
-            String message = "No Application found for Application ID: " + applicationID + " Application Name :" +
-                    applicationName + " Probably, the Service Provider would have been removed.";
+            String message = "No application found for application id: " + sequenceConfig.getApplicationId() +
+                    " in tenant: " + tenantDomain + " Probably, the Service Provider would have been removed.";
             throw new FrameworkException(message, e);
         }
     }
