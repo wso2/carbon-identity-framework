@@ -69,6 +69,8 @@ public class IdentityApplicationConstants {
     public static final String PASSWORD = "password";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
 
+    public static final String REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE = "redirectToMultiOptionPageOnFailure";
+
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";
