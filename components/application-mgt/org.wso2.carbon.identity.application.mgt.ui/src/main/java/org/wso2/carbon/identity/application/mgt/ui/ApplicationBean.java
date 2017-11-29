@@ -972,11 +972,18 @@ public class ApplicationBean {
             }
 
             if (CollectionUtils.isNotEmpty(authStepList)) {
+
+                AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
                 localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
                 String flawByScript = request.getParameter("scriptTextarea");
+
+                if (request.getParameter("enableScript") == null) {
+                    authenticationScriptConfig.setEnabled(false);
+                } else authenticationScriptConfig.setEnabled(true);
+
                 if (StringUtils.isNotBlank(flawByScript)) {
-                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+
                     authenticationScriptConfig.setContent(flawByScript);
                     localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
                 }
