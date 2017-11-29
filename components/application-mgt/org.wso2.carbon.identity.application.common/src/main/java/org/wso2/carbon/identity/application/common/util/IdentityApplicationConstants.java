@@ -224,6 +224,11 @@ public class IdentityApplicationConstants {
         public static final String CALLBACK_URL = "callbackUrl";
         public static final String OAUTH_CONSUMER_SECRET = "oauthConsumerSecret";
 
+        public static final String OIDC_WEB_FINGER_EP_URL = "OIDCWebFingerEPUrl";
+        public static final String OAUTH2_DCR_EP_URL = "OAuth2DCREPUrl";
+        public static final String OAUTH2_JWKS_EP_URL = "OAuth2JWKSPage";
+        public static final String OIDC_DISCOVERY_EP_URL = "OIDCDiscoveryEPUrl";
+
         private OAuth2() {
             throw new AssertionError("Must not initiate an object of OAuth2 class");
         }
@@ -375,5 +380,25 @@ public class IdentityApplicationConstants {
             public static final String RSAOAEP11 = "http://www.w3.org/2009/xmlenc11#rsa-oaep";
         }
 
+    }
+
+    public static class SCIM {
+
+        public static final String USERS_EP_URL = "scimUserEndpoint";
+        public static final String GROUPS_EP_URL = "scimGroupEndpoint";
+
+        private SCIM() {
+            throw new AssertionError("Must not initiate an object of SCIM class");
+        }
+    }
+
+    public static class SCIM2 {
+
+        public static final String USERS_EP_URL = "scim2UserEndpoint";
+        public static final String GROUPS_EP_URL = "scim2GroupEndpoint";
+
+        private SCIM2() {
+            throw new AssertionError("Must not initiate an object of SCIM2 class");
+        }
     }
 }
