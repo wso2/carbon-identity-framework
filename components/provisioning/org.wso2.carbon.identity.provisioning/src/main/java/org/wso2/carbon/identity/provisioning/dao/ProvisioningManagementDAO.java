@@ -235,9 +235,9 @@ public class ProvisioningManagementDAO {
             prepStmt.setString(1, newIdentityProvider.getIdentityProviderName());
 
             if (newIdentityProvider.isPrimary()) {
-                prepStmt.setString(2, "1");
+                prepStmt.setString(2, IdentityProvisioningConstants.IS_TRUE_VALUE);
             } else {
-                prepStmt.setString(2, "0");
+                prepStmt.setString(2, IdentityProvisioningConstants.IS_FALSE_VALUE);
             }
 
             prepStmt.setString(3, newIdentityProvider.getHomeRealmId());
@@ -246,12 +246,12 @@ public class ProvisioningManagementDAO {
 
             if (newIdentityProvider.getJustInTimeProvisioningConfig() != null &&
                     newIdentityProvider.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
-                prepStmt.setString(6, "1");
+                prepStmt.setString(6, IdentityProvisioningConstants.IS_TRUE_VALUE);
                 prepStmt.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig()
                         .getProvisioningUserStore());
 
             } else {
-                prepStmt.setString(6, "0");
+                prepStmt.setString(6, IdentityProvisioningConstants.IS_FALSE_VALUE);
                 prepStmt.setString(7, null);
             }
 
