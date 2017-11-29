@@ -376,6 +376,7 @@ public class DefaultStepHandler implements StepHandler {
         String errorMsg = "domain.unknown";
 
         try {
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             response.sendRedirect(redirectURL + ("?" + context.getContextIdIncludedQueryParams())
                     + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + "&authFailure=true"
                     + "&authFailureMsg=" + errorMsg + "&hrd=true");
