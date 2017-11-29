@@ -19,15 +19,13 @@
 package org.wso2.carbon.identity.provisioning;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
-
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -39,6 +37,7 @@ public class ProvisioningThread implements Callable<Boolean> {
     private String connectorType;
     private String idPName;
     private CacheBackedProvisioningMgtDAO dao;
+    private static final Log log = LogFactory.getLog(ProvisioningThread.class);
 
     public ProvisioningThread(ProvisioningEntity provisioningEntity, String tenantDomainName,
                               AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
@@ -94,11 +93,11 @@ public class ProvisioningThread implements Callable<Boolean> {
                     dao.updateProvisionedEntityName(provisioningEntity);
                 }
             }
-
             success = true;
-        } catch (IdentityApplicationManagementException e) {
+        } catch (Exception e) {
             String errMsg = " Provisioning for Entity " + provisioningEntity.getEntityName() +
                     " For operation = " + provisioningEntity.getOperation();
+            log.error(errMsg, e);
             throw new IdentityProvisioningException(errMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
