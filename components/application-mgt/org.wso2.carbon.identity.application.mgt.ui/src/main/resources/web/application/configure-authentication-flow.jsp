@@ -17,7 +17,7 @@
 -->
 <script src="codemirror/lib/codemirror.js"></script>
 <script src="codemirror/keymap/sublime.js"></script>
-<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+
 <link rel="stylesheet" href="css/idpmgt.css">
 <script src="codemirror/mode/javascript/javascript.js"></script>
 <link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
@@ -64,6 +64,7 @@
             showCursorWhenSelecting: true
         });
     });
+
 </script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
 
@@ -683,6 +684,7 @@ var img = "";
 			</h2>
 
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="lamda_func_dropdown">
+
                     <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                             if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
@@ -694,6 +696,9 @@ var img = "";
                         <tr>
                             <td style="float:left;width: 80%">
                                 <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
+
+                    <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
+
 				<textarea id="scriptTextarea" name="scriptTextarea" style="height: 500px;width: 100%"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
@@ -701,23 +706,7 @@ var img = "";
                         }
                     }
                 %></textarea>
-                                </div>
-                            </td>
-                            <td style="float:right;width: 20%">
-                                <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;"
-                                     id="codeMirrorTemplate">
-                                    <h2 style="text-align: center;">Sample Functions</h2>
-                                    <ul id='template_list'></ul>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="buttonRow" style=" margin-top: 10px;">
-                    <input type="button" value="<fmt:message key='button.update.service.provider'/>"
-                           onclick="createAppOnclick();"/>
-                    <input type="button" value="<fmt:message key='button.cancel'/>"
-                           onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
+
                 </div>
 			</form>
     </div>
