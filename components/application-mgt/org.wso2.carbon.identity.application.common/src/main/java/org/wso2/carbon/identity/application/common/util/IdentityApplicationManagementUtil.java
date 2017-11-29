@@ -333,8 +333,8 @@ public class IdentityApplicationManagementUtil {
      */
     public static Property[] concatArrays(Property[] o1, Property[] o2) {
 
-        Set<Property> properties = new HashSet<Property>(Arrays.asList(o1));
-        properties.addAll(Arrays.asList(o2));
+        Set<Property> properties = new HashSet<>(Arrays.asList(removeEmptyElements(o1)));
+        properties.addAll(Arrays.asList(removeEmptyElements(o2)));
         return properties.toArray(new Property[properties.size()]);
     }
 
@@ -822,5 +822,17 @@ public class IdentityApplicationManagementUtil {
             }
         }
         return null;
+    }
+
+    private static Property[] removeEmptyElements(Property[] properties) {
+        List<Property> propertyList = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(properties)) {
+            for (Property property : properties) {
+                if (property != null && StringUtils.isNotBlank(property.getName())) {
+                    propertyList.add(property);
+                }
+            }
+        }
+        return propertyList.toArray(new Property[0]);
     }
 }

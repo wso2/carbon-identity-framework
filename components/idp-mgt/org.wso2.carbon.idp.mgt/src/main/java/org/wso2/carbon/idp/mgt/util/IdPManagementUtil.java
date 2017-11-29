@@ -128,7 +128,7 @@ public class IdPManagementUtil {
                 continue;
             }
             properties = RandomPasswordProcessor.getInstance().removeOriginalPasswords(properties);
-            provisioningConnectorConfig.setProvisioningProperties(removeEmptyElements(properties));
+            provisioningConnectorConfig.setProvisioningProperties(properties);
         }
     }
 
@@ -149,19 +149,7 @@ public class IdPManagementUtil {
                 continue;
             }
             properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
-            provisioningConnectorConfig.setProvisioningProperties(removeEmptyElements(properties));
+            provisioningConnectorConfig.setProvisioningProperties(properties);
         }
-    }
-
-    private static Property[] removeEmptyElements(Property[] properties) {
-        List<Property> propertyList = new ArrayList<>();
-        if (ArrayUtils.isNotEmpty(properties)) {
-            for (Property property : properties) {
-                if (property != null && StringUtils.isNotBlank(property.getName())) {
-                    propertyList.add(property);
-                }
-            }
-        }
-        return propertyList.toArray(new Property[0]);
     }
 }
