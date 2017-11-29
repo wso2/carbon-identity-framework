@@ -646,8 +646,8 @@ public class UserProfileAdmin extends AbstractAdmin {
                                 (resultSet.getString(1), resultSet.getString(2)) + UserCoreConstants
                                 .TENANT_DOMAIN_COMBINER + tenantDomain + "'.");
                     }
-                    throw new UserProfileException("Federated ID '" + associatedID + "' for IdP '" + idpID + "' is " +
-                            "already associated with a local user account.");
+                    throw new UserProfileException("UserAlreadyAssociated: Federated ID '" + associatedID + "' for " +
+                            "IdP '" + idpID + "' is already associated with a local user account.");
                 }
             }
             connection.commit();
