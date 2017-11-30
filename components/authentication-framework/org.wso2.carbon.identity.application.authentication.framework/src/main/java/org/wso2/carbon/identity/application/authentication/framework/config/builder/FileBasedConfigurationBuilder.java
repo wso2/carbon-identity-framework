@@ -497,7 +497,8 @@ public class FileBasedConfigurationBuilder {
         Class<?> clazz;
         Object obj;
         try {
-            clazz = Class.forName(extensionElem.getText());
+            String className = StringUtils.trimToEmpty(extensionElem.getText());
+            clazz = Class.forName(className);
             obj = clazz.newInstance();
             extensions.put(extensionElem.getLocalName(), obj);
         } catch (ClassNotFoundException e) {
