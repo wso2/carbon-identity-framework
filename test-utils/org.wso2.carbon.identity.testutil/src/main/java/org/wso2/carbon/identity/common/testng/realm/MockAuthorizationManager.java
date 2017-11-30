@@ -122,6 +122,11 @@ public class MockAuthorizationManager implements AuthorizationManager {
     }
 
     @Override
+    public void refreshAllowedRolesForResource(String s) throws org.wso2.carbon.user.api.UserStoreException {
+
+    }
+
+    @Override
     public String[] normalizeRoles(String[] strings) {
         return new String[0];
     }
