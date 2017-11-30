@@ -130,8 +130,6 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.captcha.mgt</bundleDef>
-                                <bundleDef>org.wso2.carbon.registry:org.wso2.carbon.registry.common</bundleDef>
-                                <bundleDef>org.wso2.carbon.registry:org.wso2.carbon.registry.indexing</bundleDef>
                                 <bundleDef>kaptcha.wso2:kaptcha</bundleDef>
                             </bundles>
                             <importFeatures>
