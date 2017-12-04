@@ -123,6 +123,14 @@
 				<ReadOnly />
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/department</ClaimURI>
+				<DisplayName>Department</DisplayName>
+				<AttributeID>departmentNumber</AttributeID>
+				<Description>Department</Description>
+				<SupportedByDefault />
+				<ReadOnly />
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/postalcode</ClaimURI>
 				<DisplayName>Postal Code</DisplayName>
 				<AttributeID>postalcode</AttributeID>
@@ -385,19 +393,19 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
 				<DisplayName>Verify Email</DisplayName>
-				<AttributeID>manager</AttributeID>
+				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/askPassword</ClaimURI>
 				<DisplayName>Ask Password</DisplayName>
-				<AttributeID>postOfficeBox</AttributeID>
+				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/adminForcedPasswordReset</ClaimURI>
 				<DisplayName>Force Password Reset</DisplayName>
-				<AttributeID>departmentNumber</AttributeID>
+				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke email force password feature</Description>
 			</Claim>
 			<Claim>
@@ -421,7 +429,7 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</ClaimURI>
 				<DisplayName>Failed Password Recovery Attempts</DisplayName>
-				<AttributeID>postalCode</AttributeID>
+				<AttributeID>failedRecoveryAttempts</AttributeID>
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
 			</Claim>
 
@@ -430,14 +438,14 @@
 				<ClaimURI>http://wso2.org/claims/primaryChallengeQuestion</ClaimURI>
 				<DisplayName>Primary Challenge Question</DisplayName>
 			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>title</AttributeID>
+				<AttributeID>primaryChallengeQuestion</AttributeID>
 				<Description>Primary Challenge Question</Description>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>http://wso2.org/claims/challengeQuestionUris</ClaimURI>
 				<DisplayName>Challenge Question</DisplayName>
 			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>stateOrProvinceName</AttributeID>
+				<AttributeID>challengeQuestionUris</AttributeID>
 				<Description>Challenge Question</Description>
 		    </Claim>
 
@@ -459,21 +467,21 @@
 				<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>postalAddress</AttributeID>
+				<AttributeID>emailVerified</AttributeID>
 				<Description>Email Verified</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/phoneVerified</ClaimURI>
 				<DisplayName>Phone Verified</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>imSkype</AttributeID>
+				<AttributeID>phoneVerified</AttributeID>
 				<Description>Phone Verified</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
 				<DisplayName>Account Disabled</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>ref</AttributeID>
+				<AttributeID>accountDisabled</AttributeID>
 				<Description>Account Disabled</Description>
 			</Claim>
 			<Claim>
@@ -487,7 +495,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
 				<DisplayName>Failed Lockout Count</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>employeeNumber</AttributeID>
+				<AttributeID>failedLockoutCount</AttributeID>
 				<Description>Failed Lockout Count</Description>
 			</Claim>
 			<Claim>
@@ -501,21 +509,21 @@
 				<ClaimURI>http://wso2.org/claims/lastLoginTime</ClaimURI>
 				<DisplayName>Last Login</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>lastLogonTime</AttributeID>
+				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last Login Time</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastLogonTime</ClaimURI>
 				<DisplayName>Last Logon</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>carLicense</AttributeID>
+				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last Logon Time</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastPasswordUpdateTime</ClaimURI>
 				<DisplayName>Last Password Update</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>businessCategory</AttributeID>
+				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
 			</Claim>
 		     <Claim>
@@ -670,11 +678,11 @@
 		<Dialect dialectURI="http://schema.openid.net/2007/05/claims">
 			<Claim>
 				<ClaimURI>nickname</ClaimURI>
-				<DisplayName>First Name</DisplayName>
+				<DisplayName>Nick Name</DisplayName>
 				<AttributeID>nickName</AttributeID>
-				<Description>First Name</Description>
+				<Description>Nick Name</Description>
 				<Required />
-                                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
 			</Claim>
@@ -693,7 +701,7 @@
 				<DisplayName>Email</DisplayName>
 				<AttributeID>mail</AttributeID>
 				<Description>Email Address</Description>
-                                <DisplayOrder>3</DisplayOrder>
+				<DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
                 <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
@@ -704,7 +712,7 @@
 				<DisplayName>Country</DisplayName>
 				<AttributeID>country</AttributeID>
 				<Description>Country</Description>
-                                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 			</Claim>
@@ -713,7 +721,7 @@
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
 				<Description>Time Zone</Description>
-                                <DisplayOrder>9</DisplayOrder>
+				<DisplayOrder>9</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
@@ -722,7 +730,7 @@
 				<DisplayName>DOB</DisplayName>
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Date of Birth</Description>
-                                <DisplayOrder>6</DisplayOrder>
+				<DisplayOrder>6</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
 			</Claim>
@@ -731,7 +739,7 @@
 				<DisplayName>Postalcode</DisplayName>
 				<AttributeID>postalCode</AttributeID>
 				<Description>Postalcode</Description>
-                                <DisplayOrder>4</DisplayOrder>
+				<DisplayOrder>4</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
@@ -740,7 +748,7 @@
 				<DisplayName>Gender</DisplayName>
 				<AttributeID>gender</AttributeID>
 				<Description>Gender</Description>
-                                <DisplayOrder>8</DisplayOrder>
+				<DisplayOrder>8</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/gender</MappedLocalClaim>
 			</Claim>
@@ -758,12 +766,12 @@
 		<Dialect dialectURI="http://axschema.org">
 			<Claim>
 				<ClaimURI>http://axschema.org/namePerson/first</ClaimURI>
-				<DisplayName>Nick Name</DisplayName>
-				<AttributeID>nickName</AttributeID>
-				<Description>Nick Name</Description>
+				<DisplayName>First Name</DisplayName>
+				<AttributeID>givenName</AttributeID>
+				<Description>First Name</Description>
 				<Required />
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/namePerson/last</ClaimURI>
@@ -1907,42 +1915,42 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
 				<DisplayName>employeeNumber</DisplayName>
-				<AttributeID>country</AttributeID>
+				<AttributeID>externalId</AttributeID>
 				<Description>employeeNumber</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/externalid</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:costCenter</ClaimURI>
 				<DisplayName>oneTimePassword</DisplayName>
-				<AttributeID>gtalk</AttributeID>
+				<AttributeID>userType</AttributeID>
 				<Description>costCenter</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/oneTimePassword</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:organization</ClaimURI>
 				<DisplayName>Organization -division</DisplayName>
-				<AttributeID>pager</AttributeID>
+				<AttributeID>organizationName</AttributeID>
 				<Description>Organization -division</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/organization</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:department</ClaimURI>
 				<DisplayName>Organization -department</DisplayName>
-				<AttributeID>organization</AttributeID>
+				<AttributeID>departmentNumber</AttributeID>
 				<Description>Organization -department</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/organization</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/department</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:division</ClaimURI>
@@ -1967,27 +1975,27 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.$ref</ClaimURI>
 				<DisplayName>Manager - home</DisplayName>
-				<AttributeID>dateOfBirth</AttributeID>
+				<AttributeID>ref</AttributeID>
 				<Description>Manager - home</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.displayName</ClaimURI>
 				<DisplayName>Manager - home</DisplayName>
-				<AttributeID>fax</AttributeID>
+				<AttributeID>displayName</AttributeID>
 				<Description>Manager - home</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>
 				<DisplayName>Ask Password</DisplayName>
-				<AttributeID>postOfficeBox</AttributeID>
+				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
@@ -1997,7 +2005,7 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</ClaimURI>
 				<DisplayName>Verify Email</DisplayName>
-				<AttributeID>manager</AttributeID>
+				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
