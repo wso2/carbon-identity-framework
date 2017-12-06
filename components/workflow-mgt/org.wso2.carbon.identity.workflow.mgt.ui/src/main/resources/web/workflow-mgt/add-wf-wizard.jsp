@@ -167,7 +167,7 @@
 
             var workflowId;
             <% if (workflowId != null) { %>
-            workflowId = "<%=workflowId%>";
+            workflowId = "<%=Encode.forJavaScript(workflowId)%>";
             <% } %>
 
             if ((!workflowId || 0 === workflowId.length) && $.inArray(workflow_name, existingWorkflowNames) !== -1) {
