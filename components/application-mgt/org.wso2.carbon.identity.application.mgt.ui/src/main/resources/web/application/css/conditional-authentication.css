@@ -1,0 +1,16 @@
+
+.templateName {
+    text-decoration: none;
+    padding-left: 2em;
+}
+
+.name {
+    display: block;
+    height: 28px;
+    padding-top: 5px;
+}
+
+.helpLink {
+    display: inline-block;
+    float: right;
+}

@@ -970,20 +970,32 @@ public class ApplicationBean {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(new LocalAndOutboundAuthenticationConfig());
             }
-
             if (CollectionUtils.isNotEmpty(authStepList)) {
+
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
                 localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
-                String flawByScript = request.getParameter("scriptTextarea");
-                if (StringUtils.isNotBlank(flawByScript)) {
-                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
-                    authenticationScriptConfig.setContent(flawByScript);
-                    localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
-                }
             }
-
         }
+    }
 
+    /**
+     * @param request
+     */
+    public void conditionalAuthentication(HttpServletRequest request) {
+
+        AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        String flawByScript = request.getParameter("scriptTextarea");
+
+        if (request.getParameter("enableScript") == null) {
+            authenticationScriptConfig.setIsEnable(false);
+        } else authenticationScriptConfig.setIsEnable(true);
+
+        if (StringUtils.isNotBlank(flawByScript)) {
+
+            authenticationScriptConfig.setContent(flawByScript);
+            localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+        }
     }
 
     /**
