@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.wso2.balana.utils.exception.PolicyBuilderException;
 import org.wso2.balana.utils.policy.PolicyBuilder;
 import org.wso2.balana.utils.policy.dto.RequestElementDTO;
@@ -39,14 +40,6 @@ import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHol
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.DateFormat;
@@ -56,6 +49,9 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 
 public class XACMLBasedRuleHandler {
@@ -240,19 +236,21 @@ public class XACMLBasedRuleHandler {
         try {
             DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
-            // DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
             InputSource is = new InputSource();
             is.setCharacterStream(new StringReader(xacmlResponse));
             Document doc = db.parse(is);
 
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            XPathExpression expr = xpath.compile(ProvisioningRuleConstanats.XACML_RESPONSE_RESULT_XPATH);
-            String decision = (String) expr.evaluate(doc, XPathConstants.STRING);
+            String decision = "";
+            NodeList decisionNode = doc.getDocumentElement().getElementsByTagName(
+                            ProvisioningRuleConstanats.XACML_RESPONSE_DECISION_NODE);
+            if (decisionNode != null && decisionNode.item(0) != null) {
+                decision = decisionNode.item(0).getTextContent();
+            }
             if (decision.equalsIgnoreCase(EntitlementPolicyConstants.RULE_EFFECT_PERMIT)
                 || decision.equalsIgnoreCase(EntitlementPolicyConstants.RULE_EFFECT_NOT_APPLICABLE)) {
                 return true;
             }
-        } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new IdentityProvisioningException("Exception occurred while xacmlResponse processing", e);
         }
         return false;
