@@ -23,6 +23,7 @@ public class ProvisioningRuleConstanats {
     public static final String TIME_FORMAT = "HH:mm:ss";
     public static final String DATE_TIME_FORMAT = "yyyy/MM/dd HH:mm:ss";
     public static final String XACML_RESPONSE_RESULT_XPATH = "/Response/Result/Decision/text()";
+    public static final String XACML_RESPONSE_DECISION_NODE = "Decision";
 
     public static final String XACML_ATTRIBUTE_CATAGORY = "urn:oasis:names:tc:xacml:3.0:attribute-category:";
     public static final String XACML_ATTRIBUTE_ID = "urn:oasis:names:tc:xacml:1.0:";
