@@ -344,6 +344,22 @@
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
             <SignJWTWithSPKey>false</SignJWTWithSPKey>
 
+            <!--
+                OIDC Request Object builder implementation.
+                Supported versions: IS 5.4.0 onwards
+            -->
+            <RequestObjectBuilders>
+                <RequestObjectBuilder>
+                    <BuilderName>request_param_value_builder</BuilderName>
+                    <RequestObjectBuilderImplClass>org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder</RequestObjectBuilderImplClass>
+                </RequestObjectBuilder>
+            </RequestObjectBuilders>
+
+            <!--
+                OIDC Request Object validator implementation.
+                Supported versions: IS 5.4.0 onwards
+            -->
+            <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
