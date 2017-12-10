@@ -18,37 +18,58 @@
 <script src="codemirror/lib/codemirror.js"></script>
 <script src="codemirror/keymap/sublime.js"></script>
 <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="css/idpmgt.css">
+<link rel="stylesheet" href="css/conditional-authentication.css">
 <script src="codemirror/mode/javascript/javascript.js"></script>
+<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
+<link rel="stylesheet" href="codemirror/addon/fold/foldgutter.css">
+<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
+<link rel="stylesheet" href="codemirror/addon/lint/lint.css">
+
+<script src="codemirror/addon/hint/anyword-hint.js"></script>
 <script src="codemirror/addon/hint/show-hint.js"></script>
 <script src="codemirror/addon/hint/javascript-hint.js"></script>
-<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
-<script src="codemirror/addon/hint/anyword-hint.js"></script>
+<script src="codemirror/addon/comment/comment.js"></script>
+<script src="codemirror/addon/dialog/dialog.js"></script>
+<script src="codemirror/addon/edit/closebrackets.js"></script>
+<script src="codemirror/addon/edit/matchbrackets.js"></script>
+<script src="codemirror/addon/fold/brace-fold.js"></script>
+<script src="codemirror/addon/fold/foldcode.js"></script>
+<script src="codemirror/addon/fold/foldgutter.js"></script>
+<script src="codemirror/addon/display/fullscreen.js"></script>
+<script src="codemirror/addon/search/search.js"></script>
+<script src="codemirror/addon/search/searchcursor.js"></script>
+<script src="codemirror/addon/hint/wso2-hints.js"></script>
+
 <script>
+    var myCodeMirror;
     jQuery(document).ready(function () {
-        //Adding CodeMirror IDE
-        var myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, {
+
+        myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, {
+            keyMap: "sublime",
             lineNumbers: true,
+            lineWrapping: true,
             mode: "javascript",
-            keymap: "sublime",
             lineWiseCopyCut: true,
             pasteLinesPerSelection: true,
-            extraKeys: {"Ctrl-Space": "autocomplete"},
-            indentWithTabs: true
-        });
-    });
-
-    // Giving custom hint list
-    editor.on('cursorActivity', function () {
-        var options = {
-            hint: function () {
-                return {
-                    from: editor.getDoc().getCursor(),
-                    to: editor.getDoc().getCursor(),
-                    list: ['selectAcrFrom']
+            extraKeys: {
+                "Ctrl-Space": "autocomplete",
+                "F11": function (cm) {
+                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                },
+                "Esc": function (cm) {
+                    if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
                 }
-            }
-        };
-        editor.showHint(options);
+            },
+            indentWithTabs: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+            foldGutter: true,
+            lint: true,
+            showCursorWhenSelecting: true
+        });
     });
 </script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
@@ -202,6 +223,7 @@ var img = "";
         jQuery('#authenticationConfRow').hide();
         jQuery('#advanceAuthnConfRow').hide();
         jQuery('#permissionConfRow').hide();
+        jQuery('#lamda_func_dropdown').hide();
         jQuery('h2.trigger').click(function(){
             if (jQuery(this).next().is(":visible")) {
                 this.className = "active trigger step_heads";
@@ -222,9 +244,121 @@ var img = "";
         		$('#attribute_step_'+stepOrder).attr('checked', true);
         	}
         })
-       
-    })
-     
+
+        var template = {
+            "templateList": [{
+                "category": "User Role",
+                "type": [{
+                    "name": "ACR",
+                    "img": "https://png.icons8.com/user/office/20/000000",
+                    "code": "function(context) {\n" +
+                    "\n" +
+                    "    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
+                    "\n" +
+                    "    log.info(\"--------------- ACR selected: \"+acr);\n" +
+                    "\n" +
+                    "    context.setSelectedAcr(acr);\n" +
+                    "\n" +
+                    "    switch(acr) {\n" +
+                    "        case \"acr1\" : executeStep({id :'1'});break;\n" +
+                    "        case \"acr2\" : executeStep({id :'1'}); executeStep({id :'2'});  break;\n" +
+                    "        case \"acr3\" : executeStep({id :'1'}); executeStep({id :'3'});  break;\n" +
+                    "        case \"acr4\" : executeStep({id :'1'}); executeStep({id :'4'});  break;\n" +
+                    "        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
+                    "    }\n" +
+                    "}\n",
+                    "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
+                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+                }, {
+                    "name": "Template 2",
+                    "img": "https://png.icons8.com/user-groups/color/20/000000",
+                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
+                    "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
+                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+
+                }]
+            }, {
+                "category": "IP Based",
+                "type": [{
+                    "name": "Template 1",
+                    "img": "https://png.icons8.com/softether-vpn/color/20/000000",
+                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
+                    "help": "imply dummy text of the printing and typesetting industry. ",
+                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+                }]
+            }, {
+                "category": "Analytics",
+                "type": [{
+                    "name": "Template 2",
+                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
+                    "img": "https://png.icons8.com/bar-chart/dusk/20/000000",
+                    "help": "imply dummy text of the printing and typesetting industry. ",
+                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+
+                }]
+            }]
+        };
+
+        $.each(template.templateList, function (i, templateList) {
+
+            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;" >' +
+                '<a    href="#">' + templateList.category + '</a></h2></li>';
+            var details = '<ul class="normal details">';
+            $.each(templateList.type, function (i, type) {
+
+                details += '<li  class="name"><img src=' + type.img + '><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '">' +
+                    '' + type.name + '</a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
+                    '<img  style="float:right;" src="https://png.icons8.com/help/color/19/000000"></a></li>';
+            });
+            details += '</ul>';
+            $(tempType).appendTo('#template_list').append(details);
+        });
+
+        $('[data-toggle=template-link]').click(function (e) {
+            e.preventDefault();
+            var typeName = $(this).data('type-name');
+            var data;
+            var tempName;
+
+            $.each(template.templateList, function (i, templateList) {
+                $.each(templateList.type, function (i, type) {
+                    if (type.name == typeName) {
+                        data = type.code;
+                        tempName = type.name
+
+                    }
+                });
+            });
+
+            var cm = $('.CodeMirror')[0].CodeMirror;
+            var doc = cm.getDoc();
+            var cursor = doc.getCursor();
+            var line = doc.getLine(cursor.line); // get the line contents
+            var pos = {
+                line: cursor.line,
+                ch: line.length - 1
+            }
+            doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+        });
+
+        $('.type ul').hide();
+        $('.type > h2').click(function (e) {
+            e.preventDefault();
+
+            var $el = $(this);
+            var $container = $el.siblings('ul');
+
+            $container.slideToggle(function () {
+                if ($container.css('display') == 'none') {
+                    $el.addClass('active');
+                }
+                else {
+                    $el.removeClass('active');
+                }
+            });
+        });
+    });
+
     var deletePermissionRows = [];
     function deletePermissionRow(obj){
         if(jQuery(obj).parent().prev().children()[0].value != ''){
@@ -421,7 +555,7 @@ var img = "";
             <input type=hidden name=spName value='<%=Encode.forHtmlAttribute(spName)%>'/>
           
            
-            <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
+            <h2 id="authentication_step_config_head" class="sectionSeperator trigger">
                 <a href="#"><fmt:message key="title.config.authentication.steps"/></a>
             </h2>
             
@@ -549,16 +683,23 @@ var img = "";
             </div>
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
-            <div class="buttonRow">
-                <input type="button" value="<fmt:message key='button.update.service.provider'/>" onclick="createAppOnclick();"/>
-                <input type="button" value="<fmt:message key='button.cancel'/>" onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
-            </div>
-			<h2 id="lambda_function" class="sectionSeperator trigger active" style="font-size:large "  >
+
+                <h2 id="lambda_function" class="active sectionSeperator trigger step_heads" style="font-size:large ">
 				<a href="#">JavaScript based Conditional Steps</a>
 			</h2>
 
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="lamda_func_dropdown">
-                    <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
+                    <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
+                        if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+                            if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getIsEnable()== true) { %>
+                           checked="checked"  <% }
+                    }
+                    }%>/> Enable Script
+                    <table style="width: 100%">
+                        <tr>
+                            <td style="float:left;width: 80%">
+                                <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
 				<textarea id="scriptTextarea" name="scriptTextarea" style="height: 500px;width: 100%"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
@@ -566,9 +707,25 @@ var img = "";
                         }
                     }
                 %></textarea>
-                    </div>
+                                </div>
+                            </td>
+                            <td style="float:right;width: 20%">
+                                <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;"
+                                     id="codeMirrorTemplate">
+                                    <h2 style="text-align: center;">Sample Functions</h2>
+                                    <ul id='template_list'></ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-			</form>
-    </div>
+                <div class="buttonRow" style=" margin-top: 10px;">
+                    <input type="button" value="<fmt:message key='button.update.service.provider'/>"
+                           onclick="createAppOnclick();"/>
+                    <input type="button" value="<fmt:message key='button.cancel'/>"
+                           onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
+                </div>
+            </form>
+        </div>
 
 </fmt:bundle>
