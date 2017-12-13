@@ -343,6 +343,7 @@
             <SkipUserConsent>false</SkipUserConsent>
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
             <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <LogoutTokenExpiration>120</LogoutTokenExpiration>
 
         </OpenIDConnect>
 
