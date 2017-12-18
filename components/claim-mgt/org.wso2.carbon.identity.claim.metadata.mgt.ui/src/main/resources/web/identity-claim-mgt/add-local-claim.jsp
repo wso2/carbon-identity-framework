@@ -174,7 +174,7 @@
                 function validate() {
 
                     var value = document.getElementsByName("localClaimURI")[0].value;
-                    if (value == '') {
+                    if (value.trim() == '') {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
                         return false;
                     } else if (value.length > 100) {
@@ -183,7 +183,7 @@
                     }
 
                     var value = document.getElementsByName("displayName")[0].value;
-                    if (value == '') {
+                    if (value.trim() == '') {
                         CARBON.showWarningDialog('<fmt:message key="displayname.is.required"/>');
                         return false;
                     } else if (value.length > 30) {
@@ -192,7 +192,7 @@
                     }
 
                     var value = document.getElementsByName("description")[0].value;
-                    if (value == '') {
+                    if (value.trim() == '') {
                         CARBON.showWarningDialog('<fmt:message key="description.is.required"/>');
                         return false;
                     } else if (value.length > 150) {
@@ -210,7 +210,7 @@
                         for (var i = 0; i < attributeAddTableRowCount; i++) {
                             var row = attributeAddTable.rows[i];
                             var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
-                            if (mappedAttributeValue == '') {
+                            if (mappedAttributeValue.trim() == '') {
                                 CARBON.showWarningDialog('<fmt:message key="attribute.mapping.cannot.be.empty"/>');
                                 return false;
                             }
