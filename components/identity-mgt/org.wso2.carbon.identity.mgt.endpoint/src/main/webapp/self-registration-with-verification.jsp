@@ -208,11 +208,16 @@
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
-                                    <%= Encode.forHtmlContent(claim.getDisplayName())%>
+                                    <%= Encode.forHtmlContent(claim.getDisplayName()) %>
                                 </label>
                                 <input type="text" name="<%= Encode.forHtmlAttribute(claim.getUri()) %>"
                                        class="form-control"
-                                        <% if (claim.getRequired()) {%> required <%}%>>
+                                        <% if (claim.getValidationRegex() != null) { %>
+                                                pattern="<%= Encode.forHtmlContent(claim.getValidationRegex()) %>"
+                                        <% } %>
+                                        <% if (claim.getRequired()) { %>
+                                            required
+                                        <% } %>>
                             </div>
                             <%
                                     }
@@ -285,6 +290,20 @@
                     $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                     return false;
                 }
+
+                <%
+                if(reCaptchaEnabled) {
+                %>
+                var resp = $("[name='g-recaptcha-response']")[0].value;
+                if (resp.trim() == '') {
+                    error_msg.text("Please select reCaptcha.");
+                    error_msg.show();
+                    $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
+                    return false;
+                }
+                <%
+                }
+                %>
 
                 return true;
             });

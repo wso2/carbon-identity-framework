@@ -39,6 +39,8 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.util.Comparator" %>
+<%@ page import="java.util.Arrays" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -571,6 +573,8 @@ function updateBeanAndPostTo(postURL, data) {
         
         $("[name=claim_dialect]").click(function(){
         		var element = $(this);
+        		var currentId = element.attr('id');
+
         		claimMappinRowID = -1;
         		
         		if($('.idpClaim').length > 0){
@@ -583,10 +587,21 @@ function updateBeanAndPostTo(postURL, data) {
                     			changeDialectUIs(element);
                            	},
                     		function(){
-                           		//Reset checkboxes
-                           		$('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
-                           		$('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
-                           	});
+                                //Reset checkboxes
+                                if(currentId === "claim_dialect_custom"){
+                                    $('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
+                                }else{
+                                    $('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
+                                }
+                            });
+                            jQuery('.ui-dialog-titlebar-close').click(function(){
+                                //Reset checkboxes
+                                if(currentId === "claim_dialect_custom"){
+                                    $('#claim_dialect_wso2').attr('checked', (element.val() == 'custom'));
+                                }else{
+                                    $('#claim_dialect_custom').attr('checked', (element.val() == 'local'));
+                                }
+                            })
         		}else{
         			$('#claimMappingAddTable').hide();
         			changeDialectUIs(element);
@@ -1456,36 +1471,80 @@ function updateBeanAndPostTo(postURL, data) {
                         <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                              id="openid.config.div">
                             <table class="carbonFormTable">
-                                <%
+	                            <%
+		                            Property[] properties = customAuthenticator.getProperties();
 
-                                    Property[] properties = customAuthenticator.getProperties();
-									for (Property prop : properties) {
-										String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
-										String hiddenProp = StringUtils.equals(prop.getType(),"hidden") ? prop.getType() : "";
-								%>
+		                            if (properties != null && properties.length > 0) {
+			                            // Remove invalid properties returned from custom authenticators
+			                            List<Property> nonNullProperties = new ArrayList<Property>();
+			                            for (Property property : properties) {
+				                            if (property != null && StringUtils.isNotBlank(property.getName()) &&
+						                            StringUtils.isNotBlank(property.getDisplayName())) {
+					                            nonNullProperties.add(property);
+				                            }
+			                            }
+			                            properties = nonNullProperties.toArray(new Property[nonNullProperties.size()]);
+			                            Arrays.sort(properties, new Comparator<Property>() {
+				                            public int compare(Property obj1, Property obj2) {
 
-                                <tr <%=hiddenProp%>>
-                                    <td style="width:15%" class="leftCol-med labelField">
-                                        <%=prop.getDisplayName() + ":"%>
-                                    </td>
-                                    <td>
-                                        <%
-                                            if (prop.getValue() != null) {
-                                        %>
-                                        <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
-                                               value="<%=prop.getValue()%>" autofocus/>
-                                        <% } else { %>
-                                        <input style="width:50%" id="<%=propName%>" name="<%=propName%>" type="text"
-                                               autofocus/>
-                                        <% } %>
-
-                                    </td>
-
-                                </tr>
-                                <%
-                                    }
-                                %>
-
+					                            return Integer.compare(obj1.getDisplayOrder(), obj2.getDisplayOrder());
+				                            }
+			                            });
+			
+			                            for (Property prop : properties) {
+				                            String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
+				                            String hiddenProp = "";
+				                            if (StringUtils.equals(prop.getType(), "hidden")) {
+					                            hiddenProp = "hidden";
+				                            }
+	                            %>
+	                            <tr <%=hiddenProp%>>
+		                            <td>
+					                            <%if (prop.getRequired()) { %>
+		                            <td style="width:15%" class="leftCol-med labelField"><%=prop.getDisplayName()%>
+			                            :<span class="required">*</span></td>
+				                            <% } else { %>
+		                            <td style="width:15%" class="leftCol-med labelField"><%=prop.getDisplayName()%>:
+		                            </td>
+				                            <%} %>
+		                            <td>
+			                            <% if (prop.getConfidential()) { %>
+			                            <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+			                                 class="leftCol-med">
+				                            <input id=<%=propName%> name="<%=propName%>"
+				                                   type="password" autocomplete="off"
+						                            <% if (StringUtils.isNotBlank(prop.getValue())) { %>
+						                           value="<%=prop.getValue()%>"
+						                            <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
+						                           value="<%=prop.getDefaultValue()%>"
+						                            <%}%>
+						                           style="  outline: none; border: none; min-width: 175px; max-width:
+						                            180px;"/>
+				                            <span style=" float: right; padding-right: 5px;">
+					                            <a style="margin-top: 5px;" class="showHideBtn"
+					                               onclick="showHidePassword(this, '<%=propName%>')">Show</a>
+				                            </span>
+			                            </div>
+			                            <% } else { %>
+			                            <input id="<%=propName%>"
+			                                   name="<%=propName%>"
+			                                   type="text"
+					                            <% if (StringUtils.isNotBlank(prop.getValue())) { %>
+					                           value="<%=prop.getValue()%>"
+					                            <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
+					                           value="<%=prop.getDefaultValue()%>"
+					                            <% } %>
+			                            />
+			                            <% } %>
+			                            <% if (prop.getDescription() != null) { %>
+			                            <div class="sectionHelp"><%=prop.getDescription()%>
+			                            </div>
+			                            <%} %>
+		                            </td>
+				                            <%
+					                            }
+		                            }
+	                            %>
                             </table>
                         </div>
                         <%
@@ -1493,7 +1552,6 @@ function updateBeanAndPostTo(postURL, data) {
                                 }
                             }
                         %>
-
 			   </div>
             
              <h2 id="app_authentication_advance_head"  class="sectionSeperator trigger active">

@@ -116,46 +116,33 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(serviceProvider.getApplicationName())) {
+        String applicationName = serviceProvider.getApplicationName();
+        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
             throw new IdentityApplicationManagementException(
                     "Application with the same name loaded from the file system.");
         }
 
-        startTenantFlow(tenantDomain, username);
-
-        // first we need to create a role with the application name.
-        // only the users in this role will be able to edit/update the
-        // application.
-        ApplicationMgtUtil.createAppRole(serviceProvider.getApplicationName(), username);
         try {
-            ApplicationMgtUtil.storePermissions(serviceProvider.getApplicationName(), username,
-                    serviceProvider.getPermissionAndRoleConfig());
-        } catch (IdentityApplicationManagementException e) {
+            startTenantFlow(tenantDomain, username);
+
+            // First we need to create a role with the application name. Only the users in this role will be able to
+            // edit/update the application.
+            ApplicationMgtUtil.createAppRole(applicationName, username);
             try {
-                ApplicationMgtUtil.deleteAppRole(serviceProvider.getApplicationName());
-            } catch (IdentityApplicationManagementException e1) {
-                log.error("Exception occurred while trying to delete application role: " + serviceProvider
-                        .getApplicationName(), e1);
+                ApplicationMgtUtil.storePermissions(applicationName, username,
+                        serviceProvider.getPermissionAndRoleConfig());
+            } catch (IdentityApplicationManagementException e) {
+                deleteApplicationRole(applicationName);
+                throw e;
             }
-            throw e;
-        }
-        try{
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            appDAO.createApplication(serviceProvider, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
             try {
-                ApplicationMgtUtil.deleteAppRole(serviceProvider.getApplicationName());
-            } catch (IdentityApplicationManagementException e1) {
-                log.error("Exception occurred while trying to delete the application role for: " +
-                        serviceProvider.getApplicationName(), e1);
+                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+                appDAO.createApplication(serviceProvider, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                deleteApplicationRole(applicationName);
+                deleteApplicationPermission(applicationName);
+                throw e;
             }
-            try{
-                ApplicationMgtUtil.deletePermissions(serviceProvider.getApplicationName());
-            } catch (IdentityApplicationManagementException e1) {
-                log.error("Exception occurred while trying to delete the permissions for: " +
-                        serviceProvider.getApplicationName(), e1);
-            }
-            throw e;
         } finally {
             endTenantFlow();
         }
@@ -256,7 +243,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProvider.getApplicationName());
+                    serviceProvider.getApplicationName(), tenantDomain);
 
             IdentityServiceProviderCache.getInstance().clearCacheEntry(cacheKey);
 
@@ -281,7 +268,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
 
-            ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
                     .PATH_SEPARATOR + storedAppName;
             org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
@@ -292,8 +278,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, serviceProvider.getApplicationName());
             }
 
-            if (ArrayUtils.isNotEmpty(permissions)) {
-                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(), permissions);
+            if (serviceProvider.getPermissionAndRoleConfig() != null &&
+                    ArrayUtils.isNotEmpty(serviceProvider.getPermissionAndRoleConfig().getPermissions())) {
+                ApplicationMgtUtil.updatePermissions(serviceProvider.getApplicationName(),
+                        serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
         } catch (Exception e) {
             String error = "Error occurred while updating the application: " + serviceProvider.getApplicationName();
@@ -715,25 +703,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        startTenantFlow(tenantDomain);
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
+        ServiceProvider serviceProvider;
+        try {
+            startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
-        if (serviceProvider != null) {
-            loadApplicationPermissions(serviceProviderName, serviceProvider);
-        }
+            if (serviceProvider != null) {
+                loadApplicationPermissions(serviceProviderName, serviceProvider);
+            }
 
-        if (serviceProvider == null
-            && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                serviceProviderName)) {
-            serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                    serviceProviderName);
+            if (serviceProvider == null && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                    serviceProviderName)) {
+                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
+            }
+        } finally {
+            endTenantFlow();
         }
-        endTenantFlow();
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
                 return null;
             }
         }
@@ -755,21 +746,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         ServiceProvider serviceProvider = appDAO.getApplication(appId);
 
+        if (serviceProvider == null){
+            throw new IdentityApplicationManagementException(
+                    "Error while getting the service provider for appId: " + appId);
+        }
         String serviceProviderName = serviceProvider.getApplicationName();
         String tenantDomain = serviceProvider.getOwner().getTenantDomain();
 
         try {
             startTenantFlow(tenantDomain);
-            if (serviceProvider != null) {
-                loadApplicationPermissions(serviceProviderName, serviceProvider);
-            }
+            loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-            if (serviceProvider == null
-                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                    serviceProviderName)) {
-                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                        serviceProviderName);
-            }
         } finally {
             endTenantFlow();
         }
@@ -819,7 +806,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+                    serviceProviderName, tenantDomain);
             IdentityServiceProviderCacheEntry entry = IdentityServiceProviderCache.getInstance().
                     getValueFromCache(cacheKey);
 
@@ -829,46 +816,45 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         } finally {
             endTenantFlow();
-            startTenantFlow(tenantDomain);
         }
 
-        if (serviceProviderName != null) {
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
+        try {
+            startTenantFlow(tenantDomain);
+            if (serviceProviderName != null) {
+                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+                serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
-            if (serviceProvider != null) {
-                // if "Authentication Type" is "Default" we must get the steps from the default SP
-                AuthenticationStep[] authenticationSteps = serviceProvider
-                        .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+                if (serviceProvider != null) {
+                    // if "Authentication Type" is "Default" we must get the steps from the default SP
+                    AuthenticationStep[] authenticationSteps = serviceProvider
+                            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
 
-                loadApplicationPermissions(serviceProviderName, serviceProvider);
+                    loadApplicationPermissions(serviceProviderName, serviceProvider);
 
-                if (authenticationSteps == null || authenticationSteps.length == 0) {
-                    ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                            .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                            .getAuthenticationSteps();
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                            .setAuthenticationSteps(authenticationSteps);
+                    if (authenticationSteps == null || authenticationSteps.length == 0) {
+                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                                .getAuthenticationSteps();
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationSteps(authenticationSteps);
+                    }
                 }
             }
-        }
 
-        if (serviceProvider == null
-            && serviceProviderName != null
-            && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
-                serviceProviderName)) {
-            serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
-                    serviceProviderName);
+            if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
+                    .getFileBasedSPs().containsKey(serviceProviderName)) {
+                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
+            }
+        } finally {
+            endTenantFlow();
         }
-
-        endTenantFlow();
 
         try {
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+                    serviceProviderName, tenantDomain);
             IdentityServiceProviderCacheEntry entry = new IdentityServiceProviderCacheEntry();
             entry.setServiceProvider(serviceProvider);
             IdentityServiceProviderCache.getInstance().addToCache(cacheKey, entry);
@@ -960,4 +946,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 .getConfigSystemRegistry();
     }
 
+    private void deleteApplicationPermission(String applicationName) {
+        try {
+            ApplicationMgtUtil.deletePermissions(applicationName);
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Failed to delete the permissions for: " + applicationName, e);
+        }
+    }
+
+    private void deleteApplicationRole(String applicationName) {
+        try {
+            ApplicationMgtUtil.deleteAppRole(applicationName);
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Failed to delete the application role for: " + applicationName, e);
+        }
+    }
 }

@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
+<%@ page import="java.net.URL" %>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -105,9 +106,37 @@
         <%
             }
         %>
+
+         <script>
+
+	function checkSessionKey() {
+                $.ajax({
+                    type: "GET",
+                    url: "/logincontext?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                    success: function (data) {
+                        if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
+                            window.location.href = data.redirectUrl;
+                        }
+                    }
+                });
+            }
+
+
+	function getParameterByName(name, url) {
+             if (!url) {
+                url = window.location.href;
+             }
+             name = name.replace(/[\[\]]/g, '\\$&');
+             var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+             results = regex.exec(url);
+             if (!results) return null;
+             if (!results[2]) return "";
+             return decodeURIComponent(results[2].replace(/\+/g, ' '));
+         }
+         </script>
     </head>
 
-    <body>
+    <body onload="checkSessionKey()">
 
     <!-- header -->
     <header class="header header-default">
@@ -265,6 +294,20 @@
                                 </div>
                                 <%
                                             }
+                                    if (localAuthenticatorNames.contains("totp")) {
+                                %>
+                                <div>
+                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                forUriComponent(idpEntry.getKey()))%>',
+                                        'totp')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
+                                    <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
+                                         data-placement="top" title="Sign in with TOTP"/>
+                                </a>
+                                <label for="icon-<%=iconId%>">TOTP</label>
+
+                                </div>
+                                <%
+                                            }
                                         }
 
                                     }
@@ -349,8 +392,16 @@
         }
 
         function handleNoDomain(key, value) {
+            <%
+                String multiOptionURIParam = "";
+                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping.size() > 1) {
+                    multiOptionURIParam = "&multiOptionURI=" + Encode.forUriComponent(request.getRequestURI() +
+                        (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
+                }
+            %>
             document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
-                    "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>";
+                    "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>" +
+                    "<%=multiOptionURIParam%>";
         }
 
         $('#popover').popover({
@@ -362,7 +413,7 @@
                 return $("#popover-content").html();
             }
         });
-
+        window.onunload = function(){};
     </script>
 
     </body>
@@ -370,4 +421,3 @@
 
 
 </fmt:bundle>
-

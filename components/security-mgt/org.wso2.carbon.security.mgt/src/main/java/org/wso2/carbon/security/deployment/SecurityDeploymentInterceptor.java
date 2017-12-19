@@ -242,21 +242,27 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
                                 PolicyComponent currentPolicyComponent) throws UserStoreException,
             AxisFault {
 
+        AxisConfiguration axisConfiguration = null;
         // Do not apply anything if no policy
-        if(StringUtils.isNotEmpty(policyId) && NO_POLICY_ID.equalsIgnoreCase(policyId)){
-            if(axisService != null){
-                UserRealm userRealm = (UserRealm)PrivilegedCarbonContext.getThreadLocalCarbonContext()
+        if (StringUtils.isNotEmpty(policyId) && NO_POLICY_ID.equalsIgnoreCase(policyId)) {
+            if (axisService != null) {
+                UserRealm userRealm = (UserRealm) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                         .getUserRealm();
                 String serviceGroupId = axisService.getAxisServiceGroup().getServiceGroupName();
                 String serviceName = axisService.getName();
-                removeAuthorization(userRealm,serviceGroupId,serviceName);
+                removeAuthorization(userRealm, serviceGroupId, serviceName);
+                axisConfiguration = axisService.getAxisConfiguration();
             }
 
-            AxisModule module = axisService.getAxisConfiguration().getModule(SecurityConstants
-                    .RAMPART_MODULE_NAME);
-            // disengage at axis2
-            axisService.disengageModule(module);
-            return;
+            if (axisConfiguration != null) {
+                AxisModule module = axisConfiguration.getModule(SecurityConstants
+                        .RAMPART_MODULE_NAME);
+                // disengage at axis2
+                axisService.disengageModule(module);
+                return;
+            } else {
+                throw new UserStoreException("Error in getting Axis configuration.");
+            }
         }
 
         if (policyId != null && isSecPolicy(policyId)) {
@@ -295,65 +301,69 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
         // TODO: Load into all tenant DBs
         // Load security scenarios
         URL resource = bundleContext.getBundle().getResource("/scenarios/scenario-config.xml");
-        XmlConfiguration xmlConfiguration = new XmlConfiguration(resource.openStream(),
-                SecurityConstants.SECURITY_NAMESPACE);
+        if (resource != null) {
+            XmlConfiguration xmlConfiguration = new XmlConfiguration(resource.openStream(),
+                    SecurityConstants.SECURITY_NAMESPACE);
 
-        OMElement[] elements = xmlConfiguration.getElements("//ns:Scenario");
-        try {
-            boolean transactionStarted = Transaction.isStarted();
-            if (!transactionStarted) {
-                registry.beginTransaction();
-            }
-
-            for (OMElement scenarioEle : elements) {
-                SecurityScenario scenario = new SecurityScenario();
-                String scenarioId = scenarioEle.getAttribute(SecurityConstants.ID_QN)
-                        .getAttributeValue();
-
-                scenario.setScenarioId(scenarioId);
-                scenario.setSummary(scenarioEle.getFirstChildWithName(SecurityConstants.SUMMARY_QN)
-                        .getText());
-                scenario.setDescription(scenarioEle.getFirstChildWithName(
-                        SecurityConstants.DESCRIPTION_QN).getText());
-                scenario.setCategory(scenarioEle.getFirstChildWithName(SecurityConstants.CATEGORY_QN)
-                        .getText());
-                scenario.setWsuId(scenarioEle.getFirstChildWithName(SecurityConstants.WSUID_QN)
-                        .getText());
-                scenario.setType(scenarioEle.getFirstChildWithName(SecurityConstants.TYPE_QN).getText());
-
-                String resourceUri = SecurityConstants.SECURITY_POLICY + "/" + scenarioId;
-
-                for (Iterator modules = scenarioEle.getFirstChildWithName(SecurityConstants.MODULES_QN)
-                        .getChildElements(); modules.hasNext(); ) {
-                    String module = ((OMElement) modules.next()).getText();
-                    scenario.addModule(module);
+            OMElement[] elements = xmlConfiguration.getElements("//ns:Scenario");
+            try {
+                boolean transactionStarted = Transaction.isStarted();
+                if (!transactionStarted) {
+                    registry.beginTransaction();
                 }
 
-                // Save it in the DB
-                SecurityScenarioDatabase.put(scenarioId, scenario);
+                for (OMElement scenarioEle : elements) {
+                    SecurityScenario scenario = new SecurityScenario();
+                    String scenarioId = scenarioEle.getAttribute(SecurityConstants.ID_QN)
+                            .getAttributeValue();
 
-                // Store the scenario in the Registry
-                if (!scenarioId.equals(SecurityConstants.SCENARIO_DISABLE_SECURITY) &&
-                        !scenarioId.equals(SecurityConstants.POLICY_FROM_REG_SCENARIO)) {
-                    Resource scenarioResource = new ResourceImpl();
-                    scenarioResource.
-                            setContentStream(bundleContext.getBundle().
-                                    getResource("scenarios/" + scenarioId + "-policy.xml").openStream());
-                    scenarioResource.setMediaType("application/policy+xml");
-                    if (!registry.resourceExists(resourceUri)) {
-                        registry.put(resourceUri, scenarioResource);
+                    scenario.setScenarioId(scenarioId);
+                    scenario.setSummary(scenarioEle.getFirstChildWithName(SecurityConstants.SUMMARY_QN)
+                            .getText());
+                    scenario.setDescription(scenarioEle.getFirstChildWithName(
+                            SecurityConstants.DESCRIPTION_QN).getText());
+                    scenario.setCategory(scenarioEle.getFirstChildWithName(SecurityConstants.CATEGORY_QN)
+                            .getText());
+                    scenario.setWsuId(scenarioEle.getFirstChildWithName(SecurityConstants.WSUID_QN)
+                            .getText());
+                    scenario.setType(scenarioEle.getFirstChildWithName(SecurityConstants.TYPE_QN).getText());
+
+                    String resourceUri = SecurityConstants.SECURITY_POLICY + "/" + scenarioId;
+
+                    for (Iterator modules = scenarioEle.getFirstChildWithName(SecurityConstants.MODULES_QN)
+                            .getChildElements(); modules.hasNext(); ) {
+                        String module = ((OMElement) modules.next()).getText();
+                        scenario.addModule(module);
                     }
 
-                    // Cache the resource in-memory in order to add it to the newly created tenants
-                    SecurityServiceHolder.addPolicyResource(resourceUri, scenarioResource);
+                    // Save it in the DB
+                    SecurityScenarioDatabase.put(scenarioId, scenario);
+
+                    // Store the scenario in the Registry
+                    if (!scenarioId.equals(SecurityConstants.SCENARIO_DISABLE_SECURITY) &&
+                            !scenarioId.equals(SecurityConstants.POLICY_FROM_REG_SCENARIO)) {
+                        Resource scenarioResource = new ResourceImpl();
+                        scenarioResource.
+                                setContentStream(bundleContext.getBundle().
+                                        getResource("scenarios/" + scenarioId + "-policy.xml").openStream());
+                        scenarioResource.setMediaType("application/policy+xml");
+                        if (!registry.resourceExists(resourceUri)) {
+                            registry.put(resourceUri, scenarioResource);
+                        }
+
+                        // Cache the resource in-memory in order to add it to the newly created tenants
+                        SecurityServiceHolder.addPolicyResource(resourceUri, scenarioResource);
+                    }
                 }
+                if (!transactionStarted) {
+                    registry.commitTransaction();
+                }
+            } catch (Exception e) {
+                registry.rollbackTransaction();
+                throw e;
             }
-            if (!transactionStarted) {
-                registry.commitTransaction();
-            }
-        } catch (Exception e) {
-            registry.rollbackTransaction();
-            throw e;
+        } else {
+            throw new CarbonException("Can't find the resource url");
         }
     }
 
@@ -429,7 +439,7 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
             // Authorization
             AuthorizationManager manager = userRealm.getAuthorizationManager();
             String resourceName = serviceGroupId + "/" + serviceName;
-            removeAuthorization(userRealm,serviceGroupId,serviceName);
+            removeAuthorization(userRealm, serviceGroupId, serviceName);
             String allowRolesParameter = configParams.getAllowedRoles();
             if (allowRolesParameter != null) {
                 if (log.isDebugEnabled()) {
@@ -622,7 +632,7 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
                 .append(service.getName())).toString();
     }
 
-    public PolicySubject getPolicySubjectFromBindings(AxisService service){
+    public PolicySubject getPolicySubjectFromBindings(AxisService service) {
       return null;
     }
 

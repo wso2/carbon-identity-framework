@@ -32,6 +32,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -174,8 +175,13 @@
                 selfUserRegistrationRequest.setUser(selfRegistrationUser);
                 selfUserRegistrationRequest.setProperties(properties);
 
+                Map<String, String> requestHeaders = new HashedMap();
+                if(request.getParameter("g-recaptcha-response") != null) {
+                    requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+                }
+
                 SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
-                selfRegisterApi.mePostCall(selfUserRegistrationRequest);
+                selfRegisterApi.mePostCall(selfUserRegistrationRequest, requestHeaders);
                 request.setAttribute("callback", callback);
                 request.getRequestDispatcher("self-registration-complete.jsp").forward(request, response);
 

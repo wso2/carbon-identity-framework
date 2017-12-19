@@ -324,7 +324,7 @@ public class IdentityConfigParser {
 
                     String httpOnly = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_HTTP_ONLY));
                     if (StringUtils.isNotBlank(httpOnly)) {
-                        cookieConfig.setSecure(Boolean.valueOf(httpOnly));
+                        cookieConfig.setIsHttpOnly(Boolean.valueOf(httpOnly));
                     }
 
                     // Add the config to container
@@ -370,7 +370,7 @@ public class IdentityConfigParser {
     }
 
     private String getKey(Stack<String> nameStack) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
         for (int i = 0; i < nameStack.size(); i++) {
             String name = nameStack.elementAt(i);
             key.append(name).append(".");

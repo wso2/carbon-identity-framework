@@ -30,14 +30,8 @@ public class OpenIDFederatedAuthenticatorConfig extends FederatedAuthenticatorCo
 
     @Override
     public boolean isValid() {
-        if (IdentityApplicationManagementUtil.getProperty(properties,
-                IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL) != null &&
-                !"".equals(IdentityApplicationManagementUtil.getProperty(properties,
-                        IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL))) {
-
-            return true;
-        }
-        return false;
+        return isValidPropertyValue(IdentityApplicationManagementUtil.getProperty(properties,
+                IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL));
     }
 
     @Override

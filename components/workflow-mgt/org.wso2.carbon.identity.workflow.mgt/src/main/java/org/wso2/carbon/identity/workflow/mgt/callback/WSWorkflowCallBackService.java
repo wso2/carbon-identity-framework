@@ -55,8 +55,8 @@ public class WSWorkflowCallBackService {
                 WorkFlowExecutorManager.getInstance()
                         .handleCallback(response.getUuid(), response.getStatus(), outputParams);
             } catch (WorkflowException e) {
-                log.error("Error when handling callback for the workflow, id:" + response.getUuid() + ", status:" +
-                        response.getStatus());
+                log.error("Error when handling callback for the workflow, id: " + response.getUuid() + ", status:" +
+                        response.getStatus(), e);
             }
         }
     }

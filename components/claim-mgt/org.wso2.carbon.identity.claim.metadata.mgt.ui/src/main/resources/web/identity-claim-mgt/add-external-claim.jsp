@@ -39,7 +39,9 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 <style>
     .sectionHelp {
-        padding-left: 17px;
+        margin-top: 7px;
+        padding-bottom: 10px;
+        color: #555;
     }
 </style>
 
@@ -202,6 +204,7 @@
                                             }
                                         %>
                                         </select>
+                                        <div class="sectionHelp"><fmt:message key="select.dialect.uri.help"/></div>
                                     </td>
                                 </tr>
 
@@ -215,13 +218,17 @@
                                     <td class="leftCol-big"><input type="text" name="externalClaimURI"
                                                                    id="externalClaimURI"
                                                                    class="text-box-big"
-                                                                   value="<%=Encode.forHtmlAttribute(externalClaimURI)%>"/></td>
+                                                                   value="<%=Encode.forHtmlAttribute(externalClaimURI)%>"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.uri.help"/></div>
+                                    </td>
                                     <%
                                     } else {
                                     %>
                                     <td class="leftCol-big"><input type="text" name="externalClaimURI"
                                                                    id="externalClaimURI"
-                                                                   class="text-box-big"/></td>
+                                                                   class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.uri.help"/></div>
+                                    </td>
                                     <%
                                         }
                                     %>
@@ -247,6 +254,7 @@
                                                 }
                                             %>
                                         </select>
+                                        <div class="sectionHelp"><fmt:message key="select.mapped.claim"/></div>
                                     </td>
                                 </tr>
                             </table>

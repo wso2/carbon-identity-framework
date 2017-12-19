@@ -18,11 +18,15 @@
 
 package org.wso2.carbon.identity.entitlement.cache;
 
+import org.apache.axis2.clustering.ClusteringAgent;
+import org.apache.axis2.clustering.ClusteringFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.PolicyStatusClusterMessage;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,6 +41,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     private static Log log = LogFactory.getLog(PolicyCache.class);
     private static final Object lock = new Object();
     private int myHashCode;
+    private static final int INVALID_STATE = 1;
     private static Map<Integer,Integer> cacheInvalidationState = new HashMap<Integer, Integer>();
     private static Map<Integer,Map<String,PolicyStatus>> localPolicyCacheMap = new HashMap<Integer,Map<String,PolicyStatus>>();
 
@@ -107,15 +112,24 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     /**
      * Do invalidate all policy cache
      */
-    public void invalidateCache(){
+    public void invalidateCache() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Trigger invalidateCache to tenant :  " + tenantId + " and all policy ");
         }
 
-        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId,"");
-        addToCache(cacheKey,new PolicyStatus());
+        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId, "");
+        // update local cache map of this node.
+        updateLocalPolicyCacheMap(cacheKey, new PolicyStatus());
+        // send out a cluster message to notify other nodes
+        if (isClusteringEnabled()) {
+            sendClusterMessage(new PolicyStatusClusterMessage(cacheKey, new PolicyStatus()), true);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Clustering not enabled. Not sending cluster message to other nodes.");
+            }
+        }
 
     }
 
@@ -125,30 +139,33 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
      *
      * @return
      */
-    public boolean isInvalidate(){
+    public boolean isInvalidate() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int state = 0 ;
+        int state = 0;
 
         synchronized (cacheInvalidationState) {
-            if(cacheInvalidationState.get(tenantId)!=null) {
+            if (cacheInvalidationState.get(tenantId) != null) {
                 state = cacheInvalidationState.get(tenantId);
+            } else {
+                // we ignore the case where the cache invalidation state is not present.This means the cache is valid.
             }
-
-            cacheInvalidationState.put(tenantId,0);
-        }
-        if(log.isDebugEnabled()){
-            log.debug("Check the invalidation state of all cache : " + state);
         }
 
-        if(state==1){
-            return true ;
-        }else{
-            return false ;
+        boolean isInvalid = (state == INVALID_STATE);
+        if (log.isDebugEnabled()) {
+            log.debug("Check the invalidation state of all cache, isCacheInvalid: " + isInvalid);
         }
 
+        return isInvalid;
     }
 
+    public void resetCacheInvalidateState() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        // since the cache is invalidated already making cacheInvalidationState to '0'
+        cacheInvalidationState.put(tenantId, 0);
+    }
 
     /**
      *
@@ -166,16 +183,27 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
                     ": " + action);
         }
 
-        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId,policyId);
-        PolicyStatus policyStatus = (PolicyStatus)getValueFromCache(cacheKey);
+        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId, policyId);
+        PolicyStatus policyStatus = (PolicyStatus) getValueFromCache(cacheKey);
 
-        if(policyStatus==null) {
-            policyStatus = new PolicyStatus(policyId,0,action);
-        }else{
+        if (policyStatus == null) {
+            policyStatus = new PolicyStatus(policyId, 0, action);
+        } else {
             policyStatus.setStatusCount(policyStatus.getStatusCount() + 1);
             policyStatus.setPolicyAction(action);
         }
-        updateToCache(cacheKey, policyStatus);
+        // update local cache map of this node.
+        updateLocalPolicyCacheMap(cacheKey, policyStatus);
+
+        // send out a cluster message to notify other nodes.
+        if (isClusteringEnabled()) {
+            sendClusterMessage(new PolicyStatusClusterMessage(cacheKey, policyStatus), true);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Clustering not enabled. Not sending cluster message to other nodes.");
+            }
+        }
+
 
 
         synchronized (localPolicyCacheMap) {
@@ -248,5 +276,45 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
         return newAction ;
     }
 
+
+    /**
+     * Send out policy status change notification to other nodes.
+     *
+     * @param clusterMessage
+     * @param isSync
+     */
+    private void sendClusterMessage(PolicyStatusClusterMessage clusterMessage, boolean isSync) {
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Sending policy status change cluster message to all other nodes");
+            }
+
+            ClusteringAgent clusteringAgent = EntitlementConfigHolder.getInstance()
+                    .getConfigurationContextService()
+                    .getServerConfigContext()
+                    .getAxisConfiguration()
+                    .getClusteringAgent();
+
+            if (clusteringAgent != null) {
+                clusteringAgent.sendMessage(clusterMessage, isSync);
+            } else {
+                log.error("Clustering Agent not available.");
+            }
+        } catch (ClusteringFault clusteringFault) {
+            log.error("Error while sending policy status change cluster message", clusteringFault);
+        }
+    }
+
+
+    /**
+     * Check whether clustering is enabled.
+     *
+     * @return boolean returns true if clustering enabled, false otherwise.
+     */
+    private boolean isClusteringEnabled() {
+
+        return EntitlementConfigHolder.getInstance().getConfigurationContextService()
+                .getServerConfigContext().getAxisConfiguration().getClusteringAgent() != null;
+    }
 
 }

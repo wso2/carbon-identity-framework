@@ -20,7 +20,7 @@
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources">
-    <carbon:breadcrumb label="add.new.claim.dialect"
+    <carbon:breadcrumb label="add.claim.dialect"
                        resourceBundle="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
@@ -77,6 +77,7 @@
                                     </td>
                                     <td class="leftCol-big">
                                         <input type="text" name="dialect" id="dialect" class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="dialect.uri.help"/></div>
                                     </td>
                                 </tr>
                             </table>

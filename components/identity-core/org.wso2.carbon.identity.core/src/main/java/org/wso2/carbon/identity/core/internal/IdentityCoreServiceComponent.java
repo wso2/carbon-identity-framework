@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.DefaultBootstrap;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
@@ -26,6 +25,8 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.migrate.MigrationClient;
+import org.wso2.carbon.identity.core.migrate.MigrationClientException;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -59,12 +60,16 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * @scr.reference name="registry.loader.default"
  * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
  * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
+ * @scr.reference name="is.migration.client"
+ * interface="org.wso2.carbon.identity.core.migrate.MigrationClient"
+ * cardinality="0..1" policy="dynamic" bind="setMigrationClient" unbind="unsetMigrationClient"
  */
 
 public class IdentityCoreServiceComponent {
-    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom520to530";
+    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom530to540";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
+    private static MigrationClient migrationClient = null;
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
@@ -98,7 +103,7 @@ public class IdentityCoreServiceComponent {
     /**
      * @param ctxt
      */
-    protected void activate(ComponentContext ctxt) {
+    protected void activate(ComponentContext ctxt) throws MigrationClientException {
         IdentityTenantUtil.setBundleContext(ctxt.getBundleContext());
         if (log.isDebugEnabled()) {
             log.debug("Identity Core bundle is activated");
@@ -137,14 +142,23 @@ public class IdentityCoreServiceComponent {
             String component = System.getProperty("component");
             try {
                 if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
+                    log.info("Migration process starting...");
                     //Directly call migration client here and selectively check for component migrations at client
                     Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
                     c.getMethod("databaseMigration").invoke(c.newInstance());
-                    log.info("Migrated the identity and user management databases");
+                    log.info("Migration process finished.");
                 }
             } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Migration client is not available");
+                log.error("Error occurred while initializing the migration client." , e);
+            }
+
+            if (Boolean.parseBoolean(migrate)) {
+                if (migrationClient == null) {
+                    log.warn("Waiting for migration client.");
+                    throw new MigrationClientException("Migration client not found");
+                } else {
+                    log.info("Executing Migration client : " + migrationClient.getClass().getName());
+                    migrationClient.execute();
                 }
             }
 
@@ -172,6 +186,10 @@ public class IdentityCoreServiceComponent {
                     new IdentityCoreInitializedEventImpl(), null);
 
 
+        } catch (MigrationClientException e) {
+            // Throwing migration client exception to wait till migration client implementation bundle starts if
+            // -Dmigrate option is used.
+            throw e;
         } catch (Throwable e) {
             log.error("Error occurred while populating identity configuration properties", e);
         }
@@ -242,6 +260,21 @@ public class IdentityCoreServiceComponent {
      */
     protected void unsetConfigurationContextService(ConfigurationContextService service) {
         configurationContextService = null;
+    }
+
+    /**
+     *
+     * @param client
+     */
+    protected void setMigrationClient(MigrationClient client) {
+        migrationClient = client;
+    }
+
+    /**
+     * @param client
+     */
+    protected void unsetMigrationClient(MigrationClient client) {
+        migrationClient = null;
     }
 
 }

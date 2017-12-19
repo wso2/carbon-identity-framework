@@ -189,6 +189,8 @@ public class FileBasedConfigurationBuilder {
             log.error(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG + " file is not available", e);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
+        } catch (Exception e) {
+            log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } finally {
             try {
                 if (inStream != null) {
@@ -495,7 +497,8 @@ public class FileBasedConfigurationBuilder {
         Class<?> clazz;
         Object obj;
         try {
-            clazz = Class.forName(extensionElem.getText());
+            String className = StringUtils.trimToEmpty(extensionElem.getText());
+            clazz = Class.forName(className);
             obj = clazz.newInstance();
             extensions.put(extensionElem.getLocalName(), obj);
         } catch (ClassNotFoundException e) {

@@ -69,6 +69,8 @@ public class IdentityApplicationConstants {
     public static final String PASSWORD = "password";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
 
+    public static final String REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE = "redirectToMultiOptionPageOnFailure";
+
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";
@@ -129,6 +131,10 @@ public class IdentityApplicationConstants {
             public static final String AUTHENTICATION_CONTEXT_COMPARISON_LEVEL = "AuthnContextComparisonLevel";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
+            public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
+
+            public static final String UNSPECIFIED_NAME_ID_FORMAT =
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
 
 
             private SAML2SSO() {
@@ -219,6 +225,11 @@ public class IdentityApplicationConstants {
         public static final String OAUTH2_USER_INFO_EP_URL = "OAuth2UserInfoEPUrl";
         public static final String CALLBACK_URL = "callbackUrl";
         public static final String OAUTH_CONSUMER_SECRET = "oauthConsumerSecret";
+
+        public static final String OIDC_WEB_FINGER_EP_URL = "OIDCWebFingerEPUrl";
+        public static final String OAUTH2_DCR_EP_URL = "OAuth2DCREPUrl";
+        public static final String OAUTH2_JWKS_EP_URL = "OAuth2JWKSPage";
+        public static final String OIDC_DISCOVERY_EP_URL = "OIDCDiscoveryEPUrl";
 
         private OAuth2() {
             throw new AssertionError("Must not initiate an object of OAuth2 class");
@@ -337,6 +348,59 @@ public class IdentityApplicationConstants {
             public static final String SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
             public static final String SHA384 = "http://www.w3.org/2001/04/xmldsig-more#sha384";
             public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
+        }
+
+        public static class AssertionEncryptionAlgorithm {
+            public static final String AES256 = "AES256";
+            public static final String AES192 = "AES192";
+            public static final String AES128 = "AES128";
+            public static final String TRIPLEDES = "TRIPLEDES";
+            public static final String AES128_GCM = "AES128_GCM";
+            public static final String AES192_GCM = "AES192_GCM";
+            public static final String AES256_GCM = "AES256_GCM";
+        }
+
+        public static class AssertionEncryptionAlgorithmURI {
+            public static final String AES256 = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+            public static final String AES192 = "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
+            public static final String AES128 = "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
+            public static final String TRIPLEDES = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc";
+            public static final String AES128_GCM = "http://www.w3.org/2009/xmlenc11#aes128-gcm";
+            public static final String AES192_GCM = "http://www.w3.org/2009/xmlenc11#aes192-gcm";
+            public static final String AES256_GCM = "http://www.w3.org/2009/xmlenc11#aes256-gcm";
+        }
+
+        public static class KeyEncryptionAlgorithm {
+            public static final String RSAOAEP = "RSAOAEP";
+            public static final String RSA15 = "RSA15";
+            public static final String RSAOAEP11 = "RSAOAEP11";
+        }
+
+        public static class KeyEncryptionAlgorithmURI {
+            public static final String RSAOAEP = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+            public static final String RSA15 = "http://www.w3.org/2001/04/xmlenc#rsa-1_5";
+            public static final String RSAOAEP11 = "http://www.w3.org/2009/xmlenc11#rsa-oaep";
+        }
+
+    }
+
+    public static class SCIM {
+
+        public static final String USERS_EP_URL = "scimUserEndpoint";
+        public static final String GROUPS_EP_URL = "scimGroupEndpoint";
+
+        private SCIM() {
+            throw new AssertionError("Must not initiate an object of SCIM class");
+        }
+    }
+
+    public static class SCIM2 {
+
+        public static final String USERS_EP_URL = "scim2UserEndpoint";
+        public static final String GROUPS_EP_URL = "scim2GroupEndpoint";
+
+        private SCIM2() {
+            throw new AssertionError("Must not initiate an object of SCIM2 class");
         }
     }
 }

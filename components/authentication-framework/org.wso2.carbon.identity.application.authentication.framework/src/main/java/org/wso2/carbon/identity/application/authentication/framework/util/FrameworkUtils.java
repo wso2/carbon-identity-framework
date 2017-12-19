@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -84,6 +85,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -459,7 +461,7 @@ public class FrameworkUtils {
 
         PostAuthenticationHandler postAuthenticationHandler = null;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
-                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+                .get(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER);
 
         if (obj instanceof PostAuthenticationHandler) {
             postAuthenticationHandler = (PostAuthenticationHandler) obj;
@@ -492,11 +494,22 @@ public class FrameworkUtils {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
-                    cookie.setMaxAge(0);
-                    cookie.setHttpOnly(true);
-                    cookie.setSecure(true);
-                    cookie.setPath("/");
-                    resp.addCookie(cookie);
+
+                    CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE,
+                            cookie.getValue());
+                    IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig
+                            (FrameworkConstants.COMMONAUTH_COOKIE);
+
+                    if (commonAuthIdCookieConfig != null) {
+                        updateCommonAuthIdCookieConfig(cookieBuilder, commonAuthIdCookieConfig, 0);
+                    } else {
+                        cookieBuilder.setHttpOnly(true);
+                        cookieBuilder.setSecure(true);
+                        cookieBuilder.setPath("/");
+                    }
+
+                    cookieBuilder.setMaxAge(0);
+                    resp.addCookie(cookieBuilder.build());
                     break;
                 }
             }
@@ -522,39 +535,12 @@ public class FrameworkUtils {
 
         CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, id);
 
-        IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+        IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants
+                .COMMONAUTH_COOKIE);
 
         if (commonAuthIdCookieConfig != null) {
-            if (commonAuthIdCookieConfig.getDomain() != null) {
-                cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
-            }
 
-            if (commonAuthIdCookieConfig.getPath() != null) {
-                cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
-            }
-
-            if (commonAuthIdCookieConfig.getComment() != null) {
-                cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
-            }
-
-            if (commonAuthIdCookieConfig.getMaxAge() > 0) {
-                cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
-            } else if (age != null) {
-                cookieBuilder.setMaxAge(age);
-            }
-
-            if (commonAuthIdCookieConfig.getVersion() > 0) {
-                cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
-            }
-
-            if (commonAuthIdCookieConfig.isHttpOnly()) {
-                cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
-            }
-
-            if (commonAuthIdCookieConfig.isSecure()) {
-                cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
-            }
-
+            updateCommonAuthIdCookieConfig(cookieBuilder, commonAuthIdCookieConfig, age);
         } else {
 
             cookieBuilder.setSecure(true);
@@ -899,7 +885,8 @@ public class FrameworkUtils {
                                                                             Map<String, AuthenticatedIdPData> authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Finding already authenticated IdPs of the Step");
+            log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
+                    stepConfig.getOrder()));
         }
 
         Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
@@ -908,18 +895,65 @@ public class FrameworkUtils {
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
 
             for (AuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Considering the authenticator '%s'", authenticatorConfig.getName()));
+                }
+
+                String authenticatorName = authenticatorConfig.getName();
                 List<String> authenticatorIdps = authenticatorConfig.getIdpNames();
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("%d IdP(s) found in the step.", authenticatedIdPs.size()));
+                }
 
                 for (String authenticatorIdp : authenticatorIdps) {
-                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs
-                            .get(authenticatorIdp);
 
-                    if (authenticatedIdPData != null
-                        && authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
-                        idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
-                        break;
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Considering the IDP : '%s'", authenticatorIdp));
+                    }
+
+                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatorIdp);
+
+                    if (authenticatedIdPData != null && authenticatedIdPData.getIdpName() !=  null &&
+                            authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
+
+                        if (FrameworkConstants.LOCAL.equals(authenticatedIdPData.getIdpName())) {
+                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                                idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
+
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("('%s', '%s') is an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                            authenticatorConfig.getName(), authenticatorIdp));
+                                }
+
+                                break;
+                            } else {
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("('%s', '%s') is not an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                            authenticatorConfig.getName(), authenticatorIdp));
+                                }
+                            }
+                        } else {
+
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("'%s' is an already authenticated IDP.", authenticatorIdp));
+                            }
+
+                            idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
+                            break;
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("'%s' is NOT an already authenticated IDP.", authenticatorIdp));
+                        }
                     }
                 }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticators found.");
             }
         }
 
@@ -1230,6 +1264,63 @@ public class FrameworkUtils {
                         unmodifiableParamMap);
             }
         }
+    }
+
+    private static void updateCommonAuthIdCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+            commonAuthIdCookieConfig, Integer age) {
+
+        if (commonAuthIdCookieConfig.getDomain() != null) {
+            cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
+        }
+
+        if (commonAuthIdCookieConfig.getPath() != null) {
+            cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
+        }
+
+        if (commonAuthIdCookieConfig.getComment() != null) {
+            cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
+        }
+
+        if (commonAuthIdCookieConfig.getMaxAge() > 0) {
+            cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
+        } else if (age != null) {
+            cookieBuilder.setMaxAge(age);
+        }
+
+        if (commonAuthIdCookieConfig.getVersion() > 0) {
+            cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
+        }
+
+        if (commonAuthIdCookieConfig.isHttpOnly()) {
+            cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
+        }
+
+        if (commonAuthIdCookieConfig.isSecure()) {
+            cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
+        }
+    }
+
+    public static String getMultiAttributeSeparator() {
+
+        String multiAttributeSeparator = null;
+        try {
+            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+            }
+        }
+
+        if (StringUtils.isBlank(multiAttributeSeparator)) {
+            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+            if (log.isDebugEnabled()) {
+                log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
+            }
+        }
+
+        return multiAttributeSeparator;
     }
 }
 

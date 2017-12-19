@@ -82,7 +82,11 @@
     } catch (InstantiationException e) {
         CarbonUIMessage.sendCarbonUIMessage("Your session has timed out. Please try again.",
                 CarbonUIMessage.ERROR, request);
-    }catch (Exception e) {
+    } catch (Exception e) {
+        // Cleanup before start the flow again
+        roleBean.cleanup();
+        session.removeAttribute(UserAdminUIConstants.ROLE_LIST_ADD_ROLE_USER_CACHE);
+
         String message = MessageFormat.format(resourceBundle.getString("role.cannot.add"),
                 new Object[] { roleName, e.getMessage() });
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);

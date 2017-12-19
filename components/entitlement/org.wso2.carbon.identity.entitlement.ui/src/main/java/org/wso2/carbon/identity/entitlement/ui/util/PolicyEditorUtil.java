@@ -719,8 +719,6 @@ public class PolicyEditorUtil {
             throws PolicyEditorException {
 
         List<ObligationElementDTO> obligationElementDTOs = new ArrayList<ObligationElementDTO>();
-        List<Element> returnList = new ArrayList<Element>();
-
         if (obligationDTOs != null) {
             for (ObligationDTO obligationDTO : obligationDTOs) {
                 ObligationElementDTO elementDTO = createObligationElement(obligationDTO);
@@ -766,7 +764,6 @@ public class PolicyEditorUtil {
 
             String function = dynamicAttributeDTO.getFunction();
             String attributeValue = dynamicAttributeDTO.getAttributeValue();
-            String attributeId = dynamicAttributeDTO.getAttributeId();
             String attributeDataType = dynamicAttributeDTO.getDataType();
 
             if (attributeValue != null && function != null) {

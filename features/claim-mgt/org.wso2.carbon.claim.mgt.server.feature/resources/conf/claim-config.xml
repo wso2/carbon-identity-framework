@@ -123,6 +123,14 @@
 				<ReadOnly />
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/department</ClaimURI>
+				<DisplayName>Department</DisplayName>
+				<AttributeID>departmentNumber</AttributeID>
+				<Description>Department</Description>
+				<SupportedByDefault />
+				<ReadOnly />
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/postalcode</ClaimURI>
 				<DisplayName>Postal Code</DisplayName>
 				<AttributeID>postalcode</AttributeID>
@@ -234,6 +242,12 @@
 				<DisplayName>Name - Honoric Suffix</DisplayName>
 				<AttributeID>honoricSuffix</AttributeID>
 				<Description>Honoric Suffix</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/resourceType</ClaimURI>
+				<DisplayName>Resource Type</DisplayName>
+				<AttributeID>ref</AttributeID>
+				<Description>Resource Type</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/userType</ClaimURI>
@@ -379,19 +393,19 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
 				<DisplayName>Verify Email</DisplayName>
-				<AttributeID>manager</AttributeID>
+				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/askPassword</ClaimURI>
 				<DisplayName>Ask Password</DisplayName>
-				<AttributeID>postOfficeBox</AttributeID>
+				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/adminForcedPasswordReset</ClaimURI>
 				<DisplayName>Force Password Reset</DisplayName>
-				<AttributeID>departmentNumber</AttributeID>
+				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke email force password feature</Description>
 			</Claim>
 			<Claim>
@@ -401,13 +415,10 @@
 				<Description>Entitlements</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:scim:schemas:core:1.0:roles</ClaimURI>
-				<DisplayName>Roles</DisplayName>
-				<AttributeID>roles</AttributeID>
-				<Description>Roles</Description>
-				<DisplayOrder>5</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<ClaimURI>http://wso2.org/claims/identity/lockedReason</ClaimURI>
+				<DisplayName>Locked Reason</DisplayName>
+				<AttributeID>lockedReason</AttributeID>
+				<Description>Locked Reason</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/x509Certificates</ClaimURI>
@@ -418,7 +429,7 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</ClaimURI>
 				<DisplayName>Failed Password Recovery Attempts</DisplayName>
-				<AttributeID>postalCode</AttributeID>
+				<AttributeID>failedRecoveryAttempts</AttributeID>
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
 			</Claim>
 
@@ -427,14 +438,14 @@
 				<ClaimURI>http://wso2.org/claims/primaryChallengeQuestion</ClaimURI>
 				<DisplayName>Primary Challenge Question</DisplayName>
 			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>title</AttributeID>
+				<AttributeID>primaryChallengeQuestion</AttributeID>
 				<Description>Primary Challenge Question</Description>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>http://wso2.org/claims/challengeQuestionUris</ClaimURI>
 				<DisplayName>Challenge Question</DisplayName>
 			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>stateOrProvinceName</AttributeID>
+				<AttributeID>challengeQuestionUris</AttributeID>
 				<Description>Challenge Question</Description>
 		    </Claim>
 
@@ -456,14 +467,21 @@
 				<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>postalAddress</AttributeID>
+				<AttributeID>emailVerified</AttributeID>
 				<Description>Email Verified</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/phoneVerified</ClaimURI>
+				<DisplayName>Phone Verified</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>phoneVerified</AttributeID>
+				<Description>Phone Verified</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
 				<DisplayName>Account Disabled</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>ref</AttributeID>
+				<AttributeID>accountDisabled</AttributeID>
 				<Description>Account Disabled</Description>
 			</Claim>
 			<Claim>
@@ -477,7 +495,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
 				<DisplayName>Failed Lockout Count</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>employeeNumber</AttributeID>
+				<AttributeID>failedLockoutCount</AttributeID>
 				<Description>Failed Lockout Count</Description>
 			</Claim>
 			<Claim>
@@ -491,21 +509,21 @@
 				<ClaimURI>http://wso2.org/claims/lastLoginTime</ClaimURI>
 				<DisplayName>Last Login</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>lastLogonTime</AttributeID>
+				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last Login Time</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastLogonTime</ClaimURI>
 				<DisplayName>Last Logon</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>carLicense</AttributeID>
+				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last Logon Time</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastPasswordUpdateTime</ClaimURI>
 				<DisplayName>Last Password Update</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>businessCategory</AttributeID>
+				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
 			</Claim>
 		     <Claim>
@@ -609,7 +627,7 @@
 				<AttributeID>homePhone</AttributeID>
 				<Description>Home Phone</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.home</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://schemas.xmlsoap.org/ws/2005/05/identity/claims/otherphone</ClaimURI>
@@ -653,18 +671,18 @@
 				<Description>PPID</Description>
 				<Required />
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schema.openid.net/2007/05/claims">
 			<Claim>
 				<ClaimURI>nickname</ClaimURI>
-				<DisplayName>First Name</DisplayName>
+				<DisplayName>Nick Name</DisplayName>
 				<AttributeID>nickName</AttributeID>
-				<Description>First Name</Description>
+				<Description>Nick Name</Description>
 				<Required />
-                                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
 			</Claim>
@@ -683,7 +701,7 @@
 				<DisplayName>Email</DisplayName>
 				<AttributeID>mail</AttributeID>
 				<Description>Email Address</Description>
-                                <DisplayOrder>3</DisplayOrder>
+				<DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
                 <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
@@ -694,7 +712,7 @@
 				<DisplayName>Country</DisplayName>
 				<AttributeID>country</AttributeID>
 				<Description>Country</Description>
-                                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 			</Claim>
@@ -703,16 +721,16 @@
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
 				<Description>Time Zone</Description>
-                                <DisplayOrder>9</DisplayOrder>
+				<DisplayOrder>9</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>dob</ClaimURI>
 				<DisplayName>DOB</DisplayName>
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Date of Birth</Description>
-                                <DisplayOrder>6</DisplayOrder>
+				<DisplayOrder>6</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
 			</Claim>
@@ -721,16 +739,16 @@
 				<DisplayName>Postalcode</DisplayName>
 				<AttributeID>postalCode</AttributeID>
 				<Description>Postalcode</Description>
-                                <DisplayOrder>4</DisplayOrder>
+				<DisplayOrder>4</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>gender</ClaimURI>
 				<DisplayName>Gender</DisplayName>
 				<AttributeID>gender</AttributeID>
 				<Description>Gender</Description>
-                                <DisplayOrder>8</DisplayOrder>
+				<DisplayOrder>8</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/gender</MappedLocalClaim>
 			</Claim>
@@ -741,19 +759,19 @@
 				<Description>Language</Description>
                 <DisplayOrder>7</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://axschema.org">
 			<Claim>
 				<ClaimURI>http://axschema.org/namePerson/first</ClaimURI>
-				<DisplayName>Nick Name</DisplayName>
-				<AttributeID>nickName</AttributeID>
-				<Description>Nick Name</Description>
+				<DisplayName>First Name</DisplayName>
+				<AttributeID>givenName</AttributeID>
+				<Description>First Name</Description>
 				<Required />
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/namePerson/last</ClaimURI>
@@ -787,7 +805,7 @@
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
 				<Description>Time Zone</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/birthDate</ClaimURI>
@@ -803,7 +821,7 @@
 				<AttributeID>postalCode</AttributeID>
 				<Description>Postalcode</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/person/gender</ClaimURI>
@@ -819,7 +837,7 @@
 				<AttributeID>prefferedLanguage</AttributeID>
 				<Description>Language</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
         <Dialect dialectURI="urn:scim:schemas:core:1.0">
@@ -1314,11 +1332,11 @@
 			<Claim>
 				<ClaimURI>given_name</ClaimURI>
 				<DisplayName>Given Name</DisplayName>
-				<AttributeID>cn</AttributeID>
+				<AttributeID>givenName</AttributeID>
 				<Description>Given name(s) or first name(s) of the End-User. Note that in some cultures, people can have multiple given names; all can be present, with the names being separated by space characters.</Description>
 				<DisplayOrder>3</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>family_name</ClaimURI>
@@ -1336,7 +1354,7 @@
 				<Description>Middle name(s) of the End-User. Note that in some cultures, people can have multiple middle names; all can be present, with the names being separated by space characters. Also note that in some cultures, middle names are not used.</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/middleName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>nickname</ClaimURI>
@@ -1355,7 +1373,7 @@
 				<Description>Shorthand name by which the End-User wishes to be referred to at the RP, such as janedoe or j.doe.</Description>
 				<DisplayOrder>7</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>profile</ClaimURI>
@@ -1373,7 +1391,7 @@
 				<Description>URL of the End-User's profile picture. This URL MUST refer to an image file (for example, a PNG, JPEG, or GIF image file)</Description>
 				<DisplayOrder>9</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/photourl</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>website</ClaimURI>
@@ -1396,7 +1414,7 @@
 				<DisplayName>Email Verified</DisplayName>
 				<AttributeID>emailVerified</AttributeID>
 				<Description>True if the End-User's e-mail address has been verified; otherwise false. </Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/identity/emailVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>gender</ClaimURI>
@@ -1412,21 +1430,21 @@
 				<DisplayName>Birth Date</DisplayName>
 				<AttributeID>birthDate</AttributeID>
 				<Description>End-User's birthday, represented as an ISO 8601:2004 [ISO8601-2004] YYYY-MM-DD format. The year MAY be 0000, indicating that it is omitted. To represent only the year, YYYY format is allowed.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>zoneinfo</ClaimURI>
 				<DisplayName>Zone Info</DisplayName>
 				<AttributeID>zone</AttributeID>
 				<Description>String from zoneinfo time zone database representing the End-User's time zone. For example, Europe/Paris or America/Los_Angeles.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>locale</ClaimURI>
 				<DisplayName>Locale</DisplayName>
 				<AttributeID>locale</AttributeID>
 				<Description>End-User's locale, For example, en-US or fr-CA, en_US</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/local</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>phone_number</ClaimURI>
@@ -1440,35 +1458,35 @@
 				<DisplayName>Phone Number Verified</DisplayName>
 				<AttributeID>phoneVerififed</AttributeID>
 				<Description>True if the End-User's phone number has been verified; otherwise false.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/identity/phoneVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>address</ClaimURI>
 				<DisplayName>Address</DisplayName>
 				<AttributeID>address</AttributeID>
 				<Description>True if the End-User's phone number has been verified; otherwise false. </Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/addresses</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>updated_at</ClaimURI>
 				<DisplayName>Updated At</DisplayName>
 				<AttributeID>updated</AttributeID>
 				<Description>Time the End-User's information was last updated. Its value is a JSON number representing the number of seconds from 1970-01-01T0:0:0Z as measured in UTC until the date/time.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/modified</MappedLocalClaim>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>formatted</ClaimURI>
 				<DisplayName>Address Formatted</DisplayName>
 				<AttributeID>formatted</AttributeID>
 				<Description>Full mailing address, formatted for display or use on a mailing label. This field MAY contain multiple lines, separated by newlines.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/addresses.formatted</MappedLocalClaim>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>street_address</ClaimURI>
 				<DisplayName>Street Address</DisplayName>
 				<AttributeID>street</AttributeID>
 				<Description>Full street address component, which MAY include house number, street name, Post Office Box, and multi-line extended street address information.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/streetaddress</MappedLocalClaim>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>locality</ClaimURI>
@@ -1498,6 +1516,502 @@
 				<Description>Country name component</Description>
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 		    </Claim>
+		</Dialect>
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0">
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:id</ClaimURI>
+				<DisplayName>Id</DisplayName>
+				<AttributeID>scimId</AttributeID>
+				<Description>Id</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/userid</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:externalId</ClaimURI>
+				<DisplayName>External Id</DisplayName>
+				<AttributeID>externalId</AttributeID>
+				<Description>External Id</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/externalid</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.created</ClaimURI>
+				<DisplayName>Meta - Created</DisplayName>
+				<AttributeID>createdDate</AttributeID>
+				<Description>Meta - Created</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/created</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.lastModified</ClaimURI>
+				<DisplayName>Meta - Last Modified</DisplayName>
+				<AttributeID>lastModifiedDate</AttributeID>
+				<Description>Meta - Last Modified</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/modified</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.location</ClaimURI>
+				<DisplayName>Meta - Location</DisplayName>
+				<AttributeID>location</AttributeID>
+				<Description>Meta - Location</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/location</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</ClaimURI>
+				<DisplayName>Meta - Location</DisplayName>
+				<AttributeID>ref</AttributeID>
+				<Description>Meta - Location</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.version</ClaimURI>
+				<DisplayName>Meta - Version</DisplayName>
+				<AttributeID>im</AttributeID>
+				<Description>Meta - Version</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
+			</Claim>
+		</Dialect>
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User">
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:userName</ClaimURI>
+				<DisplayName>User Name</DisplayName>
+				<AttributeID>uid</AttributeID>
+				<Description>User Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/username</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.givenName</ClaimURI>
+				<DisplayName>Name - Given Name</DisplayName>
+				<AttributeID>givenName</AttributeID>
+				<Description>Given Name</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.familyName</ClaimURI>
+				<DisplayName>Name - Family Name</DisplayName>
+				<AttributeID>sn</AttributeID>
+				<Description>Family Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/lastname</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.formatted</ClaimURI>
+				<DisplayName>Name - Formatted Name</DisplayName>
+				<AttributeID>formattedName</AttributeID>
+				<Description>Formatted Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/formattedName</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.middleName</ClaimURI>
+				<DisplayName>Name - Middle Name</DisplayName>
+				<AttributeID>middleName</AttributeID>
+				<Description>Middle Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/middleName</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.honorificPrefix</ClaimURI>
+				<DisplayName>Name - Honoric Prefix</DisplayName>
+				<AttributeID>honoricPrefix</AttributeID>
+				<Description>Honoric Prefix</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/honorificPrefix</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:name.honorificSuffix</ClaimURI>
+				<DisplayName>Name - Honoric Suffix</DisplayName>
+				<AttributeID>honoricSuffix</AttributeID>
+				<Description>Honoric Suffix</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/honorificSuffix</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:displayName</ClaimURI>
+				<DisplayName>Display Name</DisplayName>
+				<AttributeID>displayName</AttributeID>
+				<Description>Display Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:nickName</ClaimURI>
+				<DisplayName>Nick Name</DisplayName>
+				<AttributeID>nickName</AttributeID>
+				<Description>Nick Name</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:profileUrl</ClaimURI>
+				<DisplayName>Profile URL</DisplayName>
+				<AttributeID>url</AttributeID>
+				<Description>Profile URL</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:title</ClaimURI>
+				<DisplayName>Title</DisplayName>
+				<AttributeID>title</AttributeID>
+				<Description>Title</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/title</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:userType</ClaimURI>
+				<DisplayName>User Type</DisplayName>
+				<AttributeID>userType</AttributeID>
+				<Description>User Type</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:preferredLanguage</ClaimURI>
+				<DisplayName>Preferred Language</DisplayName>
+				<AttributeID>preferredLanguage</AttributeID>
+				<Description>Preferred Language</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:locale</ClaimURI>
+				<DisplayName>Locality</DisplayName>
+				<AttributeID>localityName</AttributeID>
+				<Description>Locality</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/local</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:timezone</ClaimURI>
+				<DisplayName>Time Zone</DisplayName>
+				<AttributeID>timeZone</AttributeID>
+				<Description>Time Zone</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:active</ClaimURI>
+				<DisplayName>Active</DisplayName>
+				<AttributeID>active</AttributeID>
+				<Description>Active</Description>
+				<DisplayOrder>2</DisplayOrder>
+				<Required />
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/active</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:emails.work</ClaimURI>
+				<DisplayName>Emails - Work Email</DisplayName>
+				<AttributeID>workEmail</AttributeID>
+				<Description>Work Email</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/emails.work</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:emails.home</ClaimURI>
+				<DisplayName>Emails - Home Email</DisplayName>
+				<AttributeID>homeEmail</AttributeID>
+				<Description>Home Email</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/emails.home</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:emails.other</ClaimURI>
+				<DisplayName>Emails - Other Email</DisplayName>
+				<AttributeID>otherEmail</AttributeID>
+				<Description>Other Email</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/emails.other</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.mobile</ClaimURI>
+				<DisplayName>Phone Numbers - Mobile Number</DisplayName>
+				<AttributeID>mobile</AttributeID>
+				<Description>Mobile Number</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/mobile</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.home</ClaimURI>
+				<DisplayName>Phone Numbers - Home Phone Number</DisplayName>
+				<AttributeID>homePhone</AttributeID>
+				<Description>Home Phone</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.home</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.work</ClaimURI>
+				<DisplayName>Phone Numbers - Work Phone Number</DisplayName>
+				<AttributeID>workPhone</AttributeID>
+				<Description>Work Phone</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.work</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.other</ClaimURI>
+				<DisplayName>Phone Numbers - Other</DisplayName>
+				<AttributeID>otherPhoneNumber</AttributeID>
+				<Description>Other Phone Number</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.other</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:ims.gtalk</ClaimURI>
+				<DisplayName>IM - Gtalk</DisplayName>
+				<AttributeID>imGtalk</AttributeID>
+				<Description>IM - Gtalk</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/gtalk</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:ims.skype</ClaimURI>
+				<DisplayName>IM - Skype</DisplayName>
+				<AttributeID>imSkype</AttributeID>
+				<Description>IM - Skype</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/skype</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:photos.photo</ClaimURI>
+				<DisplayName>Photo</DisplayName>
+				<AttributeID>photoUrl</AttributeID>
+				<Description>Photo</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/photourl</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:photos.thumbnail</ClaimURI>
+				<DisplayName>Photo - Thumbnail</DisplayName>
+				<AttributeID>thumbnail</AttributeID>
+				<Description>Photo - Thumbnail</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/thumbnail</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:addresses.home</ClaimURI>
+				<DisplayName>Address - Home</DisplayName>
+				<AttributeID>localityAddress</AttributeID>
+				<Description>Address - Home</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/addresses.locality</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:addresses.work</ClaimURI>
+				<DisplayName>Address - Work</DisplayName>
+				<AttributeID>region</AttributeID>
+				<Description>Address - Work</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/region</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:groups</ClaimURI>
+				<DisplayName>Groups</DisplayName>
+				<AttributeID>groups</AttributeID>
+				<Description>Groups</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:entitlements.default</ClaimURI>
+				<DisplayName>Entitlements</DisplayName>
+				<AttributeID>entitlements</AttributeID>
+				<Description>Entitlements</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/entitlements</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:roles.default</ClaimURI>
+				<DisplayName>Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>Roles</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</ClaimURI>
+				<DisplayName>X509Certificates</DisplayName>
+				<AttributeID>x509Certificates</AttributeID>
+				<Description>X509Certificates</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/x509Certificates</MappedLocalClaim>
+			</Claim>
+		</Dialect>
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
+				<DisplayName>employeeNumber</DisplayName>
+				<AttributeID>externalId</AttributeID>
+				<Description>employeeNumber</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/externalid</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:costCenter</ClaimURI>
+				<DisplayName>oneTimePassword</DisplayName>
+				<AttributeID>userType</AttributeID>
+				<Description>costCenter</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:organization</ClaimURI>
+				<DisplayName>Organization -division</DisplayName>
+				<AttributeID>organizationName</AttributeID>
+				<Description>Organization -division</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/organization</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:department</ClaimURI>
+				<DisplayName>Organization -department</DisplayName>
+				<AttributeID>departmentNumber</AttributeID>
+				<Description>Organization -department</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/department</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:division</ClaimURI>
+				<DisplayName>Manager - home</DisplayName>
+				<AttributeID>stateorprovince</AttributeID>
+				<Description>Manager - home</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/stateorprovince</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.value</ClaimURI>
+				<DisplayName>Manager - home</DisplayName>
+				<AttributeID>gender</AttributeID>
+				<Description>Manager - home</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/gender</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.$ref</ClaimURI>
+				<DisplayName>Manager - home</DisplayName>
+				<AttributeID>ref</AttributeID>
+				<Description>Manager - home</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.displayName</ClaimURI>
+				<DisplayName>Manager - home</DisplayName>
+				<AttributeID>displayName</AttributeID>
+				<Description>Manager - home</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>
+				<DisplayName>Ask Password</DisplayName>
+				<AttributeID>askPassword</AttributeID>
+				<Description>Temporary claim to invoke email ask Password feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/askPassword</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</ClaimURI>
+				<DisplayName>Verify Email</DisplayName>
+				<AttributeID>verifyEmail</AttributeID>
+				<Description>Temporary claim to invoke email verified feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/verifyEmail</MappedLocalClaim>
+			</Claim>
 		</Dialect>
 	</Dialects>
 </ClaimConfig>

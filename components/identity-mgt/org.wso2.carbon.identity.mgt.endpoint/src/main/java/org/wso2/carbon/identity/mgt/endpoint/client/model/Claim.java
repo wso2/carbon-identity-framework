@@ -37,6 +37,7 @@ public class Claim {
     private String dialect = null;
     private Boolean required = null;
     private Boolean readOnly = null;
+    private String validationRegex = null;
 
 
     /**
@@ -164,6 +165,16 @@ public class Claim {
         this.readOnly = readOnly;
     }
 
+    /**
+     **/
+    @JsonProperty("validation-regex")
+    public String getValidationRegex() {
+        return validationRegex;
+    }
+
+    public void setValidationRegex(String validationRegex) {
+        this.validationRegex = validationRegex;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -59,8 +59,6 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class EntitlementEngine {
 
@@ -99,10 +99,6 @@ public class EntitlementEngine {
 
     public PolicyCache getPolicyCache() {
         return policyCache;
-    }
-
-    public void setPolicyCache(PolicyCache policyCache) {
-        this.policyCache = policyCache;
     }
 
     public void clearDecisionCache() {
@@ -153,16 +149,6 @@ public class EntitlementEngine {
 
         if (!isPAP && !isPDP) {
             isPAP = true;
-        }
-
-        boolean balanaConfig = Boolean.parseBoolean((String) EntitlementServiceComponent.getEntitlementConfig().
-                getEngineProperties().get(PDPConstants.BALANA_CONFIG_ENABLE));
-
-
-        if (balanaConfig) {
-            System.setProperty("org.wso2.balana.PDPConfigFile", CarbonUtils.getCarbonConfigDirPath()
-                    + File.separator + "security" + File.separator +
-                    "balana-config.xml");
         }
 
         // if PDP config file is not configured, then balana instance is created from default configurations
@@ -284,7 +270,7 @@ public class EntitlementEngine {
 
         String xacmlResponse;
 
-        if ((xacmlResponse = getFromCache(xacmlRequest, false)) != null) {
+        if ((xacmlResponse = (String) getFromCache(xacmlRequest, false)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
                 log.debug("XACML Response : " + xacmlResponse);
             }
@@ -343,12 +329,13 @@ public class EntitlementEngine {
         String xacmlResponse;
         ResponseCtx responseCtx;
 
-        if ((xacmlResponse = getFromCache(xacmlRequest, false)) != null) {
+        if ((xacmlResponse = (String) getFromCache(xacmlRequest, false)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
                 log.debug("XACML Response : " + xacmlResponse);
             }
 
-            Element node = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
+            Element node = documentBuilderFactory.newDocumentBuilder().parse
                     (new ByteArrayInputStream(xacmlResponse.getBytes())).getDocumentElement();
 
 
@@ -397,6 +384,38 @@ public class EntitlementEngine {
     }
 
     /**
+     * Evaluates the given XACML request and returns the Response
+     *
+     * @param requestCtx Balana Object model for request
+     * @param xacmlRequest Balana Object model for request
+     * @return ResponseCtx  Balana Object model for response
+     */
+    public ResponseCtx evaluate(AbstractRequestCtx requestCtx, String xacmlRequest) {
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {
+            log.debug("XACML Request : " + xacmlRequest);
+        }
+
+        ResponseCtx xacmlResponse;
+
+        if ((xacmlResponse = (ResponseCtx) getFromCache(xacmlRequest, false)) != null) {
+            if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+                log.debug("XACML Response : " + xacmlResponse);
+            }
+            return xacmlResponse;
+        }
+
+        xacmlResponse = pdp.evaluate(requestCtx);
+
+        addToCache(xacmlRequest, xacmlResponse, false);
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+            log.debug("XACML Response : " + xacmlResponse);
+        }
+        return xacmlResponse;
+    }
+
+    /**
      * Evaluates the given XACML request and returns the Response that the EntitlementEngine will
      * hand back to the PEP. Here PEP does not need construct the XACML request before sending it to the
      * EntitlementEngine. Just can send the single attribute value. But here default attribute ids and data types
@@ -420,7 +439,7 @@ public class EntitlementEngine {
         String request = (subject != null ? subject : "") + (resource != null ? resource : "") +
                 (action != null ? action : "") + (environmentValue != null ? environmentValue : "");
 
-        if ((response = getFromCache(request, true)) != null) {
+        if ((response = (String) getFromCache(request, true)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {
                 log.debug("XACML Request : " + EntitlementUtil.
                         createSimpleXACMLRequest(subject, resource, action, environmentValue));
@@ -493,12 +512,12 @@ public class EntitlementEngine {
      * @param simpleCache whether using simple cache or not
      * @return XACML response as String
      */
-    private String getFromCache(String request, boolean simpleCache) {
+    private Object getFromCache(String request, boolean simpleCache) {
 
         if (pdpDecisionCacheEnable) {
 
             String tenantRequest = tenantId + "+" + request;
-            String decision;
+            Object decision;
 
 
             //There is no any local cache hereafter and always get from distribute cache if there.
@@ -506,6 +525,15 @@ public class EntitlementEngine {
                 decisionCache.clearCache();
                 simpleDecisionCache.clearCache();
             }*/
+
+            // Check whether the policy cache is invalidated, if so clear the decision cache.
+            if (EntitlementEngine.getInstance().getPolicyCache().isInvalidate()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Policy Cache is invalidated. Clearing the decision cache.");
+                }
+                decisionCache.clear();
+                return null;
+            }
 
             if (simpleCache) {
                 decision = simpleDecisionCache.getFromCache(tenantRequest);
@@ -528,7 +556,7 @@ public class EntitlementEngine {
      * @param response    XACML response as String
      * @param simpleCache whether using simple cache or not
      */
-    private void addToCache(String request, String response, boolean simpleCache) {
+    private void addToCache(String request, Object response, boolean simpleCache) {
         if (pdpDecisionCacheEnable) {
             String tenantRequest = tenantId + "+" + request;
             if (simpleCache) {
@@ -602,6 +630,30 @@ public class EntitlementEngine {
         carbonPolicyFinder.setModules(policyModules);
         carbonPolicyFinder.init();
 
+    }
+
+    /**
+     * Check reset cache state
+     */
+    public void resetCacheInvalidateState() {
+
+        if (policyCache != null) {
+            policyCache.resetCacheInvalidateState();
+        } else {
+            log.error("Policy cache is null - Unable to reset cache invalidate state.");
+        }
+    }
+
+    /**
+     * Checking the policy cache status before cache invalidation
+     */
+    public void invalidatePolicyCache() {
+
+        if (policyCache != null) {
+            policyCache.invalidateCache();
+        } else {
+            log.error("Policy cache is null - Unable to invalidate cache.");
+        }
     }
 
 }

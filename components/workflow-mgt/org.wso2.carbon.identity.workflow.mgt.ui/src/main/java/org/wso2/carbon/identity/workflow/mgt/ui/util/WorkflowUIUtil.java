@@ -21,14 +21,13 @@ public class WorkflowUIUtil {
      * @param requestParameterMap parameter map
      * @param workflowWizard      Workflow object
      */
-    public static  void loadTemplateParameters(Map<String, String[]> requestParameterMap, WorkflowWizard workflowWizard){
-        Set<String> keys = requestParameterMap.keySet();
+    public static  void loadTemplateParameters(Map<String, String[]> requestParameterMap, WorkflowWizard workflowWizard) {
 
-        Map<String,Parameter> templateParameterMap = new HashMap<>();
+        Map<String, Parameter> templateParameterMap = new HashMap<>();
         Template template = workflowWizard.getTemplate();
-        if(template!=null) {
+        if (template != null) {
             ParametersMetaData parametersMetaData = template.getParametersMetaData();
-            if(parametersMetaData !=null && parametersMetaData.getParameterMetaData()!=null) {
+            if (parametersMetaData != null && parametersMetaData.getParameterMetaData() != null) {
                 ParameterMetaData[] parameterMetaData = parametersMetaData.getParameterMetaData();
                 for (ParameterMetaData metaData : parameterMetaData) {
 
@@ -44,15 +43,15 @@ public class WorkflowUIUtil {
                         parameter.setQName(metaData.getName());
 
 
-                    }else{
-                        for (String key : keys) {
-                            if (key.startsWith(metaData.getName())) {
+                    } else {
+                        for (Map.Entry<String, String[]> entry : requestParameterMap.entrySet()) {
+                            if (entry != null && entry.getKey().startsWith(metaData.getName())) {
                                 Parameter parameter = new Parameter();
                                 parameter.setParamName(metaData.getName());
                                 parameter.setHolder(WorkflowUIConstants.ParameterHolder.TEMPLATE);
-                                parameter.setQName(key);
-                                templateParameterMap.put(key, parameter);
-                                String[] values = requestParameterMap.get(key);
+                                parameter.setQName(entry.getKey());
+                                templateParameterMap.put(entry.getKey(), parameter);
+                                String[] values = entry.getValue();
                                 if (values != null && values.length > 0) {
                                     String aValue = values[0];
                                     parameter.setParamValue(aValue);
@@ -78,20 +77,21 @@ public class WorkflowUIUtil {
      * @param requestParameterMap parameter map
      * @param workflowWizard      Workflow object
      */
-    public static  void loadWorkflowImplParameters(Map<String, String[]> requestParameterMap, WorkflowWizard workflowWizard){
-        Set<String> keys = requestParameterMap.keySet();
+    public static  void loadWorkflowImplParameters(Map<String, String[]> requestParameterMap,
+                                                   WorkflowWizard workflowWizard) {
+
         Parameter[] workflowImplParameters = workflowWizard.getWorkflowImplParameters();
 
-        Map<String,Parameter> workflowImplParameterMap = new HashMap<>();
-        if(workflowImplParameters!=null) {
+        Map<String, Parameter> workflowImplParameterMap = new HashMap<>();
+        if (workflowImplParameters != null) {
             for (Parameter param : workflowImplParameters) {
                 workflowImplParameterMap.put(param.getQName(), param);
             }
         }
         WorkflowImpl workflowImpl = workflowWizard.getWorkflowImpl();
-        if(workflowImpl!=null) {
+        if (workflowImpl != null) {
             ParametersMetaData parametersMetaData = workflowImpl.getParametersMetaData();
-            if(parametersMetaData !=null && parametersMetaData.getParameterMetaData()!=null) {
+            if (parametersMetaData != null && parametersMetaData.getParameterMetaData() != null) {
                 ParameterMetaData[] parameterMetaData = parametersMetaData.getParameterMetaData();
                 for (ParameterMetaData metaData : parameterMetaData) {
 
@@ -109,18 +109,18 @@ public class WorkflowUIUtil {
                         parameter.setQName(metaData.getName());
 
 
-                    }else{
-                        for (String key : keys) {
-                            if (key.startsWith(metaData.getName())) {
-                                Parameter parameter = workflowImplParameterMap.get(key);
+                    } else {
+                        for (Map.Entry<String, String[]> entry : requestParameterMap.entrySet()) {
+                            if (entry != null && entry.getKey().startsWith(metaData.getName())) {
+                                Parameter parameter = workflowImplParameterMap.get(entry.getKey());
                                 if (parameter == null) {
                                     parameter = new Parameter();
                                     parameter.setParamName(metaData.getName());
                                     parameter.setHolder(WorkflowUIConstants.ParameterHolder.WORKFLOW_IMPL);
-                                    parameter.setQName(key);
-                                    workflowImplParameterMap.put(key, parameter);
+                                    parameter.setQName(entry.getKey());
+                                    workflowImplParameterMap.put(entry.getKey(), parameter);
                                 }
-                                String[] values = requestParameterMap.get(key);
+                                String[] values = requestParameterMap.get(entry.getKey());
                                 if (values != null && values.length > 0) {
                                     String aValue = values[0];
                                     parameter.setParamValue(aValue);

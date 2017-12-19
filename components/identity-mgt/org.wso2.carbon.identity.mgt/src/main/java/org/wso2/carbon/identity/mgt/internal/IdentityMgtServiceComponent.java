@@ -25,7 +25,9 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfigException;
 import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
@@ -40,6 +42,7 @@ import org.wso2.carbon.identity.mgt.listener.UserOperationsNotificationListener;
 import org.wso2.carbon.identity.mgt.store.RegistryCleanUpService;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.notification.mgt.NotificationSender;
+import org.wso2.carbon.registry.common.AttributeSearchService;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -68,6 +71,9 @@ import java.util.Hashtable;
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
+ * @scr.reference name="registry.search.component"
+ * interface="org.wso2.carbon.registry.common.AttributeSearchService"
+ * cardinality="1..1" policy="dynamic" bind="setAttributeSearchService" unbind="unsetAttributeSearchService"
  */
 
 public class IdentityMgtServiceComponent {
@@ -82,6 +88,7 @@ public class IdentityMgtServiceComponent {
     private static ConfigurationContextService configurationContextService;
     private static RecoveryProcessor recoveryProcessor;
     private static NotificationSender notificationSender;
+    private static AttributeSearchService attributeSearchService;
 
     public static RealmService getRealmService() {
         return realmService;
@@ -130,11 +137,19 @@ public class IdentityMgtServiceComponent {
                 UserIdentityManagementUtil.loadDefaultChallenges();
             }
 
-            Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
-            EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
-            emailNotificationConfig.setProperties(emailConfigFile.getProperties());
-            ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
-                                                          emailNotificationConfig);
+            IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                    (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
+
+            if (identityEventListenerConfig != null) {
+                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable()) && !registry.resourceExists
+                        (IdentityMgtConstants.EMAIL_TEMPLATE_PATH)) {
+                    Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
+                    EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
+                    emailNotificationConfig.setProperties(emailConfigFile.getProperties());
+                    ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
+                            emailNotificationConfig);
+                }
+            }
 
         } catch (RegistryException e) {
             log.error("Error while creating registry collection for org.wso2.carbon.identity.mgt component", e);
@@ -237,4 +252,23 @@ public class IdentityMgtServiceComponent {
         return IdentityMgtServiceComponent.notificationSender;
     }
 
+    protected void setAttributeSearchService(AttributeSearchService searchService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Setting Registry Attribute Search Service");
+        }
+        attributeSearchService = searchService;
+    }
+
+    protected void unsetAttributeSearchService(AttributeSearchService searchService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unsetting Registry Attribute Search Service");
+        }
+        attributeSearchService = null;
+    }
+
+    public static AttributeSearchService getAttributeSearchService() {
+        return attributeSearchService;
+    }
 }

@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Entitlement Admin Service Class which exposes the PAP
@@ -387,7 +388,31 @@ public class EntitlementPolicyAdminService {
      */
     public String[] getAllPolicyIds(String searchString) throws EntitlementException {
 
-        return EntitlementAdminEngine.getInstance().getPapPolicyStoreManager().getPolicyIds();
+        String[] policyIds = EntitlementAdminEngine.getInstance().getPapPolicyStoreManager().getPolicyIds();
+
+        if (searchString == null || searchString.isEmpty()) {
+            return policyIds;
+        }
+
+        String replacedSearchString = searchString.replace("*", ".*");
+        Pattern pattern;
+        try {
+            pattern = Pattern.compile(replacedSearchString, Pattern.CASE_INSENSITIVE);
+        } catch (PatternSyntaxException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while compiling pattern with search string: " + replacedSearchString, e);
+            }
+            throw new EntitlementException("Invalid search string: " + searchString);
+        }
+
+        List<String> filteredPolicyIds = new ArrayList<>();
+        for (String policyId : policyIds) {
+            Matcher matcher = pattern.matcher(policyId);
+            if (matcher.matches()) {
+                filteredPolicyIds.add(policyId);
+            }
+        }
+        return filteredPolicyIds.toArray(new String[filteredPolicyIds.size()]);
     }
 
 

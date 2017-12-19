@@ -23,10 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
-import org.wso2.carbon.identity.core.handler.IdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
@@ -43,19 +42,22 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
 
     public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
 
-        Event event = ((IdentityEventMessageContext)messageContext).getEvent();
+        Event event = ((IdentityEventMessageContext) messageContext).getEvent();
         String eventName = event.getEventName();
         String moduleName = this.getName();
-        IdentityEventConfigBuilder notificationMgtConfigBuilder = null;
+        IdentityEventConfigBuilder notificationMgtConfigBuilder;
         try {
             notificationMgtConfigBuilder = IdentityEventConfigBuilder.getInstance();
         } catch (IdentityEventException e) {
             log.error("Error while retrieving event mgt config builder", e);
+            return false;
         }
         List<Subscription> subscriptionList = null;
         ModuleConfiguration moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
         if (moduleConfiguration != null) {
             subscriptionList = moduleConfiguration.getSubscriptions();
+        } else {
+            return false;
         }
         if (subscriptionList != null) {
             for (Subscription subscription : subscriptionList) {
@@ -75,14 +77,8 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         List<Subscription> subscriptions = moduleConfiguration.getSubscriptions();
         for (Subscription sub : subscriptions) {
             if (sub.getSubscriptionName().equals(eventName)) {
-                continue;
-            }
-            if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                    .getName() + ".subscription." + eventName + "" +
-                    ".operationAsync"))) {
-                return true;
-            } else {
-                return false;
+                    return Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
+                            .getName() + ".subscription." + eventName + ".operationAsync"));
             }
         }
         return false;
@@ -92,7 +88,11 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
 
     @Override
     public void init(InitConfig configuration) throws IdentityRuntimeException {
-        this.configs = (ModuleConfiguration)configuration;
+        if (configuration instanceof ModuleConfiguration) {
+            this.configs = (ModuleConfiguration) configuration;
+        } else {
+            throw new IdentityRuntimeException("Initial configuration error");
+        }
     }
 
 }

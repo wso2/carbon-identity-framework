@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Configuration holder for an application
  */
-public class SequenceConfig implements Serializable {
+public class SequenceConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 6822366703354668075L;
 
@@ -144,21 +144,13 @@ public class SequenceConfig implements Serializable {
      * This method will clone current class objects
      * This method is to solve the issue - multiple requests for same user/SP
      *
-     * @return SequenceConfig object
+     * @return Object object
      */
-    public SequenceConfig cloneObject() {
-        SequenceConfig sequenceConfig = new SequenceConfig();
-        sequenceConfig.setName(this.getName());
-        sequenceConfig.setForceAuthn(this.isForceAuthn());
-        sequenceConfig.setCheckAuthn(this.isCheckAuthn());
-        sequenceConfig.setApplicationId(this.getApplicationId());
-        sequenceConfig.setStepMap(this.getStepMap());
-        sequenceConfig.setReqPathAuthenticators(this.getReqPathAuthenticators());
-        sequenceConfig.setApplicationConfig(this.getApplicationConfig());
-        sequenceConfig.setCompleted(this.isCompleted());
-        sequenceConfig.setAuthenticatedUser(this.getAuthenticatedUser());
-        sequenceConfig.setAuthenticatedIdPs(this.getAuthenticatedIdPs());
-        sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
+    public Object clone() throws CloneNotSupportedException {
+        SequenceConfig sequenceConfig = (SequenceConfig) super.clone();
+        sequenceConfig.setApplicationConfig((ApplicationConfig) applicationConfig.clone());
+        sequenceConfig.setStepMap(new HashMap<>(this.stepMap));
+        sequenceConfig.setReqPathAuthenticators(new ArrayList<>(this.reqPathAuthenticators));
         return sequenceConfig;
     }
 
