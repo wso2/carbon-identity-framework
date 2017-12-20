@@ -124,7 +124,6 @@
         try {
             decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
         } catch (UserManagementUIException e) {
-            
             String message = MessageFormat.format(resourceBundle.getString("error.while.loading.roles"),
                     e.getMessage());
 %>
