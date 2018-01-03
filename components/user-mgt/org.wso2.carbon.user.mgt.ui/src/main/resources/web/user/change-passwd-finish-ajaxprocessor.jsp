@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -41,6 +43,7 @@
     String isUserChange = request.getParameter("isUserChange");
     String returnPath = request.getParameter("returnPath");
     String currentPassword = request.getParameter("currentPassword");
+    String encryptedUsername = null;
 
     String trustedReturnPath = "../userstore/index.jsp";
     if ("user-mgt.jsp".equals(returnPath)) {
@@ -51,6 +54,7 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
+        encryptedUsername = Util.getEncryptedAndBase64encodedUsername(username);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -71,6 +75,10 @@
                                               new Object[] { username });
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 
+    } catch (UserManagementUIException e) {
+        String message = MessageFormat.format(resourceBundle.getString("password.change.exception"), e.getMessage());
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "user-mgt.jsp?ordinal=1";
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("password.change.error"),
                                               username, e.getMessage());
@@ -78,7 +86,7 @@
         if (isUserChange != null) {
             forwardTo = "change-passwd.jsp?ordinal=2&returnPath=" + trustedReturnPath + "&isUserChange=true";
         } else {
-            forwardTo = "change-passwd.jsp?username=" + Encode.forUriComponent(username) + "&ordinal=2";
+            forwardTo = "change-passwd.jsp?username=" + Encode.forUriComponent(encryptedUsername) + "&ordinal=2";
         }
     }
 %>

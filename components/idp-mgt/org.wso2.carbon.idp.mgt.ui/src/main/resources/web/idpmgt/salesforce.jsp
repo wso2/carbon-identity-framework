@@ -110,28 +110,30 @@
         Property[] sfProperties = salesforce.getProvisioningProperties();
         if (sfProperties != null && sfProperties.length > 0) {
             for (Property sfProperty : sfProperties) {
-                if ("sf-api-version".equals(sfProperty.getName())) {
-                    sfApiVersion = sfProperty.getValue();
-                } else if ("sf-domain-name".equals(sfProperty.getName())) {
-                    sfDomainName = sfProperty.getValue();
-                } else if ("sf-clientid".equals(sfProperty.getName())) {
-                    sfClientId = sfProperty.getValue();
-                } else if ("sf-client-secret".equals(sfProperty.getName())) {
-                    sfClientSecret = sfProperty.getValue();
-                } else if ("sf-username".equals(sfProperty.getName())) {
-                    sfUserName = sfProperty.getValue();
-                } else if ("sf-password".equals(sfProperty.getName())) {
-                    sfPassword = sfProperty.getValue();
-                } else if ("sf-token-endpoint".equals(sfProperty.getName())) {
-                    sfOauth2TokenEndpoint = sfProperty.getValue();
-                } else if ("sf-prov-pattern".equals(sfProperty.getName())) {
-                    sfProvPattern = sfProperty.getValue();
-                } else if ("sf-prov-separator".equals(sfProperty.getName())) {
-                    sfProvSeparator = sfProperty.getValue();
-                } else if ("sf-prov-domainName".equals(sfProperty.getName())) {
-                    sfProvDomainName = sfProperty.getValue();
-                } else if ("UniqueID".equals(sfProperty.getName())) {
-                    sfUniqueID = sfProperty.getValue();
+                if (sfProperty != null) {
+                    if ("sf-api-version".equals(sfProperty.getName())) {
+                        sfApiVersion = sfProperty.getValue();
+                    } else if ("sf-domain-name".equals(sfProperty.getName())) {
+                        sfDomainName = sfProperty.getValue();
+                    } else if ("sf-clientid".equals(sfProperty.getName())) {
+                        sfClientId = sfProperty.getValue();
+                    } else if ("sf-client-secret".equals(sfProperty.getName())) {
+                        sfClientSecret = sfProperty.getValue();
+                    } else if ("sf-username".equals(sfProperty.getName())) {
+                        sfUserName = sfProperty.getValue();
+                    } else if ("sf-password".equals(sfProperty.getName())) {
+                        sfPassword = sfProperty.getValue();
+                    } else if ("sf-token-endpoint".equals(sfProperty.getName())) {
+                        sfOauth2TokenEndpoint = sfProperty.getValue();
+                    } else if ("sf-prov-pattern".equals(sfProperty.getName())) {
+                        sfProvPattern = sfProperty.getValue();
+                    } else if ("sf-prov-separator".equals(sfProperty.getName())) {
+                        sfProvSeparator = sfProperty.getValue();
+                    } else if ("sf-prov-domainName".equals(sfProperty.getName())) {
+                        sfProvDomainName = sfProperty.getValue();
+                    } else if ("UniqueID".equals(sfProperty.getName())) {
+                        sfUniqueID = sfProperty.getValue();
+                    }
                 }
             }
         }
@@ -185,6 +187,16 @@
 
 
 %>
+
+<script>
+    jQuery(document).ready(function () {
+        if (<%=isSfProvEnabled%>) {
+            jQuery('#sf_enable_logo').show();
+        } else {
+            jQuery('#sf_enable_logo').hide();
+        }
+    })
+</script>
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
 

@@ -246,6 +246,7 @@
                                                 }
                                             %>
                                         </select>
+                                        <div class="sectionHelp"><fmt:message key="select.mapped.claim"/></div>
                                     </td>
                                 </tr>
                             </table>

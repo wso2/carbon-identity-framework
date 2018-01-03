@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.Registry;
@@ -60,8 +61,10 @@ public class LoginContextManagementUtil {
             return;
         }
 
+        AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
-        if (FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey) != null) {
+        if (context != null) {
+            context.setCurrentAuthenticator(null);
             result.addProperty("status", "success");
             response.getWriter().write(result.toString());
         } else {

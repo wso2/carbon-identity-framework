@@ -112,7 +112,7 @@
 %>
 
 <script type="text/javascript">
-    CARBON.showErrorDialog('<%=e.getMessage()%>', function () {
+    CARBON.showErrorDialog('<%=Encode.forJavaScript(e.getMessage())%>', function () {
         location.href = "policy-publish.jsp";
     });
 </script>

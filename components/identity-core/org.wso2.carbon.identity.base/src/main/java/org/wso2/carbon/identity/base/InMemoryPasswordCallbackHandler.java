@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class InMemoryPasswordCallbackHandler implements CallbackHandler {
 
-    private static Map<String, String> keystorePassword = new HashMap<String, String>();
+    private static Map<String, String> keystorePassword = new HashMap<>();
 
     public static void addUser(String username, String password) {
         keystorePassword.put(username, password);

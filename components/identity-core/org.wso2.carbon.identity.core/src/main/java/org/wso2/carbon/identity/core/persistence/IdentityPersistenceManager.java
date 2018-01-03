@@ -66,9 +66,7 @@ public class IdentityPersistenceManager {
         paramName = paramName.trim();
         param.setName(paramName);
 
-        if (value != null) {
-            param.setValue(value);
-        }
+        param.setValue(value);
 
         ParameterDAO dao = new ParameterDAO(registry);
         dao.createOrUpdateParameter(param);

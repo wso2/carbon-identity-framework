@@ -76,16 +76,15 @@
             if (error != null) {
                 request.setAttribute("errorMsg", error.getDescription());
                 request.setAttribute("errorCode", error.getCode());
-            }
-
-            if (passwordHistoryErrorCode.equals(error.getCode()) || passwordPatternErrorCode.equals(error.getCode())) {
-                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+                if (passwordHistoryErrorCode.equals(error.getCode()) ||
+                        passwordPatternErrorCode.equals(error.getCode())) {
+                    request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+                }
             } else {
                 request.getRequestDispatcher("error.jsp").forward(request, response);
             }
             return;
         }
-
 
     } else {
         request.setAttribute("error", true);

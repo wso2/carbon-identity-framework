@@ -30,13 +30,10 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ServiceHodler {
 
-
-
-
     private static final Log log = LogFactory.getLog(ServiceHodler.class);
 
     private static UserRealm internalUserStore;
-
+    private static boolean isIDNTableExist;
 
     private ServiceHodler(){
 
@@ -68,5 +65,13 @@ public class ServiceHodler {
         }
 
         return registry.getUserRealm();
+    }
+
+    public static void setIsIDNTableExist(boolean isIDNTableExist) {
+        ServiceHodler.isIDNTableExist = isIDNTableExist;
+    }
+
+    public static boolean isIDNTableExist() {
+        return isIDNTableExist;
     }
 }

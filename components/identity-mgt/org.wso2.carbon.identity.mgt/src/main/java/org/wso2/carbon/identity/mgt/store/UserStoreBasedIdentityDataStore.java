@@ -29,6 +29,9 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager;
+import org.wso2.carbon.user.core.ldap.ActiveDirectoryUserStoreManager;
+import org.wso2.carbon.user.core.ldap.ReadWriteLDAPUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.HashMap;
@@ -79,8 +82,8 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
                 // store then log a warn.
                 if(!userStoreManager.isReadOnly()) {
                     // Need to clone the map. If not iterative calls will refer the same map
-                    userStoreManager.setUserClaimValues(username, new HashMap<String,String>
-                            (userIdentityDTO.getUserDataMap()), null);
+                    setUserClaimsValuesInUserStore(userStoreManager, username,
+                            new HashMap<>(userIdentityDTO.getUserDataMap()), null);
                 } else {
                     // If the user store is read only and still uses UserStoreBasedIdentityDataStore, then log a warn
                     log.warn("User store is read only. Changes to identities are only stored in memory, " +
@@ -193,6 +196,41 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
             log.error("Error while reading user identity data", e);
         }
         return userIdentityDTO;
+    }
+
+    /**
+     * This method sets user claim values in user store
+     *
+     * @param userStoreManager userStoreManager object
+     * @param username         user name
+     * @param claims           set of claims
+     * @param profile          profile
+     * @throws IdentityException
+     */
+    protected void setUserClaimsValuesInUserStore(UserStoreManager userStoreManager,
+                                                  String username,
+                                                  Map<String, String> claims, String profile) throws IdentityException {
+
+        try {
+            // We are calling the doSetUserClaimsValues() method of the userstore to prevent Identity Management
+            // listener being called once again for claim value set events.
+            if (userStoreManager instanceof JDBCUserStoreManager) {
+                ((JDBCUserStoreManager) userStoreManager).doSetUserClaimValues(username, claims, null);
+            } else if (userStoreManager instanceof ActiveDirectoryUserStoreManager) {
+                ((ActiveDirectoryUserStoreManager) userStoreManager).doSetUserClaimValues(username, claims, null);
+            } else if (userStoreManager instanceof ReadWriteLDAPUserStoreManager) {
+                ((ReadWriteLDAPUserStoreManager) userStoreManager).doSetUserClaimValues(username, claims, null);
+            } else {
+                String msg = "Cannot persist identity data to userstore for user:%s. Unsupported userstore type:%s to" +
+                        " be used as UserStoreBasedIdentityDataStore.";
+                throw IdentityException.error(String.format(msg, username, userStoreManager.getClass().getName()));
+            }
+
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw IdentityException.error("Error while persisting identity user data in to user store for user: "
+                    + username, e);
+        }
+
     }
 
 }

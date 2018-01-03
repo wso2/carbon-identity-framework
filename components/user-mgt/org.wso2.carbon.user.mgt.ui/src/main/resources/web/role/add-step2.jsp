@@ -167,7 +167,7 @@
     <%if(UserAdminUIConstants.INTERNAL_ROLE.equalsIgnoreCase(roleBean.getRoleType())){%>
         <h2><fmt:message key="add.internal.user.role"/></h2>
     <%} else { %>
-        <h2><fmt:message key="add.user.role"/></h2>
+        <h2><fmt:message key="add.new.role"/></h2>
     <%} %>
 
     <div id="workArea">

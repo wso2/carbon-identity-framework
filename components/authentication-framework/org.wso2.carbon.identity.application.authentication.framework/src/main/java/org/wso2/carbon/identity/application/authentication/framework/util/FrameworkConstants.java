@@ -67,7 +67,19 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String REQUEST_PARAM_SP = "sp";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
+    public static final String IDP_ID = "idpId";
+    public static final String ASSOCIATED_ID = "associatedID";
+
+    // Error details sent from authenticators
+    public static final String AUTH_ERROR_CODE = "AuthErrorCode";
+    public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
+    public static final String AUTH_ERROR_URI = "AuthErrorURI";
+
+    public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
+
+    public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
     private FrameworkConstants() {
 
@@ -165,6 +177,7 @@ public abstract class FrameworkConstants {
         public static final String TO_COMMONAUTH = "tocommonauth";
         public static final String MAX_AGE = "max_age";
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
+        public static final String REMEMBER_ME = "chkRemember";
 
         private RequestParams() {
         }

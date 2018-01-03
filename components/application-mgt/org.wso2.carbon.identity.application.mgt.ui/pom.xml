@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.9.0-SNAPSHOT</version>
+        <version>5.10.93-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <name>WSO2 Carbon - Application Management UI</name>
@@ -68,7 +68,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <version>1.7.2</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>

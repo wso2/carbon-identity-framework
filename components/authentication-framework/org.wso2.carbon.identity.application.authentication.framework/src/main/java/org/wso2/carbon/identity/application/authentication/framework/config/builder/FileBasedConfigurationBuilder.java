@@ -193,8 +193,9 @@ public class FileBasedConfigurationBuilder {
             //########### Read Sequence Configs ###########
             readSequenceConfigs(rootElement);
         } catch (XMLStreamException e) {
-            throw new IOException("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG,
-                    e);
+            log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
+        } catch (Exception e) {
+            log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         }
     }
 
@@ -367,7 +368,7 @@ public class FileBasedConfigurationBuilder {
     private void readAuthenticationEndpointQueryParams(OMElement documentElement) {
         OMElement authEndpointQueryParamsElem = documentElement
                 .getFirstChildWithName(IdentityApplicationManagementUtil
-                                               .getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTH_ENDPOINT_QUERY_PARAMS));
+                        .getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTH_ENDPOINT_QUERY_PARAMS));
 
         if (authEndpointQueryParamsElem != null) {
 
@@ -422,7 +423,7 @@ public class FileBasedConfigurationBuilder {
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_PROXY_MODE));
 
         if (proxyModeElem != null && proxyModeElem.getText() != null && !proxyModeElem.getText().isEmpty() &&
-            "dumb".equalsIgnoreCase(proxyModeElem.getText())) {
+                "dumb".equalsIgnoreCase(proxyModeElem.getText())) {
             isDumbMode = true;
         }
     }
@@ -451,7 +452,7 @@ public class FileBasedConfigurationBuilder {
 
                 OMElement tenantDataListenerURLElem = (OMElement) tenantDataURLElems.next();
                 if (tenantDataListenerURLElem != null &&
-                    StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
+                        StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
                     tenantDataEndpointURLs.add(IdentityUtil.fillURLPlaceholders(tenantDataListenerURLElem.getText()));
                 }
             }
@@ -484,7 +485,7 @@ public class FileBasedConfigurationBuilder {
             cacheTimeouts.put(cacheTimeoutElem.getLocalName(), timeout);
         } catch (NumberFormatException e) {
             log.warn(cacheTimeoutElem.getLocalName() + "doesn't have a numeric value specified." +
-                     "Entry is ignored");
+                    "Entry is ignored");
         }
     }
 
@@ -492,7 +493,8 @@ public class FileBasedConfigurationBuilder {
         Class<?> clazz;
         Object obj;
         try {
-            clazz = Class.forName(extensionElem.getText());
+            String className = StringUtils.trimToEmpty(extensionElem.getText());
+            clazz = Class.forName(className);
             obj = clazz.newInstance();
             extensions.put(extensionElem.getLocalName(), obj);
         } catch (ClassNotFoundException e) {
@@ -616,7 +618,7 @@ public class FileBasedConfigurationBuilder {
 
         if (orderAttr == null) {
             log.warn("Each Step Configuration should have an order. +"
-                     + "Authenticators under this Step will not be registered.");
+                    + "Authenticators under this Step will not be registered.");
             return null;
         }
 
@@ -666,7 +668,7 @@ public class FileBasedConfigurationBuilder {
         // if the name is not given, do not register this authenticator
         if (nameAttr == null) {
             log.warn("Each Authenticator Configuration should have a unique name attribute. +" +
-                     "This Authenticator will not be registered.");
+                    "This Authenticator will not be registered.");
             return null;
         }
 
@@ -867,4 +869,4 @@ public class FileBasedConfigurationBuilder {
 
         return false;
     }
-} 
+}

@@ -31,15 +31,17 @@ public class OpenIDAdminDAO extends AbstractDAO<OpenIDAdminDO> {
     protected Log log = LogFactory.getLog(OpenIDAdminDAO.class);
 
     /**
-     * @param registry
+     * @param registry registry instance
      */
     public OpenIDAdminDAO(Registry registry) {
         this.registry = registry;
     }
 
     /**
-     * @param rp
-     * @throws IdentityException
+     * Create or update the OpenID admin.
+     *
+     * @param opAdmin openID admin
+     * @throws IdentityException if error occurs while creating or updating the OpenID admin
      */
     public void createOrUpdate(OpenIDAdminDO opAdmin) throws IdentityException {
         String path = null;
@@ -71,16 +73,17 @@ public class OpenIDAdminDAO extends AbstractDAO<OpenIDAdminDO> {
     }
 
     /**
-     * @param hostName
-     * @return
-     * @throws IdentityException
+     * Retrieve OpenID admin for a tenant.
+     *
+     * @return open id admin of the tenant
+     * @throws IdentityException if error occurs while retrieving the OpenID admin
      */
     public OpenIDAdminDO getOpenIDAdminDO() throws IdentityException {
         OpenIDAdminDO opdo = null;
         Resource resource = null;
 
         if (log.isDebugEnabled()) {
-            log.debug("Retreiving OpenID admin for tenant");
+            log.debug("Retrieving OpenID admin for tenant");
         }
         try {
             if (registry.resourceExists(IdentityRegistryResources.OPEN_ID_ADMIN_SETTINGS)) {

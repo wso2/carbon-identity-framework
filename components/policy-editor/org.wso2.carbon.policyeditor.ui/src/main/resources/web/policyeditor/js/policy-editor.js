@@ -451,7 +451,7 @@ function postbackUpdatedPolicy() {
     var endpoint = parts[0];
     formEl.setAttribute("action", endpoint);
 
-    var formContentHTML = "";
+    var formContentHTML = formEl.innerHTML;
 
     if (parts.length > 1) {
         var params = parts[1].split("&");
@@ -463,7 +463,7 @@ function postbackUpdatedPolicy() {
                 var value = pair[1];
 
                 formContentHTML =
-                formContentHTML + "<input type='hidden' name='" + key + "' value='" + value + "'/>"
+                formContentHTML + '<input type="hidden" name="' + key + '" value="' + value + '"/>'
             }
         }
     }

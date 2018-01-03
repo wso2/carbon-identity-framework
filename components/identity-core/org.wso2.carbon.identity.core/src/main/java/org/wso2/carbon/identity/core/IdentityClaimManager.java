@@ -60,8 +60,9 @@ public class IdentityClaimManager {
     /**
      * Returns all supported claims.
      *
-     * @return
-     * @throws IdentityException
+     * @param realm user realm
+     * @return array of all supported claims
+     * @throws IdentityException if error occurs while building supported claims
      */
     public Claim[] getAllSupportedClaims(UserRealm realm) throws IdentityException {
         try {
@@ -86,40 +87,37 @@ public class IdentityClaimManager {
     /**
      * Returns all supported claims for the given dialect.
      *
-     * @return
-     * @throws IdentityException
+     * @param dialectUri claim dialect URI
+     * @param realm user realm
+     * @return array of all supported claims
+     * @throws IdentityException if error occurs while building supported claims
      */
     public Claim[] getAllSupportedClaims(String dialectUri, UserRealm realm)
             throws IdentityException {
-        Claim[] claims = new Claim[0];
+
         ClaimManager claimAdmin;
-        ArrayList<Claim> requiredClaims = null;
+        ArrayList<Claim> requiredClaims = new ArrayList<Claim>();
 
         try {
 
             claimAdmin = realm.getClaimManager();
-            requiredClaims = new ArrayList<Claim>();
 
             ClaimMapping[] mappings = claimAdmin.getAllClaimMappings(dialectUri);
-            ;
 
             if (mappings != null) {
-                claims = new Claim[mappings.length];
                 for (int i = 0; i < mappings.length; i++) {
                     if (mappings[i].getClaim().isSupportedByDefault()) {
                         requiredClaims.add((Claim) mappings[i].getClaim());
                     }
                 }
             }
-
-            return requiredClaims.toArray(new Claim[requiredClaims.size()]);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("Error occurred while loading supported claims from the dialect "
                     + dialectUri, e);
             getException("Error occurred while loading supported claims from the dialect "
                     + dialectUri, e);
         }
-        return claims;
+        return requiredClaims.toArray(new Claim[requiredClaims.size()]);
     }
 
     /**
@@ -127,7 +125,7 @@ public class IdentityClaimManager {
      *
      * @param message Error message
      * @param e       Exception
-     * @throws IdentityException
+     * @throws IdentityException constructed exception based on input parameters
      */
     private void getException(String message, Exception e) throws IdentityException {
         log.error(message, e);

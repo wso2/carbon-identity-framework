@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt-feature</artifactId>
-        <version>5.9.0-SNAPSHOT</version>
+        <version>5.10.93-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -109,6 +109,9 @@
                                 </bundleDef>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.store.count.stub
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.governance.stub
                                 </bundleDef>
                             </bundles>
                             <importFeatures>

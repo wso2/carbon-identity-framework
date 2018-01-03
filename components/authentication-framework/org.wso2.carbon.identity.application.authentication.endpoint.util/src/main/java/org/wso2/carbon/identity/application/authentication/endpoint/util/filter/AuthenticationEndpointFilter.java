@@ -47,7 +47,6 @@ import java.util.Map;
 public class AuthenticationEndpointFilter implements Filter {
     private static final Log log = LogFactory.getLog(AuthenticationEndpointFilter.class);
 
-    private static final String REQUEST_PARAM_SP = "sp";
     private static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String REQUEST_PARAM_AUTHENTICATORS = "authenticators";
     private static final String REQUEST_PARAM_HRD = "hrd";
@@ -79,10 +78,13 @@ public class AuthenticationEndpointFilter implements Filter {
 
         String redirectUrl = null;
         String appSpecificCustomPageConfigKey = null;
-        String serviceProviderName =
-                servletRequest.getParameter(REQUEST_PARAM_SP) != null ? servletRequest.getParameter(
-                        REQUEST_PARAM_SP) : servletRequest.getParameter(REQUEST_PARAM_APPLICATION) != null ?
-                                            servletRequest.getParameter(REQUEST_PARAM_APPLICATION) : null;
+        String serviceProviderName = null;
+        if (servletRequest.getParameter(Constants.REQUEST_PARAM_SP) != null) {
+            serviceProviderName = servletRequest.getParameter(Constants.REQUEST_PARAM_SP);
+        } else if (servletRequest.getParameter(REQUEST_PARAM_APPLICATION) != null) {
+            serviceProviderName = servletRequest.getParameter(REQUEST_PARAM_APPLICATION);
+        }
+
         String relativePath = ((HttpServletRequest) servletRequest).getRequestURI().substring(
                 ((HttpServletRequest) servletRequest).getContextPath().length());
         if (StringUtils.isNotBlank(serviceProviderName)) {

@@ -57,7 +57,9 @@ import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import javax.xml.stream.XMLStreamException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -69,6 +71,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.stream.XMLStreamException;
 
 public class IdentityProviderManager implements IdpManager {
 
@@ -111,23 +114,29 @@ public class IdentityProviderManager implements IdpManager {
             tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
         }
 
-        String openIdUrl = null;
-        String samlSSOUrl = null;
-        String samlLogoutUrl = null;
-        String oauth1RequestTokenUrl = null;
-        String oauth1AuthorizeUrl = null;
-        String oauth1AccessTokenUrl = null;
-        String oauth2AuthzEPUrl = null;
-        String oauth2TokenEPUrl = null;
-        String oauth2RevokeEPUrl = null;
-        String oauth2IntrospectEpUrl = null;
-        String oauth2UserInfoEPUrl = null;
-        String oidcCheckSessionEPUrl = null;
-        String oidcLogoutEPUrl = null;
-        String passiveStsUrl = null;
-        String stsUrl = null;
-        String scimUserEndpoint = null;
-        String scimGroupsEndpoint = null;
+        String openIdUrl;
+        String samlSSOUrl;
+        String samlLogoutUrl;
+        String oauth1RequestTokenUrl;
+        String oauth1AuthorizeUrl;
+        String oauth1AccessTokenUrl;
+        String oauth2AuthzEPUrl;
+        String oauth2TokenEPUrl;
+        String oauth2RevokeEPUrl;
+        String oauth2IntrospectEpUrl;
+        String oauth2UserInfoEPUrl;
+        String oidcCheckSessionEPUrl;
+        String oidcLogoutEPUrl;
+        String oIDCWebFingerEPUrl;
+        String oAuth2DCREPUrl;
+        String oAuth2JWKSPage;
+        String oIDCDiscoveryEPUrl;
+        String passiveStsUrl;
+        String stsUrl;
+        String scimUsersEndpoint;
+        String scimGroupsEndpoint;
+        String scim2UsersEndpoint;
+        String scim2GroupsEndpoint;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
@@ -142,10 +151,16 @@ public class IdentityProviderManager implements IdpManager {
         oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
         passiveStsUrl = IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL);
         stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
-        scimUserEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
+        scimUsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
         scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
+        scim2UsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL);
+        scim2GroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.GROUP_EP_URL);
         oauth2RevokeEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL);
         oauth2IntrospectEpUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL);
+        oIDCWebFingerEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_WEB_FINGER_EP_URL);
+        oAuth2DCREPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL);
+        oAuth2JWKSPage = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL);
+        oIDCDiscoveryEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL);
 
 
         if (StringUtils.isBlank(openIdUrl)) {
@@ -204,6 +219,48 @@ public class IdentityProviderManager implements IdpManager {
             passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
         }
 
+        if (StringUtils.isBlank(oIDCWebFingerEPUrl)) {
+            oIDCWebFingerEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.WEBFINGER, true, true);
+        }
+
+        if (StringUtils.isBlank(oAuth2DCREPUrl)) {
+            oAuth2DCREPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.DCR, true, true);
+        }
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                oAuth2DCREPUrl = getTenantUrl(oAuth2DCREPUrl, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("OAuth 2 DCR endpoint is malformed");
+        }
+
+        if (StringUtils.isBlank(oAuth2JWKSPage)) {
+            oAuth2JWKSPage = IdentityUtil.getServerURL(IdentityConstants.OAuth.JWKS, true, true);
+        }
+
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                oAuth2JWKSPage = getTenantUrl(oAuth2JWKSPage, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("OAuth 2 JWKS endpoint is malformed");
+        }
+
+        if (StringUtils.isBlank(oIDCDiscoveryEPUrl)) {
+            oIDCDiscoveryEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.DISCOVERY, true, true);
+        }
+
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                oIDCDiscoveryEPUrl = getTenantUrl(oIDCDiscoveryEPUrl, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("OIDC Discovery endpoint is malformed");
+        }
+
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
             stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, tenantContext +
@@ -213,13 +270,38 @@ public class IdentityProviderManager implements IdpManager {
                     true, true);
         }
 
-        if (StringUtils.isBlank(scimUserEndpoint)) {
-            scimUserEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);
+        if (StringUtils.isBlank(scimUsersEndpoint)) {
+            scimUsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);
         }
 
         if (StringUtils.isBlank(scimGroupsEndpoint)) {
             scimGroupsEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.GROUP_EP, true, false);
         }
+
+        if (StringUtils.isBlank(scim2UsersEndpoint)) {
+            scim2UsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM2.USER_EP, true, false);
+        }
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                scim2UsersEndpoint = getTenantUrl(scim2UsersEndpoint, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("SCIM 2.0 Users endpoint is malformed");
+        }
+
+        if (StringUtils.isBlank(scim2GroupsEndpoint)) {
+            scim2GroupsEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM2.GROUP_EP, true, false);
+        }
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                scim2GroupsEndpoint = getTenantUrl(scim2GroupsEndpoint, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("SCIM 2.0 Groups endpoint is malformed");
+        }
+
         IdentityProvider identityProvider = dao.getIdPByName(null,
                 IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
                 IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
@@ -422,6 +504,35 @@ public class IdentityProviderManager implements IdpManager {
             logoutUrlProp.setValue(oidcLogoutEPUrl);
             propertiesList.add(logoutUrlProp);
         }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL) == null) {
+            Property dcrUrlProp = new Property();
+            dcrUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL);
+            dcrUrlProp.setValue(oAuth2DCREPUrl);
+            propertiesList.add(dcrUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL) == null) {
+            Property webFingerUrlProp = new Property();
+            webFingerUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL);
+            webFingerUrlProp.setValue(oIDCWebFingerEPUrl);
+            propertiesList.add(webFingerUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL) == null) {
+            Property jwksUrlProp = new Property();
+            jwksUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL);
+            jwksUrlProp.setValue(oAuth2JWKSPage);
+            propertiesList.add(jwksUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL) == null) {
+            Property discoveryUrlProp = new Property();
+            discoveryUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
+            discoveryUrlProp.setValue(oIDCDiscoveryEPUrl);
+            propertiesList.add(discoveryUrlProp);
+        }
+
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);
 
@@ -511,30 +622,54 @@ public class IdentityProviderManager implements IdpManager {
             scimProvConn = new ProvisioningConnectorConfig();
             scimProvConn.setName("scim");
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(scimProvConn
-                .getProvisioningProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
-                "scimUserEndpoint") == null) {
+        propertiesList = new ArrayList<>(Arrays.asList(scimProvConn.getProvisioningProperties()));
+        Property scimUserEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
+                .getProvisioningProperties(), IdentityApplicationConstants.SCIM.USERS_EP_URL);
+        if (scimUserEndpointProperty == null) {
             Property property = new Property();
-            property.setName("scimUserEndpoint");
-            property.setValue(scimUserEndpoint);
+            property.setName(IdentityApplicationConstants.SCIM.USERS_EP_URL);
+            property.setValue(scimUsersEndpoint);
             propertiesList.add(property);
+        } else if (!scimUsersEndpoint.equalsIgnoreCase(scimUserEndpointProperty.getValue())) {
+            scimUserEndpointProperty.setValue(scimUsersEndpoint);
         }
-        if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
-                "scimUserEndpoint") == null) {
+        Property scimGroupEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
+                .getProvisioningProperties(), IdentityApplicationConstants.SCIM.GROUPS_EP_URL);
+        if (scimGroupEndpointProperty == null) {
             Property property = new Property();
-            property.setName("scimGroupEndpoint");
+            property.setName(IdentityApplicationConstants.SCIM.GROUPS_EP_URL);
             property.setValue(scimGroupsEndpoint);
             propertiesList.add(property);
+        } else if (!scimGroupsEndpoint.equalsIgnoreCase(scimGroupEndpointProperty.getValue())) {
+            scimGroupEndpointProperty.setValue(scimGroupsEndpoint);
         }
-        scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList
-                .size()]));
-        identityProvider
-                .setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
+
+        Property scim2UserEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
+                .getProvisioningProperties(), IdentityApplicationConstants.SCIM2.USERS_EP_URL);
+        if (scim2UserEndpointProperty == null) {
+            Property property = new Property();
+            property.setName(IdentityApplicationConstants.SCIM2.USERS_EP_URL);
+            property.setValue(scim2UsersEndpoint);
+            propertiesList.add(property);
+        } else if (!scim2UsersEndpoint.equalsIgnoreCase(scim2UserEndpointProperty.getValue())) {
+            scim2UserEndpointProperty.setValue(scim2UsersEndpoint);
+        }
+        Property scim2GroupEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
+                .getProvisioningProperties(), IdentityApplicationConstants.SCIM2.GROUPS_EP_URL);
+        if (scim2GroupEndpointProperty == null) {
+            Property property = new Property();
+            property.setName(IdentityApplicationConstants.SCIM2.GROUPS_EP_URL);
+            property.setValue(scim2GroupsEndpoint);
+            propertiesList.add(property);
+        } else if (!scim2GroupsEndpoint.equalsIgnoreCase(scim2GroupEndpointProperty.getValue())) {
+            scim2GroupEndpointProperty.setValue(scim2GroupsEndpoint);
+        }
+        scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
+        identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
 
         // Override few endpoint URLs which are initially persisted in the database and can be out dated with hostname
         // changes.
-        updateSuperTenantIdpWithNewEPUrls(identityProvider);
+        overrideResidentIdpEPUrls(identityProvider);
 
         return identityProvider;
     }
@@ -1539,12 +1674,6 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
-        if (currentIdentityProvider.isPrimary() == true && newIdentityProvider.isPrimary() == false) {
-            String msg = "Invalid argument: Cannot unset Identity Provider from primary. "
-                    + "Alternatively set new Identity Provider to primary";
-            throw new IdentityProviderManagementException(msg);
-        }
-
         if (newIdentityProvider.getPermissionAndRoleConfig() != null
                 && newIdentityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
             for (RoleMapping mapping : newIdentityProvider.getPermissionAndRoleConfig()
@@ -1769,11 +1898,11 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Updates the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
+     * Overrides the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
      * @param residentIDP
      * @throws IdentityProviderManagementException
      */
-    private void updateSuperTenantIdpWithNewEPUrls(IdentityProvider residentIDP)
+    private void overrideResidentIdpEPUrls(IdentityProvider residentIDP)
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
@@ -1826,6 +1955,13 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return false;
+    }
+
+    private String getTenantUrl(String url, String tenantDomain) throws URISyntaxException {
+        URI uri = new URI(url);
+        URI uriModified = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), ("/t/" +
+                tenantDomain + uri.getPath()), uri.getQuery(), uri.getFragment());
+        return uriModified.toString();
     }
 
 }

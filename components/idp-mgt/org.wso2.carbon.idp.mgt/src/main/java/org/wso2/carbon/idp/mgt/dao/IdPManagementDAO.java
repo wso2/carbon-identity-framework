@@ -541,6 +541,7 @@ public class IdPManagementDAO {
                     sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_AUTH_PROP_WITH_KEY_SQL;
                     deleteOldValuePrepStmt = dbConnection.prepareStatement(sqlStmt);
                     deleteOldValuePrepStmt.setString(1, property.getName());
+                    deleteOldValuePrepStmt.setInt(2, tenantId);
                     deleteOldValuePrepStmt.executeUpdate();
                 }
             }

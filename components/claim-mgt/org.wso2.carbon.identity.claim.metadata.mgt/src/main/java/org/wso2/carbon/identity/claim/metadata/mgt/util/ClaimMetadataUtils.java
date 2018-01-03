@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
-
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
@@ -32,6 +31,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +42,9 @@ import java.util.Map;
  * Utility class containing various claim metadata implementation related functionality.
  */
 public class ClaimMetadataUtils {
+
+    private ClaimMetadataUtils() {
+    }
 
     public static ClaimDialectDTO convertClaimDialectToClaimDialectDTO(ClaimDialect claimDialect) {
 
@@ -75,38 +78,33 @@ public class ClaimMetadataUtils {
 
         // Convert List<AttributeMapping> to AttributeMappingDTO[]
         List<AttributeMapping> attributeMappings = localClaim.getMappedAttributes();
-        if (attributeMappings != null) {
-            AttributeMappingDTO[] attributeMappingDTOs = new AttributeMappingDTO[attributeMappings.size()];
+        AttributeMappingDTO[] attributeMappingDTOs = new AttributeMappingDTO[attributeMappings.size()];
 
-            int i = 0;
-            for (AttributeMapping attributeMapping : attributeMappings) {
-                AttributeMappingDTO attributeMappingDTO = new AttributeMappingDTO();
-                attributeMappingDTO.setUserStoreDomain(attributeMapping.getUserStoreDomain());
-                attributeMappingDTO.setAttributeName(attributeMapping.getAttributeName());
-                attributeMappingDTOs[i] = attributeMappingDTO;
-                i++;
-            }
-
-            localClaimDTO.setAttributeMappings(attributeMappingDTOs);
+        int i = 0;
+        for (AttributeMapping attributeMapping : attributeMappings) {
+            AttributeMappingDTO attributeMappingDTO = new AttributeMappingDTO();
+            attributeMappingDTO.setUserStoreDomain(attributeMapping.getUserStoreDomain());
+            attributeMappingDTO.setAttributeName(attributeMapping.getAttributeName());
+            attributeMappingDTOs[i] = attributeMappingDTO;
+            i++;
         }
+
+        localClaimDTO.setAttributeMappings(attributeMappingDTOs);
 
         // Convert Map<String, String> to ClaimPropertyDTO[]
         Map<String, String> claimProperties = localClaim.getClaimProperties();
-        if (claimProperties != null) {
+        ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[claimProperties.size()];
 
-            ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[claimProperties.size()];
-
-            int i = 0;
-            for (Map.Entry<String, String> claimPropertyEntry : claimProperties.entrySet()) {
-                ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
-                claimProperty.setPropertyName(claimPropertyEntry.getKey());
-                claimProperty.setPropertyValue(claimPropertyEntry.getValue());
-                claimPropertyDTOs[i] = claimProperty;
-                i++;
-            }
-
-            localClaimDTO.setClaimProperties(claimPropertyDTOs);
+        int j = 0;
+        for (Map.Entry<String, String> claimPropertyEntry : claimProperties.entrySet()) {
+            ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
+            claimProperty.setPropertyName(claimPropertyEntry.getKey());
+            claimProperty.setPropertyValue(claimPropertyEntry.getValue());
+            claimPropertyDTOs[j] = claimProperty;
+            j++;
         }
+
+        localClaimDTO.setClaimProperties(claimPropertyDTOs);
 
         return localClaimDTO;
     }
@@ -141,7 +139,7 @@ public class ClaimMetadataUtils {
         }
 
         // Convert ClaimPropertyDTO[] to Map<String, String>
-        if (localClaim.getClaimProperties() != null) {
+        if (localClaimDTO.getClaimProperties() != null) {
 
             Map<String, String> claimProperties = new HashMap<>();
 
@@ -249,11 +247,18 @@ public class ClaimMetadataUtils {
         if (claimProperties.containsKey(ClaimConstants.DEFAULT_ATTRIBUTE)) {
             claimMapping.setMappedAttribute(claimProperties.get(ClaimConstants.DEFAULT_ATTRIBUTE));
         } else {
-            UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
-                    .getTenantUserRealm(tenantId);
-            String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-                    (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-            claimMapping.setMappedAttribute(localClaim.getMappedAttribute(primaryDomainName));
+            RealmService realmService = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
+
+            if (realmService != null && realmService.getTenantUserRealm(tenantId) != null) {
+
+                UserRealm realm = realmService.getTenantUserRealm(tenantId);
+                String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                        (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                claimMapping.setMappedAttribute(localClaim.getMappedAttribute(primaryDomainName));
+            } else {
+                claimMapping.setMappedAttribute(localClaim.getMappedAttribute(UserCoreConstants.
+                        PRIMARY_DEFAULT_DOMAIN_NAME));
+            }
         }
 
         return claimMapping;
@@ -264,11 +269,22 @@ public class ClaimMetadataUtils {
 
         ClaimMapping claimMapping = new ClaimMapping();
 
-        for (LocalClaim localClaim : localClaims) {
-            if (externalClaim.getMappedLocalClaim().equalsIgnoreCase(localClaim.getClaimURI())) {
-                claimMapping = convertLocalClaimToClaimMapping(localClaim, tenantId);
-                break;
+        if (localClaims != null) {
+            for (LocalClaim localClaim : localClaims) {
+                if (externalClaim.getMappedLocalClaim().equalsIgnoreCase(localClaim.getClaimURI())) {
+                    claimMapping = convertLocalClaimToClaimMapping(localClaim, tenantId);
+                    break;
+                }
             }
+        }
+
+        if (claimMapping == null) {
+            claimMapping = new ClaimMapping();
+        }
+
+        if (claimMapping.getClaim() == null) {
+            Claim claim = new Claim();
+            claimMapping.setClaim(claim);
         }
 
         claimMapping.getClaim().setDialectURI(externalClaim.getClaimDialectURI());

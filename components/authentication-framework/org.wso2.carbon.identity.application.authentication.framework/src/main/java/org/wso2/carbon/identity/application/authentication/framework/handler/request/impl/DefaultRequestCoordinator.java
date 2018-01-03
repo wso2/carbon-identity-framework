@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -39,6 +40,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
@@ -50,7 +53,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -147,7 +149,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
-                                                                            context);
+                            context);
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, response, context);
                 }
@@ -191,7 +193,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return
      */
     private AuthenticationRequestCacheEntry getAuthenticationRequest(HttpServletRequest request,
-            String sessionDataKey) {
+                                                                     String sessionDataKey) {
 
         AuthenticationRequestCacheEntry authRequest = getAuthenticationRequestFromRequest(request);
         if (authRequest == null) {
@@ -413,8 +415,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (previousAuthenticatedSeq != null) {
                     if (log.isDebugEnabled()) {
-                        log.debug("A previously authenticated sequence found for the SP: "
-                                + appName);
+                        log.debug("A previously authenticated sequence found for the SP: " + appName);
                     }
 
                     context.setPreviousSessionFound(true);
@@ -423,13 +424,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         if (log.isDebugEnabled()) {
                             log.debug("Previous Sequence should be used without change");
                         }
-                        effectiveSequence = previousAuthenticatedSeq.cloneObject();
+                        try {
+                            effectiveSequence = (SequenceConfig)previousAuthenticatedSeq.clone();
+                        } catch (CloneNotSupportedException e) {
+                            throw new FrameworkException("Exception when trying to clone the Previous Authentication " +
+                                    "Sequence object of SP:" + appName, e);
+                        }
                     }
 
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
-                    String authenticatedUserTenantDomain = previousAuthenticatedSeq.getAuthenticatedUser().getTenantDomain();
 
                     if (authenticatedUser != null) {
+                        String authenticatedUserTenantDomain = effectiveSequence.getAuthenticatedUser()
+                                .getTenantDomain();
                         // set the user for the current authentication/logout flow
                         context.setSubject(authenticatedUser);
 
@@ -447,6 +454,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             }
                         }
                     }
+                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
+                    // authentication step updates will be reflected.
+                    refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
+                            context.getRequestType(), context.getTenantDomain());
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
@@ -463,14 +474,23 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setSequenceConfig(effectiveSequence);
     }
 
+    /**
+     * Checks whether the sequence needs re-initializing, when there is an existing user session.
+     *
+     * @param previousAuthenticatedSeq  The previous(last) sequence-config used to authenticate.
+     * @param sequenceConfig Current sequence config, which is the candiate to be used on authentication.
+     * @param request Incoming HTTP request.
+     * @param context Current authentication Context.
+     * @return true if there is a need to reinitialize.
+     */
     private boolean isReinitialize(SequenceConfig previousAuthenticatedSeq, SequenceConfig sequenceConfig,
-            HttpServletRequest request, AuthenticationContext context) {
+                                   HttpServletRequest request, AuthenticationContext context) {
         List<String> newAcrList = getAcrRequested(request);
         List<String> previousAcrList = previousAuthenticatedSeq.getRequestedAcr();
         if(newAcrList != null && !newAcrList.isEmpty() && isDifferent(newAcrList, previousAcrList)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -502,7 +522,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         try {
             outboundQueryStringBuilder.append("sessionDataKey=").append(context.getContextIdentifier())
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8")).append("&type=")
-                    .append(context.getRequestType()).append("&sp=")
+                    .append(context.getRequestType()).append("&").append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
                     .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
@@ -515,5 +535,23 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         context.setContextIdIncludedQueryParams(outboundQueryStringBuilder.toString());
         context.setOrignalRequestQueryParams(outboundQueryStringBuilder.toString());
+    }
+
+    private void refreshAppConfig(SequenceConfig sequenceConfig, String clientId, String clientType, String
+            tenantDomain) throws FrameworkException {
+
+        try {
+            ApplicationConfig appConfig = new ApplicationConfig(ApplicationManagementService.getInstance()
+                    .getServiceProviderByClientId(clientId, clientType, tenantDomain));
+            sequenceConfig.setApplicationConfig(appConfig);
+            if (log.isDebugEnabled()) {
+                log.debug("Refresh application config in sequence config for application id: " + sequenceConfig
+                        .getApplicationId() + " in tenant: " + tenantDomain);
+            }
+        } catch (IdentityApplicationManagementException e) {
+            String message = "No application found for application id: " + sequenceConfig.getApplicationId() +
+                    " in tenant: " + tenantDomain + " Probably, the Service Provider would have been removed.";
+            throw new FrameworkException(message, e);
+        }
     }
 }
