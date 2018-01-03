@@ -99,6 +99,8 @@
                             version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.application.common.model.xsd.*;
                             version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.application.common.model.script.xsd.*;
+                            version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.application.common.xsd;
                             version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.application.mgt.stub.types.axis2;
