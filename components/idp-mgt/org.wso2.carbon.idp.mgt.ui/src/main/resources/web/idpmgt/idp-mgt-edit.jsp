@@ -116,6 +116,7 @@
     String authzUrl = null;
     String tokenUrl = null;
     String callBackUrl = null;
+    String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
     boolean isPassiveSTSEnabled = false;
     boolean isPassiveSTSDefault = false;
@@ -136,6 +137,7 @@
     String fbOauth2TokenEndpoint = null;
     String fbUserInfoEndpoint = null;
     String fbCallBackUrl = null;
+    String responseAuthnContextClassRef = "default";
 
     // To check for existence of authenticator bundles
     boolean isOpenidAuthenticatorActive = false;
@@ -400,6 +402,11 @@
                         callBackUrl = callBackURLProp.getValue();
                     }
 
+                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
+                    if (userInfoEndpointProp != null) {
+                        userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
 
                     Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
@@ -561,6 +568,15 @@
                         requestMethod = "redirect";
                     }
 
+                    Property responseAuthnContextClassRefProp = IdPManagementUIUtil.getProperty(fedAuthnConfig
+                            .getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO
+                            .RESPONSE_AUTHN_CONTEXT_CLASS_REF);
+                    if (responseAuthnContextClassRefProp != null) {
+                        responseAuthnContextClassRef = responseAuthnContextClassRefProp.getValue();
+                    } else {
+                        responseAuthnContextClassRef = "default";
+                    }
+
                     Property isSAMLSSOUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_USER_ID_IN_CLAIMS);
                     if (isSAMLSSOUserIdInClaimsProp != null) {
@@ -682,25 +698,24 @@
             if (scimProperties != null && scimProperties.length > 0) {
                 for (Property scimProperty : scimProperties) {
                     //This is a safety to check to avoid NPE
-                    if (scimProperty == null) {
-                        continue;
-                    }
-                    if ("scim-username".equals(scimProperty.getName())) {
-                        scimUserName = scimProperty.getValue();
-                    } else if ("scim-password".equals(scimProperty.getName())) {
-                        scimPassword = scimProperty.getValue();
-                    } else if ("scim-user-ep".equals(scimProperty.getName())) {
-                        scimUserEp = scimProperty.getValue();
-                    } else if ("scim-group-ep".equals(scimProperty.getName())) {
-                        scimGroupEp = scimProperty.getValue();
-                    } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
-                        scimUserStoreDomain = scimProperty.getValue();
-                    } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
-                        isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
-                    } else if ("scim-default-pwd".equals(scimProperty.getName())) {
-                        scimDefaultPwd = scimProperty.getValue();
-                    } else if ("UniqueID".equals(scimProperty.getName())) {
-                        scimUniqueID = scimProperty.getValue();
+                    if (scimProperty != null) {
+                        if ("scim-username".equals(scimProperty.getName())) {
+                            scimUserName = scimProperty.getValue();
+                        } else if ("scim-password".equals(scimProperty.getName())) {
+                            scimPassword = scimProperty.getValue();
+                        } else if ("scim-user-ep".equals(scimProperty.getName())) {
+                            scimUserEp = scimProperty.getValue();
+                        } else if ("scim-group-ep".equals(scimProperty.getName())) {
+                            scimGroupEp = scimProperty.getValue();
+                        } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
+                            scimUserStoreDomain = scimProperty.getValue();
+                        } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
+                            isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
+                        } else if ("scim-default-pwd".equals(scimProperty.getName())) {
+                            scimDefaultPwd = scimProperty.getValue();
+                        } else if ("UniqueID".equals(scimProperty.getName())) {
+                            scimUniqueID = scimProperty.getValue();
+                        }
                     }
                 }
             }
@@ -736,30 +751,32 @@
             Property[] googleProperties = googleApps.getProvisioningProperties();
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
-                    if ("google_prov_domain_name".equals(googleProperty.getName())) {
-                        googleDomainName = googleProperty.getValue();
-                    } else if ("google_prov_givenname".equals(googleProperty.getName())) {
-                        googleGivenNameDefaultValue = googleProperty.getValue();
-                    } else if ("google_prov_familyname".equals(googleProperty.getName())) {
-                        googleFamilyNameDefaultValue = googleProperty.getValue();
-                    } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
-                        googleProvServiceAccEmail = googleProperty.getValue();
-                    } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
-                        googleProvAdminEmail = googleProperty.getValue();
-                    } else if ("google_prov_application_name".equals(googleProperty.getName())) {
-                        googleProvApplicationName = googleProperty.getValue();
-                    } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
-                        googlePrimaryEmailClaim = googleProperty.getValue();
-                    } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
-                        googleGivenNameClaim = googleProperty.getValue();
-                    } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
-                        googleFamilyNameClaim = googleProperty.getValue();
-                    } else if ("google_prov_private_key".equals(googleProperty.getName())) {
-                        googleProvPrivateKeyData = googleProperty.getValue();
-                    } else if ("google_prov_pattern".equals(googleProperty.getName())) {
-                        googleProvPattern = googleProperty.getValue();
-                    } else if ("google_prov_separator".equals(googleProperty.getName())) {
-                        googleProvisioningSeparator = googleProperty.getValue();
+                    if (googleProperty != null) {
+                        if ("google_prov_domain_name".equals(googleProperty.getName())) {
+                            googleDomainName = googleProperty.getValue();
+                        } else if ("google_prov_givenname".equals(googleProperty.getName())) {
+                            googleGivenNameDefaultValue = googleProperty.getValue();
+                        } else if ("google_prov_familyname".equals(googleProperty.getName())) {
+                            googleFamilyNameDefaultValue = googleProperty.getValue();
+                        } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
+                            googleProvServiceAccEmail = googleProperty.getValue();
+                        } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
+                            googleProvAdminEmail = googleProperty.getValue();
+                        } else if ("google_prov_application_name".equals(googleProperty.getName())) {
+                            googleProvApplicationName = googleProperty.getValue();
+                        } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
+                            googlePrimaryEmailClaim = googleProperty.getValue();
+                        } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
+                            googleGivenNameClaim = googleProperty.getValue();
+                        } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
+                            googleFamilyNameClaim = googleProperty.getValue();
+                        } else if ("google_prov_private_key".equals(googleProperty.getName())) {
+                            googleProvPrivateKeyData = googleProperty.getValue();
+                        } else if ("google_prov_pattern".equals(googleProperty.getName())) {
+                            googleProvPattern = googleProperty.getValue();
+                        } else if ("google_prov_separator".equals(googleProperty.getName())) {
+                            googleProvisioningSeparator = googleProperty.getValue();
+                        }
                     }
                 }
             }
@@ -779,16 +796,18 @@
             Property[] spmlProperties = spml.getProvisioningProperties();
             if (spmlProperties != null && spmlProperties.length > 0) {
                 for (Property spmlProperty : spmlProperties) {
-                    if ("spml-username".equals(spmlProperty.getName())) {
-                        spmlUserName = spmlProperty.getValue();
-                    } else if ("spml-password".equals(spmlProperty.getName())) {
-                        spmlPassword = spmlProperty.getValue();
-                    } else if ("spml-ep".equals(spmlProperty.getName())) {
-                        spmlEndpoint = spmlProperty.getValue();
-                    } else if ("spml-oc".equals(spmlProperty.getName())) {
-                        spmlObjectClass = spmlProperty.getValue();
-                    } else if ("UniqueID".equals(spmlProperty.getName())) {
-                        spmlUniqueID = spmlProperty.getValue();
+                    if (spmlProperty != null) {
+                        if ("spml-username".equals(spmlProperty.getName())) {
+                            spmlUserName = spmlProperty.getValue();
+                        } else if ("spml-password".equals(spmlProperty.getName())) {
+                            spmlPassword = spmlProperty.getValue();
+                        } else if ("spml-ep".equals(spmlProperty.getName())) {
+                            spmlEndpoint = spmlProperty.getValue();
+                        } else if ("spml-oc".equals(spmlProperty.getName())) {
+                            spmlObjectClass = spmlProperty.getValue();
+                        } else if ("UniqueID".equals(spmlProperty.getName())) {
+                            spmlUniqueID = spmlProperty.getValue();
+                        }
                     }
                 }
             }
@@ -1045,6 +1064,10 @@
 
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
+    }
+
+    if (StringUtils.isBlank(userInfoEndpoint)) {
+        userInfoEndpoint = StringUtils.EMPTY;
     }
 
     String passiveSTSEnabledChecked = "";
@@ -1547,12 +1570,6 @@
             jQuery('#google_enable_logo').show();
         } else {
             jQuery('#google_enable_logo').hide();
-        }
-
-        if (<%=isSfProvEnabled%>) {
-            jQuery('#sf_enable_logo').show();
-        } else {
-            jQuery('#sf_enable_logo').hide();
         }
 
         if (<%=isScimProvEnabled%>) {
@@ -4203,6 +4220,23 @@
                                 </tr>
 
                                 <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='authn.context.class.ref'/>:</td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" name="ResponseAuthnContextClassRef" value="default"
+                                                   <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("default")){%>checked="checked"<%}%>/>Default
+                                        </label>
+                                        <label><input type="radio" name="ResponseAuthnContextClassRef" value="as_response"
+                                                      <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("as_response")){%>checked="checked"<%}%>/>As Per Response
+                                        </label>
+
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authn.context.class.ref.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
                                     <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
                                     <td>
                                         <%
@@ -4372,6 +4406,18 @@
                             </tr>
 
                             <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='userInfoEndpoint'/>
+                                <td>
+                                    <input id="userInfoEndpoint" name="userInfoEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(userInfoEndpoint)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='userInfoEndpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
                                 <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
                                 <td>
                                     <label>
@@ -4396,7 +4442,7 @@
                                 <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
                                 <td>
                                     <input id="oidcQueryParam" name="oidcQueryParam" type="text"
-                                           value=<%=Encode.forHtmlAttribute(oidcQueryParam)%>>
+                                           value="<%=Encode.forHtmlAttribute(oidcQueryParam)%>">
 
                                     <div class="sectionHelp">
                                         <fmt:message key='query.param.help'/>

@@ -228,6 +228,10 @@ public class IdentityConstants {
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
+        public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
+                ".SAMLDefaultAssertionEncryptionAlgorithmURI";
+        public static final String SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM = "SSOService" +
+                ".SAMLDefaultKeyEncryptionAlgorithmURI";
         public static final String SLO_HOST_NAME_VERIFICATION_ENABLED = "SSOService.SLOHostNameVerificationEnabled";
 
         //Identity Persistence Manager
@@ -314,6 +318,10 @@ public class IdentityConstants {
         public static final String OAUTH2_INTROSPECT_EP_URL = "OAuth.OAuth2IntrospectEPUrl";
         public static final String OIDC_CHECK_SESSION_EP_URL = "OAuth.OIDCCheckSessionEPUrl";
         public static final String OIDC_LOGOUT_EP_URL = "OAuth.OIDCLogoutEPUrl";
+        public static final String OIDC_WEB_FINGER_EP_URL = "OAuth.OIDCWebFingerEPUrl";
+        public static final String OAUTH2_DCR_EP_URL = "OAuth.OAuth2DCREPUrl";
+        public static final String OAUTH2_JWKS_EP_URL = "OAuth.OAuth2JWKSPage";
+        public static final String OIDC_DISCOVERY_EP_URL = "OAuth.OIDCDiscoveryEPUrl";
 
         public static final String REQUEST_TOKEN = "oauth/request-token";
         public static final String AUTHORIZE_URL = "oauth/authorize-url";
@@ -325,6 +333,11 @@ public class IdentityConstants {
         public static final String USERINFO = "oauth2/userinfo";
         public static final String CHECK_SESSION = "oidc/checksession";
         public static final String LOGOUT = "oidc/logout";
+
+        public static final String WEBFINGER = ".well-known/webfinger";
+        public static final String DCR = "api/identity/oauth2/dcr/v1.0/register";
+        public static final String JWKS = "oauth2/jwks";
+        public static final String DISCOVERY = "oauth2/oidcdiscovery";
     }
 
     /**
@@ -348,7 +361,18 @@ public class IdentityConstants {
         public static final String USER_EP_URL = "SCIM.UserEPUrl";
         public static final String GROUP_EP_URL = "SCIM.GroupEPUrl";
         public static final String USER_EP = "wso2/scim/Users";
-        public static final String GROUP_EP = "wso2/scim/Users";
+        public static final String GROUP_EP = "wso2/scim/Groups";
+    }
+
+    /**
+     * Common constants related to SCIM 2.0
+     */
+    public static class SCIM2 {
+
+        public static final String USER_EP_URL = "SCIM2.UserEPUrl";
+        public static final String GROUP_EP_URL = "SCIM2.GroupEPUrl";
+        public static final String USER_EP = "scim2/Users";
+        public static final String GROUP_EP = "scim2/Groups";
     }
 
     /**

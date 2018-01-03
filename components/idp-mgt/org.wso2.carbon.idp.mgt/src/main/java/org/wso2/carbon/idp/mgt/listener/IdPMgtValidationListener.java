@@ -97,13 +97,9 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         if (StringUtils.isEmpty(oldIdPName)) {
             throw new IllegalArgumentException("The IdP name which need to be updated is empty");
         }
-        if (StringUtils.isEmpty(identityProvider.getDisplayName())) {
-            String msg = "Invalid argument: Existing Identity Provider Name value is empty";
-            throw new IdentityProviderManagementException(msg);
-        }
 
         if (StringUtils.isEmpty(identityProvider.getIdentityProviderName())) {
-            String msg = "Invalid argument: Identity Provider Name value is empty for \'newIdentityProvider\'";
+            String msg = "Invalid argument: The new value of the identity provider name is empty.";
             throw new IdentityProviderManagementException(msg);
         }
 

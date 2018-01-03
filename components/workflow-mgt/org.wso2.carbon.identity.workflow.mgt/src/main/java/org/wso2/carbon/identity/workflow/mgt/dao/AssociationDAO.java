@@ -87,12 +87,13 @@ public class AssociationDAO {
             prepStmt.setString(2, associationDTO.getAssociationName());
             prepStmt.setString(3, associationDTO.getCondition());
             prepStmt.setString(4, associationDTO.getWorkflowId());
-            if(associationDTO.isEnabled()) {
+            if (associationDTO.isEnabled()) {
                 prepStmt.setString(5, "1");
-            }else{
+            } else {
                 prepStmt.setString(5, "0");
             }
-            prepStmt.setString(6, associationDTO.getAssociationId());
+            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre
+            prepStmt.setInt(6, Integer.parseInt(associationDTO.getAssociationId()));
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -162,7 +163,8 @@ public class AssociationDAO {
         String query = SQLConstants.GET_ASSOCIATION_FOR_ASSOC_ID_QUERY;
         try {
             prepStmt = connection.prepareStatement(query);
-            prepStmt.setString(1, associationId);
+            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre
+            prepStmt.setInt(1, Integer.parseInt(associationId));
 
             rs = prepStmt.executeQuery();
 

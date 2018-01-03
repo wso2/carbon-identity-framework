@@ -26,6 +26,10 @@ import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * This class is used to cache the data about the
  * authentication request sent from a servlet.
@@ -79,8 +83,19 @@ public class AuthenticationContextCache extends
             if (tenantDomain != null) {
                 tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             }
-            SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
-                    entry, tenantId);
+
+            if (entry.getContext() != null && entry.getContext().getProperties() != null) {
+                Iterator it = entry.getContext().getProperties().entrySet().iterator();
+                while (it.hasNext())
+                {
+                    Map.Entry<String, Object> item =  (Map.Entry<String, Object>) it.next();
+                    if (!(item.getValue() instanceof Serializable)) {
+                        it.remove();
+                    }
+                }
+                SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
+                        entry, tenantId);
+            }
         }
     }
 

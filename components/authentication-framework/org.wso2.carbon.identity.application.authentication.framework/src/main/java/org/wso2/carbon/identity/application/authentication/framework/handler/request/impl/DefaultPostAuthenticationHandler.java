@@ -148,7 +148,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                         missingClaims);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
-                uriBuilder.addParameter("spName",
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
                 response.sendRedirect(uriBuilder.build().toString());
                 context.setProperty(FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);

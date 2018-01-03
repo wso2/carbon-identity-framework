@@ -1159,7 +1159,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[7];
+        Property[] properties = new Property[8];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1204,6 +1204,11 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
         property.setValue(paramMap.get("callbackUrl"));
         properties[6] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
+        property.setValue(paramMap.get("userInfoEndpoint"));
+        properties[7] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
@@ -1625,6 +1630,12 @@ public class IdPManagementUIUtil {
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE);
         property.setValue(paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE));
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.RESPONSE_AUTHN_CONTEXT_CLASS_REF);
+        property.setValue(paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO
+                .RESPONSE_AUTHN_CONTEXT_CLASS_REF));
         properties.add(property);
 
         saml2SSOAuthnConfig.setProperties(properties.toArray(new Property[properties.size()]));

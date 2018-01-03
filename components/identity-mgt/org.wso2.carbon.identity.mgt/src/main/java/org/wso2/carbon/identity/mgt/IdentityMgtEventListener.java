@@ -215,7 +215,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         // If unlock time is specified then unlock the account.
                         if ((userIdentityDTO.getUnlockTime() != 0) && (System.currentTimeMillis() >= userIdentityDTO.getUnlockTime())) {
-                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                            userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, "");
                             userIdentityDTO.setAccountLock(false);
                             userIdentityDTO.setUnlockTime(0);
 
@@ -231,9 +231,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                     UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" + userIdentityDTO.getUserDataMap().
                                             get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON),
                                     userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
-                            if (IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.equals(userIdentityDTO.getUserDataMap()
-                                    .get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON))) {
-                                customErrorMessageContext.setFailedLoginAttempts(config.getAuthPolicyMaxLoginAttempts());
+                            if (IdentityMgtConstants.LockedReason.MAX_ATTEMTS_EXCEEDED.toString().equals(userIdentityDTO
+                                    .getUserDataMap().get(UserIdentityDataStore.ACCOUNT_LOCKED_REASON))) {
+                                customErrorMessageContext
+                                        .setFailedLoginAttempts(config.getAuthPolicyMaxLoginAttempts());
                             }
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                             String errorMsg = "User account is locked for user : " + userName
@@ -437,7 +438,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                     "User account would be locked");
                             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext
                                     (UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" +
-                                            IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString(),
+                                            IdentityMgtConstants.LockedReason.MAX_ATTEMTS_EXCEEDED.toString(),
                                             userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                             IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE,
@@ -447,7 +448,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                 log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
                             }
                             userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
-                                    IdentityMgtConstants.LockedReason.MAX_ATTEMT_EXCEEDED.toString());
+                                    IdentityMgtConstants.LockedReason.MAX_ATTEMTS_EXCEEDED.toString());
                             userIdentityDTO.setAccountLock(true);
                             userIdentityDTO.setFailAttempts(0);
                             // lock time from the config
@@ -483,7 +484,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     // if the account was locked due to account verification process,
                     // the unlock the account and reset the number of failedAttempts
                     if (userIdentityDTO.isAccountLocked() || userIdentityDTO.getFailAttempts() > 0 || userIdentityDTO.getAccountLock()) {
-                        userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                        userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, "");
                         userIdentityDTO.setAccountLock(false);
                         userIdentityDTO.setFailAttempts(0);
                         userIdentityDTO.setUnlockTime(0);
@@ -628,7 +629,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     }
 
                     // store identity data
-                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
+                    userIdentityClaimsDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, "");
                     userIdentityClaimsDO.setAccountLock(false);
                     try {
                         module.store(userIdentityClaimsDO, userStoreManager);
@@ -645,28 +646,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                     // set recovery data
                     RecoveryProcessor processor = new RecoveryProcessor();
-                    VerificationBean verificationBean;
-
-                    try {
-                        verificationBean = processor.updateConfirmationCode(1, userName, userStoreManager.getTenantId());
-                    } catch (IdentityException e) {
-                        //roleback user
-                        userStoreManager.deleteUser(userName);
-                        throw new UserStoreException(
-                                "Error while updating confirmation code for user : " + userName, e);
-                    }
-
-                    // preparing a bean to send the email
-                    UserIdentityMgtBean bean = new UserIdentityMgtBean();
-                    bean.setUserId(userName).setConfirmationCode(verificationBean.getKey())
-                            .setRecoveryType(IdentityMgtConstants.Notification.TEMPORARY_PASSWORD)
-                            .setEmail(claims.get(config.getAccountRecoveryClaim()));
 
                     UserRecoveryDTO recoveryDto = new UserRecoveryDTO(userName);
                     recoveryDto.setNotification(IdentityMgtConstants.Notification.ASK_PASSWORD);
                     recoveryDto.setNotificationType("EMAIL");
                     recoveryDto.setTenantId(userStoreManager.getTenantId());
-                    recoveryDto.setConfirmationCode(verificationBean.getKey());
 
                     NotificationDataDTO notificationDto = null;
 

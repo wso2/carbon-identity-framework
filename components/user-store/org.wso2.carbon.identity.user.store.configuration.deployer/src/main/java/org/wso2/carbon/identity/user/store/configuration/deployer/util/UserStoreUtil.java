@@ -42,6 +42,7 @@ import java.security.cert.Certificate;
 public class UserStoreUtil {
 
     private static Log log = LogFactory.getLog(UserStoreUtil.class);
+    private static final String CIPHER_TRANSFORMATION_SYSTEM_PROPERTY = "org.wso2.CipherTransformation";
 
     public static Cipher getCipherOfSuperTenant() throws UserStoreException {
         Cipher cipher;
@@ -66,7 +67,12 @@ public class UserStoreUtil {
             store = KeyStore.getInstance(keyStoreType);
             store.load(inputStream, password.toCharArray());
             Certificate[] certs = store.getCertificateChain(keyAlias);
-            cipher = Cipher.getInstance("RSA", "BC");
+            String cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
+            if (cipherTransformation != null) {
+                cipher = Cipher.getInstance(cipherTransformation, "BC");
+            } else {
+                cipher = Cipher.getInstance("RSA", "BC");
+            }
             cipher.init(Cipher.ENCRYPT_MODE, certs[0].getPublicKey());
         } catch (FileNotFoundException e) {
             String errorMsg = "Keystore File Not Found in configured location";

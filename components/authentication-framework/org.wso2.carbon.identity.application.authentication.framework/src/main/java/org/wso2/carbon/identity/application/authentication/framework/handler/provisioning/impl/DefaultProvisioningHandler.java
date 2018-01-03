@@ -24,12 +24,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
+import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -39,12 +44,10 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +55,7 @@ import java.util.Map;
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
+    private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static volatile DefaultProvisioningHandler instance;
     private SecureRandom random = new SecureRandom();
 
@@ -104,6 +108,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             // addingRoles = newRoles AND allExistingRoles
             Collection<String> addingRoles = getRolesToAdd(userStoreManager, newRoles);
 
+            String idp = attributes.remove(FrameworkConstants.IDP_ID);
+            String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
+
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
@@ -139,6 +146,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 userStoreManager.addUser(username, generatePassword(), addingRoles.toArray(
                         new String[addingRoles.size()]), userClaims, null);
 
+                // Associate User
+                associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user: " + username
                               + " is provisioned by authentication framework with roles : "
@@ -153,6 +163,45 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
         }
+    }
+
+    protected void associateUser(String username, String userStoreDomain, String tenantDomain, String subject,
+                                 String idp) throws FrameworkException {
+
+        String usernameWithUserstoreDomain = UserCoreUtil.addDomainToName(username, userStoreDomain);
+        try {
+            // start tenant flow
+            FrameworkUtils.startTenantFlow(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(usernameWithUserstoreDomain);
+
+            if (!StringUtils.isEmpty(idp) && !StringUtils.isEmpty(subject)) {
+                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+                userProfileAdmin.associateID(idp, subject);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Associated local user: " + usernameWithUserstoreDomain + " in tenant: " +
+                            tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
+                }
+            } else {
+                throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
+                        " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
+            }
+        } catch (UserProfileException e) {
+            if (isUserAlreadyAssociated(e)) {
+                log.info("An association already exists for user: " + subject + ". Skip association while JIT " +
+                        "provisioning");
+            } else {
+                throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
+                        " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
+            }
+        } finally {
+            // end tenant flow
+            FrameworkUtils.endTenantFlow();
+        }
+    }
+
+    private boolean isUserAlreadyAssociated(UserProfileException e) {
+        return e.getMessage() != null && e.getMessage().contains(ALREADY_ASSOCIATED_MESSAGE);
     }
 
     private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, String[] newRoles,
