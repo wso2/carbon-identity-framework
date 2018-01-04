@@ -115,8 +115,8 @@
 			<Parameter name="YahooUserInfoEndpoint">https://social.yahooapis.com/v1/user/</Parameter>
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="MobileConnectAuthenticator" enabled="true">
-			<Parameter name="MobileConnectKey">mobileConnectClientId</Parameter>
-			<Parameter name="MobileConnectSecret">mobileConnectClientSecret</Parameter>
+            <Parameter name="MCAuthenticationEndpointURL">mobileconnectauthenticationendpoint/mobileconnect.jsp</Parameter>
+            <Parameter name="MCDiscoveryAPIURL">https://discover.mobileconnect.io/gsma/v2/discovery/</Parameter>
             <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
