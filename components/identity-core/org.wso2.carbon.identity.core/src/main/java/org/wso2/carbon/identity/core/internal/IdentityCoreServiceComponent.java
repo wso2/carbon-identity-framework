@@ -139,7 +139,7 @@ public class IdentityCoreServiceComponent {
 
             String migrate = System.getProperty("migrate");
             String component = System.getProperty("component");
-            if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
+            if (Boolean.parseBoolean(migrate) && component != null && component.contains("identity")) {
                 if (migrationClient == null) {
                     log.warn("Waiting for migration client.");
                     throw new MigrationClientException("Migration client not found");
