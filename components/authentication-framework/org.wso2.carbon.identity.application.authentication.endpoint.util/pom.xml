@@ -25,9 +25,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
-    <name>WSO2 Carbon - Identity Application Authentication Endpoint(Utils)</name>
+    <name>WSO2 Carbon - Identity Application Authentication Endpoint</name>
     <packaging>bundle</packaging>
-    <description>Identity Application Authentication Endpoint Utilities</description>
+    <description>Identity Application Authentication Endpoint</description>
     <url>http://wso2.org</url>
 
     <dependencies>
