@@ -66,7 +66,6 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  */
 
 public class IdentityCoreServiceComponent {
-    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom530to540";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
     private static MigrationClient migrationClient = null;
@@ -140,19 +139,7 @@ public class IdentityCoreServiceComponent {
 
             String migrate = System.getProperty("migrate");
             String component = System.getProperty("component");
-            try {
-                if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
-                    log.info("Migration process starting...");
-                    //Directly call migration client here and selectively check for component migrations at client
-                    Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                    c.getMethod("databaseMigration").invoke(c.newInstance());
-                    log.info("Migration process finished.");
-                }
-            } catch (Exception e) {
-                log.error("Error occurred while initializing the migration client." , e);
-            }
-
-            if (Boolean.parseBoolean(migrate)) {
+            if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
                 if (migrationClient == null) {
                     log.warn("Waiting for migration client.");
                     throw new MigrationClientException("Migration client not found");
