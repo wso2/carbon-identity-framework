@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class AuthDecisionPointNode implements AuthGraphNode {
 
     private static final long serialVersionUID = 9217119784147648132L;
     private Map<String, DecisionOutcome> outcomes = new HashMap<>();
-    private AuthenticationDecisionEvaluator2 authenticationDecisionEvaluator;
+    private AuthenticationDecisionEvaluator authenticationDecisionEvaluator;
 
     public AuthDecisionPointNode() {
     }
@@ -55,11 +55,11 @@ public class AuthDecisionPointNode implements AuthGraphNode {
         outcomes.put(name, outcome);
     }
 
-    public AuthenticationDecisionEvaluator2 getAuthenticationDecisionEvaluator() {
+    public AuthenticationDecisionEvaluator getAuthenticationDecisionEvaluator() {
         return authenticationDecisionEvaluator;
     }
 
-    public void setAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator2 authenticationDecisionEvaluator) {
+    public void setAuthenticationDecisionEvaluator(AuthenticationDecisionEvaluator authenticationDecisionEvaluator) {
         this.authenticationDecisionEvaluator = authenticationDecisionEvaluator;
     }
 

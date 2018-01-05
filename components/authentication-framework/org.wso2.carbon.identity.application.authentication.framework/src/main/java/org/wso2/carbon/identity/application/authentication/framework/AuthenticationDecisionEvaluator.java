@@ -28,10 +28,9 @@ import java.io.Serializable;
  *
  * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler
  *
- * TODO: Rename this class as AuthenticationDecisionEvaluator, since the XML model is removed.
  */
 @FunctionalInterface
-public interface AuthenticationDecisionEvaluator2 extends Serializable {
+public interface AuthenticationDecisionEvaluator extends Serializable {
 
     /**
      * Selects the authentication decision outcome based on current context.

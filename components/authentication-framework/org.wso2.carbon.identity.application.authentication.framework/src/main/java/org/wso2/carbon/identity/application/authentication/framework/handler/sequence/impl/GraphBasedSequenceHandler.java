@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -269,8 +269,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
         Object fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        if (fn instanceof AuthenticationDecisionEvaluator2) {
-            ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
+        if (fn instanceof AuthenticationDecisionEvaluator) {
+            ((AuthenticationDecisionEvaluator)fn).evaluate(context);
         }
     }
 
@@ -283,11 +283,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         String nextOutcome = null;
 
-        AuthenticationDecisionEvaluator2 evaluator2 = decisionPointNode.getAuthenticationDecisionEvaluator();
-        if(evaluator2 != null) {
-            nextOutcome = evaluator2.evaluate(context);
+        AuthenticationDecisionEvaluator evaluator = decisionPointNode.getAuthenticationDecisionEvaluator();
+        if(evaluator != null) {
+            nextOutcome = evaluator.evaluate(context);
             if (log.isDebugEnabled()) {
-                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + evaluator2);
+                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + evaluator);
             }
         }
 
@@ -300,7 +300,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 String errorMessage = String
                         .format("Could not find the next outcome node for the outcome decision result : %s,"
                                         + "  at Decision : %s, on Service Provider: %s", nextOutcome,
-                                evaluator2, sequenceConfig.getApplicationId());
+                                evaluator, sequenceConfig.getApplicationId());
 
                 log.error(errorMessage);
             }
