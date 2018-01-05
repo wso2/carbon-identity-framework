@@ -24,7 +24,7 @@ import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.ScriptFunction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -56,7 +56,7 @@ public class JsGraphBuilder {
     private JavascriptCache javascriptCache;
     private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node"; //TODO: same constant
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
-    private static ThreadLocal<AuthGraphNode> dynamicallyBuitBaseNode = new ThreadLocal<>();
+    private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
 
     /**
      * Constructs the builder with the given authentication context.
@@ -177,7 +177,7 @@ public class JsGraphBuilder {
         //TODO: Use Step Name instead of Step ID (integer)
         //TODO: can get the context from ThreadLocal. so that javascript does not have context as a parameter.
         AuthenticationContext context = contextForJs.get();
-        AuthGraphNode currentNode = dynamicallyBuitBaseNode.get();
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
 
         Object idObj = parameterMap.get("id");
         Integer id = idObj instanceof Integer ? (Integer) idObj : Integer.parseInt(String.valueOf(idObj));
@@ -197,7 +197,7 @@ public class JsGraphBuilder {
         StepConfigGraphNode newNode = wrap(stepConfig);
         if (currentNode == null) {
             log.debug("Setting a new node at the first time. Node : " + newNode.getName());
-            dynamicallyBuitBaseNode.set(newNode);
+            dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
         }
@@ -348,7 +348,7 @@ public class JsGraphBuilder {
      * is happening.
      * The graph is re-organized based on last execution of the decision.
      */
-    public static class JsBasedEvaluator implements AuthenticationDecisionEvaluator2 {
+    public static class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
         private String source;
@@ -373,8 +373,8 @@ public class JsGraphBuilder {
 
                     //TODO: New method ...
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext.getProperty(PROP_CURRENT_NODE);
-                    if (executingNode instanceof DynamicDecisionNode) {
-                        infuse(executingNode, dynamicallyBuitBaseNode.get());
+                    if (canInfuse(executingNode)) {
+                        infuse(executingNode, dynamicallyBuiltBaseNode.get());
                     }
 
                 } catch (ScriptException e) {
@@ -383,13 +383,17 @@ public class JsGraphBuilder {
                             .getServiceProviderName(), e);
                 } finally {
                     contextForJs.remove();
-                    dynamicallyBuitBaseNode.remove();
+                    dynamicallyBuiltBaseNode.remove();
                 }
 
             } else {
                 result = source;
             }
             return result;
+        }
+
+        private boolean canInfuse(AuthGraphNode executingNode) {
+            return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
         }
 
         private ScriptEngine getEngine() {
