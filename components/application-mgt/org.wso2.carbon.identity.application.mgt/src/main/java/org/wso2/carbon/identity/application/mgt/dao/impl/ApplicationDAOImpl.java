@@ -792,6 +792,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
+        if (localAndOutboundAuthConfig == null) {
+            // no local or out-bound configuration for this service provider.
+            return;
+        }
         String authType = localAndOutboundAuthConfig.getAuthenticationType();
 
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
@@ -805,16 +809,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
                 storeAuthScriptPrepStmt
                         .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
-                storeAuthScriptPrepStmt.setBoolean(5, authenticationScriptConfig.getIsEnable());
+                storeAuthScriptPrepStmt.setBoolean(5, authenticationScriptConfig.isEnabled());
                 storeAuthScriptPrepStmt.execute();
             }
         }
 
         PreparedStatement updateAuthTypePrepStmt = null;
-        if (localAndOutboundAuthConfig == null) {
-            // no local or out-bound configuration for this service provider.
-            return;
-        }
 
         PreparedStatement storeSendAuthListOfIdPsPrepStmt = null;
         try {
@@ -2124,7 +2124,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         }
                         String targetString = sb.toString();
                         authenticationScriptConfig.setContent(targetString);
-                        authenticationScriptConfig.setIsEnable(isEnabled);
+                        authenticationScriptConfig.setEnabled(isEnabled);
                     } catch (IOException e) {
                         throw new IdentityApplicationManagementException(
                                 "Could not read the Script for application : " + applicationId, e);

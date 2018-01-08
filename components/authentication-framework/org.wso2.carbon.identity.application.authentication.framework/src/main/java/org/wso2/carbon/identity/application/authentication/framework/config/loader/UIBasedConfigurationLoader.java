@@ -25,12 +25,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -42,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -73,17 +72,16 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider
                 .getLocalAndOutBoundAuthenticationConfig();
-        if (authenticationSteps == null) {
-            if (localAndOutboundAuthenticationConfig.getAuthenticationSteps() != null
-                    && localAndOutboundAuthenticationConfig.getAuthenticationSteps().length > 0) {
-                //Use the default steps when there are no chains configured.
-                authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
-            }
+        if (localAndOutboundAuthenticationConfig.getAuthenticationSteps() != null
+                && localAndOutboundAuthenticationConfig.getAuthenticationSteps().length > 0) {
+            //Use the default steps when there are no chains configured.
+            authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
         }
+
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
 
         //Use script based evaluation if script is present.
-        if (localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig() != null) {
+        if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig())) {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
@@ -95,10 +93,15 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             AuthenticationGraph graph = jsGraphBuilder
                     .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
                     .build();
+            graph.setEnabled(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().isEnabled());
             sequenceConfig.setAuthenticationGraph(graph);
             graph.setStepMap(originalStepConfigMap);
         }
         return sequenceConfig;
+    }
+
+    private boolean isAuthenticationScriptBasedSequence(AuthenticationScriptConfig authenticationScriptConfig) {
+        return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
     }
 
     /**

@@ -435,8 +435,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
                     if (authenticatedUser != null) {
-                        String authenticatedUserTenantDomain = effectiveSequence.getAuthenticatedUser()
-                                .getTenantDomain();
+                        String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
                         // set the user for the current authentication/logout flow
                         context.setSubject(authenticatedUser);
 

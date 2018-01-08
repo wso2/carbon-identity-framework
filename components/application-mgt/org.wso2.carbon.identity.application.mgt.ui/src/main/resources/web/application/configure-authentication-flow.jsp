@@ -46,7 +46,7 @@
     var myCodeMirror;
     jQuery(document).ready(function () {
 
-        myCodeMirror = CodeMirror.fromTextArea(scriptTextarea, {
+        myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
             keyMap: "sublime",
             lineNumbers: true,
             lineWrapping: true,
@@ -692,7 +692,7 @@ var img = "";
                     <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                             if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getIsEnable()== true) { %>
+                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
                            checked="checked"  <% }
                     }
                     }%>/> Enable Script
@@ -700,7 +700,7 @@ var img = "";
                         <tr>
                             <td style="float:left;width: 80%">
                                 <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
-				<textarea id="scriptTextarea" name="scriptTextarea" style="height: 500px;width: 100%"><%
+				<textarea id="scriptTextArea" name="scriptTextArea" style="height: 500px;width: 100%"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
                             out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());

@@ -56,7 +56,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null) {
+        if (graph == null || !graph.isEnabled()) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "

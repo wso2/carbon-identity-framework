@@ -1005,17 +1005,20 @@ public class ApplicationBean {
 
         AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
-        String flawByScript = request.getParameter("scriptTextarea");
+        String flawByScript = request.getParameter("scriptTextArea");
 
-        if (request.getParameter("enableScript") == null) {
-            authenticationScriptConfig.setIsEnable(false);
-        } else authenticationScriptConfig.setIsEnable(true);
-
-        if (StringUtils.isNotBlank(flawByScript)) {
-
-            authenticationScriptConfig.setContent(flawByScript);
-            localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+        if (StringUtils.isBlank(flawByScript)) {
+            authenticationScriptConfig.setEnabled(false);
+        } else {
+            if ("true".equalsIgnoreCase(request.getParameter("enableScript"))) {
+                authenticationScriptConfig.setEnabled(true);
+            } else {
+                authenticationScriptConfig.setEnabled(false);
+            }
         }
+
+        authenticationScriptConfig.setContent(flawByScript);
+        localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
     }
 
     /**
