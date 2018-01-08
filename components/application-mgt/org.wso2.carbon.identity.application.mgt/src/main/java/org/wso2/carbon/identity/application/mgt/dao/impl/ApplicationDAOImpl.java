@@ -2059,9 +2059,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             Arrays.sort(authenticationSteps, comparator);
 
             int numSteps = authenticationSteps.length;
-            // We check if the steps have consecutive step numbers
+            // We check if the steps have consecutive step numbers.
             if (numSteps > 0 && authenticationSteps[numSteps-1].getStepOrder() != numSteps) {
-                // iterate through the steps and fix step order
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication steps of Application with id: " + applicationId + "  do not have " +
+                            "consecutive numbers. This was possibility due to a IDP force deletion. Fixing the step " +
+                            "order." );
+                }
+                // Iterate through the steps and fix step order.
                 int count = 1;
                 for (AuthenticationStep step : authenticationSteps) {
                     step.setStepOrder(count++);
@@ -2073,11 +2078,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             String authType = getAuthenticationType(applicationId, connection);
             if (StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FEDERATED)
                     || StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FLOW)) {
-
                 if (ArrayUtils.isEmpty(authenticationSteps)) {
                     // Although auth type is 'federated' or 'flow' we don't have any authentication steps. This can
                     // happen due to a force delete of a federated identity provider referred by the SP. So we change
-                    // the authType to 'default'
+                    // the authType to 'default'.
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authentication type is '" + authType + "' eventhough the application with id: " +
+                                applicationId + " has zero authentication step. This was possibility due to a IDP force " +
+                                "deletion. Defaulting authentication type to " + ApplicationConstants.AUTH_TYPE_DEFAULT);
+                    }
                     authType = ApplicationConstants.AUTH_TYPE_DEFAULT;
                 }
             }

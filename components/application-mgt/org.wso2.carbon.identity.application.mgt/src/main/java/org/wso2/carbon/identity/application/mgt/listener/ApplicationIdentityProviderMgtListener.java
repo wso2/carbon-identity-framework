@@ -191,11 +191,15 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
 
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+        if (log.isDebugEnabled()) {
+            log.debug("doPostDeleteIdp executed for idp: " + idPName + " of tenantDomain: " + tenantDomain);
+        }
 
-        // Clear the SP cache since deleted IDP might have contained association with SPs
+        // Clear the SP cache since deleted IDP might have contained association with SPs.
         IdentityServiceProviderCache.getInstance().clear();
         if (log.isDebugEnabled()) {
-            log.debug("IdentityServiceProvider Cache is cleared on");
+            log.debug("IdentityServiceProvider Cache is cleared on post delete event of idp: " + idPName + " of " +
+                    "tenantDomain: " + tenantDomain);
         }
 
         return super.doPostDeleteIdP(idPName, tenantDomain);

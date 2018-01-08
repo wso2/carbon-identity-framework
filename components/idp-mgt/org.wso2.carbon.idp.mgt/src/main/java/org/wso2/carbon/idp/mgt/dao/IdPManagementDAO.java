@@ -2647,22 +2647,24 @@ public class IdPManagementDAO {
      */
     private void deleteIdpSpAuthAssociations(Connection conn, int tenantId, String idpName) throws SQLException {
 
-        PreparedStatement prepStmt = null;
+        PreparedStatement removeAuthStepPreparedStatement = null;
+        PreparedStatement removeEmptyAuthStepPreparedStatement = null;
         String removeAuthStepsSql = IdPManagementConstants.SQLQueries.DELETE_IDP_SP_AUTH_ASSOCIATIONS;
         String removeEmptyAuthStepsSql = IdPManagementConstants.SQLQueries.REMOVE_EMPTY_SP_AUTH_STEPS;
 
         try {
             // Remove authentication steps in SPs with the IDP being deleted
-            prepStmt = conn.prepareStatement(removeAuthStepsSql);
-            prepStmt.setString(1, idpName);
-            prepStmt.setInt(2, tenantId);
-            prepStmt.executeUpdate();
+            removeAuthStepPreparedStatement = conn.prepareStatement(removeAuthStepsSql);
+            removeAuthStepPreparedStatement.setString(1, idpName);
+            removeAuthStepPreparedStatement.setInt(2, tenantId);
+            removeAuthStepPreparedStatement.executeUpdate();
 
             // Clean up any empty steps left over after deletion
-            prepStmt = conn.prepareStatement(removeEmptyAuthStepsSql);
-            prepStmt.executeUpdate();
+            removeEmptyAuthStepPreparedStatement = conn.prepareStatement(removeEmptyAuthStepsSql);
+            removeEmptyAuthStepPreparedStatement.executeUpdate();
         } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
+            IdentityDatabaseUtil.closeStatement(removeAuthStepPreparedStatement);
+            IdentityDatabaseUtil.closeStatement(removeEmptyAuthStepPreparedStatement);
         }
     }
 
@@ -2690,7 +2692,6 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
-
 
     /**
      * @param dbConnection

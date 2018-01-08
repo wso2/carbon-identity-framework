@@ -1646,7 +1646,7 @@ public class IdentityProviderManager implements IdpManager {
      */
     public void forceDeleteIdp(String idpName, String tenantDomain) throws IdentityProviderManagementException {
 
-        // invoking the pre listeners
+        // Invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreDeleteIdP(idpName, tenantDomain)) {
@@ -1655,13 +1655,13 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if(SAML2SSOMetadataConverter!=null) {
-            SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idpName.toString());
+        if(SAML2SSOMetadataConverter != null) {
+            SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idpName);
         }
 
         dao.forceDeleteIdP(idpName, tenantId, tenantDomain);
 
-        // invoking the post listeners
+        // Invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
                 return;
