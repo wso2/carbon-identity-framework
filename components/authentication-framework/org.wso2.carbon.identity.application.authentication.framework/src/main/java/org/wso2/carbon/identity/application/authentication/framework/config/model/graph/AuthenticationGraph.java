@@ -33,6 +33,7 @@ public class AuthenticationGraph implements Serializable {
     private String name;
     private AuthGraphNode startNode;
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
+    private boolean enabled;
 
     public String getName() {
         return name;
@@ -56,5 +57,13 @@ public class AuthenticationGraph implements Serializable {
 
     public void setStepMap(Map<Integer, StepConfig> stepMap) {
         this.stepMap = stepMap;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

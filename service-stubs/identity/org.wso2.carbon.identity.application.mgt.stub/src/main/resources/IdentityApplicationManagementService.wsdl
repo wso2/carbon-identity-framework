@@ -358,7 +358,7 @@
          <xs:complexType name="AuthenticationScriptConfig">
             <xs:sequence>
                <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
-               <xs:element minOccurs="0" name="isEnable" type="xs:boolean"/>
+               <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                <xs:element minOccurs="0" name="language" nillable="true" type="xs:string"/>
             </xs:sequence>
          </xs:complexType>

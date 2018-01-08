@@ -35,7 +35,7 @@ public class AuthenticationScriptConfig implements Serializable {
 
     private String language = LANGUAGE_JAVASCRIPT;
     private String content;
-    private boolean isEnable;
+    private boolean enabled = true;
 
     /**
      * Builds the script with Axiom.
@@ -52,6 +52,7 @@ public class AuthenticationScriptConfig implements Serializable {
         String type = scriptOM.getAttributeValue(ATTR_TYPE);
         scriptConfig.setLanguage(type);
         scriptConfig.setContent(scriptOM.getText());
+        //TODO no way to disable the script
         return scriptConfig;
     }
 
@@ -63,7 +64,7 @@ public class AuthenticationScriptConfig implements Serializable {
     }
 
     /**
-     * @param language
+     * @param language the language of the Script.
      */
     public void setLanguage(String language) {
         this.language = language;
@@ -86,14 +87,14 @@ public class AuthenticationScriptConfig implements Serializable {
     /**
      * @return whether the JavaScript based conditional step enabled.
      */
-    public boolean getIsEnable() {
-        return isEnable;
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
-     * @param isEnable
+     * @param enabled specify whether the script is enabled.
      */
-    public void setIsEnable(boolean isEnable) {
-        this.isEnable = isEnable;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
