@@ -179,7 +179,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
 
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
@@ -217,7 +217,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     private AuthenticationContext processAndGetAuthenticationContext(String[] acrArray, ServiceProvider sp1)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
         if (acrArray != null) {
             for (String acr : acrArray) {
                 context.addRequestedAcr(acr);

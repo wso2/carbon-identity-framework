@@ -25,7 +25,6 @@ import java.util.Map;
 /**
  * Decision making node on graph execution model.
  * This node will construct its child nodes upon execution on asynchronous events.
- * @see AuthDecisionPointNode in contrast builds the static graph model with full child nodes.
  */
 public class DynamicDecisionNode implements AuthGraphNode {
 

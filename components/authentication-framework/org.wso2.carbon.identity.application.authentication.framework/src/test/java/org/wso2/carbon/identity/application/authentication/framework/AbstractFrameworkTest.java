@@ -36,9 +36,7 @@ public class AbstractFrameworkTest {
         return ServiceProvider.build(documentElement);
     }
 
-    protected AuthenticationContext getAuthenticationContext(String appName, String fileName,
-            ServiceProvider serviceProvider)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
+    protected AuthenticationContext getAuthenticationContext(ServiceProvider serviceProvider) {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setServiceProviderName(serviceProvider.getApplicationName());
         authenticationContext.setTenantDomain("test_domain");

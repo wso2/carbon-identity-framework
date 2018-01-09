@@ -29,8 +29,8 @@
         </InboundAuthenticationRequestConfigs>
     </InboundAuthenticationConfig>
     <LocalAndOutBoundAuthenticationConfig>
-        <AuthenticationGraph start="basic_auth">
-            <AuthenticationStep name="basic_auth" nextLink="is_hwk_needed">
+        <AuthenticationSteps>
+            <AuthenticationStep>
                 <StepOrder>1</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
@@ -42,12 +42,7 @@
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationDecision name="is_hwk_needed" defaultLink="sample_auth">
-                <Evaluator>AcrDecisionEvaluator</Evaluator>
-                <Link name="hwk" nextLink="sample_auth" expression="hwk" />
-                <Link name="pwd" expression="pwd" end="true"/>
-            </AuthenticationDecision>
-            <AuthenticationStep name="sample_auth">
+            <AuthenticationStep>
                 <StepOrder>2</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
@@ -65,9 +60,42 @@
                 <SubjectStep>fales</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
-        </AuthenticationGraph>
-        <AuthenticationSteps>
+            <AuthenticationStep>
+                <StepOrder>3</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>FptMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>FptMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>fales</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
         </AuthenticationSteps>
+        <AuthenticationScript type="application/javascript" enabled="false"><![CDATA[
+function(context) {
+
+    var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
+
+    log.info("--------------- ACR selected: "+acr);
+
+    context.setSelectedAcr(acr);
+
+    switch(acr) {
+        case "acr1" : executeStep({id :'1'});break;
+        case "acr2" : executeStep({id :'1'}); executeStep({id :'2'});  break;
+        case "acr3" : executeStep({id :'1'}); executeStep({id :'3'});  break;
+        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'});
+    }
+}
+]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

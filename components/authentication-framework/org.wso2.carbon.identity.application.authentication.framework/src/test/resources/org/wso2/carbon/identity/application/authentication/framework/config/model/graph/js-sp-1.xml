@@ -61,7 +61,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 function(context) {
 	executeStep({id :'0'});
 	makeDecisionWith(function(c) {return 's';})

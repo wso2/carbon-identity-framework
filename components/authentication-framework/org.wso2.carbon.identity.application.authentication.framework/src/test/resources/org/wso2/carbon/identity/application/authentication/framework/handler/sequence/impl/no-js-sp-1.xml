@@ -31,7 +31,7 @@
     <LocalAndOutBoundAuthenticationConfig>
         <AuthenticationSteps>
             <AuthenticationStep>
-                <StepOrder>0</StepOrder>
+                <StepOrder>1</StepOrder>
                 <LocalAuthenticatorConfigs>
                     <LocalAuthenticatorConfig>
                         <Name>BasicMockAuthenticator</Name>
@@ -43,7 +43,7 @@
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>1</StepOrder>
+                <StepOrder>2</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
@@ -61,7 +61,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
-                <StepOrder>2</StepOrder>
+                <StepOrder>3</StepOrder>
                 <FederatedIdentityProviders>
                     <IdentityProvider>
                         <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
@@ -79,20 +79,6 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
-
-function(context) {
-    var acr = selectAcrFrom(context, ["acr1", "acr2"]);
-    log.debug("ACR selected "+acr);
-    
-    switch(acr) {
-        case "acr1" : executeStep({id :'0'}); break;
-        case "acr2" : executeStep({id :'0'}); executeStep({id :'1'}); break;
-        default : sendError({"showErrorPage" : false, "pageUri":"123", "displayFor" : "2000"});
-    }
-}
-
-]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

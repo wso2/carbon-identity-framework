@@ -53,7 +53,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     public void testCreate_DirectJava_InvalidStepId() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
@@ -68,7 +68,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     public void testCreate_DirectJava() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
@@ -94,7 +94,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
                 "executeStep({id :'2'});}}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
 
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
