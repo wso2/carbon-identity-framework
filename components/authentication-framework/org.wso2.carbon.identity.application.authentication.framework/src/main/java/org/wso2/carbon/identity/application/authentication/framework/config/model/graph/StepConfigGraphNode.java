@@ -50,6 +50,6 @@ public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
     @Override
     public String getName() {
         //todo:need to more name generation
-        return stepConfig == null ? null : "Step: "+stepConfig.getOrder();
+        return stepConfig == null ? null : "Step: " + stepConfig.getOrder();
     }
 }

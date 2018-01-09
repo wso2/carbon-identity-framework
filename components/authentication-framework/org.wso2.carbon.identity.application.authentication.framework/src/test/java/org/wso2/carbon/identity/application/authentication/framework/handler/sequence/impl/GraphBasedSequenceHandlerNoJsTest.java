@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
@@ -31,18 +32,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
-
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertNotNull;
 
 @Test
-public class GraphBasedSequenceHandlerTest extends GraphBasedSequenceHandlerAbstractTest {
+public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandlerAbstractTest {
 
-    public void testHandle_Acr_HwkOnly2_Javascript() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-2.xml");
+    @Test(dataProvider = "noJsDataProvider")
+    public void testHandle_Static_Sequence(String spFileName, int authHistoryCount) throws
+            Exception {
+        ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
-        AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
+        AuthenticationContext context = getAuthenticationContext(sp1);
 
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
@@ -58,7 +59,15 @@ public class GraphBasedSequenceHandlerTest extends GraphBasedSequenceHandlerAbst
 
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
-        assertEquals(2, authHistories.size());
+        assertEquals(authHistories.size(), authHistoryCount);
+    }
+
+    @DataProvider(name = "noJsDataProvider")
+    public Object[][] getIdpMappedUserRolesData() {
+        return new Object[][]{
+                {"no-js-sp-1.xml", 3},
+                {"disabled-js-sp-1.xml", 3},
+        };
     }
 
 }

@@ -233,7 +233,7 @@ public class JsGraphBuilder {
     }
 
     private Object generateFunction(Object value) {
-        String source = null;
+        String source;
         boolean isFunction = false;
         if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
@@ -244,8 +244,7 @@ public class JsGraphBuilder {
             source = String.valueOf(value);
         }
 
-        JsBasedEvaluator evaluator2 = new JsBasedEvaluator(source, isFunction);
-        return evaluator2;
+        return new JsBasedEvaluator(source, isFunction);
     }
 
     /**
@@ -336,9 +335,7 @@ public class JsGraphBuilder {
      * @return built and wrapped new StepConfigGraphNode.
      */
     private static StepConfigGraphNode wrap(StepConfig stepConfig) {
-
-        StepConfigGraphNode stepConfigGraphNode = new StepConfigGraphNode(stepConfig);
-        return stepConfigGraphNode;
+        return new StepConfigGraphNode(stepConfig);
     }
 
     /**

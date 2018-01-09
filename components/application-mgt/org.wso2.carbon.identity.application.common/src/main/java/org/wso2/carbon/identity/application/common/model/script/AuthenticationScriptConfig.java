@@ -31,6 +31,7 @@ public class AuthenticationScriptConfig implements Serializable {
     private static final long serialVersionUID = -16127229981193884L;
 
     public static final QName ATTR_TYPE = new QName(null, "language");
+    public static final QName ATTR_ENABLED = new QName(null, "enabled");
     public static final String LANGUAGE_JAVASCRIPT = "application/javascript";
 
     private String language = LANGUAGE_JAVASCRIPT;
@@ -50,9 +51,12 @@ public class AuthenticationScriptConfig implements Serializable {
 
         AuthenticationScriptConfig scriptConfig = new AuthenticationScriptConfig();
         String type = scriptOM.getAttributeValue(ATTR_TYPE);
+        String enabled = scriptOM.getAttributeValue(ATTR_ENABLED);
         scriptConfig.setLanguage(type);
         scriptConfig.setContent(scriptOM.getText());
-        //TODO no way to disable the script
+        if ("false".equalsIgnoreCase(enabled)) {
+            scriptConfig.setEnabled(false);
+        }
         return scriptConfig;
     }
 

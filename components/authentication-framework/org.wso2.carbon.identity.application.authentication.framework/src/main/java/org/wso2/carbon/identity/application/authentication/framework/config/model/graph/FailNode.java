@@ -43,6 +43,7 @@ public class FailNode implements AuthGraphNode {
     public void setShowErrorPage(boolean showErrorPage) {
         this.showErrorPage = showErrorPage;
     }
+
     @Override
     public String getName() {
         //TODO: Implement this
