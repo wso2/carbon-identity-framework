@@ -24,13 +24,11 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthDecisionPointNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DecisionOutcome;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -66,6 +64,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DefaultStepBasedSequenceHandler.getInstance().handle(request, response, context);
             return;
         }
+        if (!graph.isBuildSuccessful()) {
+            throw new FrameworkException("Error while building graph from Javascript. Nested exception is: " + graph
+                    .getErrorReason());
+        }
 
         boolean isInterrupted = false;
         while (!isInterrupted && !context.getSequenceConfig().isCompleted()) {
@@ -83,9 +85,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             SequenceConfig sequenceConfig, AuthGraphNode currentNode) throws FrameworkException {
         context.setProperty(PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
-        if (currentNode instanceof AuthDecisionPointNode) {
-            handleDecisionPoint(request, response, context, sequenceConfig, (AuthDecisionPointNode) currentNode);
-        } else if (currentNode instanceof DynamicDecisionNode) {
+        if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
             isInterrupt = handleAuthenticationStep(request, response, context, sequenceConfig,
@@ -272,47 +272,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (fn instanceof AuthenticationDecisionEvaluator) {
             ((AuthenticationDecisionEvaluator)fn).evaluate(context);
         }
-    }
-
-    private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context, SequenceConfig sequenceConfig, AuthDecisionPointNode decisionPointNode)
-            throws FrameworkException {
-        if (decisionPointNode == null) {
-            log.error("Decision Point node is null");
-            return;
-        }
-        String nextOutcome = null;
-
-        AuthenticationDecisionEvaluator evaluator = decisionPointNode.getAuthenticationDecisionEvaluator();
-        if(evaluator != null) {
-            nextOutcome = evaluator.evaluate(context);
-            if (log.isDebugEnabled()) {
-                log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + evaluator);
-            }
-        }
-
-        AuthGraphNode nextNode = null;
-        if (nextOutcome != null) {
-            DecisionOutcome outcome = decisionPointNode.getOutcome(nextOutcome);
-            if (outcome != null) {
-                nextNode = outcome.getDestination();
-            } else {
-                String errorMessage = String
-                        .format("Could not find the next outcome node for the outcome decision result : %s,"
-                                        + "  at Decision : %s, on Service Provider: %s", nextOutcome,
-                                evaluator, sequenceConfig.getApplicationId());
-
-                log.error(errorMessage);
-            }
-        }
-        if (nextNode == null) {
-            nextNode = decisionPointNode.getDefaultEdge();
-            if (log.isDebugEnabled()) {
-                log.debug("Selecting default outcome");
-            }
-        }
-
-        context.setProperty(PROP_CURRENT_NODE, nextNode);
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

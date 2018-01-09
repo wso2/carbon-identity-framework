@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.HasRoleFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -82,9 +83,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @Test(dataProvider = "roleBasedAcrDataProvider")
     public void testHandle_RoleBased_Javascript_Acr(String spFileName, String[] acrArray, int authHistoryCount,
-                                                    boolean hasRole)
-            throws
-            Exception {
+                                                    boolean hasRole) throws Exception {
         HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
         when(hasRoleFunction.contains(any(AuthenticationContext.class), anyString())).thenReturn(hasRole);
 
@@ -120,5 +119,25 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
                 {"js-sp-2.xml", new String[]{"acr1"}, 1, false},
                 {"js-sp-2.xml", new String[]{"acr2"}, 2, true}
         };
+    }
+
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testHandle_Incorrect_Javascript_Acr() throws Exception {
+        ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, context);
+
     }
 }

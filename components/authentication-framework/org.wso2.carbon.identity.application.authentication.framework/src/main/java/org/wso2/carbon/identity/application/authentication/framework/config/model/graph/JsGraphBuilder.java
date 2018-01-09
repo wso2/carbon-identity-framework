@@ -78,8 +78,15 @@ public class JsGraphBuilder {
      * @return
      */
     public AuthenticationGraph build() {
-        if (currentNode != null && !(currentNode instanceof EndStep)) {
-            attachToLeaf(currentNode, new EndStep());
+        if (result.isBuildSuccessful()) {
+            if (currentNode != null && !(currentNode instanceof EndStep)) {
+                attachToLeaf(currentNode, new EndStep());
+            }
+        } else {
+            //no need to do anything
+            if (log.isDebugEnabled()) {
+                log.debug("Not building the graph as the initialization was unsuccessful.");
+            }
         }
         return result;
     }
@@ -117,8 +124,11 @@ public class JsGraphBuilder {
             //Now re-assign the executeStep function to dynamic evaluation
             bindings.put("executeStep", (Consumer<Map>) this::executeStepInAsyncEvent);
         } catch (ScriptException e) {
-            //TODO: Find out how to handle script engine errors
-            log.error("Error in executing the Javascript.", e);
+            result.setBuildSuccessful(false);
+            result.setErrorReason("Error in executing the Javascript. Nested exception is: " + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Error in executing the Javascript.", e);
+            }
         }
         return this;
     }
@@ -196,7 +206,9 @@ public class JsGraphBuilder {
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
         if (currentNode == null) {
-            log.debug("Setting a new node at the first time. Node : " + newNode.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("Setting a new node at the first time. Node : " + newNode.getName());
+            }
             dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
@@ -261,13 +273,6 @@ public class JsGraphBuilder {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
             attachToLeaf(newNode, stepConfigGraphNode.getNext());
             stepConfigGraphNode.setNext(newNode);
-        } else if (destination instanceof AuthDecisionPointNode) {
-            AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) destination;
-            decisionPointNode.getOutcomes().stream().forEach(o -> {
-                AuthGraphNode clonedNode = clone(newNode);
-                attachToLeaf(clonedNode, o.getDestination());
-                o.setDestination(clonedNode);
-            });
         } else if (destination instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
             attachToLeaf(newNode, dynamicDecisionNode.getDefaultEdge());
@@ -304,14 +309,6 @@ public class JsGraphBuilder {
             } else {
                 attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
             }
-        } else if (baseNode instanceof AuthDecisionPointNode) {
-            AuthDecisionPointNode decisionPointNode = (AuthDecisionPointNode) baseNode;
-            if (decisionPointNode.getDefaultEdge() == null) {
-                decisionPointNode.setDefaultEdge(nodeToAttach);
-            } else {
-                attachToLeaf(decisionPointNode.getDefaultEdge(), nodeToAttach);
-            }
-            decisionPointNode.getOutcomes().stream().forEach(o -> attachToLeaf(o.getDestination(), nodeToAttach));
         } else if (baseNode instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
             dynamicDecisionNode.setDefaultEdge(nodeToAttach);
@@ -349,7 +346,7 @@ public class JsGraphBuilder {
 
         private static final long serialVersionUID = 6853505881096840344L;
         private String source;
-        private boolean isFunction = false;
+        private boolean isFunction;
 
         public JsBasedEvaluator(String source, boolean isFunction) {
             this.source = source;

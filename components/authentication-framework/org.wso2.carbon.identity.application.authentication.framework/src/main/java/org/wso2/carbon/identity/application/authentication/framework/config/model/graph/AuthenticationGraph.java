@@ -35,6 +35,9 @@ public class AuthenticationGraph implements Serializable {
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
     private boolean enabled;
 
+    private boolean buildSuccessful = true;
+    private String errorReason;
+
     public String getName() {
         return name;
     }
@@ -65,5 +68,21 @@ public class AuthenticationGraph implements Serializable {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isBuildSuccessful() {
+        return buildSuccessful;
+    }
+
+    public void setBuildSuccessful(boolean buildSuccessful) {
+        this.buildSuccessful = buildSuccessful;
+    }
+
+    public String getErrorReason() {
+        return errorReason;
+    }
+
+    public void setErrorReason(String errorReason) {
+        this.errorReason = errorReason;
     }
 }

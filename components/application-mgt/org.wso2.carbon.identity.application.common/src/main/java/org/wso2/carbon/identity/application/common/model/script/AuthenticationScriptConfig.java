@@ -36,7 +36,7 @@ public class AuthenticationScriptConfig implements Serializable {
 
     private String language = LANGUAGE_JAVASCRIPT;
     private String content;
-    private boolean enabled = true;
+    private boolean enabled;
 
     /**
      * Builds the script with Axiom.
@@ -54,8 +54,8 @@ public class AuthenticationScriptConfig implements Serializable {
         String enabled = scriptOM.getAttributeValue(ATTR_ENABLED);
         scriptConfig.setLanguage(type);
         scriptConfig.setContent(scriptOM.getText());
-        if ("false".equalsIgnoreCase(enabled)) {
-            scriptConfig.setEnabled(false);
+        if (Boolean.parseBoolean(enabled)) {
+            scriptConfig.setEnabled(true);
         }
         return scriptConfig;
     }

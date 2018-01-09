@@ -80,7 +80,7 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-
+        someRandomString
 function(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
@@ -90,18 +90,7 @@ function(context) {
     context.setSelectedAcr(acr);
 
     switch(acr) {
-        case "acr1" : executeStep({id :'1',
-            on : {
-                success : function(context) {
-                    var isAdmin = hasRole(context, 'admin');
-                    Log.info("--------------- Has Admin " + isAdmin);
-                    if (isAdmin) {
-                        executeStep({id :'2'});
-                    }
-                }
-            }
-        });
-	    break;
+        case "acr1" : executeStep({id :'1'});break;
         case "acr2" : executeStep({id :'1'}); executeStep({id :'2'});  break;
         case "acr3" : executeStep({id :'1'}); executeStep({id :'3'});  break;
         default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'});

@@ -79,7 +79,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
+        <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 var jsFn1 = function(context, a) {
     log.debug('Test fn1 '+a);
 }
