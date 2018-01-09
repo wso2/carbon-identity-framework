@@ -61,12 +61,12 @@
         Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
         if (errorD != null) {
-            errorMsg = errorD.getDescription();
             request.setAttribute("errorMsg", errorD.getDescription());
             request.setAttribute("errorCode", errorD.getCode());
-        } else {
-            errorMsg = e.getMessage();
         }
+
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
