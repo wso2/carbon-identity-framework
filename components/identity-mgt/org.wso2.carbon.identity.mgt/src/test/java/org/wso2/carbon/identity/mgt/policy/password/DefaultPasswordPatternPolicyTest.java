@@ -16,42 +16,46 @@
 
 package org.wso2.carbon.identity.mgt.policy.password;
 
-import junit.framework.TestCase;
+
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultPasswordPatternPolicyTest extends TestCase {
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+public class DefaultPasswordPatternPolicyTest {
 
     DefaultPasswordPatternPolicy policy = new DefaultPasswordPatternPolicy();
 
+    @Test
     public void testPassPatterns() {
-
         Map<String, String> params = new HashMap<String, String>();
         params.put("pattern", "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{0,100}$");
         policy.init(params);
 
-        assertTrue("pattern check failed " + policy.getErrorMessage(), policy.enforce("passwordW@1"));
-        assertTrue("pattern check failed " + policy.getErrorMessage(), policy.enforce("passwordDW@1"));
-        assertTrue("pattern check failed " + policy.getErrorMessage(), policy.enforce("PASSWORd#5"));
+        assertTrue(policy.enforce("passwordW@1"), "pattern check failed " + policy.getErrorMessage());
+        assertTrue(policy.enforce("passwordDW@1"), "pattern check failed " + policy.getErrorMessage());
+        assertTrue(policy.enforce("PASSWORd#5"), "pattern check failed " + policy.getErrorMessage());
 
     }
 
+    @Test
     public void testFailPatterns() {
-
         Map<String, String> params = new HashMap<String, String>();
         params.put("pattern", "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{0,100}$");
         policy.init(params);
 
-        assertFalse("pattern fail check failed " + policy.getErrorMessage(), policy.enforce("password@1"));
-        assertFalse("pattern fail check failed " + policy.getErrorMessage(), policy.enforce("password"));
-        assertFalse("pattern fail check failed " + policy.getErrorMessage(), policy.enforce("passwordW3"));
-        assertFalse("pattern fail check failed " + policy.getErrorMessage(), policy.enforce("password#@1"));
-        assertFalse("pattern fail check failed " + policy.getErrorMessage(), policy.enforce("PASSWORD@1"));
+        assertFalse(policy.enforce("password@1"), "pattern fail check failed " + policy.getErrorMessage());
+        assertFalse(policy.enforce("password"), "pattern fail check failed " + policy.getErrorMessage());
+        assertFalse(policy.enforce("passwordW3"), "pattern fail check failed " + policy.getErrorMessage());
+        assertFalse(policy.enforce("password#@1"), "pattern fail check failed " + policy.getErrorMessage());
+        assertFalse(policy.enforce("PASSWORD@1"), "pattern fail check failed " + policy.getErrorMessage());
     }
 
+    @Test
     public void testNullInput() {
-
-        assertTrue("null input check failed", policy.enforce(null));
+        assertTrue(policy.enforce(null), "null input check failed");
     }
 }
