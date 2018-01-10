@@ -21,6 +21,12 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -40,31 +46,10 @@ import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-/**
- * @scr.component name="identity.core.component" immediate="true"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
- * policy="dynamic" bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="server.configuration.service"
- * interface="org.wso2.carbon.base.api.ServerConfigurationService" cardinality="1..1"
- * policy="dynamic"  bind="setServerConfigurationService"
- * unbind="unsetServerConfigurationService"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="registry.loader.default"
- * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
- * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
- * @scr.reference name="is.migration.client"
- * interface="org.wso2.carbon.identity.core.migrate.MigrationClient"
- * cardinality="0..1" policy="dynamic" bind="setMigrationClient" unbind="unsetMigrationClient"
- */
-
+@Component(
+        name = "identity.core.component",
+        immediate = true
+)
 public class IdentityCoreServiceComponent {
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
@@ -80,6 +65,13 @@ public class IdentityCoreServiceComponent {
         return IdentityCoreServiceComponent.serverConfigurationService;
     }
 
+    @Reference(
+            name = "server.configuration.service",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServerConfigurationService"
+    )
     protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
         if (log.isDebugEnabled()) {
             log.debug("Set the ServerConfiguration Service");
@@ -102,6 +94,7 @@ public class IdentityCoreServiceComponent {
     /**
      * @param ctxt
      */
+    @Activate
     protected void activate(ComponentContext ctxt) throws MigrationClientException {
         IdentityTenantUtil.setBundleContext(ctxt.getBundleContext());
         if (log.isDebugEnabled()) {
@@ -185,6 +178,7 @@ public class IdentityCoreServiceComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         IdentityTenantUtil.setBundleContext(null);
         if (log.isDebugEnabled()) {
@@ -192,6 +186,13 @@ public class IdentityCoreServiceComponent {
         }
     }
 
+    @Reference(
+            name = "registry.service",
+            service = RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         IdentityTenantUtil.setRegistryService(registryService);
     }
@@ -203,6 +204,13 @@ public class IdentityCoreServiceComponent {
     /**
      * @param realmService
      */
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
     }
@@ -214,6 +222,13 @@ public class IdentityCoreServiceComponent {
         IdentityTenantUtil.setRealmService(null);
     }
 
+    @Reference(
+            name = "registry.loader.default",
+            service = TenantRegistryLoader.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetTenantRegistryLoader"
+    )
     protected void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
         if (log.isDebugEnabled()) {
             log.debug("Tenant Registry Loader is set in the SAML SSO bundle");
@@ -238,6 +253,13 @@ public class IdentityCoreServiceComponent {
     /**
      * @param service
      */
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
     protected void setConfigurationContextService(ConfigurationContextService service) {
         configurationContextService = service;
     }
@@ -253,6 +275,13 @@ public class IdentityCoreServiceComponent {
      *
      * @param client
      */
+    @Reference(
+            name = "is.migration.client",
+            service = MigrationClient.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMigrationClient"
+    )
     protected void setMigrationClient(MigrationClient client) {
         migrationClient = client;
     }
