@@ -44,6 +44,7 @@
 
 <script>
     var myCodeMirror;
+    var scriptDisabled;
     jQuery(document).ready(function () {
 
         myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
@@ -68,8 +69,9 @@
             gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
             foldGutter: true,
             lint: true,
-            showCursorWhenSelecting: true
+            showCursorWhenSelecting: true,
         });
+
     });
 </script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
@@ -250,7 +252,7 @@ var img = "";
                 "category": "User Role",
                 "type": [{
                     "name": "ACR",
-                    "img": "https://png.icons8.com/user/office/20/000000",
+                    "img": "./images/user.gif",
                     "code": "function(context) {\n" +
                     "\n" +
                     "    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
@@ -269,79 +271,52 @@ var img = "";
                     "}\n",
                     "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
                     "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-                }, {
-                    "name": "Template 2",
-                    "img": "https://png.icons8.com/user-groups/color/20/000000",
-                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
-                    "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
-                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-
-                }]
-            }, {
-                "category": "IP Based",
-                "type": [{
-                    "name": "Template 1",
-                    "img": "https://png.icons8.com/softether-vpn/color/20/000000",
-                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
-                    "help": "imply dummy text of the printing and typesetting industry. ",
-                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-                }]
-            }, {
-                "category": "Analytics",
-                "type": [{
-                    "name": "Template 2",
-                    "code": "//imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the indu",
-                    "img": "https://png.icons8.com/bar-chart/dusk/20/000000",
-                    "help": "imply dummy text of the printing and typesetting industry. ",
-                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-
                 }]
             }]
         };
 
         $.each(template.templateList, function (i, templateList) {
 
-            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;" >' +
+            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
                 '<a    href="#">' + templateList.category + '</a></h2></li>';
             var details = '<ul class="normal details">';
             $.each(templateList.type, function (i, type) {
 
-                details += '<li  class="name"><img src=' + type.img + '><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '">' +
-                    '' + type.name + '</a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
-                    '<img  style="float:right;" src="https://png.icons8.com/help/color/19/000000"></a></li>';
+                details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
+                    '<span>' + type.name + '</span></a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
+                    '<img  style="float:right;" src="./images/help-small-icon.png"></a></li>';
             });
             details += '</ul>';
             $(tempType).appendTo('#template_list').append(details);
         });
 
         $('[data-toggle=template-link]').click(function (e) {
-            e.preventDefault();
-            var typeName = $(this).data('type-name');
-            var data;
-            var tempName;
+			e.preventDefault();
+			var typeName = $(this).data('type-name');
+			var data;
+			var tempName;
 
-            $.each(template.templateList, function (i, templateList) {
-                $.each(templateList.type, function (i, type) {
-                    if (type.name == typeName) {
-                        data = type.code;
-                        tempName = type.name
+			$.each(template.templateList, function (i, templateList) {
+				$.each(templateList.type, function (i, type) {
+					if (type.name == typeName) {
+						data = type.code;
+						tempName = type.name
 
-                    }
-                });
-            });
+					}
+				});
+			});
 
-            var cm = $('.CodeMirror')[0].CodeMirror;
-            var doc = cm.getDoc();
-            var cursor = doc.getCursor();
-            var line = doc.getLine(cursor.line); // get the line contents
-            var pos = {
-                line: cursor.line,
-                ch: line.length - 1
-            }
-            doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+			var cm = $('.CodeMirror')[0].CodeMirror;
+			var doc = cm.getDoc();
+			var cursor = doc.getCursor();
+			var line = doc.getLine(cursor.line); // get the line contents
+			var pos = {
+				line: cursor.line,
+				ch: line.length - 1
+			}
+			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
         });
 
-        $('.type ul').hide();
         $('.type > h2').click(function (e) {
             e.preventDefault();
 
@@ -685,21 +660,23 @@ var img = "";
             <!-- sectionSub Div -->
 
                 <h2 id="lambda_function" class="active sectionSeperator trigger step_heads" style="font-size:large ">
-				<a href="#">JavaScript based Conditional Steps</a>
+				<a href="#">JavaScript Based Conditional Steps</a>
 			</h2>
 
-                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="lamda_func_dropdown">
-                    <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
-                        if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-                            if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
-                           checked="checked"  <% }
-                    }
-                    }%>/> Enable Script
-                    <table style="width: 100%">
+                <div class="toggle_container sectionSub" id="lamda_func_dropdown">
+                    <span>
+                        <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
+                            if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+                                    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
+                               checked="checked"  <% }
+                        }
+                        }%>/> Use this Script
+                    </span>
+                    <table style="width: 100%; margin-top: 4px;">
                         <tr>
-                            <td style="float:left;width: 80%">
-                                <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="codeMirror">
+                            <td style="width: 80%">
+                                <div class="sectionSub step_contents" id="codeMirror">
 				<textarea id="scriptTextArea" name="scriptTextArea" style="height: 500px;width: 100%"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
@@ -709,10 +686,10 @@ var img = "";
                 %></textarea>
                                 </div>
                             </td>
-                            <td style="float:right;width: 20%">
-                                <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;"
+                            <td style="width: 20%">
+                                <div class="sectionSub step_contents" style="margin-bottom:10px;"
                                      id="codeMirrorTemplate">
-                                    <h2 style="text-align: center;">Sample Functions</h2>
+                                    <p class="templateHeading">Sample Functions</p>
                                     <ul id='template_list'></ul>
                                 </div>
                             </td>
