@@ -46,18 +46,6 @@
     var myCodeMirror;
     var scriptDisabled;
     jQuery(document).ready(function () {
-        var esLink = jQuery("#enableScript");
-
-        function changeEditor(checkbox, editor){
-            if(jQuery(checkbox).is(':checked')){
-                scriptDisabled = false;
-                editor.setOption("theme", "default");
-            }else{
-                scriptDisabled = "nocursor";
-                editor.setOption("theme", "default disabled");
-            }
-            editor.setOption("readOnly", scriptDisabled);
-		}
 
         myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
             keyMap: "sublime",
@@ -83,12 +71,6 @@
             lint: true,
             showCursorWhenSelecting: true,
         });
-
-        esLink.click(function(){
-            changeEditor(this, myCodeMirror);
-        });
-
-        changeEditor(esLink, myCodeMirror);
 
     });
 </script>
@@ -309,32 +291,30 @@ var img = "";
         });
 
         $('[data-toggle=template-link]').click(function (e) {
-            if(!scriptDisabled) {
-                e.preventDefault();
-                var typeName = $(this).data('type-name');
-                var data;
-                var tempName;
+			e.preventDefault();
+			var typeName = $(this).data('type-name');
+			var data;
+			var tempName;
 
-                $.each(template.templateList, function (i, templateList) {
-                    $.each(templateList.type, function (i, type) {
-                        if (type.name == typeName) {
-                            data = type.code;
-                            tempName = type.name
+			$.each(template.templateList, function (i, templateList) {
+				$.each(templateList.type, function (i, type) {
+					if (type.name == typeName) {
+						data = type.code;
+						tempName = type.name
 
-                        }
-                    });
-                });
+					}
+				});
+			});
 
-                var cm = $('.CodeMirror')[0].CodeMirror;
-                var doc = cm.getDoc();
-                var cursor = doc.getCursor();
-                var line = doc.getLine(cursor.line); // get the line contents
-                var pos = {
-                    line: cursor.line,
-                    ch: line.length - 1
-                }
-                doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
-            }
+			var cm = $('.CodeMirror')[0].CodeMirror;
+			var doc = cm.getDoc();
+			var cursor = doc.getCursor();
+			var line = doc.getLine(cursor.line); // get the line contents
+			var pos = {
+				line: cursor.line,
+				ch: line.length - 1
+			}
+			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
         });
 
         $('.type > h2').click(function (e) {
@@ -691,7 +671,7 @@ var img = "";
                                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
                                checked="checked"  <% }
                         }
-                        }%>/> Enable Script
+                        }%>/> Use this Script
                     </span>
                     <table style="width: 100%; margin-top: 4px;">
                         <tr>
