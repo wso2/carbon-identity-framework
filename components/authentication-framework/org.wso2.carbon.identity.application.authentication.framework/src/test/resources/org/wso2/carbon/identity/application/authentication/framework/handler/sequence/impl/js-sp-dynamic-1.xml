@@ -81,16 +81,16 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 var jsFn1 = function(context, a) {
-    log.debug('Test fn1 '+a);
+    Log.debug('Test fn1 '+a);
 }
 
 function(context) {
-log.info('Test0');
+Log.info('Test0');
 	executeStep({
 	    id : '1',
 	    on : {
 	        success : function(context){
-	                log.info('Test1');
+	                Log.info('Test1');
 	                executeStep({
 	                    context : context,
 	                    id : 2});
