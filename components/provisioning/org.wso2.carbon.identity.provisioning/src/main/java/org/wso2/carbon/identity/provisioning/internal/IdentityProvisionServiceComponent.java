@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 
 @Component(
-         name = "null", 
+         name = "org.wso2.carbon.identity.provision.internal.IdentityProvisionServiceComponent",
          immediate = true)
 public class IdentityProvisionServiceComponent {
 
