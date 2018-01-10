@@ -85,7 +85,7 @@ function(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 
-    log.info("--------------- ACR selected: "+acr);
+    Log.info("--------------- ACR selected: "+acr);
 
     context.setSelectedAcr(acr);
 

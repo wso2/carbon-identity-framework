@@ -121,23 +121,23 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
         };
     }
 
-//    @Test(expectedExceptions = FrameworkException.class)
-//    public void testHandle_Incorrect_Javascript_Acr() throws Exception {
-//        ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
-//
-//        AuthenticationContext context = getAuthenticationContext(sp1);
-//
-//        SequenceConfig sequenceConfig = configurationLoader
-//                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
-//        context.setSequenceConfig(sequenceConfig);
-//
-//        HttpServletRequest req = mock(HttpServletRequest.class);
-//
-//        HttpServletResponse resp = mock(HttpServletResponse.class);
-//
-//        UserCoreUtil.setDomainInThreadLocal("test_domain");
-//
-//        graphBasedSequenceHandler.handle(req, resp, context);
-//
-//    }
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testHandle_Incorrect_Javascript_Acr() throws Exception {
+        ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, context);
+
+    }
 }
