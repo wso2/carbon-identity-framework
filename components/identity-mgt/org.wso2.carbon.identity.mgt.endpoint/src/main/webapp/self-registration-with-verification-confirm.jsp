@@ -25,6 +25,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -32,6 +34,7 @@
 
 
     String username = request.getParameter("username");
+    String tenantdomain = request.getParameter("tenantdomain");
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
 
@@ -49,7 +52,14 @@
     try {
         SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
         CodeValidationRequest validationRequest = new CodeValidationRequest();
+        List<Property> properties = new ArrayList<>();
+        Property tenantDomain = new Property();
+        tenantDomain.setKey("tenantDomain");
+        tenantDomain.setValue(tenantdomain);
+        properties.add(tenantDomain);
+
         validationRequest.setCode(confirmationKey);
+        validationRequest.setProperties(properties);
 
         selfRegisterApi.validateCodePostCall(validationRequest);
 
