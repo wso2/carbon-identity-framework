@@ -338,18 +338,23 @@ public class CacheBackedIdPMgtDAO {
             throw new IdentityProviderManagementException("Identity Provider '" + idPName + "' " +
                     "cannot be deleted as it is referred by Service Providers.");
         }
-        log.debug("Removing entry for Identity Provider " + idPName + " from cache");
-        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId,
-                tenantDomain);
+
+        idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Removing entry for Identity Provider " + idPName + " from caches.");
+        }
+
+        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
         IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
         idPCacheByName.clearCacheEntry(idPNameCacheKey);
+
         if (identityProvider.getHomeRealmId() != null) {
             IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                     identityProvider.getHomeRealmId(), tenantDomain);
             idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
         }
 
-        idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
 
     }
 

@@ -1964,8 +1964,7 @@ public class IdPManagementDAO {
             IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
-                String msg = "Trying to delete non-existent Identity Provider for tenant "
-                        + tenantDomain;
+                String msg = "Trying to delete non-existent Identity Provider for tenant " + tenantDomain;
                 log.error(msg);
                 return;
             }
