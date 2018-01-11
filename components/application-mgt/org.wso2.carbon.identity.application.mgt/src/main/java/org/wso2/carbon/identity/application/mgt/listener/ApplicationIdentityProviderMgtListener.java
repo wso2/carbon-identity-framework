@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -38,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
+
+    private static final Log log = LogFactory.getLog(ApplicationIdentityProviderMgtListener.class);
 
     @Override
     public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
@@ -174,6 +178,22 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             throw new IdentityProviderManagementException("Error when updating default authenticator of service providers", e);
         }
         return true;
+    }
+
+    @Override
+    public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+        if (log.isDebugEnabled()) {
+            log.debug("doPostDeleteIdp executed for idp: " + idPName + " of tenantDomain: " + tenantDomain);
+        }
+
+        // Clear the SP cache since deleted IDP might have contained association with SPs.
+        IdentityServiceProviderCache.getInstance().clear();
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityServiceProvider Cache is cleared on post delete event of idp: " + idPName + " of " +
+                    "tenantDomain: " + tenantDomain);
+        }
+
+        return super.doPostDeleteIdP(idPName, tenantDomain);
     }
 
     public int getDefaultOrderId() {
