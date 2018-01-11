@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -53,10 +54,10 @@
         SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
         CodeValidationRequest validationRequest = new CodeValidationRequest();
         List<Property> properties = new ArrayList<>();
-        Property tenantDomain = new Property();
-        tenantDomain.setKey("tenantDomain");
-        tenantDomain.setValue(tenantdomain);
-        properties.add(tenantDomain);
+        Property tenantDomainProperty = new Property();
+        tenantDomainProperty.setKey(MultitenantConstants.TENANT_DOMAIN);
+        tenantDomainProperty.setValue(tenantdomain);
+        properties.add(tenantDomainProperty);
 
         validationRequest.setCode(confirmationKey);
         validationRequest.setProperties(properties);
