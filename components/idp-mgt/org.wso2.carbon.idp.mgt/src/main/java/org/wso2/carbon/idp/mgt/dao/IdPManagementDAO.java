@@ -1964,9 +1964,8 @@ public class IdPManagementDAO {
             IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
-                String msg = "Trying to delete non-existent Identity Provider for tenant " + tenantDomain;
-                log.error(msg);
-                return;
+                String msg = "Trying to delete non-existent Identity Provider: %s in tenantDomain: %s";
+                throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
             }
             deleteIdP(dbConnection, tenantId, idPName);
             dbConnection.commit();
@@ -1987,9 +1986,8 @@ public class IdPManagementDAO {
         try {
             IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
             if (identityProvider == null) {
-                String msg = "Trying to delete non-existent Identity Provider:%s for tenant:%s";
-                log.error(String.format(msg, idPName, tenantDomain));
-                return;
+                String msg = "Trying to force delete non-existent Identity Provider: %s in tenantDomain: %s";
+                throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Deleting SP Authentication Associations for IDP:%s of tenantDomain:%s",
