@@ -88,7 +88,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "user.realmservice.default",
-            service = org.wso2.carbon.user.core.service.RealmService.class,
+            service = RealmService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRealmService"
@@ -106,7 +106,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "registry.service",
-            service = org.wso2.carbon.registry.core.service.RegistryService.class,
+            service = RegistryService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRegistryService"
@@ -198,7 +198,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "osgi.httpservice",
-            service = org.osgi.service.http.HttpService.class,
+            service = HttpService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetHttpService"
@@ -235,7 +235,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "application.authenticator",
-            service = org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.class,
+            service = ApplicationAuthenticator.class,
             cardinality = ReferenceCardinality.AT_LEAST_ONE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthenticator"
@@ -304,7 +304,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identity.processor",
-            service = org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor.class,
+            service = IdentityProcessor.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeIdentityProcessor"
@@ -331,7 +331,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identity.request.factory",
-            service = org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory.class,
+            service = HttpIdentityRequestFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeHttpIdentityRequestFactory"
@@ -358,7 +358,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identity.response.factory",
-            service = org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory.class,
+            service = HttpIdentityResponseFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "removeHttpIdentityResponseFactory"
@@ -390,7 +390,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identityCoreInitializedEventService",
-            service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
+            service = IdentityCoreInitializedEvent.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetIdentityCoreInitializedEventService"
@@ -402,7 +402,7 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identity.authentication.data.publisher",
-            service = org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher.class,
+            service = AuthenticationDataPublisher.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthenticationDataPublisher"
