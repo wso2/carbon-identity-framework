@@ -55,3 +55,39 @@
 .cm-s-disabled span{
     color: #ccc!important;
 }
+
+.highlight1{
+    animation: colorchange1 2000ms;
+    -webkit-animation: colorchange1 2000ms;
+    animation-iteration-count: 1;
+    -webkit-animation-iteration-count: 1
+}
+.highlight2{
+    animation: colorchange2 2000ms;
+    -webkit-animation: colorchange2 2000ms;
+    animation-iteration-count: 1;
+    -webkit-animation-iteration-count: 1
+}
+
+@keyframes colorchange1
+{
+    0%  {background: rgba(255, 255, 0, 0.8);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+
+@-webkit-keyframes colorchange1
+{
+    0%  {background: rgba(255, 255, 0, 0.8);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+@keyframes colorchange2
+{
+    0%  {background: rgba(255, 180, 0, 0.6);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+
+@-webkit-keyframes colorchange2
+{
+    0%  {background: rgba(255, 180, 0, 0.6);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
