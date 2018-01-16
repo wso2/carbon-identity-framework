@@ -60,13 +60,17 @@
     animation: colorchange1 2000ms;
     -webkit-animation: colorchange1 2000ms;
     animation-iteration-count: 1;
-    -webkit-animation-iteration-count: 1
+    -webkit-animation-iteration-count: 1;
+    animation-fill-mode: none;
+    -webkit-animation-fill-mode: none;
 }
 .highlight2{
     animation: colorchange2 2000ms;
     -webkit-animation: colorchange2 2000ms;
     animation-iteration-count: 1;
-    -webkit-animation-iteration-count: 1
+    -webkit-animation-iteration-count: 1;
+    animation-fill-mode: none;
+    -webkit-animation-fill-mode: none;
 }
 
 @keyframes colorchange1

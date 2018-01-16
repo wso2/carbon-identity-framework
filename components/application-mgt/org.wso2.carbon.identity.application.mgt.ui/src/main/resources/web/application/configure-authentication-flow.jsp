@@ -320,12 +320,13 @@ var img = "";
 			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
 
             var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+            var coordinatesLTB = myCodeMirror.cursorCoords();
             if(startLine === beforeAddCur.ch){
                 mark = myCodeMirror.markText(beforeAddCur,coordinates, {className: "highlight1"});
             }else{
                 mark = myCodeMirror.markText(beforeAddCur, afterAddCur, {className: "highlight2"});
             }
-            myCodeMirror.scrollIntoView();
+            $('.CodeMirror-scroll').animate({ scrollTop: coordinatesLTB.bottom}, 500, 'linear');
             setTimeout(function(){ mark.clear(); }, 2000);
 
         });
