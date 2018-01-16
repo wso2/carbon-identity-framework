@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.HasRoleFunction;
+import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.IsExistsStringFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -85,8 +88,9 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
     public void testHandle_RoleBased_Javascript_Acr(String spFileName, String[] acrArray, int authHistoryCount,
                                                     boolean hasRole) throws Exception {
         HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
-        when(hasRoleFunction.contains(any(AuthenticationContext.class), anyString())).thenReturn(hasRole);
-
+        when(hasRoleFunction.contains(any(JsAuthenticationContext.class), anyString())).thenReturn(hasRole);
+        graphBuilderFactory.getJsFunctionRegistry().register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole",
+                                (IsExistsStringFunction) hasRoleFunction::contains);
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
         AuthenticationContext context = getAuthenticationContext(sp1);

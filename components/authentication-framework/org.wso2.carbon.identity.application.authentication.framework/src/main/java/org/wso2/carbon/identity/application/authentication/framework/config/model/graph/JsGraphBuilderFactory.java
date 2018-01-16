@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
@@ -52,6 +53,9 @@ public class JsGraphBuilderFactory {
         bindings.put("Log", jsLog);
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
         bindings.put("selectAcrFrom", (SelectOneFunction) selectAcrFromFunction::evaluate);
+
+        JsLogger jsLogger = new JsLogger();
+        bindings.put("console", jsLogger);
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,

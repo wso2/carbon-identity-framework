@@ -84,9 +84,9 @@ function(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 
-    Log.info("--------------- ACR selected: "+acr);
+    console.info("--------------- ACR selected: "+acr);
 
-    context.setSelectedAcr(acr);
+    context.selectedAcr = acr;
 
     switch(acr) {
         case "acr1" : executeStep({id :'1'});break;
