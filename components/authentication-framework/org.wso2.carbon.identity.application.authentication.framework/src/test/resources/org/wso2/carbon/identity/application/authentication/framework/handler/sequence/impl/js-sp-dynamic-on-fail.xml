@@ -97,18 +97,18 @@ var jsFn1 = function(context, a) {
 }
 
 function(context) {
-Log.info('Test0');
+console.info('Test0');
 	executeStep({
 	    id : '4',
 	    on : {
 	        success : function(context){
-	                Log.info('Test1');
+	                console.info('Test1');
 	                executeStep({
 	                    context : context,
 	                    id : 2});
 	            },
 	        fail : function(context){
-	                Log.info('Test On Fail');
+	                console.info('Test On Fail');
 	                executeStep({id : 1, context : context});
 	                executeStep({context : context, id : 3});
 	            }

@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -41,16 +41,16 @@ public class HasRoleFunction implements IsExistsStringFunction {
 
     private static final Log log = LogFactory.getLog(HasRoleFunction.class);
 
-    public Boolean contains(AuthenticationContext context, String roleName) {
+    public Boolean contains(JsAuthenticationContext context, String roleName) {
         boolean result = false;
 
-        AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+        AuthenticatedUser authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
         if (authenticatedUser == null) {
             return false;
         }
 
         try {
-            String tenantDomain = context.getTenantDomain();
+            String tenantDomain = context.getWrapped().getTenantDomain();
             UserRealm userRealm = getUserRealm(tenantDomain);
             if (userRealm != null) {
                 UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm,

@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
@@ -119,7 +120,7 @@ public class JsGraphBuilder {
             javascriptCache.putBindings(authenticationContext.getServiceProviderName(), bindings);
 
             JSObject builderFunction = (JSObject) compiledScript.eval(bindings);
-            builderFunction.call(null, authenticationContext);
+            builderFunction.call(null, new JsAuthenticationContext(authenticationContext));
 
             //Now re-assign the executeStep function to dynamic evaluation
             bindings.put("executeStep", (Consumer<Map>) this::executeStepInAsyncEvent);
@@ -363,7 +364,8 @@ public class JsGraphBuilder {
                     JsGraphBuilder.contextForJs.set(authenticationContext);
                     CompiledScript compiledScript = compilable.compile(source);
                     JSObject builderFunction = (JSObject) compiledScript.eval(bindings);
-                    Object scriptResult = builderFunction.call(null, authenticationContext);
+                    Object scriptResult = builderFunction.call(null, new JsAuthenticationContext
+                            (authenticationContext));
 
                     //TODO: New method ...
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext.getProperty(PROP_CURRENT_NODE);

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.List;
@@ -28,8 +29,8 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
-    public String evaluate(AuthenticationContext context, String[] possibleOutcomes) {
-        List<String> acrListRequested = context.getRequestedAcr();
+    public String evaluate(JsAuthenticationContext context, String[] possibleOutcomes) {
+        List<String> acrListRequested = context.getWrapped().getRequestedAcr();
         if (acrListRequested == null || acrListRequested.isEmpty()) {
             if (log.isDebugEnabled()) {
                 log.debug("ACR values from context is empty. Selecting the default outcome as null.");
