@@ -53,6 +53,12 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return new JsAuthenticatedUser(wrapped.getLastAuthenticatedUser());
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return wrapped.getTenantDomain();
+            case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
+                return new JsServletRequest(wrapped.getInitialRequest());
+            case FrameworkConstants.JSAttributes.JS_REQUEST:
+                return new JsServletRequest(wrapped.getRequest());
+            case FrameworkConstants.JSAttributes.JS_RESPONSE:
+                return new JsServletResponse(wrapped.getResponse());
             default:
                 return super.getMember(name);
         }
@@ -70,6 +76,12 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return wrapped.getLastAuthenticatedUser() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return wrapped.getTenantDomain() != null;
+            case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
+                return wrapped.getInitialRequest() != null;
+            case FrameworkConstants.JSAttributes.JS_REQUEST:
+                return wrapped.getRequest() != null;
+            case FrameworkConstants.JSAttributes.JS_RESPONSE:
+                return wrapped.getResponse() != null;
             default:
                 return super.hasMember(name);
         }
