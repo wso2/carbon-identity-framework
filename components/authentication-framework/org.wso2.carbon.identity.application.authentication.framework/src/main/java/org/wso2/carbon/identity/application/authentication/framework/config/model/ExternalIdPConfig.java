@@ -41,8 +41,8 @@ public class ExternalIdPConfig implements Serializable {
     private PermissionsAndRoleConfig roleConfiguration;
     private JustInTimeProvisioningConfig justInTimeProConfig;
 
-    private Map<String, String> parameterMap = new HashMap<String, String>();
-    private Map<String, String> roleMappings = new HashMap<String, String>();
+    private Map<String, String> parameterMap = new HashMap<>();
+    private Map<String, String> roleMappings = new HashMap<>();
 
     public ExternalIdPConfig() {
     }
