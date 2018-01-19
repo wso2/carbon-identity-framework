@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.claim.mgt.internal;
 
 import org.apache.commons.logging.Log;
@@ -25,21 +24,16 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-/**
- * @scr.component name="claim.mgt.component" immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- */
-
+@Component(
+         name = "claim.mgt.component", 
+         immediate = true)
 public class ClaimManagementServiceComponent {
 
     private static final Log log = LogFactory.getLog(ClaimManagementServiceComponent.class);
@@ -58,6 +52,12 @@ public class ClaimManagementServiceComponent {
     /**
      * @param realmService
      */
+    @Reference(
+             name = "user.realmservice.default", 
+             service = RealmService.class,
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         try {
             ClaimManagementServiceDataHolder.getInstance().setRealmService(realmService);
@@ -73,6 +73,12 @@ public class ClaimManagementServiceComponent {
         return ClaimManagementServiceDataHolder.getInstance().getRegistryService();
     }
 
+    @Reference(
+             name = "registry.service", 
+             service = RegistryService.class,
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         try {
             ClaimManagementServiceDataHolder.getInstance().setRegistryService(registryService);
@@ -87,6 +93,7 @@ public class ClaimManagementServiceComponent {
     /**
      * @param ctxt
      */
+    @Activate
     protected void activate(ComponentContext ctxt) {
         try {
             ClaimManagementServiceDataHolder.getInstance().setBundleContext(ctxt.getBundleContext());
@@ -101,6 +108,7 @@ public class ClaimManagementServiceComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Claim Management bundle is deactivated");
@@ -124,13 +132,20 @@ public class ClaimManagementServiceComponent {
         }
     }
 
+    @Reference(
+             name = "identityCoreInitializedEventService", 
+             service = IdentityCoreInitializedEvent.class,
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 }
+

@@ -15,7 +15,6 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-
 package org.wso2.carbon.user.mgt.internal;
 
 import org.apache.commons.logging.Log;
@@ -32,35 +31,31 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-/**
- * @scr.component name="usermgt.component"" immediate="true"
- * @scr.reference name="registry.service"
- *                interface="org.wso2.carbon.registry.core.service.RegistryService"
- *                cardinality="1..1" policy="dynamic" bind="setRegistryService"
- *                unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- *                interface="org.wso2.carbon.user.core.service.RealmService"
- *                cardinality="1..1" policy="dynamic" bind="setRealmService"
- *                unbind="unsetRealmService"
- * @scr.reference name="identityCoreInitializedEventService"
- *                interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent"
- *                cardinality="1..1" policy="dynamic" bind="setIdentityCoreInitializedEventService"
- *                unbind="unsetIdentityCoreInitializedEventService"
- */
+@Component(
+         name = "usermgt.component", 
+         immediate = true)
 public class UserMgtDSComponent {
+
     private static final Log log = LogFactory.getLog(UserMgtDSComponent.class);
+
     private static RegistryService registryService = null;
+
     private static RealmService realmService = null;
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         log.debug("User Mgt bundle is activated ");
-
         // for new cahing, every thread should has its own populated CC. During the deployment time we assume super tenant
         PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
         carbonContext.setTenantDomain(org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         carbonContext.setTenantId(org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID);
-
         UserMgtInitializer userMgtInitializer = new UserMgtInitializer();
         try {
             userMgtInitializer.start(ctxt.getBundleContext(), registryService);
@@ -74,9 +69,7 @@ public class UserMgtDSComponent {
             }
             // register the Authorization listener to restriction tenant!=0 setting super tenant
             // specific permissions
-            ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService
-                    (AuthorizationManagerListener.class.getName(),
-                            new PermissionAuthorizationListener(), null);
+            ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(AuthorizationManagerListener.class.getName(), new PermissionAuthorizationListener(), null);
             if (serviceRegistration == null) {
                 log.error("Error while registering PermissionAuthorizationListener.");
             } else {
@@ -84,8 +77,7 @@ public class UserMgtDSComponent {
                     log.debug("PermissionAuthorizationListener successfully registered.");
                 }
             }
-            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(),
-                    new UserMgtAuditLogger(), null);
+            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(), new UserMgtAuditLogger(), null);
             if (serviceRegistration == null) {
                 log.error("Error while registering UserMgtAuditLogger.");
             } else {
@@ -95,14 +87,21 @@ public class UserMgtDSComponent {
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
-            // don't throw exception
+        // don't throw exception
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         log.debug("User Mgt bundle is deactivated ");
     }
 
+    @Reference(
+             name = "registry.service", 
+             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.info("Setting the Registry Service");
@@ -117,6 +116,12 @@ public class UserMgtDSComponent {
         UserMgtDSComponent.registryService = null;
     }
 
+    @Reference(
+             name = "user.realmservice.default", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.info("Setting the Realm Service");
@@ -131,13 +136,19 @@ public class UserMgtDSComponent {
         UserMgtDSComponent.realmService = null;
     }
 
+    @Reference(
+             name = "identityCoreInitializedEventService", 
+             service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
@@ -148,5 +159,5 @@ public class UserMgtDSComponent {
     public static RealmService getRealmService() {
         return realmService;
     }
-
 }
+
