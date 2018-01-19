@@ -220,9 +220,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
-        if (flowStatus == AuthenticatorFlowStatus.SUCCESS_COMPLETED ) {
-            context.setRequestAuthenticated(true);
-        } else {
+        if (flowStatus != AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
             stepConfig.setSubjectAttributeStep(false);
             stepConfig.setSubjectIdentifierStep(false);
         }
@@ -276,7 +274,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context, SequenceConfig sequenceConfig, AuthenticationGraph graph)
             throws FrameworkException {
-        context.setRequestAuthenticated(false);
         AuthGraphNode startNode = graph.getStartNode();
         if (startNode == null) {
             throw new FrameworkException("Start node is not set for authentication graph:" + graph.getName());
