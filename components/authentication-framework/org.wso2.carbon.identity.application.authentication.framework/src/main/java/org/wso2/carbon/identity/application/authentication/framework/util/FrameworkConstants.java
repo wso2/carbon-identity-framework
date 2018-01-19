@@ -256,5 +256,14 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_SECURE = "secure";
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
+
+        public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
+
+        public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
+        public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
+        public static final String JS_LOG = "Log";
+        public static final String JS_FUNC_SEND_ERROR = "sendError";
+        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
+        public static final String JS_PAGE_URI = "pageUri";
     }
 }

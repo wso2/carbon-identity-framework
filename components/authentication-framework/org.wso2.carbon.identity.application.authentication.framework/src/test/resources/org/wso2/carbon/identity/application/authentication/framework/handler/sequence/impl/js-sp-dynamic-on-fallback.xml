@@ -93,27 +93,27 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 var jsFn1 = function(context, a) {
-    console.debug('Test fn1 '+a);
+    Log.debug('Test fn1 '+a);
 }
 
 function(context) {
-console.info('Test0');
+Log.info('Test0');
 	executeStep({
 	    id : '4',
 	    on : {
 	        success : function(context){
-	                console.info('Test1');
+	                Log.info('Test1');
 	                executeStep({
 	                    context : context,
 	                    id : 2});
 	        },
 	        fail : function(context){
-	                console.info('Test On Fail');
+	                Log.info('Test On Fail');
 	                executeStep({id : 1, context : context});
 	                executeStep({context : context, id : 3});
 	        },
 	        fallback : function(context){
-	                console.info('Test On Fallback');
+	                Log.info('Test On Fallback');
 	                executeStep({id : 1, context : context});
 	                executeStep({context : context, id : 2});
 	                executeStep({context : context, id : 3});

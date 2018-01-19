@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
-    private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
     private volatile boolean isInitialized = false;
 
     @Override
@@ -72,7 +71,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isInterrupted = false;
         while (!isInterrupted && !context.getSequenceConfig().isCompleted()) {
 
-            AuthGraphNode currentNode = (AuthGraphNode) context.getProperty(PROP_CURRENT_NODE);
+            AuthGraphNode currentNode = (AuthGraphNode) context.getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
             if (currentNode == null) {
                 isInterrupted = handleInitialize(request, response, context, sequenceConfig, graph);
             } else {
@@ -83,7 +82,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     private boolean handleNode(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
             SequenceConfig sequenceConfig, AuthGraphNode currentNode) throws FrameworkException {
-        context.setProperty(PROP_CURRENT_NODE, currentNode);
+        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
         if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
@@ -114,7 +113,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             nextNode = new EndStep();
         }
 
-        context.setProperty(PROP_CURRENT_NODE, nextNode);
+        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
     }
 
     private void handleEndOfSequence(HttpServletRequest request, HttpServletResponse response,
@@ -264,7 +263,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
 
         AuthGraphNode nextNode = dynamicDecisionNode.getDefaultEdge();
-        context.setProperty(PROP_CURRENT_NODE, nextNode);
+        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
