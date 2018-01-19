@@ -26,7 +26,15 @@ import jdk.nashorn.api.scripting.AbstractJSObject;
  * @param <T> Wrapped object type
  */
 public abstract class AbstractJSObjectWrapper<T> extends AbstractJSObject {
-    protected T wrapped;
+
+    private T wrapped;
+
+    public AbstractJSObjectWrapper(T wrapped) {
+        if (wrapped == null) {
+            throw new IllegalArgumentException("Wrapped object cannot be null.");
+        }
+        this.wrapped = wrapped;
+    }
 
     public T getWrapped() {
         return wrapped;

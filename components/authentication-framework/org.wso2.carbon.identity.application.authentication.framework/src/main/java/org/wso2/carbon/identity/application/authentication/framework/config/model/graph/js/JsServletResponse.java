@@ -39,27 +39,22 @@ import java.util.Map;
 public class JsServletResponse extends AbstractJSObjectWrapper<HttpServletResponse> {
 
     public JsServletResponse(HttpServletResponse wrapped) {
-
-        this.wrapped = wrapped;
+        super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
 
-        if (wrapped == null) {
-            return super.getMember(name);
-        }
-
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_HEADERS:
                 Map headers = new HashMap();
-                Collection<String> headerNames = wrapped.getHeaderNames();
+                Collection<String> headerNames = getWrapped().getHeaderNames();
                 if (headerNames != null) {
                     for (String element : headerNames) {
-                        headers.put(element, wrapped.getHeader(element));
+                        headers.put(element, getWrapped().getHeader(element));
                     }
                 }
-                return new JsHeaders(headers, wrapped);
+                return new JsHeaders(headers, getWrapped());
             default:
                 return super.getMember(name);
         }
@@ -68,12 +63,9 @@ public class JsServletResponse extends AbstractJSObjectWrapper<HttpServletRespon
     @Override
     public boolean hasMember(String name) {
 
-        if (wrapped == null) {
-            return false;
-        }
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return wrapped.getHeaderNames() != null;
+                return getWrapped().getHeaderNames() != null;
             default:
                 return super.hasMember(name);
         }
