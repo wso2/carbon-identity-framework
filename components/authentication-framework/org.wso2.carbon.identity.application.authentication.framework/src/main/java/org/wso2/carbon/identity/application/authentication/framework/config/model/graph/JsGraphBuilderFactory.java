@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Map;
 import javax.script.Bindings;
@@ -50,12 +51,11 @@ public class JsGraphBuilderFactory {
         engine = new ScriptEngineManager().getEngineByName("nashorn");
         Bindings bindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("log", jsLog); //TODO: Depricated. Remove log.x()
-        bindings.put("Log", jsLog);
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.put("selectAcrFrom", (SelectOneFunction) selectAcrFromFunction::evaluate);
+        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, (SelectOneFunction) selectAcrFromFunction::evaluate);
 
         JsLogger jsLogger = new JsLogger();
-        bindings.put("console", jsLogger);
+        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,

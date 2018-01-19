@@ -85,7 +85,7 @@ function(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 
-    console.info("--------------- ACR selected: "+acr);
+    Log.info("--------------- ACR selected: "+acr);
 
     context.selectedAcr = acr;
 
@@ -94,7 +94,7 @@ function(context) {
             on : {
                 success : function(context) {
                     var isAdmin = hasRole(context, 'admin');
-                    console.info("--------------- Has Admin " + isAdmin);
+                    Log.info("--------------- Has Admin " + isAdmin);
                     if (isAdmin) {
                         executeStep({id :'2'});
                     }
