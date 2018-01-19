@@ -129,8 +129,8 @@
                     }
 
                     var value = document.getElementsByName("externalClaimURI")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="claim.uri.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 255) {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.too.long"/>');
@@ -159,6 +159,10 @@
                 function getClaimDialect() {
                     document.addclaim.action = "add-external-claim.jsp";
                     document.addclaim.submit();
+                }
+
+                function isEmpty(value){
+                  return (value == null || value.trim() == '');
                 }
 
             </script>

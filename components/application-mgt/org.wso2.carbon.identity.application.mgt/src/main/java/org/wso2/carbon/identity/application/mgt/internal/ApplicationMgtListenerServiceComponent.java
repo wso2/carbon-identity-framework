@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.mgt.internal;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 
 import java.util.ArrayList;
@@ -26,19 +30,21 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.application.mgt.listener"
- * immediate="true"
- * @scr.reference name="application.mgt.event.listener.service"
- * interface="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setApplicationMgtListenerService"
- * unbind="unsetApplicationMgtListenerService"
- */
+@Component(
+        name = "org.wso2.carbon.identity.application.mgt.listener",
+        immediate = true
+)
 public class ApplicationMgtListenerServiceComponent {
 
     private static List<ApplicationMgtListener> applicationMgtListeners = new ArrayList<>();
 
+    @Reference(
+            name = "application.mgt.event.listener.service",
+            service = ApplicationMgtListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationMgtListenerService"
+    )
     protected static synchronized void setApplicationMgtListenerService(
             ApplicationMgtListener applicationMgtListenerService) {
 

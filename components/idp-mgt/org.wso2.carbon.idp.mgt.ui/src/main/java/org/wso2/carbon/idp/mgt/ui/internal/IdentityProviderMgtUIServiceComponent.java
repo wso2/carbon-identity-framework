@@ -21,40 +21,51 @@ package org.wso2.carbon.idp.mgt.ui.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.idp.mgt.ui" immediate="true"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- */
-
+@Component(
+        name = "org.wso2.carbon.identity.idp.mgt.ui",
+        immediate = true
+)
 public class IdentityProviderMgtUIServiceComponent {
 
     private static final Log log = LogFactory.getLog(IdentityProviderMgtUIServiceComponent.class);
 
+    @Activate
     protected void activate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Provider Management UI bundle acticated!");
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Provider Management UI bundle is deactivated");
         }
     }
 
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-      /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
 
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
       /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
-
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+      /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
 }

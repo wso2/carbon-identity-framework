@@ -37,7 +37,9 @@
         function submitCredentials () {
             var userName = document.getElementById("username");
             userName.value = userName.value.trim();
-            document.getElementById("loginForm").submit();
+            if(userName.value){
+                document.getElementById("loginForm").submit();
+            }
         }
 </script>
 
@@ -115,7 +117,7 @@
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="Username">
+               placeholder="Username" required>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
