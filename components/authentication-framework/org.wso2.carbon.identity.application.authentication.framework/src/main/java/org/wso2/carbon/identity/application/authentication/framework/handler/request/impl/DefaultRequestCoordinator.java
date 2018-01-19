@@ -136,6 +136,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             } else {
                 returning = true;
                 context = FrameworkUtils.getContextData(request);
+                if (context != null) {
+                    // set current request and response to the authentication context.
+                    context.setRequest(request);
+                    context.setResponse(response);
+                }
             }
 
             if (context != null) {
@@ -247,6 +252,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
         context.setContextIdentifier(contextId);
+        context.setInitialRequest(request);
+        context.setRequest(request);
+        context.setResponse(response);
 
         if (log.isDebugEnabled()) {
             log.debug("Framework contextId: " + contextId);

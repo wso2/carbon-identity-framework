@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,15 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import jdk.nashorn.api.scripting.AbstractJSObject;
 
 /**
- * Function definition for checking/matching string from the context.
+ * Abstract wrapper class for objects used inside the javascript.
+ *
+ * @param <T> Wrapped object type
  */
-@FunctionalInterface
-public interface IsExistsStringFunction {
+public abstract class AbstractJSObjectWrapper<T> extends AbstractJSObject {
+    protected T wrapped;
 
-    Boolean contains(JsAuthenticationContext context, String string);
+    public T getWrapped() {
+        return wrapped;
+    }
 }
