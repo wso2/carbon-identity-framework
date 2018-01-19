@@ -283,16 +283,16 @@ var img = "";
             $(tempType).appendTo('#template_list').append(details);
         });
 
-        var beforeAddCur, afterAddCur, mark, startLine;
+        var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
         var doc = myCodeMirror.getDoc();
 
         myCodeMirror.on("change", function(instance, ch){
-            afterAddCur = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+            cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
 
         });
         myCodeMirror.on("beforeChange", function(instance, changeObj){
-            beforeAddCur = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
-            startLine = beforeAddCur.line;
+            cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+            startLine = cursorCoordsBeforeChange.line;
         });
 
         $('[data-toggle=template-link]').click(function (e) {
@@ -321,10 +321,10 @@ var img = "";
 
             var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
             var coordinatesLTB = myCodeMirror.cursorCoords();
-            if(startLine === beforeAddCur.ch){
-                mark = myCodeMirror.markText(beforeAddCur,coordinates, {className: "highlight1"});
+            if(startLine === cursorCoordsBeforeChange.ch){
+                mark = myCodeMirror.markText(cursorCoordsBeforeChange,coordinates, {className: "highlight1"});
             }else{
-                mark = myCodeMirror.markText(beforeAddCur, afterAddCur, {className: "highlight2"});
+                mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
             }
             $('.CodeMirror-scroll').animate({ scrollTop: coordinatesLTB.bottom}, 500, 'linear');
             setTimeout(function(){ mark.clear(); }, 2000);
@@ -478,26 +478,26 @@ var img = "";
 	function addIDPRow(obj, stepID) {
 		var selectedObj = jQuery(obj).prev().find(":selected");
 		var selectedIDPName = selectedObj.val();
-		if(!validateAuthenticators('step_'+stepID+'_fed_auth', selectedIDPName))
-		{
+		if (!validateAuthenticators('step_' + stepID + '_fed_auth', selectedIDPName)) {
 			return false;
 		}
 
 		//var stepID = jQuery(obj).parent().children()[1].value;
-		var dataArray =  selectedObj.attr('data').split('%fed_auth_sep_%');
+		var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
 		var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
-		var newRow = '<tr><td><input name="step_'+ stepID +'_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_'+ stepID +'_idp_'+selectedIDPName+'_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
-		for(var i=0;i<dataArray.length;i++){
-			newRow+='<option value="'+valuesArray[i]+'">'+dataArray[i]+'</option>';
+		var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
+		for (var i = 0; i < dataArray.length; i++) {
+			newRow += '<option value="' + valuesArray[i] + '">' + dataArray[i] + '</option>';
 		}
-		newRow+='</select></td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
+		newRow += '</select></td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
 		jQuery(obj)
-				.parent()
-				.parent()
-				.parent()
-				.parent()
-				.append(
-						jQuery(newRow));	}
+			.parent()
+			.parent()
+			.parent()
+			.parent()
+			.append(
+				jQuery(newRow));
+	}
 
 	function validateAuthenticators(itemName, authenticatorName){
 		if($('[name='+itemName+']').length > 0){
