@@ -28,53 +28,30 @@ import java.util.Map;
  */
 public class JsParameters extends AbstractJSObjectWrapper<Map> {
 
-    private Map wrapped;
-
     public JsParameters(Map wrapped) {
-
-        this.wrapped = wrapped;
+        super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
-
-        if (wrapped == null) {
-            return super.getMember(name);
-        } else {
-            return wrapped.get(name);
-        }
+        return getWrapped().get(name);
     }
 
     @Override
     public boolean hasMember(String name) {
-
-        if (wrapped == null) {
-            return false;
-        } else {
-            return wrapped.get(name) != null;
-        }
+        return getWrapped().get(name) != null;
     }
 
     @Override
     public void removeMember(String name) {
 
-        if (wrapped == null) {
-            super.removeMember(name);
-        } else {
-            if (wrapped.containsKey(name)) {
-                wrapped.remove(name);
-            }
+        if (getWrapped().containsKey(name)) {
+            getWrapped().remove(name);
         }
     }
 
     @Override
     public void setMember(String name, Object value) {
-
-        if (wrapped == null) {
-            super.setMember(name, value);
-            return;
-        } else {
-            wrapped.put(name, value);
-        }
+        getWrapped().put(name, value);
     }
 }

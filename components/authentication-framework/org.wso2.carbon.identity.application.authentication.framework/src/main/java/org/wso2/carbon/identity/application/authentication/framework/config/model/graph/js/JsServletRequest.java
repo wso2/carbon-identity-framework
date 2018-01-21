@@ -40,33 +40,28 @@ import java.util.Map;
 public class JsServletRequest extends AbstractJSObjectWrapper<HttpServletRequest> {
 
     public JsServletRequest(HttpServletRequest wrapped) {
-
-        this.wrapped = wrapped;
+        super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
 
-        if (wrapped == null) {
-            return super.getMember(name);
-        }
-
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_HEADERS:
                 Map headers = new HashMap();
-                Enumeration<String> headerNames = wrapped.getHeaderNames();
+                Enumeration<String> headerNames = getWrapped().getHeaderNames();
                 if (headerNames != null) {
                     while (headerNames.hasMoreElements()) {
                         String headerName = headerNames.nextElement();
-                        headers.put(headerName, wrapped.getHeader(headerName));
+                        headers.put(headerName, getWrapped().getHeader(headerName));
                     }
                 }
                 return new JsParameters(headers);
             case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return new JsParameters(wrapped.getParameterMap());
+                return new JsParameters(getWrapped().getParameterMap());
             case FrameworkConstants.JSAttributes.JS_COOKIES:
                 Map cookies = new HashMap();
-                Cookie[] cookieArr = wrapped.getCookies();
+                Cookie[] cookieArr = getWrapped().getCookies();
                 if(cookieArr != null) {
                     for (Cookie cookie : cookieArr) {
                         cookies.put(cookie.getName(), new JsCookie(cookie));
@@ -80,17 +75,13 @@ public class JsServletRequest extends AbstractJSObjectWrapper<HttpServletRequest
 
     @Override
     public boolean hasMember(String name) {
-
-        if (wrapped == null) {
-            return false;
-        }
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return wrapped.getHeaderNames() != null;
+                return getWrapped().getHeaderNames() != null;
             case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return wrapped.getParameterMap() != null;
+                return getWrapped().getParameterMap() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIES:
-                return wrapped.getCookies() != null;
+                return getWrapped().getCookies() != null;
             default:
                 return super.hasMember(name);
         }

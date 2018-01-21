@@ -32,35 +32,31 @@ import javax.servlet.http.Cookie;
 public class JsCookie extends AbstractJSObjectWrapper<Cookie> {
 
     public JsCookie(Cookie cookie) {
-
-        this.wrapped = cookie;
+        super(cookie);
     }
 
     @Override
     public Object getMember(String name) {
 
-        if (wrapped == null) {
-            return super.getMember(name);
-        }
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_COOKIE_NAME:
-                return wrapped.getName();
+                return getWrapped().getName();
             case FrameworkConstants.JSAttributes.JS_COOKIE_VALUE:
-                return wrapped.getValue();
+                return getWrapped().getValue();
             case FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT:
-                return wrapped.getComment();
+                return getWrapped().getComment();
             case FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN:
-                return wrapped.getDomain();
+                return getWrapped().getDomain();
             case FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE:
-                return wrapped.getMaxAge();
+                return getWrapped().getMaxAge();
             case FrameworkConstants.JSAttributes.JS_COOKIE_PATH:
-                return wrapped.getPath();
+                return getWrapped().getPath();
             case FrameworkConstants.JSAttributes.JS_COOKIE_SECURE:
-                return wrapped.getSecure();
+                return getWrapped().getSecure();
             case FrameworkConstants.JSAttributes.JS_COOKIE_VERSION:
-                return wrapped.getVersion();
+                return getWrapped().getVersion();
             case FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY:
-                return wrapped.isHttpOnly();
+                return getWrapped().isHttpOnly();
             default:
                 return super.getMember(name);
         }
@@ -69,24 +65,21 @@ public class JsCookie extends AbstractJSObjectWrapper<Cookie> {
     @Override
     public boolean hasMember(String name) {
 
-        if (wrapped == null) {
-            return false;
-        }
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_COOKIE_NAME:
-                return wrapped.getName() != null;
+                return getWrapped().getName() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_VALUE:
-                return wrapped.getValue() != null;
+                return getWrapped().getValue() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT:
-                return wrapped.getComment() != null;
+                return getWrapped().getComment() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN:
-                return wrapped.getDomain() != null;
+                return getWrapped().getDomain() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE:
-                return wrapped.getMaxAge() != -1;
+                return getWrapped().getMaxAge() != -1;
             case FrameworkConstants.JSAttributes.JS_COOKIE_PATH:
-                return wrapped.getPath() != null;
+                return getWrapped().getPath() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_VERSION:
-                return wrapped.getVersion() != 0;
+                return getWrapped().getVersion() != 0;
             default:
                 return super.hasMember(name);
         }

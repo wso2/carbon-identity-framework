@@ -38,23 +38,21 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> {
 
     public JsAuthenticatedUser(AuthenticatedUser wrapped) {
-        this.wrapped = wrapped;
+        super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
-        if (wrapped == null) {
-            return super.getMember(name);
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER:
-                return wrapped.getAuthenticatedSubjectIdentifier();
+                return getWrapped().getAuthenticatedSubjectIdentifier();
             case FrameworkConstants.JSAttributes.JS_USERNAME:
-                return wrapped.getUserName();
+                return getWrapped().getUserName();
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                return wrapped.getUserStoreDomain();
+                return getWrapped().getUserStoreDomain();
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return wrapped.getTenantDomain();
+                return getWrapped().getTenantDomain();
             default:
                 return super.getMember(name);
         }
@@ -62,18 +60,16 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
 
     @Override
     public boolean hasMember(String name) {
-        if (wrapped == null) {
-            return super.hasMember(name);
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER:
-                return wrapped.getAuthenticatedSubjectIdentifier() != null;
+                return getWrapped().getAuthenticatedSubjectIdentifier() != null;
             case FrameworkConstants.JSAttributes.JS_USERNAME:
-                return wrapped.getUserName() != null;
+                return getWrapped().getUserName() != null;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                return wrapped.getUserStoreDomain() != null;
+                return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return wrapped.getTenantDomain() != null;
+                return getWrapped().getTenantDomain() != null;
             default:
                 return super.hasMember(name);
         }

@@ -38,27 +38,25 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 public class JsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext> {
 
     public JsAuthenticationContext(AuthenticationContext wrapped) {
-        this.wrapped = wrapped;
+        super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
-        if (wrapped == null) {
-            return super.getMember(name);
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return wrapped.getRequestedAcr();
+                return getWrapped().getRequestedAcr();
             case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
-                return new JsAuthenticatedUser(wrapped.getLastAuthenticatedUser());
+                return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return wrapped.getTenantDomain();
+                return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
-                return new JsServletRequest(wrapped.getInitialRequest());
+                return new JsServletRequest(getWrapped().getInitialRequest());
             case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsServletRequest(wrapped.getRequest());
+                return new JsServletRequest(getWrapped().getRequest());
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsServletResponse(wrapped.getResponse());
+                return new JsServletResponse(getWrapped().getResponse());
             default:
                 return super.getMember(name);
         }
@@ -66,22 +64,20 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     @Override
     public boolean hasMember(String name) {
-        if (wrapped == null) {
-            return super.hasMember(name);
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return wrapped.getRequestedAcr() != null;
+                return getWrapped().getRequestedAcr() != null;
             case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
-                return wrapped.getLastAuthenticatedUser() != null;
+                return getWrapped().getLastAuthenticatedUser() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return wrapped.getTenantDomain() != null;
+                return getWrapped().getTenantDomain() != null;
             case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
-                return wrapped.getInitialRequest() != null;
+                return getWrapped().getInitialRequest() != null;
             case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return wrapped.getRequest() != null;
+                return getWrapped().getRequest() != null;
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return wrapped.getResponse() != null;
+                return getWrapped().getResponse() != null;
             default:
                 return super.hasMember(name);
         }
@@ -89,13 +85,10 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     @Override
     public void removeMember(String name) {
-        if (wrapped == null) {
-            super.removeMember(name);
-            return;
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                wrapped.setSelectedAcr(null);
+                getWrapped().setSelectedAcr(null);
                 break;
             default:
                 super.removeMember(name);
@@ -104,13 +97,10 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     @Override
     public void setMember(String name, Object value) {
-        if (wrapped == null) {
-            super.setMember(name, value);
-            return;
-        }
+
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                wrapped.setSelectedAcr(String.valueOf(value));
+                getWrapped().setSelectedAcr(String.valueOf(value));
                 break;
             default:
                 super.setMember(name, value);
