@@ -186,116 +186,116 @@ var img = "";
 			document.getElementById("configure-auth-flow-form").submit();
 	}
 
-    jQuery(document).ready(function(){
+	jQuery(document).ready(function () {
 
-        var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
-            keyMap: "sublime",
-            lineNumbers: true,
-            lineWrapping: true,
-            mode: "javascript",
-            lineWiseCopyCut: true,
-            pasteLinesPerSelection: true,
-            extraKeys: {
-                "Ctrl-Space": "autocomplete",
-                "F11": function (myCodeMirror) {
-                    myCodeMirror.setOption("fullScreen", !myCodeMirror.getOption("fullScreen"));
-                },
-                "Esc": function (myCodeMirror) {
-                    if (myCodeMirror.getOption("fullScreen")) myCodeMirror.setOption("fullScreen", false);
-                }
-            },
-            indentWithTabs: true,
-            autoCloseBrackets: true,
-            matchBrackets: true,
-            gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-            foldGutter: false,
-            lint: true,
-            showCursorWhenSelecting: true,
-            styleActiveLine: true,
-        });
+		var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
+			keyMap: "sublime",
+			lineNumbers: true,
+			lineWrapping: true,
+			mode: "javascript",
+			lineWiseCopyCut: true,
+			pasteLinesPerSelection: true,
+			extraKeys: {
+				"Ctrl-Space": "autocomplete",
+				"F11": function (myCodeMirror) {
+					myCodeMirror.setOption("fullScreen", !myCodeMirror.getOption("fullScreen"));
+				},
+				"Esc": function (myCodeMirror) {
+					if (myCodeMirror.getOption("fullScreen")) myCodeMirror.setOption("fullScreen", false);
+				}
+			},
+			indentWithTabs: true,
+			autoCloseBrackets: true,
+			matchBrackets: true,
+			gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+			foldGutter: false,
+			lint: true,
+			showCursorWhenSelecting: true,
+			styleActiveLine: true,
+		});
 
-        jQuery('#ReqPathAuth').hide();
-        jQuery('#authenticationConfRow').hide();
-        jQuery('#advanceAuthnConfRow').hide();
-        jQuery('#permissionConfRow').hide();
-        jQuery('#lamda_func_dropdown').hide();
-        jQuery('h2.trigger').click(function(){
-            if (jQuery(this).next().is(":visible")) {
-                this.className = "active trigger step_heads";
-            } else {
-                this.className = "trigger step_heads";
-            }
-            jQuery(this).next().slideToggle("fast");
-            return false; //Prevent the browser jump to the link anchor
-        })
-        jQuery('#stepsAddLink').click(function(){
-        	stepOrder++;
-        	jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_'+stepOrder+'" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="'+stepOrder+'" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step '+stepOrder+'</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_'+stepOrder+'"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_'+stepOrder+'" name="subject_step_'+stepOrder+'" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_'+stepOrder+'" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_'+stepOrder+'" name="attribute_step_'+stepOrder+'" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_'+stepOrder+'" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_'+stepOrder+'" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_'+stepOrder+'"><table class="styledLeft" width="100%" id="local_auth_table_'+stepOrder+'"><thead><tr><td><select name="step_'+stepOrder+'_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,'+stepOrder+');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_'+stepOrder+'" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_'+stepOrder+'"><table class="styledLeft" width="100%" id="fed_auth_table_'+stepOrder+'"><thead> <tr><td><select name="idpAuthType_'+stepOrder+'" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,'+stepOrder+');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
-        	if(!$('#stepsConfRow').is(":visible")){
-                $(jQuery('#stepsConfRow')).toggle();
-            }
-        	if(stepOrder == 1){
-        		$('#subject_step_'+stepOrder).attr('checked', true);
-        		$('#attribute_step_'+stepOrder).attr('checked', true);
-        	}
-        })
+		jQuery('#ReqPathAuth').hide();
+		jQuery('#authenticationConfRow').hide();
+		jQuery('#advanceAuthnConfRow').hide();
+		jQuery('#permissionConfRow').hide();
+		jQuery('#lamda_func_dropdown').hide();
+		jQuery('h2.trigger').click(function () {
+			if (jQuery(this).next().is(":visible")) {
+				this.className = "active trigger step_heads";
+			} else {
+				this.className = "trigger step_heads";
+			}
+			jQuery(this).next().slideToggle("fast");
+			return false; //Prevent the browser jump to the link anchor
+		})
+		jQuery('#stepsAddLink').click(function () {
+			stepOrder++;
+			jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_' + stepOrder + '" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
+			if (!$('#stepsConfRow').is(":visible")) {
+				$(jQuery('#stepsConfRow')).toggle();
+			}
+			if (stepOrder == 1) {
+				$('#subject_step_' + stepOrder).attr('checked', true);
+				$('#attribute_step_' + stepOrder).attr('checked', true);
+			}
+		})
 		//TODO Add help text and document link
-        var template = {
-            "templateList": [{
-                "category": "Request Based",
-                "type": [{
-                    "name": "ACR",
-                    "img": "./images/user.gif",
-                    "code": "function(context) {\n" +
-                    "\n" +
-                    "    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
-                    "\n" +
-                    "    log.info(\"--------------- ACR selected: \"+acr);\n" +
-                    "\n" +
-                    "    context.setSelectedAcr(acr);\n" +
-                    "\n" +
-                    "    switch(acr) {\n" +
-                    "        case \"acr1\" : executeStep({id :'1'});break;\n" +
-                    "        case \"acr2\" : executeStep({id :'1'}); executeStep({id :'2'});  break;\n" +
-                    "        case \"acr3\" : executeStep({id :'1'}); executeStep({id :'3'});  break;\n" +
-                    "        case \"acr4\" : executeStep({id :'1'}); executeStep({id :'4'});  break;\n" +
-                    "        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
-                    "    }\n" +
-                    "}\n",
-                    "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
-                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-                }]
-            }]
-        };
+		var template = {
+			"templateList": [{
+				"category": "Request Based",
+				"type": [{
+					"name": "ACR",
+					"img": "./images/user.gif",
+					"code": "function(context) {\n" +
+					"\n" +
+					"    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
+					"\n" +
+					"    log.info(\"--------------- ACR selected: \"+acr);\n" +
+					"\n" +
+					"    context.setSelectedAcr(acr);\n" +
+					"\n" +
+					"    switch(acr) {\n" +
+					"        case \"acr1\" : executeStep({id :'1'});break;\n" +
+					"        case \"acr2\" : executeStep({id :'1'}); executeStep({id :'2'});  break;\n" +
+					"        case \"acr3\" : executeStep({id :'1'}); executeStep({id :'3'});  break;\n" +
+					"        case \"acr4\" : executeStep({id :'1'}); executeStep({id :'4'});  break;\n" +
+					"        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
+					"    }\n" +
+					"}\n",
+					"help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
+					"helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+				}]
+			}]
+		};
 
-        $.each(template.templateList, function (i, templateList) {
+		$.each(template.templateList, function (i, templateList) {
 
-            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
-                '<a    href="#">' + templateList.category + '</a></h2></li>';
-            var details = '<ul class="normal details">';
-            $.each(templateList.type, function (i, type) {
+			var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
+				'<a    href="#">' + templateList.category + '</a></h2></li>';
+			var details = '<ul class="normal details">';
+			$.each(templateList.type, function (i, type) {
 
-                details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
-                    '<span>' + type.name + '</span></a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
-                    '<img  style="float:right;" src="./images/help-small-icon.png"></a></li>';
-            });
-            details += '</ul>';
-            $(tempType).appendTo('#template_list').append(details);
-        });
+				details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
+					'<span>' + type.name + '</span></a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
+					'<img  style="float:right;" src="./images/help-small-icon.png"></a></li>';
+			});
+			details += '</ul>';
+			$(tempType).appendTo('#template_list').append(details);
+		});
 
-        var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
-        var doc = myCodeMirror.getDoc();
+		var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
+		var doc = myCodeMirror.getDoc();
 
-        myCodeMirror.on("change", function(instance, ch){
-            cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+		myCodeMirror.on("change", function (instance, ch) {
+			cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
 
-        });
-        myCodeMirror.on("beforeChange", function(instance, changeObj){
-            cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
-            startLine = cursorCoordsBeforeChange.line;
-        });
+		});
+		myCodeMirror.on("beforeChange", function (instance, changeObj) {
+			cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+			startLine = cursorCoordsBeforeChange.line;
+		});
 
-        $('[data-toggle=template-link]').click(function (e) {
+		$('[data-toggle=template-link]').click(function (e) {
 			e.preventDefault();
 			var typeName = $(this).data('type-name');
 			var data;
@@ -319,34 +319,36 @@ var img = "";
 			}
 			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
 
-            var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
-            var coordinatesLTB = myCodeMirror.cursorCoords();
-            if(startLine === cursorCoordsBeforeChange.ch){
-                mark = myCodeMirror.markText(cursorCoordsBeforeChange,coordinates, {className: "highlight1"});
-            }else{
-                mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
-            }
-            $('.CodeMirror-scroll').animate({ scrollTop: coordinatesLTB.bottom}, 500, 'linear');
-            setTimeout(function(){ mark.clear(); }, 2000);
+			var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+			var coordinatesLTB = myCodeMirror.cursorCoords();
+			if (startLine === cursorCoordsBeforeChange.ch) {
+				mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
+			} else {
+				mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
+			}
+			$('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
+			setTimeout(function () {
+				mark.clear();
+			}, 2000);
 
-        });
+		});
 
-        $('.type > h2').click(function (e) {
-            e.preventDefault();
+		$('.type > h2').click(function (e) {
+			e.preventDefault();
 
-            var $el = $(this);
-            var $container = $el.siblings('ul');
+			var $el = $(this);
+			var $container = $el.siblings('ul');
 
-            $container.slideToggle(function () {
-                if ($container.css('display') == 'none') {
-                    $el.addClass('active');
-                }
-                else {
-                    $el.removeClass('active');
-                }
-            });
-        });
-    });
+			$container.slideToggle(function () {
+				if ($container.css('display') == 'none') {
+					$el.addClass('active');
+				}
+				else {
+					$el.removeClass('active');
+				}
+			});
+		});
+	});
 
     var deletePermissionRows = [];
     function deletePermissionRow(obj){
