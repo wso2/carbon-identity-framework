@@ -220,7 +220,6 @@ var img = "";
 		jQuery('#permissionConfRow').hide();
 		jQuery('#lamda_func_dropdown').hide();
 		jQuery('body').delegate("h2.trigger", 'click', bindHeadingCollapse);
-		//jQuery('body').undelegate( "#template_list .type > h2", 'click',bindHeadingCollapse);
 
 		function bindHeadingCollapse() {
 			if (jQuery(this).next().is(":visible")) {
@@ -229,7 +228,6 @@ var img = "";
 				this.className = "trigger step_heads";
 			}
 			jQuery(this).next().slideToggle("fast");
-			console.log("trigger: " + $(this));
 
 			var $el = $(this);
 			var $container = $el.siblings('ul');
@@ -243,7 +241,6 @@ var img = "";
 					}
 				});
 			}
-
 			return false; //Prevent the browser jump to the link anchor
 		}
 
