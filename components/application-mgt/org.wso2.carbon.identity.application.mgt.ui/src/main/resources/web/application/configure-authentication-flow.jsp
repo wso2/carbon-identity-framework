@@ -219,15 +219,34 @@ var img = "";
 		jQuery('#advanceAuthnConfRow').hide();
 		jQuery('#permissionConfRow').hide();
 		jQuery('#lamda_func_dropdown').hide();
-		jQuery('h2.trigger').click(function () {
+		jQuery('body').delegate("h2.trigger", 'click', bindHeadingCollapse);
+		//jQuery('body').undelegate( "#template_list .type > h2", 'click',bindHeadingCollapse);
+
+		function bindHeadingCollapse() {
 			if (jQuery(this).next().is(":visible")) {
 				this.className = "active trigger step_heads";
 			} else {
 				this.className = "trigger step_heads";
 			}
 			jQuery(this).next().slideToggle("fast");
+			console.log("trigger: " + $(this));
+
+			var $el = $(this);
+			var $container = $el.siblings('ul');
+			if ($el === $("#template_list .type > h2")) {
+				$container.slideToggle(function () {
+					if ($container.css('display') == 'none') {
+						$el.addClass('active');
+					}
+					else {
+						$el.removeClass('active');
+					}
+				});
+			}
+
 			return false; //Prevent the browser jump to the link anchor
-		})
+		}
+
 		jQuery('#stepsAddLink').click(function () {
 			stepOrder++;
 			jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_' + stepOrder + '" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
@@ -333,21 +352,7 @@ var img = "";
 
 		});
 
-		$('.type > h2').click(function (e) {
-			e.preventDefault();
 
-			var $el = $(this);
-			var $container = $el.siblings('ul');
-
-			$container.slideToggle(function () {
-				if ($container.css('display') == 'none') {
-					$el.addClass('active');
-				}
-				else {
-					$el.removeClass('active');
-				}
-			});
-		});
 	});
 
     var deletePermissionRows = [];
