@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
 import org.wso2.carbon.identity.mgt.endpoint.client.Pair;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Property;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.ResendCodeRequest;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.SelfUserRegistrationRequest;
 
@@ -197,6 +198,21 @@ public class SelfRegisterApi {
         // verify the required parameter 'code' is set
         if (code == null) {
             throw new ApiException(400, "Missing the required parameter 'code' when calling validateCodePost(Async)");
+        }
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = code.getProperties();
+        for (Property property : properties) {
+            if (StringUtils.isNotEmpty(property.getKey()) && MultitenantConstants.TENANT_DOMAIN
+                    .equals(property.getKey())) {
+                tenantDomain = property.getValue();
+            }
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + tenantDomain + "/api/identity/user/v0.9");
         }
 
         apiClient.setBasePath(basePath);

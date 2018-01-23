@@ -53,6 +53,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page
 	import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
@@ -380,6 +381,15 @@ var img = "";
     }
 
     function deleteStep(obj){
+
+        var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
+        var subjectStep = $('#step_dev_' + currentStep).find('#subject_step_' + currentStep).prop("checked");
+        var attributeStep = $('#step_dev_' + currentStep).find('#attribute_step_' + currentStep).prop("checked");
+        if (subjectStep || attributeStep) {
+            CARBON.showWarningDialog("You can't delete a step which is configured for Attribute selection or Subject identifier.");
+            return false;
+        }
+
     	stepOrder--;
         jQuery(obj).parent().next().remove();
         jQuery(obj).parent().remove();

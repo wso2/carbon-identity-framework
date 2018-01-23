@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
 /**
  * Function definition for checking/matching string from the context.
@@ -26,5 +26,5 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 @FunctionalInterface
 public interface IsExistsStringFunction {
 
-    Boolean contains(AuthenticationContext context, String string);
+    Boolean contains(JsAuthenticationContext context, String string);
 }

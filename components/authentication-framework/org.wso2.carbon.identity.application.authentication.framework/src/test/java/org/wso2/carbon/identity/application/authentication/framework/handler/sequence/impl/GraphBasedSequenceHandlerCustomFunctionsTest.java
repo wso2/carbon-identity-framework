@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -65,7 +66,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
 
         AuthenticationContext context = processSequenceWithAcr(new String[] { "acr1" });
@@ -82,9 +83,9 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
                 (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
@@ -119,9 +120,9 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
                 (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
@@ -148,9 +149,9 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<AuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
                 (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
@@ -175,7 +176,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<AuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -239,27 +240,27 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         return context;
     }
 
-    public static String customFunction1(AuthenticationContext context) {
+    public static String customFunction1(JsAuthenticationContext context) {
         return "testResult1";
     }
 
-    public static Boolean customBoolean(AuthenticationContext context) {
+    public static Boolean customBoolean(JsAuthenticationContext context) {
         return true;
     }
 
-    public static Boolean customBoolean2(AuthenticationContext context, String value) {
+    public static Boolean customBoolean2(JsAuthenticationContext context, String value) {
         return true;
     }
 
     @FunctionalInterface
     public interface CustomFunctionInterface2 extends Serializable {
 
-        String customFunction2(AuthenticationContext context, String param1, String param2);
+        String customFunction2(JsAuthenticationContext context, String param1, String param2);
     }
 
     public class CustomFunctionImpl2 implements CustomFunctionInterface2 {
 
-        public String customFunction2(AuthenticationContext context, String param1, String param2) {
+        public String customFunction2(JsAuthenticationContext context, String param1, String param2) {
             return "testResult2";
         }
     }

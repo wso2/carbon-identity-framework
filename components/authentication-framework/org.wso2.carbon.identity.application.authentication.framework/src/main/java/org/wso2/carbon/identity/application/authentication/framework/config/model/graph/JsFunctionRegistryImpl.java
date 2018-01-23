@@ -33,11 +33,7 @@ public class JsFunctionRegistryImpl implements JsFunctionRegistry {
 
     @Override
     public void register(Subsystem subsystem, String functionName, Object function) {
-        Map<String, Object> functionNameMap = subsystemMap.get(subsystem);
-        if (functionNameMap == null) {
-            functionNameMap = new HashMap<>();
-            subsystemMap.put(subsystem, functionNameMap);
-        }
+        Map<String, Object> functionNameMap = subsystemMap.computeIfAbsent(subsystem, k -> new HashMap<>());
         functionNameMap.put(functionName, function);
     }
 
@@ -45,7 +41,7 @@ public class JsFunctionRegistryImpl implements JsFunctionRegistry {
         Map<String, Object> functionNameMap = subsystemMap.get(subsystem);
 
         if (functionNameMap != null) {
-            functionNameMap.entrySet().stream().forEach(e -> consumer.accept(e));
+            functionNameMap.entrySet().forEach(consumer::accept);
         }
     }
 

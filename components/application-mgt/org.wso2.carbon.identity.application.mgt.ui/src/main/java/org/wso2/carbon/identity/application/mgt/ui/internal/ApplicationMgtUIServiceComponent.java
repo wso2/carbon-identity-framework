@@ -21,35 +21,44 @@ package org.wso2.carbon.identity.application.mgt.ui.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.application.mgt.ui" immediate="true"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
- * policy="dynamic" bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- */
+@Component(
+        name = "org.wso2.carbon.identity.application.mgt.ui",
+        immediate = true
+)
 public class ApplicationMgtUIServiceComponent {
 
     private static final Log log = LogFactory.getLog(ApplicationMgtUIServiceComponent.class);
 
+    @Activate
     protected void activate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Application Management UI bundle acticated!");
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Application Management UI bundle is deactivated");
         }
     }
 
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
     protected void setConfigurationContextService(ConfigurationContextService configurationContextService) {
         ApplicationMgtServiceComponentHolder.getInstance().setConfigurationContextService(configurationContextService);
         if (log.isDebugEnabled()) {
@@ -64,14 +73,23 @@ public class ApplicationMgtUIServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+                /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
                  /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-                /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
+
 
 }

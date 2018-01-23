@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractFra
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
@@ -59,6 +60,10 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected void setupSuite() {
         configurationLoader = new UIBasedConfigurationLoader();
         graphBuilderFactory = new JsGraphBuilderFactory();
+
+        JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
+        graphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+
         javascriptCache = new JavascriptCacheImpl();
         graphBuilderFactory.setJavascriptCache(javascriptCache);
         graphBuilderFactory.init();

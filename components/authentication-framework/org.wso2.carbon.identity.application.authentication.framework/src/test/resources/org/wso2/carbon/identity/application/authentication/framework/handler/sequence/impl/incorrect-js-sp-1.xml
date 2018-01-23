@@ -87,7 +87,7 @@ function(context) {
 
     Log.info("--------------- ACR selected: "+acr);
 
-    context.setSelectedAcr(acr);
+    context.selectedAcr = acr;
 
     switch(acr) {
         case "acr1" : executeStep({id :'1'});break;

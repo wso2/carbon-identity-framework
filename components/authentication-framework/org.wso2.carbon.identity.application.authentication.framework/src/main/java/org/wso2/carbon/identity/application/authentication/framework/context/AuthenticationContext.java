@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This class is used for holding data about the
@@ -96,6 +97,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 	 * AuthenticatorStateInfoDTO and set all the required state info in it.
 	 */
     private AuthenticatorStateInfo stateInfo;
+
+    private transient HttpServletRequest request;
+    private transient HttpServletResponse response;
+    private transient HttpServletRequest initialRequest;
 
     public String getCallerPath() {
         return callerPath;
@@ -423,5 +428,35 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      */
     public AuthenticatedUser getLastAuthenticatedUser() {
         return lastAuthenticatedUser;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+
+        this.request = request;
+    }
+
+    public HttpServletRequest getRequest() {
+
+        return this.request;
+    }
+
+    public void setInitialRequest(HttpServletRequest request) {
+
+        this.initialRequest = request;
+    }
+
+    public HttpServletRequest getInitialRequest() {
+
+        return this.initialRequest;
+    }
+
+    public void setResponse(HttpServletResponse response) {
+
+        this.response = response;
+    }
+
+    public HttpServletResponse getResponse() {
+
+        return this.response;
     }
 }

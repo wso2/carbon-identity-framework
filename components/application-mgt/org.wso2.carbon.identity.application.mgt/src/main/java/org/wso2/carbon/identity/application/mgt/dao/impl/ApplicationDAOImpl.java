@@ -28,6 +28,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -1941,16 +1942,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
 
         try {
-            String authType = getAuthenticationType(applicationId, connection);
-            LocalAndOutboundAuthenticationConfig localAndOutboundConfiguration
-                    = new LocalAndOutboundAuthenticationConfig();
-            localAndOutboundConfiguration.setAuthenticationType(authType);
-
-            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
-            if(authenticationScriptConfig != null) {
-                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
-            }
-
             getStepInfoPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_STEPS_INFO_BY_APP_ID);
             // STEP_ORDER, AUTHENTICATOR_ID, IS_SUBJECT_STEP, IS_ATTRIBUTE_STEP
@@ -2016,6 +2007,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 authSteps.put(step, authStep);
             }
 
+            LocalAndOutboundAuthenticationConfig localAndOutboundConfiguration
+                    = new LocalAndOutboundAuthenticationConfig();
+
             AuthenticationStep[] authenticationSteps = new AuthenticationStep[authSteps.size()];
 
             int authStepCount = 0;
@@ -2065,7 +2059,45 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             Arrays.sort(authenticationSteps, comparator);
 
+            int numSteps = authenticationSteps.length;
+            // We check if the steps have consecutive step numbers.
+            if (numSteps > 0 && authenticationSteps[numSteps-1].getStepOrder() != numSteps) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication steps of Application with id: " + applicationId + "  do not have " +
+                            "consecutive numbers. This was possibility due to a IDP force deletion. Fixing the step " +
+                            "order." );
+                }
+                // Iterate through the steps and fix step order.
+                int count = 1;
+                for (AuthenticationStep step : authenticationSteps) {
+                    step.setStepOrder(count++);
+                }
+            }
+
             localAndOutboundConfiguration.setAuthenticationSteps(authenticationSteps);
+
+            String authType = getAuthenticationType(applicationId, connection);
+            if (StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FEDERATED)
+                    || StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FLOW)) {
+                if (ArrayUtils.isEmpty(authenticationSteps)) {
+                    // Although auth type is 'federated' or 'flow' we don't have any authentication steps. This can
+                    // happen due to a force delete of a federated identity provider referred by the SP. So we change
+                    // the authType to 'default'.
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authentication type is '" + authType + "' eventhough the application with id: " +
+                                applicationId + " has zero authentication step. This was possibility due to a IDP force " +
+                                "deletion. Defaulting authentication type to " + ApplicationConstants.AUTH_TYPE_DEFAULT);
+                    }
+                    authType = ApplicationConstants.AUTH_TYPE_DEFAULT;
+                }
+            }
+
+            localAndOutboundConfiguration.setAuthenticationType(authType);
+
+            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
+            if(authenticationScriptConfig != null) {
+                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
+            }
 
             PreparedStatement localAndOutboundConfigPrepStmt = null;
             ResultSet localAndOutboundConfigResultSet = null;
