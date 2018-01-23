@@ -25,6 +25,9 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowExecutorResult;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 import java.util.Map;
 
@@ -45,13 +48,21 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     public void doPostExecuteWorkflow(WorkflowRequest workFlowRequest, WorkflowExecutorResult result) throws
             WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Operation Type" + "\" : \"" + workFlowRequest.getEventType()
                 + "\",\"" + "Request parameters" + "\" : \"" + workFlowRequest.getRequestParameterAsString()
                 + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Initiate Workflow", auditData,
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Initiate Workflow", auditData,
                 AUDIT_SUCCESS));
     }
 
@@ -66,13 +77,21 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     @Override
     public void doPostHandleCallback(String uuid, String status, Map<String, Object> additionalParams) throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Request ID" + "\" : \"" + uuid
                 + "\",\"" + "Callback Status" + "\" : \"" + status
                 + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Callback for Workflow Request", auditData,
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Callback for Workflow Request", auditData,
                 AUDIT_SUCCESS));
     }
 }

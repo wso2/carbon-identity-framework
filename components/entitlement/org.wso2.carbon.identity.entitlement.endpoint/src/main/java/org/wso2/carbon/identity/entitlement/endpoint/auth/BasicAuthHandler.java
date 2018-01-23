@@ -26,8 +26,13 @@ import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.api.Authentication;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
+import org.wso2.carbon.user.core.model.UserImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -86,6 +91,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
     }
 
     public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo) {
+
         // extract authorization header and authenticate.
         // get the map of protocol headers
         Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
@@ -106,6 +112,13 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                 String tenantLessUserName = MultitenantUtils.getTenantAwareUsername(userName);
 
                 try {
+                    // create pseudonym for the username for security purposes.
+                    String pseudonym = null;
+                    IdManager userIdManager = new JDBCUserIdManager(null);
+                    UserImpl user = new UserImpl();
+                    user.setUsername(userName);
+                    userIdManager.addIdForName(user);
+                    pseudonym = userIdManager.getIdFromName(userName);
                     // get super tenant context and get realm service which is an osgi service
                     RealmService realmService = (RealmService) PrivilegedCarbonContext
                             .getThreadLocalCarbonContext().getOSGiService(RealmService.class);
@@ -117,24 +130,25 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                         }
                         // get tenant's user realm
                         UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-                        boolean authenticated = userRealm.getUserStoreManager().authenticate(
-                                tenantLessUserName, password);
-                        if (authenticated) {
+                        Authentication authentication = userRealm.getUserStoreManager().authenticate(user, password);
+                        if (authentication.isSuccess()) {
                             // authentication success. set the username for authorization header and
                             // proceed the REST call
                             authzHeaders.set(0, userName);
                             return true;
                         } else {
-                            log.error("Authentication failed for the user: " + tenantLessUserName
-                                    + "@" + tenantDomain);
+                            log.error("Authentication failed for the user: " + pseudonym + "@" + tenantDomain);
                             return false;
                         }
                     } else {
-                        log.error("Error in getting Realm Service for user: " + userName);
+                        log.error("Error in getting Realm Service for user: " + pseudonym);
                         return false;
                     }
                 } catch (UserStoreException e) {
                     log.error("Internal server error while authenticating the user.");
+                    return false;
+                } catch (IdManagerException e) {
+                    log.error("Error occurred while adding pseudonym for the user");
                     return false;
                 }
             } else {

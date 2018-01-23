@@ -26,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
@@ -41,6 +43,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.bulkimport.BulkImportConfig;
 import org.wso2.carbon.user.mgt.bulkimport.CSVUserBulkImport;
@@ -789,6 +792,16 @@ public class UserRealmProxy {
                         loggedInUserName);
                 throw new UserStoreException("An attempt to change password with out providing old password");
             }
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             if (loggedInUserName != null) {
                 loggedInUserName = addPrimaryDomainIfNotExists(loggedInUserName);
@@ -796,7 +809,7 @@ public class UserRealmProxy {
             String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
             if (realmConfig.getAdminUserName().equalsIgnoreCase(userName) &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                log.warn("An attempt to change password of admin user by user : " + loggedInUserName);
+                log.warn("An attempt to change password of admin user by user : " + pseudonym);
                 throw new UserStoreException("You do not have the required privilege to change the password of admin " +
                         "user");
             }
@@ -815,7 +828,7 @@ public class UserRealmProxy {
                 if (isUserHadAdminPermission &&
                         !adminUser.equalsIgnoreCase(loggedInUserName)) {
                     log.warn("An attempt to change password of user has admin permission by user : " +
-                            loggedInUserName);
+                            pseudonym);
                     throw new UserStoreException("You do not have the required privilege to change the password of a " +
                             "user with admin permission");
                 }
@@ -833,11 +846,19 @@ public class UserRealmProxy {
     public void deleteUser(String userName, Registry registry) throws UserAdminException {
         try {
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
             if (realmConfig.getAdminUserName().equalsIgnoreCase(userName) &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                log.warn("An attempt to delete the admin user by user : " + loggedInUserName);
+                log.warn("An attempt to delete the admin user by user : " + pseudonym);
                 throw new UserStoreException("You do not have the required privilege to delete the admin user");
             }
 
@@ -855,7 +876,7 @@ public class UserRealmProxy {
 
                 if (isUserHadAdminPermission &&
                         !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                    log.warn("An attempt to delete a user who has admin permission by user : " + loggedInUserName);
+                    log.warn("An attempt to delete a user who has admin permission by user : " + pseudonym);
                     throw new UserStoreException("You do not have the required privilege to delete a user who has " +
                             "admin permission");
                 }
@@ -884,6 +905,16 @@ public class UserRealmProxy {
         try {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             String adminUserName = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
             if (permissions != null &&
                     !adminUserName.equalsIgnoreCase(loggedInUserName)) {
@@ -894,7 +925,7 @@ public class UserRealmProxy {
                         Arrays.binarySearch(permissions, "/permission/") > -1 ||
                         Arrays.binarySearch(permissions, "/permission/protected") > -1 ||
                         Arrays.binarySearch(permissions, "/permission/protected/") > -1) {
-                    log.warn("An attempt to create a role with admin permission by user " + loggedInUserName);
+                    log.warn("An attempt to create a role with admin permission by user " + pseudonym);
                     throw new UserStoreException("You do not have the required privilege to create a role with admin " +
                             "permission");
                 }
@@ -938,6 +969,16 @@ public class UserRealmProxy {
         try {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             String adminUser = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
             if (permissions != null &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
@@ -948,7 +989,7 @@ public class UserRealmProxy {
                         Arrays.binarySearch(permissions, "/permission/") > -1 ||
                         Arrays.binarySearch(permissions, "/permission/protected") > -1 ||
                         Arrays.binarySearch(permissions, "/permission/protected/") > -1) {
-                    log.warn("An attempt to create a role with admin permission by user " + loggedInUserName);
+                    log.warn("An attempt to create a role with admin permission by user " + pseudonym);
                     throw new UserStoreException("You do not have the required privilege to create a role with admin " +
                             "permission");
                 }
@@ -988,6 +1029,16 @@ public class UserRealmProxy {
         try {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             String adminUser = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
             boolean isRoleHasAdminPermission;
 
@@ -1003,7 +1054,7 @@ public class UserRealmProxy {
 
             if (isRoleHasAdminPermission &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                log.warn("An attempt to rename a role with admin permission by user " + loggedInUserName);
+                log.warn("An attempt to rename a role with admin permission by user " + pseudonym);
                 throw new UserStoreException("You do not have the required privilege to rename a role with admin " +
                         "permission");
             }
@@ -1023,6 +1074,16 @@ public class UserRealmProxy {
         try {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             String adminUser = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
             boolean isRoleHasAdminPermission;
 
@@ -1036,7 +1097,7 @@ public class UserRealmProxy {
 
             if (isRoleHasAdminPermission &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                log.warn("An attempt to delete a role with admin permission by user " + loggedInUserName);
+                log.warn("An attempt to delete a role with admin permission by user " + pseudonym);
                 throw new UserStoreException("You do not have the required privilege to delete a role with admin " +
                         "permission");
             }
@@ -1598,6 +1659,15 @@ public class UserRealmProxy {
             }
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
 
@@ -1611,7 +1681,7 @@ public class UserRealmProxy {
             if ((realmConfig.getAdminRoleName().equalsIgnoreCase(roleName) || isRoleHasAdminPermission) &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
                 log.warn("An attempt to add or remove users from Admin role by user : "
-                        + loggedInUserName);
+                        + pseudonym);
                 throw new UserStoreException("Can not add or remove user from Admin permission role");
             }
 
@@ -1629,7 +1699,7 @@ public class UserRealmProxy {
                 if (Arrays.binarySearch(delUsersArray, loggedInUserName) > -1
                         && Arrays.binarySearch(users, loggedInUserName) > -1
                         && !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                    log.warn("An attempt to remove from role : " + roleName + " by user :" + loggedInUserName);
+                    log.warn("An attempt to remove from role : " + roleName + " by user :" + pseudonym);
                     throw new UserStoreException("Can not remove yourself from role : " + roleName);
                 }
             }
@@ -1658,6 +1728,15 @@ public class UserRealmProxy {
             }
             if (roleList != null) {
                 String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+                // create pseudonym for the username for security purposes.
+                String pseudonym = null;
+                IdManager userIdManager = new JDBCUserIdManager(null);
+                try {
+                    pseudonym = userIdManager.getIdFromName(loggedInUserName);
+                } catch (IdManagerException e) {
+                    log.error("Error while setting pseudonym for the user.", e);
+                }
                 RealmConfiguration realmConfig = realm.getRealmConfiguration();
                 String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
                 Arrays.sort(roleList);
@@ -1707,14 +1786,14 @@ public class UserRealmProxy {
                             (!isUserHasAdminPermission && adminPermissionRole != null)) &&
                             !adminUser.equalsIgnoreCase(loggedInUserName)) {
                         log.warn("An attempt to add users to Admin permission role by user : " +
-                                loggedInUserName);
+                                pseudonym);
                         throw new UserStoreException("Can not add users to Admin permission role");
                     }
                 } else {
                     if (Arrays.binarySearch(roleList, realmConfig.getAdminRoleName()) < 0 &&
                             !adminUser.equalsIgnoreCase(loggedInUserName)) {
                         log.warn("An attempt to remove users from Admin role by user : " +
-                                loggedInUserName);
+                                pseudonym);
                         throw new UserStoreException("Can not remove users from Admin role");
                     }
                 }
@@ -1755,13 +1834,21 @@ public class UserRealmProxy {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
 
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             if (CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME.equalsIgnoreCase(roleName)) {
-                log.error("Security Alert! Carbon anonymous role is being manipulated by user " + loggedInUserName);
+                log.error("Security Alert! Carbon anonymous role is being manipulated by user " + pseudonym);
                 throw new UserStoreException("Invalid data");
             }
 
             if (realm.getRealmConfiguration().getEveryOneRoleName().equalsIgnoreCase(roleName)) {
-                log.error("Security Alert! Carbon Everyone role is being manipulated by user " + loggedInUserName);
+                log.error("Security Alert! Carbon Everyone role is being manipulated by user " + pseudonym);
                 throw new UserStoreException("Invalid data");
             }
 
@@ -1777,7 +1864,7 @@ public class UserRealmProxy {
             if ((realmConfig.getAdminRoleName().equalsIgnoreCase(roleName) ||
                     isRoleHasAdminPermission) &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
-                log.warn("An attempt to add or remove users from a admin role by user : " + loggedInUserName);
+                log.warn("An attempt to add or remove users from a admin role by user : " + pseudonym);
                 throw new UserStoreException("You do not have the required privilege to add or remove user from a " +
                         "admin role");
             }
@@ -1787,7 +1874,7 @@ public class UserRealmProxy {
                 if (realmConfig.getAdminRoleName().equalsIgnoreCase(roleName) &&
                         Arrays.binarySearch(deleteUsers, realmConfig.getAdminUserName()) > -1) {
                     log.warn("An attempt to remove Admin user from Admin role by user : "
-                            + loggedInUserName);
+                            + pseudonym);
                     throw new UserStoreException("Can not remove Admin user " +
                             "from Admin role");
                 }
@@ -1852,9 +1939,17 @@ public class UserRealmProxy {
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
 
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             if (CarbonConstants.REGISTRY_ANONNYMOUS_USERNAME.equalsIgnoreCase(userName)) {
                 log.error("Security Alert! Carbon anonymous user is being manipulated by user "
-                        + loggedInUserName);
+                        + pseudonym);
                 throw new UserAdminException("Invalid data");
             }
 
@@ -1862,13 +1957,13 @@ public class UserRealmProxy {
                 for (String name : deletedRoles) {
                     if (realm.getRealmConfiguration().getEveryOneRoleName().equalsIgnoreCase(name)) {
                         log.error("Security Alert! Carbon everyone role is being manipulated by user "
-                                + loggedInUserName);
+                                + pseudonym);
                         throw new UserAdminException("Invalid data");
                     }
                     if (realm.getRealmConfiguration().getAdminRoleName().equalsIgnoreCase(name) &&
                             realm.getRealmConfiguration().getAdminUserName().equalsIgnoreCase(userName)) {
                         log.error("Can not remove admin user from admin role "
-                                + loggedInUserName);
+                                + pseudonym);
                         throw new UserAdminException("Can not remove admin user from admin role");
                     }
                 }
@@ -1895,7 +1990,7 @@ public class UserRealmProxy {
 
                         if (roleName.equalsIgnoreCase(realmConfig.getAdminRoleName())) {
                             log.warn("An attempt to add users to Admin permission role by user : " +
-                                    loggedInUserName);
+                                    pseudonym);
                             throw new UserStoreException("Can not add users to Admin permission role");
                         }
 
@@ -1913,7 +2008,7 @@ public class UserRealmProxy {
 
                     if (!isUserHadAdminPermission && isRoleHasAdminPermission) {
                         log.warn("An attempt to add users to Admin permission role by user : " +
-                                loggedInUserName);
+                                pseudonym);
                         throw new UserStoreException("Can not add users to Admin permission role");
                     }
                 }
@@ -1937,7 +2032,7 @@ public class UserRealmProxy {
 
                     if (isUserHadAdminPermission && isRemoveRoleHasAdminPermission) {
                         log.warn("An attempt to remove users from Admin role by user : " +
-                                loggedInUserName);
+                                pseudonym);
                         throw new UserStoreException("Can not remove users from Admin role");
                     }
                 }
@@ -2086,6 +2181,15 @@ public class UserRealmProxy {
             }
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             String adminUser = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
             if (rawResources != null &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
@@ -2094,7 +2198,7 @@ public class UserRealmProxy {
                         Arrays.binarySearch(rawResources, "/permission/protected") > -1 ||
                         Arrays.binarySearch(rawResources, PERMISSION) > -1) {
                     log.warn("An attempt to Assign admin permission for role by user : " +
-                            loggedInUserName);
+                            pseudonym);
                     throw new UserStoreException("Can not assign Admin for permission role");
                 }
             }

@@ -38,6 +38,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -103,10 +106,19 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
                     AuthenticatedUser authenticatedUser = context.getSubject();
                     seqConfig.setAuthenticatedUser(authenticatedUser);
-
+                    // create pseudonym for the subject identifier for security purposes.
+                    String pseudonym = null;
+                    IdManager userIdManager = new JDBCUserIdManager(null);
+                    if(authenticatedUser != null) {
+                        try {
+                            pseudonym = userIdManager.getIdFromName(authenticatedUser.getUserName());
+                        } catch (IdManagerException e) {
+                            log.error("Error while setting pseudonym for the user.", e);
+                        }
+                    }
                     if (log.isDebugEnabled()) {
                         if (authenticatedUser != null) {
-                            log.debug("Authenticated User: " + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            log.debug("Authenticated User: " + pseudonym);
                             log.debug("Authenticated User Tenant Domain: " + authenticatedUser.getTenantDomain());
                         } else {
                             log.debug("Authenticated User is NULL.");
@@ -158,6 +170,14 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        // create pseudonym for the subject identifier for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(context.getSequenceConfig().getAuthenticatedUser().getUserName());
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         Map<String, String> mappedAttrs;
         StringBuilder jsonBuilder = new StringBuilder();
 
@@ -206,8 +226,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                 authenticatedUser.setAuthenticatedSubjectIdentifier(subjectClaimValue);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Authenticated User: " +
-                              sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    log.debug("Authenticated User: " + pseudonym);
                     log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
                 }
             }

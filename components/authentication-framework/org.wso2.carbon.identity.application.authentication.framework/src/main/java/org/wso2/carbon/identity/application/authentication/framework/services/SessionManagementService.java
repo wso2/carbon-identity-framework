@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 public class SessionManagementService extends AbstractAdmin {
 
@@ -68,6 +71,14 @@ public class SessionManagementService extends AbstractAdmin {
             username = usernameTokens[1];
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) sessionContext
                 .getProperty(FrameworkConstants.AUTHENTICATED_USER);
         if (username.equals(authenticatedUser.getUserName())
@@ -76,7 +87,7 @@ public class SessionManagementService extends AbstractAdmin {
             terminateSession(sessionContext, sessionId);
         } else { // TODO : Handle federated scenario.
             log.warn(String.format("Trying to terminate a session which does not belong to logged in user (%s). " +
-                    "This might be an attempt for a security breach", username));
+                    "This might be an attempt for a security breach", pseudonym));
             return false;
         }
         return true;

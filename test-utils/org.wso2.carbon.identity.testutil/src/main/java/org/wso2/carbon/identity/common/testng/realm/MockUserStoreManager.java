@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.common.testng.realm;
 
+import org.wso2.carbon.user.api.Authentication;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.User;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
@@ -46,6 +48,11 @@ public class MockUserStoreManager implements UserStoreManager {
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
         return false;
+    }
+
+    @Override
+    public Authentication authenticate(User user, Object o) throws org.wso2.carbon.user.api.UserStoreException {
+        return null;
     }
 
     @Override

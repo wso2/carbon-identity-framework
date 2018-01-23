@@ -35,11 +35,14 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -76,6 +79,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
+        String pseudonym = null;
 
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -93,6 +97,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 username = UserCoreUtil.removeDomainFromName(username);
             }
 
+            // create pseudonym for the username for security purposes.
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(username);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             String[] newRoles = new String[]{};
 
             if (roles != null) {
@@ -101,7 +113,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles)
+                log.debug("User " + pseudonym + " contains roles : " + Arrays.toString(newRoles)
                           + " going to be provisioned");
             }
 
@@ -150,7 +162,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Federated user: " + username
+                    log.debug("Federated user: " + pseudonym
                               + " is provisioned by authentication framework with roles : "
                               + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
                 }
@@ -159,7 +171,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
-            throw new FrameworkException("Error while provisioning user : " + subject, e);
+            throw new FrameworkException("Error while provisioning user : " + pseudonym, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
         }
@@ -169,6 +181,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                  String idp) throws FrameworkException {
 
         String usernameWithUserstoreDomain = UserCoreUtil.addDomainToName(username, userStoreDomain);
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             // start tenant flow
             FrameworkUtils.startTenantFlow(tenantDomain);
@@ -179,11 +199,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 userProfileAdmin.associateID(idp, subject);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Associated local user: " + usernameWithUserstoreDomain + " in tenant: " +
+                    log.debug("Associated local user: " + pseudonym + " in tenant: " +
                             tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
                 }
             } else {
-                throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
+                throw new FrameworkException("Error while associating local user: " + pseudonym +
                         " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
             }
         } catch (UserProfileException e) {
@@ -191,7 +211,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 log.info("An association already exists for user: " + subject + ". Skip association while JIT " +
                         "provisioning");
             } else {
-                throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
+                throw new FrameworkException("Error while associating local user: " + pseudonym +
                         " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
             }
         } finally {
@@ -207,6 +227,16 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, String[] newRoles,
                                           Collection<String> addingRoles, Collection<String> deletingRoles)
             throws UserStoreException {
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Deleting roles : "
                       + Arrays.toString(deletingRoles.toArray(new String[deletingRoles.size()]))
@@ -217,7 +247,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                                       .size()]),
                                               addingRoles.toArray(new String[addingRoles.size()]));
         if (log.isDebugEnabled()) {
-            log.debug("Federated user: " + username
+            log.debug("Federated user: " + pseudonym
                       + " is updated by authentication framework with roles : "
                       + Arrays.toString(newRoles));
         }

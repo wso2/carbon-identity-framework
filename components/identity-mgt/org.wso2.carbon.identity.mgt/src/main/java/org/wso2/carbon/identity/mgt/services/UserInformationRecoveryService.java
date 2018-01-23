@@ -51,11 +51,14 @@ import org.wso2.carbon.identity.mgt.dto.UserRecoveryDTO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.mgt.util.Utils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.Permission;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -104,8 +107,18 @@ public class UserInformationRecoveryService {
 
         UserDTO userDTO;
         VerificationBean bean;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User verification request received with username : " + username);
+            log.debug("User verification request received with username : " + pseudonym);
         }
 
         if (IdentityMgtConfig.getInstance().isCaptchaVerificationInternallyManaged()) {
@@ -121,7 +134,7 @@ public class UserInformationRecoveryService {
             userDTO = Utils.processUserId(username);
         } catch (IdentityException e) {
             bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " invalid user : "
-                    + username, e);
+                    + pseudonym, e);
             return bean;
         }
 
@@ -136,13 +149,13 @@ public class UserInformationRecoveryService {
             bean = processor.verifyUserForRecovery(1, userDTO);
             if (bean.getError() != null) {
                 if (bean.getError().contains(VerificationBean.ERROR_CODE_INVALID_USER)) {
-                    bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " User does not exist : " + username,
+                    bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " User does not exist : " + pseudonym,
                             null);
                 } else if (bean.getError().contains(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT)) {
                     bean = handleError(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT +
-                            " Account is disabled for user " + username + ". Can not allow to recover.", null);
+                            " Account is disabled for user " + pseudonym + ". Can not allow to recover.", null);
                 } else {
-                    bean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Error verifying user : " + username,
+                    bean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Error verifying user : " + pseudonym,
                             null);
                 }
             }
@@ -160,14 +173,23 @@ public class UserInformationRecoveryService {
         UserDTO userDTO = null;
         VerificationBean bean = null;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User recovery notification sending request received with username : " + username + " notification" +
+            log.debug("User recovery notification sending request received with username : " + pseudonym + " notification" +
                     " type :" + notificationType);
         }
         try {
             userDTO = Utils.processUserId(username);
         } catch (IdentityException e) {
-            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " invalid user : " + username, e);
+            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " invalid user : " + pseudonym, e);
             return bean;
         }
 
@@ -183,16 +205,16 @@ public class UserInformationRecoveryService {
             bean = processor.verifyConfirmationCode(1, userDTO.getUserId(), key);
 
             if (!bean.isVerified()) {
-                log.error("Invalid user is trying to recover the password with username : " + username);
+                log.error("Invalid user is trying to recover the password with username : " + pseudonym);
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER +
-                        " Invalid user is trying to recover the password with username : " + username, null);
+                        " Invalid user is trying to recover the password with username : " + pseudonym, null);
                 return bean;
             }
         } catch (IdentityException e1) {
             bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e1, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " Invalid confirmation code for user : "
-                        + username, e1);
+                        + pseudonym, e1);
             }
             return bean;
         } finally {
@@ -231,7 +253,7 @@ public class UserInformationRecoveryService {
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_RECOVERY_NOTIFICATION_FAILURE + ": " + VerificationBean.
                         ERROR_CODE_UNEXPECTED + " Error when sending recovery message for " +
-                        "user: " + username, e);
+                        "user: " + pseudonym, e);
             }
             return bean;
         } finally {
@@ -259,15 +281,24 @@ public class UserInformationRecoveryService {
         UserDTO userDTO;
         VerificationBean bean = new VerificationBean();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User confirmation code verification request received with username :" + username);
+            log.debug("User confirmation code verification request received with username :" + pseudonym);
         }
         if (IdentityMgtConfig.getInstance().isCaptchaVerificationInternallyManaged()) {
             try {
                 CaptchaUtil.processCaptchaInfoBean(captcha);
             } catch (Exception e) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE
-                        + " Error while validating captcha for user : " + username, e);
+                        + " Error while validating captcha for user : " + pseudonym, e);
                 return bean;
             }
         }
@@ -276,7 +307,7 @@ public class UserInformationRecoveryService {
             userDTO = Utils.processUserId(username);
         } catch (IdentityException e) {
             bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " invalid user : "
-                    + username, e);
+                    + pseudonym, e);
             return bean;
         }
 
@@ -294,7 +325,7 @@ public class UserInformationRecoveryService {
             if (bean.isVerified()) {
                 bean = processor.updateConfirmationCode(3, userDTO.getUserId(), userDTO.getTenantId());
                 if (log.isDebugEnabled()) {
-                    log.debug("User confirmation code verification successful for user: " + username);
+                    log.debug("User confirmation code verification successful for user: " + pseudonym);
                 }
             } else {
                 bean.setVerified(false);
@@ -305,7 +336,7 @@ public class UserInformationRecoveryService {
             bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " Error verifying confirmation code for " +
-                        "user : " + username, e);
+                        "user : " + pseudonym, e);
             }
             return bean;
         } finally {
@@ -335,8 +366,17 @@ public class UserInformationRecoveryService {
         RecoveryProcessor recoveryProcessor = IdentityMgtServiceComponent.getRecoveryProcessor();
         VerificationBean bean = null;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User update password request received with username: " + username);
+            log.debug("User update password request received with username: " + pseudonym);
         }
 
         try {
@@ -361,19 +401,19 @@ public class UserInformationRecoveryService {
 
             if (recoveryProcessor.verifyConfirmationCode(30, userDTO.getUserId(), confirmationCode).isVerified()) {
                 Utils.updatePassword(userDTO.getUserId(), tenantId, newPassword);
-                log.info("Credential is updated for user : " + userDTO.getUserId()
+                log.info("Credential is updated for user : " + pseudonym
                         + " and tenant domain : " + userDTO.getTenantDomain());
                 IdentityMgtConfig.getInstance().getRecoveryDataStore().invalidate(userDTO.getUserId(), tenantId);
                 bean = new VerificationBean(true);
             } else if (recoveryProcessor.verifyConfirmationCode(3, userDTO.getUserId(), confirmationCode).isVerified()) {
                 Utils.updatePassword(userDTO.getUserId(), tenantId, newPassword);
-                log.info("Credential is updated for user : " + userDTO.getUserId()
+                log.info("Credential is updated for user : " + pseudonym
                         + " and tenant domain : " + userDTO.getTenantDomain());
                 IdentityMgtConfig.getInstance().getRecoveryDataStore().invalidate(userDTO.getUserId(), tenantId);
                 bean = new VerificationBean(true);
             } else {
                 String msg = "Invalid user tried to update credential with user Id : "
-                        + userDTO.getUserId() + " and tenant domain : " + userDTO.getTenantDomain();
+                        + pseudonym + " and tenant domain : " + userDTO.getTenantDomain();
                 bean = new VerificationBean(VerificationBean.ERROR_CODE_INVALID_USER + " " + msg);
                 bean.setVerified(false);
                 log.error(msg);
@@ -383,7 +423,7 @@ public class UserInformationRecoveryService {
             bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Error while updating credential " +
-                        "for user: " + username, e);
+                        "for user: " + pseudonym, e);
             }
             return bean;
         } finally {
@@ -403,11 +443,21 @@ public class UserInformationRecoveryService {
         if (log.isDebugEnabled()) {
             log.debug("User challenge questions id request received with username: " + username);
         }
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             userDTO = Utils.processUserId(username);
         } catch (IdentityException e) {
             idsDTO = handleChallengeIdError(VerificationBean.ERROR_CODE_INVALID_USER + " Error validating user : " +
-                    username, e);
+                    pseudonym, e);
             return idsDTO;
         }
 
@@ -440,11 +490,11 @@ public class UserInformationRecoveryService {
                     idsDTO = processor.getQuestionProcessor().getUserChallengeQuestionIds(userDTO.getUserId(), userDTO.getTenantId());
                     idsDTO.setKey(bean.getKey());
                     if (log.isDebugEnabled()) {
-                        log.debug("User challenge question response successful for user: " + username);
+                        log.debug("User challenge question response successful for user: " + pseudonym);
                     }
                 } catch (Exception e) {
                     idsDTO = handleChallengeIdError(VerificationBean.ERROR_CODE_CHALLENGE_QUESTION_NOT_FOUND +
-                            " Error when getting user challenge questions for user : " + username, e);
+                            " Error when getting user challenge questions for user : " + pseudonym, e);
                     return idsDTO;
                 }
             } else {
@@ -479,15 +529,24 @@ public class UserInformationRecoveryService {
         UserDTO userDTO = null;
         UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User challenge question request received with username :" + userName);
+            log.debug("User challenge question request received with username :" + pseudonym);
         }
 
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
             return handleChallengesError(VerificationBean.ERROR_CODE_INVALID_USER + " Error validating user : " +
-                    userName, null);
+                    pseudonym, null);
         }
 
         try {
@@ -513,7 +572,7 @@ public class UserInformationRecoveryService {
                 userChallengesDTO = UserIdentityManagementUtil.getCustomErrorMessagesForChallengQuestions(e, userName);
                 if (userChallengesDTO == null) {
                     userChallengesDTO = handleChallengesError(VerificationBean.ERROR_CODE_INVALID_CODE +
-                            " Invalid confirmation code for user : " + userName, e);
+                            " Invalid confirmation code for user : " + pseudonym, e);
                 }
                 return userChallengesDTO;
             }
@@ -555,16 +614,25 @@ public class UserInformationRecoveryService {
         UserDTO userDTO = null;
         UserChallengesCollectionDTO userChallengesCollectionDTO = new UserChallengesCollectionDTO();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User challenge question request received with username :" + userName);
+            log.debug("User challenge question request received with username :" + pseudonym);
         }
 
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
-            log.error("Error while validating user " + userName, e);
+            log.error("Error while validating user " + pseudonym, e);
             return UserIdentityManagementUtil.handleChallengeQuestionSetError(
-                    VerificationBean.ERROR_CODE_INVALID_USER + " Error validating user : " + userName, null);
+                    VerificationBean.ERROR_CODE_INVALID_USER + " Error validating user : " + pseudonym, null);
         }
 
         try {
@@ -598,10 +666,10 @@ public class UserInformationRecoveryService {
                     userChallengesCollectionDTO.setKey(bean.getKey());
                     userChallengesCollectionDTO.setUserChallengesDTOs(userChallengesDTOs);
                 } catch (IdentityException e) {
-                    log.error("Error while retrieving challenge questions of the user " + userName, e);
+                    log.error("Error while retrieving challenge questions of the user " + pseudonym, e);
                     return UserIdentityManagementUtil.handleChallengeQuestionSetError(
                             VerificationBean.ERROR_CODE_CHALLENGE_QUESTION_NOT_FOUND + " No associated challenge " +
-                            "questions found for the user : " + userName, null);
+                            "questions found for the user : " + pseudonym, null);
                 }
 
                 if (log.isDebugEnabled()) {
@@ -639,8 +707,17 @@ public class UserInformationRecoveryService {
         VerificationBean bean = new VerificationBean();
         bean.setVerified(false);
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User challenge answer request received with username :" + userName);
+            log.debug("User challenge answer request received with username :" + pseudonym);
         }
 
         if (questionId == null || answer == null) {
@@ -657,7 +734,7 @@ public class UserInformationRecoveryService {
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
-            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " Error verifying user: " + userName, e);
+            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " Error verifying user: " + pseudonym, e);
             return bean;
         }
 
@@ -682,7 +759,7 @@ public class UserInformationRecoveryService {
                 bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, userName);
                 if (bean == null) {
                     bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
-                            " Error verifying confirmation code for user : " + userName, e);
+                            " Error verifying confirmation code for user : " + pseudonym, e);
                 }
                 return bean;
             }
@@ -700,10 +777,10 @@ public class UserInformationRecoveryService {
                 bean.setError("");
                 bean.setUserId(userName);
                 if (log.isDebugEnabled()) {
-                    log.debug("User answer verification successful for user: " + userName);
+                    log.debug("User answer verification successful for user: " + pseudonym);
                 }
             } else {
-                bean.setError("Challenge answer verification failed for user : " + userName);
+                bean.setError("Challenge answer verification failed for user : " + pseudonym);
                 bean.setVerified(false);
                 bean.setKey(""); // clear the key to avoid returning to caller.
                 log.error(bean.getError());
@@ -730,8 +807,17 @@ public class UserInformationRecoveryService {
         VerificationBean bean = new VerificationBean();
         bean.setVerified(false);
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User challenge answers request received with username :" + userName);
+            log.debug("User challenge answers request received with username :" + pseudonym);
         }
 
         if (ArrayUtils.isEmpty(userChallengesDTOs)) {
@@ -748,7 +834,7 @@ public class UserInformationRecoveryService {
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
-            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " Error verifying user: " + userName, e);
+            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " Error verifying user: " + pseudonym, e);
             return bean;
         }
 
@@ -774,7 +860,7 @@ public class UserInformationRecoveryService {
                 bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, userName);
                 if (bean == null) {
                     bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
-                                       " Error verifying confirmation code for user : " + userName, e);
+                                       " Error verifying confirmation code for user : " + pseudonym, e);
                 }
                 return bean;
             }
@@ -787,10 +873,10 @@ public class UserInformationRecoveryService {
                 bean.setError("");
                 bean.setUserId(userName);
                 if (log.isDebugEnabled()) {
-                    log.debug("User answer verification successful for user: " + userName);
+                    log.debug("User answer verification successful for user: " + pseudonym);
                 }
             } else {
-                bean.setError("Verification failed for one or more answers provided by user : " + userName);
+                bean.setError("Verification failed for one or more answers provided by user : " + pseudonym);
                 bean.setVerified(false);
                 bean.setKey(""); // clear the key to avoid returning to caller.
                 if (log.isDebugEnabled()) {
@@ -964,6 +1050,15 @@ public class UserInformationRecoveryService {
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
         Permission permission = null;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (!IdentityMgtConfig.getInstance().isSaasEnabled()) {
             String loggedInTenant = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             if (tenantDomain != null && !tenantDomain.isEmpty() && !loggedInTenant.equals(tenantDomain)) {
@@ -1072,14 +1167,14 @@ public class UserInformationRecoveryService {
                 vBean.setVerified(true);
             }
         } catch (UserStoreException | IdentityException e) {
-            vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+            vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, pseudonym);
             //Rollback if user exists
             try {
                 if (!e.getMessage().contains(IdentityCoreConstants.EXISTING_USER) && userStoreManager.isExistingUser(userName)) {
                     userStoreManager.deleteUser(userName);
                 }
             } catch (UserStoreException e1) {
-                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e1, userName);
+                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e1, pseudonym);
             }
 
             return vBean;
@@ -1109,6 +1204,15 @@ public class UserInformationRecoveryService {
 
         VerificationBean vBean = new VerificationBean();
         RecoveryProcessor processor = IdentityMgtServiceComponent.getRecoveryProcessor();
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         if (!IdentityMgtConfig.getInstance().isSaasEnabled()) {
             String loggedInTenant = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -1148,7 +1252,7 @@ public class UserInformationRecoveryService {
                     return vBean;
                 }
             } catch (IdentityException e) {
-                vBean = handleError("Error while validating confirmation code for user : " + userName, e);
+                vBean = handleError("Error while validating confirmation code for user : " + pseudonym, e);
                 return vBean;
             }
 
@@ -1196,7 +1300,7 @@ public class UserInformationRecoveryService {
                     vBean.setVerified(true);
                 }
             } catch (IdentityException e) {
-                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, pseudonym);
                 return vBean;
             }
         } finally {
@@ -1223,15 +1327,25 @@ public class UserInformationRecoveryService {
 
         VerificationBean bean = new VerificationBean();
 
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(username);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("User registration verification request received with username :" + username);
+            log.debug("User registration verification request received with username :" + pseudonym);
         }
         if (IdentityMgtConfig.getInstance().isCaptchaVerificationInternallyManaged()) {
             try {
                 CaptchaUtil.processCaptchaInfoBean(captcha);
             } catch (Exception e) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CAPTCHA
-                        + " Error while validating captcha for user : " + username, e);
+                        + " Error while validating captcha for user : " + pseudonym, e);
                 return bean;
             }
         }
@@ -1254,7 +1368,7 @@ public class UserInformationRecoveryService {
 
         } catch (IdentityException e) {
             bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER
-                    + " Error verifying user account for user : " + username, e);
+                    + " Error verifying user account for user : " + pseudonym, e);
             return bean;
         }
 
@@ -1306,7 +1420,7 @@ public class UserInformationRecoveryService {
             } catch (IdentityException e) {
                 bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
                 if (bean.getError() == null) {
-                    bean = handleError("Error while validating confirmation code for user : " + username, e);
+                    bean = handleError("Error while validating confirmation code for user : " + pseudonym, e);
                 }
                 return bean;
             }

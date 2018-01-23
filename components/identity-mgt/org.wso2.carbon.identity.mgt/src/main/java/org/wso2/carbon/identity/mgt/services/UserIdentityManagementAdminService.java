@@ -37,11 +37,14 @@ import org.wso2.carbon.identity.mgt.dto.UserRecoveryDTO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.mgt.util.Utils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -78,13 +81,22 @@ public class UserIdentityManagementAdminService {
      */
     public void deleteUser(String userName) throws IdentityMgtServiceException {
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService().
                     getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).getUserStoreManager();
             userStoreManager.deleteUser(userName);
-            log.info("Deleted user: " + userName);
+            log.info("Deleted user: " + pseudonym);
         } catch (UserStoreException e) {
-            String errorMessage = "Error occured while deleting user : " + userName;
+            String errorMessage = "Error occurred while deleting user : " + pseudonym;
             log.error(errorMessage, e);
             throw new IdentityMgtServiceException(errorMessage);
         }
@@ -99,14 +111,23 @@ public class UserIdentityManagementAdminService {
      */
     public void lockUserAccount(String userName) throws IdentityMgtServiceException {
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.lockUserAccount(userNameWithoutDomain, userStoreManager);
-            log.info("User account locked: " + userName);
+            log.info("User account locked: " + pseudonym);
         } catch (UserStoreException|IdentityException e) {
-            log.error("Error occurred while trying to lock the account " + userName, e);
-            throw new IdentityMgtServiceException("Error occurred while trying to lock the account " + userName, e);
+            log.error("Error occurred while trying to lock the account " + pseudonym, e);
+            throw new IdentityMgtServiceException("Error occurred while trying to lock the account " + pseudonym, e);
         }
     }
 
@@ -117,6 +138,16 @@ public class UserIdentityManagementAdminService {
      * @throws IdentityMgtServiceException
      */
     public void unlockUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
@@ -137,9 +168,9 @@ public class UserIdentityManagementAdminService {
                 dto.setNotificationType(notificationType);
                 IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
             }
-            log.info("Account unlocked for: " + userName);
+            log.info("Account unlocked for: " + pseudonym);
         } catch (UserStoreException|IdentityException e) {
-            String message = "Error occurred while unlocking account for: " + userName;
+            String message = "Error occurred while unlocking account for: " + pseudonym;
             log.error(message, e);
             throw new IdentityMgtServiceException(message, e);
         }
@@ -154,12 +185,21 @@ public class UserIdentityManagementAdminService {
      */
     public void disableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.disableUserAccount(userNameWithoutDomain, userStoreManager);
 
-            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Disable user account", userName,
+            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Disable user account", pseudonym,
                     "Notification type :" + notificationType, SUCCESS));
 
             int tenantID = userStoreManager.getTenantId();
@@ -183,15 +223,23 @@ public class UserIdentityManagementAdminService {
                 }
             }
         } catch (UserStoreException | IdentityException e) {
-            log.error("Error occurred while trying to disable the account " + userName, e);
-            throw new IdentityMgtServiceException("Error occurred while trying to disable the account " + userName, e);
+            log.error("Error occurred while trying to disable the account " + pseudonym, e);
+            throw new IdentityMgtServiceException("Error occurred while trying to disable the account " + pseudonym, e);
         }
     }
 
     private String getUser() {
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (user != null) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(user);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+        if (pseudonym != null) {
+            user = pseudonym + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         } else {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
@@ -205,12 +253,22 @@ public class UserIdentityManagementAdminService {
      * @throws IdentityMgtServiceException
      */
     public void enableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.enableUserAccount(userNameWithoutDomain, userStoreManager);
 
-            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Enable user account", userName,
+            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Enable user account", pseudonym,
                     "Notification type :" + notificationType, SUCCESS));
 
             int tenantID = userStoreManager.getTenantId();
@@ -235,7 +293,7 @@ public class UserIdentityManagementAdminService {
             }
 
         } catch (UserStoreException | IdentityException e) {
-            String message = "Error occurred while enabling account for: " + userName;
+            String message = "Error occurred while enabling account for: " + pseudonym;
             log.error(message, e);
             throw new IdentityMgtServiceException(message, e);
         }
@@ -250,13 +308,22 @@ public class UserIdentityManagementAdminService {
      */
     public void resetUserPassword(String userName, String newPassword)
             throws IdentityMgtServiceException {
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             userStoreManager.updateCredentialByAdmin(userNameWithoutDomain, newPassword);
-            log.info("User password reset for: " + userName);
+            log.info("User password reset for: " + pseudonym);
         } catch (UserStoreException e) {
-            String message = "Error occurred while resetting password for: " + userName;
+            String message = "Error occurred while resetting password for: " + pseudonym;
             log.error(message, e);
             throw new IdentityMgtServiceException(message, e);
         }
@@ -276,6 +343,17 @@ public class UserIdentityManagementAdminService {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        String pseudonymForLoggedInName = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+            pseudonymForLoggedInName = userIdManager.getIdFromName(loggedInName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         if(userName != null && !userName.equals(loggedInName)){
             AuthorizationManager authzManager = null;
             try {
@@ -291,11 +369,11 @@ public class UserIdentityManagementAdminService {
                         CarbonConstants.UI_PERMISSION_ACTION);
             } catch (UserStoreException e) {
                     throw new IdentityMgtServiceException("Error occurred while checking access level for " +
-                            "user " + userName + " in tenant " + tenantDomain, e);
+                            "user " + pseudonym + " in tenant " + tenantDomain, e);
             }
             if(!isAuthorized){
                 throw new IdentityMgtServiceException("Unauthorized access!! Possible violation of confidentiality. " +
-                        "User " + loggedInName + " trying to get challenge questions for user " + userName);
+                        "User " + pseudonymForLoggedInName + " trying to get challenge questions for user " + pseudonym);
             }
         } else if (userName == null){
             userName = loggedInName;
@@ -407,6 +485,15 @@ public class UserIdentityManagementAdminService {
             throw new IdentityMgtServiceException("no challenges provided by user");
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
@@ -430,7 +517,7 @@ public class UserIdentityManagementAdminService {
             }
             if(!isAuthorized){
                 throw new IdentityMgtServiceException("Unauthorized access!! Possible elevation of privilege attack. " +
-                        "User " + loggedInName + " trying to change challenge questions for user " + userName);
+                        "User " + loggedInName + " trying to change challenge questions for user " + pseudonym);
             }
         } else if (userName == null){
             userName = loggedInName;
@@ -453,14 +540,15 @@ public class UserIdentityManagementAdminService {
                     }
                 }
                 if(!found){
-                    String errMsg = "Error while persisting user challenges for user : " + userName + ", because these user challengers are not registered with the tenant" ;
+                    String errMsg = "Error while persisting user challenges for user : " + pseudonym + ", because these user" +
+                            " challengers are not registered with the tenant" ;
                     log.error(errMsg);
                     throw new IdentityMgtServiceException(errMsg);
                 }
             }
             processor.setChallengesOfUser(userName, tenantId, challengesDTOs);
         } catch (IdentityException e) {
-            String errorMessage = "Error while persisting user challenges for user : " + userName;
+            String errorMessage = "Error while persisting user challenges for user : " + pseudonym;
             log.error(errorMessage, e);
             throw new IdentityMgtServiceException(errorMessage);
         }
@@ -478,6 +566,15 @@ public class UserIdentityManagementAdminService {
             throws IdentityMgtServiceException {
         String userName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService()
                     .getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId())
@@ -486,7 +583,7 @@ public class UserIdentityManagementAdminService {
             Map<String, String> claims = new HashMap<String, String>();
             for (UserIdentityClaimDTO dto : userIdentityClaims) {
                 if (dto.getClaimUri().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
-                    log.warn("WARNING! User " + userName + " tried to alter " + dto.getClaimUri());
+                    log.warn("WARNING! User " + pseudonym + " tried to alter " + dto.getClaimUri());
                     throw IdentityException.error("Updates to the claim " + dto.getClaimUri() +
                             " are not allowed");
                 }
@@ -495,7 +592,7 @@ public class UserIdentityManagementAdminService {
             userStoreManager.setUserClaimValues(userName, claims, null);
 
         } catch (UserStoreException|IdentityException e) {
-            String errorMessage = "Error while updating identity recovery data for : " + userName;
+            String errorMessage = "Error while updating identity recovery data for : " + pseudonym;
             log.error(errorMessage, e);
             throw new IdentityMgtServiceException(errorMessage, e);
         }
@@ -524,13 +621,22 @@ public class UserIdentityManagementAdminService {
 
         String userName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             userName = UserCoreUtil.removeDomainFromName(userName);
             userStoreManager.updateCredential(userName, newPassword, oldPassword);
-            log.info("Password changed for: " + userName);
+            log.info("Password changed for: " + pseudonym);
         } catch (UserStoreException e) {
-            String message = "Error while resetting the password for: " + userName;
+            String message = "Error while resetting the password for: " + pseudonym;
             log.error(message, e);
             throw new IdentityMgtServiceException(message, e);
         }

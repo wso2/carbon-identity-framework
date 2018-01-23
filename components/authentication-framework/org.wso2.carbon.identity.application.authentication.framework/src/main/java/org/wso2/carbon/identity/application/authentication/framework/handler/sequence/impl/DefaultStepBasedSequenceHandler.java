@@ -43,7 +43,10 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -198,6 +201,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        // create pseudonym for the subject identifier for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(context.getSequenceConfig().getAuthenticatedUser().getUserName());
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         StringBuilder jsonBuilder = new StringBuilder();
 
         boolean subjectFoundInStep = false;
@@ -349,18 +360,16 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                                     originalExternalIdpSubjectValueForThisStep);
                             if (StringUtils.isNotBlank(associatedID)) {
                                 if (log.isDebugEnabled()) {
-                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                            " has an associated account as " + associatedID + ". Hence continuing as " +
-                                            associatedID);
+                                    log.debug("User " + pseudonym + " has an associated account as " + associatedID
+                                            + ". Hence continuing as " + associatedID);
                                 }
                                 stepConfig.getAuthenticatedUser().setUserName(associatedID);
                                 stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
                                 stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
                             } else {
                                 if (log.isDebugEnabled()) {
-                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                            " doesn't have an associated" +
-                                            " account. Hence continuing as the same user.");
+                                    log.debug("User " + pseudonym + "doesn't have an associated account. Hence " +
+                                            "continuing as the same user.");
                                 }
                             }
                         } catch (UserProfileException e) {
@@ -422,8 +431,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Authenticated User: " +
-                                    sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                            log.debug("Authenticated User: " + pseudonym);
                             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
                         }
 
@@ -466,7 +474,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
+                        log.debug("Authenticated User: " + pseudonym);
                         log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                                 .getTenantDomain());
                     }
@@ -521,8 +529,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Authenticated User: " +
-                            sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    log.debug("Authenticated User: " + pseudonym);
                     log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                             .getTenantDomain());
                 }

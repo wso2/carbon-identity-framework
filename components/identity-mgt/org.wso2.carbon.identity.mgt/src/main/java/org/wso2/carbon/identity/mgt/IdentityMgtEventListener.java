@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.beans.UserIdentityMgtBean;
-import org.wso2.carbon.identity.mgt.beans.VerificationBean;
 import org.wso2.carbon.identity.mgt.config.Config;
 import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.ConfigType;
@@ -51,12 +50,15 @@ import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.mgt.util.Utils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -271,6 +273,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
         boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         if (authenticated && isUserExistInCurrentDomain) {
 
@@ -281,7 +291,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     module.store(userIdentityDTO, userStoreManager);
                 } catch (IdentityException e) {
                     throw new UserStoreException(String.format("Error while saving user store data : %s for user : %s.",
-                            UserIdentityDataStore.LAST_LOGON_TIME, userName), e);
+                            UserIdentityDataStore.LAST_LOGON_TIME, pseudonym), e);
                 }
             }
         }
@@ -323,7 +333,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             null);
 
                     if (StringUtils.isBlank(email)) {
-                        throw new UserStoreException("No user email provided for user : " + userName);
+                        throw new UserStoreException("No user email provided for user : " + pseudonym);
                     }
 
                     List<NotificationSendingModule> notificationModules =
@@ -384,7 +394,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         } catch (Exception e1) {
                             throw new UserStoreException(
                                     "Could not load the email template configuration for user : "
-                                            + userName, e1);
+                                            + pseudonym, e1);
                         }
 
                         emailTemplate = emailConfig.getProperty("otp");
@@ -434,7 +444,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         userIdentityDTO.setFailAttempts();
 
                         if (userIdentityDTO.getFailAttempts() >= config.getAuthPolicyMaxLoginAttempts()) {
-                            log.info("User, " + userName + " has exceed the max failed login attempts. " +
+                            log.info("User, " + pseudonym + " has exceed the max failed login attempts. " +
                                     "User account would be locked");
                             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext
                                     (UserCoreConstants.ErrorCode.USER_IS_LOCKED + ":" +
@@ -445,7 +455,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                     UserCoreConstants.ErrorCode.USER_IS_LOCKED);
 
                             if (log.isDebugEnabled()) {
-                                log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+                                log.debug("Username :" + pseudonym + "Exceeded the maximum login attempts. User locked, " +
+                                        "ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
                             }
                             userIdentityDTO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
                                     IdentityMgtConstants.LockedReason.MAX_ATTEMTS_EXCEEDED.toString());
@@ -463,7 +474,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
 
                             if (log.isDebugEnabled()) {
-                                log.debug("Username :" + userName + "Invalid Credential, ErrorCode :" + UserCoreConstants.ErrorCode.INVALID_CREDENTIAL);
+                                log.debug("Username :" + pseudonym + "Invalid Credential, ErrorCode :" + UserCoreConstants
+                                        .ErrorCode.INVALID_CREDENTIAL);
                             }
 
                         }
@@ -472,11 +484,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             module.store(userIdentityDTO, userStoreManager);
                         } catch (IdentityException e) {
                             throw new UserStoreException("Error while saving user store data for user : "
-                                    + userName, e);
+                                    + pseudonym, e);
                         }
                     } else {
                         if (log.isDebugEnabled()) {
-                            log.debug("User, " + userName + " is not exists in " + domainName);
+                            log.debug("User, " + pseudonym + " is not exists in " + domainName);
                         }
                     }
 
@@ -492,7 +504,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             module.store(userIdentityDTO, userStoreManager);
                         } catch (IdentityException e) {
                             throw new UserStoreException("Error while saving user store data for user : "
-                                    + userName, e);
+                                    + pseudonym, e);
                         }
                     }
                 }
@@ -606,6 +618,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         // Top level try and finally blocks are used to unset thread local variables
         try {
@@ -638,7 +658,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         //roleback user
                         userStoreManager.deleteUser(userName);
                         throw new UserStoreException("Error while saving user store for user : "
-                                + userName, e);
+                                + pseudonym, e);
                     }
                     // store identity metadata
                     UserRecoveryDataDO metadataDO = new UserRecoveryDataDO();
@@ -661,7 +681,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         //roleback user
                         userStoreManager.deleteUser(userName);
                         throw new UserStoreException("Error while sending notification for user : "
-                                + userName, e);
+                                + pseudonym, e);
                     }
 
                     return notificationDto != null && notificationDto.isNotificationSent();
@@ -678,7 +698,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         //roleback user
                         userStoreManager.deleteUser(userName);
                         throw new UserStoreException("Error while saving user store data for user : "
-                                + userName, e);
+                                + pseudonym, e);
                     }
                 }
 
@@ -695,7 +715,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         //roleback user
                         userStoreManager.deleteUser(userName);
                         throw new UserStoreException("Error while saving user store data for user : "
-                                + userName, e);
+                                + pseudonym, e);
                     }
                 }
             }
@@ -798,6 +818,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             log.debug("Pre update credential by admin is called in IdentityMgtEventListener");
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         // Top level try and finally blocks are used to unset thread local variables
         try {
             if (!IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN)) {
@@ -857,12 +886,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     bean.setConfirmationCode(newCredential.toString());
                     bean.setRecoveryType(IdentityMgtConstants.Notification.TEMPORARY_PASSWORD);
                     if (log.isDebugEnabled()) {
-                        log.debug("Sending the temporary password to the user " + userName);
+                        log.debug("Sending the temporary password to the user " + pseudonym);
                     }
                     UserIdentityManagementUtil.notifyViaEmail(bean);
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Updating credentials of user " + userName
+                        log.debug("Updating credentials of user " + pseudonym
                                   + " by admin with a non-empty password");
                     }
                 }
@@ -929,6 +958,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         //Following logic is to avoid null value been interpreted as false
         if (StringUtils.isNotEmpty(accountLocked)) {
             isAccountLocked = Boolean.parseBoolean(accountLocked);
+        }
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
         }
 
         // Top level try and finally blocks are used to unset thread local variables
@@ -1013,7 +1051,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                 } catch (IdentityException e) {
                     throw new UserStoreException(
-                            "Error while saving user store data for user : " + userName, e);
+                            "Error while saving user store data for user : " + pseudonym, e);
                 }
             }
             return true;
@@ -1034,12 +1072,20 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         // remove from the identity store
         try {
             IdentityMgtConfig.getInstance().getIdentityDataStore()
                     .remove(userName, userStoreManager);
         } catch (IdentityException e) {
-            throw new UserStoreException("Error while removing user: " + userName
+            throw new UserStoreException("Error while removing user: " + pseudonym
                     + " from identity data store", e);
         }
         // deleting registry meta-data
@@ -1055,7 +1101,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 registry.delete(identityKeyMgtPath);
             }
         } catch (RegistryException e) {
-            log.error("Error while deleting recovery data for user : " + userName + " in tenant : "
+            log.error("Error while deleting recovery data for user : " + pseudonym + " in tenant : "
                     + userStoreManager.getTenantId(), e);
         }
         return true;
@@ -1138,6 +1184,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         UserRecoveryDTO dto;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
             dto = new UserRecoveryDTO(userName);
         } else {
@@ -1151,7 +1205,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
         } catch (IdentityException e) {
             //proceed with the rest of the flow even if the email is not sent
-            log.error("Email notification sending failed for user:" + userName + " for " + notification);
+            log.error("Email notification sending failed for user:" + pseudonym + " for " + notification);
         }
     }
 }

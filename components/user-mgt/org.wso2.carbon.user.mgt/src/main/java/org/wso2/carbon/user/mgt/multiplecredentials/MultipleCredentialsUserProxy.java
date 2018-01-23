@@ -26,15 +26,20 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.CarbonConfigurationContextFactory;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.user.api.Authentication;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
+import org.wso2.carbon.user.core.model.UserImpl;
 import org.wso2.carbon.user.core.multiplecredentials.Credential;
 import org.wso2.carbon.user.core.multiplecredentials.MultipleCredentialUserStoreManager;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
@@ -119,6 +124,15 @@ public class MultipleCredentialsUserProxy {
 
         if (roles != null) {
             String loggedInUserName = getLoggedInUser();
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             Arrays.sort(roles);
             boolean isRoleHasAdminPermission = false;
             for (String role : roles) {
@@ -142,7 +156,7 @@ public class MultipleCredentialsUserProxy {
             if ((Arrays.binarySearch(roles, realmConfig.getAdminRoleName()) > -1 || isRoleHasAdminPermission) &&
                     !realmConfig.getAdminUserName().equals(loggedInUserName)) {
                 log.warn("An attempt to assign user to Admin permission role by user : " +
-                        loggedInUserName);
+                        pseudonym);
                 throw new UserStoreException("Can not assign user to Admin permission role");
             }
             boolean isContained = false;
@@ -231,10 +245,20 @@ public class MultipleCredentialsUserProxy {
             throws MultipleCredentialsUserAdminException {
         try {
             String loggedInUserName = getLoggedInUser();
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(loggedInUserName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             if (userName != null && userName.equals(realmConfig.getAdminUserName()) &&
                     !userName.equals(loggedInUserName)) {
-                log.warn("An attempt to delete Admin user by user : " + loggedInUserName);
+                log.warn("An attempt to delete Admin user by user : " + pseudonym);
                 throw new UserStoreException("Can not delete Admin user");
             }
 
@@ -248,7 +272,7 @@ public class MultipleCredentialsUserProxy {
                         !realmConfig.getAdminUserName().equals(loggedInUserName) &&
                         !userName.equals(realmConfig.getAdminUserName())) {
                     log.warn("An attempt to delete user in Admin role by user : " +
-                            loggedInUserName);
+                            pseudonym);
                     throw new UserStoreException("Can not delete user in Admin role");
                 }
             }
@@ -446,7 +470,12 @@ public class MultipleCredentialsUserProxy {
     public boolean authenticate(Credential credential) throws MultipleCredentialsUserAdminException {
         try {
             MultipleCredentialUserStoreManager mgr = getUserStoreManager();
-            return mgr.authenticate(credential);
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            UserImpl user = new UserImpl();
+            user.setUsername(credential.getIdentifier());
+            userIdManager.addIdForName(user);
+            Authentication authentication = mgr.authenticate(user, credential.getSecret());
+            return authentication.isSuccess();
         } catch (UserStoreException e) {
             // previously logged so logging not needed
             throw new MultipleCredentialsUserAdminException(e.getMessage(), e);

@@ -40,8 +40,11 @@ import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.mgt.util.Utils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.UUID;
@@ -78,8 +81,17 @@ public class UserIdentityManagementService {
                             UserRecoveryDataDO.METADATA_TEMPORARY_CREDENTIAL,
                             tempCredential);
 
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(userName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             if (!isValid) {
-                log.warn("WARNING: Invalidated temporary credential provided by " + userName);
+                log.warn("WARNING: Invalidated temporary credential provided by " + pseudonym);
                 throw new IdentityMgtServiceException("Invalid temporary credential provided");
             }
             UserStoreManager userStoreManager =
@@ -120,8 +132,18 @@ public class UserIdentityManagementService {
                             tenantId,
                             UserRecoveryDataDO.METADATA_CONFIRMATION_CODE,
                             confirmationCode);
+
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(userName);
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             if (!isValid) {
-                log.warn("WARNING: Invalid confirmation code provided by " + userName);
+                log.warn("WARNING: Invalid confirmation code provided by " + pseudonym);
                 throw new IdentityMgtServiceException("Invalid confirmation code provided");
             }
             UserStoreManager userStoreManager =
@@ -312,12 +334,21 @@ public class UserIdentityManagementService {
             throw new IdentityMgtServiceException("invalid user name", e);
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         RecoveryProcessor processor = IdentityMgtServiceComponent.getRecoveryProcessor();
 
         VerificationBean bean = processor.verifyConfirmationKey(confirmationCode);
 
         if (!bean.isVerified()) {
-            log.warn("Invalid user is trying to recover the password : " + userId);
+            log.warn("Invalid user is trying to recover the password : " + pseudonym);
             return false;
         }
 
@@ -437,20 +468,30 @@ public class UserIdentityManagementService {
                 return new VerificationBean(VerificationBean.ERROR_CODE_INVALID_CAPTCHA);
             }
         }
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserDTO userDTO = Utils.processUserId(userName);
             if (recoveryProcessor.verifyConfirmationKey(confirmation).isVerified()) {
                 Utils.updatePassword(userDTO.getUserId(), userDTO.getTenantId(), password);
-                log.info("Credential is updated for user : " + userDTO.getUserId() +
+                log.info("Credential is updated for user : " + pseudonym +
                         " and tenant domain : " + userDTO.getTenantDomain());
                 return new VerificationBean(true);
             } else {
-                log.warn("Invalid user tried to update credential with user Id : " + userDTO.getUserId() +
+                log.warn("Invalid user tried to update credential with user Id : " + pseudonym +
                         " and tenant domain : " + userDTO.getTenantDomain());
             }
 
         } catch (Exception e) {
-            log.error("Error while updating credential for user : " + userName, e);
+            log.error("Error while updating credential for user : " + pseudonym, e);
         }
         return new VerificationBean(VerificationBean.ERROR_CODE_UNEXPECTED);
     }

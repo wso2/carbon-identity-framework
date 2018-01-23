@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 import java.util.List;
 
@@ -46,11 +49,21 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostDeleteWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Request ID" + "\" : \"" + workflowRequest.getRequestId() + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow request", auditData,
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Remove workflow request", auditData,
                 AUDIT_SUCCESS));
     }
 
@@ -63,11 +76,19 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostDeleteWorkflow(Workflow workflow) throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Workflow ID" + "\" : \"" + workflow.getWorkflowId() + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow", auditData, AUDIT_SUCCESS));
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Remove workflow", auditData, AUDIT_SUCCESS));
     }
 
     /**
@@ -82,15 +103,24 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     public void doPostAddWorkflow(Workflow workflowDTO, List<Parameter> parameterList, int tenantId) throws
             WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Workflow Name" + "\" : \"" + workflowDTO.getWorkflowName() + "\",\""
                 + "Workflow  Impl ID" + "\" : \"" + workflowDTO.getWorkflowImplId() + "\",\""
                 + "Workflow ID" + "\" : \"" + workflowDTO.getWorkflowId() + "\",\""
                 + "Workflow Description" + "\" : \"" + workflowDTO.getWorkflowDescription() + "\",\""
                 + "Template ID" + "\" : \"" + workflowDTO.getTemplateId() + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Add Workflow", auditData, AUDIT_SUCCESS));
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Add Workflow", auditData, AUDIT_SUCCESS));
     }
 
     /**
@@ -106,14 +136,23 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     public void doPostAddAssociation(String associationName, String workflowId, String eventId, String condition)
             throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Association Name" + "\" : \"" + associationName+ "\",\""
                 + "Workflow ID" + "\" : \"" + workflowId + "\",\""
                 + "Event ID" + "\" : \"" + eventId + "\",\""
                 + "Condition" + "\" : \"" + condition + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Add Association", auditData, AUDIT_SUCCESS));
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Add Association", auditData, AUDIT_SUCCESS));
     }
 
     /**
@@ -125,11 +164,20 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostRemoveAssociation(int associationId) throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove Association", auditData, AUDIT_SUCCESS));
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Remove Association", auditData, AUDIT_SUCCESS));
     }
 
     /**
@@ -142,12 +190,21 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostChangeAssociationState(String associationId, boolean isEnable) throws WorkflowException {
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (StringUtils.isBlank(loggedInUser)) {
-            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(loggedInUser);
+        } catch (IdManagerException e) {
+            AUDIT_LOG.error("Error while setting pseudonym for the user.", e);
+        }
+        if (StringUtils.isBlank(pseudonym)) {
+            pseudonym = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\",\""
                 + "Resulting State" + "\" : \"" + isEnable + "\"";
-        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Change Association State", auditData,
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, pseudonym, "Change Association State", auditData,
                 AUDIT_SUCCESS));
     }
 }
