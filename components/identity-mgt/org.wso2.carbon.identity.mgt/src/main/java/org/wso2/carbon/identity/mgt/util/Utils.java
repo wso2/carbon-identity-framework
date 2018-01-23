@@ -24,12 +24,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyEngine;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.dto.UserDTO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -38,6 +41,7 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -173,6 +177,15 @@ public class Utils {
         RealmService realmService = IdentityMgtServiceComponent.getRealmService();
         String claimValue = "";
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             if (realmService.getTenantUserRealm(tenantId) != null) {
                 userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) realmService.getTenantUserRealm(tenantId).
@@ -194,7 +207,7 @@ public class Utils {
             }
             return claimValue;
         } catch (Exception e) {
-            String msg = "Unable to retrieve the claim for user : " + userName;
+            String msg = "Unable to retrieve the claim for user : " + pseudonym;
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         }
@@ -206,6 +219,15 @@ public class Utils {
         Map<String, String> claimValues = new HashMap<>();
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
         RealmService realmService = IdentityMgtServiceComponent.getRealmService();
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         try {
             if (realmService.getTenantUserRealm(tenantId) != null) {
@@ -222,7 +244,7 @@ public class Utils {
 
             }
         } catch (Exception e) {
-            throw IdentityException.error("Unable to retrieve the claim for user : " + userName, e);
+            throw IdentityException.error("Unable to retrieve the claim for user : " + pseudonym, e);
         }
 
         return claimValues;
@@ -238,6 +260,16 @@ public class Utils {
     public static String getEmailAddressForUser(String userName, int tenantId) {
 
         String email = null;
+
+
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         try {
             if (log.isDebugEnabled()) {
@@ -259,7 +291,7 @@ public class Utils {
                 email = UserCoreUtil.removeDomainFromName(userName);
             }
         } catch (Exception e) {
-            String msg = "Unable to retrieve an email address associated with the given user : " + userName;
+            String msg = "Unable to retrieve an email address associated with the given user : " + pseudonym;
             log.warn(msg, e);   // It is common to have users with no email address defined.
         }
 
@@ -283,18 +315,27 @@ public class Utils {
             throw IdentityException.error(msg);
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.
                     getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
 
             userStoreManager.updateCredentialByAdmin(userId, password);
             if (log.isDebugEnabled()) {
-                String msg = "Password is updated for  user: " + userId;
+                String msg = "Password is updated for  user: " + pseudonym;
                 log.debug(msg);
             }
             return true;
         } catch (UserStoreException e) {
-            String msg = "Error in changing the password, user name: " + userId + "  domain: " +
+            String msg = "Error in changing the password, user name: " + pseudonym + "  domain: " +
                     tenantDomain + ".";
             log.error(msg, e);
             throw IdentityException.error(msg, e);
@@ -343,6 +384,15 @@ public class Utils {
             throw IdentityException.error(msg, e);
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(CarbonContext.getThreadLocalCarbonContext().getUsername());
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             if (userStoreManager != null) {
                 String oldValue = userStoreManager.getUserClaimValue(userName, claim, null);
@@ -353,7 +403,7 @@ public class Utils {
                 }
             }
         } catch (Exception e) {
-            String msg = "Unable to set the claim for user : " + userName;
+            String msg = "Unable to set the claim for user : " + pseudonym;
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         }

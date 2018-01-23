@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.util.Constants;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -41,6 +43,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -93,11 +96,20 @@ public class UserProfileAdmin extends AbstractAdmin {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(CarbonContext.getThreadLocalCarbonContext().getUsername());
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
+
             // Check whether we are trying to change the admin user profile. Only admin user can change his profile.
             // Any other attempt is unauthorized. So attempts will be logged and denied.
             if (isAdminProfileSpoof(username)) {
-                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " is trying to modify the profile of the admin user.");
+                log.warn("Unauthorized attempt. User " + pseudonym + " is trying to modify the profile of the admin " +
+                        "user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -160,12 +172,20 @@ public class UserProfileAdmin extends AbstractAdmin {
             if (!this.isAuthorized(username, USER_PROFILE_DELETE_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(CarbonContext.getThreadLocalCarbonContext().getUsername());
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
 
             // Check whether we are trying to delete the admin user profile. Only admin user can delete his profile.
             // Any other attempt is unauthorized. So attempts will be logged and denied.
             if (isAdminProfileSpoof(username)) {
-                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " is trying to delete the profile of the admin user.");
+                log.warn("Unauthorized attempt. User " + pseudonym + " is trying to delete the profile of the admin " +
+                        "user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -200,11 +220,19 @@ public class UserProfileAdmin extends AbstractAdmin {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(CarbonContext.getThreadLocalCarbonContext().getUsername());
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             // Check whether we are trying to view the admin user profile. Only admin user can view his profile.
             // Any other attempt is unauthorized. So attempts will be logged and denied.
             if (isAdminProfileSpoof(username)) {
-                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " is trying to view the profile of the admin user.");
+                log.warn("Unauthorized attempt. User " + pseudonym + " is trying to view the profile of the admin " +
+                        "user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -356,6 +384,15 @@ public class UserProfileAdmin extends AbstractAdmin {
         String[] availableProfileConfigurations = new String[0];
         String profileConfig = null;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(CarbonContext.getThreadLocalCarbonContext().getUsername());
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
 
             if (username == null || profileName == null) {
@@ -369,8 +406,8 @@ public class UserProfileAdmin extends AbstractAdmin {
             // Check whether we are trying to view the admin user profile. Only admin user can view his profile.
             // Any other attempt is unauthorized. So attempts will be logged and denied.
             if (isAdminProfileSpoof(username)) {
-                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " is trying to view the profile of the admin user.");
+                log.warn("Unauthorized attempt. User " + pseudonym + " is trying to view the profile of the admin " +
+                        "user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -492,7 +529,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         } catch (Exception e) {
 
             log.error(String.format("An error occurred while getting the user profile '%s' of the user '%s'",
-                    profileName, username), e);
+                    profileName, pseudonym), e);
 
             throw new UserProfileException(e.getMessage(), e);
         }

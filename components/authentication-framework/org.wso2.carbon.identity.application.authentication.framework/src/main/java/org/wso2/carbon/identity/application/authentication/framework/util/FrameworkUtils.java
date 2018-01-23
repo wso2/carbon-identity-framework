@@ -87,7 +87,11 @@ import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
+import org.wso2.carbon.user.core.model.UserImpl;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -1323,5 +1327,28 @@ public class FrameworkUtils {
 
         return multiAttributeSeparator;
     }
+//
+//    /**
+//     * Generates a random string as the pseudonym for the username attribute for security purposes.
+//     *
+//     * @param username Username property of a User.
+//     * @return Pseudonym String.
+//     */
+//    public static String getPseudonymForUsername(String username){
+//
+//        // create pseudonym for the username for security purposes.
+//        String pseudonym = null;
+//        IdManager userIdManager = new JDBCUserIdManager(null);
+//        UserImpl userImpl = new UserImpl();
+//        userImpl.setUsername(username);
+//        try {
+//            userIdManager.addIdForName(userImpl);
+//            pseudonym = userIdManager.getIdFromName(username);
+//        } catch (IdManagerException e) {
+//            log.error("Error while setting pseudonym for the user.", e);
+//        }
+//
+//        return pseudonym;
+//    }
 }
 

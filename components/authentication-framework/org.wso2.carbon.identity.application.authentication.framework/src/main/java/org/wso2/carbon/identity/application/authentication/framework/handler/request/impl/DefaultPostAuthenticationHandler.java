@@ -40,10 +40,13 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -180,6 +183,15 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
 
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
 
+        // create pseudonym for the subject identifier for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(user.getUserName());
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         Map<String, String> carbonToSPClaimMapping = new HashMap<>();
         Object spToCarbonClaimMappingObject = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
 
@@ -235,7 +247,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                             persistClaims = true;
                         }
                     } catch (UserProfileException e) {
-                        throw new FrameworkException("Error while getting association for " + subject, e);
+                        throw new FrameworkException("Error while getting association for " + pseudonym, e);
                     }
                 }
                 break;
@@ -265,7 +277,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Updating user profile of user : " + user.getUserName());
+                    log.debug("Updating user profile of user : " + pseudonym);
                 }
 
                 UserRealm realm = getUserRealm(user.getTenantDomain());

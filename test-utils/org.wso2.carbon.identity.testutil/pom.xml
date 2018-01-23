@@ -51,6 +51,11 @@
             <artifactId>powermock-module-testng-common</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>commons-dbcp</groupId>
+            <artifactId>commons-dbcp</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <name>WSO2 Carbon - Identity Common Test Util</name>
 </project>

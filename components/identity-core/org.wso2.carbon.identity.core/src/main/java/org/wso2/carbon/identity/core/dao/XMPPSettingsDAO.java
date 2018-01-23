@@ -21,12 +21,15 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.XMPPSettingsDO;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
@@ -99,6 +102,15 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
             isPINEnabled = "true";
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
+
         try {
             if (userId != null) {
                 path = IdentityRegistryResources.XMPP_SETTINGS_ROOT + userId;
@@ -106,7 +118,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
             if (registry.resourceExists(path)) {
                 if (log.isInfoEnabled()) {
-                    log.info("XMPP Settings already exists for user " + userId);
+                    log.info("XMPP Settings already exists for user " + pseudonym);
                 }
                 return;
             }
@@ -148,7 +160,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
                 }
             }
             if (log.isInfoEnabled()) {
-                log.info("XMPP Settings for " + userId + " added successfully.");
+                log.info("XMPP Settings for " + pseudonym + " added successfully.");
             }
 
         } catch (RegistryException e) {
@@ -183,6 +195,14 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
             isPINEnabled = "true";
         }
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             if (userId != null) {
                 path = IdentityRegistryResources.XMPP_SETTINGS_ROOT + userId;
@@ -190,7 +210,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
             if (!registry.resourceExists(path)) {
                 if (log.isInfoEnabled()) {
-                    log.info("XMPP Settings does not exist for the user " + userId);
+                    log.info("XMPP Settings does not exist for the user " + pseudonym);
                 }
                 return;
             }
@@ -205,7 +225,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
             registry.put(path, resource);
 
             if (log.isInfoEnabled()) {
-                log.info("XMPP Settings are updated for the user " + userId);
+                log.info("XMPP Settings are updated for the user " + pseudonym);
             }
 
         } catch (RegistryException e) {
@@ -224,6 +244,14 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
         XMPPSettingsDO xmppSettings = null;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             if (registry.resourceExists(IdentityRegistryResources.XMPP_SETTINGS_ROOT + userId)) {
                 xmppSettings = resourceToObject(registry
@@ -231,7 +259,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
             }
 
         } catch (RegistryException e) {
-            log.error("Cannot retrieve the XMPP Settings for the user " + userId, e);
+            log.error("Cannot retrieve the XMPP Settings for the user " + pseudonym, e);
         }
         return xmppSettings;
     }
@@ -246,6 +274,14 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
         boolean isEnabled = false;
         XMPPSettingsDO xmppSettings;
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             if (registry.resourceExists(IdentityRegistryResources.XMPP_SETTINGS_ROOT + userId)) {
                 xmppSettings = resourceToObject(registry
@@ -253,7 +289,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
                 isEnabled = xmppSettings.isXmppEnabled();
             }
         } catch (RegistryException e) {
-            log.error("Error when checking the availability of the user " + userId, e);
+            log.error("Error when checking the availability of the user " + pseudonym, e);
         }
 
         return isEnabled;
@@ -262,11 +298,19 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
     public boolean hasXmppSettings(String userId) {
         boolean hasSettings = false;
 
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userId);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             hasSettings = registry.resourceExists(IdentityRegistryResources.XMPP_SETTINGS_ROOT
                     + userId);
         } catch (RegistryException e) {
-            log.error("Error when checking the availability of the user " + userId, e);
+            log.error("Error when checking the availability of the user " + pseudonym, e);
         }
 
         return hasSettings;

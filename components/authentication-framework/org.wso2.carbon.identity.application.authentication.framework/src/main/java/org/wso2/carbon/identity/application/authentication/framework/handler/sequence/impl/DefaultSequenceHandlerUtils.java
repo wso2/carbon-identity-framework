@@ -23,6 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +45,17 @@ public class DefaultSequenceHandlerUtils {
                                                            List<String> locallyMappedUserRoles) {
         if (log.isDebugEnabled()) {
             AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+            // create pseudonym for the username for security purposes.
+            String pseudonym = null;
+            IdManager userIdManager = new JDBCUserIdManager(null);
+            try {
+                pseudonym = userIdManager.getIdFromName(authenticatedUser.getUserName());
+            } catch (IdManagerException e) {
+                log.error("Error while setting pseudonym for the user.", e);
+            }
             String serviceProvider = sequenceConfig.getApplicationConfig().getApplicationName();
             log.debug("Getting Service Provider mapped roles of application: " + serviceProvider +
-                    " of user: " + authenticatedUser);
+                    " of user: " + pseudonym);
         }
 
         // SP role mapped role values joined by Multi Attribute Separatorg

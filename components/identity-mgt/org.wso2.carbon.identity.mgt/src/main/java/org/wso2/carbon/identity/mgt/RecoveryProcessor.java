@@ -44,17 +44,19 @@ import org.wso2.carbon.identity.mgt.store.RegistryRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
 import org.wso2.carbon.identity.mgt.store.UserRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.util.Utils;
+import org.wso2.carbon.privacy.IdManager;
+import org.wso2.carbon.privacy.exception.IdManagerException;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.JDBCUserIdManager;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -413,6 +415,15 @@ public class RecoveryProcessor {
         int tenantId = userDTO.getTenantId();
         boolean success = false;
         VerificationBean bean = null;
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        String userName = UserCoreUtil.removeDomainFromName(userId);
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService().
                     getTenantUserRealm(tenantId).getUserStoreManager();
@@ -442,8 +453,8 @@ public class RecoveryProcessor {
                     success = true;
                 }
             } else {
-                log.error("User with user name : " + userId
-                        + " does not exists in tenant domain : " + userDTO.getTenantDomain());
+                log.error("User with user name : " + pseudonym + " does not exists in tenant domain : " + userDTO
+                        .getTenantDomain());
                 bean = new VerificationBean(VerificationBean.ERROR_CODE_INVALID_USER + " "
                         + "User does not exists");
             }
@@ -457,13 +468,13 @@ public class RecoveryProcessor {
                     dataStore.invalidate(userId, tenantId);
                 }
                 dataStore.store(dataDO);
-                log.info("User verification successful for user : " + userId +
+                log.info("User verification successful for user : " + pseudonym +
                         " from tenant domain :" + userDTO.getTenantDomain());
 
                 bean = new VerificationBean(userId, getUserExternalCodeStr(internalCode));
             }
         } catch (Exception e) {
-            String errorMessage = "Error verifying user : " + userId;
+            String errorMessage = "Error verifying user : " + pseudonym;
             log.error(errorMessage, e);
             bean = new VerificationBean(VerificationBean.ERROR_CODE_UNEXPECTED + " "
                     + errorMessage);
@@ -506,6 +517,14 @@ public class RecoveryProcessor {
         confirmationKey = notificationBean.getConfirmationCode();
         String userStore = IdentityUtil.extractDomainFromName(userId);
         String userName = UserCoreUtil.removeDomainFromName(userId);
+        // create pseudonym for the username for security purposes.
+        String pseudonym = null;
+        IdManager userIdManager = new JDBCUserIdManager(null);
+        try {
+            pseudonym = userIdManager.getIdFromName(userName);
+        } catch (IdManagerException e) {
+            log.error("Error while setting pseudonym for the user.", e);
+        }
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
         if (MessageContext.getCurrentMessageContext() != null &&
@@ -541,7 +560,7 @@ public class RecoveryProcessor {
         notificationAddress = module.getNotificationAddress(userId, tenantId);
 
         if ((notificationAddress == null) || (notificationAddress.trim().length() < 0)) {
-            log.warn("Notification address is not defined for user " + userId);
+            log.warn("Notification address is not defined for user " + pseudonym);
         }
 
         String firstName = Utils.getClaimFromUserStoreManager(userId, tenantId, "http://wso2.org/claims/givenname");
@@ -558,7 +577,7 @@ public class RecoveryProcessor {
                     StorageType.REGISTRY, tenantId);
         } catch (Exception e1) {
             throw IdentityException.error("Error occurred while loading email templates for user : "
-                    + userId, e1);
+                    + pseudonym, e1);
         }
 
         if (notificationBean.getNotification() != null) {
