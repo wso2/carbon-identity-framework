@@ -117,11 +117,13 @@
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="Username" required>
+               placeholder="<%=StringUtils.isNotBlank(resourceBundle.getString("username")) ?
+               resourceBundle.getString("username") : "Username"%>" required>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
-               placeholder="Password" autocomplete="off">
+               placeholder="<%=StringUtils.isNotBlank(resourceBundle.getString("password")) ?
+               resourceBundle.getString("password") : "Password"%>" autocomplete="off">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
@@ -141,7 +143,9 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="checkbox">
             <label>
-                <input type="checkbox" id="chkRemember" name="chkRemember"> Remember me on this computer
+                <input type="checkbox" id="chkRemember" name="chkRemember">
+                <%=StringUtils.isNotBlank(resourceBundle.getString("remember.me")) ?
+                    resourceBundle.getString("remember.me") : "Remember me on this computer"%>
             </label>
         </div>
         <br>
@@ -149,7 +153,9 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit" onclick="submitCredentials()">Sign in
+                    type="submit" onclick="submitCredentials()">
+                <%=StringUtils.isNotBlank(resourceBundle.getString("login")) ?
+                        resourceBundle.getString("login") : "Sign in"%>
             </button>
         </div>
     </div>
@@ -173,24 +179,38 @@
 
                 if (isRecoveryEPAvailable()) {
         %>
-        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Password </a>
+        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=StringUtils.isNotBlank(resourceBundle.getString("forgot.password")) ?
+                    resourceBundle.getString("forgot.password") : "Forgot Password"%>
+            </a>
         <br/><br/>
-        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Username </a>
+        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=StringUtils.isNotBlank(resourceBundle.getString("forgot.username")) ?
+                    resourceBundle.getString("forgot.username") : "Forgot Username"%>
+        </a>
         <br/><br/>
         <%
                 }
                 if (isSelfSignUpEPAvailable()) {
         %>
-        Don't have an account?
-        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">Register Now</a>
+        <%=StringUtils.isNotBlank(resourceBundle.getString("no.account")) ?
+                resourceBundle.getString("register.now") : "Don't have an account?"%>
+        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=StringUtils.isNotBlank(resourceBundle.getString("no.account")) ?
+                    resourceBundle.getString("register.now") : "Register Now"%>
+        </a>
         <%
                 }
             }
         %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
-        Not received confirmation email ?
-        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">Re-Send</a>
+        <%=StringUtils.isNotBlank(resourceBundle.getString("no.confirmation.mail")) ?
+                resourceBundle.getString("no.confirmation.mail") : "Not received confirmation email?"%>
+        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
+            <%=StringUtils.isNotBlank(resourceBundle.getString("resend.mail")) ?
+                    resourceBundle.getString("resend.mail") : "Re-Send"%>
+        </a>
 
         <%}%>
     </div>
