@@ -98,27 +98,30 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
             // the request type (e.g. samlsso) set by the calling servlet.
             // TODO: use a different mechanism to determine the flow start.
             if (request.getParameter("type") != null) {
-                // Retrieve AuthenticationRequestCache Entry which is stored stored from servlet.
-                if (sessionDataKey != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("retrieving authentication request from cache..");
+                // If the request is not a common auth logout request retrieve AuthenticationRequestCache entry,
+                // which is stored stored from servlet against the session data key.
+                if (!isCommonAuthLogoutRequest(request)) {
+
+                    if (sessionDataKey != null) {
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("retrieving authentication request from cache..");
+                        }
+
+                        authRequest = getAuthenticationRequest(request, sessionDataKey);
+
+                        if (authRequest == null) {
+                            // authRequest cannot be retrieved from cache. Cache
+                            throw new FrameworkException("Invalid authentication request. Session data key : "
+                                    + sessionDataKey);
+                        }
+                    } else {
+                        // sessionDataKey is null and not a logout request
+                        if (log.isDebugEnabled()) {
+                            log.debug("Session data key is null in the request and not a logout request.");
+                        }
+                        FrameworkUtils.sendToRetryPage(request, response);
                     }
-
-                    authRequest = getAuthenticationRequest(request, sessionDataKey);
-
-                    if (authRequest == null) {
-                        // authRequest cannot be retrieved from cache. Cache
-                        throw new FrameworkException("Invalid authentication request. Session data key : " + sessionDataKey);
-                    }
-
-                } else if (!Boolean.parseBoolean(request.getParameter(FrameworkConstants.LOGOUT))) {
-
-                    // sessionDataKey is null and not a logout request
-                    if (log.isDebugEnabled()) {
-                        log.debug("Session data key is null in the request and not a logout request.");
-                    }
-
-                    FrameworkUtils.sendToRetryPage(request, response);
                 }
 
                 // if there is a cache entry, wrap the original request with params in cache entry
@@ -176,6 +179,16 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);
         }
+    }
+
+    /**
+     * Returns true if the request is a CommonAuth logout request.
+     * @param request
+     * @return
+     */
+    private boolean isCommonAuthLogoutRequest(HttpServletRequest request) {
+
+        return Boolean.parseBoolean(request.getParameter(FrameworkConstants.LOGOUT));
     }
 
     /**
