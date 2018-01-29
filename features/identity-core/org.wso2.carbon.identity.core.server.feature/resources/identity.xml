@@ -191,12 +191,6 @@
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
-        <!-- Supported Client Authentication Methods -->
-        <ClientAuthHandlers>
-            <ClientAuthHandler Class="org.wso2.carbon.identity.oauth2.token.handlers.clientauth.BasicAuthClientAuthHandler">
-                <Property Name="StrictClientCredentialValidation">false</Property>
-            </ClientAuthHandler>
-        </ClientAuthHandlers>
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             <SupportedResponseType>
