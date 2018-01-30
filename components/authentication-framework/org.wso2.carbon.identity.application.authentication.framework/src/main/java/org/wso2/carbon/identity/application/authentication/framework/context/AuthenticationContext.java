@@ -58,6 +58,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
+    private int currentPostAuthHandlerIndex = 0;
     private Map<String, String> authenticatorProperties = new HashMap<String, String>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
@@ -101,6 +102,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private transient HttpServletRequest request;
     private transient HttpServletResponse response;
     private transient HttpServletRequest initialRequest;
+    private List<String> executedPostAuthHandlers = new ArrayList<>();
 
     public String getCallerPath() {
         return callerPath;
@@ -459,4 +461,21 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
         return this.response;
     }
+
+    public int getCurrentPostAuthHandlerIndex() {
+
+        return currentPostAuthHandlerIndex;
+    }
+
+    public List<String> getExecutedPostAuthHandlers() {
+
+        return executedPostAuthHandlers;
+    }
+
+    public void setExecutedPostAuthHandler(String postAuthHandler) {
+
+        this.executedPostAuthHandlers.add(postAuthHandler);
+        currentPostAuthHandlerIndex++;
+    }
+
 }

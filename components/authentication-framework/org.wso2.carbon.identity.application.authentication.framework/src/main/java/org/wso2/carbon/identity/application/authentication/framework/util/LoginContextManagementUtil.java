@@ -126,4 +126,20 @@ public class LoginContextManagementUtil {
         }
         return null;
     }
+
+    public static boolean isPostAuthenticationExtensionCompleted(AuthenticationContext authenticationContext) {
+
+        Object object = authenticationContext.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
+        }
+    }
+
+    public static void markPostAuthenticaionCompleted(AuthenticationContext authenticationContext) {
+
+        authenticationContext.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED,
+                true);
+    }
 }

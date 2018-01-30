@@ -21,7 +21,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,11 +37,11 @@ public class FrameworkUtilsTest {
     @Mock
     ConfigurationFacade mockedConfigurationFacade;
 
-    private DefaultPostAuthenticationHandler testPostAuthenticationHandler;
+    private PostAuthnMissingClaimHandler testPostAuthenticationHandler;
 
     @BeforeTest
     public void setUp() {
-        testPostAuthenticationHandler = new DefaultPostAuthenticationHandler();
+        testPostAuthenticationHandler = new PostAuthnMissingClaimHandler();
     }
 
     private void setMockedConfigurationFacade() {
@@ -62,20 +62,6 @@ public class FrameworkUtilsTest {
                 {map1, true},
                 {map2, false}
         };
-    }
-
-    @Test(dataProvider = "providePostAuthenticationData")
-    public void getPostAuthenticationHandler(Map<String, Object> configMap, boolean isMockedObjectReturned) {
-
-        setMockedConfigurationFacade();
-
-        when(mockedConfigurationFacade.getExtensions()).thenReturn(configMap);
-        Object object = FrameworkUtils.getPostAuthenticationHandler();
-        if (isMockedObjectReturned) {
-            assertEquals(object, testPostAuthenticationHandler);
-        } else {
-            assertTrue(object instanceof DefaultPostAuthenticationHandler);
-        }
     }
 }
 

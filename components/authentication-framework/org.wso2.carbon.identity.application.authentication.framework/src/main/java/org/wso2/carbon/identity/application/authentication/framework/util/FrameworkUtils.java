@@ -61,7 +61,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
@@ -451,25 +451,6 @@ public class FrameworkUtils {
             authorizationHandler = (AuthorizationHandler) obj;
         }
         return authorizationHandler;
-    }
-
-    /**
-     * Gets the configured post authentication handler at identity.xml
-     *
-     * @return Configured post authentication handler
-     */
-    public static PostAuthenticationHandler getPostAuthenticationHandler() {
-
-        PostAuthenticationHandler postAuthenticationHandler = null;
-        Object obj = ConfigurationFacade.getInstance().getExtensions()
-                .get(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER);
-
-        if (obj instanceof PostAuthenticationHandler) {
-            postAuthenticationHandler = (PostAuthenticationHandler) obj;
-        } else {
-            postAuthenticationHandler = DefaultPostAuthenticationHandler.getInstance();
-        }
-        return postAuthenticationHandler;
     }
 
     /**

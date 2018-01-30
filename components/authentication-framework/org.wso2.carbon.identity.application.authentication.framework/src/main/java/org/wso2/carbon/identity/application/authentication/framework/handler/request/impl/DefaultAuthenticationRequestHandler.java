@@ -42,8 +42,10 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -68,7 +70,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private static volatile DefaultAuthenticationRequestHandler instance;
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
-
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 
@@ -133,21 +134,41 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
 
-        if (context.getSequenceConfig().isCompleted() && !isPostAuthenticationExtensionCompleted(context)) {
-            // call post authentication handler
-            FrameworkUtils.getPostAuthenticationHandler().handle(request, response, context);
-        }
-
+        handlePostAuthentication(request, response, context);
         // if flow completed, send response back
-        if (isPostAuthenticationExtensionCompleted(context)) {
+        if (LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context)) {
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
         }
     }
 
+    private void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                          AuthenticationContext context) throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Handling post authentication");
+        }
+        PostAuthenticationMgtService postAuthenticationMgtService =
+                FrameworkServiceDataHolder.getInstance().getPostAuthenticationMgtService();
+
+        if (context.getSequenceConfig().isCompleted()) {
+            if (postAuthenticationMgtService != null) {
+                postAuthenticationMgtService.handlePostAuthentication(request, response, context);
+            } else {
+                if(log.isDebugEnabled()) {
+                    log.debug("No post authentication service found. Hence not evaluating post authentication.");
+                }
+                LoginContextManagementUtil.markPostAuthenticaionCompleted(context);
+            }
+        } else {
+            log.debug("Sequence is not completed yet. Hence skipping post authentication");
+        }
+    }
+
     private void handleDenyFromLoginPage(HttpServletRequest request, HttpServletResponse response,
                                          AuthenticationContext context) throws FrameworkException {
+
         if (log.isDebugEnabled()) {
             log.debug("User has pressed Deny or Cancel in the login page. Terminating the authentication flow");
         }
@@ -159,6 +180,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     private void handleRememberMeOptionFromLoginPage(HttpServletRequest request, AuthenticationContext context) {
+
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (rememberMe != null && "on".equalsIgnoreCase(rememberMe)) {
@@ -337,7 +359,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                 }
 
-                if(!authenticationContextProperties.isEmpty()) {
+                if (!authenticationContextProperties.isEmpty()) {
                     if (log.isDebugEnabled()) {
                         log.debug("AuthenticationContextProperties are available.");
                     }
@@ -390,10 +412,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
 
-            if (context.getSequenceConfig().getApplicationConfig().isEnableAuthorization()) {
-                handleAuthorization(request, response, context);
-            }
-
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
@@ -408,7 +426,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             //Set the result as request attribute
             request.setAttribute("sessionDataKey", context.getCallerSessionKey());
             addAuthenticationResultToRequest(request, authenticationResult);
-        }else{
+        } else {
             FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
         }
         /*
@@ -423,7 +441,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         sendResponse(request, response, context);
     }
-
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
@@ -455,20 +472,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-
-
     /**
      * Add authentication request as request attribute
+     *
      * @param request
      * @param authenticationResult
      */
     private void addAuthenticationResultToRequest(HttpServletRequest request,
                                                   AuthenticationResult authenticationResult) {
+
         request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
     }
 
     private void setAuthCookie(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
                                String sessionKey, String tenantDomain) throws FrameworkException {
+
         Integer authCookieAge = null;
 
         if (context.isRememberMe()) {
@@ -480,6 +498,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
                                                     AuthenticationResult authenticationResult) {
+
         String authenticatedUserTenantDomain = null;
         if (context.getProperties() != null) {
             authenticatedUserTenantDomain = (String) context.getProperties()
@@ -547,39 +566,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-    protected void handleAuthorization(HttpServletRequest request, HttpServletResponse response,
-                                       AuthenticationContext context) throws ApplicationAuthorizationException {
-
-        AuthorizationHandler authorizationHandler = FrameworkUtils.getAuthorizationHandler();
-        if (authorizationHandler != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Calling " + authorizationHandler.getClass().getName() + " to authorize the request");
-            }
-            if (!authorizationHandler.isAuthorized(request, response, context)) {
-                publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
-                Object authFailureMsgObj = context.getProperty(AUTHZ_FAIL_REASON);
-                String authzFailMsg;
-                if (authFailureMsgObj != null) {
-                    authzFailMsg = authFailureMsgObj.toString();
-                } else {
-                    authzFailMsg = DEFAULT_AUTHORIZATION_FAILED_MSG;
-                }
-                throw new ApplicationAuthorizationException(authzFailMsg);
-            }
-        } else {
-            log.warn("Authorization Handler is not set. Hence proceeding without authorization");
-        }
-    }
-
-    protected boolean isPostAuthenticationExtensionCompleted(AuthenticationContext context) {
-
-        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
-        if (object != null && object instanceof Boolean) {
-            return (Boolean) object;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * Populate any error information sent from Authenticators to be sent in the Response from the authentication
@@ -600,7 +586,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String errorCode = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
         String errorMessage = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG));
         String errorUri = String.valueOf(context.getProperty(FrameworkConstants.AUTH_ERROR_URI));
-
 
         if (authenticationResult != null) {
 

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -170,13 +171,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.error("Context does not exist. Probably due to invalidated cache");
                 FrameworkUtils.sendToRetryPage(request, response);
             }
-        } catch (ApplicationAuthorizationException e) {
-            //TODO publish failure event
+        } catch (PostAuthenticationFailedException e) {
+            if (log.isDebugEnabled()) {
+                log.error("Error occurred while evaluating post authentication", e);
+            }
             try {
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointRetryURL());
-                uriBuilder.addParameter("status", e.getMessage());
-                uriBuilder.addParameter("statusMsg", "You are not authorized to login to this application.");
+                uriBuilder.addParameter("status", "Post Authentication Evaluation Failed");
+                uriBuilder.addParameter("statusMsg", e.getErrorCode());
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
                 response.sendRedirect(uriBuilder.build().toString());
             } catch (URISyntaxException e1) {

@@ -43,6 +43,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
@@ -51,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
+import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
@@ -212,6 +215,14 @@ public class FrameworkServiceComponent {
         uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistry);
         FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(jsGraphBuilderFactory);
+
+        PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
+        bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
+        FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
+
+        PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
+
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -455,4 +466,26 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.post.authn.handler",
+            service = PostAuthenticationHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPostAuthenticationHandler"
+    )
+    protected void setPostAuthenticationHandler(PostAuthenticationHandler postAuthenticationHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " registered");
+        }
+        FrameworkServiceDataHolder.getInstance().addPostAuthenticationHandler(postAuthenticationHandler);
+    }
+
+    protected void unsetPostAuthenticationHandler(PostAuthenticationHandler postAuthenticationHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " unregistered");
+        }
+        FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
+    }
 }
