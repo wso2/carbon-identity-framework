@@ -293,8 +293,8 @@ var img = "";
 			$.each(templateList.type, function (i, type) {
 
 				details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
-					'<span>' + type.name + '</span></a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
-					'<img  style="float:right;" src="./images/help-small-icon.png"></a></li>';
+					'<span>' + type.name + '</span></a><span  title="' + type.help + '" class="helpLink">' +
+					'<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
 			});
 			details += '</ul>';
 			$(tempType).appendTo('#template_list').append(details);
