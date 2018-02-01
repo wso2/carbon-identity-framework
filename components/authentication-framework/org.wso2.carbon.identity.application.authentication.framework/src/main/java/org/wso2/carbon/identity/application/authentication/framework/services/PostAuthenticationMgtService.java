@@ -2,12 +2,14 @@ package org.wso2.carbon.identity.application.authentication.framework.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 
 import java.util.List;
@@ -35,6 +37,7 @@ public class PostAuthenticationMgtService {
             for (int i = currentPostHandlerIndex; i < postAuthenticationHandlers.size(); i++) {
                 PostAuthenticationHandler currentHandler = postAuthenticationHandlers.get(i);
                 if (executePostAuthnHandler(request, response, authenticationContext, currentHandler)) {
+                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
                     return;
                 }
             }

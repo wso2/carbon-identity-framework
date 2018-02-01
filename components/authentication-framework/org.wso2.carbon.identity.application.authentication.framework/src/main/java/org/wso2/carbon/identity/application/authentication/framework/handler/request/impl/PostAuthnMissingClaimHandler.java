@@ -165,9 +165,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 log.debug("Mandatory claims missing for the application : " + missingClaims);
             }
 
-            //need to request for the missing claims before completing authentication
-            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-
             try {
                 URIBuilder uriBuilder = new URIBuilder("/authenticationendpoint/claims.do");
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
