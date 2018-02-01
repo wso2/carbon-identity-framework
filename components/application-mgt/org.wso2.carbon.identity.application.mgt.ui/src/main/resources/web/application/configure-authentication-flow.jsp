@@ -279,7 +279,7 @@ var img = "";
 					"        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
 					"    }\n" +
 					"}\n",
-					"help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
+					"help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
 					"helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
 				}]
 			}]
