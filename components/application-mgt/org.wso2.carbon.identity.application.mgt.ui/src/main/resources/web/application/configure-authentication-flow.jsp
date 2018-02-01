@@ -15,18 +15,17 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
-<script src="codemirror/lib/codemirror.js"></script>
-<script src="codemirror/keymap/sublime.js"></script>
 <link rel="stylesheet" href="codemirror/lib/codemirror.css">
-<link rel="stylesheet" href="css/idpmgt.css">
-<link rel="stylesheet" href="css/conditional-authentication.css">
-<script src="codemirror/mode/javascript/javascript.js"></script>
 <link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
 <link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
 <link rel="stylesheet" href="codemirror/addon/fold/foldgutter.css">
 <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
-<link rel="stylesheet" href="codemirror/addon/lint/lint.css">
+<link rel="stylesheet" href="css/idpmgt.css">
+<link rel="stylesheet" href="css/conditional-authentication.css">
 
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/keymap/sublime.js"></script>
+<script src="codemirror/mode/javascript/javascript.js"></script>
 <script src="codemirror/addon/hint/anyword-hint.js"></script>
 <script src="codemirror/addon/hint/show-hint.js"></script>
 <script src="codemirror/addon/hint/javascript-hint.js"></script>
@@ -41,39 +40,9 @@
 <script src="codemirror/addon/search/search.js"></script>
 <script src="codemirror/addon/search/searchcursor.js"></script>
 <script src="codemirror/addon/hint/wso2-hints.js"></script>
+<script src="../admin/js/main.js" type="text/javascript"></script>
 
-<script>
-    var myCodeMirror;
-    var scriptDisabled;
-    jQuery(document).ready(function () {
 
-        myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
-            keyMap: "sublime",
-            lineNumbers: true,
-            lineWrapping: true,
-            mode: "javascript",
-            lineWiseCopyCut: true,
-            pasteLinesPerSelection: true,
-            extraKeys: {
-                "Ctrl-Space": "autocomplete",
-                "F11": function (cm) {
-                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-                },
-                "Esc": function (cm) {
-                    if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-                }
-            },
-            indentWithTabs: true,
-            autoCloseBrackets: true,
-            matchBrackets: true,
-            gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-            foldGutter: true,
-            lint: true,
-            showCursorWhenSelecting: true,
-        });
-
-    });
-</script>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
 
 <%@page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig"%>
@@ -88,14 +57,11 @@
 <%@ page
 	import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
-<link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="breadcrumb.advanced.auth.step.config" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                     topPage="true" request="<%=request%>" />
 <jsp:include page="../dialog/display_messages.jsp"/>
 
-
-<script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
@@ -212,86 +178,141 @@ var img = "";
 
 
 
-	var idpNumber = 0; 
+	var idpNumber = 0;
 	var reqPathAuth  = 0;
 	var localAuthNumber = 0;
 
 	function createAppOnclick() {
-		
+
 			document.getElementById("configure-auth-flow-form").submit();
 	}
 
-    jQuery(document).ready(function(){
-        jQuery('#ReqPathAuth').hide();
-        jQuery('#authenticationConfRow').hide();
-        jQuery('#advanceAuthnConfRow').hide();
-        jQuery('#permissionConfRow').hide();
-        jQuery('#lamda_func_dropdown').hide();
-        jQuery('h2.trigger').click(function(){
-            if (jQuery(this).next().is(":visible")) {
-                this.className = "active trigger step_heads";
-            } else {
-                this.className = "trigger step_heads";
-            }
-            jQuery(this).next().slideToggle("fast");
-            return false; //Prevent the browser jump to the link anchor
-        })
-        jQuery('#stepsAddLink').click(function(){
-        	stepOrder++;
-        	jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_'+stepOrder+'" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="'+stepOrder+'" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step '+stepOrder+'</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_'+stepOrder+'"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_'+stepOrder+'" name="subject_step_'+stepOrder+'" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_'+stepOrder+'" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_'+stepOrder+'" name="attribute_step_'+stepOrder+'" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_'+stepOrder+'" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_'+stepOrder+'" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_'+stepOrder+'"><table class="styledLeft" width="100%" id="local_auth_table_'+stepOrder+'"><thead><tr><td><select name="step_'+stepOrder+'_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,'+stepOrder+');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_'+stepOrder+'" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_'+stepOrder+'"><table class="styledLeft" width="100%" id="fed_auth_table_'+stepOrder+'"><thead> <tr><td><select name="idpAuthType_'+stepOrder+'" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,'+stepOrder+');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
-        	if(!$('#stepsConfRow').is(":visible")){
-                $(jQuery('#stepsConfRow')).toggle();
-            }
-        	if(stepOrder == 1){
-        		$('#subject_step_'+stepOrder).attr('checked', true);
-        		$('#attribute_step_'+stepOrder).attr('checked', true);
-        	}
-        })
+	jQuery(document).ready(function () {
 
-        var template = {
-            "templateList": [{
-                "category": "User Role",
-                "type": [{
-                    "name": "ACR",
-                    "img": "./images/user.gif",
-                    "code": "function(context) {\n" +
-                    "\n" +
-                    "    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
-                    "\n" +
-                    "    log.info(\"--------------- ACR selected: \"+acr);\n" +
-                    "\n" +
-                    "    context.setSelectedAcr(acr);\n" +
-                    "\n" +
-                    "    switch(acr) {\n" +
-                    "        case \"acr1\" : executeStep({id :'1'});break;\n" +
-                    "        case \"acr2\" : executeStep({id :'1'}); executeStep({id :'2'});  break;\n" +
-                    "        case \"acr3\" : executeStep({id :'1'}); executeStep({id :'3'});  break;\n" +
-                    "        case \"acr4\" : executeStep({id :'1'}); executeStep({id :'4'});  break;\n" +
-                    "        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
-                    "    }\n" +
-                    "}\n",
-                    "help": "imply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged",
-                    "helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
-                }]
-            }]
-        };
+		var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
+			keyMap: "sublime",
+			lineNumbers: true,
+			lineWrapping: true,
+			mode: "javascript",
+			lineWiseCopyCut: true,
+			pasteLinesPerSelection: true,
+			extraKeys: {
+				"Ctrl-Space": "autocomplete",
+				"F11": function (myCodeMirror) {
+					myCodeMirror.setOption("fullScreen", !myCodeMirror.getOption("fullScreen"));
+				},
+				"Esc": function (myCodeMirror) {
+					if (myCodeMirror.getOption("fullScreen")) myCodeMirror.setOption("fullScreen", false);
+				}
+			},
+			indentWithTabs: true,
+			autoCloseBrackets: true,
+			matchBrackets: true,
+			gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+			foldGutter: false,
+			lint: true,
+			showCursorWhenSelecting: true,
+			styleActiveLine: true,
+		});
 
-        $.each(template.templateList, function (i, templateList) {
+		jQuery('#ReqPathAuth').hide();
+		jQuery('#authenticationConfRow').hide();
+		jQuery('#advanceAuthnConfRow').hide();
+		jQuery('#permissionConfRow').hide();
+		jQuery('#lamda_func_dropdown').hide();
+		jQuery('body').delegate("h2.trigger", 'click', bindHeadingCollapse);
 
-            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
-                '<a    href="#">' + templateList.category + '</a></h2></li>';
-            var details = '<ul class="normal details">';
-            $.each(templateList.type, function (i, type) {
+		function bindHeadingCollapse() {
+			if (jQuery(this).next().is(":visible")) {
+				this.className = "active trigger step_heads";
+			} else {
+				this.className = "trigger step_heads";
+			}
+			jQuery(this).next().slideToggle("fast");
 
-                details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
-                    '<span>' + type.name + '</span></a><a  title="' + type.help + '" class="helpLink" href=' + type.helpLink + ' target="_blank">' +
-                    '<img  style="float:right;" src="./images/help-small-icon.png"></a></li>';
-            });
-            details += '</ul>';
-            $(tempType).appendTo('#template_list').append(details);
-        });
+			var $el = $(this);
+			var $container = $el.siblings('ul');
+			if ($el === $("#template_list .type > h2")) {
+				$container.slideToggle(function () {
+					if ($container.css('display') == 'none') {
+						$el.addClass('active');
+					}
+					else {
+						$el.removeClass('active');
+					}
+				});
+			}
+			return false; //Prevent the browser jump to the link anchor
+		}
 
-        $('[data-toggle=template-link]').click(function (e) {
+		jQuery('#stepsAddLink').click(function () {
+			stepOrder++;
+			jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_' + stepOrder + '" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
+			if (!$('#stepsConfRow').is(":visible")) {
+				$(jQuery('#stepsConfRow')).toggle();
+			}
+			if (stepOrder == 1) {
+				$('#subject_step_' + stepOrder).attr('checked', true);
+				$('#attribute_step_' + stepOrder).attr('checked', true);
+			}
+		})
+		//TODO Add help text and document link
+		var template = {
+			"templateList": [{
+				"category": "Request Based",
+				"type": [{
+					"name": "ACR",
+					"img": "./images/user.gif",
+					"code": "function(context) {\n" +
+					"\n" +
+					"    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
+					"\n" +
+					"    log.info(\"--------------- ACR selected: \"+acr);\n" +
+					"\n" +
+					"    context.setSelectedAcr(acr);\n" +
+					"\n" +
+					"    switch(acr) {\n" +
+					"        case \"acr1\" : executeStep({id :'1'});break;\n" +
+					"        case \"acr2\" : executeStep({id :'1'}); executeStep({id :'2'});  break;\n" +
+					"        case \"acr3\" : executeStep({id :'1'}); executeStep({id :'3'});  break;\n" +
+					"        case \"acr4\" : executeStep({id :'1'}); executeStep({id :'4'});  break;\n" +
+					"        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'}); \n" +
+					"    }\n" +
+					"}\n",
+					"help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
+					"helpLink": "https://docs.wso2.com/display/IS540/WSO2+Identity+Server+Documentation"
+				}]
+			}]
+		};
+
+		$.each(template.templateList, function (i, templateList) {
+
+			var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
+				'<a    href="#">' + templateList.category + '</a></h2></li>';
+			var details = '<ul class="normal details">';
+			$.each(templateList.type, function (i, type) {
+
+				details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" data-type-name="' + type.name + '"><img src="' + type.img + '"/>' +
+					'<span>' + type.name + '</span></a><span  title="' + type.help + '" class="helpLink">' +
+					'<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
+			});
+			details += '</ul>';
+			$(tempType).appendTo('#template_list').append(details);
+		});
+
+		var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
+		var doc = myCodeMirror.getDoc();
+
+		myCodeMirror.on("change", function (instance, ch) {
+			cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+
+		});
+		myCodeMirror.on("beforeChange", function (instance, changeObj) {
+			cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+			startLine = cursorCoordsBeforeChange.line;
+		});
+
+		$('[data-toggle=template-link]').click(function (e) {
 			e.preventDefault();
 			var typeName = $(this).data('type-name');
 			var data;
@@ -307,8 +328,6 @@ var img = "";
 				});
 			});
 
-			var cm = $('.CodeMirror')[0].CodeMirror;
-			var doc = cm.getDoc();
 			var cursor = doc.getCursor();
 			var line = doc.getLine(cursor.line); // get the line contents
 			var pos = {
@@ -316,24 +335,23 @@ var img = "";
 				ch: line.length - 1
 			}
 			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
-        });
 
-        $('.type > h2').click(function (e) {
-            e.preventDefault();
+			var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+			var coordinatesLTB = myCodeMirror.cursorCoords();
+			if (startLine === cursorCoordsBeforeChange.ch) {
+				mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
+			} else {
+				mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
+			}
+			$('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
+			setTimeout(function () {
+				mark.clear();
+			}, 2000);
 
-            var $el = $(this);
-            var $container = $el.siblings('ul');
+		});
 
-            $container.slideToggle(function () {
-                if ($container.css('display') == 'none') {
-                    $el.addClass('active');
-                }
-                else {
-                    $el.removeClass('active');
-                }
-            });
-        });
-    });
+
+	});
 
     var deletePermissionRows = [];
     function deletePermissionRow(obj){
@@ -345,7 +363,7 @@ var img = "";
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-    
+
     function deleteStepRow(obj){
     	stepOrder--;
         jQuery(obj).parent().parent().remove();
@@ -353,7 +371,7 @@ var img = "";
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-    
+
     function deleteIDPRow(obj){
     	idpNumber--;
         jQuery(obj).parent().parent().remove();
@@ -361,7 +379,7 @@ var img = "";
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-    
+
     function deleteStep(obj){
 
         var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
@@ -379,27 +397,27 @@ var img = "";
         	var newStepOrderVal = 1;
         	$.each($('.step_heads'), function(){
         		var oldStepOrderVal = parseInt($(this).find('input[name="auth_step"]').val());
-        		
+
         		//Changes in header
         		$(this).attr('id','step_head_'+newStepOrderVal)
         		$(this).find('input[name="auth_step"]').val(newStepOrderVal);
         		$(this).find('.step_order_header').text('Step '+newStepOrderVal);
-        		
+
         		//Changes in content
         		var contentDiv = $('#step_dev_'+oldStepOrderVal);
         		if(contentDiv.length > 0){
             		contentDiv.attr('id','step_dev_'+newStepOrderVal);
-            		
+
             		var subjectStepInput = contentDiv.find('#subject_step_'+oldStepOrderVal);
             		subjectStepInput.attr('id', 'subject_step_'+newStepOrderVal);
             		subjectStepInput.attr('name', 'subject_step_'+newStepOrderVal);
             		contentDiv.find('label[for="subject_step_'+oldStepOrderVal+'"]').attr('for', 'subject_step_'+newStepOrderVal);
-            		
+
             		var attributeStepInput = contentDiv.find('#attribute_step_'+oldStepOrderVal);
             		attributeStepInput.attr('id', 'attribute_step_'+newStepOrderVal);
             		attributeStepInput.attr('name', 'attribute_step_'+newStepOrderVal);
             		contentDiv.find('label[for="attribute_step_'+oldStepOrderVal+'"]').attr('for', 'attribute_step_'+newStepOrderVal);
-            		
+
             		contentDiv.find('#local_auth_head_'+oldStepOrderVal).attr('id','local_auth_head_'+newStepOrderVal);
             		contentDiv.find('#local_auth_head_dev_'+oldStepOrderVal).attr('id','local_auth_head_dev_'+newStepOrderVal);
             		contentDiv.find('#local_auth_table_'+oldStepOrderVal).attr('id','local_auth_table_'+newStepOrderVal);
@@ -415,8 +433,8 @@ var img = "";
             		contentDiv.find('.claimMappingAddLinkssLocal').click(function(){
             			addLocalRow(this, tempStepOrderVal);return false;
             		});
-            		
-            		
+
+
             		if(contentDiv.find('#fed_auth_head_'+oldStepOrderVal).length > 0){
             			contentDiv.find('#fed_auth_head_'+oldStepOrderVal).attr('id','fed_auth_head_'+newStepOrderVal);
             			contentDiv.find('#fed_auth_head_dev_'+oldStepOrderVal).attr('id','fed_auth_head_dev_'+newStepOrderVal);
@@ -462,7 +480,7 @@ var img = "";
 		{
 			return false;
 		}
-		
+
 		jQuery(obj)
 				.parent()
 				.parent()
@@ -470,33 +488,31 @@ var img = "";
 				.parent()
 				.append(
 						jQuery('<tr><td><input name="step_'+ stepId +'_local_auth" id="" type="hidden" value="' + selectedAuthenticatorName + '" />'+ selectedAuthenticatorDisplayName +'</td><td class="leftCol-small" ><a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>'));	}
-	
-    
-    
+
 	function addIDPRow(obj, stepID) {
 		var selectedObj = jQuery(obj).prev().find(":selected");
-		var selectedIDPName = selectedObj.val(); 
-		if(!validateAuthenticators('step_'+stepID+'_fed_auth', selectedIDPName))
-		{
+		var selectedIDPName = selectedObj.val();
+		if (!validateAuthenticators('step_' + stepID + '_fed_auth', selectedIDPName)) {
 			return false;
 		}
-		
+
 		//var stepID = jQuery(obj).parent().children()[1].value;
-		var dataArray =  selectedObj.attr('data').split('%fed_auth_sep_%');
+		var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
 		var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
-		var newRow = '<tr><td><input name="step_'+ stepID +'_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_'+ stepID +'_idp_'+selectedIDPName+'_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
-		for(var i=0;i<dataArray.length;i++){
-			newRow+='<option value="'+valuesArray[i]+'">'+dataArray[i]+'</option>';	
+		var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
+		for (var i = 0; i < dataArray.length; i++) {
+			newRow += '<option value="' + valuesArray[i] + '">' + dataArray[i] + '</option>';
 		}
-		newRow+='</select></td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
+		newRow += '</select></td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
 		jQuery(obj)
-				.parent()
-				.parent()
-				.parent()
-				.parent()
-				.append(
-						jQuery(newRow));	}	
-	
+			.parent()
+			.parent()
+			.parent()
+			.parent()
+			.append(
+				jQuery(newRow));
+	}
+
 	function validateAuthenticators(itemName, authenticatorName){
 		if($('[name='+itemName+']').length > 0){
 			var isNew = true;
@@ -513,21 +529,21 @@ var img = "";
 		}
 		return true;
 	}
-	
+
 	function setSubjectStep(element){
 		$.each($('.subject_steps'), function(){
 			$(this).attr('checked', false);
 		});
 		$(element).attr('checked', true);
 	}
-	
+
 	function setAttributeStep(element){
 		$.each($('.attribute_steps'), function(){
 			$(this).attr('checked', false);
 		});
 		$(element).attr('checked', true);
 	}
-	
+
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -699,7 +715,7 @@ var img = "";
                             <td style="width: 20%">
                                 <div class="sectionSub step_contents" style="margin-bottom:10px;"
                                      id="codeMirrorTemplate">
-                                    <p class="templateHeading">Sample Functions</p>
+                                    <p class="templateHeading">Templates</p>
                                     <ul id='template_list'></ul>
                                 </div>
                             </td>
