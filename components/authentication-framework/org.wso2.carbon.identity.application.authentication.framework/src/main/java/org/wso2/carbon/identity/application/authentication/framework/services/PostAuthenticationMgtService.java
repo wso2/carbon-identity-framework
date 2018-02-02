@@ -34,10 +34,11 @@ public class PostAuthenticationMgtService {
         if (isPostAuthenticationInProgress(authenticationContext, postAuthenticationHandlers,
                 currentPostHandlerIndex)) {
 
-            for (int i = currentPostHandlerIndex; i < postAuthenticationHandlers.size(); i++) {
-                PostAuthenticationHandler currentHandler = postAuthenticationHandlers.get(i);
+            for (; currentPostHandlerIndex < postAuthenticationHandlers.size(); currentPostHandlerIndex++) {
+                PostAuthenticationHandler currentHandler = postAuthenticationHandlers.get(currentPostHandlerIndex);
                 if (executePostAuthnHandler(request, response, authenticationContext, currentHandler)) {
-                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                            .INCOMPLETE);
                     return;
                 }
             }
@@ -47,21 +48,6 @@ public class PostAuthenticationMgtService {
             markPostAuthenticationCompleted(authenticationContext);
         }
 
-    }
-
-    private boolean isPostAuthenticationInProgress(AuthenticationContext authenticationContext,
-                                                   List<PostAuthenticationHandler>
-                                                           postAuthenticationHandlers, int currentPostHandlerIndex) {
-
-        return !LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(authenticationContext) &&
-                postAuthenticationHandlers.size() > currentPostHandlerIndex;
-    }
-
-    private void markPostAuthenticationCompleted(AuthenticationContext authenticationContext) {
-
-        logDebug("Post authentication evaluation has completed for the flow with session data key" +
-                authenticationContext.getContextIdentifier());
-        LoginContextManagementUtil.markPostAuthenticaionCompleted(authenticationContext);
     }
 
     /**
@@ -84,8 +70,7 @@ public class PostAuthenticationMgtService {
             logDebug("Post authentication handler " + currentHandler.getName() + " returned with status : " +
                     flowStatus);
 
-            if (PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED.equals(flowStatus) || PostAuthnHandlerFlowStatus
-                    .UNSUCCESS_COMPLETED.equals(flowStatus)) {
+            if (isExecutionFinished(flowStatus)) {
                 logDebug("Post authentication handler " + currentHandler.getName() + " completed execution");
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
 
@@ -101,10 +86,31 @@ public class PostAuthenticationMgtService {
         return false;
     }
 
+    private boolean isExecutionFinished(PostAuthnHandlerFlowStatus flowStatus) {
+
+        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED.equals(flowStatus) || PostAuthnHandlerFlowStatus
+                .UNSUCCESS_COMPLETED.equals(flowStatus);
+    }
+
     private void logDebug(String message) {
 
         if (log.isDebugEnabled()) {
             log.debug(message);
         }
+    }
+
+    private boolean isPostAuthenticationInProgress(AuthenticationContext authenticationContext,
+                                                   List<PostAuthenticationHandler>
+                                                           postAuthenticationHandlers, int currentPostHandlerIndex) {
+
+        return !LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(authenticationContext) &&
+                postAuthenticationHandlers.size() > currentPostHandlerIndex;
+    }
+
+    private void markPostAuthenticationCompleted(AuthenticationContext authenticationContext) {
+
+        logDebug("Post authentication evaluation has completed for the flow with session data key" +
+                authenticationContext.getContextIdentifier());
+        LoginContextManagementUtil.markPostAuthenticaionCompleted(authenticationContext);
     }
 }

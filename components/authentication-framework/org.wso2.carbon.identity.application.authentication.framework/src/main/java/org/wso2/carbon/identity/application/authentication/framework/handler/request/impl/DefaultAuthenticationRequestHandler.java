@@ -133,14 +133,25 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // call step based sequence handler
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
-
+        // handle post authentication
         handlePostAuthentication(request, response, context);
         // if flow completed, send response back
-        if (LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context)) {
+        if (canConcludeFlow(context)) {
             concludeFlow(request, response, context);
-        } else { // redirecting outside
-            FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+        } else {
+            // persisting context before redirecting to outside.
+            persistCurrentContext(context);
         }
+    }
+
+    private void persistCurrentContext(AuthenticationContext context) {
+
+        FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+    }
+
+    private boolean canConcludeFlow(AuthenticationContext context) {
+
+        return LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context);
     }
 
     private void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
