@@ -181,7 +181,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 }
             } catch (IOException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims", "Error " +
-                        "while redirecting to request claims", e);
+                        "while redirecting to request claims page", e);
             } catch (URISyntaxException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while building redirect URI", e);
@@ -193,8 +193,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     }
 
     private void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
-            response,
-                                                                  AuthenticationContext context) throws PostAuthenticationFailedException {
+            response, AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (log.isDebugEnabled()) {
             log.debug("Starting to process the response with missing claims");

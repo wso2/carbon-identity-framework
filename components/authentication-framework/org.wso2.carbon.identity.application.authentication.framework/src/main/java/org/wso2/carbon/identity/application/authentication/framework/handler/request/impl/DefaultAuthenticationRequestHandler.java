@@ -167,7 +167,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if(log.isDebugEnabled()) {
                     log.debug("No post authentication service found. Hence not evaluating post authentication.");
                 }
-                LoginContextManagementUtil.markPostAuthenticaionCompleted(context);
+                LoginContextManagementUtil.markPostAuthenticationCompleted(context);
             }
         } else {
             log.debug("Sequence is not completed yet. Hence skipping post authentication");

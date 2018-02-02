@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.authentication.framework.services;
 
 import org.apache.commons.logging.Log;
@@ -16,10 +34,21 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Handles post authentication processors. Post authentication processors are registered as OSGI bundles.
+ */
 public class PostAuthenticationMgtService {
 
     private static final Log log = LogFactory.getLog(PostAuthenticationMgtService.class);
 
+    /**
+     * Handles post authentication upon an overall authentication event.
+     *
+     * @param request               HttpServletRequest.
+     * @param response              HttpServletResponse.
+     * @param authenticationContext Authentication context.
+     * @throws FrameworkException FrameworkException.
+     */
     public void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
                                          AuthenticationContext authenticationContext) throws FrameworkException {
 
@@ -92,13 +121,6 @@ public class PostAuthenticationMgtService {
                 .UNSUCCESS_COMPLETED.equals(flowStatus);
     }
 
-    private void logDebug(String message) {
-
-        if (log.isDebugEnabled()) {
-            log.debug(message);
-        }
-    }
-
     private boolean isPostAuthenticationInProgress(AuthenticationContext authenticationContext,
                                                    List<PostAuthenticationHandler>
                                                            postAuthenticationHandlers, int currentPostHandlerIndex) {
@@ -111,6 +133,13 @@ public class PostAuthenticationMgtService {
 
         logDebug("Post authentication evaluation has completed for the flow with session data key" +
                 authenticationContext.getContextIdentifier());
-        LoginContextManagementUtil.markPostAuthenticaionCompleted(authenticationContext);
+        LoginContextManagementUtil.markPostAuthenticationCompleted(authenticationContext);
+    }
+
+    private void logDebug(String message) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(message);
+        }
     }
 }

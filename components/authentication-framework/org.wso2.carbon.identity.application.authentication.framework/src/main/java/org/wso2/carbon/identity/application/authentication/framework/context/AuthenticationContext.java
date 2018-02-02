@@ -462,16 +462,29 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         return this.response;
     }
 
+    /**
+     * Returns current post authentication handler index which is in execution.
+     *
+     * @return Post handler index which is currently in execution.
+     */
     public int getCurrentPostAuthHandlerIndex() {
 
         return currentPostAuthHandlerIndex;
     }
 
+    /**
+     * List of post authentication handlers already executed.
+     * @return List of post authentication handlers already executed.
+     */
     public List<String> getExecutedPostAuthHandlers() {
 
         return executedPostAuthHandlers;
     }
 
+    /**
+     * Sets a post authentication handler.
+     * @param postAuthHandler Post Authentication Handler.
+     */
     public void setExecutedPostAuthHandler(String postAuthHandler) {
 
         this.executedPostAuthHandlers.add(postAuthHandler);
