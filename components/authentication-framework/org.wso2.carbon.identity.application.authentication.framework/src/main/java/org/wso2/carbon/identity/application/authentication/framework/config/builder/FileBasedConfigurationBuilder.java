@@ -63,6 +63,11 @@ public class FileBasedConfigurationBuilder {
     private static OMElement rootElement;
     private static Map<String, Object> configuration = new HashMap<String, Object>();
 
+    // HTTP headers which may contain IP address of the client in the order of priority
+    public static final String[] UNSUPPORTED_EXTENSIONS = {
+            FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER,
+            FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER};
+
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
 
@@ -360,9 +365,27 @@ public class FileBasedConfigurationBuilder {
         if (extensionsElem != null) {
             for (Iterator extChildElems = extensionsElem.getChildElements(); extChildElems.hasNext(); ) {
                 OMElement extensionElem = (OMElement) extChildElems.next();
-                instantiateClass(extensionElem);
+                if (isValidExtension(extensionElem)) {
+                    instantiateClass(extensionElem);
+                }
             }
         }
+    }
+
+    private boolean isValidExtension(OMElement extensionElement) {
+
+        String extensionName = extensionElement.getQName().getLocalPart();
+        String extensionClass = extensionElement.getText();
+
+        for (String unsupportedExtension : UNSUPPORTED_EXTENSIONS) {
+            if (unsupportedExtension.equalsIgnoreCase(extensionName)) {
+                log.warn("======== Extension " + extensionName + " With class " + extensionClass + " is no longer " +
+                        "supported. If you have customized the OOTB class please do an extension migration using " +
+                        "migration guide.");
+                return false;
+            }
+        }
+        return true;
     }
 
     private void readAuthenticationEndpointQueryParams(OMElement documentElement) {
