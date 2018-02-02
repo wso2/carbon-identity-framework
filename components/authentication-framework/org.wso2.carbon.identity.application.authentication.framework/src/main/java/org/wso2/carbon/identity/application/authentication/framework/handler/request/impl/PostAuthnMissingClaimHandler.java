@@ -26,7 +26,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
@@ -52,6 +51,11 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request
+        .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 
 public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
@@ -81,7 +85,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     @Override
     public String getName() {
 
-        return "MissingClaimHandler";
+        return "MissingClaimPostAuthnHandler";
     }
 
     @Override
@@ -96,7 +100,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("No authenticated user found. Hence returning without handling mandatory claims");
             }
-            return PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+            return UNSUCCESS_COMPLETED;
         }
         boolean postAuthRequestTriggered = isPostAuthRequestTriggered(context);
 
@@ -116,7 +120,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     private boolean isPostAuthRequestTriggered(AuthenticationContext context) {
 
-        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
+        Object object = context.getProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
         boolean postAuthRequestTriggered = false;
         if (object != null && object instanceof Boolean) {
             postAuthRequestTriggered = (boolean) object;
@@ -174,7 +178,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
                 response.sendRedirect(uriBuilder.build().toString());
-                context.setProperty(FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
+                context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
 
                 if (log.isDebugEnabled()) {
                     log.debug("Redirecting to outside to pick mandatory claims");

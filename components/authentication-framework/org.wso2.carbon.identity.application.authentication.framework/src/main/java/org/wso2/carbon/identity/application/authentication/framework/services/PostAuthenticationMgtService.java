@@ -52,13 +52,15 @@ public class PostAuthenticationMgtService {
     public void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
                                          AuthenticationContext authenticationContext) throws FrameworkException {
 
-        logDebug("Executing Post Authentication Management Service");
+        logDebug("Executing Post Authentication Management Service for context " +
+                authenticationContext.getContextIdentifier());
 
         List<PostAuthenticationHandler> postAuthenticationHandlers =
                 FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers();
 
         int currentPostHandlerIndex = authenticationContext.getCurrentPostAuthHandlerIndex();
-        logDebug("Starting from current post handler index " + currentPostHandlerIndex);
+        logDebug("Starting from current post handler index " + currentPostHandlerIndex + " for context : " +
+                authenticationContext.getContextIdentifier());
 
         if (isPostAuthenticationInProgress(authenticationContext, postAuthenticationHandlers,
                 currentPostHandlerIndex)) {
@@ -94,23 +96,25 @@ public class PostAuthenticationMgtService {
 
         if (currentHandler.isEnabled()) {
 
-            logDebug(currentHandler.getName() + " is enabled. Hence executing.");
+            logDebug(currentHandler.getName() + " is enabled. Hence executing for context : " + authenticationContext
+                    .getContextIdentifier());
             PostAuthnHandlerFlowStatus flowStatus = currentHandler.handle(request, response, authenticationContext);
             logDebug("Post authentication handler " + currentHandler.getName() + " returned with status : " +
-                    flowStatus);
+                    flowStatus + "for context identifier : " + authenticationContext.getContextIdentifier());
 
             if (isExecutionFinished(flowStatus)) {
-                logDebug("Post authentication handler " + currentHandler.getName() + " completed execution");
+                logDebug("Post authentication handler " + currentHandler.getName() + " completed execution for " +
+                        "session context : " + authenticationContext.getContextIdentifier());
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
 
             } else {
                 logDebug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence " +
-                        "returning");
+                        "returning for context : " + authenticationContext.getContextIdentifier());
                 return true;
             }
         } else {
             logDebug("Post authentication handler " + currentHandler.getName() + " is disabled. Hence returning" +
-                    " without executing");
+                    " without executing for context : " + authenticationContext.getContextIdentifier());
         }
         return false;
     }
