@@ -147,7 +147,6 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         // Mock conclude flow and post authentication flows to isolate remember me option
         doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
-        doReturn(true).when(authenticationRequestHandler).isPostAuthenticationExtensionCompleted(context);
 
         authenticationRequestHandler.handle(request, response, context);
 
@@ -247,31 +246,6 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testHandleAuthorization() throws Exception {
-    }
-
-    @DataProvider(name = "postAuthExtensionParam")
-    public Object[][] getPostAuthExtensionParam() {
-
-        return new Object[][]{
-                {Boolean.TRUE, true},
-                {Boolean.FALSE, false},
-                {null, false},
-                {new Object(), false}
-        };
-    }
-
-    @Test(dataProvider = "postAuthExtensionParam")
-    public void testIsPostAuthenticationExtensionCompleted(Object postAuthExtensionCompleted,
-                                                           boolean expectedResult) throws Exception {
-
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext
-                .setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, postAuthExtensionCompleted);
-
-        assertEquals(
-                authenticationRequestHandler.isPostAuthenticationExtensionCompleted(authenticationContext),
-                expectedResult
-        );
     }
 
     @DataProvider(name = "errorInfoDataProvider")
