@@ -193,8 +193,8 @@ public class NotificationApi {
 
         String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         List<Property> properties = resetPasswordRequest.getProperties();
-        for(Property property : properties){
-            if(StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())){
+        for (Property property : properties) {
+            if (StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())) {
                 userTenantDomain = property.getValue();
                 properties.remove(property);
                 break;
