@@ -26,6 +26,7 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class IdentityClaimManager {
 
@@ -96,7 +97,7 @@ public class IdentityClaimManager {
             throws IdentityException {
 
         ClaimManager claimAdmin;
-        ArrayList<Claim> requiredClaims = new ArrayList<Claim>();
+        List<Claim> requiredClaims = new ArrayList<>();
 
         try {
 
