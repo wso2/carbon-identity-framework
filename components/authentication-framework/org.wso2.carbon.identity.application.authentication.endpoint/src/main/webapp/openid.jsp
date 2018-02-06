@@ -17,7 +17,6 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@include file="localize.jsp" %>
 
 <form action="../commonauth" method="post" id="loginForm" class="form-horizontal">
     <%

@@ -20,7 +20,6 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@include file="localize.jsp" %>
 
 <form action="../commonauth" method="post" id="loginForm">
     <% if (Boolean.parseBoolean(loginFailed)) { %>
