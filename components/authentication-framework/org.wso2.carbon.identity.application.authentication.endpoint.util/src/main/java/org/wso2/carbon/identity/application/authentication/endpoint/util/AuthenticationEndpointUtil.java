@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import org.owasp.encoder.Encode;
-
 
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
@@ -132,12 +131,10 @@ public class AuthenticationEndpointUtil {
                    }
     }
 
-
     public static ResourceBundle getResourceBundle (String bundle, Locale locale){
                 ResourceBundle.Control control = new EncodedControl(StandardCharsets.UTF_8.toString());
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, locale, control);
                 return resourceBundle;
     }
-
 
 }
