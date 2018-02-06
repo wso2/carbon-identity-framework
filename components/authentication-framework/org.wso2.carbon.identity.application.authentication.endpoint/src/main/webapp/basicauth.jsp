@@ -33,6 +33,7 @@
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
 
+
 <script>
         function submitCredentials () {
             var userName = document.getElementById("username");
@@ -72,12 +73,14 @@
         Response selfRegistrationResponse = selfUserRegistrationResource.regenerateCode(selfRegistrationRequest);
         if (selfRegistrationResponse != null &&  selfRegistrationResponse.getStatus() == HttpStatus.SC_CREATED) {
 %>
-<div class="alert alert-info"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_SUCCESS_RESOURCE)) %>
+<div class="alert alert-info">
+    <%=AuthenticationEndpointUtil.i18n(resourceBundle,Constants.ACCOUNT_RESEND_SUCCESS_RESOURCE)%>
 </div>
 <%
 } else {
 %>
-<div class="alert alert-danger"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_FAIL_RESOURCE))  %>
+<div class="alert alert-danger">
+    <%=AuthenticationEndpointUtil.i18n(resourceBundle,Constants.ACCOUNT_RESEND_FAIL_RESOURCE)%>
 </div>
 <%
         }
@@ -108,20 +111,21 @@
     %>
 
     <% if (Boolean.parseBoolean(loginFailed)) { %>
-    <div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %>
+    <div class="alert alert-danger" id="error-msg"><%= AuthenticationEndpointUtil.i18n(resourceBundle, errorMessage) %>
     </div>
     <%}else if((Boolean.TRUE.toString()).equals(request.getParameter("authz_failure"))){%>
-    <div class="alert alert-danger" id="error-msg">You are not authorized to login
+    <div class="alert alert-danger" id="error-msg">
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "unauthorized.to.login")%>
     </div>
     <%}%>
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="Username" required>
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%>" required>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
-               placeholder="Password" autocomplete="off">
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%>" autocomplete="off">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
@@ -141,7 +145,8 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="checkbox">
             <label>
-                <input type="checkbox" id="chkRemember" name="chkRemember"> Remember me on this computer
+                <input type="checkbox" id="chkRemember" name="chkRemember">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "remember.me")%>
             </label>
         </div>
         <br>
@@ -149,7 +154,8 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit" onclick="submitCredentials()">Sign in
+                    type="submit" onclick="submitCredentials()">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
@@ -173,24 +179,32 @@
 
                 if (isRecoveryEPAvailable()) {
         %>
-        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Password </a>
+        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
+        </a>
         <br/><br/>
-        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">Forgot Username </a>
+        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
+        </a>
         <br/><br/>
         <%
                 }
                 if (isSelfSignUpEPAvailable()) {
         %>
-        Don't have an account?
-        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">Register Now</a>
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.account")%>
+        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "register.now")%>
+        </a>
         <%
                 }
             }
         %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
-        Not received confirmation email ?
-        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">Re-Send</a>
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
+        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
+        </a>
 
         <%}%>
     </div>
