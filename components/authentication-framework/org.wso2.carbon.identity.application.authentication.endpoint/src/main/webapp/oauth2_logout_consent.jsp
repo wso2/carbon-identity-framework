@@ -16,13 +16,13 @@
   ~ under the License.
   --%>
 
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@include file="localize.jsp" %>
 
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -58,7 +58,7 @@
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
 
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
             </a>
         </div>
     </div>
@@ -74,7 +74,7 @@
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
                     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                        OpenID Connect Logout
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid.connect.logout")%>
                     </h2>
                 </div>
 
@@ -85,7 +85,10 @@
                           class="form-horizontal">
                         <div class="padding-double login-form">
                             <div class="form-group">
-                                <p><strong>Do you want to Logout?</strong></p>
+                                <p><strong>
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "do.you.want.to.logout")%>
+                                    </strong>
+                                </p>
                             </div>
                             <table width="100%" class="styledLeft">
                                 <tbody>
@@ -94,8 +97,9 @@
                                         <div style="text-align:left;">
                                             <input type="button" class="btn btn-primary" id="approve" name="approve"
                                                    onclick="javascript: approved(); return false;"
-                                                   value="Yes"/>
-                                            <input class="btn" type="reset" value="No"
+                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "yes")%>"/>
+                                            <input class="btn" type="reset"
+                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "no")%>"
                                                    onclick="javascript: deny(); return false;"/>
                                         </div>
 
@@ -119,9 +123,11 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p>WSO2 Identity Server | &copy;
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
             <script>document.write(new Date().getFullYear());</script>
-            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
         </p>
     </div>
 </footer>
@@ -130,4 +136,3 @@
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
 </body>
 </html>
-
