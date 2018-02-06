@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,8 @@
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 <%@ page import="java.net.URLDecoder" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@include file="localize.jsp" %>
+
 <html>
 <head></head>
 <body>
@@ -33,13 +35,14 @@
                 replaceAll("<", "&lt;").replaceAll(">", "&gt;").replace("\n", "");
     }
 %>
-<p>You are now redirected back to <%=Encode.forHtmlContent(assertionConsumerURL)%>. If the
-   redirection fails, please click the post button.</p>
+<p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "you.are.redirected.back.to")%>
+    <%=Encode.forHtmlContent(assertionConsumerURL)%>.
+    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "if.the.redirection.fails.please.click")%>.</p>
 
 <form method="post" action="<%=assertionConsumerURL%>">
     <p><input type="hidden" name="SAMLResponse" value="<%=Encode.forHtmlAttribute(samlResp)%>"/>
         <input type="hidden" name="RelayState" value="<%=Encode.forHtmlAttribute(relayState)%>"/>
-        <button type="submit">POST</button>
+        <button type="submit"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "post")%></button>
     </p>
 </form>
 

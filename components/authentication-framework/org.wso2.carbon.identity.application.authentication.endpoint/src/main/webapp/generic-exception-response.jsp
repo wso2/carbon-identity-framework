@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -16,14 +16,15 @@
   ~ under the License.
   --%>
 
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@include file="localize.jsp" %>
+
 <%
     String stat = request.getParameter("status");
     String statusMessage = request.getParameter("statusMsg");
     if (stat == null || statusMessage == null) {
-        stat = "Authentication Error !";
-        statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
+        stat = AuthenticationEndpointUtil.i18n(resourceBundle, "authentication.error");
+        statusMessage = AuthenticationEndpointUtil.i18n(resourceBundle,"something.went.wrong.during.authentication");
     }
     session.invalidate();
 %>
@@ -54,7 +55,3 @@
         </table>
     </div>
 </div>
-
-
-
-
