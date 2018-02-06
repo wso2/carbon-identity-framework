@@ -32,14 +32,18 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtValidationListener;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -49,6 +53,10 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +86,19 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
                     null);
             buildFileBasedSPList();
+
+            // Check whether the needed database schema change is there to store certificates in the database;
+            // If yes, set a flag to be used in other operations.
+            if (isDatabaseBackedCertificateStoringSupportAvailable()) {
+                log.info("Database backed application certificate storing feature is available.");
+                ApplicationManagementServiceComponentHolder.getInstance().
+                        setDatabaseBackedCertificateStoringSupportAvailable(true);
+            } else {
+                log.info("Database backed application certificate storing feature is NOT available. " +
+                        "Keystores (JKS) will be used for storing application certificates.");
+                ApplicationManagementServiceComponentHolder.getInstance().
+                        setDatabaseBackedCertificateStoringSupportAvailable(false);
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
@@ -206,4 +227,59 @@ public class ApplicationManagementServiceComponent {
         }
     }
 
+    /**
+     * Per SP certificate storing (in the DB) is shipped as an update to this version.
+     * It needs a database schema change. If the schema change is not done, the existing code should work without an
+     * error.
+     * This method returns true, of the schema change is done, false otherwise.
+     *
+     * @return
+     */
+    private boolean isDatabaseBackedCertificateStoringSupportAvailable() {
+
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+        } catch (IdentityRuntimeException e) {
+            return false;
+        }
+
+
+        if (connection != null) {
+            PreparedStatement preparedStatement = null;
+            ResultSet results = null;
+            try {
+                String sql;
+                if (connection.getMetaData().getDriverName().contains("MySQL")
+                        || connection.getMetaData().getDriverName().contains("H2")) {
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL;
+                } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_DB2SQL;
+                } else if (connection.getMetaData().getDriverName().contains("MS SQL") ||
+                        connection.getMetaData().getDriverName().contains("Microsoft")) {
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MSSQL;
+                } else if (connection.getMetaData().getDriverName().contains("PostgreSQL")) {
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL;
+                } else if (connection.getMetaData().getDriverName().contains("Informix")) {
+                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_INFORMIX;
+                } else {
+                    sql = ApplicationMgtDBQueries.CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_ORACLE;
+                }
+
+                preparedStatement = connection.prepareStatement(sql);
+
+                // Executing the query will throw an exception if the needed database scheme is not there.
+                results = preparedStatement.executeQuery();
+
+                // If we are here, it means the needed database schema is there.
+                return true;
+            } catch (SQLException ignore) {
+            } finally {
+                IdentityApplicationManagementUtil.closeResultSet(results);
+                IdentityApplicationManagementUtil.closeStatement(preparedStatement);
+            }
+        }
+        return false;
+    }
 }

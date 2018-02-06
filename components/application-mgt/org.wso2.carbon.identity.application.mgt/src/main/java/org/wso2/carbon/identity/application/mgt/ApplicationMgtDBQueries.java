@@ -49,6 +49,10 @@ public class ApplicationMgtDBQueries {
                                                                              "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE = "UPDATE SP_APP SET AUTH_TYPE=? WHERE TENANT_ID= ? " +
                                                                      "AND ID = ?";
+    public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
+            "ID = ?";
+    public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
+            "VALUES(?, ?, ?)";
     public static final String UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES = "UPDATE SP_APP SET PROVISIONING_USERSTORE_" +
                                                                           "DOMAIN=?, IS_DUMB_MODE=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_SP_PERMISSIONS = "UPDATE UM_PERMISSION SET UM_RESOURCE_ID=? WHERE UM_ID=?";
@@ -168,5 +172,20 @@ public class ApplicationMgtDBQueries {
                                                  "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 
+    public static final String GET_CERTIFICATE_BY_ID = "SELECT CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE WHERE ID = ?";
+
+    public static final String GET_CERTIFICATE_ID_BY_NAME = "SELECT ID FROM IDN_CERTIFICATE WHERE NAME = ? AND " +
+            "TENANT_ID = ?";
+    public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL = "SELECT ID FROM IDN_CERTIFICATE " +
+            "LIMIT 1";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_DB2SQL = "SELECT ID FROM IDN_CERTIFICATE " +
+            "FETCH FIRST 1 ROWS ONLY";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MSSQL = "SELECT TOP 1 ID FROM " +
+            "IDN_CERTIFICATE";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_INFORMIX = "SELECT FIRST 1 ID " +
+            "FROM IDN_CERTIFICATE";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_ORACLE = "SELECT ID FROM " +
+            "IDN_CERTIFICATE WHERE ROWNUM < 2";
 
 }

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -65,6 +66,7 @@ public class ApplicationMgtUtil {
     private static String applicationNode;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
@@ -504,6 +506,18 @@ public class ApplicationMgtUtil {
 
         return CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR + APPLICATION_ROOT_PERMISSION;
 
+    }
+
+    /**
+     * Returns true, of the database schema change is done for per SP certificate storing.
+     * For more info, see
+     * {@link ApplicationManagementServiceComponent#isDatabaseBackedCertificateStoringSupportAvailable()}
+     *
+     * @return
+     */
+    public static boolean isPerSPCertificateSupportAvailable() {
+        return ApplicationManagementServiceComponentHolder.getInstance().
+                isDatabaseBackedCertificateStoringSupportAvailable();
     }
 
     /**

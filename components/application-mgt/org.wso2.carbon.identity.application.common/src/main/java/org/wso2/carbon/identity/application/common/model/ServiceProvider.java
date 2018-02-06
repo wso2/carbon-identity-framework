@@ -35,6 +35,7 @@ public class ServiceProvider implements Serializable {
     private int applicationID = 0;
     private String applicationName;
     private String description;
+    private String certificateContent;
     private User owner;
     private InboundAuthenticationConfig inboundAuthenticationConfig;
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
@@ -45,6 +46,8 @@ public class ServiceProvider implements Serializable {
     private PermissionsAndRoleConfig permissionAndRoleConfig;
     private boolean saasApp;
     private ServiceProviderProperty []spProperties = new ServiceProviderProperty[0];
+    private boolean perSPCertificateSupportAvailable;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -319,5 +322,42 @@ public class ServiceProvider implements Serializable {
 
     public void setSpProperties(ServiceProviderProperty[] spProperties) {
         this.spProperties = spProperties;
+    }
+
+    /**
+     *
+     * Returns the certificate content
+     *
+     * @return the certificate in PEM format.
+     */
+    public String getCertificateContent() {
+        return certificateContent;
+    }
+
+    /**
+     *
+     * Sets the given certificate.
+     *
+     * @param certificateContent the certificate in PEM format
+     */
+    public void setCertificateContent(String certificateContent) {
+        this.certificateContent = certificateContent;
+    }
+
+    /**
+     * Sets whether the per SP certificate support is available.
+     * TODO: Get rid of this in the public branch since this was introduced to safeguard the backward compatibility.
+     * @param perSPCertificateSupportAvailable true if the per SP certificate support is available, false otherwise.
+     */
+    public void setPerSPCertificateSupportAvailable(boolean perSPCertificateSupportAvailable) {
+        this.perSPCertificateSupportAvailable = perSPCertificateSupportAvailable;
+    }
+
+    /**
+     * Returns true if the per SP certificate support is available, false otherwise.
+     * @return
+     */
+    public boolean isPerSPCertificateSupportAvailable() {
+        return perSPCertificateSupportAvailable;
     }
 }

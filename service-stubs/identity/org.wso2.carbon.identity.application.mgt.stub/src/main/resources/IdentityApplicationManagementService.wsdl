@@ -134,6 +134,7 @@
             <xs:sequence>
                <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+               <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2168:ClaimConfig"/>
                <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2168:InboundAuthenticationConfig"/>
@@ -141,6 +142,7 @@
                <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true" type="ax2168:LocalAndOutboundAuthenticationConfig"/>
                <xs:element minOccurs="0" name="outboundProvisioningConfig" nillable="true" type="ax2168:OutboundProvisioningConfig"/>
                <xs:element minOccurs="0" name="owner" nillable="true" type="ax2168:User"/>
+               <xs:element minOccurs="0" name="perSPCertificateSupportAvailable" type="xs:boolean"/>
                <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2168:PermissionsAndRoleConfig"/>
                <xs:element maxOccurs="unbounded" minOccurs="0" name="requestPathAuthenticatorConfigs" nillable="true" type="ax2168:RequestPathAuthenticatorConfig"/>
                <xs:element minOccurs="0" name="saasApp" type="xs:boolean"/>

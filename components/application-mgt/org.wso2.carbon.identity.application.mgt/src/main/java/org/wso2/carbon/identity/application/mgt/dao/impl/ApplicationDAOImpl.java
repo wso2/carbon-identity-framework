@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -39,9 +40,12 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
@@ -295,7 +299,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection;
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Couldn't get a database connection.", e);
+        }
+
         int applicationId = serviceProvider.getApplicationID();
 
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -313,6 +323,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // update basic information of the application.
             // you can change application name, description, isSasApp...
             updateBasicApplicationData(serviceProvider, connection);
+
+            // In order to support per SP certificate, a database schema change is needed.
+            // The reason is, this support is shipped as an update.
+            // Therefore, only update the certificate if the needed schema is there.
+            if (ApplicationMgtUtil.isPerSPCertificateSupportAvailable()) {
+                updateApplicationCertificate(serviceProvider, tenantID, connection);
+            }
+
             updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                     connection);
 
@@ -372,6 +390,215 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * Updates the application certificate record in the database, with the certificate in the given service provider
+     * object. If the certificate content is available in the given service provider and a reference is not available,
+     * create a new database record for the certificate and add the reference to the given service provider object.
+     *
+     * @param serviceProvider
+     * @param tenantID
+     * @param connection
+     * @throws SQLException
+     */
+    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID,
+                                              Connection connection) throws SQLException {
+
+        // If the certificate content is empty, remove the certificate reference property if exists.
+        // And remove the certificate.
+        if (StringUtils.isBlank(serviceProvider.getCertificateContent())) {
+
+            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+
+            if (serviceProviderProperties != null) {
+
+                // Get the index of the certificate reference property index in the properties array.
+                int certificateReferenceIdIndex = -1;
+                String certificateReferenceId = null;
+                for (int i = 0; i < serviceProviderProperties.length; i++) {
+                    if ("CERTIFICATE".equals(serviceProviderProperties[i].getName())) {
+                        certificateReferenceIdIndex = i;
+                        certificateReferenceId = serviceProviderProperties[i].getValue();
+                        break;
+                    }
+                }
+
+                // If there is a certificate reference, remove it from the properties array.
+                // Removing will be done by creating a new array and copying the elements other than the
+                // certificate reference from the existing array,
+                if (certificateReferenceIdIndex > -1) {
+
+                    ServiceProviderProperty[] propertiesWithoutCertificateReference =
+                            new ServiceProviderProperty[serviceProviderProperties.length - 1];
+
+                    System.arraycopy(serviceProviderProperties, 0, propertiesWithoutCertificateReference,
+                            0, certificateReferenceIdIndex);
+                    System.arraycopy(serviceProviderProperties, certificateReferenceIdIndex + 1,
+                            propertiesWithoutCertificateReference, certificateReferenceIdIndex,
+                            propertiesWithoutCertificateReference.length - certificateReferenceIdIndex);
+
+                    serviceProvider.setSpProperties(propertiesWithoutCertificateReference);
+                    deleteCertificate(connection, Integer.parseInt(certificateReferenceId));
+                }
+            }
+        } else {
+            // First get the certificate reference from the application properties.
+            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+
+            String certificateReferenceId = getCertificateReferenceID(serviceProviderProperties);
+
+            // If there is a reference, update the relevant certificate record.
+            if (certificateReferenceId != null) { // Update the existing record.
+                PreparedStatement statementToUpdateCertificate = null;
+                try {
+                    statementToUpdateCertificate = connection.prepareStatement(ApplicationMgtDBQueries.
+                            UPDATE_CERTIFICATE);
+                    statementToUpdateCertificate.setString(1, serviceProvider.getCertificateContent());
+                    statementToUpdateCertificate.setString(2, certificateReferenceId);
+
+                    statementToUpdateCertificate.executeUpdate();
+                } finally {
+                    IdentityApplicationManagementUtil.closeStatement(statementToUpdateCertificate);
+                }
+            } else {
+                // There is no existing reference. Persist the certificate in the given service provider as a new record.
+                persistApplicationCertificate(serviceProvider, tenantID, connection);
+            }
+        }
+    }
+
+    /**
+     * Returns the certificate reference ID from the given service provider properties.
+     *
+     * @param serviceProviderProperties
+     * @return
+     */
+    private String getCertificateReferenceID(ServiceProviderProperty[] serviceProviderProperties) {
+        String certificateReferenceId = null;
+        if (serviceProviderProperties != null) {
+            for (ServiceProviderProperty property : serviceProviderProperties) {
+                if ("CERTIFICATE".equals(property.getName())) {
+                    certificateReferenceId = property.getValue();
+                }
+            }
+        }
+        return certificateReferenceId;
+    }
+
+    /**
+     * Persists the certificate content of the given service provider object,
+     * and adds ID of the newly added certificate as a property of the service provider object.
+     *
+     * @param serviceProvider
+     * @param tenantID
+     * @param connection
+     * @throws SQLException
+     */
+    private void persistApplicationCertificate(ServiceProvider serviceProvider, int tenantID,
+                                               Connection connection) throws SQLException {
+
+        // Configure the prepared statement to collect the auto generated id of the database record.
+        PreparedStatement statementToAddCertificate = null;
+        ResultSet results = null;
+        try {
+
+            String dbProductName = connection.getMetaData().getDatabaseProductName();
+            statementToAddCertificate = connection.prepareStatement(
+                    ApplicationMgtDBQueries.ADD_CERTIFICATE,
+                    new String[]{DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
+
+            statementToAddCertificate.setString(1, serviceProvider.getApplicationName());
+            statementToAddCertificate.setString(2, serviceProvider.getCertificateContent());
+            statementToAddCertificate.setInt(3, tenantID);
+            statementToAddCertificate.execute();
+
+            results = statementToAddCertificate.getGeneratedKeys();
+
+            int newlyAddedCertificateID = 0;
+            if (results.next()) {
+                newlyAddedCertificateID = results.getInt(1);
+            }
+
+            // Not all JDBC drivers support getting the auto generated database ID.
+            // So if the ID is not returned, get the ID by querying the database passing the certificate name.
+            if (newlyAddedCertificateID == 0) {
+                if (log.isDebugEnabled()) {
+                    log.debug("JDBC Driver did not return the application id, executing Select operation");
+                }
+                newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(),
+                        tenantID, connection);
+            }
+            addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
+       } finally {
+            IdentityApplicationManagementUtil.closeResultSet(results);
+            IdentityApplicationManagementUtil.closeStatement(statementToAddCertificate);
+        }
+    }
+
+    /**
+     * Add the given certificate ID as a property of the given service provider object.
+     *
+     * @param serviceProvider
+     * @param newlyAddedCertificateID
+     */
+    private void addApplicationCertificateReferenceAsServiceProviderProperty(ServiceProvider serviceProvider,
+                                                                             int newlyAddedCertificateID) {
+        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+        ServiceProviderProperty[] newServiceProviderProperties;
+        if (serviceProviderProperties != null) {
+            newServiceProviderProperties = new ServiceProviderProperty[
+                    serviceProviderProperties.length + 1];
+
+            for (int i = 0; i < serviceProviderProperties.length; i++) {
+                newServiceProviderProperties[i] = serviceProviderProperties[i];
+            }
+        } else {
+            newServiceProviderProperties = new ServiceProviderProperty[1];
+        }
+
+        ServiceProviderProperty propertyForCertificate = new ServiceProviderProperty();
+        propertyForCertificate.setDisplayName("CERTIFICATE");
+        propertyForCertificate.setName("CERTIFICATE");
+        propertyForCertificate.setValue(String.valueOf(newlyAddedCertificateID));
+
+        newServiceProviderProperties[newServiceProviderProperties.length - 1] = propertyForCertificate;
+
+        serviceProvider.setSpProperties(newServiceProviderProperties);
+    }
+
+    /**
+     * Returns the database ID of the certificate with the given certificate name and the tenant ID.
+     *
+     * @param applicationName
+     * @param tenantID
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
+    private int getCertificateIDByName(String applicationName, int tenantID, Connection connection)
+            throws SQLException {
+
+        PreparedStatement statementToGetCertificateId = null;
+        ResultSet results = null;
+        try {
+            statementToGetCertificateId = connection.prepareStatement(
+                    ApplicationMgtDBQueries.GET_CERTIFICATE_ID_BY_NAME);
+            statementToGetCertificateId.setString(1, applicationName);
+            statementToGetCertificateId.setInt(2, tenantID);
+
+            results = statementToGetCertificateId.executeQuery();
+
+            int applicationId = -1;
+            while (results.next()) {
+                applicationId = results.getInt(1);
+            }
+
+            return applicationId;
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(results);
+            IdentityApplicationManagementUtil.closeStatement(statementToGetCertificateId);
         }
     }
 
@@ -1320,14 +1547,75 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
 
+            // In order to support per SP certificate, a database schema change is needed.
+            // The reason is, this support is shipped as an update.
+            // Therefore check whether needed support is there to persist a certificate for the given service provider.
+            if (ApplicationMgtUtil.isPerSPCertificateSupportAvailable()) {
+                serviceProvider.setPerSPCertificateSupportAvailable(true);
+                serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+            } else {
+                serviceProvider.setPerSPCertificateSupportAvailable(false);
+            }
+
             return serviceProvider;
 
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Failed to update service provider "
+        } catch (SQLException | CertificateRetrievingException e) {
+            throw new IdentityApplicationManagementException("Failed to retrieve service provider "
                     + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    /**
+     * Retrieves the certificate content from the database using the certificate reference id property of a
+     * service provider.
+     *
+     * @param serviceProviderProperties
+     * @param connection
+     * @return
+     * @throws CertificateRetrievingException
+     */
+    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties, Connection connection)
+            throws CertificateRetrievingException {
+
+        String certificateReferenceId = null;
+        for (ServiceProviderProperty property : serviceProviderProperties) {
+            if ("CERTIFICATE".equals(property.getName())) {
+                certificateReferenceId = property.getValue();
+            }
+        }
+
+        if (certificateReferenceId != null) {
+
+            PreparedStatement statementForFetchingCertificate = null;
+            ResultSet results = null;
+            try {
+                statementForFetchingCertificate = connection.prepareStatement(
+                        ApplicationMgtDBQueries.GET_CERTIFICATE_BY_ID);
+                statementForFetchingCertificate.setInt(1, Integer.parseInt(certificateReferenceId));
+
+                results = statementForFetchingCertificate.executeQuery();
+
+                String certificateContent = null;
+                while (results.next()) {
+                    certificateContent = results.getString("CERTIFICATE_IN_PEM");
+                }
+
+                if (certificateContent != null) {
+                    return certificateContent;
+                }
+            } catch (SQLException e) {
+                String errorMessage = String.format("An error occurred while retrieving the certificate for the " +
+                        "application.");
+                log.error(errorMessage);
+                throw new CertificateRetrievingException(errorMessage, e);
+            } finally {
+                IdentityApplicationManagementUtil.closeResultSet(results);
+                IdentityApplicationManagementUtil.closeStatement(statementForFetchingCertificate);
+            }
+        }
+        return null;
     }
 
     /**
@@ -2517,6 +2805,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         // Now, delete the application
         PreparedStatement deleteClientPrepStmt = null;
         try {
+
+            // Delete the application certificate if there is any.
+            deleteCertificate(connection, appName, tenantID);
+
             // First, delete all the clients of the application
             int applicationID = getApplicationIDByName(appName, tenantID, connection);
             InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID,
@@ -2536,8 +2828,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 connection.commit();
             }
 
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error deleting application", e);
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ignore) {
+                }
+            }
+            String errorMessege = "An error occured while delete the application : " + appName;
+            log.error(errorMessege, e);
+            throw new IdentityApplicationManagementException(errorMessege, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
             IdentityApplicationManagementUtil.closeConnection(connection);
@@ -2753,6 +3053,55 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteRoleMappingPrepStmt.execute();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteRoleMappingPrepStmt);
+        }
+    }
+
+    /**
+     *
+     * Delete the certificate of the given application if there is one.
+     *
+     * @param connection
+     * @param appName
+     * @param tenantID
+     * @throws UserStoreException
+     * @throws IdentityApplicationManagementException
+     * @throws SQLException
+     */
+    private void deleteCertificate(Connection connection, String appName, int tenantID)
+            throws UserStoreException, IdentityApplicationManagementException, SQLException {
+
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+
+        if(tenantID != MultitenantConstants.SUPER_TENANT_ID){
+            Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenant(tenantID);
+            tenantDomain = tenant.getDomain();
+        }
+
+        ServiceProvider application = getApplication(appName, tenantDomain);
+        String certificateReferenceID = getCertificateReferenceID(application.getSpProperties());
+
+        if (certificateReferenceID != null) {
+            deleteCertificate(connection, Integer.parseInt(certificateReferenceID));
+        }
+    }
+
+    /**
+     * Deletes the certificate for given ID from the database.
+     * @param connection
+     * @param id
+     */
+    private void deleteCertificate(Connection connection, int id) throws SQLException {
+
+        PreparedStatement statementToRemoveCertificate = null;
+        try{
+
+            statementToRemoveCertificate = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_CERTIFICATE);
+            statementToRemoveCertificate.setInt(1, id);
+            statementToRemoveCertificate.execute();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(statementToRemoveCertificate);
         }
     }
 
