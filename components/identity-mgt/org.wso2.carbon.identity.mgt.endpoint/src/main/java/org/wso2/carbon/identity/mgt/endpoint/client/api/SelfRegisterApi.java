@@ -48,7 +48,7 @@ public class SelfRegisterApi {
 
     String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
             .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/user/v0.9");
+                    "api/identity/user/v1.0");
     private ApiClient apiClient;
 
     public SelfRegisterApi() {
@@ -90,7 +90,7 @@ public class SelfRegisterApi {
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
                     .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/"+tenantDomain+"/api/identity/user/v0.9");
+                            "t/"+tenantDomain+"/api/identity/user/v1.0");
         }
         apiClient.setBasePath(basePath);
 
@@ -151,7 +151,7 @@ public class SelfRegisterApi {
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
                     .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/"+tenantDomain+"/api/identity/user/v0.9");
+                            "t/"+tenantDomain+"/api/identity/user/v1.0");
         }
 
         apiClient.setBasePath(basePath);
@@ -212,7 +212,7 @@ public class SelfRegisterApi {
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
                     .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/user/v0.9");
+                            "t/" + tenantDomain + "/api/identity/user/v1.0");
         }
 
         apiClient.setBasePath(basePath);
