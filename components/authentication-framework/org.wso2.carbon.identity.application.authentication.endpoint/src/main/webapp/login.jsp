@@ -27,6 +27,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 <%@ page import="java.net.URL" %>
+<%@include file="localize.jsp" %>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -37,9 +38,6 @@
 %>
 
     <%
-        String BUNDLE = "org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-
         request.getSession().invalidate();
         String queryString = request.getQueryString();
         Map<String, String> idpAuthenticatorMapping = null;
@@ -47,7 +45,7 @@
             idpAuthenticatorMapping = (Map<String, String>) request.getAttribute(Constants.IDP_AUTHENTICATOR_MAP);
         }
 
-        String errorMessage = "Authentication Failed! Please Retry";
+        String errorMessage = "authentication.failed.please.retry";
         String errorCode = "";
         if(request.getParameter(Constants.ERROR_CODE)!=null){
             errorCode = request.getParameter(Constants.ERROR_CODE) ;
@@ -56,8 +54,9 @@
 
         if (Boolean.parseBoolean(request.getParameter(Constants.AUTH_FAILURE))) {
             loginFailed = "true";
-            if (request.getParameter(Constants.AUTH_FAILURE_MSG) != null) {
-                errorMessage = resourceBundle.getString(request.getParameter(Constants.AUTH_FAILURE_MSG));
+            String error = request.getParameter(Constants.AUTH_FAILURE_MSG);
+            if (error != null && !error.isEmpty()) {
+                errorMessage = error;
             }
         }
     %>

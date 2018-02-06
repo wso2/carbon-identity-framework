@@ -22,6 +22,14 @@
 <%
     String errorCode = request.getParameter("oauthErrorCode");
     String errorMsg = request.getParameter("oauthErrorMsg");
+    String regex = "application=";
+    String errorMsgContext = errorMsg;
+    String errorMsgApp = "";
+    String[] error = errorMsg.split(regex);
+    if (error.length > 1) {
+        errorMsgContext = errorMsg.split(regex)[0] + regex;
+        errorMsgApp = errorMsg.split(regex)[1];
+    }
 %>
 
 <html>
@@ -95,11 +103,11 @@
                                         if (errorCode != null && errorMsg != null) {
                                     %>
                                     <tr>
-                                        <td><b><%=Encode.forHtmlContent(errorCode)%>
+                                        <td><b><%=AuthenticationEndpointUtil.i18n(resourceBundle, errorCode)%>
                                         </b></td>
                                     </tr>
                                     <tr>
-                                        <td><%=Encode.forHtmlContent(errorMsg)%>
+                                        <td><%=AuthenticationEndpointUtil.i18nBase64(resourceBundle, errorMsgContext)%><%=Encode.forHtml(errorMsgApp)%>
                                         </td>
                                     </tr>
                                     <%

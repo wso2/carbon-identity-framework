@@ -25,7 +25,7 @@
 
     %>
     <div class="alert alert-danger">
-        <%=AuthenticationEndpointUtil.i18n(resourceBundle,request.getParameter("errorMessage"))%>
+         <%=AuthenticationEndpointUtil.i18nBase64(resourceBundle,request.getParameter("errorMessage"))%>
     </div>
     <% } %>
 

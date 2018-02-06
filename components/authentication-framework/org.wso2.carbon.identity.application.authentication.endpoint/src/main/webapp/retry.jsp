@@ -26,7 +26,11 @@
         String statusMessage = request.getParameter("statusMsg");
         if (stat == null || statusMessage == null) {
             stat = AuthenticationEndpointUtil.i18n(resourceBundle, "authentication.error");
-            statusMessage = AuthenticationEndpointUtil.i18n(resourceBundle,"something.went.wrong.during.authentication");
+            statusMessage =  AuthenticationEndpointUtil.i18n(resourceBundle,
+                    "something.went.wrong.during.authentication");
+        } else {
+            stat = AuthenticationEndpointUtil.i18nBase64(resourceBundle, stat);
+            statusMessage = AuthenticationEndpointUtil.i18nBase64(resourceBundle, statusMessage);
         }
         session.invalidate();
     %>
