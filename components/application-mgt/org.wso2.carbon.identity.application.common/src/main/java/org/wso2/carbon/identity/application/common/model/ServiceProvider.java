@@ -46,7 +46,6 @@ public class ServiceProvider implements Serializable {
     private PermissionsAndRoleConfig permissionAndRoleConfig;
     private boolean saasApp;
     private ServiceProviderProperty []spProperties = new ServiceProviderProperty[0];
-    private boolean perSPCertificateSupportAvailable;
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -342,22 +341,5 @@ public class ServiceProvider implements Serializable {
      */
     public void setCertificateContent(String certificateContent) {
         this.certificateContent = certificateContent;
-    }
-
-    /**
-     * Sets whether the per SP certificate support is available.
-     * TODO: Get rid of this in the public branch since this was introduced to safeguard the backward compatibility.
-     * @param perSPCertificateSupportAvailable true if the per SP certificate support is available, false otherwise.
-     */
-    public void setPerSPCertificateSupportAvailable(boolean perSPCertificateSupportAvailable) {
-        this.perSPCertificateSupportAvailable = perSPCertificateSupportAvailable;
-    }
-
-    /**
-     * Returns true if the per SP certificate support is available, false otherwise.
-     * @return
-     */
-    public boolean isPerSPCertificateSupportAvailable() {
-        return perSPCertificateSupportAvailable;
     }
 }

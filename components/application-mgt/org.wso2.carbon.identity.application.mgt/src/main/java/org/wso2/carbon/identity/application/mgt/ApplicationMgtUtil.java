@@ -509,18 +509,6 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Returns true, of the database schema change is done for per SP certificate storing.
-     * For more info, see
-     * {@link ApplicationManagementServiceComponent#isDatabaseBackedCertificateStoringSupportAvailable()}
-     *
-     * @return
-     */
-    public static boolean isPerSPCertificateSupportAvailable() {
-        return ApplicationManagementServiceComponentHolder.getInstance().
-                isDatabaseBackedCertificateStoringSupportAvailable();
-    }
-
-    /**
      * Get Property values
      *
      * @param tenantDomain Tenant domain

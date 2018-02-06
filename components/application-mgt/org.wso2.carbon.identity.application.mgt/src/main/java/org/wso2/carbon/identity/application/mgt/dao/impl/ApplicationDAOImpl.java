@@ -80,6 +80,8 @@ import java.util.Map.Entry;
  */
 public class ApplicationDAOImpl implements ApplicationDAO {
 
+    private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
     private List<String> standardInboundAuthTypes;
@@ -324,12 +326,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // you can change application name, description, isSasApp...
             updateBasicApplicationData(serviceProvider, connection);
 
-            // In order to support per SP certificate, a database schema change is needed.
-            // The reason is, this support is shipped as an update.
-            // Therefore, only update the certificate if the needed schema is there.
-            if (ApplicationMgtUtil.isPerSPCertificateSupportAvailable()) {
-                updateApplicationCertificate(serviceProvider, tenantID, connection);
-            }
+            updateApplicationCertificate(serviceProvider, tenantID, connection);
 
             updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                     connection);
@@ -479,7 +476,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         String certificateReferenceId = null;
         if (serviceProviderProperties != null) {
             for (ServiceProviderProperty property : serviceProviderProperties) {
-                if ("CERTIFICATE".equals(property.getName())) {
+                if (SP_PROPERTY_NAME_CERTIFICATE.equals(property.getName())) {
                     certificateReferenceId = property.getValue();
                 }
             }
@@ -1546,16 +1543,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
-
-            // In order to support per SP certificate, a database schema change is needed.
-            // The reason is, this support is shipped as an update.
-            // Therefore check whether needed support is there to persist a certificate for the given service provider.
-            if (ApplicationMgtUtil.isPerSPCertificateSupportAvailable()) {
-                serviceProvider.setPerSPCertificateSupportAvailable(true);
-                serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
-            } else {
-                serviceProvider.setPerSPCertificateSupportAvailable(false);
-            }
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             return serviceProvider;
 

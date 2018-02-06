@@ -92,7 +92,7 @@ location.href = "list-service-providers.jsp";
         // One usage in this scenario is, using the certificate inside SAML SP metadata.
         String applicationCertificate = (String) session.getAttribute("applicationCertificate");
 
-        if(applicationCertificate!= null){
+        if (applicationCertificate!= null) {
             appBean.getServiceProvider().setCertificateContent(applicationCertificate);
             session.removeAttribute("applicationCertificate");
         }
@@ -825,10 +825,6 @@ function updateBeanAndPostTo(postURL, data) {
                             </div>
                         </td>
                     </tr>
-                    <%
-                        // Add the certificate UI only if the needed database schema is there.
-                        if (appBean.getServiceProvider().getPerSPCertificateSupportAvailable()) {
-                    %>
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
                         <td>
@@ -838,8 +834,6 @@ function updateBeanAndPostTo(postURL, data) {
                             </div>
                         </td>
                     </tr>
-                    <% }
-                    %>
                     <tr>
                     	<td class="leftCol-med">
                              <label for="isSaasApp"><fmt:message key="config.application.isSaasApp"/></label>
