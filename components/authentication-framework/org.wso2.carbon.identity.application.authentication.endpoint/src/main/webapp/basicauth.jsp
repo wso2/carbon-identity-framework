@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
+<%@include file="localize.jsp" %>
 
 <script>
         function submitCredentials () {
@@ -72,12 +73,14 @@
         Response selfRegistrationResponse = selfUserRegistrationResource.regenerateCode(selfRegistrationRequest);
         if (selfRegistrationResponse != null &&  selfRegistrationResponse.getStatus() == HttpStatus.SC_CREATED) {
 %>
-<div class="alert alert-info"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_SUCCESS_RESOURCE)) %>
+<div class="alert alert-info">
+    <%=AuthenticationEndpointUtil.i18n(resourceBundle,Constants.ACCOUNT_RESEND_SUCCESS_RESOURCE)%>
 </div>
 <%
 } else {
 %>
-<div class="alert alert-danger"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_FAIL_RESOURCE))  %>
+<div class="alert alert-danger">
+    <%=AuthenticationEndpointUtil.i18n(resourceBundle,Constants.ACCOUNT_RESEND_FAIL_RESOURCE)%>
 </div>
 <%
         }
@@ -111,19 +114,18 @@
     <div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %>
     </div>
     <%}else if((Boolean.TRUE.toString()).equals(request.getParameter("authz_failure"))){%>
-    <div class="alert alert-danger" id="error-msg">You are not authorized to login
+    <div class="alert alert-danger" id="error-msg">
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "unauthorized.to.login")%>
     </div>
     <%}%>
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="<%=StringUtils.isNotBlank(resourceBundle.getString("username")) ?
-               resourceBundle.getString("username") : "Username"%>" required>
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%>" required>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
-               placeholder="<%=StringUtils.isNotBlank(resourceBundle.getString("password")) ?
-               resourceBundle.getString("password") : "Password"%>" autocomplete="off">
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%>" autocomplete="off">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
@@ -144,8 +146,7 @@
         <div class="checkbox">
             <label>
                 <input type="checkbox" id="chkRemember" name="chkRemember">
-                <%=StringUtils.isNotBlank(resourceBundle.getString("remember.me")) ?
-                    resourceBundle.getString("remember.me") : "Remember me on this computer"%>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "remember.me")%>
             </label>
         </div>
         <br>
@@ -154,8 +155,7 @@
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                     type="submit" onclick="submitCredentials()">
-                <%=StringUtils.isNotBlank(resourceBundle.getString("login")) ?
-                        resourceBundle.getString("login") : "Sign in"%>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
@@ -180,24 +180,20 @@
                 if (isRecoveryEPAvailable()) {
         %>
         <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=StringUtils.isNotBlank(resourceBundle.getString("forgot.password")) ?
-                    resourceBundle.getString("forgot.password") : "Forgot Password"%>
-            </a>
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
+        </a>
         <br/><br/>
         <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=StringUtils.isNotBlank(resourceBundle.getString("forgot.username")) ?
-                    resourceBundle.getString("forgot.username") : "Forgot Username"%>
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
         </a>
         <br/><br/>
         <%
                 }
                 if (isSelfSignUpEPAvailable()) {
         %>
-        <%=StringUtils.isNotBlank(resourceBundle.getString("no.account")) ?
-                resourceBundle.getString("register.now") : "Don't have an account?"%>
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.account")%>
         <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=StringUtils.isNotBlank(resourceBundle.getString("no.account")) ?
-                    resourceBundle.getString("register.now") : "Register Now"%>
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "register.now")%>
         </a>
         <%
                 }
@@ -205,11 +201,9 @@
         %>
         <br/>
         <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
-        <%=StringUtils.isNotBlank(resourceBundle.getString("no.confirmation.mail")) ?
-                resourceBundle.getString("no.confirmation.mail") : "Not received confirmation email?"%>
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
         <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
-            <%=StringUtils.isNotBlank(resourceBundle.getString("resend.mail")) ?
-                    resourceBundle.getString("resend.mail") : "Re-Send"%>
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
         </a>
 
         <%}%>

@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,8 @@
 
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@include file="localize.jsp" %>
+
 <%
     String loggedInUser = request.getParameter("loggedInUser");
     String scopeString = request.getParameter("scope");
@@ -29,7 +30,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -66,7 +67,7 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
             </a>
         </div>
     </div>
@@ -81,8 +82,8 @@
             <!-- content -->
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
-                    <h2
-                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Authorize
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "authorize")%>
                     </h2>
                 </div>
 
@@ -91,9 +92,9 @@
                     <form action="../oauth2/authorize" method="post" id="oauth2_authz" name="oauth2_authz" class="form-horizontal" >
                         <div class="padding-double login-form">
                             <div class="form-group">
-                                <p><strong>
-                                    <%=Encode.forHtml(request.getParameter("application"))%>
-                                </strong> requests access to your profile information </p>
+                                <p><strong><%=Encode.forHtml(request.getParameter("application"))%></strong>
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
+                                </p>
                                 <%
                                     if (displayScopes && scopeString != null) {
                                 %>
@@ -123,13 +124,16 @@
                                 <div style="text-align:left;">
                                     <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                            onclick="javascript: approved(); return false;"
-                                           value="Approve"/>
+                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                    "approve")%>"/>
                                     <input type="button" class="btn" id="chkApprovedAlways"
                                            onclick="javascript: approvedAlways(); return false;"
-                                           value="Approve Always"/>
+                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                    "approve.always")%>"/>
                                     <input type="hidden" id="hasApprovedAlways" name="hasApprovedAlways"
                                            value="false"/>
-                                    <input class="btn" type="reset" value="Deny"
+                                    <input class="btn" type="reset"
+                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
                                            onclick="javascript: deny(); return false;"/>
                                 </div>
 
@@ -149,7 +153,7 @@
             </div>
 
 
-            </div>
+        </div>
             <!-- /content -->
 
         </div>
@@ -161,7 +165,12 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p>WSO2 Identity Server | &copy; <script>document.write(new Date().getFullYear());</script> <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.</p>
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
+            <script>document.write(new Date().getFullYear());</script>
+            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
+        </p>
     </div>
 </footer>
 
