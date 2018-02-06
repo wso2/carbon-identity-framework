@@ -46,8 +46,6 @@
         IdentityProvider identityProvider = IdPManagementUIUtil
                 .buildFederatedIdentityProvider(request, new StringBuilder());
         client.addIdP(identityProvider);
-        String message = MessageFormat.format(resourceBundle.getString("success.adding.idp"), null);
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.adding.idp"),
                 new Object[]{e.getMessage()});
