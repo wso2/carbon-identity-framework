@@ -26,7 +26,7 @@
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
 
-    if(StringUtils.isBlank(tenantDomain)) {
+    if (StringUtils.isBlank(tenantDomain)) {
         tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
     }
     if (StringUtils.isBlank(callback)) {
