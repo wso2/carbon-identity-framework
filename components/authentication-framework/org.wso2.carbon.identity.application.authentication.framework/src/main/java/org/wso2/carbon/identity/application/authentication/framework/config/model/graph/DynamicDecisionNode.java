@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class DynamicDecisionNode implements AuthGraphNode {
 
-    private Map<String, Object> functionMap = new HashMap<>();
+    private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
 
     @Override
@@ -37,11 +37,11 @@ public class DynamicDecisionNode implements AuthGraphNode {
         return null;
     }
 
-    public Map<String, Object> getFunctionMap() {
+    public Map<String, SerializableJsFunction> getFunctionMap() {
         return Collections.unmodifiableMap(functionMap);
     }
 
-    public void addFunction(String outcome, Object function) {
+    public void addFunction(String outcome, SerializableJsFunction function) {
         functionMap.put(outcome, function);
     }
 

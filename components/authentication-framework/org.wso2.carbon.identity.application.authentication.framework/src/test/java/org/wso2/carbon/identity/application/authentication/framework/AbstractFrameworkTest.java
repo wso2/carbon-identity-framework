@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 import javax.xml.stream.XMLStreamException;
 
 public class AbstractFrameworkTest {
@@ -41,6 +42,7 @@ public class AbstractFrameworkTest {
         authenticationContext.setServiceProviderName(serviceProvider.getApplicationName());
         authenticationContext.setTenantDomain("test_domain");
         authenticationContext.setCurrentStep(1);
+        authenticationContext.setContextIdentifier(UUID.randomUUID().toString());
         return authenticationContext;
     }
 }

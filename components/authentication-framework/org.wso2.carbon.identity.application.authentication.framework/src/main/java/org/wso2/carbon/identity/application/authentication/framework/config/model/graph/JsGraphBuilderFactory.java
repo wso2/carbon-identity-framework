@@ -22,10 +22,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.PersistableBindings;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
-import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Map;
@@ -40,38 +40,57 @@ import javax.script.ScriptEngineManager;
  */
 public class JsGraphBuilderFactory {
 
-    private JavascriptCache javascriptCache;
+    private static final String JS_BINDING_GLOBAL_SCOPE = "JS_BINDING_GLOBAL_SCOPE";
     private JsFunctionRegistryImpl jsFunctionRegistry;
-    private ScriptEngine engine = null;
+    private ScriptEngineManager nashornScriptManager;
 
     private static final Log jsLog = LogFactory
             .getLog(JsGraphBuilder.class.getPackage().getName() + ".JsBasedSequence");
 
     public void init() {
-        engine = new ScriptEngineManager().getEngineByName("nashorn");
+        nashornScriptManager = new ScriptEngineManager();
+    }
+
+    public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
+
+        ScriptEngine engine = nashornScriptManager.getEngineByName("nashorn");
+        PersistableBindings engineBindings = (PersistableBindings) authenticationContext.getProperty("JS_ENGINE_SCOPE");
+        Bindings previousGlobalBindings = (Bindings) authenticationContext.getProperty(JS_BINDING_GLOBAL_SCOPE);
+        PersistableBindings globalBindings = null;
+        if (engineBindings == null) {
+            if (previousGlobalBindings != null) {
+                Bindings previousEngineBindings = new PersistableBindings(
+                        (Map) previousGlobalBindings.get("nashorn.global"));
+                engineBindings = new PersistableBindings(previousEngineBindings);
+            } else {
+                engineBindings = new PersistableBindings();
+            }
+        }
+        if (globalBindings == null) {
+            globalBindings = new PersistableBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE));
+        }
+        authenticationContext.setProperty(JS_BINDING_GLOBAL_SCOPE, globalBindings);
+
+        engine.setBindings(engineBindings, ScriptContext.ENGINE_SCOPE);
+        engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
         Bindings bindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("log", jsLog); //TODO: Depricated. Remove log.x()
+        bindings.put("Log", jsLog); //TODO: Depricated. Remove log.x()
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, (SelectOneFunction) selectAcrFromFunction::evaluate);
+        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                (SelectOneFunction) selectAcrFromFunction::evaluate);
 
         JsLogger jsLogger = new JsLogger();
         bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        return engine;
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
             Map<Integer, StepConfig> stepConfigMap) {
-        JsGraphBuilder result =   new JsGraphBuilder(authenticationContext, stepConfigMap, engine);
-        result.setJavascriptCache(javascriptCache);
+        JsGraphBuilder result = new JsGraphBuilder(authenticationContext, stepConfigMap,
+                createEngine(authenticationContext));
         result.setJsFunctionRegistry(jsFunctionRegistry);
         return result;
-    }
-
-    public ScriptEngine getEngine() {
-        return engine;
-    }
-
-    public JavascriptCache getJavascriptCache() {
-        return javascriptCache;
     }
 
     public JsFunctionRegistryImpl getJsFunctionRegistry() {
@@ -80,9 +99,5 @@ public class JsGraphBuilderFactory {
 
     public void setJsFunctionRegistry(JsFunctionRegistryImpl jsFunctionRegistry) {
         this.jsFunctionRegistry = jsFunctionRegistry;
-    }
-
-    public void setJavascriptCache(JavascriptCache javascriptCache) {
-        this.javascriptCache = javascriptCache;
     }
 }

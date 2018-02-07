@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
-import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -54,7 +52,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
     protected JsGraphBuilderFactory graphBuilderFactory;
-    protected JavascriptCache javascriptCache;
 
     @BeforeClass
     protected void setupSuite() {
@@ -64,8 +61,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
         graphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
 
-        javascriptCache = new JavascriptCacheImpl();
-        graphBuilderFactory.setJavascriptCache(javascriptCache);
         graphBuilderFactory.init();
         configurationLoader.setJsGraphBuilderFactory(graphBuilderFactory);
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
@@ -77,10 +72,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         URL root = this.getClass().getClassLoader().getResource(".");
         File file = new File(root.getPath());
         System.setProperty("carbon.home", file.toString());
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
+        resetAuthenticators();
 
         FrameworkServiceDataHolder.getInstance().setRealmService(mock(RealmService.class));
 
@@ -101,7 +93,15 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         configFilePathField.set(null, url.getPath());
     }
 
-    private static class MockSubjectCallback implements SubjectCallback, Serializable {
+    protected void resetAuthenticators() {
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
+        FrameworkServiceDataHolder.getInstance().getAuthenticators()
+                .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
+    }
+
+    protected static class MockSubjectCallback implements SubjectCallback, Serializable {
 
         private static final long serialVersionUID = 597048141496121100L;
 
