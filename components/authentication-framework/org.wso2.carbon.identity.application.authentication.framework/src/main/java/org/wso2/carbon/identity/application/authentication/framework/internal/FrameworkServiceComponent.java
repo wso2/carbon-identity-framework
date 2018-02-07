@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Au
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
-import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -93,7 +92,6 @@ public class FrameworkServiceComponent {
     private HttpService httpService;
     private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
     private JsGraphBuilderFactory jsGraphBuilderFactory;
-    private JavascriptCacheImpl javascriptCache;
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -205,10 +203,8 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
-        javascriptCache = new JavascriptCacheImpl();
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
-        jsGraphBuilderFactory.setJavascriptCache(javascriptCache);
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
