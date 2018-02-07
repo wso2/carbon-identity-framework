@@ -98,7 +98,7 @@ footer a, footer a:hover {
     font-weight: normal;
     font-size: 13px;
     color: #fff;
-    background: #5d81d2;
+    background:#333;
     padding: 10px 10px;
     display: inline-block;
     border: none;
@@ -109,7 +109,7 @@ button.grey-bg:hover {
 .wr-btn:hover {
     text-decoration: none;
     color: #ffffff;
-    background-color: #6b94f1;
+    background-color: #3A9ECF;
 }
 button.grey-bg {
     background-color: #222222;
