@@ -37,6 +37,8 @@ public class ApplicationManagementServiceComponentHolder {
 
     private ConfigurationContextService configContextService;
 
+    private boolean databaseBackedCertificateStoringSupportAvailable;
+
     private ApplicationManagementServiceComponentHolder(){
     }
 
@@ -103,5 +105,11 @@ public class ApplicationManagementServiceComponentHolder {
         this.configContextService = configContextService;
     }
 
+    public void setDatabaseBackedCertificateStoringSupportAvailable(boolean databaseBackedCertificateStoringSupportAvailable) {
+        this.databaseBackedCertificateStoringSupportAvailable = databaseBackedCertificateStoringSupportAvailable;
+    }
 
+    public boolean isDatabaseBackedCertificateStoringSupportAvailable() {
+        return databaseBackedCertificateStoringSupportAvailable;
+    }
 }
