@@ -23,6 +23,8 @@
     <test name="identity-base-test-all">
         <classes>
             <class name="org.wso2.carbon.user.mgt.UserRealmProxyTest"/>
+            <class name="org.wso2.carbon.user.mgt.UserDeletionEventListenerTest"/>
+            <class name="org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorderTest" />
         </classes>
     </test>
 </suite>
