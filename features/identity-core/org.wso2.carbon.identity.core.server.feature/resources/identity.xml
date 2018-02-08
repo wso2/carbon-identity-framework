@@ -611,6 +611,7 @@
 
     <ResourceAccessControl>
         <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/consent-mgt/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="POST">
@@ -709,6 +710,7 @@
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v0.9/</Context>
+            <Context>/api/identity/consent-mgt/v1.0/</Context>
             <Context>/api/identity/recovery/v0.9/</Context>
             <Context>/oauth2/</Context>
             <Context>/scim2/</Context>
