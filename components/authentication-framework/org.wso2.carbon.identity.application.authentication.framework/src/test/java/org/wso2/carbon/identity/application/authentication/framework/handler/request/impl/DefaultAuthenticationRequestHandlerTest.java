@@ -334,7 +334,7 @@ public class DefaultAuthenticationRequestHandlerTest {
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
     }
 
-    @Test (expectedExceptions = PostAuthenticationFailedException.class)
+    @Test(expectedExceptions = PostAuthenticationFailedException.class)
     public void testPostAuthenticationHandlerFailures() throws Exception {
 
         Cookie[] cookies = new Cookie[1];
@@ -348,7 +348,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE, pastrCookie);
         when(request.getCookies()).thenReturn(cookies);
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
-                (new Cookie(FrameworkConstants.PASTR_COOKIE , "someGibberishValue"));
+                (new Cookie(FrameworkConstants.PASTR_COOKIE, "someGibberishValue"));
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
@@ -373,7 +373,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setCompleted(isCompleted);
         context.setSequenceConfig(sequenceConfig);
-
     }
 
     private void addApplicationConfig(AuthenticationContext context) {

@@ -549,7 +549,6 @@ public class FrameworkUtils {
     public static Cookie getAuthCookie(HttpServletRequest req) {
 
         return getCookie(req, FrameworkConstants.COMMONAUTH_COOKIE);
-
     }
 
     /**

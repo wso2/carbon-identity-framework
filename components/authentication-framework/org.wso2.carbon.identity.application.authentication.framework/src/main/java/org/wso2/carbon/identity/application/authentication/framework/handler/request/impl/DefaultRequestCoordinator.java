@@ -590,14 +590,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
+
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             authnDataPublisherProxy.publishAuthenticationFailure(request, context,
                     unmodifiableParamMap);
-
         }
     }
-
 }

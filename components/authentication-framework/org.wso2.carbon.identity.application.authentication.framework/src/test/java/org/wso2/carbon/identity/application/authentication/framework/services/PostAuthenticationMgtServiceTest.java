@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.services;
 
-import org.opensaml.ws.wssecurity.Username;
 import org.powermock.api.mockito.PowerMockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -44,6 +43,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+/**
+ * Tests for PostAuthenticationManagement Service.
+ */
 public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
 
     private PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
@@ -220,7 +222,6 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
                 throw new PostAuthenticationFailedException("Error while checking admin user", "Error while " +
                         "redirecting");
             }
-
         }
 
         @Override
