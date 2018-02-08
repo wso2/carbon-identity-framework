@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
@@ -32,7 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
@@ -53,8 +53,10 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -83,6 +85,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Get authentication request cache entry
+     *
      * @param request Http servlet request
      * @return Authentication request cache entry
      */
@@ -155,7 +158,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
-
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
@@ -178,6 +180,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.error("Error occurred while evaluating post authentication", e);
             }
+            FrameworkUtils.removeCookie(request, response, FrameworkConstants.PASTR_COOKIE);
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
             try {
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointRetryURL());
@@ -239,7 +243,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             log.debug("Initializing the flow");
         }
 
-
         // "sessionDataKey" - calling servlet maintains its state information
         // using this
         String callerSessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
@@ -275,7 +278,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (log.isDebugEnabled()) {
             log.debug("Framework contextId: " + contextId);
         }
-
 
         // if this a logout request from the calling servlet
         if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) != null) {
@@ -315,9 +317,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Sets the requested ACR values to the context if available.
+     *
      * @param request
      */
     private List<String> getAcrRequested(HttpServletRequest request) {
+
         List<String> result = Collections.emptyList();
         String requestType = request.getParameter(FrameworkConstants.RequestParams.TYPE);
         if (StringUtils.isNotBlank(request.getParameter("acr_values")) && !"null"
@@ -334,8 +338,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
             LinkedHashSet list = new LinkedHashSet();
             for (String acrValue : acrValues) {
-                String translatedValue =  acrValue;
-                if(translator != null) {
+                String translatedValue = acrValue;
+                if (translator != null) {
                     String internalAcr = translator.translateToInternalAcr(acrValue, requestType);
                     if (internalAcr == null) {
                         String errorMessage = String.format("An internal acr_value mapping is not configured"
@@ -349,7 +353,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
                 list.add(translatedValue);
             }
-            if(!list.isEmpty())  {
+            if (!list.isEmpty()) {
                 result = new ArrayList<>(list);
             }
         }
@@ -357,6 +361,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private String getCallerPath(HttpServletRequest request) throws FrameworkException {
+
         String callerPath = request.getParameter(FrameworkConstants.RequestParams.CALLER_PATH);
         try {
             if (callerPath != null) {
@@ -369,6 +374,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
+
         String tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
 
         if (tenantDomain == null || tenantDomain.isEmpty() || "null".equals(tenantDomain)) {
@@ -396,16 +402,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                                     AuthenticationContext context) throws FrameworkException {
 
         List<String> acrRequested = getAcrRequested(request);
-        if(acrRequested != null) {
-            for(String acr: acrRequested) {
+        if (acrRequested != null) {
+            for (String acr : acrRequested) {
                 context.addRequestedAcr(acr);
             }
         }
         // Get service provider chain
         SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
 
-        if(acrRequested != null) {
-            for(String acr: acrRequested) {
+        if (acrRequested != null) {
+            for (String acr : acrRequested) {
                 effectiveSequence.addRequestedAcr(acr);
             }
         }
@@ -444,12 +450,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                     context.setPreviousSessionFound(true);
 
-                    if (!isReinitialize(previousAuthenticatedSeq, effectiveSequence, request, context)){
+                    if (!isReinitialize(previousAuthenticatedSeq, effectiveSequence, request, context)) {
                         if (log.isDebugEnabled()) {
                             log.debug("Previous Sequence should be used without change");
                         }
                         try {
-                            effectiveSequence = (SequenceConfig)previousAuthenticatedSeq.clone();
+                            effectiveSequence = (SequenceConfig) previousAuthenticatedSeq.clone();
                         } catch (CloneNotSupportedException e) {
                             throw new FrameworkException("Exception when trying to clone the Previous Authentication " +
                                     "Sequence object of SP:" + appName, e);
@@ -500,17 +506,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     /**
      * Checks whether the sequence needs re-initializing, when there is an existing user session.
      *
-     * @param previousAuthenticatedSeq  The previous(last) sequence-config used to authenticate.
-     * @param sequenceConfig Current sequence config, which is the candiate to be used on authentication.
-     * @param request Incoming HTTP request.
-     * @param context Current authentication Context.
+     * @param previousAuthenticatedSeq The previous(last) sequence-config used to authenticate.
+     * @param sequenceConfig           Current sequence config, which is the candiate to be used on authentication.
+     * @param request                  Incoming HTTP request.
+     * @param context                  Current authentication Context.
      * @return true if there is a need to reinitialize.
      */
     private boolean isReinitialize(SequenceConfig previousAuthenticatedSeq, SequenceConfig sequenceConfig,
                                    HttpServletRequest request, AuthenticationContext context) {
+
         List<String> newAcrList = getAcrRequested(request);
         List<String> previousAcrList = previousAuthenticatedSeq.getRequestedAcr();
-        if(newAcrList != null && !newAcrList.isEmpty() && isDifferent(newAcrList, previousAcrList)) {
+        if (newAcrList != null && !newAcrList.isEmpty() && isDifferent(newAcrList, previousAcrList)) {
             return true;
         }
 
@@ -519,11 +526,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private boolean isDifferent(List<String> newAcrList, List<String> previousAcrList) {
 
-        if(previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
+        if (previousAcrList == null || previousAcrList.size() != newAcrList.size()) {
             return true;
         }
-        for(int i=0; i< previousAcrList.size(); i++) {
-            if(! newAcrList.get(i).equals(previousAcrList.get(i))) {
+        for (int i = 0; i < previousAcrList.size(); i++) {
+            if (!newAcrList.get(i).equals(previousAcrList.get(i))) {
                 return true;
             }
         }
@@ -575,6 +582,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             String message = "No application found for application id: " + sequenceConfig.getApplicationId() +
                     " in tenant: " + tenantDomain + " Probably, the Service Provider would have been removed.";
             throw new FrameworkException(message, e);
+        }
+    }
+
+    private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
+                                              AuthenticatedUser user) {
+
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            authnDataPublisherProxy.publishAuthenticationFailure(request, context,
+                    unmodifiableParamMap);
         }
     }
 }

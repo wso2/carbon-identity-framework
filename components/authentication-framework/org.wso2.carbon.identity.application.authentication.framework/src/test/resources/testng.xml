@@ -34,9 +34,10 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactoryTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactoryTest"/>
 
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest" />
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest" />
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest" />
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
         </classes>
     </test>
 </suite>

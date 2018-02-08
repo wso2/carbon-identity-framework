@@ -465,21 +465,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-    private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
-                                              AuthenticatedUser user) {
-
-        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherProxy();
-        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
-            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            authnDataPublisherProxy.publishAuthenticationFailure(request, context,
-                    unmodifiableParamMap);
-
-        }
-    }
-
     /**
      * Add authentication request as request attribute
      *
