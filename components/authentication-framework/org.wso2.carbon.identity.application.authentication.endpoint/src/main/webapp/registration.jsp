@@ -21,6 +21,8 @@
 <%@ page import="org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@include file="localize.jsp" %>
 
 <%
     String forwardTo;
@@ -51,7 +53,7 @@
         registrationClient.addUser(username, password, fields);
         forwardTo = "../dashboard/index.jag";
     } catch (Exception e) {
-        String error = "An internal error occurred.";
+        String error = URLEncoder.encode(AuthenticationEndpointUtil.i18n(resourceBundle, "internal.error.occurred"),"utf-8");
         response.sendRedirect("create-account.jsp?sessionDataKey=" + request.getParameter("sessionDataKey") +
                 "&failedPrevious=true&errorCode=" + error);
         return;
@@ -70,13 +72,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "information")%>
+                    </h4>
                 </div>
                 <div class="modal-body">
-                    <p>User details successfully submitted</p>
+                    <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "user.details.submitted")%></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "close")%>
+                    </button>
                 </div>
             </div>
         </div>

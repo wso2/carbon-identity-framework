@@ -18,9 +18,7 @@
 
 <%@page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
+<%@include file="localize.jsp" %>
 
 <%
     String authRequest = request.getParameter("data");
@@ -30,7 +28,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -53,8 +51,7 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
             </a>
         </div>
     </div>
@@ -68,11 +65,15 @@
             <!-- content -->
             <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Verification </h2>
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "verification")%>
+                    </h2>
                 </div>
 
                 <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double">
-                    <div class="padding-bottom-double font-large">Touch your U2F device to Proceed </div>
+                    <div class="padding-bottom-double font-large">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "touch.your.u2f.device")%>
+                    </div>
                     <div> <img class="img-responsive" src="images/U2F.png"> </div>
                 </div>
             </div>
@@ -85,9 +86,11 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p>WSO2 Identity Server | &copy;
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
             <script>document.write(new Date().getFullYear());</script>
-            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
         </p>
     </div>
 </footer>
@@ -137,6 +140,3 @@
 
 </body>
 </html>
-
-
-</fmt:bundle>

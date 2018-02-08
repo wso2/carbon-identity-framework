@@ -87,6 +87,16 @@ location.href = "list-service-providers.jsp";
 
     if (samlIssuerName != null && "update".equals(action)){
     	appBean.setSAMLIssuer(samlIssuerName);
+
+        // Inbound authentication components might have set an application certificate in the session.
+        // One usage in this scenario is, using the certificate inside SAML SP metadata.
+        String applicationCertificate = (String) session.getAttribute("applicationCertificate");
+
+        if (applicationCertificate!= null) {
+            appBean.getServiceProvider().setCertificateContent(applicationCertificate);
+            session.removeAttribute("applicationCertificate");
+        }
+
     	isNeedToUpdate = true;
     }
     
@@ -812,6 +822,15 @@ function updateBeanAndPostTo(postURL, data) {
                         <textarea style="width:50%" type="text" name="sp-description" id="sp-description" class="text-box-big"><%=appBean.getServiceProvider().getDescription() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getDescription()) : "" %></textarea>
                         <div class="sectionHelp">
                                 <fmt:message key='help.desc'/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
+                        <td>
+                            <textarea style="width:50%" type="text" name="sp-certificate" id="sp-description" class="text-box-big"><%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %></textarea>
+                            <div class="sectionHelp">
+                            <fmt:message key='help.certificate'/>
                             </div>
                         </td>
                     </tr>

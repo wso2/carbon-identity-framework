@@ -134,6 +134,7 @@
             <xs:sequence>
                <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+               <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2168:ClaimConfig"/>
                <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2168:InboundAuthenticationConfig"/>

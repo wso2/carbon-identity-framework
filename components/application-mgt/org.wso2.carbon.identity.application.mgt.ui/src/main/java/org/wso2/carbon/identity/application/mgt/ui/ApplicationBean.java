@@ -1029,6 +1029,7 @@ public class ApplicationBean {
         // update basic info.
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
+        serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
         String isSasApp = request.getParameter("isSaasApp");
         serviceProvider.setSaasApp((isSasApp != null && "on".equals(isSasApp)) ? true : false);
 
