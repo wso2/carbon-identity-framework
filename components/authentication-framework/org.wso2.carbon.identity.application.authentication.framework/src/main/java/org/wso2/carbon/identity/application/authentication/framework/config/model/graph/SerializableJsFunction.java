@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
+import jdk.nashorn.internal.runtime.ScriptFunction;
+
 import java.io.Serializable;
 
 /**
@@ -65,5 +69,30 @@ public class SerializableJsFunction implements Serializable {
     public void setFunction(boolean function) {
 
         isFunction = function;
+    }
+
+    /**
+     * This will return the converted SerializableJsFunction if the given  ScriptObjectMirror is a function.
+     * @param name
+     * @param scriptObjectMirror
+     * @return null if the ScriptObjectMirror is not a function.
+     */
+    public static SerializableJsFunction toSerializableForm(String name, ScriptObjectMirror scriptObjectMirror) {
+
+        if (!scriptObjectMirror.isFunction()) {
+            return null;
+        }
+
+        //TODO try to get rid of ScriptFunction
+        Object unwrapped = ScriptUtils.unwrap(scriptObjectMirror);
+        if (unwrapped instanceof ScriptFunction) {
+            ScriptFunction scriptFunction = (ScriptFunction) unwrapped;
+            boolean isFunction = scriptObjectMirror.isFunction();
+            String source = scriptFunction.toSource();
+
+            return new SerializableJsFunction(name, source, isFunction);
+        } else {
+            return new SerializableJsFunction(name, unwrapped.toString(), true);
+        }
     }
 }

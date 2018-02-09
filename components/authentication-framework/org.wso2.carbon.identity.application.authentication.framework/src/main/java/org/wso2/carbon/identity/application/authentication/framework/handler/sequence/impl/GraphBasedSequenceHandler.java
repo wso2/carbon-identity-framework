@@ -268,8 +268,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
             AuthenticationContext context) {
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn.getSource(),
-                fn.isFunction());
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context);
     }
 

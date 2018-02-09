@@ -95,7 +95,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
         when(req.getParameter("returning")).thenReturn("true");
         graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
 
-        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        List<AuthHistory> authHistories = deseralizedContext.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(authHistories.size(), 1);
         
@@ -107,7 +107,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
         deseralizedContext = (AuthenticationContext) SerializationUtils.deserialize(SerializationUtils.serialize(deseralizedContext));
         graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
 
-        authHistories = context.getAuthenticationStepHistory();
+        authHistories = deseralizedContext.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(authHistories.size(), authHistoryCount);
     }
