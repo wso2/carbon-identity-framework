@@ -572,7 +572,24 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
+
+        <!-- Enable this listener to call DeleteEventRecorders. -->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener"
+                       orderId="98" enable="false"/>
     </EventListeners>
+
+    <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
+     file recorder. This recorder is disabled by default. Enable it by setting enable="true". To run these recorders,
+     EventListener "rg.wso2.carbon.user.mgt.listeners.UserDeletionEventListener" also should be enabled. Which is
+     also disabled by default. -->
+    <UserDeleteEventRecorders>
+        <UserDeleteEventRecorder name="org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder" enable="false">
+            <!-- Un comment below line if you need to write entries to a separate .csv file. Otherwise this will be
+            written in to a log file using a separate appender. -->
+            <!--<Property name="path">${carbon.home}/repository/logs/delete-records.csv</Property>-->
+        </UserDeleteEventRecorder>
+    </UserDeleteEventRecorders>
 
     <CacheConfig>
         <!-- Identity cache configuration.
