@@ -45,7 +45,7 @@
 
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep"%>
 
-<%@page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider"%>
@@ -82,6 +82,8 @@
 		}
 	}
 
+	//This is to deactivate ConditionalAuthentication on 5.5.0, as it is experimental on this release.
+	boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
 %>
 <script type="text/javascript" >
 var authMap = {};
@@ -219,7 +221,7 @@ var img = "";
 		jQuery('#authenticationConfRow').hide();
 		jQuery('#advanceAuthnConfRow').hide();
 		jQuery('#permissionConfRow').hide();
-		jQuery('#lamda_func_dropdown').hide();
+		jQuery('#conditional_script_dropdown').hide();
 		jQuery('body').delegate("h2.trigger", 'click', bindHeadingCollapse);
 
 		function bindHeadingCollapse() {
@@ -685,11 +687,12 @@ var img = "";
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
 
-                <h2 id="lambda_function" class="active sectionSeperator trigger step_heads" style="font-size:large ">
-				<a href="#">JavaScript Based Conditional Steps</a>
-			</h2>
+			<div id="conditinal_authentication_enabled_div" <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                <h2 id="conditional_script" class="active sectionSeperator trigger step_heads" style="font-size:large ">
+					<a href="#">JavaScript Based Conditional Steps</a>
+				</h2>
 
-                <div class="toggle_container sectionSub" id="lamda_func_dropdown">
+                <div class="toggle_container sectionSub" id="conditional_script_dropdown">
                     <span>
                         <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                             if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
@@ -722,6 +725,7 @@ var img = "";
                         </tr>
                     </table>
                 </div>
+			</div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input type="button" value="<fmt:message key='button.update.service.provider'/>"
                            onclick="createAppOnclick();"/>
