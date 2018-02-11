@@ -23,11 +23,13 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Logger For javascript engine.
- * Supports console.log, console.warn, console.error and console.info
+ * Supports Log.log, Log.warn, Log.error and Log.info
  */
 public class JsLogger {
 
     private static final Log logger = LogFactory.getLog(JsLogger.class);
+
+    private static JsLogger jsLogger = new JsLogger();
 
     /**
      * Logs with list of objects.
@@ -52,18 +54,31 @@ public class JsLogger {
     }
 
     public void debug(String value) {
+
         logger.debug(value);
     }
 
     public void info(String value) {
+
         logger.info(value);
     }
 
     public void error(String value) {
+
         logger.error(value);
     }
 
     public void log(String message, Object... values) {
 
+    }
+
+    /**
+     * Returns an instance to log the javascript errors.
+     *
+     * @return
+     */
+    public static JsLogger getInstance() {
+
+        return jsLogger;
     }
 }

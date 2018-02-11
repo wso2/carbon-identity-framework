@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -41,8 +42,13 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +61,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     @BeforeClass
     protected void setupSuite() {
+
         configurationLoader = new UIBasedConfigurationLoader();
         graphBuilderFactory = new JsGraphBuilderFactory();
 
@@ -69,6 +76,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     @BeforeMethod
     protected void setUp()
             throws UserStoreException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException {
+
         URL root = this.getClass().getClassLoader().getResource(".");
         File file = new File(root.getPath());
         System.setProperty("carbon.home", file.toString());
@@ -94,6 +102,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     }
 
     protected void resetAuthenticators() {
+
         FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
                 .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
@@ -107,7 +116,27 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
         @Override
         public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
-            return AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+
+            AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+            result.getUserAttributes().put(ClaimMapping
+                            .build("http://wso2.org/claims/givenname", "thttp://wso2.org/claims/givenname", "Test", false),
+                    "Test");
+            result.getUserAttributes().put(ClaimMapping
+                            .build("http://wso2.org/claims/lastname", "thttp://wso2.org/claims/lastname", "Test", false),
+                    "User");
+            return result;
         }
+    }
+
+    protected HttpServletRequest createMockHttpServletRequest() {
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        Map<String, Object> attributes = new HashMap<>();
+        doAnswer(m -> attributes.put(m.getArgumentAt(0, String.class), m.getArgumentAt(1, Object.class))).when(req)
+                .setAttribute(anyString(), anyObject());
+
+        doAnswer(m -> attributes.get(m.getArgumentAt(0, String.class))).when(req).getAttribute(anyString());
+
+        return req;
     }
 }

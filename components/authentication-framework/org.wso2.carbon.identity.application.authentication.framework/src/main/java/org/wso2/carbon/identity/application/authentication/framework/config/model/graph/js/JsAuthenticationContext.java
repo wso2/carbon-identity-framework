@@ -47,6 +47,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
                 return getWrapped().getRequestedAcr();
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
+                return new JsAuthenticatedUser(getWrapped().getSubject());
             case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
                 return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
@@ -68,6 +70,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
                 return getWrapped().getRequestedAcr() != null;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
+                return getWrapped().getSubject() != null;
             case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
                 return getWrapped().getLastAuthenticatedUser() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
