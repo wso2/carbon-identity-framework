@@ -627,16 +627,7 @@
 
 
     <ResourceAccessControl>
-        <Resource context="(.*)/api/identity/user/validate-code" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/user/resend-code" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/user/me" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/user/me" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/user/pi-info" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/identity/user/pi-info/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
-        </Resource>
+        <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
@@ -735,7 +726,7 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            <Context>/api/identity/user/v1.0/</Context>
+            <Context>/api/identity/user/v0.9/</Context>
             <Context>/api/identity/consent-mgt/v1.0/</Context>
             <Context>/api/identity/recovery/v0.9/</Context>
             <Context>/oauth2/</Context>
