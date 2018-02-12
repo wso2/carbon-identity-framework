@@ -53,11 +53,11 @@
 <!--EditArea javascript syntax hylighter -->
 <script language="javascript" type="text/javascript" src="../editarea/edit_area_full.js"></script>
 
-
 <fmt:bundle basename="org.wso2.carbon.policyeditor.ui.i18n.Resources">
-<carbon:jsi18n resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.JSResources" request="<%=request%>"/>
-<carbon:breadcrumb
-		label="Policy"
+    <carbon:jsi18n resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.JSResources" request="<%=request%>"/>
+    <carbon:breadcrumb
+
+            label="Policy"
 		resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.Resources"
 		topPage="false"
 		request="<%=request%>" />

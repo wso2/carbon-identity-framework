@@ -137,7 +137,7 @@ public class IdentityConfigParser {
             }
 
             if ( inStream == null ) {
-                String message = "Identity configuration not found. Cause - " + warningMessage;
+                String message = "Identity configuration not found at: "+configFilePath+" . Cause - " + warningMessage;
                 if ( log.isDebugEnabled() ) {
                     log.debug(message);
                 }

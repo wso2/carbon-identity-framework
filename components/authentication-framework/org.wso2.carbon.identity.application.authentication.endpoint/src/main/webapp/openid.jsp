@@ -17,6 +17,7 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
+
 <form action="../commonauth" method="post" id="loginForm" class="form-horizontal">
     <%
         loginFailed = request.getParameter("loginFailed");
@@ -24,12 +25,13 @@
 
     %>
     <div class="alert alert-danger">
-        <fmt:message key='<%=Encode.forHtml(request.getParameter("errorMessage"))%>'/>
+         <%=AuthenticationEndpointUtil.i18nBase64(resourceBundle,request.getParameter("errorMessage"))%>
     </div>
     <% } %>
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input class="input-large" type="text" id="claimed_id" name="claimed_id" size='30' placeholder="Open ID"/>
+        <input class="input-large" type="text" id="claimed_id" name="claimed_id" size='30'
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid")%>"/>
         <input type="hidden" name="sessionDataKey"
                value='<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>'/>
     </div>
@@ -37,7 +39,8 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="checkbox">
             <label>
-                <input type="checkbox" id="chkRemember" name="chkRemember"> Remember me on this computer
+                <input type="checkbox" id="chkRemember" name="chkRemember">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "remember.me")%>
             </label>
         </div>
         <br>
@@ -45,7 +48,8 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit">Sign in
+                    type="submit">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>

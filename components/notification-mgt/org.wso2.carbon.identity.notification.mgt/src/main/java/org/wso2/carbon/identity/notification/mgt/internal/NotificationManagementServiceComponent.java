@@ -15,13 +15,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.notification.mgt.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.notification.mgt.NotificationManagementException;
 import org.wso2.carbon.identity.notification.mgt.NotificationMgtConfigBuilder;
 import org.wso2.carbon.identity.notification.mgt.NotificationMgtConstants;
@@ -33,38 +38,36 @@ import javax.mail.MessageRemovedException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @scr.reference name="ldap.tenant.manager.listener.service"
- * interface="org.wso2.carbon.identity.notification.mgt.NotificationSendingModule"
- * cardinality="0..n" policy="dynamic"
- * bind="addNotificationSendingModule"
- * unbind="removeNotificationSendingModule"
- * @scr.component name="carbon.identity.notification.mgt" immediate="true"
- */
-
 @SuppressWarnings("unused")
+@Component(
+         name = "carbon.identity.notification.mgt", 
+         immediate = true)
 public class NotificationManagementServiceComponent {
 
     private static final Log log = LogFactory.getLog(NotificationManagementServiceComponent.class);
+
     /**
      * Size of the thread pool for distributing events to subscribed modules
      */
     int threadPoolSize = 0;
+
     /**
      * NotificationSender instance which is exposed as the service.
      */
     private NotificationSender notificationSender;
+
     /**
      * Notification management configurations
      */
     private NotificationMgtConfigBuilder configBuilder;
+
     /**
      * Since Message Sending modules are dynamically registered a List is used
      */
     private List<NotificationSendingModule> notificationSendingModules = new ArrayList<NotificationSendingModule>();
 
+    @Activate
     protected void activate(ComponentContext context) {
-        // Register Notification sender as an OSGI service. Other components can consume the service for sending
         // messages on a registered event
         try {
             // Pass the bundle context to read property file in a case it is not found in default location.
@@ -73,22 +76,19 @@ public class NotificationManagementServiceComponent {
             } catch (NotificationManagementException e) {
                 log.error("Error while building Notification Mgt configuration", e);
             }
-
             // Read the thread pool size from configurations. If not present in configurations use default value.
             if (configBuilder != null && configBuilder.getThreadPoolSize() != null) {
                 try {
                     threadPoolSize = Integer.parseInt(configBuilder.getThreadPoolSize());
                 } catch (NumberFormatException e) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Error while parsing thread pool size configuration, " +
-                                "setting default size :" + NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE);
+                        log.debug("Error while parsing thread pool size configuration, " + "setting default size :" + NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE);
                     }
                     threadPoolSize = NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE;
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("No configuration found for thread pool size, " +
-                            "setting default size :" + NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE);
+                    log.debug("No configuration found for thread pool size, " + "setting default size :" + NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE);
                 }
                 threadPoolSize = NotificationMgtConstants.THREAD_POOL_DEFAULT_SIZE;
             }
@@ -97,17 +97,17 @@ public class NotificationManagementServiceComponent {
             }
             // Register Notification sender as the service class
             notificationSender = new NotificationSender(notificationSendingModules, threadPoolSize);
-            context.getBundleContext().registerService(NotificationSender.class.getName(),
-                    notificationSender, null);
+            context.getBundleContext().registerService(NotificationSender.class.getName(), notificationSender, null);
             if (log.isDebugEnabled()) {
                 log.debug("Notification Management bundle is activated");
             }
-            // Catch throwable since there may be run time exceptions.
+        // Catch throwable since there may be run time exceptions.
         } catch (Throwable e) {
             log.error("Error while initiating Notification Management component", e);
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Notification Management bundle is deactivated");
@@ -121,8 +121,13 @@ public class NotificationManagementServiceComponent {
      *
      * @param module MessageSendingModule
      */
+    @Reference(
+            name = "ldap.tenant.manager.listener.service",
+            service = NotificationSendingModule.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeNotificationSendingModule")
     protected void addNotificationSendingModule(NotificationSendingModule module) throws MessageRemovedException {
-
         ModuleConfiguration moduleConfiguration;
         if (StringUtils.isEmpty(module.getModuleName())) {
             if (log.isDebugEnabled()) {
@@ -133,7 +138,6 @@ public class NotificationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Registering a message sending module " + module.getModuleName());
         }
-
         if (configBuilder != null) {
             moduleConfiguration = configBuilder.getModuleConfigurations(module.getModuleName());
         } else {
@@ -160,3 +164,4 @@ public class NotificationManagementServiceComponent {
         notificationSendingModules.remove(module);
     }
 }
+

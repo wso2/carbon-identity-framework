@@ -143,6 +143,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
             throw new ClaimMetadataException("Local claim URI cannot be empty");
+        } else if (localClaim.getMappedAttributes().isEmpty()) {
+            throw new ClaimMetadataException("Mapped attribute of the claim dialect URI : " + localClaim
+                    .getClaimDialectURI() + " and Claim URI : " + localClaim.getClaimURI() + " cannot be empty");
         }
 
         // TODO : validate claim dialect already exists?

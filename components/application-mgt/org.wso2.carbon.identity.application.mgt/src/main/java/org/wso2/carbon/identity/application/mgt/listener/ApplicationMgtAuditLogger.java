@@ -65,7 +65,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
     @Override
     public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
-        audit.info(String.format(AUDIT_MESSAGE, userName, "update", applicationName, null, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, userName, "delete", applicationName, null, SUCCESS));
         return true;
     }
 }

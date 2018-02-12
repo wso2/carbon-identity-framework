@@ -22,17 +22,41 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.CertificateRetriever;
+import org.wso2.carbon.identity.core.CertificateRetrievingException;
+import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
+import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.session.UserRegistry;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProviderDO> {
+
+    private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
+    private static String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
+            "META.VALUE " +
+            "FROM " +
+            "SP_INBOUND_AUTH INBOUND," +
+            "SP_APP SP," +
+            "SP_METADATA META " +
+            "WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND " +
+            "META.NAME = ? AND " +
+            "INBOUND.INBOUND_AUTH_KEY = ?";
 
     private static Log log = LogFactory.getLog(SAMLSSOServiceProviderDAO.class);
 
@@ -408,6 +432,15 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     getTenantId());
             if (registry.resourceExists(path)) {
                 serviceProviderDO = resourceToObject(registry.get(path));
+
+                // Load the certificate stored in the database, if signature validation is enabled..
+                if (serviceProviderDO.isDoValidateSignatureInRequests()) {
+                    Tenant tenant = new Tenant();
+                    tenant.setDomain(tenantDomain);
+                    tenant.setId(userRegistry.getTenantId());
+
+                    serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
+                }
                 serviceProviderDO.setTenantDomain(tenantDomain);
             }
         } catch (RegistryException e) {
@@ -416,9 +449,73 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         } catch (UserStoreException e) {
             throw IdentityException.error("Error occurred while getting tenant domain from tenant ID : " +
                     userRegistry.getTenantId(), e);
+        } catch (SQLException e) {
+            throw IdentityException.error(String.format("An error occurred while getting the " +
+                    "application certificate id for validating the requests from the issuer '%s'", issuer), e);
+        } catch (CertificateRetrievingException e) {
+            throw IdentityException.error(String.format("An error occurred while getting the " +
+                    "application certificate for validating the requests from the issuer '%s'", issuer), e);
+        }
+        return serviceProviderDO;
+    }
+
+    /**
+     * Returns the {@link java.security.cert.Certificate} which should used to validate the requests
+     * for the given service provider.
+     *
+     * @param serviceProviderDO
+     * @param tenant
+     * @return
+     * @throws SQLException
+     * @throws CertificateRetrievingException
+     */
+    private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
+            throws SQLException, CertificateRetrievingException {
+
+        // Check whether there is a certificate stored against the service provider (in the database)
+        int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer());
+
+        CertificateRetriever certificateRetriever = null;
+        String certificateIdentifier = null;
+        if (applicationCertificateId != -1) {
+            certificateRetriever = new DatabaseCertificateRetriever();
+            certificateIdentifier = Integer.toString(applicationCertificateId);
+        } else {
+            certificateRetriever = new KeyStoreCertificateRetriever();
+            certificateIdentifier = serviceProviderDO.getCertAlias();
         }
 
-        return serviceProviderDO;
+        return certificateRetriever.getCertificate(certificateIdentifier, tenant);
+    }
+
+    /**
+     * Returns the certificate reference ID for the given issuer (Service Provider) if there is one.
+     *
+     * @param issuer
+     * @return
+     * @throws SQLException
+     */
+    private int getApplicationCertificateId(String issuer) throws SQLException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement statementToGetApplicationCertificate = null;
+        ResultSet queryResults = null;
+
+        try {
+            statementToGetApplicationCertificate = connection.prepareStatement(QUERY_TO_GET_APPLICATION_CERTIFICATE_ID);
+            statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
+            statementToGetApplicationCertificate.setString(2, issuer);
+
+            queryResults = statementToGetApplicationCertificate.executeQuery();
+
+            while (queryResults.next()) {
+                return queryResults.getInt(1);
+            }
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, queryResults, statementToGetApplicationCertificate);
+        }
+
+        return -1;
     }
 
     public boolean isServiceProviderExists(String issuer) throws IdentityException {

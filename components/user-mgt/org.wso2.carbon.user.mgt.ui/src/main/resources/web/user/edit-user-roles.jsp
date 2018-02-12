@@ -120,13 +120,28 @@
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
     String displayName = request.getParameter("displayName");
+    if (encryptedUsername != null) {
+        try {
+            decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
+        } catch (UserManagementUIException e) {
+            String message = MessageFormat.format(resourceBundle.getString("error.while.loading.roles"),
+                    e.getMessage());
+%>
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        CARBON.showErrorDialog('<%=Encode.forJavaScript(Encode.forHtml(message))%>', function () {
+            location.href = "user-mgt.jsp";
+        });
+    });
+</script>
+<%
+        }
+    }
+
     exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_UNASSIGNED_ROLE_CACHE_EXCEEDED);
 
     if (doUserList || newFilter) {
         try {
-            if (encryptedUsername != null) {
-                decryptedUsername = Util.getDecryptedUsername(encryptedUsername);
-            }
             if (StringUtils.isBlank(displayName)) {
                 displayName = (String) session.getAttribute(UserAdminUIConstants.USER_DISPLAY_NAME);
                 if (StringUtils.isBlank(displayName)) {
@@ -343,7 +358,7 @@
 
 
     <div id="middle">
-        <h2><fmt:message key="roles.list.in.user"/> <%=Encode.forHtml(displayName)%>
+        <h2><fmt:message key="roles.list.in.user"/> <%=Encode.forHtml(decryptedUsername)%>
         </h2>
 
         <script type="text/javascript">

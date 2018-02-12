@@ -23,6 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
@@ -55,27 +61,10 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent"
- * immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService" cardinality="1..1"
- * policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"
- * @scr.reference name="realm.service"
- * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="carbon.identity.notification.mgt"
- * interface="org.wso2.carbon.identity.notification.mgt.NotificationSender"
- * cardinality="1..1" policy="dynamic" bind="setNotificationSender"
- * unbind="unsetNotificationSender"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="registry.search.component"
- * interface="org.wso2.carbon.registry.common.AttributeSearchService"
- * cardinality="1..1" policy="dynamic" bind="setAttributeSearchService" unbind="unsetAttributeSearchService"
- */
-
+@Component(
+        name = "org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent",
+        immediate = true
+)
 public class IdentityMgtServiceComponent {
 
     private static final String DELAY_BETWEEN_RUNS = "TimeConfig.RegistryCleanUpPeriod";
@@ -94,6 +83,13 @@ public class IdentityMgtServiceComponent {
         return realmService;
     }
 
+    @Reference(
+            name = "realm.service",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         log.debug("Setting the Realm Service");
         IdentityMgtServiceComponent.realmService = realmService;
@@ -103,6 +99,13 @@ public class IdentityMgtServiceComponent {
         return registryService;
     }
 
+    @Reference(
+            name = "registry.service",
+            service = RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         log.debug("Setting the Registry Service");
         IdentityMgtServiceComponent.registryService = registryService;
@@ -159,6 +162,7 @@ public class IdentityMgtServiceComponent {
 
     }
 
+    @Activate
     protected void activate(ComponentContext context) {
 
         Dictionary<String, String> props = new Hashtable<String, String>();
@@ -205,6 +209,7 @@ public class IdentityMgtServiceComponent {
         registryCleanUpService.activateCleanUp();
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext context) {
         log.debug("Identity Management bundle is de-activated");
     }
@@ -224,6 +229,13 @@ public class IdentityMgtServiceComponent {
         IdentityMgtServiceComponent.configurationContextService = null;
     }
 
+    @Reference(
+            name = "carbon.identity.notification.mgt",
+            service = NotificationSender.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetNotificationSender"
+    )
     protected void setNotificationSender(NotificationSender notificationSender) {
         if (log.isDebugEnabled()) {
             log.debug("Un-setting notification sender in Entitlement bundle");
@@ -238,6 +250,13 @@ public class IdentityMgtServiceComponent {
         this.notificationSender = null;
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
@@ -252,6 +271,13 @@ public class IdentityMgtServiceComponent {
         return IdentityMgtServiceComponent.notificationSender;
     }
 
+    @Reference(
+            name = "registry.search.component",
+            service = AttributeSearchService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAttributeSearchService"
+    )
     protected void setAttributeSearchService(AttributeSearchService searchService) {
 
         if (log.isDebugEnabled()) {
