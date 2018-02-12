@@ -2927,7 +2927,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            if(System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
                 deleteAuthenticationScript(applicationId, connection);
             }
 
