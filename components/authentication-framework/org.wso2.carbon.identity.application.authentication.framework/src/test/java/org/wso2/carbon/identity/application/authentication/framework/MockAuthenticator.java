@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.util.List;
@@ -35,23 +34,27 @@ public class MockAuthenticator implements ApplicationAuthenticator {
     private SubjectCallback subjectCallback;
 
     public MockAuthenticator(String name) {
+
         this.name = name;
     }
 
     public MockAuthenticator(String name, SubjectCallback subjectCallback) {
+
         this(name);
         this.subjectCallback = subjectCallback;
     }
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
+
         return false;
     }
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
-        if(subjectCallback != null) {
+
+        if (subjectCallback != null) {
             context.setSubject(subjectCallback.getAuthenticatedUser(context));
         }
         return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -59,26 +62,31 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
     @Override
     public String getContextIdentifier(HttpServletRequest request) {
+
         return null;
     }
 
     @Override
     public String getName() {
+
         return name;
     }
 
     @Override
     public String getFriendlyName() {
+
         return null;
     }
 
     @Override
     public String getClaimDialectURI() {
+
         return null;
     }
 
     @Override
     public List<Property> getConfigurationProperties() {
+
         return null;
     }
 

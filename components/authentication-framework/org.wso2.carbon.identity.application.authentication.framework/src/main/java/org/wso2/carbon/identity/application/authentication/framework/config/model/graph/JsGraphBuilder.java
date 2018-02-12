@@ -236,14 +236,21 @@ public class JsGraphBuilder {
         }
     }
 
+    /**
+     * Creates a Graph Node, which creates next nodes dynamically using Javascript function provided.
+     *
+     * @param eventsMap Map of events and event handler functions, which is handled by this execution.
+     * @return created Dynamic Decision node.
+     */
     private static DynamicDecisionNode createDynamicDecisionNode(Map<String, Object> eventsMap) {
 
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         eventsMap.forEach((key, value) -> {
             if (value instanceof ScriptObjectMirror) {
-                SerializableJsFunction fn = SerializableJsFunction.toSerializableForm(key, (ScriptObjectMirror) value);
-                if (fn != null) {
-                    decisionNode.addFunction(key, fn);
+                SerializableJsFunction jsFunction = SerializableJsFunction
+                        .toSerializableForm(key, (ScriptObjectMirror) value);
+                if (jsFunction != null) {
+                    decisionNode.addFunction(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }

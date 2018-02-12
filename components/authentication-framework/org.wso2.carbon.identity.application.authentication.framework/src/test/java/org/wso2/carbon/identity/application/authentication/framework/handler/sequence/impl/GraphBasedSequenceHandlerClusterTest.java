@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.powermock.api.mockito.PowerMockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -58,6 +57,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
     @Override
     protected void setUp()
             throws UserStoreException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException {
+
         super.setUp();
         FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
@@ -69,6 +69,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
 
     @Test(dataProvider = "roleBasedDataProvider")
     public void testHandle_RequestHop(String spFileName, int authHistoryCount, boolean hasRole) throws Exception {
+
         HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
         when(hasRoleFunction.contains(any(JsAuthenticationContext.class), anyString())).thenReturn(hasRole);
 
@@ -91,20 +92,22 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
 
         //Simulate the request goes to next node
         graphBasedSequenceHandler = new GraphBasedSequenceHandler();
-        AuthenticationContext deseralizedContext = (AuthenticationContext) SerializationUtils.deserialize(SerializationUtils.serialize(context));
+        AuthenticationContext deseralizedContext = (AuthenticationContext) SerializationUtils
+                .deserialize(SerializationUtils.serialize(context));
         when(req.getParameter("returning")).thenReturn("true");
         graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
 
         List<AuthHistory> authHistories = deseralizedContext.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(authHistories.size(), 1);
-        
+
         when(req.getParameter("returning")).thenReturn("true");
         when(req.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)).thenReturn(false);
 
         //Simulate the request goes to another node
         graphBasedSequenceHandler = new GraphBasedSequenceHandler();
-        deseralizedContext = (AuthenticationContext) SerializationUtils.deserialize(SerializationUtils.serialize(deseralizedContext));
+        deseralizedContext = (AuthenticationContext) SerializationUtils
+                .deserialize(SerializationUtils.serialize(deseralizedContext));
         graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
 
         authHistories = deseralizedContext.getAuthenticationStepHistory();
@@ -114,6 +117,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
 
     private AuthenticationContext getClusterHoppingAuthenticationContext(ServiceProvider sp1)
             throws FrameworkException {
+
         AuthenticationContext context = getAuthenticationContext(sp1);
 
         SequenceConfig sequenceConfig = configurationLoader
@@ -124,8 +128,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
 
     @DataProvider(name = "roleBasedDataProvider")
     public Object[][] getRoleBasedUserRolesData() {
-        return new Object[][] {
-                //                {"js-sp-2.xml",  1, false},
-                { "js-sp-3.xml", 2, true } };
+
+        return new Object[][] { { "js-sp-3.xml", 2, true } };
     }
 }
