@@ -3541,7 +3541,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     /**
-     * Loads Authenticaiton script configuration.
+     * Updates the authentication script configuration.
      *
      * @param applicationId
      * @param localAndOutboundAuthConfig
