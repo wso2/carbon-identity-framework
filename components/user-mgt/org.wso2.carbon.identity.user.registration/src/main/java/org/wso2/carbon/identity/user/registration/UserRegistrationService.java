@@ -332,7 +332,7 @@ public class UserRegistrationService {
         }
 
         if (domainName != null && domainName.trim().length() > 0) {
-            roleName = domainName.toUpperCase() + CarbonConstants.DOMAIN_SEPARATOR + roleName;
+            roleName = domainName.toUpperCase() + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
         }
         return new ArrayList<String>(Arrays.asList(roleName));
     }
