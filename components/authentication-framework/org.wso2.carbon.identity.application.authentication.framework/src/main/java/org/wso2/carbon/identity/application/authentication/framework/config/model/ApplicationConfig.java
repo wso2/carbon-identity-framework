@@ -50,7 +50,6 @@ public class ApplicationConfig implements Serializable, Cloneable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
-    private boolean EnableScopeValidation = false;
 
     public ApplicationConfig(ServiceProvider application) {
         this.serviceProvider = application;
@@ -65,7 +64,6 @@ public class ApplicationConfig implements Serializable, Cloneable {
             setUseUserstoreDomainInLocalSubjectIdentifier(outboundAuthConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier());
             setEnableAuthorization(outboundAuthConfig.isEnableAuthorization());
-            setEnableScopeValidation(outboundAuthConfig.isEnableScopeValidation());
         }
 
 
@@ -260,15 +258,6 @@ public class ApplicationConfig implements Serializable, Cloneable {
 
         this.enableAuthorization = enableAuthorization;
     }
-
-    public boolean isEnableScopeValidation() {
-        return EnableScopeValidation;
-    }
-
-    public void setEnableScopeValidation(boolean enableScopeValidation) {
-        EnableScopeValidation = enableScopeValidation;
-    }
-
 
     /**
      * This method will clone current class objects
