@@ -83,7 +83,8 @@
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
             String tenantDomain = request.getParameter("tenantDomain");
-
+            String consent = request.getParameter("consent");
+            
             if (StringUtils.isBlank(callback)) {
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
@@ -174,7 +175,12 @@
                 Property sessionKey = new Property();
                 sessionKey.setKey("callback");
                 sessionKey.setValue(URLEncoder.encode(callback, "UTF-8"));
+                
+                Property consentProperty = new Property();
+                consentProperty.setKey("consent");
+                consentProperty.setValue(consent);
                 properties.add(sessionKey);
+                properties.add(consentProperty);
 
 
                 SelfUserRegistrationRequest selfUserRegistrationRequest = new SelfUserRegistrationRequest();

@@ -143,7 +143,6 @@
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
-            <version>${json.wso2.version}</version>
         </dependency>
 
     </dependencies>

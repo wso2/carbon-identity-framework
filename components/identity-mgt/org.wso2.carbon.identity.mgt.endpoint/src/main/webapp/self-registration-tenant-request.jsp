@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
   ~  Version 2.0 (the "License"); you may not use this file except
@@ -76,6 +76,8 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">Tenant Domain</label>
                                 <input id="tenantDomain" name="tenantDomain" type="text"
+                                       class="form-control required usrName usrNameLength" required>
+                                <input id="callback" name="callback" type="hidden" value="<%=request.getParameter("callback")%>"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">

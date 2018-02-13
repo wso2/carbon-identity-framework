@@ -1,3 +1,23 @@
+/*
+ *
+ *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
+
 package org.wso2.carbon.identity.mgt.endpoint.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
@@ -11,7 +31,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
@@ -21,6 +40,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
+/**
+ * Client which invokes consent mgt remote operations.
+ */
 public class ConsentMgtClient {
 
     private final String CLIENT = "Client ";
@@ -33,22 +55,31 @@ public class ConsentMgtClient {
     private final String PURPOSE_ENDPOINT = BASE_PATH + "/consents/purposes";
     private final String PURPOSES = "purposes";
 
+    /**
+     * Returns a JSON which contains a set of purposes with piiCategories
+     *
+     * @param tenantDomain Tenant Domain.
+     * @return A JSON string which contains purposes.
+     * @throws ConsentMgtClientException ConsentMgtClientException
+     */
     public String getPurposes(String tenantDomain) throws ConsentMgtClientException {
 
-        String purposesResponse = null;
+        String purposesJsonString = "";
         try {
-            purposesResponse = executeGet(PURPOSES_ENDPOINT);
+            String purposesResponse = executeGet(PURPOSES_ENDPOINT);
             JSONArray purposes = new JSONArray(purposesResponse);
 
-            for (int i = 0; i < purposes.length(); i++) {
-                JSONObject purpose = (JSONObject) purposes.get(i);
+            for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
+                JSONObject purpose = (JSONObject) purposes.get(purposeIndex);
                 purpose = retrievePurpose(purpose.getInt(PURPOSE_ID));
-                purposes.put(i, purpose);
-
+                purposes.put(purposeIndex, purpose);
             }
-            JSONObject purposesJson = new JSONObject();
-            purposesJson.put(PURPOSES, purposes);
-            return purposesJson.toString();
+            if (purposes.length() != 0) {
+                JSONObject purposesJson = new JSONObject();
+                purposesJson.put(PURPOSES, purposes);
+                purposesJsonString = purposesJson.toString();
+            }
+            return purposesJsonString;
         } catch (IOException e) {
             throw new ConsentMgtClientException("Error while retrieving purposes", e);
         }
@@ -67,7 +98,6 @@ public class ConsentMgtClient {
                 if (isDebugEnabled) {
                     log.debug("HTTP status " + response.getStatusLine().getStatusCode());
                 }
-
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
                     String inputLine;
@@ -76,11 +106,9 @@ public class ConsentMgtClient {
                     while ((inputLine = reader.readLine()) != null) {
                         responseString.append(inputLine);
                     }
-
                     return responseString.toString();
-
                 } else {
-                    throw new ConsentMgtClientException("Error while retriving data from " + url + ". Found http " +
+                    throw new ConsentMgtClientException("Error while retrieving data from " + url + ". Found http " +
                             "status " + response.getStatusLine());
                 }
             } finally {

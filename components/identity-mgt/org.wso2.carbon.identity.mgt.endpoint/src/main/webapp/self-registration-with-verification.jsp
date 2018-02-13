@@ -29,6 +29,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.StringUtil" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -42,7 +43,7 @@
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
     String purposes = consentMgtClient.getPurposes(tenantDomain);
-    System.out.println(purposes);
+    boolean hasPurposes = StringUtils.isNotEmpty(purposes);
 
     Claim[] claims = new Claim[0];
 
@@ -228,12 +229,19 @@
                                     }
                                 }
                             %>
-                            <div>
-                                <br/>
-                                <h4>Identity Server Will Use Following Attributes Once Accepted</h4>
-                                <br/>
-                                <div id="tree-table" style="overflow: scroll; height:100px;"></div>
-                            </div>
+    
+                            <%
+                                if (hasPurposes) {
+                            %>
+                                <div>
+                                    <br/>
+                                    <label class="control-label">By selecting below categories you agree to Identity Servers Terms of Services. You also agree to our Privacy Policy, which describes how we process your information, including below attributes</label>
+                                    <br/>
+                                    <div id="tree-table" style="overflow: scroll; height:100px;"></div>
+                                </div>
+                            <%
+                                }
+                            %>
                             <%
                                 if (reCaptchaEnabled) {
                             %>
@@ -294,6 +302,7 @@
     <script type="text/javascript" src="libs/jstree/src/jstree-actions.js"></script>
     <script type="text/javascript">
 
+        var container;
         $(document).ready(function () {
 
             $("#register").submit(function (e) {
@@ -323,11 +332,32 @@
                 }
                 %>
 
+                <%
+                if (hasPurposes) {
+                %>
+                    var self = this;
+                    e.preventDefault();
+                    var recipt = addReciptInformation(container);
+                    $('<input />').attr('type', 'hidden')
+                        .attr('name', "consent")
+                        .attr('value', JSON.stringify(recipt))
+                        .appendTo('#register');
+                    self.submit();
+                <%
+                }
+                %>
+                
                 return true;
             });
         });
 
-        renderReceiptDetails(<%=purposes%>);
+        <%
+            if (hasPurposes) {
+        %>
+            renderReceiptDetails(<%=purposes%>);
+        <%
+            }
+        %>
         
         function renderReceiptDetails(data) {
             
@@ -337,11 +367,11 @@
                 '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                 '<ul>' +
                 '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\'>{{purpose}}<ul>' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}} : {{description}}<ul>' +
                 '{{#piiCategories}}' +
                 
                 '' +
-                '<li data-jstree=\'{"icon":"icon-user"}\'>{{piiCategory}}</li>' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{piiCategory}}</li>' +
                 '' +
                 '</li>' +
                 '{{/piiCategories}}' +
@@ -356,35 +386,86 @@
 
             $("#tree-table").html(treeRendered);
 
-            var container = $("#html1").jstree({
+            container = $("#html1").jstree({
                 plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
                 checkbox: { "keep_selected_style" : false },
             });
-
-            container.jstree("check_all");
+            
         }
+        
+        function addReciptInformation(container){
+           // var oldReceipt = receiptData.receipts;
+            var newReceipt = {};
+            var services = [];
+            var service = {};
 
+            var selectedNodes = container.jstree(true).get_selected('full',true);
+            var undeterminedNodes = container.jstree(true).get_undetermined('full',true);
 
-        function addActions(){
+            if(!selectedNodes || selectedNodes.length < 1 ){
+                //revokeReceipt(oldReceipt.consentReceiptID);
+                return;
+            }
+            selectedNodes = selectedNodes.concat(undeterminedNodes);
+            var relationshipTree = unflatten(selectedNodes); //Build relationship tree
+            var purposes = relationshipTree[0].children;
+            var newPurposes =[];
 
-            $(".btn-settings").click(function(){
-                var receiptID = $(this).data("id");
-                getReceiptDetails(receiptID);
-            });
-            $(".btn-revoke").click(function(){
-                var receiptID = $(this).prev().data("id");
-                var responseText = confirm("Are you sure you want to revoke this consent? this is not reversable...");
+            for(var i=0; i< purposes.length; i++){
+                var purpose = purposes[i];
+                var newPurpose = {};
+                newPurpose["purposeId"]  =  purpose.li_attr.purposeid;
+                //newPurpose = oldPurpose[0];
+                newPurpose['piiCategory'] = [];
+                newPurpose['purposeCategoryId'] = [1];
 
-                if (responseText == true) {
-                    revokeReceipt(receiptID);
+                var piiCategory = [];
+                var categories = purpose.children;
+                for(var j=0; j< categories.length; j++){
+                    var category = categories[j];
+                    var c = {};
+                    c['piiCategoryId']  =  category.li_attr.piicategoryid;
+                    piiCategory.push(c);
                 }
+                newPurpose['piiCategory'] = piiCategory;
+                newPurposes.push(newPurpose);
+            }
+            service['purposes'] = newPurposes;
+            services.push(service);
+            newReceipt['services'] = services;
 
-            });
-            $(".btn-cancel-settings").click(function(){
-                renderReceiptList(json);
-            });
+            return newReceipt;
         }
 
+        function unflatten(arr) {
+            var tree = [],
+                mappedArr = {},
+                arrElem,
+                mappedElem;
+
+            // First map the nodes of the array to an object -> create a hash table.
+            for(var i = 0, len = arr.length; i < len; i++) {
+                arrElem = arr[i];
+                mappedArr[arrElem.id] = arrElem;
+                mappedArr[arrElem.id]['children'] = [];
+            }
+
+            for (var id in mappedArr) {
+                if (mappedArr.hasOwnProperty(id)) {
+                    mappedElem = mappedArr[id];
+                    // If the element is not at the root level, add it to its parent array of children.
+                    if (mappedElem.parent && mappedElem.parent != "#" && mappedArr[mappedElem['parent']]) {
+                        mappedArr[mappedElem['parent']]['children'].push(mappedElem);
+                    }
+                    // If the element is at the root level, add it to first level elements array.
+                    else {
+                        tree.push(mappedElem);
+                    }
+                }
+            }
+            return tree;
+        }
+        
     </script>
     </body>
     </html>
