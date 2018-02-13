@@ -86,39 +86,57 @@
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
                     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid.user.claims")%>
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "user.consents")%>
                     </h2>
                 </div>
 
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../commonauth" method="post" id="profile" name=""
-                          class="form-horizontal" >
-                        <div class="padding-double login-form">
-                            <div class="form-group">
-                                <p><strong><%=Encode.forHtml(request.getParameter("sp"))%></strong>
-                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
-                                </p>
+                    <div class="padding-double login-form">
+                        <form action="../commonauth" method="post" id="profile" name=""
+                              class="form-horizontal" >
+
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <div class="alert alert-warning" role="alert">
+                                    <p class="margin-bottom-double"><strong><%=Encode.forHtml(request.getParameter("sp"))%></strong>
+                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
+                                    </p>
+                                </div>
 
                             </div>
 
                             <!-- validation -->
-                            <div class="padding-double">
-                                <% for (String claim : mandatoryClaimList) { %>
-                                <div>
-                                    <label><input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
-                                           class="form-control" required="required"><%=claim%>*</label>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <div class="text-left padding-bottom">
+                                    <span class="required font-medium">*</span>
+                                    <span class="mandatory">Mandatory claims required by the service provider.
+                                        Consent is required for all the mandatory claims to proceed.</span>
                                 </div>
-                                <%}%>
-                                <% for (String claim : missingClaimList) { %>
-                                <div>
-                                    <label><input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
-                                           class="form-control" required="required"><%=claim%></label>
+                                <div class="claim-list">
+                                    <% for (String claim : mandatoryClaimList) { %>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>" required />
+                                            <%=claim%>
+                                            <span class="required font-medium">*</span>
+                                        </label>
+                                    </div>
+                                    <%}%>
+                                    <% for (String claim : missingClaimList) { %>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>" />
+                                            <%=claim%>
+                                        </label>
+                                    </div>
+                                    <%}%>
                                 </div>
-                                <%}%>
-                                <div class="clearfix"></div>
+                                <div class="text-right padding-top">
+                                    <a href="#">Privacy Policy</a>
+                                </div>
                             </div>
-                            <table width="100%" class="styledLeft">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-top-double">
+                                <table width="100%" class="styledLeft">
                                 <tbody>
                                 <tr>
                                     <td class="buttonRow" colspan="2">
@@ -140,8 +158,10 @@
                                 </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </form>
+                            </div>
+                        </form>
+                        <div class="clearfix"></div>
+                    </div>
 
                 </div>
             </div>
