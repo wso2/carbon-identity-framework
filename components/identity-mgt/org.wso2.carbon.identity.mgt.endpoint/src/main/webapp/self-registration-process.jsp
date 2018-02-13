@@ -33,6 +33,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -80,10 +82,14 @@
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
+            String tenantDomain = request.getParameter("tenantDomain");
 
             if (StringUtils.isBlank(callback)) {
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+            }
+            if(StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             }
 
             if (StringUtils.isBlank(username)) {

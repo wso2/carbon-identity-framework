@@ -28,17 +28,21 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-
+    String tenantDomain = request.getParameter("tenantDomain");
+    ConsentMgtClient consentMgtClient = new ConsentMgtClient();
     boolean isFirstNameInClaims = true;
     boolean isFirstNameRequired = true;
     boolean isLastNameInClaims = true;
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
+    String purposes = consentMgtClient.getPurposes(tenantDomain);
+    System.out.println(purposes);
 
     Claim[] claims = new Claim[0];
 
@@ -80,6 +84,7 @@
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
         <link href="css/Roboto.css" rel="stylesheet">
         <link href="css/custom-common.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="libs/jstree/dist/themes/default/style.min.css" />
 
         <!--[if lt IE 9]>
         <script src="js/html5shiv.min.js"></script>
@@ -223,6 +228,12 @@
                                     }
                                 }
                             %>
+                            <div>
+                                <br/>
+                                <h4>Identity Server Will Use Following Attributes Once Accepted</h4>
+                                <br/>
+                                <div id="tree-table" style="overflow: scroll; height:100px;"></div>
+                            </div>
                             <%
                                 if (reCaptchaEnabled) {
                             %>
@@ -238,6 +249,7 @@
                                 <input id="isSelfRegistrationWithVerification" type="hidden"
                                        name="isSelfRegistrationWithVerification"
                                        value="true"/>
+                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=tenantDomain%>"/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <br/>
@@ -256,6 +268,9 @@
                         </div>
                     </div>
                 </form>
+                
+                
+                </div>
             </div>
         </div>
         <!-- /content/body -->
@@ -274,6 +289,9 @@
 
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="libs/handlebars-v4.0.11.js"></script>
+    <script type="text/javascript" src="libs/jstree/dist/jstree.min.js"></script>
+    <script type="text/javascript" src="libs/jstree/src/jstree-actions.js"></script>
     <script type="text/javascript">
 
         $(document).ready(function () {
@@ -308,6 +326,65 @@
                 return true;
             });
         });
+
+        renderReceiptDetails(<%=purposes%>);
+        
+        function renderReceiptDetails(data) {
+            
+            var receiptData = {receipts: data};
+            var treeTemplate =
+                '<div id="html1">' +
+                '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
+                '<ul>' +
+                '{{#purposes}}' +
+                '<li data-jstree=\'{"icon":"icon-book"}\'>{{purpose}}<ul>' +
+                '{{#piiCategories}}' +
+                
+                '' +
+                '<li data-jstree=\'{"icon":"icon-user"}\'>{{piiCategory}}</li>' +
+                '' +
+                '</li>' +
+                '{{/piiCategories}}' +
+                '</ul>' +
+                '{{/purposes}}' +
+                '</ul></li>' +
+                '</ul>' +
+                '</div>';
+
+            var tree = Handlebars.compile(treeTemplate);
+            var treeRendered = tree(data);
+
+            $("#tree-table").html(treeRendered);
+
+            var container = $("#html1").jstree({
+                plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
+                checkbox: { "keep_selected_style" : false },
+            });
+
+            container.jstree("check_all");
+        }
+
+
+        function addActions(){
+
+            $(".btn-settings").click(function(){
+                var receiptID = $(this).data("id");
+                getReceiptDetails(receiptID);
+            });
+            $(".btn-revoke").click(function(){
+                var receiptID = $(this).prev().data("id");
+                var responseText = confirm("Are you sure you want to revoke this consent? this is not reversable...");
+
+                if (responseText == true) {
+                    revokeReceipt(receiptID);
+                }
+
+            });
+            $(".btn-cancel-settings").click(function(){
+                renderReceiptList(json);
+            });
+        }
+
     </script>
     </body>
     </html>

@@ -124,7 +124,7 @@
 
     <servlet>
         <servlet-name>register.do</servlet-name>
-        <jsp-file>/self-registration.jsp</jsp-file>
+        <jsp-file>/self-registration-tenant-request.jsp</jsp-file>
     </servlet>
 
     <servlet>
