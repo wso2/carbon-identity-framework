@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -332,7 +331,7 @@ public class UserRegistrationService {
         }
 
         if (domainName != null && domainName.trim().length() > 0) {
-            roleName = domainName.toUpperCase() + CarbonConstants.DOMAIN_SEPARATOR + roleName;
+            roleName = domainName.toUpperCase() + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
         }
         return new ArrayList<String>(Arrays.asList(roleName));
     }
