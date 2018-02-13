@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -44,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
@@ -92,6 +94,7 @@ public class FrameworkServiceComponent {
     private HttpService httpService;
     private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
     private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -218,6 +221,8 @@ public class FrameworkServiceComponent {
         // Registering missing mandatory claim handler as a post authn handler
         PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
+
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -483,4 +488,25 @@ public class FrameworkServiceComponent {
         }
         FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
     }
+
+    @Reference(
+            name = "consent.mgt.service",
+            service = ConsentManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentMgtService"
+    )
+    protected void setConsentMgtService(ConsentManager consentManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Consent Manger is set in the Application Authentication Framework bundle.");
+        }
+        consentMgtPostAuthnHandler.setConsentManager(consentManager);
+    }
+
+    protected void unsetConsentMgtService(ConsentManager consentManager) {
+
+        consentMgtPostAuthnHandler.setConsentManager(null);
+    }
+
 }
