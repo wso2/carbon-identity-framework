@@ -60,14 +60,8 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
+import sun.security.provider.X509Factory;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -79,11 +73,22 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class IdentityUtil {
 
@@ -102,6 +107,8 @@ public class IdentityUtil {
             'V', 'W', 'X', 'Y', 'Z'};
     public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
             "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
+    private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
+    private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -111,6 +118,8 @@ public class IdentityUtil {
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
+    public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
+    public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
 
     /**
      * @return
@@ -149,6 +158,9 @@ public class IdentityUtil {
         Object value = configuration.get(key);
         String strValue;
 
+        if (value == null) {
+            return null;
+        }
         if (value instanceof List) {
             value = ((List) value).get(0);
         }
@@ -825,10 +837,16 @@ public class IdentityUtil {
             throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
-        if (queryString.indexOf("?") < 0) {
-            queryString.append("?");
+
+        if (parameterMap != null && parameterMap.size() > 0) {
+            if(queryString.indexOf("?") < 0) {
+                queryString.append("?");
+            } else {
+                queryString.append("&");
+            }
+            queryString.append(buildQueryComponent(parameterMap));
         }
-        queryString.append(buildQueryComponent(parameterMap));
+
         return queryString.toString();
     }
 
@@ -938,5 +956,80 @@ public class IdentityUtil {
             }
         }
         return isOperationSupported;
+    }
+
+    public static boolean isRecoveryEPAvailable() {
+        String enableRecoveryEPUrlProperty = getProperty(ENABLE_RECOVERY_ENDPOINT);
+        if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
+            return Boolean.parseBoolean(enableRecoveryEPUrlProperty);
+        }
+        return false;
+    }
+
+    public static boolean isSelfSignUpEPAvailable() {
+        String enableSelfSignEPUpUrlProperty = getProperty(ENABLE_SELF_SIGN_UP_ENDPOINT);
+        if (StringUtils.isNotBlank(enableSelfSignEPUpUrlProperty)) {
+            return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
+        }
+        return false;
+    }
+
+     /**
+     *
+     * Converts and returns a {@link Certificate} object for given PEM content.
+     *
+     * @param certificateContent
+     * @return
+     * @throws CertificateException
+     */
+    public static Certificate convertPEMEncodedContentToCertificate(String certificateContent) throws CertificateException {
+
+        certificateContent = StringUtils.stripEnd(StringUtils.stripStart(certificateContent, PEM_BEGIN_CERTFICATE),
+                PEM_END_CERTIFICATE);
+        byte[] bytes = org.apache.axiom.om.util.Base64.decode(certificateContent);
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(bytes));
+        return certificate;
+    }
+
+    /**
+     *
+     * Returns the PEM encoded certificate out of the given certificate object.
+     *
+     * @param certificate
+     * @return PEM encoded certificate as a {@link String}
+     * @throws CertificateException
+     */
+    public static String convertCertificateToPEM(Certificate certificate) throws CertificateException {
+
+        byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
+
+        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
+                X509Factory.END_CERT);
+
+        return encodedPEM;
+    }
+
+    /**
+     * Checks whether the PEM content is valid.
+     *
+     * For now only checks whether the certificate is not malformed.
+     *
+     * @param certificateContent PEM content to be validated.
+     * @return true if the content is not malformed, false otherwise.
+     */
+    public static boolean isValidPEMCertificate(String certificateContent) {
+
+        // Empty content is a valid input since it means no certificate. We only validate if the content is there.
+        if (StringUtils.isBlank(certificateContent)) {
+            return true;
+        }
+
+        try {
+            convertPEMEncodedContentToCertificate(certificateContent);
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
     }
 }

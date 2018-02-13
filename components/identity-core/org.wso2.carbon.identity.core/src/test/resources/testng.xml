@@ -23,6 +23,8 @@
     <test name="identity-core-test-all">
         <classes>
             <class name="org.wso2.carbon.identity.core.util.IdentityUtilTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>
+            <class name="org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOTest"/>
         </classes>
     </test>
 </suite>

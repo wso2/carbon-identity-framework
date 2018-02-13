@@ -1,7 +1,3 @@
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%--
    ~ Copyright (c) 2008, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
    ~
@@ -19,6 +15,10 @@
    ~  specific language governing permissions and limitations
    ~  under the License.
 --%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <%--<link rel="stylesheet" type="text/css" href="../admin/css/main.css"/>--%>
 <link rel="stylesheet" type="text/css" href="css/local-styles.css"/>
@@ -53,11 +53,11 @@
 <!--EditArea javascript syntax hylighter -->
 <script language="javascript" type="text/javascript" src="../editarea/edit_area_full.js"></script>
 
-
 <fmt:bundle basename="org.wso2.carbon.policyeditor.ui.i18n.Resources">
-<carbon:jsi18n resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.JSResources" request="<%=request%>"/>
-<carbon:breadcrumb
-		label="Policy"
+    <carbon:jsi18n resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.JSResources" request="<%=request%>"/>
+    <carbon:breadcrumb
+
+            label="Policy"
 		resourceBundle="org.wso2.carbon.policyeditor.ui.i18n.Resources"
 		topPage="false"
 		request="<%=request%>" />

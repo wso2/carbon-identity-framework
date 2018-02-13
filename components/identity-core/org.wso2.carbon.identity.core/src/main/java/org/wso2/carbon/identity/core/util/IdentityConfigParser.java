@@ -137,7 +137,7 @@ public class IdentityConfigParser {
             }
 
             if ( inStream == null ) {
-                String message = "Identity configuration not found. Cause - " + warningMessage;
+                String message = "Identity configuration not found at: "+configFilePath+" . Cause - " + warningMessage;
                 if ( log.isDebugEnabled() ) {
                     log.debug(message);
                 }
@@ -370,7 +370,7 @@ public class IdentityConfigParser {
     }
 
     private String getKey(Stack<String> nameStack) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
         for (int i = 0; i < nameStack.size(); i++) {
             String name = nameStack.elementAt(i);
             key.append(name).append(".");

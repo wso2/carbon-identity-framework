@@ -26,6 +26,8 @@ import java.util.Map;
 public class EventTest {
 
     Event event;
+    Event eventOverload;
+    Map<String,Object> mapForOverload;
 
     @BeforeMethod
     public void setUp(){
@@ -36,6 +38,9 @@ public class EventTest {
     private void setEvents() {
 
         event = new Event("name");
+        mapForOverload =new HashMap();
+        mapForOverload.put("key", "value");
+        eventOverload = new Event("eventName", mapForOverload);
     }
 
     @Test
@@ -47,14 +52,15 @@ public class EventTest {
    @Test
     public void testEvent(){
 
-        Assert.assertEquals(event.getEventName(), "name");
+        Assert.assertEquals(eventOverload.getEventName(), "eventName");
+        Assert.assertEquals(eventOverload.getEventProperties(), mapForOverload);
    }
 
    @Test
     public void testAddEventProperty(){
 
         event.addEventProperty("key", "value");
-        Map<String,Object> map =new HashMap<String,Object>();
+        Map<String,Object> map =new HashMap();
         map.put("key", "value");
         Assert.assertEquals(event.getEventProperties(), map);
    }

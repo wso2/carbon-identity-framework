@@ -88,11 +88,17 @@ public class RoleBean {
 	}
 
 	public void cleanup() {
-		roleName = null;
-		roleUsers = null;
-		selectedPermissions = null;
-		roleType = null;
-		domain = null;
+
+		if (!UserAdminUIConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain)) {
+			domain = "";
+		}
+		roleName = "";
+		sharedRole = "";
+		roleUsers = new String[0];
+		selectedPermissions = new String[0];
+		shownUsers = new String[0];
+		storeType = "";
+		roleType = "";
 	}
 
 	public String getRoleType() {

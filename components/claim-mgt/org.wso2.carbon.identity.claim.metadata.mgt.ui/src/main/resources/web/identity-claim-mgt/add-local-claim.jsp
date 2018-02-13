@@ -35,7 +35,9 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 <style>
     .sectionHelp {
-        padding-left: 17px;
+        padding-bottom: 4px;
+        display: inline-block;
+        color: #555;
     }
 </style>
 
@@ -174,8 +176,8 @@
                 function validate() {
 
                     var value = document.getElementsByName("localClaimURI")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="claim.uri.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 100) {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.too.long"/>');
@@ -183,8 +185,8 @@
                     }
 
                     var value = document.getElementsByName("displayName")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="displayname.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="displayname.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 30) {
                         CARBON.showWarningDialog('<fmt:message key="displayname.is.too.long"/>');
@@ -192,8 +194,8 @@
                     }
 
                     var value = document.getElementsByName("description")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="description.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="description.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 150) {
                         CARBON.showWarningDialog('<fmt:message key="description.is.too.long"/>');
@@ -210,7 +212,7 @@
                         for (var i = 0; i < attributeAddTableRowCount; i++) {
                             var row = attributeAddTable.rows[i];
                             var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
-                            if (mappedAttributeValue == '') {
+                            if (isEmpty(mappedAttributeValue)) {
                                 CARBON.showWarningDialog('<fmt:message key="attribute.mapping.cannot.be.empty"/>');
                                 return false;
                             }
@@ -251,6 +253,10 @@
                     document.addclaim.submit();
                 }
 
+                function isEmpty(value){
+                  return (value == null || value.trim() == '');
+                }
+
             </script>
 
             <form name="addclaim" action="add-local-claim-finish-ajaxprocessor.jsp" method="post">
@@ -277,18 +283,22 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='claim.uri'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <%
                                         if (StringUtils.isNotBlank(localClaimURI)) {
                                     %>
                                     <td class="leftCol-big"><input type="text" name="localClaimURI" id="localClaimURI"
                                                                    class="text-box-big"
-                                                                   value="<%=Encode.forHtmlAttribute(localClaimURI)%>"/></td>
+                                                                   value="<%=Encode.forHtmlAttribute(localClaimURI)%>"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.uri.help"/></div>
+                                    </td>
                                     <%
                                     } else {
                                     %>
                                     <td class="leftCol-big"><input type="text" name="localClaimURI" id="localClaimURI"
-                                                                   class="text-box-big"/></td>
+                                                                   class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.uri.help"/></div>
+                                    </td>
                                     <%
                                         }
                                     %>
@@ -296,21 +306,23 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='display.name'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><input type="text" name="displayName" id="displayName"
-                                                                   class="text-box-big"/></td>
+                                                                   class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.display.name.help"/></div>
+                                    </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='description'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><input type="text" name="description" id="description"
                                                                    class="text-box-big"/></td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big">
                                         <a id="attributeAddLink" class="icon-link"
                                            style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
@@ -357,19 +369,24 @@
                                         <div style="clear:both"/>
                                         <input type="hidden" name="number_of_AttributeMappings"
                                                id="number_of_AttributeMappings" value="1"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.mapped.attr.help"/></div>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='regular.expression'/></td>
                                     <td class="leftCol-big"><input type="text" name="regex" id="regex"
-                                                                   class="text-box-big"/></td>
+                                                                   class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.regex.help"/></div>
+                                    </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='display.order'/></td>
                                     <td class="leftCol-big"><input type="text" name="displayOrder" id="displayOrder"
-                                                                   class="text-box-big"/></td>
+                                                                   class="text-box-big"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.display.order.help"/></div>
+                                    </td>
                                 </tr>
 
                                 <tr>
@@ -378,6 +395,7 @@
                                         <input type='checkbox' name='supported' id='supported'
                                                onclick="setType('supported','supportedhidden')"/>
                                         <input type='hidden' name='supportedhidden' id='supportedhidden'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.supported.default.help"/></div>
                                     </td>
                                 </tr>
 
@@ -387,6 +405,7 @@
                                         <input type='checkbox' name='required' id='required'
                                                onclick="setType('required','requiredhidden')"/>
                                         <input type='hidden' name='requiredhidden' id='requiredhidden'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.required.help"/></div>
                                     </td>
                                 </tr>
 
@@ -396,6 +415,7 @@
                                         <input type='checkbox' name='readonly' id='readonly'
                                                onclick="setType('readonly','readonlyhidden')"/>
                                         <input type='hidden' name='readonlyhidden' id='readonlyhidden'/>
+                                        <div class="sectionHelp"><fmt:message key="claim.readonly.help"/></div>
                                     </td>
                                 </tr>
 
@@ -420,6 +440,7 @@
                                         <div style="clear:both"/>
                                         <input type="hidden" name="number_of_ClaimProperties"
                                                id="number_of_ClaimProperties" value="0"/>
+                                        <div class="sectionHelp"><fmt:message key="claim.property.help"/></div>
                                     </td>
                                 </tr>
                             </table>

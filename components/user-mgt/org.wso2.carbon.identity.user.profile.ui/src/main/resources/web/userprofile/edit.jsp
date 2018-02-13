@@ -39,22 +39,24 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
 
 <%
     boolean readOnlyUserStore = false;
-    String username = request.getParameter("username");
     String profile = request.getParameter("profile");
     String fromUserMgt = request.getParameter("fromUserMgt");
     String noOfProfiles = request.getParameter("noOfProfiles");
     String ACCOUNT_DISABLED = "http://wso2.org/claims/identity/accountDisabled";
     String currentUser = (String) session.getAttribute("logged-user");
+    String encryptedUsername = request.getParameter("username");
+    String decryptedUsername = null;
 
     if (noOfProfiles == null) {
         noOfProfiles = "0";
     }
 
     if (fromUserMgt == null) fromUserMgt = "false";
-
 
     UserProfileDTO userProfile = null;
     UserFieldDTO[] userFields = null;
@@ -64,6 +66,9 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
+        if (encryptedUsername != null) {
+            decryptedUsername = UserProfileUIUtil.getDecryptedUsername(encryptedUsername);
+        }
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(),
                 session);
@@ -71,7 +76,7 @@
                 .getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         UserProfileCient client = new UserProfileCient(cookie, backendServerURL,
                 configContext);
-        userProfile = client.getUserProfile(username, profile);
+        userProfile = client.getUserProfile(decryptedUsername, profile);
         
         if ("readonly".equals(userProfile.getProfileConifuration())){
         	readOnlyUserStore = true;
@@ -131,12 +136,12 @@
         <%
             if (!readOnlyUserStore) {
         %>
-        <h2><fmt:message key='update.profile1'/><%=Encode.forHtml(username)%>
+        <h2><fmt:message key='update.profile1'/><%=Encode.forHtml(decryptedUsername)%>
         </h2>
         <%
         } else {
         %>
-        <h2><fmt:message key='view.profile1'/><%=Encode.forHtml(username)%>
+        <h2><fmt:message key='view.profile1'/><%=Encode.forHtml(decryptedUsername)%>
         </h2>
         <%
             }
@@ -205,7 +210,7 @@
             <form method="post" name="updateProfileform"
                   action="edit-finish-ajaxprocessor.jsp?profile=<%=Encode.forUriComponent(userProfile.getProfileName())%>&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>&noOfProfiles=<%=Encode.forUriComponent(noOfProfiles)%>"
                   target="_self">
-                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
+                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(decryptedUsername)%>"/>
                 <table style="width: 100%" class="styledLeft">
                     <thead>
                     <tr>
@@ -260,7 +265,7 @@
                                     if (userFields != null) {
                                         for (int i = 0; i < userFields.length; i++) {
                                             if (ACCOUNT_DISABLED.equals(userFields[i].getClaimUri()) &&
-                                                    username.equals(currentUser)) {
+                                                    decryptedUsername.equals(currentUser)) {
                                                 continue;
                                             }
                                 %>
@@ -349,7 +354,7 @@
                                 }
                             %>
                             <input type="button" class="button"
-                                   onclick="javascript:location.href='index.jsp?username=<%=Encode.forUriComponent(username)%>' +
+                                   onclick="javascript:location.href='index.jsp?username=<%=Encode.forUriComponent(encryptedUsername)%>' +
                                            '&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>&editCancel=true'"
                                    value="<fmt:message key='cancel'/>"/></td>
                     </tr>

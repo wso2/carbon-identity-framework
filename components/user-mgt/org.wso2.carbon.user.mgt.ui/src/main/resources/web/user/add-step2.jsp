@@ -233,7 +233,7 @@
 
 
     <div id="middle">
-        <h2><fmt:message key="add.user"/></h2>
+        <h2><fmt:message key="add.new.user"/></h2>
 
         <script type="text/javascript">
 

@@ -55,6 +55,7 @@ import java.util.Map;
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
+    private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static volatile DefaultProvisioningHandler instance;
     private SecureRandom random = new SecureRandom();
 
@@ -186,12 +187,21 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
             }
         } catch (UserProfileException e) {
-            throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
-                    " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
+            if (isUserAlreadyAssociated(e)) {
+                log.info("An association already exists for user: " + subject + ". Skip association while JIT " +
+                        "provisioning");
+            } else {
+                throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
+                        " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
+            }
         } finally {
             // end tenant flow
             FrameworkUtils.endTenantFlow();
         }
+    }
+
+    private boolean isUserAlreadyAssociated(UserProfileException e) {
+        return e.getMessage() != null && e.getMessage().contains(ALREADY_ASSOCIATED_MESSAGE);
     }
 
     private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, String[] newRoles,

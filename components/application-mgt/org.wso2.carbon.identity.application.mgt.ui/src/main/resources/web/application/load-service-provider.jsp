@@ -78,7 +78,7 @@
 				appBean.setFederatedIdentityProviders(federatedIdPs);
 				appBean.setRequestPathAuthenticators(requestPathAuthenticators);
 				appBean.setClaimUris(claimUris);
-				
+
 			} catch (Exception e) {
 				String message = resourceBundle.getString("alert.error.while.reading.service.provider") + " : " + e.getMessage();
 				CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);

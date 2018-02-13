@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.common.model.test;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 
 /**
  * Testing the ProvisioningConnectorConfig class

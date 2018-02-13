@@ -164,8 +164,14 @@
                 CARBON.showWarningDialog("<fmt:message key="workflow.error.empty.workflow.name"/>" , null ,null) ;
                 return false;
             }
-            if($.inArray(workflow_name, existingWorkflowNames) !== -1){
-                CARBON.showWarningDialog("<fmt:message key="workflow.error.duplicate.workflow.name"/>" , null ,null) ;
+
+            var workflowId;
+            <% if (workflowId != null) { %>
+            workflowId = "<%=Encode.forJavaScript(workflowId)%>";
+            <% } %>
+
+            if ((!workflowId || 0 === workflowId.length) && $.inArray(workflow_name, existingWorkflowNames) !== -1) {
+                CARBON.showWarningDialog("<fmt:message key="workflow.error.duplicate.workflow.name"/>", null, null);
                 return false;
             }
             return true;

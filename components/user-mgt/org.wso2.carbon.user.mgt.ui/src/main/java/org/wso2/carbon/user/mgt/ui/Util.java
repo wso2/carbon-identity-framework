@@ -23,12 +23,19 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.core.util.AdminServicesUtil;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
 import org.wso2.carbon.identity.governance.stub.bean.Property;
 import org.wso2.carbon.ui.CarbonUIUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 import org.wso2.carbon.user.mgt.common.RandomPasswordGenerator;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
@@ -60,6 +67,7 @@ public class Util {
     private static final String ASK_PASSWORD_TEMP_PASSWORD_GENERATOR = "EmailVerification.AskPassword.PasswordGenerator";
     // This property will be used to enable the new Ask Password feature.
     private static final String ASK_PASSWORD_ADMIN_UI_ENABLE_PROP_NAME = "EnableAskPasswordAdminUI";
+    private static final String ENCRYPT_USERNAME_IN_URL = "encryptUsernameInUrl";
 
     private static boolean isAskPasswordAdminUIEnabled;
     private static boolean isAskPasswordEnabled = true;
@@ -337,5 +345,99 @@ public class Util {
         }
 
         return new DefaultPasswordGenerator();
+    }
+
+    /**
+     * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
+     * set to true in user-mgt.xml, else return the username without encrypting.
+     *
+     * @param username Username to encrypt
+     * @return Encrypted and base64Encoded username if usernameEncryptionInUrl property is set to true user-mgt.xml,
+     * else return the username without encrypting
+     * @throws UserManagementUIException
+     */
+    public static String getEncryptedAndBase64encodedUsername(String username) throws UserManagementUIException {
+        String encryptedAndBase64EncodedUsername = null;
+        try {
+            if (StringUtils.isNotBlank(username)) {
+                boolean isUsernameEncryptionEnabled = isUsernameEncryptionEnabled();
+                if (isUsernameEncryptionEnabled) {
+                    encryptedAndBase64EncodedUsername = CryptoUtil.getDefaultCryptoUtil().
+                            encryptAndBase64Encode(username.getBytes());
+                } else {
+                    return username;
+                }
+            }
+        } catch (CryptoException e) {
+            String message = String.format("Error while trying to encrypt the username : '%s' ", username);
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
+        } catch (CarbonException | UserStoreException e) {
+            String message = "Error while trying to get User Realm";
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
+        }
+
+        return encryptedAndBase64EncodedUsername;
+    }
+
+    /**
+     * Decrypt the encrypted username using Carbon server's private key.
+     *
+     * @param encryptedAndBase64EncodedUsername Encrypted username which is encrypted by Carbon server's private key
+     * @return Decrypted username if usernameEncryptionInUrl property is set to true user-mgt.xml, else return the
+     * provided input parameter as it is.
+     * @throws UserManagementUIException
+     */
+    public static String getDecryptedUsername(String encryptedAndBase64EncodedUsername) throws UserManagementUIException {
+        try {
+            boolean isUsernameEncryptionEnabled = isUsernameEncryptionEnabled();
+            if (isUsernameEncryptionEnabled) {
+                return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(encryptedAndBase64EncodedUsername));
+            } else {
+                return encryptedAndBase64EncodedUsername;
+            }
+        } catch (CryptoException e) {
+            String message = String.format("Error while trying to decrypt the username : '%s' ",
+                    encryptedAndBase64EncodedUsername);
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
+        } catch (CarbonException | UserStoreException e) {
+            String message = "Error while trying to get User Realm";
+            log.error(message, e);
+            throw new UserManagementUIException(message, e);
+        }
+    }
+
+    /**
+     * Provide whether the user referred is the logged-in user.
+     *
+     * @param currentUsername logged in username.
+     * @param username provided username.
+     * @param userRealmInfo User realm info.
+     * @return Returns 'true' if the provided user is the logged-in user.
+     */
+    public static boolean isCurrentUser(String currentUsername, String username, UserRealmInfo userRealmInfo) {
+
+        if (username.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            // username case sensitiveness can be changed in the database level or using the user-store configuration.
+            // So always consider username as case insensitive.
+            return currentUsername.equalsIgnoreCase(username);
+        }
+
+        if (currentUsername.contains(UserCoreConstants.DOMAIN_SEPARATOR)
+                && !UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME
+                .equalsIgnoreCase(UserCoreUtil.extractDomainFromName(currentUsername))) {
+            return false;
+        }
+
+        // username case sensitiveness can be changed in the database level or using the user-store configuration.
+        // So always consider username as case insensitive.
+        return UserCoreUtil.removeDomainFromName(currentUsername).equalsIgnoreCase(username);
+    }
+
+    private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
+        return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
+                .getRealmProperties().get(ENCRYPT_USERNAME_IN_URL));
     }
 }

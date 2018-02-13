@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -57,11 +56,9 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
@@ -91,9 +88,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -109,6 +103,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class FrameworkUtils {
 
@@ -328,6 +325,7 @@ public class FrameworkUtils {
     }
 
     /**
+     * Returns the step based sequence handler.
      * @return
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
@@ -436,42 +434,6 @@ public class FrameworkUtils {
     }
 
     /**
-     * Gets the configured authorization handler at identity.xml
-     *
-     * @return Configured authorization handler
-     */
-    public static AuthorizationHandler getAuthorizationHandler() {
-
-        AuthorizationHandler authorizationHandler = null;
-        Object obj = ConfigurationFacade.getInstance().getExtensions()
-                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
-
-        if (obj instanceof AuthorizationHandler) {
-            authorizationHandler = (AuthorizationHandler) obj;
-        }
-        return authorizationHandler;
-    }
-
-    /**
-     * Gets the configured post authentication handler at identity.xml
-     *
-     * @return Configured post authentication handler
-     */
-    public static PostAuthenticationHandler getPostAuthenticationHandler() {
-
-        PostAuthenticationHandler postAuthenticationHandler = null;
-        Object obj = ConfigurationFacade.getInstance().getExtensions()
-                .get(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER);
-
-        if (obj instanceof PostAuthenticationHandler) {
-            postAuthenticationHandler = (PostAuthenticationHandler) obj;
-        } else {
-            postAuthenticationHandler = DefaultPostAuthenticationHandler.getInstance();
-        }
-        return postAuthenticationHandler;
-    }
-
-    /**
      * @param request
      * @param response
      * @throws IOException
@@ -484,24 +446,35 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param req
-     * @param resp
+     * Removes commonAuthCookie.
+     * @param req Incoming HttpServletRequest.
+     * @param resp HttpServlet response which the cookie must be written.
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
+        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE);
+    }
+
+    /**
+     * Removes a cookie which is already stored.
+     * @param req Incoming HttpServletRequest.
+     * @param resp HttpServletResponse which should be stored.
+     * @param cookieName Name of the cookie which should be removed.
+     */
+    public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName) {
 
         Cookie[] cookies = req.getCookies();
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
+                if (cookie.getName().equals(cookieName)) {
 
-                    CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE,
+                    CookieBuilder cookieBuilder = new CookieBuilder(cookieName,
                             cookie.getValue());
-                    IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig
-                            (FrameworkConstants.COMMONAUTH_COOKIE);
+                    IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig
+                            (cookieName);
 
-                    if (commonAuthIdCookieConfig != null) {
-                        updateCommonAuthIdCookieConfig(cookieBuilder, commonAuthIdCookieConfig, 0);
+                    if (cookieConfig != null) {
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
                     } else {
                         cookieBuilder.setHttpOnly(true);
                         cookieBuilder.setSecure(true);
@@ -533,14 +506,27 @@ public class FrameworkUtils {
      */
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age) {
 
-        CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, id);
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age);
+    }
 
-        IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants
-                .COMMONAUTH_COOKIE);
+    /**
+     * Stores a cookie to the response taking configurations from identity.xml file.
+     * @param req Incoming HttpSerletRequest.
+     * @param resp Outgoing HttpServletResponse.
+     * @param cookieName Name of the cookie to be stored.
+     * @param id Cookie id.
+     * @param age Max age of the cookie.
+     */
+    public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
+                                 Integer age) {
 
-        if (commonAuthIdCookieConfig != null) {
+        CookieBuilder cookieBuilder = new CookieBuilder(cookieName, id);
 
-            updateCommonAuthIdCookieConfig(cookieBuilder, commonAuthIdCookieConfig, age);
+        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
+
+        if (cookieConfig != null) {
+
+            updateCookieConfig(cookieBuilder, cookieConfig, age);
         } else {
 
             cookieBuilder.setSecure(true);
@@ -556,10 +542,22 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param req
-     * @return
+     *
+     * @param req Incoming HttpServletRequest.
+     * @return CommonAuthID cookie.
      */
     public static Cookie getAuthCookie(HttpServletRequest req) {
+
+        return getCookie(req, FrameworkConstants.COMMONAUTH_COOKIE);
+    }
+
+    /**
+     * Returns the cookie with the given name.
+     * @param req Incoming HttpServletRequest.
+     * @param cookieName Name of the cookie.
+     * @return Cookie with the given name. If it's not present null will be returned.
+     */
+    public static Cookie getCookie(HttpServletRequest req, String cookieName) {
 
         Cookie[] cookies = req.getCookies();
 
@@ -567,7 +565,7 @@ public class FrameworkUtils {
 
             for (Cookie cookie : cookies) {
 
-                if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
+                if (cookie.getName().equals(cookieName)) {
                     return cookie;
                 }
             }
@@ -885,7 +883,8 @@ public class FrameworkUtils {
                                                                             Map<String, AuthenticatedIdPData> authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Finding already authenticated IdPs of the Step");
+            log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
+                    stepConfig.getOrder()));
         }
 
         Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
@@ -894,18 +893,65 @@ public class FrameworkUtils {
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
 
             for (AuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Considering the authenticator '%s'", authenticatorConfig.getName()));
+                }
+
+                String authenticatorName = authenticatorConfig.getName();
                 List<String> authenticatorIdps = authenticatorConfig.getIdpNames();
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("%d IdP(s) found in the step.", authenticatedIdPs.size()));
+                }
 
                 for (String authenticatorIdp : authenticatorIdps) {
-                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs
-                            .get(authenticatorIdp);
 
-                    if (authenticatedIdPData != null
-                        && authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
-                        idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
-                        break;
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Considering the IDP : '%s'", authenticatorIdp));
+                    }
+
+                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatorIdp);
+
+                    if (authenticatedIdPData != null && authenticatedIdPData.getIdpName() !=  null &&
+                            authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
+
+                        if (FrameworkConstants.LOCAL.equals(authenticatedIdPData.getIdpName())) {
+                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                                idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
+
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("('%s', '%s') is an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                            authenticatorConfig.getName(), authenticatorIdp));
+                                }
+
+                                break;
+                            } else {
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("('%s', '%s') is not an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                            authenticatorConfig.getName(), authenticatorIdp));
+                                }
+                            }
+                        } else {
+
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("'%s' is an already authenticated IDP.", authenticatorIdp));
+                            }
+
+                            idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
+                            break;
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("'%s' is NOT an already authenticated IDP.", authenticatorIdp));
+                        }
                     }
                 }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticators found.");
             }
         }
 
@@ -929,7 +975,7 @@ public class FrameworkUtils {
 
                     IdentityProvider idp = authConfig.getIdps().get(idpName);
 
-                    if (idp.isFederationHub()) {
+                    if (idp != null && idp.isFederationHub()) {
                         idpName += ".hub";
                     }
 
@@ -1218,37 +1264,37 @@ public class FrameworkUtils {
         }
     }
 
-    private static void updateCommonAuthIdCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
-            commonAuthIdCookieConfig, Integer age) {
+    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+            cookieConfig, Integer age) {
 
-        if (commonAuthIdCookieConfig.getDomain() != null) {
-            cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
+        if (cookieConfig.getDomain() != null) {
+            cookieBuilder.setDomain(cookieConfig.getDomain());
         }
 
-        if (commonAuthIdCookieConfig.getPath() != null) {
-            cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
+        if (cookieConfig.getPath() != null) {
+            cookieBuilder.setPath(cookieConfig.getPath());
         }
 
-        if (commonAuthIdCookieConfig.getComment() != null) {
-            cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
+        if (cookieConfig.getComment() != null) {
+            cookieBuilder.setComment(cookieConfig.getComment());
         }
 
-        if (commonAuthIdCookieConfig.getMaxAge() > 0) {
-            cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
+        if (cookieConfig.getMaxAge() > 0) {
+            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
         } else if (age != null) {
             cookieBuilder.setMaxAge(age);
         }
 
-        if (commonAuthIdCookieConfig.getVersion() > 0) {
-            cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
+        if (cookieConfig.getVersion() > 0) {
+            cookieBuilder.setVersion(cookieConfig.getVersion());
         }
 
-        if (commonAuthIdCookieConfig.isHttpOnly()) {
-            cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
+        if (cookieConfig.isHttpOnly()) {
+            cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
         }
 
-        if (commonAuthIdCookieConfig.isSecure()) {
-            cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
+        if (cookieConfig.isSecure()) {
+            cookieBuilder.setSecure(cookieConfig.isSecure());
         }
     }
 

@@ -63,6 +63,9 @@
 				ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
 				serviceClient.updateApplicationData(appBean.getServiceProvider());
 
+				// Set the updated service provider to appBean.
+				appBean.setServiceProvider(serviceClient.getApplication(appBean.getServiceProvider().getApplicationName()));
+
 			} catch (Exception e) {
 				String message = resourceBundle.getString("alert.error.while.updating.service.provider")+ " : " + e.getMessage();
 				CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);

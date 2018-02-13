@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -43,8 +44,10 @@ import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
@@ -63,6 +66,7 @@ public class ApplicationMgtUtil {
     private static String applicationNode;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
@@ -112,8 +116,14 @@ public class ApplicationMgtUtil {
                 log.debug("Checking whether user has role : " + applicationRoleName + " by retrieving role list of " +
                           "user : " + username);
             }
-            String[] userRoles = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                    .getUserStoreManager().getRoleListOfUser(username);
+
+            UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                    .getUserStoreManager();
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                return ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName);
+            }
+
+            String[] userRoles = userStoreManager.getRoleListOfUser(username);
             for (String userRole : userRoles) {
                 if (applicationRoleName.equals(userRole)) {
                     return true;

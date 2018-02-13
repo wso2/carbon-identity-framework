@@ -29,6 +29,8 @@ public abstract class FrameworkConstants {
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
+    // Cookie used for post authenticaion sequence tracking
+    public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
     public static final String LOCAL_ROLE_CLAIM_URI = "http://wso2.org/claims/role";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
@@ -67,6 +69,7 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String REQUEST_PARAM_SP = "sp";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
@@ -78,6 +81,8 @@ public abstract class FrameworkConstants {
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
 
+    public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
+
     private FrameworkConstants() {
 
     }
@@ -87,6 +92,7 @@ public abstract class FrameworkConstants {
         // Constant definitions for Elements
         public static final String ELEM_SEQUENCE = "Sequence";
         public static final String ELEM_STEP = "Step";
+        public static final String ELEM_AUTHENTICATION_CHAIN = "AuthenticationChain";
         public static final String ELEM_AUTHENTICATOR = "Authenticator";
         public static final String ELEM_AUTHENTICATOR_CONFIG = "AuthenticatorConfig";
         public static final String ELEM_AUTH_ENDPOINT_QUERY_PARAM = "AuthenticationEndpointQueryParam";
@@ -114,6 +120,7 @@ public abstract class FrameworkConstants {
         public static final String ATTR_APPLICATION_ID = "appId";
         public static final String ATTR_AUTHENTICATOR_NAME_MAPPING_NAME = "name";
         public static final String ATTR_AUTHENTICATOR_NAME_MAPPING_ALIAS = "alias";
+        public static final String ATTR_ACR_LIST = "acrList";
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
@@ -225,5 +232,40 @@ public abstract class FrameworkConstants {
         public static final String SESSION_CREATE = "sessionCreated";
         public static final String SESSION_UPDATE = "sessionUpdated";
         public static final String SESSION_TERMINATE = "sessionTerminated";
+    }
+
+    public static class JSAttributes {
+
+        public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "authenticatedSubjectIdentifier";
+        public static final String JS_USERNAME = "username";
+        public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
+        public static final String JS_TENANT_DOMAIN = "tenantDomain";
+        public static final String JS_REQUESTED_ACR = "requestedAcr";
+        public static final String JS_LAST_AUTHENTICATED_USER = "lastAuthenticatedUser";
+        public static final String JS_SELECTED_ACR = "selectedAcr";
+        public static final String JS_REQUEST = "request";
+        public static final String JS_RESPONSE = "response";
+        public static final String JS_INITIAL_REQUEST = "initialRequest";
+        public static final String JS_HEADERS = "headers";
+        public static final String JS_PARAMS = "params";
+        public static final String JS_COOKIES = "cookies";
+        public static final String JS_COOKIE_NAME = "name";
+        public static final String JS_COOKIE_VALUE = "value";
+        public static final String JS_COOKIE_COMMENT = "comment";
+        public static final String JS_COOKIE_DOMAIN = "domain";
+        public static final String JS_COOKIE_MAX_AGE = "max-age";
+        public static final String JS_COOKIE_PATH = "path";
+        public static final String JS_COOKIE_SECURE = "secure";
+        public static final String JS_COOKIE_VERSION = "version";
+        public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
+
+        public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
+
+        public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
+        public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
+        public static final String JS_LOG = "Log";
+        public static final String JS_FUNC_SEND_ERROR = "sendError";
+        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
+        public static final String JS_PAGE_URI = "pageUri";
     }
 }

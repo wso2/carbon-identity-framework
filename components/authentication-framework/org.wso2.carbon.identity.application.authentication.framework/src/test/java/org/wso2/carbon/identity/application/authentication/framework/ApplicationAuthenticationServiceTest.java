@@ -16,10 +16,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -32,8 +30,11 @@ import java.util.List;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
-@PrepareForTest({FrameworkServiceComponent.class, LogFactory.class})
+@PrepareForTest({FrameworkServiceComponent.class})
 public class ApplicationAuthenticationServiceTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
@@ -89,7 +90,7 @@ public class ApplicationAuthenticationServiceTest {
     public void testGetAuthenticatorWithNonExistingName() throws Exception {
 
         mockFrameworkServiceComponent();
-        Assert.assertNull(applicationAuthenticationService.getAuthenticator(NON_EXISTING_AUTHENTICATOR_NAME));
+        assertNull(applicationAuthenticationService.getAuthenticator(NON_EXISTING_AUTHENTICATOR_NAME));
     }
 
 
@@ -100,8 +101,8 @@ public class ApplicationAuthenticationServiceTest {
         mockFrameworkServiceComponent();
         ApplicationAuthenticator applicationAuthenticator = applicationAuthenticationService.getAuthenticator
                 (REQUESTPATH_AUTHENTICATOR_NAME);
-        Assert.assertNotNull(applicationAuthenticator);
-        Assert.assertEquals(applicationAuthenticator.getName(), REQUESTPATH_AUTHENTICATOR_NAME);
+        assertNotNull(applicationAuthenticator);
+        assertEquals(applicationAuthenticator.getName(), REQUESTPATH_AUTHENTICATOR_NAME);
     }
 
     @Test
@@ -109,7 +110,7 @@ public class ApplicationAuthenticationServiceTest {
 
         mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> allAuthenticators = applicationAuthenticationService.getAllAuthenticators();
-        Assert.assertEquals(allAuthenticators.size(), 3);
+        assertEquals(allAuthenticators.size(), 3);
     }
 
     @Test
@@ -117,8 +118,8 @@ public class ApplicationAuthenticationServiceTest {
 
         mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> localAuthenticators = applicationAuthenticationService.getLocalAuthenticators();
-        Assert.assertEquals(localAuthenticators.size(), 1);
-        Assert.assertEquals(localAuthenticators.get(0).getName(), LOCAL_AUTHENTICATOR_NAME);
+        assertEquals(localAuthenticators.size(), 1);
+        assertEquals(localAuthenticators.get(0).getName(), LOCAL_AUTHENTICATOR_NAME);
     }
 
     @Test
@@ -127,8 +128,8 @@ public class ApplicationAuthenticationServiceTest {
         mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> federatedAuthenticators =
                 applicationAuthenticationService.getFederatedAuthenticators();
-        Assert.assertEquals(federatedAuthenticators.size(), 1);
-        Assert.assertEquals(federatedAuthenticators.get(0).getName(), FEDERATED_AUTHENTICATOR_NAME);
+        assertEquals(federatedAuthenticators.size(), 1);
+        assertEquals(federatedAuthenticators.get(0).getName(), FEDERATED_AUTHENTICATOR_NAME);
     }
 
     @Test
@@ -137,8 +138,8 @@ public class ApplicationAuthenticationServiceTest {
         mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> requestPathAuthenticators =
                 applicationAuthenticationService.getRequestPathAuthenticators();
-        Assert.assertEquals(requestPathAuthenticators.size(), 1);
-        Assert.assertEquals(requestPathAuthenticators.get(0).getName(), REQUESTPATH_AUTHENTICATOR_NAME);
+        assertEquals(requestPathAuthenticators.size(), 1);
+        assertEquals(requestPathAuthenticators.get(0).getName(), REQUESTPATH_AUTHENTICATOR_NAME);
     }
 
     private void mockFrameworkServiceComponent() {

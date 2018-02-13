@@ -959,8 +959,8 @@
                        style="background-image:url(../admin/images/up-arrow.gif)"></a>
                     <a class="icon-link" onclick="updownthis(this,'down')"
                        style="background-image:url(../admin/images/down-arrow.gif)"></a>
-                    <input type="hidden" value="<%=orderedRuleDTO.getId()%>"/>
-                    <%=orderedRuleDTO.getId()%>
+                    <input type="hidden" value="<%=Encode.forHtmlAttribute(orderedRuleDTO.getId())%>"/>
+                    <%=Encode.forHtml(orderedRuleDTO.getId())%>
                 </td>
                 <td><%=orderedRuleDTO.isReferenceOnly()%>
                 </td>

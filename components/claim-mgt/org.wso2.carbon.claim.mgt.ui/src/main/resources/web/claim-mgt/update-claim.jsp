@@ -123,8 +123,8 @@
                     }
 
                     var value = document.getElementsByName("description")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="description.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="description.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 150) {
                         CARBON.showWarningDialog('<fmt:message key="description.is.too.long"/>');
@@ -132,8 +132,8 @@
                     }
 
                     var value = document.getElementsByName("displayName")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="displayname.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="displayname.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 30) {
                         CARBON.showWarningDialog('<fmt:message key="displayname.is.too.long"/>');
@@ -188,6 +188,10 @@
 
                     document.updateclaim.submit();
                 }
+
+                function isEmpty(value){
+                  return (value == null || value.trim() == '');
+                }
             </script>
 
             <div style="height:30px;">
@@ -217,7 +221,7 @@
                             <table class="normal" cellspacing="0" style="width: 100%">
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='display.name'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><input type="text" name="displayName" id="displayName"
                                                                    value="<%=Encode.forHtmlAttribute(claims[j].getClaim().getDisplayTag())%>"/>
                                     </td>
@@ -225,7 +229,7 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='description'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><input type="text" name="description" id="description"
                                                                    value="<%=Encode.forHtmlAttribute(claims[j].getClaim().getDescription())%>"/>
                                     </td>
@@ -233,14 +237,14 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='claim.uri'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><%=Encode.forHtmlContent(claims[j].getClaim().getClaimUri())%>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
-                                            class="required">*</font></td>
+                                            class="required" color="red">*</font></td>
                                     <td class="leftCol-big"><input type="text" name="attribute" id="attribute"
                                                                    value="<%=Encode.forHtmlAttribute(claims[j].getMappedAttribute())%>"/>
 

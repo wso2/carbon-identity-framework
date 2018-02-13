@@ -461,6 +461,10 @@
                                         <%
                                                     }
                                                 }
+                                            } else {
+                                        %>
+                                            <div> <fmt:message key="all.users.assigned"/> </div>
+                                        <%
                                             }
                                         %>
                                     </td>
