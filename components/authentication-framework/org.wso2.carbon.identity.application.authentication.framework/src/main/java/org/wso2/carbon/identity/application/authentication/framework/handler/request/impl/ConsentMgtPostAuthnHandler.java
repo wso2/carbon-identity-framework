@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -68,6 +67,9 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
@@ -96,6 +98,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (authenticatedUser == null) {
+            String message = "User not available in AuthenticationContext. Returning";
+            logDebug(message);
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
@@ -106,11 +110,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    private void logDebug(String message) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(message);
+        }
+    }
+
     protected PostAuthnHandlerFlowStatus handlePreConsent(HttpServletRequest request, HttpServletResponse response,
                                                           AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         String serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
         // Due to: https://github.com/wso2/product-is/issues/2317.
@@ -119,96 +129,27 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        String spTenantDomain;
-        User owner = context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner();
-        if (owner != null) {
-            spTenantDomain = owner.getTenantDomain();
-        } else {
-            spTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
-
+        AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
+        String spTenantDomain = getSPOwnerTenantDomain(context);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
         try {
+            int receiptListLimit = 2;
+            List<ReceiptListResponse> receiptListResponses = getReceiptListOfUserForSP(authenticatedUser,
+                                                       serviceProvider, spTenantDomain, subject, receiptListLimit);
 
-            List<ReceiptListResponse> receiptListResponses;
-            try {
-                startTenantFlow(authenticatedUser.getTenantDomain());
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
+            String message = String.format("Retrieved %s receipts for user: %s, service provider: %s in tenant domain" +
+                                       " %s", receiptListResponses.size(), subject, serviceProvider, spTenantDomain);
+            logDebug(message);
 
-                receiptListResponses = consentManager.searchReceipts(2, 0, subject,
-                                                                     spTenantDomain, serviceProvider, ACTIVE_STATE);
-            } finally {
-                PrivilegedCarbonContext.endTenantFlow();
-            }
-            if (receiptListResponses.size() > 1) {
-
+            if (hasUserMultipleReceipts(receiptListResponses)) {
                 throw new PostAuthenticationFailedException("Consent Management Error", "User cannot have more " +
                                                                 "than one ACTIVE consent per service provider.");
-            } else if (receiptListResponses.size() == 0) {
-
-                List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
-                List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
-
-                if (CollectionUtils.isEmpty(requestedClaims) && CollectionUtils.isEmpty(mandatoryClaims)) {
-                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-                }
-
-                Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
-
-                // Retain requested claims which are not mandatory.
-                consentClaims.removeAll(mandatoryClaims);
-
-                String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
-                String requestedLocalClaims = null;
-
-                if (CollectionUtils.isNotEmpty(consentClaims)) {
-                    requestedLocalClaims = StringUtils.join(consentClaims, CLAIM_SEPARATOR);
-                }
-
-                redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
-                setConsentPoppedUpState(context);
-
-                return PostAuthnHandlerFlowStatus.INCOMPLETE;
-
+            } else if (hasUserNoReceipts(receiptListResponses)) {
+                return handlePreConsentForNoReceipts(response, context);
             } else {
-
-                Receipt receipt;
-                try {
-                    startTenantFlow(authenticatedUser.getTenantDomain());
-                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
-
-                    receipt = consentManager.getReceipt(receiptListResponses.get(0).getConsentReceiptId());
-                } finally {
-                    PrivilegedCarbonContext.endTenantFlow();
-                }
-
-                List<ReceiptService> services = receipt.getServices();
-                List<PIICategoryValidity> piiCategories = getPIICategoriesFromServices(services);
-                Set<String> claims = getClaimsFromPIICategoryValidity(piiCategories);
-
-                List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
-                List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
-
-                Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
-                consentClaims.removeAll(claims);
-                consentClaims.removeAll(mandatoryClaims);
-
-                removeUserClaimsFromContext(context, new ArrayList<>(consentClaims));
-
-                mandatoryClaims.removeAll(claims);
-
-                if (CollectionUtils.isEmpty(mandatoryClaims)) {
-
-                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-                }
-
-                String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
-                redirectToConsentPage(response, context, null, mandatoryLocalClaims);
-                setConsentPoppedUpState(context);
-                context.addParameter(CONSENT_RECEIPT_ID_PARAM, receipt.getConsentReceiptId());
-
-                return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                return handlePreConsentForSingleReceipt(response, context, authenticatedUser, subject,
+                                                        receiptListResponses);
             }
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent Management Error", "Error while retrieving user " +
@@ -216,12 +157,149 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    private PostAuthnHandlerFlowStatus handlePreConsentForSingleReceipt(HttpServletResponse response,
+                                                                        AuthenticationContext context,
+                                                                        AuthenticatedUser authenticatedUser,
+                                                                        String subject,
+                                                                        List<ReceiptListResponse> receiptListResponses)
+            throws ConsentManagementException, PostAuthenticationFailedException {
+
+        Receipt receipt = getReceipt(authenticatedUser, subject, getFirstConsentReceiptFromList(receiptListResponses));
+        List<String> mandatoryClaims = getMandatoryClaimsWithoutConsent(context, receipt);
+        if (isEmpty(mandatoryClaims)) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
+        redirectToConsentPage(response, context, null, mandatoryLocalClaims);
+        setConsentPoppedUpState(context);
+        context.addParameter(CONSENT_RECEIPT_ID_PARAM, receipt.getConsentReceiptId());
+
+        return PostAuthnHandlerFlowStatus.INCOMPLETE;
+    }
+
+    private String getFirstConsentReceiptFromList(List<ReceiptListResponse> receiptListResponses) {
+
+        return receiptListResponses.get(0).getConsentReceiptId();
+    }
+
+    private List<String> getMandatoryClaimsWithoutConsent(AuthenticationContext context, Receipt receipt)
+            throws PostAuthenticationFailedException {
+
+        Set<String> claims = getConsentClaimsFromReceipt(receipt);
+
+        List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
+        List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
+
+        Set<String> consentClaims = getClaimsWithoutConsent(claims, requestedClaims, mandatoryClaims);
+
+        removeUserClaimsFromContext(context, new ArrayList<>(consentClaims));
+
+        mandatoryClaims.removeAll(claims);
+        return mandatoryClaims;
+    }
+
+    private Set<String> getClaimsWithoutConsent(Set<String> claims, List<String> requestedClaims,
+                                                List<String> mandatoryClaims) {
+
+        Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
+        consentClaims.removeAll(claims);
+        consentClaims.removeAll(mandatoryClaims);
+        return consentClaims;
+    }
+
+    private Set<String> getConsentClaimsFromReceipt(Receipt receipt) {
+
+        List<ReceiptService> services = receipt.getServices();
+        List<PIICategoryValidity> piiCategories = getPIICategoriesFromServices(services);
+        return getClaimsFromPIICategoryValidity(piiCategories);
+    }
+
+    private PostAuthnHandlerFlowStatus handlePreConsentForNoReceipts(HttpServletResponse response,
+                                                                     AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
+        List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
+
+        if (isConsentProvidedForMandatoryClaims(requestedClaims, mandatoryClaims)) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        Set<String> consentClaims = getNonMandatoryClaims(requestedClaims, mandatoryClaims);
+
+        String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
+        String requestedLocalClaims = null;
+        if (isNotEmpty(consentClaims)) {
+            requestedLocalClaims = StringUtils.join(consentClaims, CLAIM_SEPARATOR);
+        }
+
+        redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
+        setConsentPoppedUpState(context);
+
+        return PostAuthnHandlerFlowStatus.INCOMPLETE;
+    }
+
+    private Set<String> getNonMandatoryClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
+
+        Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
+
+        // Retain requested claims which are not mandatory.
+        consentClaims.removeAll(mandatoryClaims);
+        return consentClaims;
+    }
+
+    private boolean isConsentProvidedForMandatoryClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
+
+        return isEmpty(requestedClaims) && isEmpty(mandatoryClaims);
+    }
+
+    private boolean hasUserNoReceipts(List<ReceiptListResponse> receiptListResponses) {
+
+        return receiptListResponses.size() == 0;
+    }
+
+    private boolean hasUserMultipleReceipts(List<ReceiptListResponse> receiptListResponses) {
+
+        return receiptListResponses.size() > 1;
+    }
+
+    private List<ReceiptListResponse> getReceiptListOfUserForSP(AuthenticatedUser authenticatedUser,
+                                                                String serviceProvider, String spTenantDomain,
+                                                                String subject, int limit) throws
+            ConsentManagementException {
+
+        List<ReceiptListResponse> receiptListResponses;
+        try {
+            startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
+            receiptListResponses = consentManager.searchReceipts(limit, 0, subject,
+                                                                 spTenantDomain, serviceProvider, ACTIVE_STATE);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+        return receiptListResponses;
+    }
+
+    private String getSPOwnerTenantDomain(AuthenticationContext context) {
+
+        String spTenantDomain;
+        User owner = context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner();
+        if (owner != null) {
+            spTenantDomain = owner.getTenantDomain();
+        } else {
+            spTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return spTenantDomain;
+    }
+
     private void startTenantFlow(String tenantDomain) {
+
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
     }
 
     private Set<String> getUniqueLocalClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
+
         return Stream.concat(requestedClaims.stream(), mandatoryClaims.stream()).collect
                 (Collectors.toSet());
     }
@@ -235,47 +313,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
+            logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + "has approved consent.");
 
             Set<String> claimsWithConsent = new HashSet<>();
-
             UserConsent userConsent = processUserConsent(request, context);
-            claimsWithConsent.addAll(userConsent.getApprovedClaims());
-
-            Object receiptIdObject = context.getParameter(CONSENT_RECEIPT_ID_PARAM);
-
-            String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-            String subjectTenantDomain = authenticatedUser.getTenantDomain();
-
-            if (receiptIdObject != null && receiptIdObject instanceof String) {
-
-                String receiptId = (String) receiptIdObject;
-                Receipt currentReceipt;
-                try {
-                    startTenantFlow(authenticatedUser.getTenantDomain());
-                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
-
-                    currentReceipt = consentManager.getReceipt(receiptId);
-                } catch (ConsentManagementException e) {
-                    throw new PostAuthenticationFailedException("Consent Management Error", "Error while " +
-                                                                                    "retrieving user consents.", e);
-                } finally {
-                    PrivilegedCarbonContext.endTenantFlow();
-                }
-                List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
-                        (currentReceipt.getServices());
-                Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
-                        (piiCategoriesFromServices);
-                claimsWithConsent.addAll(claimsFromPIICategoryValidity);
-            }
+            String subject = getAllUserApprovedClaims(context, authenticatedUser, claimsWithConsent, userConsent);
 
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
-            String spTenantDomain = null;
-            User owner = context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner();
-            if (owner != null) {
-                spTenantDomain = owner.getTenantDomain();
-            }
+            String spTenantDomain = getSPOwnerTenantDomain(context);
+            String subjectTenantDomain = authenticatedUser.getTenantDomain();
             removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims());
-            if (CollectionUtils.isNotEmpty(claimsWithConsent)) {
+            if (isNotEmpty(claimsWithConsent)) {
                 addReceipt(subject, subjectTenantDomain, applicationConfig, spTenantDomain, claimsWithConsent);
             }
         } else {
@@ -285,46 +333,87 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
+    private String getAllUserApprovedClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
+                                            Set<String> claimsWithConsent,
+                                            UserConsent userConsent)
+            throws PostAuthenticationFailedException {
+        claimsWithConsent.addAll(userConsent.getApprovedClaims());
+
+        String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+
+        Object receiptIdObject = context.getParameter(CONSENT_RECEIPT_ID_PARAM);
+        if (isObjectParsableToString(receiptIdObject)) {
+
+            String receiptId = (String) receiptIdObject;
+            Receipt currentReceipt = getReceipt(authenticatedUser, subject, receiptId);
+            List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
+                    (currentReceipt.getServices());
+            Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
+                    (piiCategoriesFromServices);
+            claimsWithConsent.addAll(claimsFromPIICategoryValidity);
+        }
+        return subject;
+    }
+
+    private Receipt getReceipt(AuthenticatedUser authenticatedUser, String subject, String receiptId)
+            throws PostAuthenticationFailedException {
+        Receipt currentReceipt;
+        try {
+            startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
+            currentReceipt = consentManager.getReceipt(receiptId);
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent Management Error", "Error while " +
+                                                                            "retrieving user consents.", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+        return currentReceipt;
+    }
+
+    private boolean isObjectParsableToString(Object receiptIdObject) {
+
+        return receiptIdObject != null && receiptIdObject instanceof String;
+    }
+
     private String buildSubjectWithUserStoreDomain(AuthenticatedUser authenticatedUser) {
 
         return UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser.getUserStoreDomain());
     }
-
 
     private UserConsent processUserConsent(HttpServletRequest request, AuthenticationContext context) throws
             PostAuthenticationFailedException {
 
         String consentClaimsPrefix = "consent_";
 
+        String consentRequestedClaims = getConsentClaimsFromContext(context, REQUESTED_CLAIMS_PARAM);
+        String consentMandatoryClaims = getConsentClaimsFromContext(context, MANDATORY_CLAIMS_PARAM);
+        String consentRequiredClaims = joinRequestedClaims(consentRequestedClaims, consentMandatoryClaims);
+
         Map<String, String[]> requestParams = request.getParameterMap();
+        List<String> approvedClaims = buildApprovedClaimList(consentClaimsPrefix, requestParams);
+        List<String> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaims, approvedClaims);
 
-        Object consentRequestedObj = context.getParameter(REQUESTED_CLAIMS_PARAM);
-        Object consentMandatoryObj = context.getParameter(MANDATORY_CLAIMS_PARAM);
-
-        String consentRequestedClaims = null;
-        String consentMandatoryClaims = null;
-
-        if (consentRequestedObj != null && consentRequestedObj instanceof String) {
-            consentRequestedClaims = (String) consentRequestedObj;
+        if (isMandatoryClaimsDisapproved(consentMandatoryClaims, disapprovedClaims)) {
+            throw new PostAuthenticationFailedException("Consent Denied for Mandatory Attributes",
+                                                        "User denied consent to share mandatory attributes.");
         }
 
-        if (consentMandatoryObj != null && consentMandatoryObj instanceof String) {
-            consentMandatoryClaims = (String) consentMandatoryObj;
-        }
+        UserConsent userConsent = new UserConsent();
+        userConsent.setApprovedClaims(approvedClaims);
+        userConsent.setDisapprovedClaims(disapprovedClaims);
 
-        String consentRequiredClaims = Stream.of(consentMandatoryClaims, consentRequestedClaims)
-                                             .filter(StringUtils::isNotBlank)
-                                             .collect(Collectors.joining(CLAIM_SEPARATOR));
+        return userConsent;
+    }
 
-        List<String> approvedClaims = new ArrayList<>();
+    private boolean isMandatoryClaimsDisapproved(String consentMandatoryClaims, List<String> disapprovedClaims) {
+
+        return isNotBlank(consentMandatoryClaims) &&
+            !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)));
+    }
+
+    private List<String> buildDisapprovedClaimList(String consentRequiredClaims, List<String> approvedClaims) {
+
         List<String> disapprovedClaims = new ArrayList<>();
-
-        for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
-            if (entry.getKey().startsWith(consentClaimsPrefix)) {
-                String localClaimURI = entry.getKey().substring(consentClaimsPrefix.length());
-                approvedClaims.add(localClaimURI);
-            }
-        }
 
         if (StringUtils.isNotEmpty(consentRequiredClaims)) {
             String[] requiredClaims = consentRequiredClaims.split(CLAIM_SEPARATOR);
@@ -332,20 +421,38 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             consentClaims.removeAll(approvedClaims);
             disapprovedClaims = consentClaims;
         }
+        return disapprovedClaims;
+    }
 
-        if (StringUtils.isNotBlank(consentMandatoryClaims) &&
-            !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)))) {
+    private List<String> buildApprovedClaimList(String consentClaimsPrefix, Map<String, String[]> requestParams) {
 
-            throw new PostAuthenticationFailedException("Consent Denied for Mandatory Attributes",
-                                                        "User denied consent to share mandatory attributes.");
+        List<String> approvedClaims = new ArrayList<>();
+
+        for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
+            if (entry.getKey().startsWith(consentClaimsPrefix)) {
+                String localClaimURI = entry.getKey().substring(consentClaimsPrefix.length());
+                approvedClaims.add(localClaimURI);
+            }
         }
+        return approvedClaims;
+    }
 
-        UserConsent userConsent = new UserConsent();
+    private String joinRequestedClaims(String consentRequestedClaims, String consentMandatoryClaims) {
 
-        userConsent.setApprovedClaims(approvedClaims);
-        userConsent.setDisapprovedClaims(disapprovedClaims);
+        return Stream.of(consentMandatoryClaims, consentRequestedClaims)
+                     .filter(StringUtils::isNotBlank)
+                     .collect(Collectors.joining(CLAIM_SEPARATOR));
+    }
 
-        return userConsent;
+    private String getConsentClaimsFromContext(AuthenticationContext context, String requestedClaimsParam) {
+
+        Object consentRequestedObj = context.getParameter(requestedClaimsParam);
+        String consentRequestedClaims = null;
+
+        if (isObjectParsableToString(consentRequestedObj)) {
+            consentRequestedClaims = (String) consentRequestedObj;
+        }
+        return consentRequestedClaims;
     }
 
     private void redirectToConsentPage(HttpServletResponse response, AuthenticationContext context,
@@ -379,7 +486,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         Map<String, String> claimMappings = applicationConfig.getRequestedClaimMappings();
 
-        if (MapUtils.isNotEmpty(claimMappings) && CollectionUtils.isNotEmpty(claimMappings.values())) {
+        if (MapUtils.isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spRequestedLocalClaims = claimMappings.values();
         }
 
@@ -399,13 +506,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         Map<String, String> claimMappings = applicationConfig.getMandatoryClaimMappings();
 
-        if (MapUtils.isNotEmpty(claimMappings) && CollectionUtils.isNotEmpty(claimMappings.values())) {
+        if (MapUtils.isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spMandatoryLocalClaims = claimMappings.values();
         }
 
         return spMandatoryLocalClaims;
     }
-
 
     private URIBuilder getUriBuilder(AuthenticationContext context, String requestedLocalClaims, String
             mandatoryLocalClaims) throws URISyntaxException {
@@ -418,12 +524,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         URIBuilder uriBuilder;
         uriBuilder = new URIBuilder(CONSENT_ENDPOINT_URL);
 
-        if (StringUtils.isNotBlank(requestedLocalClaims)) {
+        if (isNotBlank(requestedLocalClaims)) {
+            logDebug("Appending requested local claims to redirect URI: " + requestedLocalClaims);
             uriBuilder.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
             context.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
         }
 
-        if (StringUtils.isNotBlank(mandatoryLocalClaims)) {
+        if (isNotBlank(mandatoryLocalClaims)) {
+            logDebug("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
             uriBuilder.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
             context.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
         }
@@ -487,13 +595,34 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return piiCategoryValidityMap;
     }
 
-    public void setConsentManager(ConsentManager consentManager) {
-        this.consentManager = consentManager;
-    }
-
-
     private AddReceiptResponse addReceipt(String subject, String subjectTenantDomain, ApplicationConfig
             applicationConfig, String spTenantDomain, Set<String> claims) throws PostAuthenticationFailedException {
+
+        ReceiptInput receiptInput = buildReceiptInput(subject, applicationConfig, spTenantDomain, claims);
+        AddReceiptResponse receiptResponse;
+        try {
+            startTenantFlowWithUser(subject, subjectTenantDomain);
+            receiptResponse = consentManager.addConsent(receiptInput);
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent receipt error", "Error while adding the consent " +
+                                                                                 "receipt", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+        if (log.isDebugEnabled()) {
+            log.info("Successfully added consent receipt: " + receiptResponse.getConsentReceiptId());
+        }
+        return receiptResponse;
+    }
+
+    private void startTenantFlowWithUser(String subject, String subjectTenantDomain) {
+
+        startTenantFlow(subjectTenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
+    }
+
+    private ReceiptInput buildReceiptInput(String subject, ApplicationConfig applicationConfig, String spTenantDomain,
+                                           Set<String> claims) throws PostAuthenticationFailedException {
 
         String collectionMethod = "Web Form - Sign-in";
         String jurisdiction = "LK";
@@ -502,85 +631,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         String termination = "DATE_UNTIL:INDEFINITE";
         String policyUrl = "http://nolink";
 
-        Purpose purpose;
-
-        try {
-            purpose = consentManager.getPurposeByName(DEFAULT_PURPOSE);
-        } catch (ConsentManagementClientException e) {
-
-            if (ERROR_CODE_PURPOSE_NAME_INVALID.getCode().equals(e.getErrorCode())) {
-
-                Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "Core functionality");
-                try {
-                    purpose = consentManager.addPurpose(defaultPurpose);
-                } catch (ConsentManagementException e1) {
-                    throw new PostAuthenticationFailedException("Consent purpose error", "Error while adding " +
-                                                                                         "purpose: " +
-                                                                                         DEFAULT_PURPOSE, e);
-                }
-            } else {
-                throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose: "
-                                                                                     + DEFAULT_PURPOSE, e);
-            }
-        } catch (ConsentManagementException e) {
-            throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose: " +
-                                                                                 DEFAULT_PURPOSE, e);
-        }
-
-        PurposeCategory purposeCategory;
-
-        try {
-            purposeCategory = consentManager.getPurposeCategoryByName(DEFAULT_PURPOSE_CATEGORY);
-        } catch (ConsentManagementClientException e) {
-
-            if (ERROR_CODE_PURPOSE_CAT_NAME_INVALID.getCode().equals(e.getErrorCode())) {
-
-                PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY, "Core " +
-                                                                                                       "functionality");
-                try {
-                    purposeCategory = consentManager.addPurposeCategory(defaultPurposeCategory);
-                } catch (ConsentManagementException e1) {
-                    throw new PostAuthenticationFailedException("Consent purpose category error", "Error while adding" +
-                                                                  " purpose category:" + DEFAULT_PURPOSE_CATEGORY, e);
-                }
-            } else {
-                throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving" +
-                                                                  " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
-            }
-        } catch (ConsentManagementException e) {
-            throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving " +
-                                                                  "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
-        }
-
-        List<PIICategoryValidity> piiCategoryIds = new ArrayList<>();
-
-        for (String claim : claims) {
-
-            PIICategory piiCategory;
-            try {
-                piiCategory = consentManager.getPIICategoryByName(claim);
-            } catch (ConsentManagementClientException e) {
-
-                if (ERROR_CODE_PII_CAT_NAME_INVALID.getCode().equals(e.getErrorCode())) {
-
-                    PIICategory defaultPIICategory = new PIICategory(claim, claim, false);
-                    try {
-                        piiCategory = consentManager.addPIICategory(defaultPIICategory);
-                    } catch (ConsentManagementException e1) {
-                        throw new PostAuthenticationFailedException("Consent PII category error", "Error while adding" +
-                                                                      " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
-                    }
-                } else {
-                    throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving" +
-                                                                      " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
-                }
-            } catch (ConsentManagementException e) {
-                throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving " +
-                                                                      "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
-            }
-            piiCategoryIds.add(new PIICategoryValidity(piiCategory.getId(), termination));
-        }
-
+        Purpose purpose = getDefaultPurpose();
+        PurposeCategory purposeCategory = getDefaultPurposeCategory();
+        List<PIICategoryValidity> piiCategoryIds = getPiiCategoryValiditiesForClaims(claims, termination);
         List<ReceiptServiceInput> serviceInputs = new ArrayList<>();
         List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
         List<Integer> purposeCategoryIds = new ArrayList<>();
@@ -588,16 +641,33 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         purposeCategoryIds.add(purposeCategory.getId());
 
-        ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
-        purposeInput.setPrimaryPurpose(true);
-        purposeInput.setTermination(termination);
-        purposeInput.setConsentType(consentType);
-        purposeInput.setThirdPartyDisclosure(false);
-        purposeInput.setPurposeId(purpose.getId());
-        purposeInput.setPurposeCategoryId(purposeCategoryIds);
-        purposeInput.setPiiCategory(piiCategoryIds);
-
+        ReceiptPurposeInput purposeInput = getReceiptPurposeInput(consentType, termination, purpose, piiCategoryIds,
+                                                                  purposeCategoryIds);
         purposeInputs.add(purposeInput);
+
+        ReceiptServiceInput serviceInput = getReceiptServiceInput(applicationConfig, spTenantDomain, purposeInputs);
+        serviceInputs.add(serviceInput);
+
+        return getReceiptInput(subject, collectionMethod, jurisdiction, language, policyUrl, serviceInputs, properties);
+    }
+
+    private ReceiptInput getReceiptInput(String subject, String collectionMethod, String jurisdiction, String language,
+                                         String policyUrl, List<ReceiptServiceInput> serviceInputs,
+                                         Map<String, String> properties) {
+
+        ReceiptInput receiptInput = new ReceiptInput();
+        receiptInput.setCollectionMethod(collectionMethod);
+        receiptInput.setJurisdiction(jurisdiction);
+        receiptInput.setLanguage(language);
+        receiptInput.setPolicyUrl(policyUrl);
+        receiptInput.setServices(serviceInputs);
+        receiptInput.setProperties(properties);
+        receiptInput.setPiiPrincipalId(subject);
+        return receiptInput;
+    }
+
+    private ReceiptServiceInput getReceiptServiceInput(ApplicationConfig applicationConfig, String spTenantDomain,
+                                                       List<ReceiptPurposeInput> purposeInputs) {
 
         ReceiptServiceInput serviceInput = new ReceiptServiceInput();
         serviceInput.setPurposes(purposeInputs);
@@ -615,40 +685,149 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         serviceInput.setService(spName);
         serviceInput.setSpDisplayName(spDescription);
         serviceInput.setSpDescription(spDescription);
+        return serviceInput;
+    }
 
-        serviceInputs.add(serviceInput);
+    private ReceiptPurposeInput getReceiptPurposeInput(String consentType, String termination, Purpose purpose,
+                                                       List<PIICategoryValidity> piiCategoryIds,
+                                                       List<Integer> purposeCategoryIds) {
 
-        ReceiptInput receiptInput = new ReceiptInput();
+        ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
+        purposeInput.setPrimaryPurpose(true);
+        purposeInput.setTermination(termination);
+        purposeInput.setConsentType(consentType);
+        purposeInput.setThirdPartyDisclosure(false);
+        purposeInput.setPurposeId(purpose.getId());
+        purposeInput.setPurposeCategoryId(purposeCategoryIds);
+        purposeInput.setPiiCategory(piiCategoryIds);
+        return purposeInput;
+    }
 
-        receiptInput.setCollectionMethod(collectionMethod);
-        receiptInput.setJurisdiction(jurisdiction);
-        receiptInput.setLanguage(language);
-        receiptInput.setPolicyUrl(policyUrl);
-        receiptInput.setServices(serviceInputs);
-        receiptInput.setProperties(properties);
-        receiptInput.setPiiPrincipalId(subject);
+    private List<PIICategoryValidity> getPiiCategoryValiditiesForClaims(Set<String> claims, String termination)
+            throws PostAuthenticationFailedException {
 
-        AddReceiptResponse receiptResponse;
+        List<PIICategoryValidity> piiCategoryIds = new ArrayList<>();
+
+        for (String claim : claims) {
+            PIICategory piiCategory;
+            try {
+                piiCategory = consentManager.getPIICategoryByName(claim);
+            } catch (ConsentManagementClientException e) {
+
+                if (isInvalidPIICategoryError(e)) {
+                    piiCategory = addPIICategoryForClaim(claim);
+                } else {
+                    throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving" +
+                                                                      " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                }
+            } catch (ConsentManagementException e) {
+                throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving " +
+                                                                      "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+            }
+            piiCategoryIds.add(new PIICategoryValidity(piiCategory.getId(), termination));
+        }
+        return piiCategoryIds;
+    }
+
+    private PIICategory addPIICategoryForClaim(String claim) throws PostAuthenticationFailedException {
+
+        PIICategory piiCategory;
+        PIICategory piiCategoryInput = new PIICategory(claim, claim, false);
         try {
-            startTenantFlow(subjectTenantDomain);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
-            receiptResponse = consentManager.addConsent(receiptInput);
+            piiCategory = consentManager.addPIICategory(piiCategoryInput);
         } catch (ConsentManagementException e) {
-            throw new PostAuthenticationFailedException("Consent receipt error", "Error while adding the consent " +
-                                                                                 "receipt", e);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+            throw new PostAuthenticationFailedException("Consent PII category error", "Error while adding" +
+                                                          " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
         }
-        if (log.isDebugEnabled()) {
-            log.info("Successfully added consent receipt: " + receiptResponse.getConsentReceiptId());
+        return piiCategory;
+    }
+
+    private boolean isInvalidPIICategoryError(ConsentManagementClientException e) {
+
+        return ERROR_CODE_PII_CAT_NAME_INVALID.getCode().equals(e.getErrorCode());
+    }
+
+    private PurposeCategory getDefaultPurposeCategory() throws PostAuthenticationFailedException {
+
+        PurposeCategory purposeCategory;
+        try {
+            purposeCategory = consentManager.getPurposeCategoryByName(DEFAULT_PURPOSE_CATEGORY);
+        } catch (ConsentManagementClientException e) {
+
+            if (isInvalidPurposeCategoryError(e)) {
+                purposeCategory = addDefaultPurposeCategory();
+            } else {
+                throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving" +
+                                                                  " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+            }
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving " +
+                                                                  "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
         }
-        return receiptResponse;
+        return purposeCategory;
+    }
+
+    private PurposeCategory addDefaultPurposeCategory() throws PostAuthenticationFailedException {
+
+        PurposeCategory purposeCategory;
+        PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY, "Core " +
+                                                                                       "functionality");
+        try {
+            purposeCategory = consentManager.addPurposeCategory(defaultPurposeCategory);
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent purpose category error", "Error while adding" +
+                                                          " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+        }
+        return purposeCategory;
+    }
+
+    private boolean isInvalidPurposeCategoryError(ConsentManagementClientException e) {
+
+        return ERROR_CODE_PURPOSE_CAT_NAME_INVALID.getCode().equals(e.getErrorCode());
+    }
+
+    private Purpose getDefaultPurpose() throws PostAuthenticationFailedException {
+
+        Purpose purpose;
+
+        try {
+            purpose = consentManager.getPurposeByName(DEFAULT_PURPOSE);
+        } catch (ConsentManagementClientException e) {
+
+            if (isInvalidPurposeError(e)) {
+                purpose = addDefaultPurpose();
+            } else {
+                throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose:" +
+                                                                                     " " + DEFAULT_PURPOSE, e);
+            }
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose: " +
+                                                                                 DEFAULT_PURPOSE, e);
+        }
+        return purpose;
+    }
+
+    private Purpose addDefaultPurpose() throws PostAuthenticationFailedException {
+
+        Purpose purpose;
+        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "Core functionality");
+        try {
+            purpose = consentManager.addPurpose(defaultPurpose);
+        } catch (ConsentManagementException e) {
+            throw new PostAuthenticationFailedException("Consent purpose error", "Error while adding " +
+                                                                             "purpose: " + DEFAULT_PURPOSE, e);
+        }
+        return purpose;
+    }
+
+    private boolean isInvalidPurposeError(ConsentManagementClientException e) {
+
+        return ERROR_CODE_PURPOSE_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 
     private void removeUserClaimsFromContext(AuthenticationContext context, List<String> disapprovedClaims) {
 
         Map<String, String> carbonToSPClaimMapping = getCarbonToSPClaimMapping(context);
-
         Map<ClaimMapping, String> userAttributes = context.getSequenceConfig().getAuthenticatedUser()
                                                           .getUserAttributes();
         Map<ClaimMapping, String> modifiedUserAttributes = new HashMap<>();
@@ -656,14 +835,18 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
 
             String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
-
-            if (!disapprovedClaims.contains(localClaimUri) &&
-                !disapprovedClaims.contains(carbonToSPClaimMapping.get(localClaimUri))) {
+            if (isConsentDisapprovedForClaim(disapprovedClaims, carbonToSPClaimMapping, localClaimUri)) {
                 modifiedUserAttributes.put(entry.getKey(), entry.getValue());
             }
         }
-
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(modifiedUserAttributes);
+    }
+
+    private boolean isConsentDisapprovedForClaim(List<String> disapprovedClaims,
+                                                 Map<String, String> carbonToSPClaimMapping, String localClaimUri) {
+
+        return !disapprovedClaims.contains(localClaimUri) &&
+            !disapprovedClaims.contains(carbonToSPClaimMapping.get(localClaimUri));
     }
 
     private Map<String, String> getCarbonToSPClaimMapping(AuthenticationContext context) {
@@ -682,7 +865,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
             Map<String, String> claimMappings = context.getSequenceConfig().getApplicationConfig()
                                                        .getRequestedClaimMappings();
-
             if (MapUtils.isNotEmpty(claimMappings)) {
                 carbonToSPClaimMapping = claimMappings;
             }
@@ -715,6 +897,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         void setDisapprovedClaims(List<String> disapprovedClaims) {
             this.disapprovedClaims = disapprovedClaims;
         }
+    }
+
+    public void setConsentManager(ConsentManager consentManager) {
+
+        this.consentManager = consentManager;
     }
 }
 
