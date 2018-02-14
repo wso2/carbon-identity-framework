@@ -113,8 +113,7 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                                 <div class="text-left padding-bottom">
                                     <span class="required font-medium">*</span>
-                                    <span class="mandatory">Mandatory claims required by the service provider.
-                                        In order to proceed with authentication, all mandatory claims require user consent.</span>
+                                    <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
                                 </div>
                                 <div class="select-all">
                                     <div class="checkbox">
