@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,11 +26,11 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -45,25 +45,30 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public class DefaultPostAuthenticationHandler implements PostAuthenticationHandler {
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request
+        .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 
-    private static final Log log = LogFactory.getLog(DefaultPostAuthenticationHandler.class);
+public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
+
+    private static final Log log = LogFactory.getLog(PostAuthnMissingClaimHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
-    private static volatile DefaultPostAuthenticationHandler instance;
+    private static volatile PostAuthnMissingClaimHandler instance;
 
-    public static DefaultPostAuthenticationHandler getInstance() {
+    public static PostAuthnMissingClaimHandler getInstance() {
 
         if (instance == null) {
-            synchronized (DefaultPostAuthenticationHandler.class) {
+            synchronized (PostAuthnMissingClaimHandler.class) {
                 if (instance == null) {
-                    instance = new DefaultPostAuthenticationHandler();
+                    instance = new PostAuthnMissingClaimHandler();
                 }
             }
         }
@@ -72,37 +77,63 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AuthenticationContext context) throws FrameworkException {
+    public int getPriority() {
+
+        return 100;
+    }
+
+    @Override
+    public String getName() {
+
+        return "MissingClaimPostAuthnHandler";
+    }
+
+    @Override
+    public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
+                                             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (log.isDebugEnabled()) {
             log.debug("Post authentication handling for missing claims started");
         }
 
-        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
-        boolean postAuthRequestTriggered = false;
-        if (object != null && object instanceof Boolean) {
-            postAuthRequestTriggered = (boolean) object;
+        if (getAuthenticatedUser(context) == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticated user found. Hence returning without handling mandatory claims");
+            }
+            return UNSUCCESS_COMPLETED;
         }
+        boolean postAuthRequestTriggered = isPostAuthRequestTriggered(context);
 
         if (!postAuthRequestTriggered) {
-            handlePostAuthenticationForMissingClaimsRequest(request, response, context);
+            PostAuthnHandlerFlowStatus flowStatus = handlePostAuthenticationForMissingClaimsRequest(request, response,
+                    context);
+            return flowStatus;
         } else {
             handlePostAuthenticationForMissingClaimsResponse(request, response, context);
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully returning from missing claim handler");
+            }
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
     }
 
-    private void handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request, HttpServletResponse response,
-                                                                 AuthenticationContext context) throws FrameworkException {
+    private boolean isPostAuthRequestTriggered(AuthenticationContext context) {
 
-        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
-        if (user == null) {
-            // no authenticated user found. Cannot process claims
-            context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
-            return;
+        Object object = context.getProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
+        boolean postAuthRequestTriggered = false;
+        if (object != null && object instanceof Boolean) {
+            postAuthRequestTriggered = (boolean) object;
         }
+        return postAuthRequestTriggered;
+    }
 
+    private PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
+                                                                                       HttpServletResponse response,
+                                                                                       AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        AuthenticatedUser user = getAuthenticatedUser(context);
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
 
@@ -138,10 +169,6 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                 log.debug("Mandatory claims missing for the application : " + missingClaims);
             }
 
-            //need to request for the missing claims before completing authentication
-            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, false);
-
             try {
                 URIBuilder uriBuilder = new URIBuilder("/authenticationendpoint/claims.do");
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
@@ -151,23 +178,26 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
                 response.sendRedirect(uriBuilder.build().toString());
-                context.setProperty(FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
+                context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
 
                 if (log.isDebugEnabled()) {
                     log.debug("Redirecting to outside to pick mandatory claims");
                 }
             } catch (IOException e) {
-                throw new FrameworkException("Error while redirecting to request claims", e);
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims", "Error " +
+                        "while redirecting to request claims page", e);
             } catch (URISyntaxException e) {
-                throw new FrameworkException("Error while building redirect URI", e);
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while building redirect URI", e);
             }
+            return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
-            context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
     }
 
-    private void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse response,
-                                                                  AuthenticationContext context) throws FrameworkException {
+    private void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
+            response, AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (log.isDebugEnabled()) {
             log.debug("Starting to process the response with missing claims");
@@ -235,7 +265,8 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                             persistClaims = true;
                         }
                     } catch (UserProfileException e) {
-                        throw new FrameworkException("Error while getting association for " + subject, e);
+                        throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                                "Error while getting association for " + subject, e);
                     }
                 }
                 break;
@@ -274,17 +305,17 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
 
                 userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
             } catch (UserStoreException e) {
-                throw new FrameworkException(
+                throw new PostAuthenticationFailedException(
+                        "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);
             } catch (IdentityApplicationManagementException e) {
-                throw new FrameworkException(
+                throw new PostAuthenticationFailedException(
+                        "Error while handling missing mandatory claims",
                         "Error while retrieving application claim mapping. Could not update profile", e);
             }
         }
 
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
-
     }
 
     private String getMissingClaims(Map<String, String> mappedAttrs, Map<String, String> mandatoryClaims) {
@@ -299,16 +330,23 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         return missingClaimsString.toString();
     }
 
-    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
+    private UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
+
         UserRealm realm;
         try {
             realm = AnonymousSessionUtil.getRealmByTenantDomain(
                     FrameworkServiceComponent.getRegistryService(),
                     FrameworkServiceComponent.getRealmService(), tenantDomain);
         } catch (CarbonException e) {
-            throw new FrameworkException("Error occurred while retrieving the Realm for " +
-                    tenantDomain + " to handle local claims", e);
+            throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                    "Error occurred while retrieving the Realm for " + tenantDomain + " to handle local claims", e);
         }
         return realm;
+    }
+
+    private AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
+
+        AuthenticatedUser user = authenticationContext.getSequenceConfig().getAuthenticatedUser();
+        return user;
     }
 }

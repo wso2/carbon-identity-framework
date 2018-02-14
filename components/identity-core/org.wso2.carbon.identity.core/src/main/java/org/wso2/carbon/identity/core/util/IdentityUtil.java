@@ -60,6 +60,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
+import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -72,6 +73,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +118,8 @@ public class IdentityUtil {
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
+    public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
+    public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
 
     /**
      * @return
@@ -965,5 +972,64 @@ public class IdentityUtil {
             return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
         }
         return false;
+    }
+
+     /**
+     *
+     * Converts and returns a {@link Certificate} object for given PEM content.
+     *
+     * @param certificateContent
+     * @return
+     * @throws CertificateException
+     */
+    public static Certificate convertPEMEncodedContentToCertificate(String certificateContent) throws CertificateException {
+
+        certificateContent = StringUtils.stripEnd(StringUtils.stripStart(certificateContent, PEM_BEGIN_CERTFICATE),
+                PEM_END_CERTIFICATE);
+        byte[] bytes = org.apache.axiom.om.util.Base64.decode(certificateContent);
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(bytes));
+        return certificate;
+    }
+
+    /**
+     *
+     * Returns the PEM encoded certificate out of the given certificate object.
+     *
+     * @param certificate
+     * @return PEM encoded certificate as a {@link String}
+     * @throws CertificateException
+     */
+    public static String convertCertificateToPEM(Certificate certificate) throws CertificateException {
+
+        byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
+
+        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
+                X509Factory.END_CERT);
+
+        return encodedPEM;
+    }
+
+    /**
+     * Checks whether the PEM content is valid.
+     *
+     * For now only checks whether the certificate is not malformed.
+     *
+     * @param certificateContent PEM content to be validated.
+     * @return true if the content is not malformed, false otherwise.
+     */
+    public static boolean isValidPEMCertificate(String certificateContent) {
+
+        // Empty content is a valid input since it means no certificate. We only validate if the content is there.
+        if (StringUtils.isBlank(certificateContent)) {
+            return true;
+        }
+
+        try {
+            convertPEMEncodedContentToCertificate(certificateContent);
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
     }
 }

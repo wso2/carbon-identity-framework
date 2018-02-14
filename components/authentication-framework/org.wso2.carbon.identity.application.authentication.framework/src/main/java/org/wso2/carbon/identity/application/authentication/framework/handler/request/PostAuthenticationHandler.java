@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,12 +20,27 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.core.handler.IdentityHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public interface PostAuthenticationHandler {
+/**
+ * Interface for Post Authentication Handler
+ */
+public interface PostAuthenticationHandler extends IdentityHandler {
 
-    void handle(HttpServletRequest request, HttpServletResponse response,
-                AuthenticationContext context) throws FrameworkException;
+    /**
+     * Handles post authentication.
+     *
+     * @param request  Incoming HttpServletRequest.
+     * @param response Outgoing HttpServletResponse.
+     * @param context  Authentication context which has information about current authentication flow.
+     * @return Post Authentication Handler Flow Status. *_COMPLETED if handling is done. INCOMPLETE, if more things
+     * to be done.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
+                                      AuthenticationContext context) throws PostAuthenticationFailedException;
 }

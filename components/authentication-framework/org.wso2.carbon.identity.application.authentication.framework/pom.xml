@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.10.123-SNAPSHOT</version>
+        <version>5.11.36-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -126,6 +126,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.consent.mgt</groupId>
+            <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -133,6 +137,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
+                <version>${maven.scr.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -152,7 +157,7 @@
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

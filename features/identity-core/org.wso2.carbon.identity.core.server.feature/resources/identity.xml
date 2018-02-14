@@ -191,12 +191,6 @@
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
-        <!-- Supported Client Authentication Methods -->
-        <ClientAuthHandlers>
-            <ClientAuthHandler Class="org.wso2.carbon.identity.oauth2.token.handlers.clientauth.BasicAuthClientAuthHandler">
-                <Property Name="StrictClientCredentialValidation">false</Property>
-            </ClientAuthHandler>
-        </ClientAuthHandlers>
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             <SupportedResponseType>
@@ -322,7 +316,7 @@
         <OpenIDConnect>
             <IDTokenBuilder>org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder</IDTokenBuilder>
             <SignatureAlgorithm>SHA256withRSA</SignatureAlgorithm>
-            <EnableAudiences>false</EnableAudiences>
+            <EnableAudiences>true</EnableAudiences>
             <!-- Comment out to add Audience values to the JWT token (id_token)  -->
             <!--Audiences>
                    <Audience>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</Audience>
@@ -578,7 +572,24 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
+
+        <!-- Enable this listener to call DeleteEventRecorders. -->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener"
+                       orderId="98" enable="false"/>
     </EventListeners>
+
+    <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
+     file recorder. This recorder is disabled by default. Enable it by setting enable="true". To run these recorders,
+     EventListener "rg.wso2.carbon.user.mgt.listeners.UserDeletionEventListener" also should be enabled. Which is
+     also disabled by default. -->
+    <UserDeleteEventRecorders>
+        <UserDeleteEventRecorder name="org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder" enable="false">
+            <!-- Un comment below line if you need to write entries to a separate .csv file. Otherwise this will be
+            written in to a log file using a separate appender. -->
+            <!--<Property name="path">${carbon.home}/repository/logs/delete-records.csv</Property>-->
+        </UserDeleteEventRecorder>
+    </UserDeleteEventRecorders>
 
     <CacheConfig>
         <!-- Identity cache configuration.
@@ -616,7 +627,17 @@
 
 
     <ResourceAccessControl>
-        <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/validate-code" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/pi-info/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.0/register(.*)" secured="true" http-method="POST">
@@ -714,7 +735,8 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            <Context>/api/identity/user/v0.9/</Context>
+            <Context>/api/identity/user/v1.0/</Context>
+            <Context>/api/identity/consent-mgt/v1.0/</Context>
             <Context>/api/identity/recovery/v0.9/</Context>
             <Context>/oauth2/</Context>
             <Context>/scim2/</Context>
@@ -728,4 +750,27 @@
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
+
+    <AuthenticationContext>
+        <ClassRefs>
+            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:Password" level="pwd"/>
+            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport" level="tls"/>
+            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient" level="tls"/>
+            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:X509" level="x509"/>
+            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos" level="Kerberos"/>
+            <ClassRef uri="org.wso2.identity:is.acr:LOA:5.5:ac:classes:3Factor" level="Mf3Factor"/>
+            <ClassRef uri="org.wso2.identity:is.acr:LOA:5.5:ac:classes:2Factor" level="Mf2Factor"/>
+        </ClassRefs>
+        <MethodRefs>
+            <MethodRef uri="pwd" method="BasicAuthenticator"  />
+            <MethodRef uri="hwk" method="SampleHardwareKeyAuthenticator"/>
+            <MethodRef uri="fpt" method="SampleFingerprintAuthenticator"/>
+            <MethodRef uri="hardware specific event" method="SampleHardwareKeyAuthenticator_HWK_EvenCall"/>
+            <MethodRef uri="hwk1" method="SomeOtherHwkAuthenticator"  />
+            <MethodRef uri="hwk2" method="SomeOtherHwkAuthenticator"  />
+            <MethodRef method="AuthenticatorNoNeedToProvideInformation" xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+        </MethodRefs>
+    </AuthenticationContext>
+
+
 </Server>

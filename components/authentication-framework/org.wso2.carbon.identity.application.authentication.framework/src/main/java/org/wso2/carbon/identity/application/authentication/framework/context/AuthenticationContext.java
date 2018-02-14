@@ -26,10 +26,14 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This class is used for holding data about the
@@ -37,7 +41,7 @@ import java.util.Map;
  */
 public class AuthenticationContext extends MessageContext implements Serializable {
 
-    private static final long serialVersionUID = 6438291349985653301L;
+    private static final long serialVersionUID = 6438291349985653402L;
 
     private String contextIdentifier;
     private String sessionIdentifier;
@@ -54,6 +58,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
+    private int currentPostAuthHandlerIndex = 0;
     private Map<String, String> authenticatorProperties = new HashMap<String, String>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
@@ -74,7 +79,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean retrying;
     private boolean previousSessionFound;
 
-    //subject should be set by each authenticator
+    //Adaptive Authentication control and status
+    private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
+    private List<String> requestedAcr;
+    private AcrRule acrRule = AcrRule.EXACT;
+    private String selectedAcr;
+
+    /** The user/subject known at the latest authentication step */
+    private AuthenticatedUser lastAuthenticatedUser;
+
+    /** subject should be set by each authenticator */
     private AuthenticatedUser subject;
 
     /* Holds any (state) information that would be required by the authenticator
@@ -84,6 +98,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 	 * AuthenticatorStateInfoDTO and set all the required state info in it.
 	 */
     private AuthenticatorStateInfo stateInfo;
+
+    private transient HttpServletRequest request;
+    private transient HttpServletResponse response;
+    private transient HttpServletRequest initialRequest;
+    private List<String> executedPostAuthHandlers = new ArrayList<>();
 
     public String getCallerPath() {
         return callerPath;
@@ -151,6 +170,9 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
+        if(subject != null) {
+            lastAuthenticatedUser = subject;
+        }
     }
 
     public String getContextIdentifier() {
@@ -361,4 +383,112 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setPreviousAuthTime(boolean previousAuthTime) {
         this.previousAuthTime = previousAuthTime;
     }
+
+    public void addAuthenticationStepHistory(AuthHistory history) {
+        authenticationStepHistory.add(history);
+    }
+
+    public List<AuthHistory> getAuthenticationStepHistory() {
+        return Collections.unmodifiableList(authenticationStepHistory);
+    }
+
+    public AcrRule getAcrRule() {
+        return acrRule;
+    }
+
+    public void setAcrRule(AcrRule acrRule) {
+        this.acrRule = acrRule;
+    }
+
+    public String getSelectedAcr() {
+        return selectedAcr;
+    }
+
+    public void setSelectedAcr(String selectedAcr) {
+        this.selectedAcr = selectedAcr;
+    }
+
+    public List<String> getRequestedAcr() {
+        if (requestedAcr == null) {
+            return Collections.EMPTY_LIST;
+        }
+        return Collections.unmodifiableList(requestedAcr);
+    }
+
+    public void addRequestedAcr(String acr) {
+        if (requestedAcr == null) {
+            requestedAcr = new ArrayList<>();
+        }
+        requestedAcr.add(acr);
+    }
+
+    /**
+     * Returns the Authenticated user who is known as at the moment.
+     * Use this to get the user details for any multi-factor authenticator which depends on previously known subject.
+     * 
+     * @return AuthenticatedUser which is assigned to the context last. Null if no previous step could find a user.
+     */
+    public AuthenticatedUser getLastAuthenticatedUser() {
+        return lastAuthenticatedUser;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+
+        this.request = request;
+    }
+
+    public HttpServletRequest getRequest() {
+
+        return this.request;
+    }
+
+    public void setInitialRequest(HttpServletRequest request) {
+
+        this.initialRequest = request;
+    }
+
+    public HttpServletRequest getInitialRequest() {
+
+        return this.initialRequest;
+    }
+
+    public void setResponse(HttpServletResponse response) {
+
+        this.response = response;
+    }
+
+    public HttpServletResponse getResponse() {
+
+        return this.response;
+    }
+
+    /**
+     * Returns current post authentication handler index which is in execution.
+     *
+     * @return Post handler index which is currently in execution.
+     */
+    public int getCurrentPostAuthHandlerIndex() {
+
+        return currentPostAuthHandlerIndex;
+    }
+
+    /**
+     * List of post authentication handlers already executed.
+     * @return List of post authentication handlers already executed.
+     */
+    public List<String> getExecutedPostAuthHandlers() {
+
+        return executedPostAuthHandlers;
+    }
+
+    /**
+     * Sets a post authentication handler.
+     * @param postAuthHandler Post Authentication Handler.
+     */
+    public void setExecutedPostAuthHandler(String postAuthHandler) {
+
+        this.executedPostAuthHandlers.add(postAuthHandler);
+        currentPostAuthHandlerIndex++;
+    }
+
 }

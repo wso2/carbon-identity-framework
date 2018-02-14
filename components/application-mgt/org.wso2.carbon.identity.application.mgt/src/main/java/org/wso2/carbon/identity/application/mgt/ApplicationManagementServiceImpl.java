@@ -72,6 +72,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+
 /**
  * Application management service implementation
  */
@@ -268,6 +270,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
 
+            if (!isValidPEMCertificate(serviceProvider.getCertificateContent())) {
+                String errorMessage = "Application certificate of the service provider " +
+                        serviceProvider.getApplicationName() + " is malformed";
+                log.error(errorMessage);
+                throw new IdentityApplicationManagementException(errorMessage);
+            }
+
+            ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
                     .PATH_SEPARATOR + storedAppName;
             org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()

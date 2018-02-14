@@ -71,7 +71,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 }
 
                 if (CollectionUtils.isNotEmpty(propertiesArrList)) {
-                    Property[] propertiesArr = propertiesArrList.toArray(new Property[0]);
+                    Property[] propertiesArr = propertiesArrList.toArray(new Property[propertiesArrList.size()]);
                     federatedAuthenticatorConfig.setProperties(propertiesArr);
                 }
             }

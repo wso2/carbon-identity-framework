@@ -28,17 +28,21 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-
+    String tenantDomain = request.getParameter("tenantDomain");
+    ConsentMgtClient consentMgtClient = new ConsentMgtClient();
     boolean isFirstNameInClaims = true;
     boolean isFirstNameRequired = true;
     boolean isLastNameInClaims = true;
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
+    String purposes = consentMgtClient.getPurposes(tenantDomain);
+    boolean hasPurposes = StringUtils.isNotEmpty(purposes);
 
     Claim[] claims = new Claim[0];
 
@@ -80,6 +84,7 @@
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
         <link href="css/Roboto.css" rel="stylesheet">
         <link href="css/custom-common.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="libs/jstree/dist/themes/default/style.min.css" />
 
         <!--[if lt IE 9]>
         <script src="js/html5shiv.min.js"></script>
@@ -223,6 +228,19 @@
                                     }
                                 }
                             %>
+    
+                            <%
+                                if (hasPurposes) {
+                            %>
+                                <div>
+                                    <br/>
+                                    <label class="control-label">By selecting below categories you agree to Identity Servers Terms of Services. You also agree to our Privacy Policy, which describes how we process your information, including below attributes</label>
+                                    <br/>
+                                    <div id="tree-table" style="overflow: scroll; height:100px;"></div>
+                                </div>
+                            <%
+                                }
+                            %>
                             <%
                                 if (reCaptchaEnabled) {
                             %>
@@ -238,6 +256,7 @@
                                 <input id="isSelfRegistrationWithVerification" type="hidden"
                                        name="isSelfRegistrationWithVerification"
                                        value="true"/>
+                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=tenantDomain%>"/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <br/>
@@ -256,6 +275,9 @@
                         </div>
                     </div>
                 </form>
+                
+                
+                </div>
             </div>
         </div>
         <!-- /content/body -->
@@ -274,8 +296,12 @@
 
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="libs/handlebars-v4.0.11.js"></script>
+    <script type="text/javascript" src="libs/jstree/dist/jstree.min.js"></script>
+    <script type="text/javascript" src="libs/jstree/src/jstree-actions.js"></script>
     <script type="text/javascript">
 
+        var container;
         $(document).ready(function () {
 
             $("#register").submit(function (e) {
@@ -305,9 +331,140 @@
                 }
                 %>
 
+                <%
+                if (hasPurposes) {
+                %>
+                    var self = this;
+                    e.preventDefault();
+                    var recipt = addReciptInformation(container);
+                    $('<input />').attr('type', 'hidden')
+                        .attr('name', "consent")
+                        .attr('value', JSON.stringify(recipt))
+                        .appendTo('#register');
+                    self.submit();
+                <%
+                }
+                %>
+                
                 return true;
             });
         });
+
+        <%
+            if (hasPurposes) {
+        %>
+            renderReceiptDetails(<%=purposes%>);
+        <%
+            }
+        %>
+        
+        function renderReceiptDetails(data) {
+            
+            var receiptData = {receipts: data};
+            var treeTemplate =
+                '<div id="html1">' +
+                '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
+                '<ul>' +
+                '{{#purposes}}' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}} : {{description}}<ul>' +
+                '{{#piiCategories}}' +
+                
+                '' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{piiCategory}}</li>' +
+                '' +
+                '</li>' +
+                '{{/piiCategories}}' +
+                '</ul>' +
+                '{{/purposes}}' +
+                '</ul></li>' +
+                '</ul>' +
+                '</div>';
+
+            var tree = Handlebars.compile(treeTemplate);
+            var treeRendered = tree(data);
+
+            $("#tree-table").html(treeRendered);
+
+            container = $("#html1").jstree({
+                plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
+                checkbox: { "keep_selected_style" : false },
+            });
+            
+        }
+        
+        function addReciptInformation(container){
+           // var oldReceipt = receiptData.receipts;
+            var newReceipt = {};
+            var services = [];
+            var service = {};
+
+            var selectedNodes = container.jstree(true).get_selected('full',true);
+            var undeterminedNodes = container.jstree(true).get_undetermined('full',true);
+
+            if(!selectedNodes || selectedNodes.length < 1 ){
+                //revokeReceipt(oldReceipt.consentReceiptID);
+                return;
+            }
+            selectedNodes = selectedNodes.concat(undeterminedNodes);
+            var relationshipTree = unflatten(selectedNodes); //Build relationship tree
+            var purposes = relationshipTree[0].children;
+            var newPurposes =[];
+
+            for(var i=0; i< purposes.length; i++){
+                var purpose = purposes[i];
+                var newPurpose = {};
+                newPurpose["purposeId"]  =  purpose.li_attr.purposeid;
+                //newPurpose = oldPurpose[0];
+                newPurpose['piiCategory'] = [];
+                newPurpose['purposeCategoryId'] = [1];
+
+                var piiCategory = [];
+                var categories = purpose.children;
+                for(var j=0; j< categories.length; j++){
+                    var category = categories[j];
+                    var c = {};
+                    c['piiCategoryId']  =  category.li_attr.piicategoryid;
+                    piiCategory.push(c);
+                }
+                newPurpose['piiCategory'] = piiCategory;
+                newPurposes.push(newPurpose);
+            }
+            service['purposes'] = newPurposes;
+            services.push(service);
+            newReceipt['services'] = services;
+
+            return newReceipt;
+        }
+
+        function unflatten(arr) {
+            var tree = [],
+                mappedArr = {},
+                arrElem,
+                mappedElem;
+
+            // First map the nodes of the array to an object -> create a hash table.
+            for(var i = 0, len = arr.length; i < len; i++) {
+                arrElem = arr[i];
+                mappedArr[arrElem.id] = arrElem;
+                mappedArr[arrElem.id]['children'] = [];
+            }
+
+            for (var id in mappedArr) {
+                if (mappedArr.hasOwnProperty(id)) {
+                    mappedElem = mappedArr[id];
+                    // If the element is not at the root level, add it to its parent array of children.
+                    if (mappedElem.parent && mappedElem.parent != "#" && mappedArr[mappedElem['parent']]) {
+                        mappedArr[mappedElem['parent']]['children'].push(mappedElem);
+                    }
+                    // If the element is at the root level, add it to first level elements array.
+                    else {
+                        tree.push(mappedElem);
+                    }
+                }
+            }
+            return tree;
+        }
+        
     </script>
     </body>
     </html>

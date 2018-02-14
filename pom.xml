@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.10.123-SNAPSHOT</version>
+    <version>5.11.36-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1442,6 +1442,12 @@
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <!-- Consent Management -->
+            <dependency>
+                <groupId>org.wso2.carbon.consent.mgt</groupId>
+                <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+                <version>${carbon.consent.mgt.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1686,6 +1692,7 @@
         <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
         <org.apache.cxf.cxf-rt.version>2.7.18</org.apache.cxf.cxf-rt.version>
         <io.swagger.version>1.5.8</io.swagger.version>
+        <carbon.consent.mgt.version>1.0.15</carbon.consent.mgt.version>
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
@@ -1705,6 +1712,9 @@
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <slf4j.api.version>1.7.12</slf4j.api.version>
         <org.powermock.version>1.7.3</org.powermock.version>
+
+        <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
+        <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
     </properties>
 
     <build>
@@ -1769,13 +1779,11 @@
                 <artifactId>maven-deploy-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.plugin.version}</version>
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,20 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.exception;
+package org.wso2.carbon.identity.application.authentication.framework.handler;
 
-/**
- * The exception that is thrown following an authorization failure
- */
-public class ApplicationAuthorizationException extends FrameworkException {
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
-    public ApplicationAuthorizationException(String message) {
+import java.io.Serializable;
 
-        super(message);
-    }
+public interface SubjectCallback extends Serializable {
 
-    public ApplicationAuthorizationException(String message, Throwable cause) {
+    AuthenticatedUser getAuthenticatedUser(AuthenticationContext context);
 
-        super(message, cause);
-    }
 }

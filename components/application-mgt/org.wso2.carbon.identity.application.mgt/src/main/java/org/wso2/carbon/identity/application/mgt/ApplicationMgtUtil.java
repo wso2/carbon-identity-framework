@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -65,6 +66,7 @@ public class ApplicationMgtUtil {
     private static String applicationNode;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
