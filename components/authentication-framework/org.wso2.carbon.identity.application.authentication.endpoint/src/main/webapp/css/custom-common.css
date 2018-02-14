@@ -171,6 +171,9 @@ span.mandatory{
     vertical-align: middle;
     font-size: 12px;
 }
+.select-all .checkbox{
+    padding: 10px;
+}
 .claim-list .checkbox{
     padding: 10px;
     background: #e8f2f7;

@@ -37,7 +37,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%>
+    </title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -70,7 +71,8 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
+                </em></h1>
             </a>
         </div>
     </div>
@@ -94,11 +96,13 @@
                     <div class="clearfix"></div>
                     <div class="padding-double login-form">
                         <form action="../commonauth" method="post" id="profile" name=""
-                              class="form-horizontal" >
+                              class="form-horizontal">
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                                 <div class="alert alert-warning" role="alert">
-                                    <p class="margin-bottom-double"><strong><%=Encode.forHtml(request.getParameter("sp"))%></strong>
+                                    <p class="margin-bottom-double">
+                                        <strong><%=Encode.forHtml(request.getParameter("sp"))%>
+                                        </strong>
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
                                     </p>
                                 </div>
@@ -110,22 +114,31 @@
                                 <div class="text-left padding-bottom">
                                     <span class="required font-medium">*</span>
                                     <span class="mandatory">Mandatory claims required by the service provider.
-                                        Consent is required for all the mandatory claims to proceed.</span>
+                                        In order to proceed with authentication, all mandatory claims require user consent.</span>
+                                </div>
+                                <div class="select-all">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
+                                            Select All
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="claim-list">
                                     <% for (String claim : mandatoryClaimList) { %>
-                                    <div class="checkbox">
+                                    <div class="checkbox claim-cb">
                                         <label>
-                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>" required />
+                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
+                                                   required/>
                                             <%=claim%>
                                             <span class="required font-medium">*</span>
                                         </label>
                                     </div>
                                     <%}%>
                                     <% for (String claim : missingClaimList) { %>
-                                    <div class="checkbox">
+                                    <div class="checkbox claim-cb">
                                         <label>
-                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>" />
+                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"/>
                                             <%=claim%>
                                         </label>
                                     </div>
@@ -137,27 +150,28 @@
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-top-double">
                                 <table width="100%" class="styledLeft">
-                                <tbody>
-                                <tr>
-                                    <td class="buttonRow" colspan="2">
+                                    <tbody>
+                                    <tr>
+                                        <td class="buttonRow" colspan="2">
 
-                                        <div style="text-align:left;">
-                                            <input type="button" class="btn  btn-primary" id="approve" name="approve"
-                                                   onclick="javascript: approved(); return false;"
-                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                            <div style="text-align:left;">
+                                                <input type="button" class="btn  btn-primary" id="approve"
+                                                       name="approve"
+                                                       onclick="javascript: approved(); return false;"
+                                                       value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
                                                     "approve")%>"/>
-                                            <input class="btn" type="reset"
-                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
-                                                   onclick="javascript: deny(); return false;"/>
-                                        </div>
+                                                <input class="btn" type="reset"
+                                                       value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
+                                                       onclick="javascript: deny(); return false;"/>
+                                            </div>
 
-                                        <input type="hidden" name="<%="sessionDataKey"%>"
-                                               value="<%=Encode.forHtmlAttribute(request.getParameter(Constants.SESSION_DATA_KEY))%>"/>
-                                        <input type="hidden" name="consent" id="consent" value="deny"/>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                                            <input type="hidden" name="<%="sessionDataKey"%>"
+                                                   value="<%=Encode.forHtmlAttribute(request.getParameter(Constants.SESSION_DATA_KEY))%>"/>
+                                            <input type="hidden" name="consent" id="consent" value="deny"/>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </form>
                         <div class="clearfix"></div>
@@ -190,5 +204,29 @@
 
 <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#consent_select_all").click(function () {
+            if (this.checked) {
+                $('.checkbox input:checkbox').each(function () {
+                    $(this).prop("checked", true);
+                });
+            } else {
+                $('.checkbox :checkbox').each(function () {
+                    $(this).prop("checked", false);
+                });
+            }
+        });
+        $(".checkbox input").click(function () {
+            var claimCheckedCheckboxes = $(".claim-cb input:checked").length;
+            var claimCheckboxes = $(".claim-cb input").length;
+            if (claimCheckedCheckboxes != claimCheckboxes) {
+                $("#consent_select_all").prop("checked", false);
+            } else {
+                $("#consent_select_all").prop("checked", true);
+            }
+        });
+    });
+</script>
 </body>
 </html>
