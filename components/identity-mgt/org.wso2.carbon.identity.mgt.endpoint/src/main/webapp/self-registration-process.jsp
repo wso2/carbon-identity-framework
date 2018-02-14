@@ -34,7 +34,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -77,7 +76,7 @@
         <%
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
-
+            
             String userLocale = request.getHeader("Accept-Language");
             String username = request.getParameter("username");
             String password = request.getParameter("password");

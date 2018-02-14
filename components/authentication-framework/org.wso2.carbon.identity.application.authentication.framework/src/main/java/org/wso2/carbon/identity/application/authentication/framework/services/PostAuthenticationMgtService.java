@@ -70,12 +70,14 @@ public class PostAuthenticationMgtService {
                 currentPostHandlerIndex)) {
 
             validatePASTRCookie(authenticationContext, request);
+            // Need to set this before a handler does redirect. If a handler redirects there is no point in setting
+            // cookie afterwards because the response is committed.
+            setPASTRCookie(authenticationContext, request, response);
             for (; currentPostHandlerIndex < postAuthenticationHandlers.size(); currentPostHandlerIndex++) {
                 PostAuthenticationHandler currentHandler = postAuthenticationHandlers.get(currentPostHandlerIndex);
                 if (executePostAuthnHandler(request, response, authenticationContext, currentHandler)) {
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                             .INCOMPLETE);
-                    setPASTRCookie(authenticationContext, request, response);
                     return;
                 }
             }

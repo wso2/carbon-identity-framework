@@ -756,7 +756,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         ServiceProvider serviceProvider = appDAO.getApplication(appId);
 
-        if (serviceProvider == null){
+        if (serviceProvider == null) {
             throw new IdentityApplicationManagementException(
                     "Error while getting the service provider for appId: " + appId);
         }

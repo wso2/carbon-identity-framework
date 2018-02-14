@@ -381,10 +381,11 @@ public class JsGraphBuilder {
                         infuse(executingNode, dynamicallyBuiltBaseNode.get());
                     }
 
-                } catch (ScriptException | FrameworkException e) {
+                } catch (Throwable e) {
+                    //We need to catch all the javascript errors here, then log and handle.
                     //TODO: do proper error handling
                     log.error("Error in executing the javascript for service provider : " + authenticationContext
-                            .getServiceProviderName(), e);
+                            .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
                 } finally {
                     contextForJs.remove();
                     dynamicallyBuiltBaseNode.remove();

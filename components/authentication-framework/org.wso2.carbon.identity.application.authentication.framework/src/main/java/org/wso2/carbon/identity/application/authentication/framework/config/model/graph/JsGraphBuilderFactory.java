@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,8 +62,6 @@ public class JsGraphBuilderFactory {
         ScriptEngine engine = nashornScriptManager.getEngineByName("nashorn");
 
         Bindings bindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("log", jsLog); //TODO: Depricated. Remove log.x()
-        bindings.put("Log", jsLog); //TODO: Depricated. Remove log.x()
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
         bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
                 (SelectOneFunction) selectAcrFromFunction::evaluate);

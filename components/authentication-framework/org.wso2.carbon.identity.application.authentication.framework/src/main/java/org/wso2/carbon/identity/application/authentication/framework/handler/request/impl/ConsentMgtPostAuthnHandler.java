@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -236,8 +237,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
 
             String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-            String serviceProvider = context.getSequenceConfig().getApplicationConfig()
-                                            .getApplicationName();
+            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             String spTenantDomain = null;
             User owner = context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner();
             if (owner != null) {
@@ -245,7 +245,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims());
             if (CollectionUtils.isNotEmpty(claimsWithConsent)) {
-                addReceipt(subject, serviceProvider, spTenantDomain, claimsWithConsent);
+                addReceipt(subject, applicationConfig, spTenantDomain, claimsWithConsent);
             }
         } else {
             throw new PostAuthenticationFailedException("Consent Management Error", "User denied consent" +
@@ -461,8 +461,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
 
-    private AddReceiptResponse addReceipt(String subject, String sp, String spTenantDomain, Set<String> claims)
-            throws PostAuthenticationFailedException {
+    private AddReceiptResponse addReceipt(String subject, ApplicationConfig applicationConfig, String spTenantDomain,
+                                          Set<String> claims) throws PostAuthenticationFailedException {
 
         String collectionMethod = "Web Form - Sign-in";
         String jurisdiction = "LK";
@@ -571,7 +571,19 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         ReceiptServiceInput serviceInput = new ReceiptServiceInput();
         serviceInput.setPurposes(purposeInputs);
         serviceInput.setTenantDomain(spTenantDomain);
-        serviceInput.setService(sp);
+
+        String spName = applicationConfig.getApplicationName();
+        ServiceProvider serviceProvider = applicationConfig.getServiceProvider();
+        String spDescription = null;
+        if (serviceProvider != null) {
+            spDescription = serviceProvider.getDescription();
+        }
+        if (StringUtils.isBlank(spDescription)) {
+            spDescription = spName;
+        }
+        serviceInput.setService(spName);
+        serviceInput.setSpDisplayName(spDescription);
+        serviceInput.setSpDescription(spDescription);
 
         serviceInputs.add(serviceInput);
 
