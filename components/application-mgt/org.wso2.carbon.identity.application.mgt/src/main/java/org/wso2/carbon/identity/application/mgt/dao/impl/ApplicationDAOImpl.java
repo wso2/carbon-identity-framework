@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -28,7 +27,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.*;
-import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
@@ -81,6 +79,7 @@ import java.util.Map.Entry;
 public class ApplicationDAOImpl implements ApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    public static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -1023,20 +1022,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
         String authType = localAndOutboundAuthConfig.getAuthenticationType();
 
-        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
-            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
-                    .getAuthenticationScriptConfig();
-            try (PreparedStatement storeAuthScriptPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.STORE_SP_AUTH_SCRIPT)) {
-
-                storeAuthScriptPrepStmt.setInt(1, tenantID);
-                storeAuthScriptPrepStmt.setInt(2, applicationId);
-                storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
-                storeAuthScriptPrepStmt
-                        .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
-                storeAuthScriptPrepStmt.setBoolean(5, authenticationScriptConfig.isEnabled());
-                storeAuthScriptPrepStmt.execute();
-            }
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+            updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
         }
 
         PreparedStatement updateAuthTypePrepStmt = null;
@@ -1314,6 +1301,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             }
         }
     }
+
 
     /**
      * @param applicationId
@@ -2370,9 +2358,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             localAndOutboundConfiguration.setAuthenticationType(authType);
 
-            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
-            if(authenticationScriptConfig != null) {
-                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
+            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+                AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId,
+                        connection);
+                if (authenticationScriptConfig != null) {
+                    localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
+                }
             }
 
             PreparedStatement localAndOutboundConfigPrepStmt = null;
@@ -2936,9 +2927,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT);
-            deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
-            deleteLocalAndOutboundAuthScriptConfigPrepStmt.execute();
+            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+                deleteAuthenticationScript(applicationId, connection);
+            }
 
         } finally {
             IdentityApplicationManagementUtil
@@ -3547,5 +3538,51 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(deletePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
         }
+    }
+
+    /**
+     * Updates the authentication script configuration.
+     *
+     * @param applicationId
+     * @param localAndOutboundAuthConfig
+     * @param connection
+     * @param tenantID
+     * @throws SQLException
+     */
+    private void updateAuthenticationScriptConfiguration(int applicationId,
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection, int tenantID)
+            throws SQLException {
+
+        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
+                    .getAuthenticationScriptConfig();
+            try (PreparedStatement storeAuthScriptPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_SP_AUTH_SCRIPT)) {
+
+                storeAuthScriptPrepStmt.setInt(1, tenantID);
+                storeAuthScriptPrepStmt.setInt(2, applicationId);
+                storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
+                storeAuthScriptPrepStmt
+                        .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
+                storeAuthScriptPrepStmt.setBoolean(5, authenticationScriptConfig.isEnabled());
+                storeAuthScriptPrepStmt.execute();
+            }
+        }
+    }
+
+    /**
+     * Deletes the authentication Script, given the application (SP) ID.
+     *
+     * @param applicationId
+     * @param connection
+     * @throws SQLException
+     */
+    private void deleteAuthenticationScript(int applicationId, Connection connection) throws SQLException {
+
+        PreparedStatement deleteLocalAndOutboundAuthScriptConfigPrepStmt;
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT);
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt.execute();
     }
 }
