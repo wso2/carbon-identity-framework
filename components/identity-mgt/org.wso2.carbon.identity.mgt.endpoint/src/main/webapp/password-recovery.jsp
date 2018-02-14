@@ -135,8 +135,7 @@
                                         </td>
                                         <td>&nbsp;&nbsp;</td>
                                         <td>
-                                            <button id="recoveryCancel"
-                                                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                                            <button type="button" id="recoveryCancel" class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                                                     onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
                                                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
                                                 Cancel
