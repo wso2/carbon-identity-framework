@@ -40,6 +40,7 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
     public JsAuthenticatedUser(AuthenticatedUser wrapped) {
         super(wrapped);
     }
+    private JsClaimSet jsClaimSet;
 
     @Override
     public Object getMember(String name) {
@@ -53,6 +54,8 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain();
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
+            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
+                return getCliamsSet();
             default:
                 return super.getMember(name);
         }
@@ -70,8 +73,17 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain() != null;
+            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
+                return !getCliamsSet().isEmpty();
             default:
                 return super.hasMember(name);
         }
+    }
+
+    private JsClaimSet getCliamsSet() {
+        if(jsClaimSet == null) {
+            jsClaimSet = new JsClaimSet(getWrapped().getUserAttributes());
+        }
+        return jsClaimSet;
     }
 }
