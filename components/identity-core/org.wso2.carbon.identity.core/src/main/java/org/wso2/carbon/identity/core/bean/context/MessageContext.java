@@ -31,7 +31,7 @@ public abstract class MessageContext<T1 extends Object,T2 extends Object> implem
     protected Map<T1,T2> parameters = new HashMap<>();
 
     public MessageContext(Map<T1,T2> parameters){
-        if(MapUtils.isNotEmpty(parameters)) {
+        if (MapUtils.isNotEmpty(parameters)) {
             this.parameters = parameters;
         }
     }

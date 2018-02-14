@@ -149,6 +149,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
+                paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);

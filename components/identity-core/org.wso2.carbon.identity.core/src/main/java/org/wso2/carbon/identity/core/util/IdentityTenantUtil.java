@@ -267,7 +267,7 @@ public class IdentityTenantUtil {
             throw IdentityRuntimeException.error("Error occurred while retrieving tenantDomain for tenantId: " +
                     tenantId + e.getMessage(), e);
         }
-        if(tenantDomain == null){
+        if (tenantDomain == null) {
             throw IdentityRuntimeException.error("Can not find the tenant domain for the tenant id " + tenantId);
         } else {
             return tenantDomain;
