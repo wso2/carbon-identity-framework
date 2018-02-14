@@ -171,11 +171,24 @@ span.mandatory{
     vertical-align: middle;
     font-size: 12px;
 }
+span.mandatory-msg{
+    color: red;
+}
+.select-all .checkbox{
+    padding: 10px;
+}
+.claim-list{
+    height: 225px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
 .claim-list .checkbox{
     padding: 10px;
     background: #e8f2f7;
     margin-bottom: 4px;
 }
+
+
 .claim-list .checkbox label{
     display: block;
 }
