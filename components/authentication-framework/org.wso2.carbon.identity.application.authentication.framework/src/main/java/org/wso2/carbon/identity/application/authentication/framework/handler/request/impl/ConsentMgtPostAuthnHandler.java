@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -38,6 +37,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -129,8 +130,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
         try {
-            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(2, 0, subject,
-                                                                        spTenantDomain, serviceProvider, ACTIVE_STATE);
+
+            List<ReceiptListResponse> receiptListResponses;
+            try {
+                startTenantFlow(authenticatedUser.getTenantDomain());
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
+
+                receiptListResponses = consentManager.searchReceipts(2, 0, subject,
+                                                                     spTenantDomain, serviceProvider, ACTIVE_STATE);
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
             if (receiptListResponses.size() > 1) {
 
                 throw new PostAuthenticationFailedException("Consent Management Error", "User cannot have more " +
@@ -163,7 +173,16 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
             } else {
 
-                Receipt receipt = consentManager.getReceipt(receiptListResponses.get(0).getConsentReceiptId());
+                Receipt receipt;
+                try {
+                    startTenantFlow(authenticatedUser.getTenantDomain());
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
+
+                    receipt = consentManager.getReceipt(receiptListResponses.get(0).getConsentReceiptId());
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
+
                 List<ReceiptService> services = receipt.getServices();
                 List<PIICategoryValidity> piiCategories = getPIICategoriesFromServices(services);
                 Set<String> claims = getClaimsFromPIICategoryValidity(piiCategories);
@@ -197,6 +216,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    private void startTenantFlow(String tenantDomain) {
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+    }
+
     private Set<String> getUniqueLocalClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
         return Stream.concat(requestedClaims.stream(), mandatoryClaims.stream()).collect
                 (Collectors.toSet());
@@ -219,15 +243,23 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
             Object receiptIdObject = context.getParameter(CONSENT_RECEIPT_ID_PARAM);
 
+            String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+            String subjectTenantDomain = authenticatedUser.getTenantDomain();
+
             if (receiptIdObject != null && receiptIdObject instanceof String) {
 
                 String receiptId = (String) receiptIdObject;
                 Receipt currentReceipt;
                 try {
+                    startTenantFlow(authenticatedUser.getTenantDomain());
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
+
                     currentReceipt = consentManager.getReceipt(receiptId);
                 } catch (ConsentManagementException e) {
                     throw new PostAuthenticationFailedException("Consent Management Error", "Error while " +
                                                                                     "retrieving user consents.", e);
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
                 }
                 List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
                         (currentReceipt.getServices());
@@ -236,7 +268,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 claimsWithConsent.addAll(claimsFromPIICategoryValidity);
             }
 
-            String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             String spTenantDomain = null;
             User owner = context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner();
@@ -245,7 +276,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims());
             if (CollectionUtils.isNotEmpty(claimsWithConsent)) {
-                addReceipt(subject, applicationConfig, spTenantDomain, claimsWithConsent);
+                addReceipt(subject, subjectTenantDomain, applicationConfig, spTenantDomain, claimsWithConsent);
             }
         } else {
             throw new PostAuthenticationFailedException("Consent Management Error", "User denied consent" +
@@ -255,8 +286,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
     private String buildSubjectWithUserStoreDomain(AuthenticatedUser authenticatedUser) {
-        return authenticatedUser.getUserStoreDomain() + CarbonConstants.DOMAIN_SEPARATOR +
-               authenticatedUser.getUserName();
+
+        return UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser.getUserStoreDomain());
     }
 
 
@@ -461,8 +492,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
 
-    private AddReceiptResponse addReceipt(String subject, ApplicationConfig applicationConfig, String spTenantDomain,
-                                          Set<String> claims) throws PostAuthenticationFailedException {
+    private AddReceiptResponse addReceipt(String subject, String subjectTenantDomain, ApplicationConfig
+            applicationConfig, String spTenantDomain, Set<String> claims) throws PostAuthenticationFailedException {
 
         String collectionMethod = "Web Form - Sign-in";
         String jurisdiction = "LK";
@@ -599,10 +630,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AddReceiptResponse receiptResponse;
         try {
+            startTenantFlow(subjectTenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subject);
             receiptResponse = consentManager.addConsent(receiptInput);
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent receipt error", "Error while adding the consent " +
                                                                                  "receipt", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
         if (log.isDebugEnabled()) {
             log.info("Successfully added consent receipt: " + receiptResponse.getConsentReceiptId());
