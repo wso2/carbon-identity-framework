@@ -55,8 +55,15 @@
 
 <script type="text/javascript">
     function approved() {
-        document.getElementById('consent').value = "approve";
-        document.getElementById("profile").submit();
+        var mandatoryClaimCBs = $(".mandatory-claim");
+        var checkedMandatoryClaimCBs = $(".mandatory-claim:checked");
+
+        if (checkedMandatoryClaimCBs.length == mandatoryClaimCBs.length) {
+            document.getElementById('consent').value = "approve";
+            document.getElementById("profile").submit();
+        }else{
+            $("#modal_claim_validation").modal();
+        }
     }
     function deny() {
         document.getElementById('consent').value = "deny";
@@ -127,7 +134,7 @@
                                     <% for (String claim : mandatoryClaimList) { %>
                                     <div class="checkbox claim-cb">
                                         <label>
-                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
+                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
                                                    required/>
                                             <%=claim%>
                                             <span class="required font-medium">*</span>
@@ -200,6 +207,25 @@
         </p>
     </div>
 </footer>
+
+<div id="modal_claim_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Mandatory Claims</h4>
+            </div>
+            <div class="modal-body">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.1")%>
+                <span class="mandatory-msg"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.2")%></span>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.3")%>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
