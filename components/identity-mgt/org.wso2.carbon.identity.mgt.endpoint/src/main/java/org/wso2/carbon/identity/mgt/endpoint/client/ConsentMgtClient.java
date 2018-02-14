@@ -83,7 +83,7 @@ public class ConsentMgtClient {
                     }
                 }
             }
-            if (purposesResponse.length() != 0) {
+            if (purposesResponseArray.length() != 0) {
                 JSONObject purposesJson = new JSONObject();
                 purposesJson.put(PURPOSES, purposesResponseArray);
                 purposesJsonString = purposesJson.toString();
