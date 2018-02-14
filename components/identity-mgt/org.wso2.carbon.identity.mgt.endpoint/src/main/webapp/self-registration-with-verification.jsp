@@ -29,7 +29,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.StringUtil" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));

@@ -45,15 +45,19 @@ import java.nio.charset.Charset;
  */
 public class ConsentMgtClient {
 
-    private final String CLIENT = "Client ";
+    private static final String CLIENT = "Client ";
     private final Log log = LogFactory.getLog(ConsentMgtClient.class);
-    private String BASE_PATH = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+    private static String BASE_PATH = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
             .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                     "api/identity/consent-mgt/v1.0");
-    private final String PURPOSE_ID = "purposeId";
-    private final String PURPOSES_ENDPOINT = BASE_PATH + "/consents/purposes";
-    private final String PURPOSE_ENDPOINT = BASE_PATH + "/consents/purposes";
-    private final String PURPOSES = "purposes";
+    private static final String PURPOSE_ID = "purposeId";
+    private static final String PURPOSES_ENDPOINT = BASE_PATH + "/consents/purposes";
+    private static final String PURPOSE_ENDPOINT = BASE_PATH + "/consents/purposes";
+    private static final String PURPOSES = "purposes";
+    private static final String PURPOSE = "purpose";
+    private static final String PII_CATEGORIES = "piiCategories";
+    private static final String DEFAULT = "DEFAULT";
+    private static final String NAME = "name";
 
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
@@ -68,15 +72,20 @@ public class ConsentMgtClient {
         try {
             String purposesResponse = executeGet(PURPOSES_ENDPOINT);
             JSONArray purposes = new JSONArray(purposesResponse);
+            JSONArray purposesResponseArray = new JSONArray();
 
             for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
                 JSONObject purpose = (JSONObject) purposes.get(purposeIndex);
-                purpose = retrievePurpose(purpose.getInt(PURPOSE_ID));
-                purposes.put(purposeIndex, purpose);
+                if (!isDefaultPurpose(purpose)) {
+                    purpose = retrievePurpose(purpose.getInt(PURPOSE_ID));
+                    if (hasPIICategories(purpose)) {
+                        purposesResponseArray.put(purpose);
+                    }
+                }
             }
-            if (purposes.length() != 0) {
+            if (purposesResponse.length() != 0) {
                 JSONObject purposesJson = new JSONObject();
-                purposesJson.put(PURPOSES, purposes);
+                purposesJson.put(PURPOSES, purposesResponseArray);
                 purposesJsonString = purposesJson.toString();
             }
             return purposesJsonString;
@@ -138,5 +147,19 @@ public class ConsentMgtClient {
         String purposeResponse = executeGet(PURPOSE_ENDPOINT + "/" + purposeId);
         JSONObject purpose = new JSONObject(purposeResponse);
         return purpose;
+    }
+
+    private boolean isDefaultPurpose(JSONObject purpose) {
+
+        if (DEFAULT.equalsIgnoreCase(purpose.getString(PURPOSE))) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasPIICategories(JSONObject purpose) {
+
+        JSONArray piiCategories = (JSONArray) purpose.get(PII_CATEGORIES);
+        return piiCategories.length() > 0;
     }
 }
