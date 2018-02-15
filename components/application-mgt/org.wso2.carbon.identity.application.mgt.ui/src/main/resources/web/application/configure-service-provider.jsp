@@ -41,6 +41,9 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Comparator" %>
 <%@ page import="java.util.Arrays" %>
+<%@page import="org.wso2.carbon.identity.application.common.model.CertData"%>
+<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -270,6 +273,13 @@ location.href = "list-service-providers.jsp";
 	} catch (Exception e) {
 		CarbonUIMessage.sendCarbonUIMessage("Error occured while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
 	}
+
+	String certString = appBean.getServiceProvider().getCertificateContent();
+	CertData certData = null;
+	if (StringUtils.isNotBlank(certString)) {
+		certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
+	}
+
 %>
 
 <script>
@@ -832,7 +842,65 @@ function updateBeanAndPostTo(postURL, data) {
                             <div class="sectionHelp">
                             <fmt:message key='help.certificate'/>
                             </div>
-                        </td>
+							<div id="publicCertDiv">
+								<% if (certData != null) { %>
+								<div style="clear:both"></div>
+								<table class="styledLeft">
+									<thead>
+									<tr>
+										<th><fmt:message key='issuerdn'/></th>
+										<th><fmt:message key='subjectdn'/></th>
+										<th><fmt:message key='notafter'/></th>
+										<th><fmt:message key='notbefore'/></th>
+										<th><fmt:message key='serialno'/></th>
+										<th><fmt:message key='version'/></th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td><%
+											String issuerDN = "";
+											if (certData.getIssuerDN() != null) {
+												issuerDN = certData.getIssuerDN();
+											}
+										%><%=Encode.forHtmlContent(issuerDN)%>
+										</td>
+										<td><%
+											String subjectDN = "";
+											if (certData.getSubjectDN() != null) {
+												subjectDN = certData.getSubjectDN();
+											}
+										%><%=Encode.forHtmlContent(subjectDN)%>
+										</td>
+										<td><%
+											String notAfter = "";
+											if (certData.getNotAfter() != null) {
+												notAfter = certData.getNotAfter();
+											}
+										%><%=Encode.forHtmlContent(notAfter)%>
+										</td>
+										<td><%
+											String notBefore = "";
+											if (certData.getNotBefore() != null) {
+												notBefore = certData.getNotBefore();
+											}
+										%><%=Encode.forHtmlContent(notBefore)%>
+										</td>
+										<td><%
+											String serialNo = "";
+											if (certData.getSerialNumber() != null) {
+												serialNo = certData.getSerialNumber().toString();
+											}
+										%><%=Encode.forHtmlContent(serialNo)%>
+										</td>
+										<td><%=certData.getVersion()%>
+										</td>
+									</tr>
+									</tbody>
+								</table>
+								<% } %>
+							</div>
+						</td>
                     </tr>
                     <tr>
                     	<td class="leftCol-med">
