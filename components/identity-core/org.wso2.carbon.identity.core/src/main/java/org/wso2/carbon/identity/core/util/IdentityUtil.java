@@ -984,12 +984,25 @@ public class IdentityUtil {
      */
     public static Certificate convertPEMEncodedContentToCertificate(String certificateContent) throws CertificateException {
 
-        certificateContent = StringUtils.stripEnd(StringUtils.stripStart(certificateContent, PEM_BEGIN_CERTFICATE),
-                PEM_END_CERTIFICATE);
+        certificateContent = getCertificateString(certificateContent);
         byte[] bytes = org.apache.axiom.om.util.Base64.decode(certificateContent);
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
         X509Certificate certificate = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(bytes));
         return certificate;
+    }
+
+    /**
+     * Extract certificate content and returns a {@link String} object for given PEM content.
+     *
+     * @param certificateContent initial certificate content
+     * @return
+     * @throws CertificateException
+     */
+    public static String getCertificateString(String certificateContent) {
+        String certificateContentString = StringUtils.stripEnd(StringUtils.stripStart(certificateContent,
+                PEM_BEGIN_CERTFICATE),
+                PEM_END_CERTIFICATE);
+        return certificateContentString;
     }
 
     /**
