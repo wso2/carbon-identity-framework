@@ -271,6 +271,13 @@
                                     application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
                                    id="signInLink" class="font-large">Sign in</a>
                             </div>
+                            <div class="wr-title text-right white">
+                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
+                                   target="policy-pane">Cookie Policy</a>
+
+                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
+                                   target="policy-pane">Privacy Policy</a>
+                            </div>
                             <div class="clearfix"></div>
                         </div>
                     </div>
