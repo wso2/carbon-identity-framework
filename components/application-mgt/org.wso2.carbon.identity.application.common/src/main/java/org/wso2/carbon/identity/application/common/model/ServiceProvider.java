@@ -85,6 +85,8 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
+            } else if( "Certificate".equals(elementName)){
+                serviceProvider.setCertificateContent(element.getText());
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
