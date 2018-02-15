@@ -325,7 +325,15 @@
 
 
                             <% } %>
+                            <div class="wr-title text-right white">
+                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
+                                   target="policy-pane">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%></a>
 
+                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
+                                   target="policy-pane">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%></a>
+                            </div>
                             <div class="clearfix"></div>
                         </div>
                     </div>
