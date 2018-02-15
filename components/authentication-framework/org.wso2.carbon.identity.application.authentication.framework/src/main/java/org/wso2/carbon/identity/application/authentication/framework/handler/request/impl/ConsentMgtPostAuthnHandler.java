@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,6 +68,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
@@ -342,7 +342,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
         Object receiptIdObject = context.getParameter(CONSENT_RECEIPT_ID_PARAM);
-        if (isObjectParsableToString(receiptIdObject)) {
+        if (instanceOfString(receiptIdObject)) {
 
             String receiptId = (String) receiptIdObject;
             Receipt currentReceipt = getReceipt(authenticatedUser, subject, receiptId);
@@ -370,7 +370,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return currentReceipt;
     }
 
-    private boolean isObjectParsableToString(Object receiptIdObject) {
+    private boolean instanceOfString(Object receiptIdObject) {
 
         return receiptIdObject != null && receiptIdObject instanceof String;
     }
@@ -449,7 +449,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Object consentRequestedObj = context.getParameter(requestedClaimsParam);
         String consentRequestedClaims = null;
 
-        if (isObjectParsableToString(consentRequestedObj)) {
+        if (instanceOfString(consentRequestedObj)) {
             consentRequestedClaims = (String) consentRequestedObj;
         }
         return consentRequestedClaims;
@@ -486,7 +486,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         Map<String, String> claimMappings = applicationConfig.getRequestedClaimMappings();
 
-        if (MapUtils.isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
+        if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spRequestedLocalClaims = claimMappings.values();
         }
 
@@ -506,7 +506,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         Map<String, String> claimMappings = applicationConfig.getMandatoryClaimMappings();
 
-        if (MapUtils.isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
+        if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spMandatoryLocalClaims = claimMappings.values();
         }
 
@@ -865,7 +865,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
             Map<String, String> claimMappings = context.getSequenceConfig().getApplicationConfig()
                                                        .getRequestedClaimMappings();
-            if (MapUtils.isNotEmpty(claimMappings)) {
+            if (isNotEmpty(claimMappings)) {
                 carbonToSPClaimMapping = claimMappings;
             }
         }
