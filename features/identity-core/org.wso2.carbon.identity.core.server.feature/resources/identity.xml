@@ -343,6 +343,10 @@
             <SkipUserConsent>false</SkipUserConsent>
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
             <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <!--
+                Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
+                Supported versions: IS 5.5.0 onwards
+            -->
             <LogoutTokenExpiration>120</LogoutTokenExpiration>
 
         </OpenIDConnect>
