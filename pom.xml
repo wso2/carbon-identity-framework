@@ -1447,22 +1447,22 @@
 
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-		        <artifactId>cxf-core</artifactId>
+		<artifactId>cxf-core</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-		        <artifactId>cxf-rt-rs-client</artifactId>
+		<artifactId>cxf-rt-rs-client</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-		        <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		<artifactId>cxf-rt-frontend-jaxrs</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-		        <artifactId>cxf-rt-rs-extension-providers</artifactId>
+		<artifactId>cxf-rt-rs-extension-providers</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
         </dependencies>

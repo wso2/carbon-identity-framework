@@ -81,121 +81,120 @@
              'provided' scope for cxf bundles here and pack them in the lib/cxf/runtime through 
              carbon.deployment modules    
          -->          
-		<dependency>
+	<dependency>
+	    <groupId>org.apache.cxf</groupId>
+	    <artifactId>cxf-core</artifactId>
+	    <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>stax2-api</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>javax.xml.stream</groupId>
+		    <artifactId>stax-api</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>com.fasterxml.woodstox</groupId>
+		    <artifactId>woodstox-core</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>org.apache.ws.xmlschema</groupId>
+		    <artifactId>xmlschema-core</artifactId>
+                </exclusion>
+             </exclusions>
+ 	</dependency>
+	<dependency>
+	    <groupId>org.apache.cxf</groupId>
+	    <artifactId>cxf-rt-rs-client</artifactId>
+	    <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>woodstox-core-asl</artifactId>
+                </exclusion>
+                <exclusion>
 		    <groupId>org.apache.cxf</groupId>
-		    <artifactId>cxf-core</artifactId>
-		    <exclusions>
+		    <artifactId>cxf-api</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>org.apache.cxf</groupId>
+		    <artifactId>cxf-rt-bindings-xml</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>org.apache.cxf</groupId>
+		    <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>org.apache.cxf</groupId>
+		    <artifactId>cxf-rt-transports-http</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>org.apache.ws.xmlschema</groupId>
+		    <artifactId>xmlschema-core</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>wsdl4j</groupId>
+		    <artifactId>wsdl4j</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>com.sun.xml.bind</groupId>
+		    <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+                <exclusion>
+		    <groupId>javax.ws.rs</groupId>
+		    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+	</dependency>
+        <dependency>
+	    <groupId>org.apache.cxf</groupId>
+	    <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+	    <exclusions>
                 <exclusion>
                      <groupId>org.codehaus.woodstox</groupId>
-                     <artifactId>stax2-api</artifactId>
+                     <artifactId>woodstox-core-asl</artifactId>
                 </exclusion>
                 <exclusion>
-				     <groupId>javax.xml.stream</groupId>
-				     <artifactId>stax-api</artifactId>
-                </exclusion>
-                <exclusion>
-				     <groupId>com.fasterxml.woodstox</groupId>
-				     <artifactId>woodstox-core</artifactId>
-                </exclusion>
-                <exclusion>
-				     <groupId>org.apache.ws.xmlschema</groupId>
-				     <artifactId>xmlschema-core</artifactId>
-                </exclusion>
-            </exclusions>
- 		 </dependency>
-		     <dependency>
 		     <groupId>org.apache.cxf</groupId>
-		     <artifactId>cxf-rt-rs-client</artifactId>
-		     <exclusions>
-                 <exclusion>
-                      <groupId>org.codehaus.woodstox</groupId>
-                      <artifactId>woodstox-core-asl</artifactId>
-                 </exclusion>
-                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-			          <artifactId>cxf-api</artifactId>
+		     <artifactId>cxf-api</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-bindings-xml</artifactId>
+		     <groupId>org.apache.cxf</groupId>
+		     <artifactId>cxf-rt-bindings-xml</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-transports-http</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>org.apache.ws.xmlschema</groupId>
-				      <artifactId>xmlschema-core</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>wsdl4j</groupId>
-				      <artifactId>wsdl4j</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>com.sun.xml.bind</groupId>
-				      <artifactId>jaxb-impl</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>javax.ws.rs</groupId>
-				      <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-            </exclusions>
-		</dependency>
-        <dependency>
 		     <groupId>org.apache.cxf</groupId>
 		     <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-		     <exclusions>
-                 <exclusion>
-                      <groupId>org.codehaus.woodstox</groupId>
-                      <artifactId>woodstox-core-asl</artifactId>
-                 </exclusion>
-                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-			          <artifactId>cxf-api</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-bindings-xml</artifactId>
+		     <groupId>org.apache.cxf</groupId>
+		     <artifactId>cxf-rt-transports-http</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		     <groupId>org.apache.ws.xmlschema</groupId>
+		     <artifactId>xmlschema-core</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.cxf</groupId>
-				      <artifactId>cxf-rt-transports-http</artifactId>
+		     <groupId>wsdl4j</groupId>
+		     <artifactId>wsdl4j</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>org.apache.ws.xmlschema</groupId>
-				      <artifactId>xmlschema-core</artifactId>
+		     <groupId>com.sun.xml.bind</groupId>
+		     <artifactId>jaxb-impl</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>wsdl4j</groupId>
-				      <artifactId>wsdl4j</artifactId>
+		     <groupId>javax.ws.rs</groupId>
+		     <artifactId>javax.ws.rs-api</artifactId>
                 </exclusion>
                 <exclusion>
-				      <groupId>com.sun.xml.bind</groupId>
-				      <artifactId>jaxb-impl</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>javax.ws.rs</groupId>
-				      <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-                <exclusion>
-				      <groupId>javax.annotation</groupId>
-				      <artifactId>javax.annotation-api</artifactId>
+		     <groupId>javax.annotation</groupId>
+		     <artifactId>javax.annotation-api</artifactId>
                 </exclusion>
             </exclusions>
-		</dependency>	
-		<dependency>
-		     <groupId>org.apache.cxf</groupId>
-		     <artifactId>cxf-rt-rs-extension-providers</artifactId>
-		</dependency>	
-
+	</dependency>	
+	<dependency>
+	     <groupId>org.apache.cxf</groupId>
+	     <artifactId>cxf-rt-rs-extension-providers</artifactId>
+	</dependency>	
     </dependencies>
 
     <build>
