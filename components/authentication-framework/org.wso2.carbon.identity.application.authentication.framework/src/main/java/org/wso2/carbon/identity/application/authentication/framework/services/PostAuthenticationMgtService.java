@@ -190,7 +190,8 @@ public class PostAuthenticationMgtService {
         if (pstrCookieObj != null) {
             logDebug("Removing post authentication sequnce tracker cookie for context : " + context.getContextIdentifier
                     ());
-            FrameworkUtils.removeCookie(request, response, FrameworkConstants.PASTR_COOKIE);
+            FrameworkUtils.setCookie(request, response, FrameworkConstants.PASTR_COOKIE,
+                    pstrCookieObj.toString(), 0);
         } else {
             logDebug("PASTR cookie is not set to context : " + context.getContextIdentifier());
         }
