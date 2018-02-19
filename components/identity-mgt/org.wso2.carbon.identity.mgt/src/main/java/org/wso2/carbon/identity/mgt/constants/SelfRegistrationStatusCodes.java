@@ -18,32 +18,14 @@
  *
  */
 
-package org.wso2.carbon.identity.mgt.endpoint.client;
+package org.wso2.carbon.identity.mgt.constants;
 
 /**
- * The exception for ConsentMgtClient operations
+ * Error codes which are used to convey username verification status.
  */
-public class ConsentMgtClientException extends Exception {
+public class SelfRegistrationStatusCodes {
 
-    /**
-     * Client exception with message and a throwable.
-     *
-     * @param message   Error message.
-     * @param throwable Throwable.
-     */
-    public ConsentMgtClientException(String message, Throwable throwable) {
-
-        super(message, throwable);
-    }
-
-    /**
-     * Client Exception with error message.
-     *
-     * @param message Error message
-     */
-    public ConsentMgtClientException(String message) {
-
-        super(message);
-    }
-
+    public static final String CODE_USER_NAME_AVAILABLE = "60000";
+    public static final String ERROR_CODE_INVALID_TENANT = "60001";
+    public static final String ERROR_CODE_USER_ALREADY_EXISTS = "60002";
 }

@@ -28,28 +28,58 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ConsentMgtClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.StringUtil" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-    String tenantDomain = request.getParameter("tenantDomain");
-    ConsentMgtClient consentMgtClient = new ConsentMgtClient();
+    SelfRegistrationMgtClient selfRegistrationMgtClient = new SelfRegistrationMgtClient();
     boolean isFirstNameInClaims = true;
     boolean isFirstNameRequired = true;
     boolean isLastNameInClaims = true;
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
-    String purposes = consentMgtClient.getPurposes(tenantDomain);
+    String username = request.getParameter("username");
+    String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+    
+    if (StringUtils.isEmpty(username)) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "Pick a username");
+        request.getRequestDispatcher("register.do?callback=" + callback).forward(request,
+                response);
+        return;
+    }
+    Integer userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
+    
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
+    
+    if (userNameValidityStatusCode != null && !SelfRegistrationStatusCodes.CODE_USER_NAME_AVAILABLE.
+            equalsIgnoreCase(userNameValidityStatusCode.toString())) {
+        
+        request.setAttribute("error", true);
+        request.setAttribute("errorCode", userNameValidityStatusCode);
+        request.getRequestDispatcher("register.do?callback=" + callback).forward(request,
+                response);
+        return;
+    }
+    
+    String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
-
+    
     Claim[] claims = new Claim[0];
 
     List<Claim> claimsList;
     UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
     try {
-        claimsList = usernameRecoveryApi.claimsGet(null);
+        claimsList = usernameRecoveryApi.claimsGet(user.getTenantDomain());
         if (claimsList != null) {
             claims = claimsList.toArray(new Claim[claimsList.size()]);
         }
@@ -160,9 +190,8 @@
                             <%}%>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Username</label>
-                                <input id="username" name="username" type="text"
-                                       class="form-control required usrName usrNameLength" required>
+                                <input id="username" name="username" type="hidden" value="<%=username%>"
+                                       class="form-control required usrName usrNameLength">
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
@@ -185,13 +214,6 @@
                                     <% if (isEmailRequired) {%> required <%}%>>
                             </div>
                             <%
-                                }
-
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
-                                if (StringUtils.isBlank(callback)) {
-                                    callback = IdentityManagementEndpointUtil.getUserPortalUrl(
-                                            application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
                                 }
 
                                 if (callback != null) {
@@ -256,7 +278,7 @@
                                 <input id="isSelfRegistrationWithVerification" type="hidden"
                                        name="isSelfRegistrationWithVerification"
                                        value="true"/>
-                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=tenantDomain%>"/>
+                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <br/>

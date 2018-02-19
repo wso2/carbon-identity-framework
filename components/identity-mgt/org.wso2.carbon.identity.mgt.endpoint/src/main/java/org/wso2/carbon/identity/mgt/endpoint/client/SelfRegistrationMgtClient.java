@@ -27,11 +27,17 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
@@ -43,41 +49,42 @@ import java.nio.charset.Charset;
 /**
  * Client which invokes consent mgt remote operations.
  */
-public class ConsentMgtClient {
+public class SelfRegistrationMgtClient {
 
     private static final String CLIENT = "Client ";
-    private final Log log = LogFactory.getLog(ConsentMgtClient.class);
-    private static String BASE_PATH = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/consent-mgt/v1.0");
+    private final Log log = LogFactory.getLog(SelfRegistrationMgtClient.class);
+    private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
+    private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";
-    private static final String PURPOSES_ENDPOINT = BASE_PATH + "/consents/purposes";
-    private static final String PURPOSE_ENDPOINT = BASE_PATH + "/consents/purposes";
+    private static final String PURPOSES_ENDPOINT_RELATIVE_PATH = "/consents/purposes";
     private static final String PURPOSES = "purposes";
     private static final String PURPOSE = "purpose";
     private static final String PII_CATEGORIES = "piiCategories";
     private static final String DEFAULT = "DEFAULT";
-    private static final String NAME = "name";
+    private static final String USERNAME = "username";
 
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
      *
      * @param tenantDomain Tenant Domain.
      * @return A JSON string which contains purposes.
-     * @throws ConsentMgtClientException ConsentMgtClientException
+     * @throws SelfRegistrationMgtClientException SelfRegistrationMgtClientException
      */
-    public String getPurposes(String tenantDomain) throws ConsentMgtClientException {
+    public String getPurposes(String tenantDomain) throws SelfRegistrationMgtClientException {
 
+        String purposesEndpoint;
         String purposesJsonString = "";
+
+        purposesEndpoint = getPurposesEndpoint(tenantDomain);
         try {
-            String purposesResponse = executeGet(PURPOSES_ENDPOINT);
+            String purposesResponse = executeGet(purposesEndpoint);
             JSONArray purposes = new JSONArray(purposesResponse);
             JSONArray purposesResponseArray = new JSONArray();
 
             for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
                 JSONObject purpose = (JSONObject) purposes.get(purposeIndex);
                 if (!isDefaultPurpose(purpose)) {
-                    purpose = retrievePurpose(purpose.getInt(PURPOSE_ID));
+                    purpose = retrievePurpose(purpose.getInt(PURPOSE_ID), tenantDomain);
                     if (hasPIICategories(purpose)) {
                         purposesResponseArray.put(purpose);
                     }
@@ -90,11 +97,34 @@ public class ConsentMgtClient {
             }
             return purposesJsonString;
         } catch (IOException e) {
-            throw new ConsentMgtClientException("Error while retrieving purposes", e);
+            throw new SelfRegistrationMgtClientException("Error while retrieving purposes", e);
         }
     }
 
-    private String executeGet(String url) throws ConsentMgtClientException, IOException {
+    private String getPurposesEndpoint(String tenantDomain) {
+
+        String purposesEndpoint;
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
+        } else {
+            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
+        }
+        return purposesEndpoint;
+    }
+
+    private String getUserAPIEndpoint() {
+
+        String purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                        USERNAME_VALIDATE_API_RELATIVE_PATH);
+        return purposesEndpoint;
+    }
+
+    private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
@@ -117,12 +147,59 @@ public class ConsentMgtClient {
                     }
                     return responseString.toString();
                 } else {
-                    throw new ConsentMgtClientException("Error while retrieving data from " + url + ". Found http " +
+                    throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". Found http " +
                             "status " + response.getStatusLine());
                 }
             } finally {
                 httpGet.releaseConnection();
             }
+        }
+    }
+
+    /**
+     * Checks whether a given username is valid or not.
+     *
+     * @param username Username.
+     * @return An integer with status code.
+     * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     */
+    public Integer checkUsernameValidity(String username) throws SelfRegistrationMgtClientException {
+
+        boolean isDebugEnabled = log.isDebugEnabled();
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            JSONObject user = new JSONObject();
+            user.put(USERNAME, username);
+
+            HttpPost post = new HttpPost(getUserAPIEndpoint());
+            setAuthorizationHeader(post);
+
+            post.setEntity(new StringEntity(user.toString(),
+                    ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON)));
+
+            try (CloseableHttpResponse response = httpclient.execute(post)) {
+
+                if (isDebugEnabled) {
+                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " validating username");
+                }
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    if (isDebugEnabled) {
+                        log.debug("Create response: " + jsonResponse.toString(2));
+                    }
+                    return jsonResponse.getInt("statusCode");
+                } else {
+                    throw new SelfRegistrationMgtClientException("Error while executing POST to username validation " +
+                            "endpoint");
+                }
+
+            } finally {
+                post.releaseConnection();
+            }
+        } catch (IOException e) {
+            throw new SelfRegistrationMgtClientException("Error while invoking username validation endpoint.");
         }
     }
 
@@ -142,9 +219,10 @@ public class ConsentMgtClient {
 
     }
 
-    private JSONObject retrievePurpose(int purposeId) throws ConsentMgtClientException, IOException {
+    private JSONObject retrievePurpose(int purposeId, String tenantDomain) throws SelfRegistrationMgtClientException,
+            IOException {
 
-        String purposeResponse = executeGet(PURPOSE_ENDPOINT + "/" + purposeId);
+        String purposeResponse = executeGet(getPurposesEndpoint(tenantDomain) + "/" + purposeId);
         JSONObject purpose = new JSONObject(purposeResponse);
         return purpose;
     }
