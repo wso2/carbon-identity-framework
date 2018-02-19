@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -384,21 +385,27 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             PostAuthenticationFailedException {
 
         String consentClaimsPrefix = "consent_";
+        UserConsent userConsent = new UserConsent();
 
         String consentRequestedClaims = getConsentClaimsFromContext(context, REQUESTED_CLAIMS_PARAM);
         String consentMandatoryClaims = getConsentClaimsFromContext(context, MANDATORY_CLAIMS_PARAM);
-        String consentRequiredClaims = joinRequestedClaims(consentRequestedClaims, consentMandatoryClaims);
+
+        List<String> consentRequiredClaimsList = getRequiredClaimsList(consentRequestedClaims, consentMandatoryClaims);
+
+        if (consentRequiredClaimsList.isEmpty()) {
+            return userConsent;
+        }
 
         Map<String, String[]> requestParams = request.getParameterMap();
-        List<String> approvedClaims = buildApprovedClaimList(consentClaimsPrefix, requestParams);
-        List<String> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaims, approvedClaims);
+        List<String> approvedClaims = buildApprovedClaimList(consentClaimsPrefix, requestParams,
+                                                             consentRequiredClaimsList);
+        List<String> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaimsList, approvedClaims);
 
         if (isMandatoryClaimsDisapproved(consentMandatoryClaims, disapprovedClaims)) {
             throw new PostAuthenticationFailedException("Consent Denied for Mandatory Attributes",
                                                         "User denied consent to share mandatory attributes.");
         }
 
-        UserConsent userConsent = new UserConsent();
         userConsent.setApprovedClaims(approvedClaims);
         userConsent.setDisapprovedClaims(disapprovedClaims);
 
@@ -411,37 +418,41 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)));
     }
 
-    private List<String> buildDisapprovedClaimList(String consentRequiredClaims, List<String> approvedClaims) {
+    private List<String> buildDisapprovedClaimList(List<String> consentRequiredClaims, List<String> approvedClaims) {
 
         List<String> disapprovedClaims = new ArrayList<>();
 
-        if (StringUtils.isNotEmpty(consentRequiredClaims)) {
-            String[] requiredClaims = consentRequiredClaims.split(CLAIM_SEPARATOR);
-            List<String> consentClaims = new ArrayList<>(Arrays.asList(requiredClaims));
-            consentClaims.removeAll(approvedClaims);
-            disapprovedClaims = consentClaims;
+        if (isNotEmpty(consentRequiredClaims)) {
+            consentRequiredClaims.removeAll(approvedClaims);
+            disapprovedClaims = consentRequiredClaims;
         }
         return disapprovedClaims;
     }
 
-    private List<String> buildApprovedClaimList(String consentClaimsPrefix, Map<String, String[]> requestParams) {
+    private List<String> buildApprovedClaimList(String consentClaimsPrefix, Map<String, String[]> requestParams,
+                                                List<String> consentRequiredClaimsList) {
 
         List<String> approvedClaims = new ArrayList<>();
 
         for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
             if (entry.getKey().startsWith(consentClaimsPrefix)) {
                 String localClaimURI = entry.getKey().substring(consentClaimsPrefix.length());
-                approvedClaims.add(localClaimURI);
+                if (consentRequiredClaimsList.contains(localClaimURI)) {
+                    approvedClaims.add(localClaimURI);
+                }
             }
         }
         return approvedClaims;
     }
 
-    private String joinRequestedClaims(String consentRequestedClaims, String consentMandatoryClaims) {
+    private List<String> getRequiredClaimsList(String consentRequestedClaims, String consentMandatoryClaims) {
 
-        return Stream.of(consentMandatoryClaims, consentRequestedClaims)
-                     .filter(StringUtils::isNotBlank)
-                     .collect(Collectors.joining(CLAIM_SEPARATOR));
+        return Stream.of(consentRequestedClaims, consentMandatoryClaims)
+                     .filter(Objects::nonNull)
+                     .map(s -> s.split(CLAIM_SEPARATOR))
+                     .flatMap(Arrays::stream)
+                     .map(String::trim)
+                     .collect(Collectors.toList());
     }
 
     private String getConsentClaimsFromContext(AuthenticationContext context, String requestedClaimsParam) {
