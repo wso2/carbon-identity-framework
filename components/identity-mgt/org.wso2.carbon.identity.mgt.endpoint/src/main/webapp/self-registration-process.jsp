@@ -88,10 +88,6 @@
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
             }
-            if(StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            }
-
             if (StringUtils.isBlank(username)) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
