@@ -99,8 +99,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (authenticatedUser == null) {
-            String message = "User not available in AuthenticationContext. Returning";
-            logDebug(message);
+            if (isDebugEnabled()) {
+                String message = "User not available in AuthenticationContext. Returning";
+                logDebug(message);
+            }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
@@ -111,11 +113,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    private boolean isDebugEnabled() {
+
+        return log.isDebugEnabled();
+    }
+
     private void logDebug(String message) {
 
-        if (log.isDebugEnabled()) {
-            log.debug(message);
-        }
+        log.debug(message);
     }
 
     protected PostAuthnHandlerFlowStatus handlePreConsent(HttpServletRequest request, HttpServletResponse response,
@@ -139,9 +144,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             List<ReceiptListResponse> receiptListResponses = getReceiptListOfUserForSP(authenticatedUser,
                                                        serviceProvider, spTenantDomain, subject, receiptListLimit);
 
-            String message = String.format("Retrieved %s receipts for user: %s, service provider: %s in tenant domain" +
-                                       " %s", receiptListResponses.size(), subject, serviceProvider, spTenantDomain);
-            logDebug(message);
+            if (isDebugEnabled()) {
+                String message = String.format("Retrieved %s receipts for user: %s, service provider: %s in tenant " +
+                                               "domain %s", receiptListResponses.size(), subject, serviceProvider,
+                                               spTenantDomain);
+                logDebug(message);
+            }
 
             if (hasUserMultipleReceipts(receiptListResponses)) {
                 throw new PostAuthenticationFailedException("Consent Management Error", "User cannot have more " +
@@ -165,10 +173,23 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                                                         List<ReceiptListResponse> receiptListResponses)
             throws ConsentManagementException, PostAuthenticationFailedException {
 
-        Receipt receipt = getReceipt(authenticatedUser, subject, getFirstConsentReceiptFromList(receiptListResponses));
+        String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
+        Receipt receipt = getReceipt(authenticatedUser, receiptId);
+
         List<String> mandatoryClaims = getMandatoryClaimsWithoutConsent(context, receipt);
         if (isEmpty(mandatoryClaims)) {
+            if (isDebugEnabled()) {
+                String message = String.format("User: %s has provided consent for all mandatory claims in receipt: %s" +
+                                               ". Not prompting for consent.", subject, receiptId);
+                logDebug(message);
+            }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        if (isDebugEnabled()) {
+            String message = String.format("Missing consent form user: %s for mandatory claims: %s.", subject,
+                                           mandatoryClaims);
+            logDebug(message);
         }
 
         String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
@@ -195,8 +216,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Set<String> consentClaims = getClaimsWithoutConsent(claims, requestedClaims, mandatoryClaims);
 
         removeUserClaimsFromContext(context, new ArrayList<>(consentClaims));
-
         mandatoryClaims.removeAll(claims);
+
         return mandatoryClaims;
     }
 
@@ -213,7 +234,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         List<ReceiptService> services = receipt.getServices();
         List<PIICategoryValidity> piiCategories = getPIICategoriesFromServices(services);
-        return getClaimsFromPIICategoryValidity(piiCategories);
+        Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategories);
+        if (isDebugEnabled()) {
+            String message = String.format("User: %s has provided consent in receipt: %s for claims: " +
+                                           claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
+                                           receipt.getConsentReceiptId());
+            logDebug(message);
+        }
+        return claimsFromPIICategoryValidity;
     }
 
     private PostAuthnHandlerFlowStatus handlePreConsentForNoReceipts(HttpServletResponse response,
@@ -314,11 +342,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
-            logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + "has approved consent.");
-
-            Set<String> claimsWithConsent = new HashSet<>();
+            if (isDebugEnabled()) {
+                logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has approved consent.");
+            }
             UserConsent userConsent = processUserConsent(request, context);
-            String subject = getAllUserApprovedClaims(context, authenticatedUser, claimsWithConsent, userConsent);
+            String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+            Set<String> claimsWithConsent = getAllUserApprovedClaims(context, userConsent);
 
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             String spTenantDomain = getSPOwnerTenantDomain(context);
@@ -334,31 +363,32 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
-    private String getAllUserApprovedClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
-                                            Set<String> claimsWithConsent,
-                                            UserConsent userConsent)
+    private Set<String> getAllUserApprovedClaims(AuthenticationContext context, UserConsent userConsent)
             throws PostAuthenticationFailedException {
+
+        Set<String> claimsWithConsent = new HashSet<>();
         claimsWithConsent.addAll(userConsent.getApprovedClaims());
 
-        String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+        AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
 
         Object receiptIdObject = context.getParameter(CONSENT_RECEIPT_ID_PARAM);
         if (instanceOfString(receiptIdObject)) {
 
             String receiptId = (String) receiptIdObject;
-            Receipt currentReceipt = getReceipt(authenticatedUser, subject, receiptId);
+            Receipt currentReceipt = getReceipt(authenticatedUser, receiptId);
             List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
                     (currentReceipt.getServices());
             Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
                     (piiCategoriesFromServices);
             claimsWithConsent.addAll(claimsFromPIICategoryValidity);
         }
-        return subject;
+        return claimsWithConsent;
     }
 
-    private Receipt getReceipt(AuthenticatedUser authenticatedUser, String subject, String receiptId)
+    private Receipt getReceipt(AuthenticatedUser authenticatedUser, String receiptId)
             throws PostAuthenticationFailedException {
         Receipt currentReceipt;
+        String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
         try {
             startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
             currentReceipt = consentManager.getReceipt(receiptId);
@@ -447,21 +477,30 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private List<String> getRequiredClaimsList(String consentRequestedClaims, String consentMandatoryClaims) {
 
-        return Stream.of(consentRequestedClaims, consentMandatoryClaims)
-                     .filter(Objects::nonNull)
-                     .map(s -> s.split(CLAIM_SEPARATOR))
-                     .flatMap(Arrays::stream)
-                     .map(String::trim)
-                     .collect(Collectors.toList());
+        List<String> consentRequiredClaims = Stream.of(consentRequestedClaims, consentMandatoryClaims)
+                                     .filter(Objects::nonNull)
+                                     .map(s -> s.split(CLAIM_SEPARATOR))
+                                     .flatMap(Arrays::stream)
+                                     .map(String::trim)
+                                     .collect(Collectors.toList());
+        if (isDebugEnabled()) {
+            logDebug("Consent required for claims: " + consentRequiredClaims);
+        }
+        return consentRequiredClaims;
     }
 
-    private String getConsentClaimsFromContext(AuthenticationContext context, String requestedClaimsParam) {
+    private String getConsentClaimsFromContext(AuthenticationContext context, String claimParameter) {
 
-        Object consentRequestedObj = context.getParameter(requestedClaimsParam);
+        Object consentRequestedObj = context.getParameter(claimParameter);
         String consentRequestedClaims = null;
 
         if (instanceOfString(consentRequestedObj)) {
             consentRequestedClaims = (String) consentRequestedObj;
+        }
+        if (isDebugEnabled()) {
+            String message = String.format("Retrieved %s: %s from AuthenticationContext", claimParameter,
+                                           consentRequestedClaims);
+            logDebug(message);
         }
         return consentRequestedClaims;
     }
@@ -501,6 +540,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             spRequestedLocalClaims = claimMappings.values();
         }
 
+        if (isDebugEnabled()) {
+            String message = String.format("Requested claims for SP: %s - " + spRequestedLocalClaims,
+                                           applicationConfig.getApplicationName());
+            logDebug(message);
+        }
+
         return spRequestedLocalClaims;
     }
 
@@ -521,6 +566,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             spMandatoryLocalClaims = claimMappings.values();
         }
 
+        if (isDebugEnabled()) {
+            String message = String.format("Mandatory claims for SP: %s - " + spMandatoryLocalClaims,
+                                           applicationConfig.getApplicationName());
+            logDebug(message);
+        }
         return spMandatoryLocalClaims;
     }
 
@@ -536,13 +586,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         uriBuilder = new URIBuilder(CONSENT_ENDPOINT_URL);
 
         if (isNotBlank(requestedLocalClaims)) {
-            logDebug("Appending requested local claims to redirect URI: " + requestedLocalClaims);
+            if (isDebugEnabled()) {
+                logDebug("Appending requested local claims to redirect URI: " + requestedLocalClaims);
+            }
             uriBuilder.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
             context.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
         }
 
         if (isNotBlank(mandatoryLocalClaims)) {
-            logDebug("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
+            if (isDebugEnabled()) {
+                logDebug("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
+            }
             uriBuilder.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
             context.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
         }
@@ -620,8 +674,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
-        if (log.isDebugEnabled()) {
-            log.info("Successfully added consent receipt: " + receiptResponse.getConsentReceiptId());
+        if (isDebugEnabled()) {
+            logDebug("Successfully added consent receipt: " + receiptResponse.getConsentReceiptId());
         }
         return receiptResponse;
     }
