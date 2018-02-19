@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -73,8 +74,7 @@ import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 
 /**
@@ -84,6 +84,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final String CONSENT_RECEIPT_ID_PARAM = "ConsentReceiptId";
+    private static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
+    private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+    private static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
+    private static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
     private String CONSENT_PROMPTED = "consentPrompted";
     private ConsentManager consentManager;
     private static final String DEFAULT_PURPOSE = "DEFAULT";
@@ -213,9 +217,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
         List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
 
+        String spStandardDialect = getStandardDialect(context);
         Set<String> consentClaims = getClaimsWithoutConsent(claims, requestedClaims, mandatoryClaims);
 
-        removeUserClaimsFromContext(context, new ArrayList<>(consentClaims));
+        removeUserClaimsFromContext(context, new ArrayList<>(consentClaims), spStandardDialect);
         mandatoryClaims.removeAll(claims);
 
         return mandatoryClaims;
@@ -237,8 +242,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategories);
         if (isDebugEnabled()) {
             String message = String.format("User: %s has provided consent in receipt: %s for claims: " +
-                                           claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
-                                           receipt.getConsentReceiptId());
+                            claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
+                    receipt.getConsentReceiptId());
             logDebug(message);
         }
         return claimsFromPIICategoryValidity;
@@ -299,10 +304,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             ConsentManagementException {
 
         List<ReceiptListResponse> receiptListResponses;
+        startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
         try {
-            startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
             receiptListResponses = consentManager.searchReceipts(limit, 0, subject,
-                                                                 spTenantDomain, serviceProvider, ACTIVE_STATE);
+                    spTenantDomain, serviceProvider, ACTIVE_STATE);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -350,15 +355,16 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             Set<String> claimsWithConsent = getAllUserApprovedClaims(context, userConsent);
 
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+            String spStandardDialect = getStandardDialect(context);
             String spTenantDomain = getSPOwnerTenantDomain(context);
             String subjectTenantDomain = authenticatedUser.getTenantDomain();
-            removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims());
+            removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims(), spStandardDialect);
             if (isNotEmpty(claimsWithConsent)) {
                 addReceipt(subject, subjectTenantDomain, applicationConfig, spTenantDomain, claimsWithConsent);
             }
         } else {
             throw new PostAuthenticationFailedException("Consent Management Error", "User denied consent" +
-                                                                                    " to share information.");
+                    " to share information.");
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
@@ -428,12 +434,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         Map<String, String[]> requestParams = request.getParameterMap();
         List<String> approvedClaims = buildApprovedClaimList(consentClaimsPrefix, requestParams,
-                                                             consentRequiredClaimsList);
+                consentRequiredClaimsList);
         List<String> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaimsList, approvedClaims);
 
         if (isMandatoryClaimsDisapproved(consentMandatoryClaims, disapprovedClaims)) {
             throw new PostAuthenticationFailedException("Consent Denied for Mandatory Attributes",
-                                                        "User denied consent to share mandatory attributes.");
+                    "User denied consent to share mandatory attributes.");
         }
 
         userConsent.setApprovedClaims(approvedClaims);
@@ -445,7 +451,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private boolean isMandatoryClaimsDisapproved(String consentMandatoryClaims, List<String> disapprovedClaims) {
 
         return isNotBlank(consentMandatoryClaims) &&
-            !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)));
+                !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)));
     }
 
     private List<String> buildDisapprovedClaimList(List<String> consentRequiredClaims, List<String> approvedClaims) {
@@ -478,11 +484,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private List<String> getRequiredClaimsList(String consentRequestedClaims, String consentMandatoryClaims) {
 
         List<String> consentRequiredClaims = Stream.of(consentRequestedClaims, consentMandatoryClaims)
-                                     .filter(Objects::nonNull)
-                                     .map(s -> s.split(CLAIM_SEPARATOR))
-                                     .flatMap(Arrays::stream)
-                                     .map(String::trim)
-                                     .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .map(s -> s.split(CLAIM_SEPARATOR))
+                .flatMap(Arrays::stream)
+                .map(String::trim)
+                .collect(Collectors.toList());
         if (isDebugEnabled()) {
             logDebug("Consent required for claims: " + consentRequiredClaims);
         }
@@ -499,7 +505,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
         if (isDebugEnabled()) {
             String message = String.format("Retrieved %s: %s from AuthenticationContext", claimParameter,
-                                           consentRequestedClaims);
+                    consentRequestedClaims);
             logDebug(message);
         }
         return consentRequestedClaims;
@@ -515,11 +521,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             response.sendRedirect(uriBuilder.build().toString());
         } catch (IOException e) {
             throw new PostAuthenticationFailedException("Error while handling consents", "Error while " +
-                                                                                         "redirecting to " +
-                                                                                         "consent page", e);
+                    "redirecting to " +
+                    "consent page", e);
         } catch (URISyntaxException e) {
             throw new PostAuthenticationFailedException("Error while handling consents",
-                                                        "Error while building redirect URI", e);
+                    "Error while building redirect URI", e);
         }
     }
 
@@ -531,7 +537,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (applicationConfig == null) {
             throw new PostAuthenticationFailedException("Claim config error", "Application configs are null in " +
-                                                                "AuthenticationContext.");
+                    "AuthenticationContext.");
         }
 
         Map<String, String> claimMappings = applicationConfig.getRequestedClaimMappings();
@@ -542,7 +548,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (isDebugEnabled()) {
             String message = String.format("Requested claims for SP: %s - " + spRequestedLocalClaims,
-                                           applicationConfig.getApplicationName());
+                    applicationConfig.getApplicationName());
             logDebug(message);
         }
 
@@ -557,7 +563,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (applicationConfig == null) {
             throw new PostAuthenticationFailedException("Claim config error", "Application configs are null in " +
-                                                                              "AuthenticationContext.");
+                    "AuthenticationContext.");
         }
 
         Map<String, String> claimMappings = applicationConfig.getMandatoryClaimMappings();
@@ -568,7 +574,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (isDebugEnabled()) {
             String message = String.format("Mandatory claims for SP: %s - " + spMandatoryLocalClaims,
-                                           applicationConfig.getApplicationName());
+                    applicationConfig.getApplicationName());
             logDebug(message);
         }
         return spMandatoryLocalClaims;
@@ -581,7 +587,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         final String CONSENT_ENDPOINT = "consent.do";
 
         String CONSENT_ENDPOINT_URL = ConfigurationFacade.getInstance()
-                                             .getAuthenticationEndpointURL().replace(LOGIN_ENDPOINT, CONSENT_ENDPOINT);
+                .getAuthenticationEndpointURL().replace(LOGIN_ENDPOINT, CONSENT_ENDPOINT);
         URIBuilder uriBuilder;
         uriBuilder = new URIBuilder(CONSENT_ENDPOINT_URL);
 
@@ -601,9 +607,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             context.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
         }
         uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
-                                context.getContextIdentifier());
+                context.getContextIdentifier());
         uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
-                                context.getSequenceConfig().getApplicationConfig().getApplicationName());
+                context.getSequenceConfig().getApplicationConfig().getApplicationName());
         return uriBuilder;
     }
 
@@ -670,7 +676,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             receiptResponse = consentManager.addConsent(receiptInput);
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent receipt error", "Error while adding the consent " +
-                                                                                 "receipt", e);
+                    "receipt", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -707,7 +713,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         purposeCategoryIds.add(purposeCategory.getId());
 
         ReceiptPurposeInput purposeInput = getReceiptPurposeInput(consentType, termination, purpose, piiCategoryIds,
-                                                                  purposeCategoryIds);
+                purposeCategoryIds);
         purposeInputs.add(purposeInput);
 
         ReceiptServiceInput serviceInput = getReceiptServiceInput(applicationConfig, spTenantDomain, purposeInputs);
@@ -783,11 +789,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     piiCategory = addPIICategoryForClaim(claim);
                 } else {
                     throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving" +
-                                                                      " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                            " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
                 }
             } catch (ConsentManagementException e) {
                 throw new PostAuthenticationFailedException("Consent PII category error", "Error while retrieving " +
-                                                                      "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                        "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
             }
             piiCategoryIds.add(new PIICategoryValidity(piiCategory.getId(), termination));
         }
@@ -802,7 +808,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             piiCategory = consentManager.addPIICategory(piiCategoryInput);
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent PII category error", "Error while adding" +
-                                                          " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
+                    " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return piiCategory;
     }
@@ -823,11 +829,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 purposeCategory = addDefaultPurposeCategory();
             } else {
                 throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving" +
-                                                                  " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                        " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
             }
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent purpose category error", "Error while retrieving " +
-                                                                  "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                    "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return purposeCategory;
     }
@@ -836,12 +842,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         PurposeCategory purposeCategory;
         PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY, "Core " +
-                                                                                       "functionality");
+                "functionality");
         try {
             purposeCategory = consentManager.addPurposeCategory(defaultPurposeCategory);
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent purpose category error", "Error while adding" +
-                                                          " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                    " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return purposeCategory;
     }
@@ -863,11 +869,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 purpose = addDefaultPurpose();
             } else {
                 throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose:" +
-                                                                                     " " + DEFAULT_PURPOSE, e);
+                        " " + DEFAULT_PURPOSE, e);
             }
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent purpose error", "Error while retrieving purpose: " +
-                                                                                 DEFAULT_PURPOSE, e);
+                    DEFAULT_PURPOSE, e);
         }
         return purpose;
     }
@@ -880,7 +886,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             purpose = consentManager.addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {
             throw new PostAuthenticationFailedException("Consent purpose error", "Error while adding " +
-                                                                             "purpose: " + DEFAULT_PURPOSE, e);
+                    "purpose: " + DEFAULT_PURPOSE, e);
         }
         return purpose;
     }
@@ -890,51 +896,65 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return ERROR_CODE_PURPOSE_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 
-    private void removeUserClaimsFromContext(AuthenticationContext context, List<String> disapprovedClaims) {
+    private void removeUserClaimsFromContext(AuthenticationContext context, List<String> disapprovedClaims,
+                                             String spStandardDialect) {
 
-        Map<String, String> carbonToSPClaimMapping = getCarbonToSPClaimMapping(context);
-        Map<ClaimMapping, String> userAttributes = context.getSequenceConfig().getAuthenticatedUser()
-                                                          .getUserAttributes();
+        Map<ClaimMapping, String> userAttributes = getUserAttributes(context);
         Map<ClaimMapping, String> modifiedUserAttributes = new HashMap<>();
 
-        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
-
-            String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
-            if (isConsentDisapprovedForClaim(disapprovedClaims, carbonToSPClaimMapping, localClaimUri)) {
-                modifiedUserAttributes.put(entry.getKey(), entry.getValue());
-            }
+        if (isStandardDialect(spStandardDialect)) {
+            Map<String, String> standardToCarbonClaimMappings = getSPToCarbonClaimMappings(context);
+            filterClaims(userAttributes, disapprovedClaims, standardToCarbonClaimMappings, modifiedUserAttributes);
+        } else {
+            // WSO2 dialect or Non standards custom claim mappings.
+            Map<String, String> customToLocalClaimMappings = context.getSequenceConfig().getApplicationConfig()
+                    .getRequestedClaimMappings();
+            filterClaims(userAttributes, disapprovedClaims, customToLocalClaimMappings, modifiedUserAttributes);
         }
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(modifiedUserAttributes);
     }
 
-    private boolean isConsentDisapprovedForClaim(List<String> disapprovedClaims,
-                                                 Map<String, String> carbonToSPClaimMapping, String localClaimUri) {
+    private boolean isWSO2StandardDialect(String spStandardDialect) {
 
-        return !disapprovedClaims.contains(localClaimUri) &&
-            !disapprovedClaims.contains(carbonToSPClaimMapping.get(localClaimUri));
+        return StringUtils.equals(spStandardDialect, ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
     }
 
-    private Map<String, String> getCarbonToSPClaimMapping(AuthenticationContext context) {
+    private boolean isStandardDialect(String spStandardDialect) {
 
-        Map<String, String> carbonToSPClaimMapping = new HashMap<>();
-        Object spToCarbonClaimMappingObject = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+        return isNotBlank(spStandardDialect) && (!isWSO2StandardDialect(spStandardDialect));
+    }
 
-        if (spToCarbonClaimMappingObject != null && spToCarbonClaimMappingObject instanceof Map) {
+    private Map<ClaimMapping, String> getUserAttributes(AuthenticationContext context) {
 
-            Map<String, String> spToCarbonClaimMapping = (Map<String, String>) spToCarbonClaimMappingObject;
+        return context.getSequenceConfig().getAuthenticatedUser()
+                .getUserAttributes();
+    }
 
-            for (Map.Entry<String, String> entry : spToCarbonClaimMapping.entrySet()) {
-                carbonToSPClaimMapping.put(entry.getValue(), entry.getKey());
-            }
-        } else {
+    private void filterClaims(Map<ClaimMapping, String> userAttributes, List<String> disapprovedClaims,
+                              Map<String, String> claimMappings, Map<ClaimMapping, String> modifiedUserAttributes) {
 
-            Map<String, String> claimMappings = context.getSequenceConfig().getApplicationConfig()
-                                                       .getRequestedClaimMappings();
-            if (isNotEmpty(claimMappings)) {
-                carbonToSPClaimMapping = claimMappings;
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            String claimKey = entry.getKey().getLocalClaim().getClaimUri();
+            if (isConsentApprovedForClaim(disapprovedClaims, claimMappings, claimKey)) {
+                modifiedUserAttributes.put(entry.getKey(), entry.getValue());
             }
         }
-        return carbonToSPClaimMapping;
+    }
+
+    private Map<String, String> getSPToCarbonClaimMappings(AuthenticationContext context) {
+
+        Object mapping = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+        if (mapping != null && mapping instanceof HashMap) {
+            return (Map<String, String>) mapping;
+        }
+        return new HashMap<>();
+    }
+
+    private boolean isConsentApprovedForClaim(List<String> disapprovedClaims,
+                                              Map<String, String> carbonToSPClaimMapping, String localClaimUri) {
+
+        return !disapprovedClaims.contains(localClaimUri) &&
+                !disapprovedClaims.contains(carbonToSPClaimMapping.get(localClaimUri));
     }
 
     protected boolean isConsentForClaimValid(PIICategoryValidity piiCategoryValidity) {
@@ -948,18 +968,22 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         private List<String> disapprovedClaims = new ArrayList<>();
 
         List<String> getApprovedClaims() {
+
             return approvedClaims;
         }
 
         void setApprovedClaims(List<String> approvedClaims) {
+
             this.approvedClaims = approvedClaims;
         }
 
         List<String> getDisapprovedClaims() {
+
             return disapprovedClaims;
         }
 
         void setDisapprovedClaims(List<String> disapprovedClaims) {
+
             this.disapprovedClaims = disapprovedClaims;
         }
     }
@@ -967,6 +991,38 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     public void setConsentManager(ConsentManager consentManager) {
 
         this.consentManager = consentManager;
+    }
+
+    private String getStandardDialect(AuthenticationContext context) {
+
+        String clientType = context.getRequestType();
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        Map<String, String> claimMappings = appConfig.getClaimMappings();
+        if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType)) {
+            return HTTP_WSO2_ORG_OIDC_CLAIM;
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType)) {
+            return HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY;
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType)) {
+            return HTTP_AXSCHEMA_ORG;
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
+            return URN_SCIM_SCHEMAS_CORE_1_0;
+        } else if (claimMappings == null || claimMappings.isEmpty()) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else {
+            boolean isAtLeastOneNotEqual = false;
+            for (Map.Entry<String, String> entry : claimMappings.entrySet()) {
+                if (!entry.getKey().equalsIgnoreCase(entry.getValue())) {
+                    isAtLeastOneNotEqual = true;
+                    break;
+                }
+            }
+            if (!isAtLeastOneNotEqual) {
+                return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            }
+        }
+        return null;
     }
 }
 
