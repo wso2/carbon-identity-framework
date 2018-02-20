@@ -31,7 +31,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.StringUtil" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -50,8 +49,7 @@
     if (StringUtils.isEmpty(username)) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", "Pick a username");
-        request.getRequestDispatcher("register.do?callback=" + callback).forward(request,
-                response);
+        request.getRequestDispatcher("register.do").forward(request, response);
         return;
     }
     Integer userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
@@ -66,8 +64,7 @@
         
         request.setAttribute("error", true);
         request.setAttribute("errorCode", userNameValidityStatusCode);
-        request.getRequestDispatcher("register.do?callback=" + callback).forward(request,
-                response);
+        request.getRequestDispatcher("register.do").forward(request, response);
         return;
     }
     
@@ -167,7 +164,7 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration</div>
+                        <div class="padding-double font-large">Enter required fields to complete registration of <b> <%=username%> </b></div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
