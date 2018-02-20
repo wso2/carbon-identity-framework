@@ -1,6 +1,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %><%--
+<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %><%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
@@ -21,8 +23,11 @@
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
+    String username = request.getParameter("username");
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
     Object errorCodeObj = request.getAttribute("errorCode");
     Object errorMsgObj = request.getAttribute("errorMsg");
+    String callback =  Encode.forHtmlAttribute(request.getParameter("callback"));
     String errorCode = null;
     String errorMsg = null;
     
@@ -31,9 +36,11 @@
     }
     
     if (SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT.equalsIgnoreCase(errorCode)) {
-        errorMsg = "Invalid tenant domain.";
+        errorMsg = "Invalid tenant domain - " + user.getTenantDomain();
     } else if (SelfRegistrationStatusCodes.ERROR_CODE_USER_ALREADY_EXISTS.equalsIgnoreCase(errorCode)) {
-        errorMsg = "Username already taken. Please pick a different username";
+        errorMsg = "Username '" + username + "' is already taken. Please pick a different username";
+    } else if (SelfRegistrationStatusCodes.ERROR_CODE_SELF_REGISTRATION_DISABLED.equalsIgnoreCase(errorCode)) {
+        errorMsg = "Self registration is disabled for tenant - " + user.getTenantDomain();
     } else if (errorMsgObj != null) {
         errorMsg = errorMsgObj.toString();
     }
@@ -107,7 +114,7 @@
                                 <input id="username" name="username" type="text"
                                        class="form-control required usrName usrNameLength" required>
                                 <div class="font-small">If you do not specify a tenant domain, you will be registered under super tenant</div>
-                                <input id="callback" name="callback" type="hidden" value="<%=request.getParameter("callback")%>"
+                                <input id="callback" name="callback" type="hidden" value="<%=callback%>"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
