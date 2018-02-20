@@ -166,8 +166,8 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
         }
-        // if dumbMode
-        else if (ConfigurationFacade.getInstance().isDumbMode()) {
+        // If dumbMode is enabled and no previous authenticated IDPs exist we redirect for Home Realm Discovery.
+        else if (ConfigurationFacade.getInstance().isDumbMode() && authenticatedIdPs.isEmpty()) {
 
             if (log.isDebugEnabled()) {
                 log.debug("Executing in Dumb mode");
