@@ -44,7 +44,7 @@
 <%@page import="org.wso2.carbon.identity.application.common.model.CertData"%>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-
+<%@ page import="java.security.cert.CertificateException" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                     topPage="true" request="<%=request%>" />
@@ -277,7 +277,11 @@ location.href = "list-service-providers.jsp";
 	String certString = appBean.getServiceProvider().getCertificateContent();
 	CertData certData = null;
 	if (StringUtils.isNotBlank(certString)) {
-		certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
+        try {
+            certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
+        } catch (CertificateException e) {
+            //Invalid cert data, ignore showing cert infomation in the UI
+        }
 	}
 
 %>
@@ -312,7 +316,7 @@ var roleMappinRowID = -1;
 			location.href = '#';
 		} else if (!validateTextForIllegal(document.getElementById("spName"))) {
                         return false;
-                } else {
+        } else {
 			if($('input:radio[name=claim_dialect]:checked').val() == "custom")
 			{
 				var isValied = true;
@@ -374,7 +378,22 @@ var roleMappinRowID = -1;
 			var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
 			document.getElementById('number_of_rolemappings').value=numberOfRoleMappings;
 
-			document.getElementById("configure-sp-form").submit();
+            if (jQuery('#deletePublicCert').val() == 'true') {
+                var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
+                    spName +'?';
+                if (jQuery('#certFile').val() != '') {
+                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                }
+                CARBON.showConfirmationDialog(confirmationMessage,
+                    function () {
+                        document.getElementById("configure-sp-form").submit();
+                    },
+                    function () {
+                        return false;
+                    });
+            } else {
+                document.getElementById("configure-sp-form").submit();
+            }
 		}
 	}
 	
@@ -501,7 +520,23 @@ function updateBeanAndPostTo(postURL, data) {
 	function onAdvanceAuthClick() {
 		location.href='configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>';
 	}
-    
+
+    var openFile = function (event) {
+        var input = event.target;
+
+        var reader = new FileReader();
+        reader.onload = function () {
+            var data = reader.result;
+            document.getElementById('sp-certificate').value = data;
+        };
+        reader.readAsText(input.files[0]);
+    };
+
+	var resetCertFile = function (event) {
+        event.preventDefault();
+        document.getElementById('sp-certificate').value = document.getElementById('sp-old-certificate').value;
+    };
+
     jQuery(document).ready(function(){
         jQuery('#authenticationConfRow').hide();
         jQuery('#outboundProvisioning').hide();
@@ -645,8 +680,20 @@ function updateBeanAndPostTo(postURL, data) {
     		    data: $("#configure-sp-form").serialize()
     		});
         }
+
+        jQuery('#publicCertDeleteLink').click(function () {
+            $(jQuery('#publicCertDiv')).toggle();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['configure-sp-form'].appendChild(input);
+            document.getElementById('sp-certificate').value = "";
+        });
+
     });
-    
+
     function resetRoleClaims(){
 	    $("#roleClaim option").filter(function() {
 	           return $(this).val().length > 0;
@@ -838,12 +885,19 @@ function updateBeanAndPostTo(postURL, data) {
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
                         <td>
-                            <textarea style="width:50%" type="text" name="sp-certificate" id="sp-description" class="text-box-big"><%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %></textarea>
+                            <textarea style="width:100%;height: 100px;" type="text" name="sp-certificate" id="sp-certificate"
+                            class="text-box-big"><%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %></textarea>
+                            <input type="hidden" name="sp-old-certificate"
+                                   id="sp-old-certificate" value=<%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %>/>
+                            <input id="certFile" name="certFile" type="file" onchange='openFile(event)'/>
                             <div class="sectionHelp">
                             <fmt:message key='help.certificate'/>
                             </div>
 							<div id="publicCertDiv">
 								<% if (certData != null) { %>
+                                <a id="publicCertDeleteLink" class="icon-link"
+                                   style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
+                                        key='public.cert.delete'/></a>
 								<div style="clear:both"></div>
 								<table class="styledLeft">
 									<thead>

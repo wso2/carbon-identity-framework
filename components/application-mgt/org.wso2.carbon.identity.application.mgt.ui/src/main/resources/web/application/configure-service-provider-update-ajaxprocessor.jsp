@@ -24,6 +24,12 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@page import="org.wso2.carbon.identity.application.common.model.CertData"%>
+<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="java.security.cert.CertificateException" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -51,7 +57,13 @@
 				
 				if ("wso2carbon-local-sp".equals(spName)){
 					appBean.updateLocalSp(request);
-				} else {				
+				} else {
+					String certString = request.getParameter("sp-certificate");
+					String deleteCert = request.getParameter("deletePublicCert");
+					//validate public certificate content
+					if (StringUtils.isNotBlank(certString) && !Boolean.parseBoolean(deleteCert)) {
+						CertData certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
+					}
 					appBean.update(request);
 				}
 				
