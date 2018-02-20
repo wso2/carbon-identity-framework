@@ -31,6 +31,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClientException" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -42,6 +43,7 @@
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
+    Integer userNameValidityStatusCode = null;
     String username = request.getParameter("username");
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
     User user = IdentityManagementServiceUtil.getInstance().getUser(username);
@@ -52,7 +54,17 @@
         request.getRequestDispatcher("register.do").forward(request, response);
         return;
     }
-    Integer userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
+    
+    try {
+        userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
+    } catch (SelfRegistrationMgtClientException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "Something went wrong while registering user : " + username +
+                ". Please contact administrator");
+        request.getRequestDispatcher("register.do").forward(request, response);
+        return;
+    }
+    
     
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
@@ -164,7 +176,7 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration of <b> <%=username%> </b></div>
+                        <div class="padding-double font-large">Enter required fields to complete registration of <b><%=username%></b></div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>

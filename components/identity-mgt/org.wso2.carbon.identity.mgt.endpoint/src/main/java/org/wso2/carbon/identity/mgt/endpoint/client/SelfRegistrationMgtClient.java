@@ -190,15 +190,22 @@ public class SelfRegistrationMgtClient {
                     }
                     return jsonResponse.getInt("statusCode");
                 } else {
-                    throw new SelfRegistrationMgtClientException("Error while executing POST to username validation " +
-                            "endpoint");
+                    // Logging and throwing since this is a client
+                    if (log.isDebugEnabled()) {
+                        log.debug("Unexpected response code found : " + response.getStatusLine().getStatusCode());
+                    }
+                    throw new SelfRegistrationMgtClientException("Error while self registering user : " + username);
                 }
 
             } finally {
                 post.releaseConnection();
             }
         } catch (IOException e) {
-            throw new SelfRegistrationMgtClientException("Error while invoking username validation endpoint.");
+            // Logging and throwing since this is a client.
+            if (log.isDebugEnabled()) {
+                log.debug("Error while self registering user : " + username, e);
+            }
+            throw new SelfRegistrationMgtClientException("Error while self registering user : " + username, e);
         }
     }
 
