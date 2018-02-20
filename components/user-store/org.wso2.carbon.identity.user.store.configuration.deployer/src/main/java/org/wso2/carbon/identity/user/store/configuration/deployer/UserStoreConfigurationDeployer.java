@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.util.FileUtils;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.user.store.configuration.deployer.exception.UserStoreConfigurationDeployerException;
 import org.wso2.carbon.identity.user.store.configuration.deployer.internal.UserStoreConfigComponent;
@@ -134,9 +135,8 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
             if (UserStoreConfigurationConstants.ENC_EXTENSION.equalsIgnoreCase(ext)) {
                 OutputStream outputStream = null;
                 try {
-                    Cipher cipher = UserStoreUtil.getCipherOfSuperTenant();
                     OMElement secondaryStoreDocument = initializeOMElement(absolutePath);
-                    updateSecondaryUserStore(secondaryStoreDocument, cipher);
+                    updateSecondaryUserStore(secondaryStoreDocument);
 
                     int index = absolutePath.lastIndexOf(".");
                     if (index != 1) {
@@ -159,9 +159,6 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
                 } catch (XMLStreamException e) {
                     String errMsg = "Unexpected xml processing errors while trying to update file "
                             + absolutePath;
-                    throw new DeploymentException(errMsg, e);
-                } catch (UserStoreException e) {
-                    String errMsg = "Error while initializing key store";
                     throw new DeploymentException(errMsg, e);
                 } finally {
                     IdentityIOStreamUtils.closeOutputStream(outputStream);
@@ -228,10 +225,9 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
      * Encrypts the secondary user store configuration
      *
      * @param secondaryStoreDocument OMElement of respective file path
-     * @param cipher                 Cipher object read for super-tenant's key store
      * @throws UserStoreConfigurationDeployerException If update operation failed
      */
-    private void updateSecondaryUserStore(OMElement secondaryStoreDocument, Cipher cipher) throws
+    private void updateSecondaryUserStore(OMElement secondaryStoreDocument) throws
             UserStoreConfigurationDeployerException {
         String className = secondaryStoreDocument.getAttributeValue(new QName(UserStoreConfigurationConstants.PROPERTY_CLASS));
         ArrayList<String> encryptList = getEncryptPropertyList(className);
@@ -253,10 +249,10 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
                         }
 
                         try {
-                            String cipherText = Base64.encode(cipher.doFinal((propElem.getText().getBytes())));
+                            String cipherText = Base64.encode(UserStoreUtil.encrypt((propElem.getText().getBytes())));
                             propElem.setText(cipherText);
                             propElem.addAttribute(UserStoreConfigurationConstants.PROPERTY_ENCRYPTED, "true", null);
-                        } catch (GeneralSecurityException e) {
+                        } catch (CryptoException e) {
                             String errMsg = "Encryption in secondary user store failed";
                             throw new UserStoreConfigurationDeployerException(errMsg, e);
                         }
