@@ -261,6 +261,7 @@
              issuing access tokens. -->
         <ScopeHandlers>
             <ScopeHandler class="org.wso2.carbon.identity.oauth2.validators.OIDCScopeHandler" />
+            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.XACMLScopeValidator"/>
         </ScopeHandlers>
 
         <!-- Assertions can be used to embedd parameters into access token. -->
