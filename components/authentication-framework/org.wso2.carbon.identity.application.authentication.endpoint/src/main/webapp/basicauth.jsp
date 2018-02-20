@@ -120,16 +120,12 @@
     <%}%>
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%>" required>
+        <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
+        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input id="password" name="password" type="password" class="form-control"
-               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%>" autocomplete="off">
-    </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
-            (request.getParameter("sessionDataKey"))%>'/>
+        <label for="password"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%></label>
+        <input id="password" name="password" type="password" class="form-control" placeholder="" autocomplete="off">
     </div>
     <%
         if (reCaptchaEnabled) {
@@ -149,17 +145,20 @@
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "remember.me")%>
             </label>
         </div>
-        <br>
-
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+            (request.getParameter("sessionDataKey"))%>'/>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="form-actions">
             <button
-                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
                     type="submit" onclick="submitCredentials()">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
 
             if (isRecoveryEPAvailable() || isSelfSignUpEPAvailable()) {
@@ -179,22 +178,31 @@
 
                 if (isRecoveryEPAvailable()) {
         %>
-        <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
-        </a>
-        <br/><br/>
-        <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
-        </a>
-        <br/><br/>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+            <div class="form-actions">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password")%>
+                <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
+                </a>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
+                </a>
+                ?
+            </div>
+        </div>
         <%
                 }
                 if (isSelfSignUpEPAvailable()) {
         %>
-        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.account")%>
-        <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "register.now")%>
-        </a>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+            <div class="form-actions">
+            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.account")%>
+            <a id="registerLink" href="<%=getRegistrationUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "register.now")%>
+            </a>
+            </div>
+        </div>
         <%
                 }
             }

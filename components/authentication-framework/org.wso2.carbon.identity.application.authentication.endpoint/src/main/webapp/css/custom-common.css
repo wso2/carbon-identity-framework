@@ -192,3 +192,7 @@ span.mandatory-msg{
 .claim-list .checkbox label{
     display: block;
 }
+
+.border-top{
+    border-top: 1px solid #d8d8d8;
+}
