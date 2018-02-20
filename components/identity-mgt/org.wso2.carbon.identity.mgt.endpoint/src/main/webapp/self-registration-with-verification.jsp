@@ -280,9 +280,27 @@
 
             $("#register").submit(function (e) {
 
+                var unsafeCharPattern = /[<>`\"]/;
+                var elements = document.getElementsByTagName("input");
+                var invalidInput = false;
+                var error_msg = $("#error-msg");
+
+                for (i = 0; i < elements.length; i++) {
+                    if (elements[i].type === 'text' && elements[i].value != null
+                        && elements[i].value.match(unsafeCharPattern) != null) {
+                        error_msg.text('For security measures following characters are restricted < > ` "');
+                        error_msg.show();
+                        $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
+                        invalidInput = true;
+                        return false;
+                    }
+                }
+                if (invalidInput) {
+                    return false;
+                }
+
                 var password = $("#password").val();
                 var password2 = $("#password2").val();
-                var error_msg = $("#error-msg");
 
                 if (password != password2) {
                     error_msg.text("Passwords did not match. Please try again.");
