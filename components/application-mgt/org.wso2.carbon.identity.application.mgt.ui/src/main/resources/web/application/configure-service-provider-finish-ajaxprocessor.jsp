@@ -61,13 +61,13 @@
 				if ("wso2carbon-local-sp".equals(spName)){
 					appBean.updateLocalSp(request);
 				} else {
-                    String certString = request.getParameter("sp-certificate");
-                    String deleteCert = request.getParameter("deletePublicCert");
-                    //validate public certificate content
-                    if (StringUtils.isNotBlank(certString) && !"true".equals(deleteCert)) {
+					String certString = request.getParameter("sp-certificate");
+					String deleteCert = request.getParameter("deletePublicCert");
+					//validate public certificate content
+					if (StringUtils.isNotBlank(certString) && !Boolean.parseBoolean(deleteCert)) {
 						CertData certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
-                    }
-				    appBean.update(request);
+					}
+					appBean.update(request);
 				}
 				
 				String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);

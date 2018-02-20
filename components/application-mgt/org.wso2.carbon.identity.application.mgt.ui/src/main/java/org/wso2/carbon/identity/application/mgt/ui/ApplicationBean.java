@@ -1030,7 +1030,7 @@ public class ApplicationBean {
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
-        if ("true".equals(request.getParameter("deletePublicCert"))) {
+        if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
             serviceProvider.setCertificateContent("");
         }
         String isSasApp = request.getParameter("isSaasApp");
