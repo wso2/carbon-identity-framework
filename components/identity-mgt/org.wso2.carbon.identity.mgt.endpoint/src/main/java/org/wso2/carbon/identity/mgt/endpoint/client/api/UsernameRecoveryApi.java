@@ -67,14 +67,26 @@ public class UsernameRecoveryApi {
    * @throws ApiException if fails to make API call
    */
   public List<Claim> claimsGet(String tenantDomain) throws ApiException {
-    Object localVarPostBody = null;
 
+    return claimsGet(tenantDomain, true);
+  }
+
+  /**
+   *
+   * return the recovery supported claims in the given tenant.
+   * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @return List<Claim>
+   * @throws ApiException if fails to make API call
+   */
+  public List<Claim> claimsGet(String tenantDomain, boolean isEndpointTenantAware) throws ApiException {
+
+    Object localVarPostBody = null;
 
     if (StringUtils.isBlank(tenantDomain)) {
       tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
-    if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+    if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
       basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
               .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                       "t/" + tenantDomain + "/api/identity/recovery/v0.9");
@@ -83,7 +95,7 @@ public class UsernameRecoveryApi {
     apiClient.setBasePath(basePath);
 
     // create path and map variables
-    String localVarPath = "/claims".replaceAll("\\{format\\}","json");
+    String localVarPath = "/claims".replaceAll("\\{format\\}", "json");
 
     // query params
     List<Pair> localVarQueryParams = new ArrayList<Pair>();
@@ -92,23 +104,23 @@ public class UsernameRecoveryApi {
 
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
 
-    
-    
     final String[] localVarAccepts = {
-      "application/json"
+            "application/json"
     };
     final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
 
     final String[] localVarContentTypes = {
-      "application/json"
+            "application/json"
     };
     final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
 
-    String[] localVarAuthNames = new String[] {  };
+    String[] localVarAuthNames = new String[]{};
 
-    GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {};
+    GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {
+    };
     return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
-      }
+  }
+
   /**
    * 
    * This API can be used to recover forgot username.  
