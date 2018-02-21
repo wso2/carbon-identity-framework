@@ -151,7 +151,7 @@
                                     <%}%>
                                 </div>
                                 <div class="text-right padding-top">
-                                    <a href="#">Privacy Policy</a>
+                                    <a href="./privacy-policy.html">Privacy Policy</a>
                                 </div>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-top-double">
