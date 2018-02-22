@@ -192,3 +192,6 @@ img.idp-image {
     opacity: .65;
     filter: alpha(opacity=65);
 }
+.margin-bottom-half {
+    margin-bottom:5px;
+}

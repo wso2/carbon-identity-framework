@@ -266,7 +266,7 @@
                                 if (hasPurposes) {
                             %>
                                 <!--User Consents-->
-                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-double">
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
                                     <div class="alert alert-warning margin-none" role="alert">
                                         <div id="consent-mgt-container">
                                             <p>

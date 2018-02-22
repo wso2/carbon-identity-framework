@@ -326,7 +326,7 @@
 
                             <% } %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
-                                <div class="alert alert-warning" role="alert">
+                                <div class="alert alert-warning margin-bottom-half" role="alert">
                                     <div>
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
                                         <a href="cookie_policy.do" target="policy-pane">
