@@ -356,11 +356,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        Map<String, String> mandatoryClaims = appConfig.getMandatoryClaimMappings();
-        if ((MapUtils.isEmpty(requestedClaimMappings) && MapUtils.isNotEmpty(mandatoryClaims))) {
-            requestedClaimMappings = mandatoryClaims;
-        } else if (MapUtils.isNotEmpty(requestedClaimMappings) && MapUtils.isNotEmpty(mandatoryClaims)) {
-            requestedClaimMappings.putAll(mandatoryClaims);
+        if (requestedClaimMappings == null) {
+            requestedClaimMappings = new HashMap<>();
         }
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
