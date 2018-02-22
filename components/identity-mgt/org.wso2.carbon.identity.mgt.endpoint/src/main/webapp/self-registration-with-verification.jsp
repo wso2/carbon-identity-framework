@@ -121,6 +121,7 @@
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="libs/font-awesome/css/font-awesome.css" rel="stylesheet">
         <link href="css/Roboto.css" rel="stylesheet">
         <link href="css/custom-common.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="libs/jstree/dist/themes/default/style.min.css" />
@@ -456,19 +457,15 @@
         %>
         
         function renderReceiptDetails(data) {
-            
-            var receiptData = {receipts: data};
+
             var treeTemplate =
                 '<div id="html1">' +
                 '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                 '<ul>' +
                 '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}} : {{description}}<ul>' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : {{description}}{{/if}}<ul>' +
                 '{{#piiCategories}}' +
-                
-                '' +
-                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{piiCategory}}</li>' +
-                '' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}</li>' +
                 '</li>' +
                 '{{/piiCategories}}' +
                 '</ul>' +
