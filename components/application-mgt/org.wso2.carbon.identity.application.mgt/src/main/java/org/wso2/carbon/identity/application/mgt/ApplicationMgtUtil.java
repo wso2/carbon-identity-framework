@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class ApplicationMgtUtil {
 
@@ -63,6 +64,8 @@ public class ApplicationMgtUtil {
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
+    // Regex for validating application name
+    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]*$";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -504,6 +507,22 @@ public class ApplicationMgtUtil {
 
         return CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR + APPLICATION_ROOT_PERMISSION;
 
+    }
+
+    /**
+     * Validate application name according to the regex
+     *
+     * @return validated or not
+     */
+    public static boolean isRegexValidated(String applicationName) {
+
+        String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        Pattern regexPattern = Pattern.compile(spValidatorRegex);
+        if (regexPattern.matcher(applicationName).matches()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
