@@ -65,7 +65,7 @@
             <div class="boarder-all ">
                 <div class="clearfix"></div>
                 <div class="padding-double login-form">
-                    <p>TODO: Privacy policy document</p>
+                    <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "under.construction")%></p>
                 </div>
                 <div class="clearfix"></div>
             </div>
