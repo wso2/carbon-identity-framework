@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
+package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,6 +48,9 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -58,11 +61,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
@@ -71,11 +74,15 @@ import javax.servlet.http.HttpServletResponse;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
+import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
 /**
  * This is an extension of {@link AbstractPostAuthnHandler} which handles user consent management upon successful
@@ -88,14 +95,16 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     private static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
     private static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
-    private String CONSENT_PROMPTED = "consentPrompted";
-    private ConsentManager consentManager;
+    private static final String CONSENT_PROMPTED = "consentPrompted";
     private static final String DEFAULT_PURPOSE = "DEFAULT";
     private static final String DEFAULT_PURPOSE_CATEGORY = "DEFAULT";
     private static final String CLAIM_SEPARATOR = ",";
     private static final String REQUESTED_CLAIMS_PARAM = "requestedClaims";
     private static final String MANDATORY_CLAIMS_PARAM = "mandatoryClaims";
+    private static final String CONSENT_CLAIM_META_DATA = "consentClaimMetaData";
     private static final Log log = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
+    private ConsentManager consentManager;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
@@ -196,10 +205,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             logDebug(message);
         }
 
-        String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
+        ConsentClaimsData consentClaimsData = getConsentClaimsData(mandatoryClaims, Collections.emptyList(),
+                                                                   getSPOwnerTenantDomain(context));
+        String mandatoryLocalClaims = buildConsentClaimString(consentClaimsData.getMandatoryClaims());
         redirectToConsentPage(response, context, null, mandatoryLocalClaims);
         setConsentPoppedUpState(context);
         context.addParameter(CONSENT_RECEIPT_ID_PARAM, receipt.getConsentReceiptId());
+        context.addParameter(CONSENT_CLAIM_META_DATA, consentClaimsData);
 
         return PostAuthnHandlerFlowStatus.INCOMPLETE;
     }
@@ -212,7 +224,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private List<String> getMandatoryClaimsWithoutConsent(AuthenticationContext context, Receipt receipt)
             throws PostAuthenticationFailedException {
 
-        Set<String> claims = getConsentClaimsFromReceipt(receipt);
+        List<ClaimMetaData> receiptConsentMetaData = getConsentClaimsFromReceipt(receipt);
+        List<String> claims = getClaimsFromMetaData(receiptConsentMetaData);
 
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
         List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
@@ -226,20 +239,21 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return mandatoryClaims;
     }
 
-    private Set<String> getClaimsWithoutConsent(Set<String> claims, List<String> requestedClaims,
+    private Set<String> getClaimsWithoutConsent(Collection<String> claims, List<String> requestedClaims,
                                                 List<String> mandatoryClaims) {
 
         Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
+
         consentClaims.removeAll(claims);
         consentClaims.removeAll(mandatoryClaims);
         return consentClaims;
     }
 
-    private Set<String> getConsentClaimsFromReceipt(Receipt receipt) {
+    private List<ClaimMetaData> getConsentClaimsFromReceipt(Receipt receipt) {
 
         List<ReceiptService> services = receipt.getServices();
         List<PIICategoryValidity> piiCategories = getPIICategoriesFromServices(services);
-        Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategories);
+        List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategories);
         if (isDebugEnabled()) {
             String message = String.format("User: %s has provided consent in receipt: %s for claims: " +
                             claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
@@ -256,22 +270,31 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
         List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
 
-        if (isConsentProvidedForMandatoryClaims(requestedClaims, mandatoryClaims)) {
+        if (isConsentNotRequired(requestedClaims, mandatoryClaims)) {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        Set<String> consentClaims = getNonMandatoryClaims(requestedClaims, mandatoryClaims);
+        // If user is federated and the claim mappings are not available.
+        ConsentClaimsData consentClaimsData = getConsentClaimsData(mandatoryClaims, requestedClaims,
+                                                                   getSPOwnerTenantDomain(context));
 
-        String mandatoryLocalClaims = StringUtils.join(mandatoryClaims, CLAIM_SEPARATOR);
-        String requestedLocalClaims = null;
-        if (isNotEmpty(consentClaims)) {
-            requestedLocalClaims = StringUtils.join(consentClaims, CLAIM_SEPARATOR);
-        }
+        String mandatoryLocalClaims = buildConsentClaimString(consentClaimsData.getMandatoryClaims());
+        String requestedLocalClaims = buildConsentClaimString(consentClaimsData.getRequestedClaims());
 
         redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
         setConsentPoppedUpState(context);
+        context.addParameter(CONSENT_CLAIM_META_DATA, consentClaimsData);
 
         return PostAuthnHandlerFlowStatus.INCOMPLETE;
+    }
+
+    private String buildConsentClaimString(List<ClaimMetaData> consentClaimsData) {
+
+        StringJoiner joiner = new StringJoiner(CLAIM_SEPARATOR);
+        for (ClaimMetaData claimMetaData : consentClaimsData) {
+            joiner.add(claimMetaData.getId() + "_" + claimMetaData.getDisplayName());
+        }
+        return joiner.toString();
     }
 
     private Set<String> getNonMandatoryClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
@@ -283,7 +306,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return consentClaims;
     }
 
-    private boolean isConsentProvidedForMandatoryClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
+    private boolean isConsentNotRequired(List<String> requestedClaims, List<String> mandatoryClaims) {
 
         return isEmpty(requestedClaims) && isEmpty(mandatoryClaims);
     }
@@ -352,13 +375,15 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             UserConsent userConsent = processUserConsent(request, context);
             String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-            Set<String> claimsWithConsent = getAllUserApprovedClaims(context, userConsent);
+            List<ClaimMetaData> claimsWithConsent = getAllUserApprovedClaims(context, userConsent);
 
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             String spStandardDialect = getStandardDialect(context);
             String spTenantDomain = getSPOwnerTenantDomain(context);
             String subjectTenantDomain = authenticatedUser.getTenantDomain();
-            removeUserClaimsFromContext(context, userConsent.getDisapprovedClaims(), spStandardDialect);
+
+            List<String> disapprovedClaims = getClaimsFromMetaData(userConsent.getDisapprovedClaims());
+            removeUserClaimsFromContext(context, disapprovedClaims, spStandardDialect);
             if (isNotEmpty(claimsWithConsent)) {
                 addReceipt(subject, subjectTenantDomain, applicationConfig, spTenantDomain, claimsWithConsent);
             }
@@ -369,10 +394,19 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
-    private Set<String> getAllUserApprovedClaims(AuthenticationContext context, UserConsent userConsent)
+    private List<String> getClaimsFromMetaData(List<ClaimMetaData> claimMetaDataList) {
+
+        List<String> claims = new ArrayList<>();
+        for (ClaimMetaData claimMetaData : claimMetaDataList) {
+            claims.add(claimMetaData.getClaimUri());
+        }
+        return claims;
+    }
+
+    private List<ClaimMetaData> getAllUserApprovedClaims(AuthenticationContext context, UserConsent userConsent)
             throws PostAuthenticationFailedException {
 
-        Set<String> claimsWithConsent = new HashSet<>();
+        List<ClaimMetaData> claimsWithConsent = new ArrayList<>();
         claimsWithConsent.addAll(userConsent.getApprovedClaims());
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
@@ -384,12 +418,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             Receipt currentReceipt = getReceipt(authenticatedUser, receiptId);
             List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
                     (currentReceipt.getServices());
-            Set<String> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
+            List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
                     (piiCategoriesFromServices);
             claimsWithConsent.addAll(claimsFromPIICategoryValidity);
         }
         return claimsWithConsent;
     }
+
 
     private Receipt getReceipt(AuthenticatedUser authenticatedUser, String receiptId)
             throws PostAuthenticationFailedException {
@@ -423,40 +458,121 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         String consentClaimsPrefix = "consent_";
         UserConsent userConsent = new UserConsent();
 
-        String consentRequestedClaims = getConsentClaimsFromContext(context, REQUESTED_CLAIMS_PARAM);
-        String consentMandatoryClaims = getConsentClaimsFromContext(context, MANDATORY_CLAIMS_PARAM);
-
-        List<String> consentRequiredClaimsList = getRequiredClaimsList(consentRequestedClaims, consentMandatoryClaims);
-
-        if (consentRequiredClaimsList.isEmpty()) {
-            return userConsent;
-        }
+        ConsentClaimsData consentClaimsData = (ConsentClaimsData) context.getParameter(CONSENT_CLAIM_META_DATA);
 
         Map<String, String[]> requestParams = request.getParameterMap();
-        List<String> approvedClaims = buildApprovedClaimList(consentClaimsPrefix, requestParams,
-                consentRequiredClaimsList);
-        List<String> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaimsList, approvedClaims);
+        List<ClaimMetaData> approvedClamMetaData = buildApprovedClaimList(consentClaimsPrefix, requestParams,
+                                                                    consentClaimsData);
 
-        if (isMandatoryClaimsDisapproved(consentMandatoryClaims, disapprovedClaims)) {
+        List<ClaimMetaData> consentRequiredClaimMetaData = getConsentRequiredClaimMetaData(consentClaimsData);
+        List<ClaimMetaData> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaimMetaData,
+                                                                          approvedClamMetaData);
+
+        if (isMandatoryClaimsDisapproved(consentClaimsData.getMandatoryClaims(), disapprovedClaims)) {
             throw new PostAuthenticationFailedException("Consent Denied for Mandatory Attributes",
                     "User denied consent to share mandatory attributes.");
         }
 
-        userConsent.setApprovedClaims(approvedClaims);
+        userConsent.setApprovedClaims(approvedClamMetaData);
         userConsent.setDisapprovedClaims(disapprovedClaims);
 
         return userConsent;
     }
 
-    private boolean isMandatoryClaimsDisapproved(String consentMandatoryClaims, List<String> disapprovedClaims) {
+    private List<ClaimMetaData> getConsentRequiredClaimMetaData(ConsentClaimsData consentClaimsData) {
 
-        return isNotBlank(consentMandatoryClaims) &&
-                !Collections.disjoint(disapprovedClaims, Arrays.asList(consentMandatoryClaims.split(CLAIM_SEPARATOR)));
+        List<ClaimMetaData> consentRequiredClaims = new ArrayList<>();
+
+        if (isNotEmpty(consentClaimsData.getMandatoryClaims())) {
+            consentRequiredClaims.addAll(consentClaimsData.getMandatoryClaims());
+        }
+        if (isNotEmpty(consentClaimsData.getRequestedClaims())) {
+            consentRequiredClaims.addAll(consentClaimsData.getRequestedClaims());
+        }
+        return consentRequiredClaims;
     }
 
-    private List<String> buildDisapprovedClaimList(List<String> consentRequiredClaims, List<String> approvedClaims) {
+    private ConsentClaimsData getConsentClaimsData(Collection<String> mandatoryClaims, Collection<String>
+            requestedClaims, String tenantDomain) throws PostAuthenticationFailedException{
 
-        List<String> disapprovedClaims = new ArrayList<>();
+        ConsentClaimsData consentClaimsData = new ConsentClaimsData();
+
+        try {
+            List<LocalClaim> localClaims = claimMetadataManagementService.getLocalClaims(tenantDomain);
+            List<ClaimMetaData> mandatoryClaimsMetaData = new ArrayList<>();
+            List<ClaimMetaData> requestedClaimsMetaData = new ArrayList<>();
+
+            if (isNotEmpty(localClaims)) {
+                int claimId = 0;
+                for (LocalClaim localClaim : localClaims) {
+
+                    if (isAllRequiredClaimsChecked(mandatoryClaims, requestedClaims, mandatoryClaimsMetaData,
+                                                   requestedClaimsMetaData)) {
+                        break;
+                    }
+
+                    String claimURI = localClaim.getClaimURI();
+                    if (mandatoryClaims.contains(claimURI)) {
+                        ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
+                        mandatoryClaimsMetaData.add(claimMetaData);
+                        claimId++;
+                    } else if(requestedClaims.contains(claimURI)) {
+                        ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
+                        requestedClaimsMetaData.add(claimMetaData);
+                        claimId++;
+                    }
+                }
+
+                consentClaimsData.setMandatoryClaims(mandatoryClaimsMetaData);
+                consentClaimsData.setRequestedClaims(requestedClaimsMetaData);
+            }
+        } catch (ClaimMetadataException e) {
+            throw new PostAuthenticationFailedException("Error while retrieving local claims", "Error occurred while " +
+                                                           "retrieving local claims for tenant: " + tenantDomain, e);
+        }
+        return consentClaimsData;
+    }
+
+    private boolean isAllRequiredClaimsChecked(Collection<String> mandatoryClaims, Collection<String> requestedClaims,
+                                               List<ClaimMetaData> mandatoryClaimsMetaData,
+                                               List<ClaimMetaData> requestedClaimsMetaData) {
+
+        return mandatoryClaims.size() + requestedClaims.size() == mandatoryClaimsMetaData.size() +
+                                                               requestedClaimsMetaData.size();
+    }
+
+    private ClaimMetaData buildClaimMetaData(int i, LocalClaim localClaim, String claimURI) {
+
+        ClaimMetaData claimMetaData = new ClaimMetaData();
+        claimMetaData.setId(i);
+        claimMetaData.setClaimUri(claimURI);
+        String displayName = localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY);
+
+        if (isNotBlank(displayName)) {
+            claimMetaData.setDisplayName(displayName);
+        } else {
+            claimMetaData.setDisplayName(claimURI);
+        }
+
+        String description = localClaim.getClaimProperty(DESCRIPTION_PROPERTY);
+        if (isNotBlank(description)) {
+            claimMetaData.setDescription(description);
+        } else {
+            claimMetaData.setDescription(EMPTY);
+        }
+        return claimMetaData;
+    }
+
+    private boolean isMandatoryClaimsDisapproved(List<ClaimMetaData> consentMandatoryClaims, List<ClaimMetaData>
+            disapprovedClaims) {
+
+        return isNotEmpty(consentMandatoryClaims) && !Collections.disjoint(disapprovedClaims, consentMandatoryClaims);
+    }
+
+    private List<ClaimMetaData> buildDisapprovedClaimList(List<ClaimMetaData> consentRequiredClaims, List<ClaimMetaData>
+            approvedClaims) {
+
+        List<ClaimMetaData> disapprovedClaims = new ArrayList<>();
 
         if (isNotEmpty(consentRequiredClaims)) {
             consentRequiredClaims.removeAll(approvedClaims);
@@ -475,6 +591,40 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 String localClaimURI = entry.getKey().substring(consentClaimsPrefix.length());
                 if (consentRequiredClaimsList.contains(localClaimURI)) {
                     approvedClaims.add(localClaimURI);
+                }
+            }
+        }
+        return approvedClaims;
+    }
+
+    private List<ClaimMetaData> buildApprovedClaimList(String consentClaimsPrefix, Map<String, String[]> requestParams,
+                                                ConsentClaimsData consentClaimsData) {
+
+        List<ClaimMetaData> approvedClaims = new ArrayList<>();
+
+        for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
+            if (entry.getKey().startsWith(consentClaimsPrefix)) {
+                String claimId = entry.getKey().substring(consentClaimsPrefix.length());
+
+                ClaimMetaData consentClaim = new ClaimMetaData();
+
+                try {
+                    consentClaim.setId(Integer.parseInt(claimId));
+                } catch (NumberFormatException e) {
+                    // Invalid consent claim input. Ignore.
+                    continue;
+                }
+                List<ClaimMetaData> mandatoryClaims = consentClaimsData.getMandatoryClaims();
+
+                int claimIndex = mandatoryClaims.indexOf(consentClaim);
+                if (claimIndex != -1) {
+                    approvedClaims.add(mandatoryClaims.get(claimIndex));
+                }
+
+                List<ClaimMetaData> requestedClaims = consentClaimsData.getRequestedClaims();
+                claimIndex = requestedClaims.indexOf(consentClaim);
+                if (claimIndex != -1) {
+                    approvedClaims.add(requestedClaims.get(claimIndex));
                 }
             }
         }
@@ -596,7 +746,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 logDebug("Appending requested local claims to redirect URI: " + requestedLocalClaims);
             }
             uriBuilder.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
-            context.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
         }
 
         if (isNotBlank(mandatoryLocalClaims)) {
@@ -604,7 +753,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 logDebug("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
             }
             uriBuilder.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
-            context.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
         }
         uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                 context.getContextIdentifier());
@@ -613,16 +761,20 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return uriBuilder;
     }
 
-    private Set<String> getClaimsFromPIICategoryValidity(List<PIICategoryValidity> piiCategories) {
+    private List<ClaimMetaData> getClaimsFromPIICategoryValidity(List<PIICategoryValidity> piiCategories) {
 
-        HashSet<String> claims = new HashSet<>();
+        List<ClaimMetaData> claimMetaDataList = new ArrayList<>();
         for (PIICategoryValidity piiCategoryValidity : piiCategories) {
 
             if (isConsentForClaimValid(piiCategoryValidity)) {
-                claims.add(piiCategoryValidity.getName());
+
+                ClaimMetaData claimMetaData = new ClaimMetaData();
+                claimMetaData.setClaimUri(piiCategoryValidity.getName());
+                claimMetaData.setDisplayName(piiCategoryValidity.getDisplayName());
+                claimMetaDataList.add(claimMetaData);
             }
         }
-        return claims;
+        return claimMetaDataList;
     }
 
     @Override
@@ -667,7 +819,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
     private AddReceiptResponse addReceipt(String subject, String subjectTenantDomain, ApplicationConfig
-            applicationConfig, String spTenantDomain, Set<String> claims) throws PostAuthenticationFailedException {
+            applicationConfig, String spTenantDomain, List<ClaimMetaData> claims) throws
+            PostAuthenticationFailedException {
 
         ReceiptInput receiptInput = buildReceiptInput(subject, applicationConfig, spTenantDomain, claims);
         AddReceiptResponse receiptResponse;
@@ -693,7 +846,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
     private ReceiptInput buildReceiptInput(String subject, ApplicationConfig applicationConfig, String spTenantDomain,
-                                           Set<String> claims) throws PostAuthenticationFailedException {
+                                           List<ClaimMetaData> claims) throws PostAuthenticationFailedException {
 
         String collectionMethod = "Web Form - Sign-in";
         String jurisdiction = "LK";
@@ -774,15 +927,15 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return purposeInput;
     }
 
-    private List<PIICategoryValidity> getPiiCategoryValiditiesForClaims(Set<String> claims, String termination)
+    private List<PIICategoryValidity> getPiiCategoryValiditiesForClaims(List<ClaimMetaData> claims, String termination)
             throws PostAuthenticationFailedException {
 
         List<PIICategoryValidity> piiCategoryIds = new ArrayList<>();
 
-        for (String claim : claims) {
+        for (ClaimMetaData claim : claims) {
             PIICategory piiCategory;
             try {
-                piiCategory = consentManager.getPIICategoryByName(claim);
+                piiCategory = consentManager.getPIICategoryByName(claim.getClaimUri());
             } catch (ConsentManagementClientException e) {
 
                 if (isInvalidPIICategoryError(e)) {
@@ -800,10 +953,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return piiCategoryIds;
     }
 
-    private PIICategory addPIICategoryForClaim(String claim) throws PostAuthenticationFailedException {
+    private PIICategory addPIICategoryForClaim(ClaimMetaData claim) throws PostAuthenticationFailedException {
 
         PIICategory piiCategory;
-        PIICategory piiCategoryInput = new PIICategory(claim, claim, false);
+        PIICategory piiCategoryInput = new PIICategory(claim.getClaimUri(), claim.getDescription(), false, claim
+                .getDisplayName());
         try {
             piiCategory = consentManager.addPIICategory(piiCategoryInput);
         } catch (ConsentManagementException e) {
@@ -962,35 +1116,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return true;
     }
 
-    private class UserConsent {
-
-        private List<String> approvedClaims = new ArrayList<>();
-        private List<String> disapprovedClaims = new ArrayList<>();
-
-        List<String> getApprovedClaims() {
-
-            return approvedClaims;
-        }
-
-        void setApprovedClaims(List<String> approvedClaims) {
-
-            this.approvedClaims = approvedClaims;
-        }
-
-        List<String> getDisapprovedClaims() {
-
-            return disapprovedClaims;
-        }
-
-        void setDisapprovedClaims(List<String> disapprovedClaims) {
-
-            this.disapprovedClaims = disapprovedClaims;
-        }
-    }
-
     public void setConsentManager(ConsentManager consentManager) {
 
         this.consentManager = consentManager;
+    }
+
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
     private String getStandardDialect(AuthenticationContext context) {
