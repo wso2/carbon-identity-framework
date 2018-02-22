@@ -259,16 +259,25 @@
                                     }
                                 }
                             %>
-    
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group"></div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
                             <%
                                 if (hasPurposes) {
                             %>
-                                <div>
-                                    <br/>
-                                    <label class="control-label">By selecting below categories you agree to Identity Servers Terms of Services. You also agree to our Privacy Policy, which describes how we process your information, including below attributes</label>
-                                    <br/>
-                                    <div id="tree-table" style="overflow: scroll; height:100px;"></div>
+                                <!--User Consents-->
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
+                                    <div class="alert alert-warning margin-none" role="alert">
+                                        <div id="consent-mgt-container">
+                                            <p>
+                                                <strong>We need your consent on the attributes to use for the following purposes.</strong>
+                                                <span>By selecting a preferred attribute, you will be providing consent to use your personal information.</span>
+                                            </p>
+                                            <div id="tree-table"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                                <!--End User Consents-->
                             <%
                                 }
                             %>
@@ -284,17 +293,41 @@
                                 }
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <!--Cookie Policy-->
+                                <div class="alert alert-warning margin-bottom-double" role="alert">
+                                    <div>
+                                        After a successful sign in, we use a cookie in your browser to track your session. You can refer our
+                                        <a href="/authenticationendpoint/cookie_policy.do" target="policy-pane">
+                                            Cookie Policy
+                                        </a>
+                                        for more details.
+                                    </div>
+                                </div>
+                                <!--End Cookie Policy-->
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <!--Terms/Privacy Policy-->
+                                <div>
+                                    <label class="agreement-checkbox">
+                                        <input type="checkbox" /> I hereby confirm that I have read and understood the
+                                        <a href="/authenticationendpoint/privacy_policy.do" target="policy-pane">
+                                            Privacy Policy
+                                        </a>
+                                    </label>
+                                </div>
+                                <!--End Terms/Privacy Policy-->
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <button id="registrationSubmit"
+                                        class="wr-btn col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                                        type="submit">Register
+                                </button>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="isSelfRegistrationWithVerification" type="hidden"
                                        name="isSelfRegistrationWithVerification"
                                        value="true"/>
                                 <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <br/>
-                                <button id="registrationSubmit"
-                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Register
-                                </button>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <span class="margin-top padding-top-double font-large">Already have an account? </span>
@@ -302,15 +335,9 @@
                                     application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
                                    id="signInLink" class="font-large">Sign in</a>
                             </div>
-                            <div class="wr-title text-right white">
-                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
-                                   target="policy-pane">Cookie Policy</a>
-
-                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
-                                   target="policy-pane">Privacy Policy</a>
-                            </div>
                             <div class="clearfix"></div>
                         </div>
+                        <div class="clearfix"></div>
                     </div>
                 </form>
                 
@@ -341,6 +368,19 @@
 
         var container;
         $(document).ready(function () {
+            var agreementChk = $(".agreement-checkbox input");
+            var registrationBtn = $("#registrationSubmit");
+
+            if(agreementChk.length > 0){
+                registrationBtn.prop("disabled", true).addClass("disabled");
+            }
+            agreementChk.click(function(){
+                if($(this).is(":checked")){
+                    registrationBtn.prop("disabled", false).removeClass("disabled");
+                }else{
+                    registrationBtn.prop("disabled", true).addClass("disabled");
+                }
+            });
 
             $("#register").submit(function (e) {
 

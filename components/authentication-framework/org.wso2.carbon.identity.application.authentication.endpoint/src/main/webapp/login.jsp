@@ -325,14 +325,27 @@
 
 
                             <% } %>
-                            <div class="wr-title text-right white">
-                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
-                                   target="policy-pane">
-                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%></a>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
+                                <div class="alert alert-warning margin-bottom-half" role="alert">
+                                    <div>
+                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
+                                        <a href="cookie_policy.do" target="policy-pane">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
+                                        </a>
+                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.for.more.details")%>
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning margin-none" role="alert">
+                                    <div>
+                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description")%>
+                                        <a href="privacy_policy.do" target="policy-pane">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
+                                        </a>
+                                    </div>
+                                </div>
 
-                                <a href="https://docs.wso2.com/display/IS550/WSO2+Identity+Server+Documentation"
-                                   target="policy-pane">
-                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%></a>
+
+
                             </div>
                             <div class="clearfix"></div>
                         </div>

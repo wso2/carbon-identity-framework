@@ -141,6 +141,7 @@ img.idp-image {
 .margin-right {margin-right:10px;}
 .margin-top {margin-top:10px;}
 .margin-bottom {margin-bottom:10px;}
+.margin-bottom-half {margin-bottom:5px;}
 .margin{margin:10px;}
 .margin-none{margin: 0px !important;}
 
@@ -191,4 +192,11 @@ span.mandatory-msg{
 
 .claim-list .checkbox label{
     display: block;
+}
+
+.border-top{
+    border-top: 1px solid #d8d8d8;
+}
+.padding-bottom-100{
+    padding-bottom: 100px;
 }

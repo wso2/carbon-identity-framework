@@ -160,3 +160,38 @@ img.idp-image {
     content:" *";
     color:red;
 }
+#consent-mgt-container p span{
+    margin-top: 4px;
+    display: block;
+}
+#consent-mgt-container #tree-table{
+    background: #fff;
+    padding: 10px;
+    color: #333;
+}
+.border-top{
+    border-top: 1px solid #d8d8d8;
+}
+.agreement-checkbox{
+    margin: 0;
+    padding: 10px;
+    display: block;
+    background: #d9edf7;
+    border: 1px solid #bce8f1;
+}
+.agreement-checkbox input{
+    margin-right: 4px;
+}
+.wr-btn.disabled:hover,.wr-btn.disabled:active{
+    background: #333;
+}
+.wr-btn.disabled, .wr-btn[disabled], fieldset[disabled] .wr-btn {
+    cursor: not-allowed;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    opacity: .65;
+    filter: alpha(opacity=65);
+}
+.margin-bottom-half {
+    margin-bottom:5px;
+}
