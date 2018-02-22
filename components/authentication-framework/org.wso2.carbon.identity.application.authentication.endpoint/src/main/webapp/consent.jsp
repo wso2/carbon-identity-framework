@@ -21,11 +21,11 @@
 <%@include file="localize.jsp" %>
 
 <%
-    String[] missingClaimList = new String[0];
+    String[] requestedClaimList = new String[0];
     String[] mandatoryClaimList = new String[0];
     String appName = null;
     if (request.getParameter(Constants.REQUESTED_CLAIMS) != null) {
-        missingClaimList = request.getParameter(Constants.REQUESTED_CLAIMS).split(Constants.CLAIM_SEPARATOR);
+        requestedClaimList = request.getParameter(Constants.REQUESTED_CLAIMS).split(Constants.CLAIM_SEPARATOR);
     }
 
     if (request.getParameter(Constants.MANDATORY_CLAIMS) != null) {
@@ -131,24 +131,41 @@
                                     </div>
                                 </div>
                                 <div class="claim-list">
-                                    <% for (String claim : mandatoryClaimList) { %>
+                                    <% for (String claim : mandatoryClaimList) {
+                                            String[] mandatoryClaimData = claim.split("_", 2);
+                                            if (mandatoryClaimData.length == 2) {
+                                                String claimId = mandatoryClaimData[0];
+                                                String displayName = mandatoryClaimData[1];
+
+                                    %>
                                     <div class="checkbox claim-cb">
                                         <label>
-                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"
+                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
                                                    required/>
-                                            <%=claim%>
+                                            <%=Encode.forHtml(displayName)%>
                                             <span class="required font-medium">*</span>
                                         </label>
                                     </div>
-                                    <%}%>
-                                    <% for (String claim : missingClaimList) { %>
+                                    <%
+                                            }
+                                        }
+                                    %>
+                                    <% for (String claim : requestedClaimList) {
+                                            String[] requestedClaimData = claim.split("_", 2);
+                                            if (requestedClaimData.length == 2) {
+                                                String claimId = requestedClaimData[0];
+                                                String displayName = requestedClaimData[1];
+                                    %>
                                     <div class="checkbox claim-cb">
                                         <label>
-                                            <input type="checkbox" name="consent_<%=claim%>" id="consent_<%=claim%>"/>
-                                            <%=claim%>
+                                            <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
+                                            <%=Encode.forHtml(displayName)%>
                                         </label>
                                     </div>
-                                    <%}%>
+                                    <%
+                                            }
+                                        }
+                                    %>
                                 </div>
                                 <div class="text-right padding-top">
                                     <a href="#">Privacy Policy</a>

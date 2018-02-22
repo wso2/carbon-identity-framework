@@ -45,7 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.ConsentMgtPostAuthnHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
@@ -65,6 +65,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -509,4 +510,20 @@ public class FrameworkServiceComponent {
         consentMgtPostAuthnHandler.setConsentManager(null);
     }
 
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        consentMgtPostAuthnHandler.setClaimMetadataManagementService(claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        consentMgtPostAuthnHandler.setClaimMetadataManagementService(null);
+    }
 }
