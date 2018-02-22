@@ -140,9 +140,9 @@
                                     %>
                                     <div class="checkbox claim-cb">
                                         <label>
-                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=claimId%>" id="consent_<%=claimId%>"
+                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
                                                    required/>
-                                            <%=displayName%>
+                                            <%=Encode.forHtml(displayName)%>
                                             <span class="required font-medium">*</span>
                                         </label>
                                     </div>
@@ -158,8 +158,8 @@
                                     %>
                                     <div class="checkbox claim-cb">
                                         <label>
-                                            <input type="checkbox" name="consent_<%=claimId%>" id="consent_<%=claimId%>"/>
-                                            <%=displayName%>
+                                            <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
+                                            <%=Encode.forHtml(displayName)%>
                                         </label>
                                     </div>
                                     <%
