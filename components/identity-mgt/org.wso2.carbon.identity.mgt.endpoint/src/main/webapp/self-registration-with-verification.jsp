@@ -297,7 +297,7 @@
                                 <div class="alert alert-warning margin-bottom-double" role="alert">
                                     <div>
                                         After a successful sign in, we use a cookie in your browser to track your session. You can refer our
-                                        <a href="../authenticationendpoint/cookie-policy.html" target="policy-pane">
+                                        <a href="/authenticationendpoint/cookie_policy.do" target="policy-pane">
                                             Cookie Policy
                                         </a>
                                         for more details.
@@ -310,7 +310,7 @@
                                 <div>
                                     <label class="agreement-checkbox">
                                         <input type="checkbox" /> I hereby confirm that I have read and understood the
-                                        <a href="../authenticationendpoint/privacy-policy.html" target="policy-pane">
+                                        <a href="/authenticationendpoint/privacy_policy.do" target="policy-pane">
                                             Privacy Policy
                                         </a>
                                     </label>

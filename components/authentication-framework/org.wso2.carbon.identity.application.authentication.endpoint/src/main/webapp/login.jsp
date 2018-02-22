@@ -329,7 +329,7 @@
                                 <div class="alert alert-warning" role="alert">
                                     <div>
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
-                                        <a href="./cookie-policy.html" target="policy-pane">
+                                        <a href="cookie_policy.do" target="policy-pane">
                                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
                                         </a>
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.for.more.details")%>
@@ -338,7 +338,7 @@
                                 <div class="alert alert-warning margin-none" role="alert">
                                     <div>
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description")%>
-                                        <a href="./privacy-policy.html" target="policy-pane">
+                                        <a href="privacy_policy.do" target="policy-pane">
                                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
                                         </a>
                                     </div>
