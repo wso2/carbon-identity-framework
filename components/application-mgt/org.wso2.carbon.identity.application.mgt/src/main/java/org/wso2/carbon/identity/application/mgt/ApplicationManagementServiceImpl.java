@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
  * Application management service implementation
