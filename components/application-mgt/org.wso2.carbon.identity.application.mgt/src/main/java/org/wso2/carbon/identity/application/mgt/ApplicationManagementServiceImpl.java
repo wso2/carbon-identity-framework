@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.base.IdentityValidationUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
@@ -73,7 +72,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 
 /**
  * Application management service implementation
@@ -120,10 +119,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         String applicationName = serviceProvider.getApplicationName();
-        if (!IdentityValidationUtil.isValidOverWhiteListPatterns(applicationName, ApplicationConstants
-                .APP_NAME_VALIDATING_REGEX)) {
-            throw new IdentityApplicationManagementException("The Application name: " + applicationName +
-                    " is not valid! It is not adhering to the regex: " + ApplicationConstants.APP_NAME_VALIDATING_REGEX);
+        if (!isRegexValidated(serviceProvider.getApplicationName())) {
+            throw new IdentityApplicationManagementException("The Application name " +
+                    serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
+                    "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
         }
         if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
             throw new IdentityApplicationManagementException(
@@ -273,10 +272,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw new IdentityApplicationManagementException("User not authorized");
             }
 
-            if (!IdentityValidationUtil.isValidOverWhiteListPatterns(applicationName, ApplicationConstants
-                    .APP_NAME_VALIDATING_REGEX)) {
-                throw new IdentityApplicationManagementException("The Application name: " + applicationName +
-                        " is not valid! It is not adhering to the regex: " + ApplicationConstants.APP_NAME_VALIDATING_REGEX);
+            if (!isRegexValidated(serviceProvider.getApplicationName())) {
+                throw new IdentityApplicationManagementException("The Application name " +
+                        serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
+                        "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
             }
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
