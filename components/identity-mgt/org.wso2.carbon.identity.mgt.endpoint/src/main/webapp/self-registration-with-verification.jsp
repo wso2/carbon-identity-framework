@@ -59,7 +59,7 @@
         userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
     } catch (SelfRegistrationMgtClientException e) {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", "Something went wrong while registering user : " + username +
+        request.setAttribute("errorMsg", "Something went wrong while registering user : " + Encode.forHtmlContent(username) +
                 ". Please contact administrator");
         request.getRequestDispatcher("register.do").forward(request, response);
         return;
@@ -176,7 +176,8 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration of <b><%=username%></b></div>
+                        <div class="padding-double font-large">Enter required fields to complete registration of
+                            <b><%=Encode.forHtmlAttribute(username)%></b></div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
@@ -199,7 +200,7 @@
                             <%}%>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <input id="username" name="username" type="hidden" value="<%=username%>"
+                                <input id="username" name="username" type="hidden" value="<%=Encode.forHtmlAttribute(username)%>"
                                        class="form-control required usrName usrNameLength">
                             </div>
 
