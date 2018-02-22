@@ -1,4 +1,4 @@
-<!--
+<%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
@@ -14,13 +14,15 @@
   ~ KIND, either express or implied.  See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
-  -->
+  --%>
+
+<%@include file="localize.jsp" %>
 
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -43,8 +45,8 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
+                </em></h1>
             </a>
         </div>
     </div>
@@ -57,7 +59,7 @@
         <div class="container col-xs-10 col-sm-8 col-md-8 col-lg-6 col-centered wr-content wr-login col-centered padding-bottom-100">
             <div>
                 <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                    Cookie Policy
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
                 </h2>
             </div>
             <div class="boarder-all ">
@@ -76,32 +78,17 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p> WSO2 Identity Server | &copy;
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
             <script>document.write(new Date().getFullYear());</script>
             <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
-            Inc
-            </a>. All Rights Reserved
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
         </p>
     </div>
 </footer>
 
 <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
-
-<script>
-
-
-    $('#popover').popover({
-        html: true,
-        title: function () {
-            return $("#popover-head").html();
-        },
-        content: function () {
-            return $("#popover-content").html();
-        }
-    });
-
-</script>
 
 <script type="text/javascript" src="js/u2f-api.js"></script>
 
