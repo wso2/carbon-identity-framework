@@ -296,7 +296,7 @@
                                 <!--Cookie Policy-->
                                 <div class="alert alert-warning margin-bottom-double" role="alert">
                                     <div>
-                                        After a successful sign in, we use a cookie in your browser to track your session. for more details you can refer our
+                                        After a successful sign in, we use a cookie in your browser to track your session. You can refer our
                                         <a href="../authenticationendpoint/cookie-policy.html" target="policy-pane">
                                             Cookie Policy
                                         </a>
