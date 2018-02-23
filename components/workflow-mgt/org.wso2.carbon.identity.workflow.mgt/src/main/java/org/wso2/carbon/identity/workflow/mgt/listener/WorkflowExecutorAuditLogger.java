@@ -25,6 +25,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowExecutorResult;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Map;
 
@@ -48,6 +49,10 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Operation Type" + "\" : \"" + workFlowRequest.getEventType()
                 + "\",\"" + "Request parameters" + "\" : \"" + workFlowRequest.getRequestParameterAsString()
                 + "\"";
@@ -69,6 +74,10 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Request ID" + "\" : \"" + uuid
                 + "\",\"" + "Callback Status" + "\" : \"" + status
                 + "\"";
