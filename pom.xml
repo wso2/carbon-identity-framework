@@ -410,11 +410,11 @@
                 <artifactId>cxf-bundle</artifactId>
                 <version>${cxf-version}</version>
             </dependency>
-            <dependency>
+            <!--<dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-frontend-jaxrs</artifactId>
                 <version>${org.apache.cxf.cxf-rt.version}</version>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-http</artifactId>
@@ -1442,6 +1442,29 @@
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!--CXF related Dependencies -->
+
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-core</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-rt-rs-client</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-rt-rs-extension-providers</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1689,7 +1712,7 @@
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
-
+        <org.apache.cxf.version>3.2.2</org.apache.cxf.version>
 
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
