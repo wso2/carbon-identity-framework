@@ -34,39 +34,38 @@ import java.security.cert.X509Certificate;
 
 import static org.wso2.carbon.identity.core.util.IdentityUtil.PROP_TRUST_STORE_UPDATE_REQUIRED;
 
-
 /**
- * Gives a singleton javax.net.ssl.X509TrustManager implementation that uses the default carbon trust store.
+ * Gives a javax.net.ssl.X509TrustManager implementation that uses the default carbon trust store which can be used
+ * by tomcat connector to dynamically reload the client truststore whenever truststore content changes.
  * This will load any changes (addition/removal of certificates) done to the default trust store on the fly.
  */
-public class DynamicX509TrustManager implements X509TrustManager {
+public class ClientAuthX509TrustManager implements X509TrustManager {
 
-    private static Log log = LogFactory.getLog(DynamicX509TrustManager.class);
+    private static Log log = LogFactory.getLog(ClientAuthX509TrustManager.class);
     private X509TrustManager trustManager;
-    private static DynamicX509TrustManager instance;
 
     //Configuration Options
     private static final ServerConfiguration config = ServerConfiguration.getInstance();
     private static final String TRUST_STORE_LOCATION = config.getFirstProperty("Security.TrustStore.Location");
     private static final String TRUST_STORE_TYPE = config.getFirstProperty("Security.TrustStore.Type");
 
-    private DynamicX509TrustManager() throws Exception {
+    public ClientAuthX509TrustManager() throws Exception {
 
         setupTrustManager();
-    }
-
-    public static DynamicX509TrustManager getInstance() throws Exception {
-
-        if (instance == null) {
-            instance = new DynamicX509TrustManager();
-        }
-        return instance;
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
 
-        trustManager.checkClientTrusted(x509Certificates, s);
+        try {
+            //if changes were made to the trust store, reload the trust store and initialize the trustManager instance.
+            if (Boolean.parseBoolean(System.getProperty(PROP_TRUST_STORE_UPDATE_REQUIRED))) {
+                setupTrustManager();
+            }
+            trustManager.checkClientTrusted(x509Certificates, s);
+        } catch (Exception e) {
+            throw new CertificateException("Error occurred while setting up trust manager." + e.getCause(), e);
+        }
     }
 
     /**
@@ -79,28 +78,19 @@ public class DynamicX509TrustManager implements X509TrustManager {
     @Override
     public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
 
-        try {
-            //if changes were made to the trust store, reload the trust store and initialize the trustManager instance.
-            if (Boolean.parseBoolean(System.getProperty(PROP_TRUST_STORE_UPDATE_REQUIRED))) {
-                setupTrustManager();
-            }
-            trustManager.checkServerTrusted(x509Certificates, s);
-        } catch (CertificateException e) {
-            // Reload the truststore once if SSL validation fails.
-            try {
-                setupTrustManager();
-                trustManager.checkServerTrusted(x509Certificates, s);
-            } catch (Exception e1) {
-                throw new CertificateException("Certificate validation failed due to " + e1.getCause(), e1);
-            }
-        } catch (Exception e) {
-            throw new CertificateException("Certificate validation failed due to " + e.getCause(), e);
-        }
+        trustManager.checkServerTrusted(x509Certificates, s);
+
     }
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
 
+        try {
+            // Reload the trust store and initialize the trustManager instance for every SSL session.
+            setupTrustManager();
+        } catch (Exception e) {
+            log.error("Error occurred while reloading trust-store.");
+        }
         return trustManager.getAcceptedIssuers();
     }
 
@@ -114,18 +104,19 @@ public class DynamicX509TrustManager implements X509TrustManager {
 
         TrustManagerFactory trustManagerFactory =
                 TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        KeyStore clientTrustStore = null;
-        try (InputStream trustStoreInputStream = new FileInputStream(TRUST_STORE_LOCATION)) {
+        KeyStore clientTrustStore;
+        try (InputStream trustStoreInputStream =new FileInputStream(TRUST_STORE_LOCATION)){
 
             clientTrustStore = KeyStore.getInstance(TRUST_STORE_TYPE);
             clientTrustStore.load(trustStoreInputStream, null);
+
             trustManagerFactory.init(clientTrustStore);
             TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
 
             for (TrustManager t : trustManagers) {
                 if (t instanceof X509TrustManager) {
                     trustManager = (X509TrustManager) t;
-                    System.setProperty(IdentityUtil.PROP_TRUST_STORE_UPDATE_REQUIRED, Boolean.FALSE.toString());
+                    System.setProperty(PROP_TRUST_STORE_UPDATE_REQUIRED, Boolean.FALSE.toString());
                     return;
                 }
             }

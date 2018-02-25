@@ -122,7 +122,8 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
 
     // System Property for trust managers.
-    public static final String PROP_TRUST_STORE_UPDATE_REQUIRED = "org.wso2.carbon.identity.core.util.TRUST_STORE_UPDATE_REQUIRED";
+    public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
+            "org.wso2.carbon.identity.core.util.TRUST_STORE_UPDATE_REQUIRED";
 
 
     /**
