@@ -273,7 +273,7 @@
                                         <div id="consent-mgt-container">
                                             <p>
                                                 <strong>We need your consent on the attributes to use for the following purposes.</strong>
-                                                <span>By selecting a preferred attribute, you will be providing consent to use your personal information.</span>
+                                                <span>By selecting preferred attributes, I consent to use them for the given purposes.</span>
                                             </p>
                                             <div id="tree-table"></div>
                                         </div>

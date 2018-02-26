@@ -157,7 +157,7 @@
             <div class="col-md-12">
 
                 <!-- content -->
-                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
+                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                     <div>
                         <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
@@ -325,28 +325,6 @@
 
 
                             <% } %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
-                                <div class="alert alert-warning margin-bottom-half" role="alert">
-                                    <div>
-                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
-                                        <a href="cookie_policy.do" target="policy-pane">
-                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
-                                        </a>
-                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.for.more.details")%>
-                                    </div>
-                                </div>
-                                <div class="alert alert-warning margin-none" role="alert">
-                                    <div>
-                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description")%>
-                                        <a href="privacy_policy.do" target="policy-pane">
-                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
-                                        </a>
-                                    </div>
-                                </div>
-
-
-
-                            </div>
                             <div class="clearfix"></div>
                         </div>
                     </div>

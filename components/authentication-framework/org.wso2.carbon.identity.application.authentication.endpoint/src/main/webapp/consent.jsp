@@ -113,64 +113,77 @@
                                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
                                     </p>
                                 </div>
-
                             </div>
 
                             <!-- validation -->
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                <div class="text-left padding-bottom">
-                                    <span class="required font-medium">*</span>
-                                    <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
-                                </div>
-                                <div class="select-all">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
-                                            Select All
-                                        </label>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-bottom-double">
+                                <div class="border-gray margin-bottom-double">
+                                    <div class="claim-alert" role="alert">
+                                        <p class="margin-bottom-double">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "by.selecting.following.attributes")%>
+                                        </p>
                                     </div>
-                                </div>
-                                <div class="claim-list">
-                                    <% for (String claim : mandatoryClaimList) {
-                                            String[] mandatoryClaimData = claim.split("_", 2);
-                                            if (mandatoryClaimData.length == 2) {
-                                                String claimId = mandatoryClaimData[0];
-                                                String displayName = mandatoryClaimData[1];
+                                    <div class="padding">
+                                        <div class="select-all">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
+                                                    Select All
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="claim-list">
+                                            <% for (String claim : mandatoryClaimList) {
+                                                    String[] mandatoryClaimData = claim.split("_", 2);
+                                                    if (mandatoryClaimData.length == 2) {
+                                                        String claimId = mandatoryClaimData[0];
+                                                        String displayName = mandatoryClaimData[1];
 
-                                    %>
-                                    <div class="checkbox claim-cb">
-                                        <label>
-                                            <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
-                                                   required/>
-                                            <%=Encode.forHtml(displayName)%>
-                                            <span class="required font-medium">*</span>
-                                        </label>
+                                            %>
+                                            <div class="checkbox claim-cb">
+                                                <label>
+                                                    <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
+                                                           required/>
+                                                    <%=Encode.forHtml(displayName)%>
+                                                    <span class="required font-medium">*</span>
+                                                </label>
+                                            </div>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                            <% for (String claim : requestedClaimList) {
+                                                    String[] requestedClaimData = claim.split("_", 2);
+                                                    if (requestedClaimData.length == 2) {
+                                                        String claimId = requestedClaimData[0];
+                                                        String displayName = requestedClaimData[1];
+                                            %>
+                                            <div class="checkbox claim-cb">
+                                                <label>
+                                                    <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
+                                                    <%=Encode.forHtml(displayName)%>
+                                                </label>
+                                            </div>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </div>
+                                        <div class="text-left padding-top-double">
+                                            <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
+                                            <span class="required font-medium">( * )</span>
+                                        </div>
                                     </div>
-                                    <%
-                                            }
-                                        }
-                                    %>
-                                    <% for (String claim : requestedClaimList) {
-                                            String[] requestedClaimData = claim.split("_", 2);
-                                            if (requestedClaimData.length == 2) {
-                                                String claimId = requestedClaimData[0];
-                                                String displayName = requestedClaimData[1];
-                                    %>
-                                    <div class="checkbox claim-cb">
-                                        <label>
-                                            <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
-                                            <%=Encode.forHtml(displayName)%>
-                                        </label>
-                                    </div>
-                                    <%
-                                            }
-                                        }
-                                    %>
                                 </div>
-                                <div class="text-right padding-top">
-                                    <a href="privacy_policy.do" target="policy-pane">
-                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
-                                    </a>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <div class="alert alert-warning margin-none padding-10" role="alert">
+                                    <div>
+                                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description.approving")%>
+                                        <a href="privacy_policy.do" target="policy-pane">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 margin-top-double">
