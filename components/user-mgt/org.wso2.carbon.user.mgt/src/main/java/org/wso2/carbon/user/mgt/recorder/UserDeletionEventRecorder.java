@@ -30,10 +30,11 @@ public interface UserDeletionEventRecorder {
      * Record the given data about the deleted user.
      * @param username Username of the deleted user.
      * @param domainName User store domain name of the deleted user.
+     * @param tenantDomain Tenant domain of the user.
      * @param tenantId Tenant ID of the deleted user.
      * @param timeStamp Time stamp of the user deletion.
      * @param properties Other properties.
      */
-    void recordUserDeleteEvent(String username, String domainName, int tenantId, Date timeStamp,
+    void recordUserDeleteEvent(String username, String domainName, String tenantDomain, int tenantId, Date timeStamp,
                                Map<String, String> properties) throws RecorderException;
 }

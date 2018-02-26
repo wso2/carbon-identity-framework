@@ -45,13 +45,15 @@ public class DefaultUserDeletionEventRecorder implements UserDeletionEventRecord
     private static final String COMMA = ",";
 
     @Override
-    public void recordUserDeleteEvent(String username, String domainName, int tenantId, Date timeStamp,
-                                      Map<String, String> properties) throws RecorderException {
+    public void recordUserDeleteEvent(String username, String domainName, String tenantDomain, int tenantId,
+                                      Date timeStamp, Map<String, String> properties) throws RecorderException {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(username)
                 .append(COMMA)
                 .append(domainName)
+                .append(COMMA)
+                .append(tenantDomain)
                 .append(COMMA)
                 .append(tenantId)
                 .append(COMMA)
@@ -83,7 +85,7 @@ public class DefaultUserDeletionEventRecorder implements UserDeletionEventRecord
                 log.debug("CSV path after resolving the carbon placeholders: " + path);
             }
 
-            writeToCustomFile(path,stringBuilder.toString());
+            writeToCustomFile(path, stringBuilder.toString());
         } else {
             DELETE_EVENT_LOGGER.info(stringBuilder.toString());
         }

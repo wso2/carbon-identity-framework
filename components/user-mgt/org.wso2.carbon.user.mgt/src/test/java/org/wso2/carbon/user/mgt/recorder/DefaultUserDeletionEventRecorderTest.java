@@ -32,6 +32,7 @@ public class DefaultUserDeletionEventRecorderTest {
 
     private static final String DUMMY_USERNAME = "admin";
     private static final String DUMMY_DOMAIN = "PRIMARY";
+    private static final String DUMMY_TENANT_DOMAIN = "carbon.super";
     private static final int DUMMY_TENANT_ID = -1234;
 
     @Test
@@ -39,8 +40,8 @@ public class DefaultUserDeletionEventRecorderTest {
 
         DefaultUserDeletionEventRecorder defaultUserDeleteEventRecorder = new DefaultUserDeletionEventRecorder();
         try {
-            defaultUserDeleteEventRecorder.recordUserDeleteEvent(DUMMY_USERNAME, DUMMY_DOMAIN, DUMMY_TENANT_ID,
-                    new Date(), new HashMap<>());
+            defaultUserDeleteEventRecorder.recordUserDeleteEvent(DUMMY_USERNAME, DUMMY_DOMAIN, DUMMY_TENANT_DOMAIN,
+                    DUMMY_TENANT_ID, new Date(), new HashMap<>());
         } catch (RecorderException e) {
             assertEquals(e.getClass(), RecorderException.class);
         }

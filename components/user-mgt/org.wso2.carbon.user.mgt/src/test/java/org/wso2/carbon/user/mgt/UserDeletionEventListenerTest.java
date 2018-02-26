@@ -24,7 +24,6 @@ import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests related to the UserDeletionEventListener.
@@ -41,5 +40,4 @@ public class UserDeletionEventListenerTest {
 
         userDeletionEventListener.doPostDeleteUser(DUMMY_USERNAME, null);
     }
-
 }
