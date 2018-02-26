@@ -200,3 +200,37 @@ span.mandatory-msg{
 .padding-bottom-100{
     padding-bottom: 100px;
 }
+
+.table-of-contents {
+    margin-top: 50px;
+    background: #eeeeee;
+    border: 1px solid #d8d8d8;
+    padding: 1em 2em;
+}
+.table-of-contents ul {
+    padding: 0;
+}
+.table-of-contents li {
+    margin: 0 0 0.25em 0;
+}
+.table-of-contents li.sub{
+    text-indent: 20px;
+    list-style-type: circle;
+    list-style-position: inside;
+}
+.table-of-contents a {
+    text-decoration: none;
+}
+.table-of-contents a:hover,
+.table-of-contents a:active {
+    text-decoration: underline;
+}
+
+h2:target {
+    animation: highlight 2s ease;
+}
+
+@keyframes highlight {
+    from { background: #eeffa0; }
+    to { background: #fff; }
+}
