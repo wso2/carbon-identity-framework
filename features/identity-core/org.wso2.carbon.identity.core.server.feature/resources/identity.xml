@@ -650,12 +650,7 @@
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/list</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/view</Permissions>
-        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
@@ -663,12 +658,7 @@
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/list</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/view</Permissions>
-        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
@@ -676,12 +666,7 @@
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/list</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/consentmgt/view</Permissions>
-        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
