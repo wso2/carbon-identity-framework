@@ -2423,7 +2423,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
 
                     try {
-                        boolean isEnabled = localAndOutboundConfigScriptResultSet.getBoolean(2);
+                        boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
                         StringBuilder sb = new StringBuilder();
                         BufferedReader br = new BufferedReader(
                                 localAndOutboundConfigScriptResultSet.getCharacterStream(1));
@@ -3574,7 +3574,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
                 storeAuthScriptPrepStmt
                         .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
-                storeAuthScriptPrepStmt.setBoolean(5, authenticationScriptConfig.isEnabled());
+                storeAuthScriptPrepStmt.setString(5, authenticationScriptConfig.isEnabled() ? "1" : "0");
                 storeAuthScriptPrepStmt.execute();
             }
         }
