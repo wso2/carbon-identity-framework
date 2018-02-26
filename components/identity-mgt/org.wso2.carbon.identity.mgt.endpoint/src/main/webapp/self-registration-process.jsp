@@ -83,7 +83,16 @@
             String callback = request.getParameter("callback");
             String tenantDomain = request.getParameter("tenantDomain");
             String consent = request.getParameter("consent");
-            
+            String policyURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                    "/authenticationendpoint/privacy_policy.do");
+            if (StringUtils.isNotEmpty(consent)) {
+                consent = IdentityManagementEndpointUtil.buildConsentForResidentIDP
+                        (username, consent, "USA",
+                                IdentityManagementEndpointConstants.Consent.COLLECTION_METHOD_SELF_REGISTRATION,
+                                IdentityManagementEndpointConstants.Consent.LANGUAGE_ENGLISH, policyURL,
+                                IdentityManagementEndpointConstants.Consent.EXPLICIT_CONSENT_TYPE,
+                                true, false, IdentityManagementEndpointConstants.Consent.INFINITE_TERMINATION);
+            }
             if (StringUtils.isBlank(callback)) {
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
