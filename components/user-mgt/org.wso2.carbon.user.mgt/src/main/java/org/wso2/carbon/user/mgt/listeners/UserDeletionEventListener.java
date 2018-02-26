@@ -51,7 +51,7 @@ public class UserDeletionEventListener extends AbstractIdentityUserOperationEven
     @Override
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
 
-        // Check the listener is enabled.
+        // Check whether the listener is enabled.
         if (!isEnable()) {
             return true;
         }
@@ -60,23 +60,27 @@ public class UserDeletionEventListener extends AbstractIdentityUserOperationEven
         Map<UserDeletionEventRecorder, Map<String, String>> userDeleteEventRecorders =
                 readDeletionEventRecorders(identityConfigParser);
 
-        String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
-        int tenantId = userStoreManager.getTenantId();
+        try {
+            String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+            int tenantId = userStoreManager.getTenantId();
+            String tenantDomain = UserMgtDSComponent.getRealmService().getTenantManager()
+                    .getDomain(userStoreManager.getTenantId());
 
-        // We are calling all the event recorders with the values we have. (Including properties we read.)
-        for (Map.Entry<UserDeletionEventRecorder, Map<String, String>> entry : userDeleteEventRecorders.entrySet()) {
-            UserDeletionEventRecorder userDeletionEventRecorder = entry.getKey();
-            Map<String, String> stringMap = entry.getValue();
-            try {
-                userDeletionEventRecorder.recordUserDeleteEvent(userName, userStoreDomain, tenantId,
+            // We are calling all the event recorders with the values we have. (Including properties we read.)
+            for (Map.Entry<UserDeletionEventRecorder, Map<String, String>> entry : userDeleteEventRecorders.entrySet
+                    ()) {
+                UserDeletionEventRecorder userDeletionEventRecorder = entry.getKey();
+                Map<String, String> stringMap = entry.getValue();
+
+                userDeletionEventRecorder.recordUserDeleteEvent(userName, userStoreDomain, tenantDomain, tenantId,
                         new Date(System.currentTimeMillis()), stringMap);
                 if (log.isDebugEnabled()) {
                     log.debug("Event recorder with name: " + userDeletionEventRecorder.getClass().getName() +
                             " invoked with values. " + userName + ", " + userStoreDomain + ", " + tenantId);
                 }
-            } catch (RecorderException e) {
-                throw new UserStoreException(e);
             }
+        } catch (RecorderException | org.wso2.carbon.user.api.UserStoreException e) {
+            throw new UserStoreException(e);
         }
 
         return true;
