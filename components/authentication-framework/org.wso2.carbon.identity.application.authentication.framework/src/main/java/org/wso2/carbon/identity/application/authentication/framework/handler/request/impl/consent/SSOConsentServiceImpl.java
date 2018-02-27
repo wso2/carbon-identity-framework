@@ -98,11 +98,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
         ConsentClaimsData consentClaimsData = new ConsentClaimsData();
 
-        if (serviceProvider.getClaimConfig() != null) {
-            return consentClaimsData;
-        }
-        ClaimMapping[] claimMappings = serviceProvider.getClaimConfig().getClaimMappings();
-
+        ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
         if (ArrayUtils.isEmpty(claimMappings)) {
             return consentClaimsData;
         }
@@ -136,8 +132,17 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return consentClaimsData;
     }
 
+    private ClaimMapping[] getSpClaimMappings(ServiceProvider serviceProvider) {
+        if (serviceProvider.getClaimConfig() != null) {
+            return serviceProvider.getClaimConfig().getClaimMappings();
+        } else {
+            return new ClaimMapping[0];
+        }
+    }
+
     private String getSPTenantDomain(ServiceProvider serviceProvider) {
-        String spTenantDomain;User owner = serviceProvider.getOwner();
+        String spTenantDomain;
+        User owner = serviceProvider.getOwner();
         if (owner != null) {
             spTenantDomain = owner.getTenantDomain();
         } else {
