@@ -185,7 +185,7 @@ span.mandatory-msg{
 }
 .claim-list .checkbox{
     padding: 10px;
-    background: #e8f2f7;
+    background: #d9edf7;
     margin-bottom: 4px;
 }
 
@@ -199,4 +199,62 @@ span.mandatory-msg{
 }
 .padding-bottom-100{
     padding-bottom: 100px;
+}
+.padding-10{
+    padding: 10px;
+}
+.margin-bottom-3{
+    margin-bottom: 3px;
+}
+.table-of-contents {
+    margin-top: 50px;
+    background: #eeeeee;
+    border: 1px solid #d8d8d8;
+    padding: 1em 2em;
+}
+.table-of-contents ul {
+    padding: 0;
+}
+.table-of-contents li {
+    margin: 0 0 0.25em 0;
+}
+.table-of-contents li.sub{
+    text-indent: 20px;
+    list-style-type: circle;
+    list-style-position: inside;
+}
+.table-of-contents a {
+    text-decoration: none;
+}
+.table-of-contents a:hover,
+.table-of-contents a:active {
+    text-decoration: underline;
+}
+
+h2:target {
+    animation: highlight 2s ease;
+}
+
+@keyframes highlight {
+    from { background: #eeffa0; }
+    to { background: #fff; }
+}
+
+.border-blue{
+    border:1px solid #bce8f1;
+}
+.border-gray{
+    border:1px solid #d8d8d8;
+}
+.claim-alert p{
+    margin: 0;
+}
+.claim-alert{
+    padding: 15px;
+    color: #666666;
+    border-bottom: 1px solid #d8d8d8;
+}
+input[type=reset].btn{
+    border: 1px solid #dadada;
+    background: #f7f7f7;
 }

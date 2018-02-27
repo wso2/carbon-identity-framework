@@ -150,6 +150,25 @@
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
             (request.getParameter("sessionDataKey"))%>'/>
     </div>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double">
+        <div class="alert alert-warning margin-bottom-3 padding-10" role="alert">
+            <div>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
+                <a href="cookie_policy.do" target="policy-pane">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
+                </a>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.for.more.details")%>
+            </div>
+        </div>
+        <div class="alert alert-warning margin-none padding-10" role="alert">
+            <div>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description")%>
+                <a href="privacy_policy.do" target="policy-pane">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
+                </a>
+            </div>
+        </div>
+    </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="form-actions">
             <button
