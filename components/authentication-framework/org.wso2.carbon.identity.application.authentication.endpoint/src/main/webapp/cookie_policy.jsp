@@ -67,6 +67,7 @@
             </div>
             <div class="boarder-all ">
                 <div class="clearfix"></div>
+                <%-- Customizable content. Due to this nature, i18n is not implemented for this section --%>
                 <div id="cookiePolicy" class="padding-double">
                     <h4><a href="http://wso2.org/library/identity-server"><strong>About WSO2 Identity Server</strong></a></h4>
                     <p>WSO2 Identity Server (refereed hereafter as &ldquo;IS 5.5.0&rdquo;) is an open source Identity Management and Entitlement Server which is based on open standards and specifications.</p>
@@ -192,6 +193,7 @@
                     <h2 id="disclaimer">Disclaimer.</h2>
                     <p>This cookie policy is only for illustrative purpose of the product IS 5.5. The content in the policy is technically correct at the time of the product is shipment. The organization which runs this IS 5.5 instance has full authority and responsibility of the effective Cookie Policy.</p>
                 </div>
+                <%-- /Costomizable content --%>
                 <div class="clearfix"></div>
             </div>
         </div>

@@ -67,6 +67,7 @@
             </div>
             <div class="boarder-all ">
                 <div class="clearfix"></div>
+                <%-- Customizable content. Due to this nature, i18n is not implemented for this section --%>
                 <div id="privacyPolicy" class="padding-double">
                     <h4><a href="http://wso2.org/library/identity-server"><strong>About WSO2 Identity Server</strong></a></h4>
                     <p>WSO2 Identity Server (refereed hereafter as &ldquo;IS 5.5&rdquo;) is an open source Identity Management and Entitlement Server which is based on open standards and specifications.</p>
@@ -179,6 +180,7 @@
                         <li>This policy should be modified according to the organizational requirements.</li>
                     </ol>
                 </div>
+                <%-- /Costomizable content --%>
                 <div class="clearfix"></div>
             </div>
         </div>

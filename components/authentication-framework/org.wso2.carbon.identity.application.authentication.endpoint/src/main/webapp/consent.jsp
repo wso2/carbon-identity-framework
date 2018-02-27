@@ -128,7 +128,7 @@
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
-                                                    Select All
+                                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "select.all")%>
                                                 </label>
                                             </div>
                                         </div>
