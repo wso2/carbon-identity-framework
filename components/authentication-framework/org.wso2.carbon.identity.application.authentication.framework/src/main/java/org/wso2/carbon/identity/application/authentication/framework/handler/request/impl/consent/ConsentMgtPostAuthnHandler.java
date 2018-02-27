@@ -102,6 +102,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String REQUESTED_CLAIMS_PARAM = "requestedClaims";
     private static final String MANDATORY_CLAIMS_PARAM = "mandatoryClaims";
     private static final String CONSENT_CLAIM_META_DATA = "consentClaimMetaData";
+    private static final String REQUEST_TYPE_OAUTH2 = "oauth2";
     private static final Log log = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
     private ConsentManager consentManager;
     private ClaimMetadataManagementService claimMetadataManagementService;
@@ -119,11 +120,23 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
+        // If OAuth flow, skip handling consent from the authentication handler. OAuth related consent will be
+        // handled from OAuth endpoint.
+        if (isOAuthFlow(context)) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
         if (isConsentPrompted(context)) {
             return handlePostConsent(request, response, context);
         } else {
             return handlePreConsent(request, response, context);
         }
+    }
+
+    private boolean isOAuthFlow(AuthenticationContext context) {
+
+        return FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(context.getRequestType()) || REQUEST_TYPE_OAUTH2
+                .equalsIgnoreCase(context.getRequestType());
     }
 
     private boolean isDebugEnabled() {
@@ -230,9 +243,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
         List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
 
-        String spStandardDialect = getStandardDialect(context);
         Set<String> consentClaims = getClaimsWithoutConsent(claims, requestedClaims, mandatoryClaims);
-
+        String spStandardDialect = getStandardDialect(context);
         removeUserClaimsFromContext(context, new ArrayList<>(consentClaims), spStandardDialect);
         mandatoryClaims.removeAll(claims);
 
@@ -274,7 +286,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        // If user is federated and the claim mappings are not available.
+        // If user is not federated and the claim mappings are not available.
         ConsentClaimsData consentClaimsData = getConsentClaimsData(mandatoryClaims, requestedClaims,
                                                                    getSPOwnerTenantDomain(context));
 
