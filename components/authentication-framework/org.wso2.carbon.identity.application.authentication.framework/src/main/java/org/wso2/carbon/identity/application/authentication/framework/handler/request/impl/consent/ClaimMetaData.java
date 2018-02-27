@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * This class represents claim meta data required for concept receipt creation.
  */
-class ClaimMetaData implements Serializable {
+public class ClaimMetaData implements Serializable {
 
     private int id;
     private String claimUri;

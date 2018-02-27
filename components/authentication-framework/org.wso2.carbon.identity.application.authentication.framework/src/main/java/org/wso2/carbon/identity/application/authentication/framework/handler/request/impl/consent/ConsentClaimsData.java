@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * This class represents the claim metadata required for a particular service provider
  */
-class ConsentClaimsData implements Serializable {
+public class ConsentClaimsData implements Serializable {
 
     List<ClaimMetaData> mandatoryClaims = new ArrayList<>();
     List<ClaimMetaData> requestedClaims = new ArrayList<>();

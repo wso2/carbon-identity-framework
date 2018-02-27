@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -56,6 +58,8 @@ public class FrameworkServiceDataHolder {
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
+    private ConsentManager consentManager = null;
+    private ClaimMetadataManagementService claimMetadataManagementService = null;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -201,5 +205,39 @@ public class FrameworkServiceDataHolder {
     public PostAuthenticationMgtService getPostAuthenticationMgtService() {
 
         return this.postAuthenticationMgtService;
+    }
+
+    /**
+     * Get {@link ConsentManager} service.
+     * @return Consent manager service
+     */
+    public ConsentManager getConsentManager() {
+        return consentManager;
+    }
+
+    /**
+     * Set {@link ConsentManager} service.
+     * @param consentManager Instance of {@link ConsentManager} service.
+     */
+    public void setConsentManager(ConsentManager consentManager) {
+        this.consentManager = consentManager;
+    }
+
+    /**
+     * Get {@link ClaimMetadataManagementService}.
+     * @return ClaimMetadataManagementService.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Set {@link ClaimMetadataManagementService}.
+     * @param claimMetadataManagementService Instance of {@link ClaimMetadataManagementService}.
+     */
+    public void setClaimMetadataManagementService (ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }
