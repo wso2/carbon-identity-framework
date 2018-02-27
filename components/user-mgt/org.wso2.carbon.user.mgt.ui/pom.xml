@@ -134,7 +134,8 @@
                             org.wso2.carbon.identity.governance.stub;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.governance.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils.xml,
-                            org.wso2.carbon.identity.claim.metadata.mgt.stub.*;version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.claim.metadata.mgt.*;version="${carbon.identity.package.import.version.range}";resolution:=optional,
+                            org.wso2.carbon.identity.claim.metadata.mgt.stub.*;version="${carbon.identity.package.import.version.range}";resolution:=optional,
                         </Import-Package>
                          <Export-Package>
                             org.wso2.carbon.user.mgt.ui.*;version="${carbon.identity.package.export.version}",
