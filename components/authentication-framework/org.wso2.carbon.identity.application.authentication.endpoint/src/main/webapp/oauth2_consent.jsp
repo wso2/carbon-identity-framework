@@ -18,12 +18,23 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@include file="localize.jsp" %>
 
 <%
     String app = request.getParameter("application");
     String scopeString = request.getParameter("scope");
     boolean displayScopes = Boolean.parseBoolean(getServletContext().getInitParameter("displayScopes"));
+    
+    String[] requestedClaimList = new String[0];
+    String[] mandatoryClaimList = new String[0];
+    if (request.getParameter(Constants.REQUESTED_CLAIMS) != null) {
+        requestedClaimList = request.getParameter(Constants.REQUESTED_CLAIMS).split(Constants.CLAIM_SEPARATOR);
+    }
+    
+    if (request.getParameter(Constants.MANDATORY_CLAIMS) != null) {
+        mandatoryClaimList = request.getParameter(Constants.MANDATORY_CLAIMS).split(Constants.CLAIM_SEPARATOR);
+    }
 %>
 
 <html>
@@ -31,12 +42,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
-
+    
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
-
+    
     <!--[if lt IE 9]>
     <script src="js/html5shiv.min.js"></script>
     <script src="js/respond.min.js"></script>
@@ -47,13 +58,29 @@
 
 <script type="text/javascript">
     function approved() {
-        document.getElementById('consent').value = "approve";
-        document.getElementById("profile").submit();
+        var mandatoryClaimCBs = $(".mandatory-claim");
+        var checkedMandatoryClaimCBs = $(".mandatory-claim:checked");
+
+        if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
+            document.getElementById('consent').value = "approve";
+            document.getElementById("profile").submit();
+        }else{
+            $("#modal_claim_validation").modal();
+        }
     }
+
     function approvedAlways() {
-        document.getElementById('consent').value = "approveAlways";
-        document.getElementById("profile").submit();
+        var mandatoryClaimCBs = $(".mandatory-claim");
+        var checkedMandatoryClaimCBs = $(".mandatory-claim:checked");
+
+        if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
+            document.getElementById('consent').value = "approveAlways";
+            document.getElementById("profile").submit();
+        } else {
+            $("#modal_claim_validation").modal();
+        }
     }
+
     function deny() {
         document.getElementById('consent').value = "deny";
         document.getElementById("profile").submit();
@@ -75,10 +102,10 @@
 
 <!-- page content -->
 <div class="container-fluid body-wrapper">
-
+    
     <div class="row">
         <div class="col-md-12">
-
+            
             <!-- content -->
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
@@ -86,12 +113,13 @@
                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid.user.claims")%>
                     </h2>
                 </div>
-
+                
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
                     <form action="../oauth2/authorize" method="post" id="profile" name="oauth2_authz"
                           class="form-horizontal" >
                         <div class="padding-double login-form">
+                            
                             <div class="form-group">
                                 <p><strong><%=Encode.forHtml(request.getParameter("application"))%></strong>
                                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
@@ -100,28 +128,88 @@
                                     if (displayScopes && scopeString != null) {
                                 %>
                                 <ul>
-                                <%
+                                    <%
                                         String[] scopes = scopeString.split(" ");
                                         for (String scopeID : scopes) {
-
+                                            
                                             if ("openid".equals(scopeID)) {
                                                 continue;
                                             }
-                                %>
-                                        <li><%=Encode.forHtml(scopeID)%></li>
-                                <%
+                                    %>
+                                    <li><%=Encode.forHtml(scopeID)%></li>
+                                    <%
                                         }
-                                %>
+                                    %>
                                 </ul>
                                 <%
                                     }
                                 %>
+                                <!-- Prompting for consent is only needed if we have mandatory or requested claims without any consent -->
+                                <% if (ArrayUtils.isNotEmpty(mandatoryClaimList) || ArrayUtils.isNotEmpty(requestedClaimList)) { %>
+                                <!-- validation -->
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                    <div class="text-left padding-bottom">
+                                        <span class="required font-medium">*</span>
+                                        <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
+                                    </div>
+                                    <div class="select-all">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
+                                                Select All
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="claim-list">
+                                        <% for (String claim : mandatoryClaimList) {
+                                            String[] mandatoryClaimData = claim.split("_", 2);
+                                            if (mandatoryClaimData.length == 2) {
+                                                String claimId = mandatoryClaimData[0];
+                                                String displayName = mandatoryClaimData[1];
+                                        %>
+                                        <div class="checkbox claim-cb">
+                                            <label>
+                                                <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
+                                                       required/>
+                                                <%=Encode.forHtml(displayName)%>
+                                                <span class="required font-medium">*</span>
+                                            </label>
+                                        </div>
+                                        <%
+                                                }
+                                            }
+                                        %>
+                                        <% for (String claim : requestedClaimList) {
+                                            String[] requestedClaimData = claim.split("_", 2);
+                                            if (requestedClaimData.length == 2) {
+                                                String claimId = requestedClaimData[0];
+                                                String displayName = requestedClaimData[1];
+                                        %>
+                                        <div class="checkbox claim-cb">
+                                            <label>
+                                                <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
+                                                <%=Encode.forHtml(displayName)%>
+                                            </label>
+                                        </div>
+                                        <%
+                                                }
+                                            }
+                                        %>
+                                    </div>
+                                    <div class="text-right padding-top">
+                                        <a href="privacy_policy.do" target="policy-pane">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <% } %>
                             </div>
                             <table width="100%" class="styledLeft">
                                 <tbody>
                                 <tr>
                                     <td class="buttonRow" colspan="2">
-
+                                        
                                         <div style="text-align:left;">
                                             <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                                    onclick="javascript: approved(); return false;"
@@ -137,31 +225,74 @@
                                                    value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
                                                    onclick="javascript: deny(); return false;"/>
                                         </div>
-
+                                        
                                         <input type="hidden" name="<%=Constants.SESSION_DATA_KEY_CONSENT%>"
                                                value="<%=Encode.forHtmlAttribute(request.getParameter
 								(Constants.SESSION_DATA_KEY_CONSENT))%>"/>
-                                        <input type="hidden" name="consent" id="consent"
-                                               value="deny"/>
+                                        <input type="hidden" name="consent" id="consent" value="deny"/>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
                     </form>
-
+                
                 </div>
             </div>
-
-
+        
+        
         </div>
         <!-- /content -->
-
+    
     </div>
 </div>
-<!-- /content/body -->
 
+
+<div id="modal_claim_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Mandatory Claims</h4>
+            </div>
+            <div class="modal-body">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.1")%>
+                <span class="mandatory-msg"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.2")%></span>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.3")%>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#consent_select_all").click(function () {
+            if (this.checked) {
+                $('.checkbox input:checkbox').each(function () {
+                    $(this).prop("checked", true);
+                });
+            } else {
+                $('.checkbox :checkbox').each(function () {
+                    $(this).prop("checked", false);
+                });
+            }
+        });
+        $(".checkbox input").click(function () {
+            var claimCheckedCheckboxes = $(".claim-cb input:checked").length;
+            var claimCheckboxes = $(".claim-cb input").length;
+            if (claimCheckedCheckboxes !== claimCheckboxes) {
+                $("#consent_select_all").prop("checked", false);
+            } else {
+                $("#consent_select_all").prop("checked", true);
+            }
+        });
+    });
+</script>
 
 <!-- footer -->
 <footer class="footer">
