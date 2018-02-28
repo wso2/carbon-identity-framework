@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -328,15 +327,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         List<String> result = Collections.emptyList();
         String requestType = request.getParameter(FrameworkConstants.RequestParams.TYPE);
         List<String> acrValuesList = (List<String>) request.getAttribute(ACR_VALUES_ATTRIBUTE);
-        if (CollectionUtils.isEmpty(acrValuesList)) {
-            if (StringUtils.isNotBlank(request.getParameter("acr_values")) && !"null"
-                    .equals(request.getParameter("acr_values"))) {
-                String[] acrValues = request.getParameter("acr_values").split(" ");
-                acrValuesList = Arrays.asList(acrValues);
-            }
-        }
-        if (CollectionUtils.isNotEmpty(acrValuesList)) {
 
+        if (CollectionUtils.isNotEmpty(acrValuesList)) {
             AuthenticationMethodNameTranslator translator = FrameworkServiceDataHolder.getInstance()
                     .getAuthenticationMethodNameTranslator();
             if (translator == null) {
