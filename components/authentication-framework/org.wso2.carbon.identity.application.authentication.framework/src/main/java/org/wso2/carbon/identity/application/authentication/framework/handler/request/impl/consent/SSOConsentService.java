@@ -30,13 +30,14 @@ public interface SSOConsentService {
     /**
      * Get consent required claims for a given service from a user.
      *
-     * @param serviceProvider   Service provider requesting consent.
-     * @param authenticatedUser Authenticated user requesting consent form.
+     * @param serviceProvider       Service provider requesting consent.
+     * @param authenticatedUser     Authenticated user requesting consent form.
+     * @param ignoreExistingConsent Ignore existing consent given by the user.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws FrameworkException If error occurs while building claim information.
      */
-    ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider, AuthenticatedUser authenticatedUser)
-            throws FrameworkException;
+    ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider, AuthenticatedUser authenticatedUser,
+                                               boolean ignoreExistingConsent) throws FrameworkException;
 
     /**
      * Process the provided user consent and creates a consent receipt.

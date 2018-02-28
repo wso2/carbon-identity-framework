@@ -84,7 +84,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
      * @throws FrameworkException If error occurs while building claim information.
      */
     public ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider, AuthenticatedUser
-            authenticatedUser) throws FrameworkException {
+            authenticatedUser, boolean ignoreExistingConsent) throws FrameworkException {
 
         if (serviceProvider == null) {
             throw new FrameworkException("Service provider cannot be null.");
@@ -117,7 +117,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         List<ReceiptListResponse> receiptListResponses = getReceiptOfUser(serviceProvider, authenticatedUser,
                                                                           spName, spTenantDomain, subject);
-        if (hasUserSingleReceipts(receiptListResponses)) {
+        if (!ignoreExistingConsent && hasUserSingleReceipt(receiptListResponses)) {
 
             String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
             Receipt receipt = getReceipt(authenticatedUser, receiptId);
@@ -741,7 +741,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return receiptListResponses.size() == 0;
     }
 
-    private boolean hasUserSingleReceipts(List<ReceiptListResponse> receiptListResponses) {
+    private boolean hasUserSingleReceipt(List<ReceiptListResponse> receiptListResponses) {
 
         return receiptListResponses.size() == 1;
     }
