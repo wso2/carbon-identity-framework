@@ -94,22 +94,19 @@
                 
                     <div class="clearfix"></div>
                     <div class="boarder-all ">
-                        
-                        <div class="alert alert-danger" id="error-msg" hidden="hidden">
+                        <div class="alert alert-danger margin-left-double margin-right-double margin-top-double" id="error-msg" hidden="hidden">
                         </div>
-                    
-                        <div class="padding-double font-large">Enter your username here</div>
+                        <% if (error) { %>
+                        <div class="alert alert-danger margin-left-double margin-right-double margin-top-double" id="server-error-msg">
+                            <%= Encode.forHtmlContent(errorMsg) %>
+                        </div>
+                        <% } %>
                         <!-- validation -->
                         <div class="padding-double">
                         
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <div class="font-large margin-bottom-double">Enter your username here</div>
                                 <label class="control-label">Username</label>
-    
-                                <% if (error) { %>
-                                <div class="alert alert-danger" id="server-error-msg">
-                                    <%= Encode.forHtmlContent(errorMsg) %>
-                                </div>
-                                <% } %>
                                 
                                 <input id="username" name="username" type="text"
                                        class="form-control required usrName usrNameLength" required>
