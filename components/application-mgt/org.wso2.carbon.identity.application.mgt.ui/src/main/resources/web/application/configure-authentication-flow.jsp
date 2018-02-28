@@ -269,9 +269,9 @@ var img = "";
 					"\n" +
 					"    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
 					"\n" +
-					"    log.info(\"--------------- ACR selected: \"+acr);\n" +
+					"    Log.info(\"--------------- ACR selected: \"+acr);\n" +
 					"\n" +
-					"    context.setSelectedAcr(acr);\n" +
+					"    context.selectedAcr = acr;\n" +
 					"\n" +
 					"    switch(acr) {\n" +
 					"        case \"acr1\" : executeStep({id :'1'});break;\n" +
