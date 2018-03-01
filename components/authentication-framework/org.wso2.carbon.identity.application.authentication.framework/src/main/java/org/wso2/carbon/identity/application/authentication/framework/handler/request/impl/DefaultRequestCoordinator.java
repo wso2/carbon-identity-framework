@@ -185,7 +185,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             try {
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointRetryURL());
-                uriBuilder.addParameter("status", "Post Authentication Evaluation Failed");
+                uriBuilder.addParameter("status", "Authentication attempt failed.");
                 uriBuilder.addParameter("statusMsg", e.getErrorCode());
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
                 response.sendRedirect(uriBuilder.build().toString());

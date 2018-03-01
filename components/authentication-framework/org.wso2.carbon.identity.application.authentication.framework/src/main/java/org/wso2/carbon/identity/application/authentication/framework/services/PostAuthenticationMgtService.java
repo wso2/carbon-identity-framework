@@ -174,7 +174,8 @@ public class PostAuthenticationMgtService {
                 logDebug("pastr cookie validated successfully for sequence : " + context.getContextIdentifier());
                 return;
             } else {
-                throw new PostAuthenticationFailedException("Invalid Request", "Post authentication sequence tracking" +
+                throw new PostAuthenticationFailedException("Invalid Request: Your authentication flow is ended or " +
+                        "invalid. Please initiate again.", "Post authentication sequence tracking" +
                         " cookie not found in request with context id : " + context.getContextIdentifier());
             }
         } else {
