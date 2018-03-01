@@ -210,7 +210,7 @@
 </div>
 <script>
 
-var policyText = '<%=policyText%>';
+var policyText = '<%=Encode.forJavaScriptBlock(policyText)%>';
 
 jQuery.ajax(
     {
