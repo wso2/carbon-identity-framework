@@ -226,13 +226,16 @@
                 }
             }
         %>
-        <br/>
-        <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
-        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
-        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
-            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
-        </a>
-
+    <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+            <div class="form-actions">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
+                <a id="registerLink"
+                   href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
+                </a>
+            </div>
+        </div>
         <%}%>
     </div>
 
