@@ -325,7 +325,8 @@ public class DefaultAuthenticationRequestHandlerTest {
         authenticationRequestHandler.handle(request, response, context);
         assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
         String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
-        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE, pastrCookie);
+        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getSessionIdentifier(),
+                pastrCookie);
         when(request.getCookies()).thenReturn(cookies);
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
                 (cookies[0]);
@@ -345,10 +346,10 @@ public class DefaultAuthenticationRequestHandlerTest {
         authenticationRequestHandler.handle(request, response, context);
         assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
         String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
-        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE, pastrCookie);
+        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getSessionIdentifier(), pastrCookie);
         when(request.getCookies()).thenReturn(cookies);
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
-                (new Cookie(FrameworkConstants.PASTR_COOKIE, "someGibberishValue"));
+                (new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getSessionIdentifier(), "someGibberishValue"));
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));

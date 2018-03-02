@@ -1320,5 +1320,9 @@ public class FrameworkUtils {
 
         return multiAttributeSeparator;
     }
+
+    public static String getPASTRCookieName (String sessionDataKey) {
+        return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
+    }
 }
 
