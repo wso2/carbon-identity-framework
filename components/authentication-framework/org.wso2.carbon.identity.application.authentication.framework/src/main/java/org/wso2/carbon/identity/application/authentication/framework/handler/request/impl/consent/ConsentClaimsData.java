@@ -27,6 +27,7 @@ public class ConsentClaimsData implements Serializable {
 
     List<ClaimMetaData> mandatoryClaims = new ArrayList<>();
     List<ClaimMetaData> requestedClaims = new ArrayList<>();
+    List<ClaimMetaData> claimsWithConsent = new ArrayList<>();
 
     public List<ClaimMetaData> getMandatoryClaims() {
         return mandatoryClaims;
@@ -44,5 +45,13 @@ public class ConsentClaimsData implements Serializable {
     public void setRequestedClaims(
             List<ClaimMetaData> requestedClaims) {
         this.requestedClaims = requestedClaims;
+    }
+
+    public List<ClaimMetaData> getClaimsWithConsent() {
+        return claimsWithConsent;
+    }
+
+    public void setClaimsWithConsent(List<ClaimMetaData> claimsWithConsent) {
+        this.claimsWithConsent = claimsWithConsent;
     }
 }

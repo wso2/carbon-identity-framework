@@ -76,15 +76,49 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private static final String DEFAULT_PURPOSE_CATEGORY = "DEFAULT";
 
     /**
+     * Get consent required claims for a given service from a user considering existing user consents.
+     *
+     * @param serviceProvider       Service provider requesting consent.
+     * @param authenticatedUser     Authenticated user requesting consent form.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws FrameworkException If error occurs while building claim information.
+     */
+    @Override
+    public ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
+                                                                          AuthenticatedUser authenticatedUser)
+            throws FrameworkException {
+
+        return getConsentRequiredClaims(serviceProvider, authenticatedUser, true);
+    }
+
+    /**
+     * Get consent required claims for a given service from a user ignoring existing user consents.
+     *
+     * @param serviceProvider       Service provider requesting consent.
+     * @param authenticatedUser     Authenticated user requesting consent form.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws FrameworkException If error occurs while building claim information.
+     */
+    @Override
+    public ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
+                                                                             AuthenticatedUser authenticatedUser)
+            throws FrameworkException {
+
+        return getConsentRequiredClaims(serviceProvider, authenticatedUser, false);
+    }
+
+    /**
      * Get consent required claims for a given service from a user.
      *
      * @param serviceProvider   Service provider requesting consent.
      * @param authenticatedUser Authenticated user requesting consent form.
+     * @param useExistingConsents Use existing consent given by the user.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws FrameworkException If error occurs while building claim information.
      */
-    public ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider, AuthenticatedUser
-            authenticatedUser, boolean ignoreExistingConsent) throws FrameworkException {
+    private ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider,
+                                                       AuthenticatedUser authenticatedUser,
+                                                       boolean useExistingConsents) throws FrameworkException {
 
         if (serviceProvider == null) {
             throw new FrameworkException("Service provider cannot be null.");
@@ -115,20 +149,22 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             }
         }
 
+        List<ClaimMetaData> receiptConsentMetaData = new ArrayList<>();
         List<ReceiptListResponse> receiptListResponses = getReceiptOfUser(serviceProvider, authenticatedUser,
                                                                           spName, spTenantDomain, subject);
-        if (!ignoreExistingConsent && hasUserSingleReceipt(receiptListResponses)) {
+        if (useExistingConsents && hasUserSingleReceipt(receiptListResponses)) {
 
             String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
             Receipt receipt = getReceipt(authenticatedUser, receiptId);
 
-            List<ClaimMetaData> receiptConsentMetaData = getConsentClaimsFromReceipt(receipt);
+            receiptConsentMetaData = getConsentClaimsFromReceipt(receipt);
             List<String> claimsWithConsent = getClaimsFromConsentMetaData(receiptConsentMetaData);
             mandatoryClaims.removeAll(claimsWithConsent);
             // Only request consent for mandatory claims without consent when a receipt already exist for the user.
             requestedClaims.clear();
         }
         consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims, spTenantDomain);
+        consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
     }
 
