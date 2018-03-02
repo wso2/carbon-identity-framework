@@ -381,6 +381,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         final String USER_CONSENT_APPROVE = "approve";
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
+        ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
             if (isDebugEnabled()) {
                 logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has approved consent.");
@@ -389,7 +390,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
             List<ClaimMetaData> claimsWithConsent = getAllUserApprovedClaims(context, userConsent);
 
-            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             String spStandardDialect = getStandardDialect(context);
             String spTenantDomain = getSPOwnerTenantDomain(context);
             String subjectTenantDomain = authenticatedUser.getTenantDomain();
@@ -400,8 +400,15 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 addReceipt(subject, subjectTenantDomain, applicationConfig, spTenantDomain, claimsWithConsent);
             }
         } else {
-            throw new PostAuthenticationFailedException("Consent Management Error", "User denied consent" +
-                    " to share information.");
+
+            String error = String.format("Authentication failed: User denied consent to share information with %s.",
+                                         applicationConfig.getApplicationName());
+            if (isDebugEnabled()) {
+                logDebug(String.format("User: %s denied consent to share information with the service: " +
+                                       "provider %s.", authenticatedUser.getAuthenticatedSubjectIdentifier(),
+                                       applicationConfig.getApplicationName()));
+            }
+            throw new PostAuthenticationFailedException(error, error);
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
