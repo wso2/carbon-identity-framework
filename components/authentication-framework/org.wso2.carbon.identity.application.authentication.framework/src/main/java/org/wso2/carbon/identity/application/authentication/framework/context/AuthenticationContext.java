@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * This class is used for holding data about the
@@ -53,7 +51,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean isLogoutRequest;
     private int currentStep;
     private SequenceConfig sequenceConfig;
-    private HttpServletRequest currentRequest;
     private ExternalIdPConfig externalIdP;
     private boolean rememberMe;
     private String tenantDomain;
@@ -99,9 +96,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 	 */
     private AuthenticatorStateInfo stateInfo;
 
-    private transient HttpServletRequest request;
-    private transient HttpServletResponse response;
-    private transient HttpServletRequest initialRequest;
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
     public String getCallerPath() {
@@ -181,14 +175,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setContextIdentifier(String contextIdentifier) {
         this.contextIdentifier = contextIdentifier;
-    }
-
-    public HttpServletRequest getCurrentRequest() {
-        return currentRequest;
-    }
-
-    public void setCurrentRequest(HttpServletRequest currentRequest) {
-        this.currentRequest = currentRequest;
     }
 
     public boolean isRequestAuthenticated() {
@@ -425,41 +411,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Returns the Authenticated user who is known as at the moment.
      * Use this to get the user details for any multi-factor authenticator which depends on previously known subject.
-     * 
+     *
      * @return AuthenticatedUser which is assigned to the context last. Null if no previous step could find a user.
      */
     public AuthenticatedUser getLastAuthenticatedUser() {
         return lastAuthenticatedUser;
-    }
-
-    public void setRequest(HttpServletRequest request) {
-
-        this.request = request;
-    }
-
-    public HttpServletRequest getRequest() {
-
-        return this.request;
-    }
-
-    public void setInitialRequest(HttpServletRequest request) {
-
-        this.initialRequest = request;
-    }
-
-    public HttpServletRequest getInitialRequest() {
-
-        return this.initialRequest;
-    }
-
-    public void setResponse(HttpServletResponse response) {
-
-        this.response = response;
-    }
-
-    public HttpServletResponse getResponse() {
-
-        return this.response;
     }
 
     /**

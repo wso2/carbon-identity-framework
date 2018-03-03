@@ -18,13 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Javascript wrapper for Java level HTTPServletRequest.
@@ -37,9 +38,10 @@ import java.util.Map;
  * <p>
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HTTPServletRequest.
  */
-public class JsServletRequest extends AbstractJSObjectWrapper<HttpServletRequest> {
+public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> {
 
-    public JsServletRequest(HttpServletRequest wrapped) {
+    public JsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
+
         super(wrapped);
     }
 
@@ -47,44 +49,56 @@ public class JsServletRequest extends AbstractJSObjectWrapper<HttpServletRequest
     public Object getMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                Map headers = new HashMap();
-                Enumeration<String> headerNames = getWrapped().getHeaderNames();
-                if (headerNames != null) {
-                    while (headerNames.hasMoreElements()) {
-                        String headerName = headerNames.nextElement();
-                        headers.put(headerName, getWrapped().getHeader(headerName));
-                    }
+        case FrameworkConstants.JSAttributes.JS_HEADERS:
+            Map headers = new HashMap();
+            Enumeration<String> headerNames = getRequest().getHeaderNames();
+            if (headerNames != null) {
+                while (headerNames.hasMoreElements()) {
+                    String headerName = headerNames.nextElement();
+                    headers.put(headerName, getRequest().getHeader(headerName));
                 }
-                return new JsParameters(headers);
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return new JsParameters(getWrapped().getParameterMap());
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                Map cookies = new HashMap();
-                Cookie[] cookieArr = getWrapped().getCookies();
-                if(cookieArr != null) {
-                    for (Cookie cookie : cookieArr) {
-                        cookies.put(cookie.getName(), new JsCookie(cookie));
-                    }
+            }
+            return new JsParameters(headers);
+        case FrameworkConstants.JSAttributes.JS_PARAMS:
+            return new JsParameters(getRequest().getParameterMap());
+        case FrameworkConstants.JSAttributes.JS_COOKIES:
+            Map cookies = new HashMap();
+            Cookie[] cookieArr = getRequest().getCookies();
+            if (cookieArr != null) {
+                for (Cookie cookie : cookieArr) {
+                    cookies.put(cookie.getName(), new JsCookie(cookie));
                 }
-                return new JsParameters(cookies);
-            default:
-                return super.getMember(name);
+            }
+            return new JsParameters(cookies);
+        default:
+            return super.getMember(name);
         }
     }
 
     @Override
     public boolean hasMember(String name) {
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return getWrapped().getHeaderNames() != null;
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return getWrapped().getParameterMap() != null;
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                return getWrapped().getCookies() != null;
-            default:
-                return super.hasMember(name);
+
+        if (getRequest() == null) {
+            //Transient Object is null, hence no member access is possible.
+            return false;
         }
+
+        switch (name) {
+        case FrameworkConstants.JSAttributes.JS_HEADERS:
+            return getRequest().getHeaderNames() != null;
+        case FrameworkConstants.JSAttributes.JS_PARAMS:
+            return getRequest().getParameterMap() != null;
+        case FrameworkConstants.JSAttributes.JS_COOKIES:
+            return getRequest().getCookies() != null;
+        default:
+            return super.hasMember(name);
+        }
+    }
+
+    private HttpServletRequest getRequest() {
+
+        TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
+        return transientObjectWrapper.getWrapped();
     }
 }
 
