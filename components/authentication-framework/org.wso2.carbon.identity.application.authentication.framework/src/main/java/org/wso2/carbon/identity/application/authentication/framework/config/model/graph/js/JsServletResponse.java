@@ -18,12 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Javascript wrapper for Java level HttpServletResponse.
@@ -36,9 +37,10 @@ import java.util.Map;
  * <p>
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HttpServletResponse.
  */
-public class JsServletResponse extends AbstractJSObjectWrapper<HttpServletResponse> {
+public class JsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> {
 
-    public JsServletResponse(HttpServletResponse wrapped) {
+    public JsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
+
         super(wrapped);
     }
 
@@ -46,28 +48,39 @@ public class JsServletResponse extends AbstractJSObjectWrapper<HttpServletRespon
     public Object getMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                Map headers = new HashMap();
-                Collection<String> headerNames = getWrapped().getHeaderNames();
-                if (headerNames != null) {
-                    for (String element : headerNames) {
-                        headers.put(element, getWrapped().getHeader(element));
-                    }
+        case FrameworkConstants.JSAttributes.JS_HEADERS:
+            Map headers = new HashMap();
+            Collection<String> headerNames = getResponse().getHeaderNames();
+            if (headerNames != null) {
+                for (String element : headerNames) {
+                    headers.put(element, getResponse().getHeader(element));
                 }
-                return new JsHeaders(headers, getWrapped());
-            default:
-                return super.getMember(name);
+            }
+            return new JsHeaders(headers, getResponse());
+        default:
+            return super.getMember(name);
         }
     }
 
     @Override
     public boolean hasMember(String name) {
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return getWrapped().getHeaderNames() != null;
-            default:
-                return super.hasMember(name);
+        if (getResponse() == null) {
+            //Transient Object is null, hence no member access is possible.
+            return false;
         }
+
+        switch (name) {
+        case FrameworkConstants.JSAttributes.JS_HEADERS:
+            return getResponse().getHeaderNames() != null;
+        default:
+            return super.hasMember(name);
+        }
+    }
+
+    private HttpServletResponse getResponse() {
+
+        TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
+        return transientObjectWrapper.getWrapped();
     }
 }

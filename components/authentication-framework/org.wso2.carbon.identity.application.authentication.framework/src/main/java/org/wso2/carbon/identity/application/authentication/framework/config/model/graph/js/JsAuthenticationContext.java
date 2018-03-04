@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 public class JsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext> {
 
     public JsAuthenticationContext(AuthenticationContext wrapped) {
+
         super(wrapped);
     }
 
@@ -45,22 +47,22 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     public Object getMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return getWrapped().getRequestedAcr();
-            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return new JsAuthenticatedUser(getWrapped().getSubject());
-            case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
-                return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
-                return new JsServletRequest(getWrapped().getInitialRequest());
-            case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsServletRequest(getWrapped().getRequest());
-            case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsServletResponse(getWrapped().getResponse());
-            default:
-                return super.getMember(name);
+        case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
+            return getWrapped().getRequestedAcr();
+        case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
+            return new JsAuthenticatedUser(getWrapped().getSubject());
+        case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
+            return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
+        case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
+            return getWrapped().getTenantDomain();
+        case FrameworkConstants.JSAttributes.JS_REQUEST:
+            return new JsServletRequest((TransientObjectWrapper) getWrapped()
+                    .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
+        case FrameworkConstants.JSAttributes.JS_RESPONSE:
+            return new JsServletResponse((TransientObjectWrapper) getWrapped()
+                    .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
+        default:
+            return super.getMember(name);
         }
     }
 
@@ -68,22 +70,20 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     public boolean hasMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return getWrapped().getRequestedAcr() != null;
-            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return getWrapped().getSubject() != null;
-            case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
-                return getWrapped().getLastAuthenticatedUser() != null;
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain() != null;
-            case FrameworkConstants.JSAttributes.JS_INITIAL_REQUEST:
-                return getWrapped().getInitialRequest() != null;
-            case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return getWrapped().getRequest() != null;
-            case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return getWrapped().getResponse() != null;
-            default:
-                return super.hasMember(name);
+        case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
+            return getWrapped().getRequestedAcr() != null;
+        case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
+            return getWrapped().getSubject() != null;
+        case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
+            return getWrapped().getLastAuthenticatedUser() != null;
+        case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
+            return getWrapped().getTenantDomain() != null;
+        case FrameworkConstants.JSAttributes.JS_REQUEST:
+            return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_REQUEST);
+        case FrameworkConstants.JSAttributes.JS_RESPONSE:
+            return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_RESPONSE);
+        default:
+            return super.hasMember(name);
         }
     }
 
@@ -91,11 +91,11 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     public void removeMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(null);
-                break;
-            default:
-                super.removeMember(name);
+        case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
+            getWrapped().setSelectedAcr(null);
+            break;
+        default:
+            super.removeMember(name);
         }
     }
 
@@ -103,11 +103,17 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     public void setMember(String name, Object value) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(String.valueOf(value));
-                break;
-            default:
-                super.setMember(name, value);
+        case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
+            getWrapped().setSelectedAcr(String.valueOf(value));
+            break;
+        default:
+            super.setMember(name, value);
         }
+    }
+
+    private boolean hasTransientValueInParameters(String key) {
+
+        TransientObjectWrapper transientObjectWrapper = (TransientObjectWrapper) getWrapped().getParameter(key);
+        return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
     }
 }

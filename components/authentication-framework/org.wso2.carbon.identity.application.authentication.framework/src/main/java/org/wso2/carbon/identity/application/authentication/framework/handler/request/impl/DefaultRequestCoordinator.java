@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
@@ -143,11 +144,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             } else {
                 returning = true;
                 context = FrameworkUtils.getContextData(request);
-                if (context != null) {
-                    // set current request and response to the authentication context.
-                    context.setRequest(request);
-                    context.setResponse(response);
-                }
+                associateTransientRequestData(request, response, context);
             }
 
             if (context != null) {
@@ -198,6 +195,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);
         }
+    }
+
+    /**
+     * Associates the transient request data to the Authentication Context.
+     *
+     * @param request
+     * @param response
+     * @param context
+     */
+    private void associateTransientRequestData(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationContext context) {
+
+        // set current request and response to the authentication context.
+        context.setProperty(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(request));
+        context.setProperty(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(response));
     }
 
     /**
@@ -272,9 +284,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
         context.setContextIdentifier(contextId);
-        context.setInitialRequest(request);
-        context.setRequest(request);
-        context.setResponse(response);
 
         if (log.isDebugEnabled()) {
             log.debug("Framework contextId: " + contextId);
@@ -310,6 +319,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
+        associateTransientRequestData(request, response, context);
         findPreviousAuthenticatedSession(request, context);
         buildOutboundQueryString(request, context);
 
