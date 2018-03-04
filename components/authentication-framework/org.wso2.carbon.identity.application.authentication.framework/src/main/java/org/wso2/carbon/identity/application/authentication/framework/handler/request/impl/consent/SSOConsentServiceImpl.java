@@ -37,6 +37,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.ConsentSSOConstants;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -49,6 +50,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,12 +59,19 @@ import java.util.Map;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
         .ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .ConsentSSOConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .ConsentSSOConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .ConsentSSOConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
@@ -125,13 +134,10 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         }
 
         String spName = serviceProvider.getApplicationName();
-
-        String spTenantDomain;
-        spTenantDomain = getSPTenantDomain(serviceProvider);
-
+        String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        ConsentClaimsData consentClaimsData = new ConsentClaimsData();
 
+        ConsentClaimsData consentClaimsData = new ConsentClaimsData();
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
         if (ArrayUtils.isEmpty(claimMappings)) {
             return consentClaimsData;
@@ -150,13 +156,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         }
 
         List<ClaimMetaData> receiptConsentMetaData = new ArrayList<>();
-        List<ReceiptListResponse> receiptListResponses = getReceiptOfUser(serviceProvider, authenticatedUser,
-                                                                          spName, spTenantDomain, subject);
-        if (useExistingConsents && hasUserSingleReceipt(receiptListResponses)) {
-
-            String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
-            Receipt receipt = getReceipt(authenticatedUser, receiptId);
-
+        Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
+        if (useExistingConsents && receipt != null) {
             receiptConsentMetaData = getConsentClaimsFromReceipt(receipt);
             List<String> claimsWithConsent = getClaimsFromConsentMetaData(receiptConsentMetaData);
             mandatoryClaims.removeAll(claimsWithConsent);
@@ -169,6 +170,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     }
 
     private ClaimMapping[] getSpClaimMappings(ServiceProvider serviceProvider) {
+
         if (serviceProvider.getClaimConfig() != null) {
             return serviceProvider.getClaimConfig().getClaimMappings();
         } else {
@@ -177,6 +179,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     }
 
     private String getSPTenantDomain(ServiceProvider serviceProvider) {
+
         String spTenantDomain;
         User owner = serviceProvider.getOwner();
         if (owner != null) {
@@ -236,22 +239,18 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
-        List<ReceiptListResponse> receiptListResponses = getReceiptOfUser(serviceProvider, authenticatedUser,
-                                                                          spName, spTenantDomain, subject);
-        if (hasUserNoReceipts(receiptListResponses)) {
+        Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
+        if (receipt == null) {
             return receiptConsentMetaData;
         } else {
-            String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
-            Receipt receipt = getReceipt(authenticatedUser, receiptId);
-
             receiptConsentMetaData = getConsentClaimsFromReceipt(receipt);
         }
         return receiptConsentMetaData;
     }
 
-    private List<ReceiptListResponse> getReceiptOfUser(ServiceProvider serviceProvider,
-                                                       AuthenticatedUser authenticatedUser, String spName,
-                                                       String spTenantDomain, String subject) throws FrameworkException {
+    private Receipt getConsentReceiptOfUser(ServiceProvider serviceProvider, AuthenticatedUser authenticatedUser,
+                                            String spName, String spTenantDomain,
+                                            String subject) throws FrameworkException {
 
         int receiptListLimit = 2;
         List<ReceiptListResponse> receiptListResponses;
@@ -268,11 +267,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             if (hasUserMultipleReceipts(receiptListResponses)) {
                 throw new FrameworkException("Consent Management Error", "User cannot have more than one ACTIVE " +
                                                                          "consent per service provider.");
+            } else if (hasUserSingleReceipt(receiptListResponses)) {
+                String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
+                return getReceipt(authenticatedUser, receiptId);
+            } else {
+                return null;
             }
         } catch (ConsentManagementException e) {
             throw new FrameworkException("Consent Management Error", "Error while retrieving user consents.", e);
         }
-        return receiptListResponses;
     }
 
     private AddReceiptResponse addReceipt(String subject, String subjectTenantDomain, ServiceProvider
@@ -296,14 +299,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return receiptResponse;
     }
 
-    private ReceiptInput buildReceiptInput(String subject, ServiceProvider serviceProvider, String
-            spTenantDomain, List<ClaimMetaData> claims) throws FrameworkException {
+    private ReceiptInput buildReceiptInput(String subject, ServiceProvider serviceProvider, String spTenantDomain,
+                                           List<ClaimMetaData> claims) throws FrameworkException {
 
         String collectionMethod = "Web Form - Sign-in";
         String jurisdiction = "LK";
         String language = "us_EN";
         String consentType = "EXPLICIT";
-        String termination = "DATE_UNTIL:INDEFINITE";
+        String termination = CONSENT_VALIDITY_TYPE_VALID_UNTIL + CONSENT_VALIDITY_TYPE_SEPARATOR +
+                             CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
         String policyUrl = "http://nolink";
 
         Purpose purpose = getDefaultPurpose();
@@ -532,18 +536,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spTenantDomain = getSPTenantDomain(serviceProvider);
 
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        List<ReceiptListResponse> receiptListResponses = getReceiptOfUser(serviceProvider, authenticatedUser,
-                                                                          spName, spTenantDomain, subject);
-        if (hasUserNoReceipts(receiptListResponses)) {
+        Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
+        if (receipt == null) {
             return claimsWithConsent;
         }
 
-        String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
-        Receipt currentReceipt = getReceipt(authenticatedUser, receiptId);
-        List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices
-                (currentReceipt.getServices());
-        List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity
-                (piiCategoriesFromServices);
+        List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices(receipt.getServices());
+        List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategoriesFromServices);
         claimsWithConsent.addAll(claimsFromPIICategoryValidity);
         return claimsWithConsent;
     }
@@ -610,8 +609,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<ReceiptListResponse> receiptListResponses;
         startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
         try {
-            receiptListResponses = getConsentManager().searchReceipts(limit, 0, subject,
-                                                                 spTenantDomain, serviceProvider, ACTIVE_STATE);
+            receiptListResponses = getConsentManager().searchReceipts(limit, 0, subject, spTenantDomain,
+                                                                      serviceProvider, ACTIVE_STATE);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -652,7 +651,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         for (PIICategoryValidity piiCategoryValidity : piiCategories) {
 
             if (isConsentForClaimValid(piiCategoryValidity)) {
-
                 ClaimMetaData claimMetaData = new ClaimMetaData();
                 claimMetaData.setClaimUri(piiCategoryValidity.getName());
                 claimMetaData.setDisplayName(piiCategoryValidity.getDisplayName());
@@ -664,7 +662,58 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
     protected boolean isConsentForClaimValid(PIICategoryValidity piiCategoryValidity) {
 
+        String consentValidity = piiCategoryValidity.getValidity();
+
+        if (isEmpty(consentValidity)) {
+            return true;
+        }
+
+        List<String> consentValidityEntries = Arrays.asList(consentValidity.split(ConsentSSOConstants
+                                                                                          .CONSENT_VALIDITY_SEPARATOR));
+        for (String consentValidityEntry : consentValidityEntries) {
+            if (isSupportedExpiryType(consentValidityEntry)) {
+                String[] validityEntry = consentValidityEntry.split(CONSENT_VALIDITY_TYPE_SEPARATOR, 2);
+                if (validityEntry.length == 2) {
+                    try {
+                        String validTime = validityEntry[1];
+                        if (isDebugEnabled()) {
+                            String message = String.format("Validity time for PII category: %s is %s.",
+                                                           piiCategoryValidity.getName(), validTime);
+                            logDebug(message);
+                        }
+                        if (isExpiryIndefinite(validTime)) {
+                            return true;
+                        }
+                        long consentExpiryInMillis = Long.parseLong(validTime);
+                        long currentTimeMillis = System.currentTimeMillis();
+                        return isExpired(currentTimeMillis, consentExpiryInMillis);
+                    } catch (NumberFormatException e) {
+                        if (isDebugEnabled()) {
+                            String message = String.format("Cannot parse timestamp: %s. for PII category %s.",
+                                                           consentValidity, piiCategoryValidity.getName());
+                            logDebug(message);
+                        }
+                    }
+                }
+                return false;
+            }
+        }
         return true;
+    }
+
+    private boolean isSupportedExpiryType(String consentValidityEntry) {
+
+        return consentValidityEntry.toUpperCase().startsWith(CONSENT_VALIDITY_TYPE_VALID_UNTIL);
+    }
+
+    private boolean isExpired(long currentTimeMillis, long consentExpiryInMillis) {
+
+        return consentExpiryInMillis > currentTimeMillis;
+    }
+
+    private boolean isExpiryIndefinite(String validTime) {
+
+        return CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE.equalsIgnoreCase(validTime);
     }
 
     private boolean isMandatoryClaimsDisapproved(List<ClaimMetaData> consentMandatoryClaims, List<ClaimMetaData>
@@ -770,11 +819,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         return mandatoryClaims.size() + requestedClaims.size() == mandatoryClaimsMetaData.size() +
                                                                   requestedClaimsMetaData.size();
-    }
-
-    private boolean hasUserNoReceipts(List<ReceiptListResponse> receiptListResponses) {
-
-        return receiptListResponses.size() == 0;
     }
 
     private boolean hasUserSingleReceipt(List<ReceiptListResponse> receiptListResponses) {
