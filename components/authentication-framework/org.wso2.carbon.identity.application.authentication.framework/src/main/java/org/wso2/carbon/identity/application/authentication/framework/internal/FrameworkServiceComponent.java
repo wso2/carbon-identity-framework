@@ -227,7 +227,7 @@ public class FrameworkServiceComponent {
 
         SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
-        consentMgtPostAuthnHandler.setSSOConsentService(ssoConsentService);
+        FrameworkServiceDataHolder.getInstance().setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();

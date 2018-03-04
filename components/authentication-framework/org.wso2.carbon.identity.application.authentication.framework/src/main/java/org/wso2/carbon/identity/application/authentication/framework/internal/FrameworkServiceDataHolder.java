@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -60,6 +61,7 @@ public class FrameworkServiceDataHolder {
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
     private ClaimMetadataManagementService claimMetadataManagementService = null;
+    private SSOConsentService ssoConsentService;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -239,5 +241,21 @@ public class FrameworkServiceDataHolder {
     public void setClaimMetadataManagementService (ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get {@link SSOConsentService}.
+     * @return SSOConsentService.
+     */
+    public SSOConsentService getSSOConsentService() {
+        return ssoConsentService;
+    }
+
+    /**
+     * Set {@link SSOConsentService}.
+     * @param ssoConsentService Instance of {@link SSOConsentService}.
+     */
+    public void setSSOConsentService(SSOConsentService ssoConsentService) {
+        this.ssoConsentService = ssoConsentService;
     }
 }
