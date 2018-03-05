@@ -317,6 +317,25 @@
         <OpenIDConnect>
             <IDTokenBuilder>org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder</IDTokenBuilder>
             <SignatureAlgorithm>SHA256withRSA</SignatureAlgorithm>
+
+            <!-- Default asymmetric encryption algorithm that used to encrypt CEK. -->
+            <IDTokenEncryptionAlgorithm>RSA-OAEP</IDTokenEncryptionAlgorithm>
+            <!-- Default symmetric encryption algorithm that used to encrypt JWT claims set. -->
+            <IDTokenEncryptionMethod>A128GCM</IDTokenEncryptionMethod>
+
+            <!-- Supported versions: IS 5.5.0 onwards. -->
+            <SupportedIDTokenEncryptionAlgorithms>
+                <SupportedIDTokenEncryptionAlgorithm>RSA1_5</SupportedIDTokenEncryptionAlgorithm>
+                <SupportedIDTokenEncryptionAlgorithm>RSA-OAEP</SupportedIDTokenEncryptionAlgorithm>
+            </SupportedIDTokenEncryptionAlgorithms>
+            <SupportedIDTokenEncryptionMethods>
+                <SupportedIDTokenEncryptionMethod>A128GCM</SupportedIDTokenEncryptionMethod>
+                <SupportedIDTokenEncryptionMethod>A192GCM</SupportedIDTokenEncryptionMethod>
+                <SupportedIDTokenEncryptionMethod>A256GCM</SupportedIDTokenEncryptionMethod>
+                <SupportedIDTokenEncryptionMethod>A128CBC-HS256</SupportedIDTokenEncryptionMethod>
+                <SupportedIDTokenEncryptionMethod>A128CBC+HS256</SupportedIDTokenEncryptionMethod>
+            </SupportedIDTokenEncryptionMethods>
+
             <EnableAudiences>true</EnableAudiences>
             <!-- Comment out to add Audience values to the JWT token (id_token)  -->
             <!--Audiences>

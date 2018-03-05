@@ -282,6 +282,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 getSSOConsentService().processConsent(claimIdsWithConsent, serviceProvider, authenticatedUser,
                                                  consentClaimsData);
                 removeDisapprovedClaims(context, userConsent);
+            } catch (SSOConsentDisabledException e) {
+                String error = "Authentication Failure: Consent management is disabled for SSO.";
+                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
+                                   "sso consent management is invoked.";
+                throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
                 String error = "Error occurred while processing consent input of user: %s, for service provider: %s " +
                                "in tenant domain: %s.";
@@ -289,11 +294,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                         .getApplicationName(), getSPTenantDomain(serviceProvider));
                 throw new PostAuthenticationFailedException("Authentication failed. Error while processing user " +
                                                             "consent input.", error, e);
-            } catch (SSOConsentDisabledException e) {
-                String error = "Authentication Failure: Consent management is disabled for SSO.";
-                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
-                                   "sso consent management is invoked.";
-                throw new PostAuthenticationFailedException(error, errorDesc, e);
             }
         } else {
 
@@ -324,6 +324,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             try {
                 consentClaimsData = getSSOConsentService().getConsentRequiredClaimsWithExistingConsents(serviceProvider,
                                                                                                    authenticatedUser);
+            } catch (SSOConsentDisabledException e) {
+                String error = "Authentication Failure: Consent management is disabled for SSO.";
+                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
+                                   "sso consent management is invoked.";
+                throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
                 String error = String.format("Error occurred while retrieving consent data of user: %s for service " +
                                              "provider: %s in tenant domain: %s.",
@@ -331,11 +336,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing " +
                                                             "user consent.", error, e);
-            } catch (SSOConsentDisabledException e) {
-                String error = "Authentication Failure: Consent management is disabled for SSO.";
-                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
-                                   "sso consent management is invoked.";
-                throw new PostAuthenticationFailedException(error, errorDesc, e);
             }
         }
         return consentClaimsData;
