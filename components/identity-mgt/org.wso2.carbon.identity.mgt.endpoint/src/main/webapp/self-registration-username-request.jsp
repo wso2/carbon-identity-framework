@@ -34,13 +34,14 @@
     if (errorCodeObj != null) {
         errorCode = errorCodeObj.toString();
     }
-    
     if (SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT.equalsIgnoreCase(errorCode)) {
         errorMsg = "Invalid tenant domain - " + user.getTenantDomain();
     } else if (SelfRegistrationStatusCodes.ERROR_CODE_USER_ALREADY_EXISTS.equalsIgnoreCase(errorCode)) {
         errorMsg = "Username '" + username + "' is already taken. Please pick a different username";
     } else if (SelfRegistrationStatusCodes.ERROR_CODE_SELF_REGISTRATION_DISABLED.equalsIgnoreCase(errorCode)) {
         errorMsg = "Self registration is disabled for tenant - " + user.getTenantDomain();
+    } else if (SelfRegistrationStatusCodes.CODE_USER_NAME_INVALID.equalsIgnoreCase(errorCode)) {
+        errorMsg = user.getUsername() + " is an invalid user name. Please pick a valid username.";
     } else if (errorMsgObj != null) {
         errorMsg = errorMsgObj.toString();
     }
