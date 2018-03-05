@@ -16,9 +16,9 @@
   ~ under the License.
   --%>
 
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@include file="localize.jsp" %>
 
 <%
@@ -35,6 +35,13 @@
     if (request.getParameter(Constants.MANDATORY_CLAIMS) != null) {
         mandatoryClaimList = request.getParameter(Constants.MANDATORY_CLAIMS).split(Constants.CLAIM_SEPARATOR);
     }
+    
+    /*
+        This parameter decides whether the consent page will only be used to get consent for sharing claims with the
+        Service Provider. If this param is 'true' and user has already given consents for the OIDC scopes, we will be
+        hiding the scopes being displayed and the approve always button.
+    */
+    boolean userClaimsConsentOnly = Boolean.parseBoolean(request.getParameter(Constants.USER_CLAIMS_CONSENT_ONLY));
 %>
 
 <html>
@@ -64,7 +71,7 @@
         if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
             document.getElementById('consent').value = "approve";
             document.getElementById("profile").submit();
-        }else{
+        } else{
             $("#modal_claim_validation").modal();
         }
     }
@@ -125,27 +132,34 @@
                                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "request.access.profile")%>
                                 </p>
                                 <%
-                                    if (displayScopes && scopeString != null) {
+                                    if (!userClaimsConsentOnly) {
+                                        if (displayScopes && scopeString != null) {
                                 %>
                                 <ul>
                                     <%
                                         String[] scopes = scopeString.split(" ");
                                         for (String scopeID : scopes) {
-                                            
+                
                                             if ("openid".equals(scopeID)) {
                                                 continue;
                                             }
                                     %>
-                                    <li><%=Encode.forHtml(scopeID)%></li>
+                                    <li><%=Encode.forHtml(scopeID)%>
+                                    </li>
                                     <%
                                         }
                                     %>
                                 </ul>
                                 <%
+                                        }
+                                    } else {
+                                        // If we are getting consent for user claims only we don't need to display OIDC
+                                        // scopes in the consent page
                                     }
                                 %>
                                 <!-- Prompting for consent is only needed if we have mandatory or requested claims without any consent -->
                                 <% if (ArrayUtils.isNotEmpty(mandatoryClaimList) || ArrayUtils.isNotEmpty(requestedClaimList)) { %>
+                                <input type="hidden" name="user_claims_consent" id="user_claims_consent" value="true"/>
                                 <!-- validation -->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                                     <div class="text-left padding-bottom">
@@ -209,27 +223,35 @@
                                 <tbody>
                                 <tr>
                                     <td class="buttonRow" colspan="2">
-                                        
+                                        <input type="hidden" name="<%=Constants.SESSION_DATA_KEY_CONSENT%>"
+                                               value="<%=Encode.forHtmlAttribute(request.getParameter(Constants.SESSION_DATA_KEY_CONSENT))%>"/>
+                                        <input type="hidden" name="consent" id="consent" value="deny"/>
+                                        <% if (userClaimsConsentOnly) {%>
                                         <div style="text-align:left;">
                                             <input type="button" class="btn  btn-primary" id="approve" name="approve"
-                                                   onclick="javascript: approved(); return false;"
+                                                   onclick="approved(); return false;"
+                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"approve")%>"/>
+                                            <input class="btn" type="reset"
+                                                   onclick="deny(); return false;"
+                                                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"/>
+                                        </div>
+                                        <%} else {%>
+                                        <div style="text-align:left;">
+                                            <input type="button" class="btn  btn-primary" id="approve" name="approve"
+                                                   onclick="approved(); return false;"
                                                    value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
                                                     "approve")%>"/>
                                             <input type="button" class="btn" id="chkApprovedAlways"
-                                                   onclick="javascript: approvedAlways(); return false;"
+                                                   onclick="approvedAlways(); return false;"
                                                    value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
                                                     "approve.always")%>"/>
                                             <input type="hidden" id="hasApprovedAlways" name="hasApprovedAlways"
                                                    value="false"/>
                                             <input class="btn" type="reset"
                                                    value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
-                                                   onclick="javascript: deny(); return false;"/>
+                                                   onclick="deny(); return false;"/>
                                         </div>
-                                        
-                                        <input type="hidden" name="<%=Constants.SESSION_DATA_KEY_CONSENT%>"
-                                               value="<%=Encode.forHtmlAttribute(request.getParameter
-								(Constants.SESSION_DATA_KEY_CONSENT))%>"/>
-                                        <input type="hidden" name="consent" id="consent" value="deny"/>
+                                        <%} %>
                                     </td>
                                 </tr>
                                 </tbody>
