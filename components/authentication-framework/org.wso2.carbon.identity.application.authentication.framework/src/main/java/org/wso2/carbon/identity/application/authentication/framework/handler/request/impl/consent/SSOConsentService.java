@@ -17,8 +17,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
-        .SSOConsentDisabledException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
         .SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -40,7 +38,7 @@ public interface SSOConsentService {
      */
     ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
                                                                    AuthenticatedUser authenticatedUser)
-            throws SSOConsentServiceException, SSOConsentDisabledException;
+            throws SSOConsentServiceException;
 
     /**
      * Get consent required claims for a given service from a user ignoring existing user consents.
@@ -52,7 +50,7 @@ public interface SSOConsentService {
      */
     ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
                                                                       AuthenticatedUser authenticatedUser)
-            throws SSOConsentServiceException, SSOConsentDisabledException;
+            throws SSOConsentServiceException;
 
     /**
      * Process the provided user consent and creates a consent receipt.
@@ -65,7 +63,7 @@ public interface SSOConsentService {
      */
     void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
                                       AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
-            throws SSOConsentServiceException, SSOConsentDisabledException;
+            throws SSOConsentServiceException;
 
     /**
      * Retrieves claims which a user has provided consent for a given service provider.
@@ -76,7 +74,7 @@ public interface SSOConsentService {
      * @throws SSOConsentServiceException If error occurs while retrieve user consents.
      */
     List<ClaimMetaData> getClaimsWithConsents(ServiceProvider serviceProvider, AuthenticatedUser authenticatedUser)
-            throws SSOConsentServiceException, SSOConsentDisabledException;
+            throws SSOConsentServiceException;
 
 
     /**
