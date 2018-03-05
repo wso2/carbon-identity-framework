@@ -33,6 +33,7 @@ public class Constants {
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String REQUESTED_CLAIMS = "requestedClaims";
     public static final String MANDATORY_CLAIMS = "mandatoryClaims";
+    public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
 
