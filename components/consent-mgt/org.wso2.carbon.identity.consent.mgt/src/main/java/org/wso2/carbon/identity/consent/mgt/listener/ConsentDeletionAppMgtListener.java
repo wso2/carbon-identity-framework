@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowConsumer;
+
 /**
  * Takes care of deleting consents / receipts which are issued against a service provider. When the service provider
  * is deleted, consents issued against the service provider will be deleted through this listener.
@@ -119,7 +121,7 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
                 log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
                         applicationName));
             }
-            receiptListResponses.forEach(LambdaExceptionUtils.rethrowConsumer(receiptListResponse -> {
+            receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Deleting receipt with id : %s, issued for user: ", receiptListResponse
                             .getConsentReceiptId(), receiptListResponse.getPiiPrincipalId()));
@@ -141,7 +143,7 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
             try {
                 consentSearchLimit = Integer.parseInt(consentSearchLimitProp.toString());
                 if (log.isDebugEnabled()) {
-                    log.debug("Consent search limit is set to: %d" + consentSearchLimit);
+                    log.debug(String.format("Consent search limit is set to: %d", consentSearchLimit));
                 }
             } catch (NumberFormatException e) {
                 log.warn("consentSearchLimit for ConsentDeletionAppMgtListener is not a parsable integer. Hence " +

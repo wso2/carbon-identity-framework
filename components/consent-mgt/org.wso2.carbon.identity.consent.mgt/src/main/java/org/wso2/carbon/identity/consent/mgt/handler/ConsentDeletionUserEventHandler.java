@@ -40,6 +40,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowConsumer;
+
 /**
  * Deletes Consents issued against a particular user when a user is deleted from the system.
  */
@@ -90,7 +92,7 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
             consentSearchLimit = Integer.valueOf(receiptSearchLimit);
         } catch (NumberFormatException e) {
             log.error("Configured receipt.search.limit cannot be parsed as an integer. " +
-                    "Hence using default value 100");
+                    "Hence using default value: " + consentSearchLimit);
         }
     }
 
@@ -122,7 +124,7 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%d", receiptListResponses.size()));
             }
-            receiptListResponses.forEach(LambdaExceptionUtils.rethrowConsumer(receiptListResponse -> {
+            receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Deleting receipt with ID : %d, issued for application %s" + receiptListResponse
                             .getConsentReceiptId(), receiptListResponse.getSpDisplayName()));
