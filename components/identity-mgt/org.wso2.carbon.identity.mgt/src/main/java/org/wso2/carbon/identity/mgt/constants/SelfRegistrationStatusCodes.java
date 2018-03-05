@@ -29,4 +29,5 @@ public class SelfRegistrationStatusCodes {
     public static final String ERROR_CODE_INVALID_TENANT = "60001";
     public static final String ERROR_CODE_USER_ALREADY_EXISTS = "60002";
     public static final String ERROR_CODE_SELF_REGISTRATION_DISABLED = "60003";
+    public static final String CODE_USER_NAME_INVALID = "60004";
 }
