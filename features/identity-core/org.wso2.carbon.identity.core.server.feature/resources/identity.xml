@@ -416,6 +416,11 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
     </SSOService>
 
+    <Consent>
+        <!--Specify whether consent management should be enable during SSO.-->
+        <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
+    </Consent>
+
     <SecurityTokenService>
         <!--
             Default value for IdentityProviderURL is  built in following format

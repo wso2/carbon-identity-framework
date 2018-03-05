@@ -23,10 +23,14 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
+        .SSOConsentDisabledException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
+        .SSOConsentServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -62,7 +66,6 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
  */
 public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
-    private SSOConsentService ssoConsentService;
     private static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
     private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     private static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
@@ -133,7 +136,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         ServiceProvider serviceProvider = getServiceProvider(context);
         try {
-            ConsentClaimsData consentClaimsData = ssoConsentService.getConsentRequiredClaimsWithExistingConsents
+            ConsentClaimsData consentClaimsData = getSSOConsentService().getConsentRequiredClaimsWithExistingConsents
                     (serviceProvider, authenticatedUser);
 
             if (isDebugEnabled()) {
@@ -181,7 +184,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
                 return PostAuthnHandlerFlowStatus.INCOMPLETE;
             }
-        } catch (FrameworkException e) {
+        } catch (SSOConsentDisabledException e) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        } catch (SSOConsentServiceException e) {
             String error = String.format("Error occurred while retrieving consent data of user: %s for service " +
                                          "provider: %s in tenant domain: %s.", authenticatedUser
                     .getAuthenticatedSubjectIdentifier(), serviceProvider.getApplicationName(), getSPTenantDomain
@@ -274,16 +279,21 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
-                ssoConsentService.processConsent(claimIdsWithConsent, serviceProvider, authenticatedUser,
+                getSSOConsentService().processConsent(claimIdsWithConsent, serviceProvider, authenticatedUser,
                                                  consentClaimsData);
                 removeDisapprovedClaims(context, userConsent);
-            } catch (FrameworkException e) {
+            } catch (SSOConsentServiceException e) {
                 String error = "Error occurred while processing consent input of user: %s, for service provider: %s " +
                                "in tenant domain: %s.";
                 error = String.format(error, authenticatedUser.getAuthenticatedSubjectIdentifier(), serviceProvider
                         .getApplicationName(), getSPTenantDomain(serviceProvider));
                 throw new PostAuthenticationFailedException("Authentication failed. Error while processing user " +
                                                             "consent input.", error, e);
+            } catch (SSOConsentDisabledException e) {
+                String error = "Authentication Failure: Consent management is disabled for SSO.";
+                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
+                                   "sso consent management is invoked.";
+                throw new PostAuthenticationFailedException(error, errorDesc, e);
             }
         } else {
 
@@ -312,15 +322,20 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                          " SSOConsentService.");
             }
             try {
-                consentClaimsData = ssoConsentService.getConsentRequiredClaimsWithExistingConsents(serviceProvider,
+                consentClaimsData = getSSOConsentService().getConsentRequiredClaimsWithExistingConsents(serviceProvider,
                                                                                                    authenticatedUser);
-            } catch (FrameworkException e) {
+            } catch (SSOConsentServiceException e) {
                 String error = String.format("Error occurred while retrieving consent data of user: %s for service " +
                                              "provider: %s in tenant domain: %s.",
                                              authenticatedUser.getAuthenticatedSubjectIdentifier(),
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing " +
                                                             "user consent.", error, e);
+            } catch (SSOConsentDisabledException e) {
+                String error = "Authentication Failure: Consent management is disabled for SSO.";
+                String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
+                                   "sso consent management is invoked.";
+                throw new PostAuthenticationFailedException(error, errorDesc, e);
             }
         }
         return consentClaimsData;
@@ -675,13 +690,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return null;
     }
 
+    private SSOConsentService getSSOConsentService() {
+        return FrameworkServiceDataHolder.getInstance().getSSOConsentService();
+    }
+
     @Override
     public String getName() {
 
         return "ConsentMgtPostAuthenticationHandler";
-    }
-
-    public void setSSOConsentService(SSOConsentService ssoConsentService) {
-        this.ssoConsentService = ssoConsentService;
     }
 }

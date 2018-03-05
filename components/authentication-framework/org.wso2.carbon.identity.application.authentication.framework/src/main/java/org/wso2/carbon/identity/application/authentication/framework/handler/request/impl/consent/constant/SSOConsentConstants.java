@@ -19,10 +19,12 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 /**
  * Constants related to SSO consent handling.
  */
-public class ConsentSSOConstants {
+public class SSOConsentConstants {
 
     public static final String CONSENT_VALIDITY_SEPARATOR = ",";
     public static final String CONSENT_VALIDITY_TYPE_SEPARATOR = ":";
     public static final String CONSENT_VALIDITY_TYPE_VALID_UNTIL = "VALID_UNTIL";
     public static final String CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE = "INDEFINITE";
+    public static final String CONFIG_ELEM_CONSENT = "Consent";
+    public static final String CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT = "EnableSSOConsentManagement";
 }
