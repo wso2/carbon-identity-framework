@@ -112,7 +112,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     @Override
     public ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
                                                                           AuthenticatedUser authenticatedUser)
-            throws SSOConsentServiceException, SSOConsentDisabledException {
+            throws SSOConsentServiceException {
 
         return getConsentRequiredClaims(serviceProvider, authenticatedUser, true);
     }
@@ -128,7 +128,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     @Override
     public ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
                                                                              AuthenticatedUser authenticatedUser)
-            throws SSOConsentServiceException, SSOConsentDisabledException {
+            throws SSOConsentServiceException {
 
         return getConsentRequiredClaims(serviceProvider, authenticatedUser, false);
     }
@@ -145,7 +145,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     protected ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider,
                                                        AuthenticatedUser authenticatedUser,
                                                        boolean useExistingConsents)
-            throws SSOConsentServiceException, SSOConsentDisabledException {
+            throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
             String message = "Consent management for SSO is disabled.";
@@ -248,7 +248,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     @Override
     public void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
                                          AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
-            throws SSOConsentServiceException, SSOConsentDisabledException {
+            throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
             String message = "Consent management for SSO is disabled.";
@@ -279,7 +279,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
      */
     @Override
     public List<ClaimMetaData> getClaimsWithConsents(ServiceProvider serviceProvider, AuthenticatedUser
-            authenticatedUser) throws SSOConsentServiceException, SSOConsentDisabledException {
+            authenticatedUser) throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
             String message = "Consent management for SSO is disabled.";

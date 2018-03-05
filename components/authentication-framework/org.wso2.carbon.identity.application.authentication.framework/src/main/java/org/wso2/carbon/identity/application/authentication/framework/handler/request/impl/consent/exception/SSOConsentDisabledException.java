@@ -16,13 +16,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception;
 
-import org.wso2.carbon.identity.base.IdentityException;
-
 /**
  * This exception will be used to indicate when consent management for SSO is disabled. Extends of
  * {@link SSOConsentServiceException}.
  */
-public class SSOConsentDisabledException extends IdentityException {
+public class SSOConsentDisabledException extends SSOConsentServiceException {
 
     public SSOConsentDisabledException(String message) {
         super(message);
