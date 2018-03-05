@@ -66,7 +66,7 @@ public class ApplicationMgtUtil {
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
     // Regex for validating application name
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]*$";
+    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
     private static boolean perSPCertificateSupportAvailable;
@@ -520,11 +520,7 @@ public class ApplicationMgtUtil {
 
         String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
         Pattern regexPattern = Pattern.compile(spValidatorRegex);
-        if (regexPattern.matcher(applicationName).matches()) {
-            return true;
-        } else {
-            return false;
-        }
+        return regexPattern.matcher(applicationName).matches();
     }
 
     /**
