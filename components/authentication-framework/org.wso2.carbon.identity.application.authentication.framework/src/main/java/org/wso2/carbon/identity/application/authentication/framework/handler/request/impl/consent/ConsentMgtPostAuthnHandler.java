@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .SSOConsentConstants;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
         .SSOConsentDisabledException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
@@ -58,6 +60,7 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
@@ -228,14 +231,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spTenantDomain;
     }
 
-    private Set<String> getClaimsWithoutConsent(Collection<String> claims, AuthenticationContext context)
+    private Set<String> getClaimsWithoutConsent(Collection<String> claimWithConsent, AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
         List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
         Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
 
-        consentClaims.removeAll(claims);
+        consentClaims.removeAll(claimWithConsent);
         consentClaims.removeAll(mandatoryClaims);
         return consentClaims;
     }
@@ -482,6 +485,15 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
     }
 
+    private String getSubjectClaimUri(ApplicationConfig applicationConfig) {
+
+        String subjectClaimUri = applicationConfig.getSubjectClaimUri();
+        if (isEmpty(subjectClaimUri)) {
+            subjectClaimUri = SSOConsentConstants.USERNAME_CLAIM;
+        }
+        return subjectClaimUri;
+    }
+
     private Collection<String> getSPRequestedLocalClaims(AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
@@ -491,8 +503,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         if (applicationConfig == null) {
 
             ServiceProvider serviceProvider = getServiceProvider(context);
-            String error = "Application configs are null in AuthenticationContext for  provider: " + serviceProvider
-                    .getClaimConfig() + " in tenant domain: " + getSPTenantDomain(serviceProvider);
+            String error = "Application configs are null in AuthenticationContext for SP: " + serviceProvider
+                    .getApplicationName() + " in tenant domain: " + getSPTenantDomain(serviceProvider);
             throw new PostAuthenticationFailedException("Authentication failed. Error while processing application " +
                                                         "claim configurations.", error);
         }
@@ -502,6 +514,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spRequestedLocalClaims = claimMappings.values();
         }
+
+        String subjectClaimUri = getSubjectClaimUri(applicationConfig);
+        spRequestedLocalClaims.remove(subjectClaimUri);
 
         if (isDebugEnabled()) {
             String message = String.format("Requested claims for SP: %s - " + spRequestedLocalClaims,
@@ -520,8 +535,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (applicationConfig == null) {
             ServiceProvider serviceProvider = getServiceProvider(context);
-            String error = "Application configs are null in AuthenticationContext for  provider: " + serviceProvider
-                    .getClaimConfig() + " in tenant domain: " + getSPTenantDomain(serviceProvider);
+            String error = "Application configs are null in AuthenticationContext for SP: " + serviceProvider
+                    .getApplicationName() + " in tenant domain: " + getSPTenantDomain(serviceProvider);
             throw new PostAuthenticationFailedException("Authentication failed. Error while processing application " +
                                                         "claim configurations.", error);
         }
@@ -530,6 +545,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
             spMandatoryLocalClaims = claimMappings.values();
+        }
+        String subjectClaimUri = getSubjectClaimUri(applicationConfig);
+        if (!spMandatoryLocalClaims.contains(subjectClaimUri)) {
+            spMandatoryLocalClaims.add(subjectClaimUri);
         }
 
         if (isDebugEnabled()) {
