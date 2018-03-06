@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,6 +65,7 @@ import javax.xml.namespace.QName;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
@@ -83,6 +83,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
         .SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
         .SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE;
@@ -98,6 +100,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private boolean ssoConsentEnabled = true;
 
     public SSOConsentServiceImpl() {
+
         readSSOConsentEnabledConfig();
     }
 
@@ -159,17 +162,18 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
-        ConsentClaimsData consentClaimsData = new ConsentClaimsData();
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
-        if (ArrayUtils.isEmpty(claimMappings)) {
-            return consentClaimsData;
-        }
 
         List<String> requestedClaims = new ArrayList<>();
         List<String> mandatoryClaims = new ArrayList<>();
 
-        for (ClaimMapping claimMapping : claimMappings) {
+        String subjectClaimUri = getSubjectClaimUri(serviceProvider);
+        mandatoryClaims.add(subjectClaimUri);
 
+        for (ClaimMapping claimMapping : claimMappings) {
+            if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                continue;
+            }
             if (claimMapping.isMandatory()) {
                 mandatoryClaims.add(claimMapping.getLocalClaim().getClaimUri());
             } else if (claimMapping.isRequested()) {
@@ -186,9 +190,19 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             // Only request consent for mandatory claims without consent when a receipt already exist for the user.
             requestedClaims.clear();
         }
-        consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims, spTenantDomain);
+        ConsentClaimsData consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims,
+                                                                          spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
+    }
+
+    private String getSubjectClaimUri(ServiceProvider serviceProvider) {
+
+        String subjectClaimUri = serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri();
+        if (isBlank(subjectClaimUri)) {
+            subjectClaimUri = USERNAME_CLAIM;
+        }
+        return subjectClaimUri;
     }
 
     private void readSSOConsentEnabledConfig() {

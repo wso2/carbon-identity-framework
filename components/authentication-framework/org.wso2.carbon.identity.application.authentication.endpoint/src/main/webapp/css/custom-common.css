@@ -84,7 +84,7 @@ footer a, footer a:hover {
 }
 .wr-login {
     padding-top: 50px;
-
+    padding-bottom: 50px;
 }
 
 .wr-login input[type=text], .wr-login input[type=password]{
@@ -184,9 +184,9 @@ span.mandatory-msg{
     overflow-x: hidden;
 }
 .claim-list .checkbox{
-    padding: 10px;
-    background: #d9edf7;
-    margin-bottom: 4px;
+    background: #d9edf7;;
+    padding: 4px 10px;
+    margin-bottom: 2px;
 }
 
 
@@ -244,7 +244,7 @@ h2:target {
     border:1px solid #bce8f1;
 }
 .border-gray{
-    border:1px solid #d8d8d8;
+    border:1px solid #e1e1e1;
 }
 .claim-alert p{
     margin: 0;
@@ -254,7 +254,16 @@ h2:target {
     color: #666666;
     border-bottom: 1px solid #d8d8d8;
 }
-input[type=reset].btn{
+input[type=reset].btn, .btn-primary + .btn{
     border: 1px solid #dadada;
     background: #f7f7f7;
+}
+
+.section-heading-5{
+    color: #bdbdbd;
+    margin-bottom: 5px;
+}
+.scopes-list{
+    margin: 0;
+    padding-left: 30px;
 }
