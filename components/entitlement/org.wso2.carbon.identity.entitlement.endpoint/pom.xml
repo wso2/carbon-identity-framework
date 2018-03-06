@@ -35,6 +35,7 @@
             <artifactId>jsr311-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- CXF dependency-->
         <dependency>
             <groupId>org.wso2.orbit.org.apache.cxf</groupId>
             <artifactId>cxf-bundle</artifactId>
@@ -77,24 +78,10 @@
             <artifactId>jackson-jaxrs-json-provider</artifactId>
         </dependency>
 
-        <!-- CXF -->
-       <!-- <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http</artifactId>
-        </dependency>
--->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-      <!--  <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http-jetty</artifactId>
-        </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
