@@ -193,7 +193,7 @@
                                         <td class="buttonRow" colspan="2">
 
                                             <div style="text-align:left;">
-                                                <input type="button" class="btn  btn-primary" id="approve"
+                                                <input type="button" class="btn btn-primary" id="approve"
                                                        name="approve"
                                                        onclick="javascript: approved(); return false;"
                                                        value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
