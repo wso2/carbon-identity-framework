@@ -175,7 +175,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.error("Error occurred while evaluating post authentication", e);
             }
             FrameworkUtils
-                    .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getSessionIdentifier()));
+                    .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
             try {
                 URIBuilder uriBuilder = new URIBuilder(
