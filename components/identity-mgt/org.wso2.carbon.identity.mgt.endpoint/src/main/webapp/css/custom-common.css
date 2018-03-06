@@ -2,6 +2,8 @@ body {
     background: #f9f9f9;
     font-family: 'Roboto Light', Arial, Helvetica, sans-serif;
     font-weight: 300;
+    min-height: 100%;
+    position: relative;
 }
 header {
     background: #222222;
@@ -29,7 +31,7 @@ header .brand h1 em {
     text-transform: uppercase;
 }
 footer {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     width: 100%;
     min-height: 40px;
@@ -82,7 +84,7 @@ footer a, footer a:hover {
 }
 .wr-login {
     padding-top: 50px;
-
+    padding-bottom: 50px;
 }
 
 .wr-login input[type=text], .wr-login input[type=password]{
