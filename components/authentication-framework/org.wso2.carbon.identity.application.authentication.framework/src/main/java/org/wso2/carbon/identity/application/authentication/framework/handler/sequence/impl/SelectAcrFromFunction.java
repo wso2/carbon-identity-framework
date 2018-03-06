@@ -21,9 +21,12 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class SelectAcrFromFunction implements SelectOneFunction {
 
@@ -45,6 +48,8 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private String selectBestOutcome(List<String> acrListRequested, String[] possibleOutcomes) {
 
+        Map<Integer, String> acrRequestedWithPriority = new TreeMap<>(Collections.reverseOrder(
+                (Comparator<Integer>) (o1, o2) -> o2.compareTo(o1)));
         String acrSelected = null;
 
         for (String acrChecked : acrListRequested) {
@@ -52,14 +57,17 @@ public class SelectAcrFromFunction implements SelectOneFunction {
                 String outcomeToTest = possibleOutcomes[x];
                 if (outcomeToTest.equals(acrChecked)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Reassigning Best Match for the outcome : " + outcomeToTest);
+                        log.debug("Reassigning Best Match for the outcome : " + outcomeToTest + " with priority : " +
+                                x+1);
                     }
-                    acrSelected = acrChecked;
+                    acrRequestedWithPriority.put(x+1, acrChecked) ;
                     break;
                 }
             }
         }
-
+        if (!acrRequestedWithPriority.entrySet().isEmpty()) {
+            acrSelected = acrRequestedWithPriority.entrySet().iterator().next().getValue();
+        }
         return acrSelected;
     }
 }
