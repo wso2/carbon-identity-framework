@@ -244,6 +244,24 @@
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
             </SupportedGrantType>
         </SupportedGrantTypes>
+
+        <!--
+            Defines the grant types that will filter user claims based on user consent in their responses such as
+            id_token or user info response.
+
+            Default grant types that filter user claims based on user consent are 'authorization_code' and 'implicit'.
+
+            Supported versions: IS 5.5.0 onwards.
+        -->
+        <UserConsentEnabledGrantTypes>
+            <UserConsentEnabledGrantType>
+                <GrantTypeName>authorization_code</GrantTypeName>
+            </UserConsentEnabledGrantType>
+            <UserConsentEnabledGrantType>
+                <GrantTypeName>implicit</GrantTypeName>
+            </UserConsentEnabledGrantType>
+        </UserConsentEnabledGrantTypes>
+
         <OAuthCallbackHandlers>
             <OAuthCallbackHandler Class="org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"/>
         </OAuthCallbackHandlers>
