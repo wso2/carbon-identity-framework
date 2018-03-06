@@ -28,9 +28,7 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-
 
 /**
  * Tests the AuthenticationMethodNameTranslatorImpl.
@@ -40,35 +38,23 @@ import static org.testng.Assert.assertTrue;
 public class AuthenticationMethodNameTranslatorImplTest {
 
     public void testInitializeConfigsWithServerConfig_NoContextMapping() throws Exception {
+
         AuthenticationMethodNameTranslatorImpl translator = new AuthenticationMethodNameTranslatorImpl();
         String path = this.getClass().getResource("identity-no-context-mappings.xml").getFile();
 
         IdentityConfigParser.getInstance(path);
         translator.initializeConfigsWithServerConfig();
-        assertNull(translator.translateToInternalAcr("urn:oasis:names:tc:SAML:2.0:ac:classes:Password", "openid"));
-    }
-
-    public void testTranslateToInternalAcr() throws Exception {
-        AuthenticationMethodNameTranslatorImpl translator = getTranslator("identity-xml-test1.xml");
-        assertNotNull(translator.translateToInternalAcr("urn:oasis:names:tc:SAML:2.0:ac:classes:Password", "openid"));
-        assertEquals("x509",
-                translator.translateToInternalAcr("urn:oasis:names:tc:SAML:2.0:ac:classes:X509", "openid"));
-    }
-
-    public void testTranslateToExternalAcr() throws Exception {
-        AuthenticationMethodNameTranslatorImpl translator = getTranslator("identity-xml-test1.xml");
-        assertNotNull(translator.translateToExternalAcr("x509", "openid"));
-        assertTrue(translator.translateToExternalAcr("x509", "openid")
-                .contains("urn:oasis:names:tc:SAML:2.0:ac:classes:X509"));
     }
 
     public void testTranslateToInternalAmr() throws Exception {
+
         AuthenticationMethodNameTranslatorImpl translator = getTranslator("identity-xml-test1.xml");
         assertNotNull(translator.translateToInternalAmr("pwd", "openid"));
         assertEquals("SampleHardwareKeyAuthenticator", translator.translateToInternalAmr("hwk", "openid"));
     }
 
     public void testTranslateToExternalAmr() throws Exception {
+
         AuthenticationMethodNameTranslatorImpl translator = getTranslator("identity-xml-test1.xml");
         assertNotNull(translator.translateToExternalAmr("BasicAuthenticator", "openid"));
         assertEquals(1, translator.translateToExternalAmr("SampleHardwareKeyAuthenticator", "openid").size());
@@ -78,6 +64,7 @@ public class AuthenticationMethodNameTranslatorImplTest {
     }
 
     private AuthenticationMethodNameTranslatorImpl getTranslator(String fileName) throws XMLStreamException {
+
         InputStream inputStream = this.getClass().getResourceAsStream(fileName);
         OMElement documentElement = new StAXOMBuilder(inputStream).getDocumentElement();
         AuthenticationMethodNameTranslatorImpl result = new AuthenticationMethodNameTranslatorImpl();

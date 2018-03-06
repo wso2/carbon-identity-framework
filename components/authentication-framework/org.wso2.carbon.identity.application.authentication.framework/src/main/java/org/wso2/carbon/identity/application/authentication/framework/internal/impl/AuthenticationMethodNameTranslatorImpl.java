@@ -42,39 +42,32 @@ public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMet
 
     private static final String NS_CARBON = "http://wso2.org/projects/carbon/carbon.xml";
     private static final String CONTEXT_MAPPINGS = "AuthenticationContext";
-    private static final String CLASS_REF_LOCAL_NAME = "ClassRef";
     private static final String METHOD_REF_LOCAL_NAME = "MethodRef";
 
     private static final QName NIL_QNAME = new QName("http://www.w3.org/2001/XMLSchema-instance", "nil");
     private static final QName AUTH_CTX_QNAME = new QName(NS_CARBON, CONTEXT_MAPPINGS);
     private static final QName AMR_MAPPING_QNAME = new QName(NS_CARBON, "MethodRefs");
-    private static final QName CLASS_REF_QNAME = new QName(NS_CARBON, CLASS_REF_LOCAL_NAME);
     private static final QName METHOD_REF_QNAME = new QName(NS_CARBON, METHOD_REF_LOCAL_NAME);
-    private static final QName ACR_MAPPING_QNAME = new QName(NS_CARBON, "ClassRefs");
     private static final QName URI_ATTR_QNAME = new QName(null, "uri");
     private static final QName LEVEL_ATTR_QNAME = new QName(null, "level");
     private static final QName METHOD_ATTR_QNAME = new QName(null, "method");
 
-    private Map<String, String> acrExternalToInternalMap = new HashMap<>();
-    private Map<String, Set<String>> acrInternalToExternalMap = new HashMap<>();
     private Map<String, String> amrExternalToInternalMap = new HashMap<>();
     private Map<String, Set<String>> amrInternalToExternalMap = new HashMap<>();
 
     public void initializeConfigsWithServerConfig() {
+
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         initializeConfigs(configParser.getConfigElement(CONTEXT_MAPPINGS));
     }
 
     void initializeConfigs(OMElement mappingsElement) {
+
         if (mappingsElement == null) {
             return;
         }
         if (mappingsElement.getLocalName().equals("Server")) {
             mappingsElement = mappingsElement.getFirstChildWithName(AUTH_CTX_QNAME);
-        }
-        OMElement acrRefsElement = mappingsElement.getFirstChildWithName(ACR_MAPPING_QNAME);
-        if (acrRefsElement != null) {
-            processAcrMappings(acrRefsElement);
         }
 
         OMElement amrRefsElement = mappingsElement.getFirstChildWithName(AMR_MAPPING_QNAME);
@@ -85,18 +78,11 @@ public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMet
     }
 
     private void processAmrMappings(OMElement amrMapElement) {
+
         Iterator<OMElement> children = amrMapElement.getChildrenWithName(METHOD_REF_QNAME);
         for (int i = 0; children.hasNext(); i++) {
             OMElement child = children.next();
             processAmrEntry(child, amrInternalToExternalMap, amrExternalToInternalMap);
-        }
-    }
-
-    private void processAcrMappings(OMElement amrMapElement) {
-        Iterator<OMElement> children = amrMapElement.getChildrenWithName(CLASS_REF_QNAME);
-        for (int i = 0; children.hasNext(); i++) {
-            OMElement child = children.next();
-            processAcrEntry(child, acrExternalToInternalMap, acrInternalToExternalMap);
         }
     }
 
@@ -132,26 +118,14 @@ public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMet
     }
 
     @Override
-    public String translateToInternalAcr(String uri, String protocol) {
-        return acrExternalToInternalMap.get(uri);
-    }
-
-    @Override
-    public Set<String> translateToExternalAcr(String internalAcr, String protocol) {
-        Set<String> result = acrInternalToExternalMap.get(internalAcr);
-        if (result == null) {
-            return Collections.emptySet();
-        }
-        return result;
-    }
-
-    @Override
     public String translateToInternalAmr(String uri, String protocol) {
+
         return amrExternalToInternalMap.get(uri);
     }
 
     @Override
     public Set<String> translateToExternalAmr(String method, String protocol) {
+
         Set<String> result = amrInternalToExternalMap.get(method);
         if (result == null) {
             return Collections.emptySet();

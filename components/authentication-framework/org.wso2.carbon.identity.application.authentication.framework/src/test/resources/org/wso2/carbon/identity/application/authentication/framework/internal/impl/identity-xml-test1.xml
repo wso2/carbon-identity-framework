@@ -283,15 +283,6 @@
     </OAuth>
 
     <AuthenticationContext>
-        <ClassRefs>
-            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:Password" level="pwd"/>
-            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport" level="tls"/>
-            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient" level="tls"/>
-            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:X509" level="x509"/>
-            <ClassRef uri="urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos" level="Kerberos"/>
-            <ClassRef uri="org.wso2.identity:is.acr:LOA:5.5:ac:classes:3Factor" level="Mf3Factor"/>
-            <ClassRef uri="org.wso2.identity:is.acr:LOA:5.5:ac:classes:2Factor" level="Mf2Factor"/>
-        </ClassRefs>
         <MethodRefs>
             <MethodRef uri="pwd" method="BasicAuthenticator"  />
             <MethodRef uri="hwk" method="SampleHardwareKeyAuthenticator"  />

@@ -29,26 +29,6 @@ import java.util.Set;
 public interface AuthenticationMethodNameTranslator {
 
     /**
-     * Translates ACR value from external protocol specific form to the internal representation.
-     * The ACR can also be treated as Level-Of-Assurance (LoA).
-     *
-     * @param acrUri
-     * @param protocol
-     * @return Internal ACR or LoA representation.
-     */
-    String translateToInternalAcr(String acrUri, String protocol);
-
-    /**
-     * Translates ACR value from internal value to protocol specific value.
-     * The ACR can also be treated as Level-Of-Assurance (LoA).
-     *
-     * @param internalAcr
-     * @param protocol
-     * @return External ACR or LoA.
-     */
-    Set<String> translateToExternalAcr(String internalAcr, String protocol);
-
-    /**
      * Translates the internal AMR to external protocol specific values.
      * The internal ACR may correspond to multiple external AMR values.
      * @param externalAmr
