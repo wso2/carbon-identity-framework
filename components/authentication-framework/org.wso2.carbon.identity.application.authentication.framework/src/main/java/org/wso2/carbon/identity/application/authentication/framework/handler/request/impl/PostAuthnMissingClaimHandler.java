@@ -322,7 +322,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         StringBuilder missingClaimsString = new StringBuilder();
         for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
-            if (mappedAttrs.get(entry.getKey()) == null) {
+            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
                 missingClaimsString.append(entry.getKey());
                 missingClaimsString.append(",");
             }
