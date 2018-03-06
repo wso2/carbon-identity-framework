@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,6 +71,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
     private static volatile DefaultRequestCoordinator instance;
+    private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -335,20 +337,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         List<String> result = Collections.emptyList();
         String requestType = request.getParameter(FrameworkConstants.RequestParams.TYPE);
-        if (StringUtils.isNotBlank(request.getParameter("acr_values")) && !"null"
-                .equals(request.getParameter("acr_values"))) {
-            String[] acrValues = request.getParameter("acr_values").split(" ");
-            AuthenticationMethodNameTranslator translator = FrameworkServiceDataHolder
-                    .getInstance().getAuthenticationMethodNameTranslator();
+        List<String> acrValuesList = (List<String>) request.getAttribute(ACR_VALUES_ATTRIBUTE);
+        if (CollectionUtils.isNotEmpty(acrValuesList)) {
+            AuthenticationMethodNameTranslator translator = FrameworkServiceDataHolder.getInstance()
+                    .getAuthenticationMethodNameTranslator();
             if (translator == null) {
-                log.error(
-                        "No AuthenticationMethodNameTranslator present to translate the requested acr_values to"
-                                + " internal form. acr_values:"
-                                + acrValues);
+                log.error("No AuthenticationMethodNameTranslator present to translate the requested acr_values to"
+                        + " internal form. acr_values:" + StringUtils.join(acrValuesList, ' '));
             }
 
             LinkedHashSet list = new LinkedHashSet();
-            for (String acrValue : acrValues) {
+            for (String acrValue : acrValuesList) {
                 String translatedValue = acrValue;
                 if (translator != null) {
                     String internalAcr = translator.translateToInternalAcr(acrValue, requestType);
