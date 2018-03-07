@@ -70,113 +70,110 @@
                 <%-- Customizable content. Due to this nature, i18n is not implemented for this section --%>
                 <div id="privacyPolicy" class="padding-double">
                     <h4><a href="http://wso2.org/library/identity-server"><strong>About WSO2 Identity Server</strong></a></h4>
-                    <p>WSO2 Identity Server (refereed hereafter as &ldquo;IS 5.5&rdquo;) is an open source Identity Management and Entitlement Server which is based on open standards and specifications.</p>
+                    <p>WSO2 Identity Server (referred to as &ldquo;WSO2 IS 5.5&rdquo; within this policy) is an open source Identity Management and Entitlement Server that is based on open standards and specifications.</p>
                     <div class="margin-bottom-double"></div>
                     <h2 id="privacy-policy"><strong>Privacy Policy</strong></h2>
-                    <p>This describes how IS 5.5 capture your personal information, purpose and the retention of your personal information.</p>
-                    <p>Please note that this policy is for reference only, and applicable for the Software as a product. WSO2 Inc., or its developers has no access to the information held within the IS 5.5. Please refer &ldquo;Disclaimers&rdquo; for more information</p>
+                    <p>This policy describes how WSO2 IS 5.5 captures your personal information, the purposes of collecting it, and information about the retention of your personal information.</p>
+                    <p>Please note that this policy is for reference only, and is applicable for the software as a product. WSO2 Inc. and its developers have no access to the information held within WSO2 IS 5.5. Please see the <a href="https://localhost:9443/authenticationendpoint/privacy_policy.do#disclaimer">Disclaimer</a> section for more information</p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="what-are-the-personal-information">What are the personal information</h2>
-                    <p>IS 5.5 considers anything related to you as your personal information. This includes, but not limited to,</p>
+                    <h2 id="what-is-personal-information">What is personal information?</h2>
+                    <p>WSO2 IS 5.5 considers anything related to you as your personal information. This includes, but is not limited to:</p>
                     <ul>
-                        <li>Your user name (except the case where the user name created by your employer under contract)</li>
-                        <li>Date of Birth/Age</li>
-                        <li>Your IP address you would use to login</li>
-                        <li>Your device ID if you use to login with a device (Phone, Tablet).</li>
+                        <li>Your user name (except in cases where the user name created by your employer is under contract)</li>
+                        <li>Your date of birth/age</li>
+                        <li>IP address used to log in</li>
+                        <li>Your device ID if you use a device (e.g., phone or tablet) to log in</li>
                     </ul>
-                    <p>However IS 5.5 consider following are not your personal information, and used only for <strong>statistical</strong> purposes. Reason for this is that these information can not be used to track you.</p>
+                    <p>However, WSO2 IS 5.5 also collects the following information that is not considered as your personal information, but is used only for <strong>statistical</strong> purposes. The reason for this is that this information can not be used to track you.</p>
                     <ul>
-                        <li>City/Country which you originate the TCP/IP connection.</li>
-                        <li>Time of the day you login, Year, Month, Week, Hour or Minute</li>
-                        <li>Type of the device you use to login (Phone, Tablet, etc)</li>
-                        <li>Operating system and Generic browser information</li>
+                        <li>City/Country from which you originated the TCP/IP connection</li>
+                        <li>Time of the day that you logged in (year, month, week, hour or minute)</li>
+                        <li>Type of device that you used to log in (e.g., phone or tablet)</li>
+                        <li>Operating system and generic browser information</li>
                     </ul>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="collection-of-your-information">Collection of your information</h2>
-                    <p>IS 5.5 collect your information only to serve your access requirements.</p>
-                    <p>For example</p>
+                    <h2 id="collection-of-personal-information">Collection of personal information</h2>
+                    <p>WSO2 IS 5.5 collects your information only to serve your access requirements. For example:
                     <ul>
-                        <li>IS 5.5 uses your IP address to detect any suspicious login attempt to your account.</li>
-                        <li>IS 5.5 uses your First Name, Last Name, etc to provide a rich and personalized information</li>
-                        <li>IS 5.5 use your security question and answers only to allow account recovery.</li>
+                        <li>WSO2 IS 5.5 uses your IP address to detect any suspicious login attempts to your account.</li>
+                        <li>WSO2 IS 5.5 uses attributes like your first name, last name, etc., to provide a rich and personalized user experience.</li>
+                        <li>WSO2 IS 5.5 uses your security questions and answers only to allow account recovery.</li>
                     </ul>
                     <div class="margin-bottom"></div>
                     <h3 id="tracking-technologies">Tracking Technologies</h3>
-                    <p>IS 5.5 collect your information with</p>
+                    <p>WSO2 IS 5.5 collects your information by:</p>
                     <ul>
-                        <li>User profile page where you enter your personal data</li>
+                        <li>Collecting information from the user profile page where you enter your personal data.</li>
                         <li>Tracking your IP address with HTTP request, HTTP headers, and TCP/IP.</li>
                         <li>Tracking your geographic information with the IP address.</li>
-                        <li>Your login history with browser cookies. Please refer our cookie policy for more information.</li>
+                        <li>Tracking your login history with browser cookies. Please see our <a href="https://localhost:9443/authenticationendpoint/cookie_policy.do">cookie policy</a> for more information.</li>
                     </ul>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="user-of-your-personal-information">Use of your personal information</h2>
-                    <p>IS 5.5 will only use your personal information for the purposes for which it was collected (or for a use identified as consistent with that purpose).</p>
-                    <p>IS 5.5 use your personal information only for following purposes.</p>
+                    <h2 id="user-of-personal-information">Use of personal information</h2>
+                    <p>WSO2 IS 5.5 will only use your personal information for the purposes for which it was collected (or for a use identified as consistent with that purpose).</p>
+                    <p>WSO2 IS 5.5 uses your personal information only for the following purposes.</p>
                     <ul>
-                        <li>To provide you with personalized user experience. IS 5.5 use your Name, profile pictures you upload for this purpose.</li>
-                        <li>To protect your account from unauthorized access or potential hacking attempt. IS 5.5 use HTTP or TCP/IP Headers for this purpose</li>
+                        <li>To provide you with a personalized user experience. WSO2 IS 5.5 uses your name and uploaded profile pictures for this purpose.</li>
+                        <li>To protect your account from unauthorized access or potential hacking attempts. WSO2 IS 5.5 uses HTTP or TCP/IP Headers for this purpose.</li>
                         <ul>
-                            <li>This includes,</li>
+                            <li>This includes:</li>
                             <ul>
-                                <li>IP address,</li>
-                                <li>Browser fingerprinting,</li>
+                                <li>IP address</li>
+                                <li>Browser fingerprinting</li>
                                 <li>Cookies</li>
                             </ul>
                         </ul>
-                        <li>Derive statistical data for analytical purposes on system performance improvements. IS 5.5 will not keep any personal information after statistical calculations. Thus statistical report has no means to identify an individual person.</li>
+                        <li>Derive statistical data for analytical purposes on system performance improvements. WSO2 IS 5.5 will not keep any personal information after statistical calculations. Therefore, the statistical report has no means of identifying an individual person.</li>
                         <ul>
-                            <li>IS 5.5 may use</li>
+                            <li>WSO2 IS 5.5 may use:</li>
                             <ul>
-                                <li>IP Address to derive Geographic information</li>
-                                <li>Browser fingerprinting to determine the Browser technology, version.</li>
+                                <li>IP Address to derive geographic information</li>
+                                <li>Browser fingerprinting to determine the browser technology or/and version</li>
                             </ul>
                         </ul>
                     </ul>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="disclosure-of-your-personal-information">Disclosure of your personal information</h2>
-                    <p>IS 5.5 will only disclose personal information for the purposes for which it was collected (or for a use identified as consistent with that purpose), unless you have otherwise consented or where it is required by law.</p>
+                    <h2 id="disclosure-of-personal-information">Disclosure of personal information</h2>
+                    <p>WSO2 IS 5.5 will only disclose personal information for the purposes for which it was collected (or for a use identified as consistent with that purpose), unless you have consented otherwise or where it is required by law.</p>
                     <div class="margin-bottom"></div>
                     <h3 id="legal-process">Legal process</h3>
-                    <p>IS 5.5 may disclose your personal information with or without your consent where it is required by law following due land lawful process.</p>
+                    <p>WSO2 IS 5.5 may disclose your personal information with or without your consent when it is required by law following due land lawful process.</p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="how-is-5.5-store-or-keep-your-personal-information">How IS 5.5 store or keep your personal information</h2>
+                    <h2 id="storage-of-personal-information">Storage of personal information</h2>
                     <div class="margin-bottom"></div>
-                    <h3 id="where-your-personal-information-stored">Where your personal information stored</h3>
-                    <p>IS 5.5 store your personal information in secured Databases. IS 5.5 exercise proper industry accepted security measures to protect the database where your personal information is held.</p>
-                    <p>IS 5.5 may use encryption to keep your personal data with added level of security.</p>
+                    <h3 id="where-your-personal-information-stored">Where your personal information is stored</h3>
+                    <p>WSO2 IS 5.5 stores your personal information in secured databases. WSO2 IS 5.5 exercises proper industry accepted security measures to protect the database where your personal information is held.</p>
+                    <p>WSO2 IS 5.5 may use encryption to keep your personal data with an added level of security.</p>
                     <div class="margin-bottom"></div>
-                    <h3 id="how-long-does-is-5.5-keep-your-personal-information">How long IS 5.5 keep your personal information</h3>
-                    <p>IS 5.5 keep your personal data as long as you are an active user of our system. You can update your personal data at any time with the given self-care user portals.</p>
-                    <p>IS 5.5 may keep hashed secrets to provide you with added level of security. This includes,</p>
+                    <h3 id="how-long-does-is-5.5-keep-your-personal-information">How long your personal information is retained</h3>
+                    <p>WSO2 IS 5.5 retains your personal data as long as you are an active user of our system. You can update your personal data at any time using the given self-care user portals.</p>
+                    <p>WSO2 IS 5.5 may keep hashed secrets to provide you with an added level of security. This includes:</p>
                     <ul>
-                        <ul>
-                            <li>Password</li>
-                            <li>Previously used passwords.</li>
-                        </ul>
+                            <li>Current password</li>
+                            <li>Previously used passwords</li>
                     </ul>
                     <div class="margin-bottom"></div>
-                    <h3 id="how-can-you-request-a-removal-of-your-personal-information">How can you request a removal of your personal information</h3>
-                    <p>You can request deletion of your account with the administrator. The administrator will be the administrator of the tenant you are registered or the super-administrator if you do not use the tenant feature.</p>
-                    <p>You can additionally request to anonymize all traces of your activities IS 5.5 may have retained in Logs, Databases or Analytical storage.</p>
+                    <h3 id="how-to-request-removal-of-your-personal-information">How to request removal of your personal information</h3>
+                    <p>You can request the administrator to delete your account. The administrator is the administrator of the tenant you are registered under, or the super-administrator if you do not use the tenant feature.</p>
+                    <p>Additionally, you can request to anonymize all traces of your activities that WSO2 IS 5.5 may have retained in logs, databases or analytical storage.</p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="about">About</h2>
+                    <h2 id="more-information">More information</h2>
                     <div class="margin-bottom"></div>
                     <h3 id="changes-to-this-policy">Changes to this policy</h3>
-                    <p>The organization running IS 5.5 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running IS 5.5. The organization will notify any changes to the privacy policy over our oficial public channels.</p>
+                    <p>The organization running WSO2 IS 5.5 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running WSO2 IS 5.5. The organization will notify any changes to the privacy policy over our oficial public channels.</p>
                     <div class="margin-bottom"></div>
                     <h3 id="your-choices">Your choices</h3>
-                    <p>If you are already have an account with Identity server; you have right to deactivate your account if you find that this privacy policy is unacceptable for you.</p>
-                    <p>If you do not have an account, you can chose not to subscribe, if you do not agree with our privacy policy.</p>
+                    <p>If you are already have an account with WSO2 Identity server; you have the right to deactivate your account if you find that this privacy policy is unacceptable for you.</p>
+                    <p>If you do not have an account and you do not agree with our privacy policy, you can chose not to subscribe.</p>
                     <div class="margin-bottom"></div>
                     <h3 id="contact-us">Contact us</h3>
-                    <p>Please contact us if you have any question or concerns of this privacy policy.</p>
+                    <p>Please contact us if you have any question or concerns regarding this privacy policy.</p>
                     <p><a href="https://wso2.com/contact/">https://wso2.com/contact/</a></p>
                     <div class="margin-bottom-double"></div>
                     <h2 id="disclaimer">Disclaimer</h2>
                     <ol>
                         <li>This privacy policy statement serves as a template for the organization running WOS2 IS 5.5. The organizational policies will govern the real privacy policy applicable for its business purposes.</li>
-                        <li>WSO2 or its employees, partners, affiliates does not have access to the any data, including privacy data held at the organization running IS 5.5.</li>
+                        <li>WSO2, its employees, partners, and affiliates do not have access to any of the data, including privacy data held at the organization running WSO2 IS 5.5.</li>
                         <li>This policy should be modified according to the organizational requirements.</li>
                     </ol>
                 </div>
