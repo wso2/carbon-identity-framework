@@ -517,7 +517,7 @@
             Default value : false
             Supported versions: IS 5.5.0 beta onwards
             -->
-            <!--<AdvancedComplexMultiValuedAttributeSupportEnabled>true</AdvancedComplexMultiValuedAttributeSupportEnabled>-->
+            <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         </SCIMAuthenticators>
     </SCIM>
 
