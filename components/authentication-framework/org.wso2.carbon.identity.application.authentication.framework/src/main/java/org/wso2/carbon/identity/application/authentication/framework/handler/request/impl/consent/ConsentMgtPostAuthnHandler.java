@@ -44,7 +44,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -231,7 +230,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spTenantDomain;
     }
 
-    private Set<String> getClaimsWithoutConsent(Collection<String> claimWithConsent, AuthenticationContext context)
+    private Set<String> getClaimsWithoutConsent(List<String> claimWithConsent, AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
@@ -494,10 +493,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return subjectClaimUri;
     }
 
-    private Collection<String> getSPRequestedLocalClaims(AuthenticationContext context)
+    private List<String> getSPRequestedLocalClaims(AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        Collection<String> spRequestedLocalClaims = new ArrayList<>();
+        List<String> spRequestedLocalClaims = new ArrayList<>();
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
 
         if (applicationConfig == null) {
@@ -512,7 +511,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Map<String, String> claimMappings = applicationConfig.getRequestedClaimMappings();
 
         if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
-            spRequestedLocalClaims = claimMappings.values();
+            spRequestedLocalClaims = new ArrayList<>(claimMappings.values());
         }
 
         String subjectClaimUri = getSubjectClaimUri(applicationConfig);
@@ -527,10 +526,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spRequestedLocalClaims;
     }
 
-    private Collection<String> getSPMandatoryLocalClaims(AuthenticationContext context)
+    private List<String> getSPMandatoryLocalClaims(AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        Collection<String> spMandatoryLocalClaims = new ArrayList<>();
+        List<String> spMandatoryLocalClaims = new ArrayList<>();
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
 
         if (applicationConfig == null) {
@@ -544,7 +543,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Map<String, String> claimMappings = applicationConfig.getMandatoryClaimMappings();
 
         if (isNotEmpty(claimMappings) && isNotEmpty(claimMappings.values())) {
-            spMandatoryLocalClaims = claimMappings.values();
+            spMandatoryLocalClaims = new ArrayList<>(claimMappings.values());
         }
         String subjectClaimUri = getSubjectClaimUri(applicationConfig);
         if (!spMandatoryLocalClaims.contains(subjectClaimUri)) {
