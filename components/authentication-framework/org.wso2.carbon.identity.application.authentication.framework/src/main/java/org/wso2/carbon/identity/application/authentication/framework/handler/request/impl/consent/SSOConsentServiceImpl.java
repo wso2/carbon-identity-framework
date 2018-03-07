@@ -56,7 +56,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -805,7 +804,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return isNotEmpty(consentMandatoryClaims) && !Collections.disjoint(disapprovedClaims, consentMandatoryClaims);
     }
 
-    private ConsentClaimsData getConsentRequiredClaimData(Collection<String> mandatoryClaims, Collection<String>
+    private ConsentClaimsData getConsentRequiredClaimData(List<String> mandatoryClaims, List<String>
             requestedClaims, String tenantDomain) throws SSOConsentServiceException{
 
         ConsentClaimsData consentClaimsData = new ConsentClaimsData();
@@ -899,7 +898,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return currentReceipt;
     }
 
-    private boolean isAllRequiredClaimsChecked(Collection<String> mandatoryClaims, Collection<String>
+    private boolean isAllRequiredClaimsChecked(List<String> mandatoryClaims, List<String>
             requestedClaims, List<ClaimMetaData> mandatoryClaimsMetaData, List<ClaimMetaData> requestedClaimsMetaData) {
 
         return mandatoryClaims.size() + requestedClaims.size() == mandatoryClaimsMetaData.size() +
