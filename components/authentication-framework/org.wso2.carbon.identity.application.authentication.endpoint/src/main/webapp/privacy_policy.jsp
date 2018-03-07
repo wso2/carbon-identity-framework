@@ -74,7 +74,7 @@
                     <div class="margin-bottom-double"></div>
                     <h2 id="privacy-policy"><strong>Privacy Policy</strong></h2>
                     <p>This policy describes how WSO2 IS 5.5 captures your personal information, the purposes of collecting it, and information about the retention of your personal information.</p>
-                    <p>Please note that this policy is for reference only, and is applicable for the software as a product. WSO2 Inc. and its developers have no access to the information held within WSO2 IS 5.5. Please see the <a href="https://localhost:9443/authenticationendpoint/privacy_policy.do#disclaimer">Disclaimer</a> section for more information</p>
+                    <p>Please note that this policy is for reference only, and is applicable for the software as a product. WSO2 Inc. and its developers have no access to the information held within WSO2 IS 5.5. Please see the <a href="privacy_policy.jsp#disclaimer">Disclaimer</a> section for more information</p>
                     <div class="margin-bottom-double"></div>
                     <h2 id="what-is-personal-information">What is personal information?</h2>
                     <p>WSO2 IS 5.5 considers anything related to you as your personal information. This includes, but is not limited to:</p>
@@ -106,7 +106,7 @@
                         <li>Collecting information from the user profile page where you enter your personal data.</li>
                         <li>Tracking your IP address with HTTP request, HTTP headers, and TCP/IP.</li>
                         <li>Tracking your geographic information with the IP address.</li>
-                        <li>Tracking your login history with browser cookies. Please see our <a href="https://localhost:9443/authenticationendpoint/cookie_policy.do">cookie policy</a> for more information.</li>
+                        <li>Tracking your login history with browser cookies. Please see our <a href="cookie_policy.jsp">cookie policy</a> for more information.</li>
                     </ul>
                     <div class="margin-bottom-double"></div>
                     <h2 id="user-of-personal-information">Use of personal information</h2>
