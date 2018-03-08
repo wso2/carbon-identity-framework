@@ -83,16 +83,17 @@
                 <div class="boarder-all ">
 
                     <div class="padding-double font-large">
-                        <%=appName%> <%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.claims.recommendation")%>
+                        <%=Encode.forHtmlContent(appName)%> <%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                            "requested.claims.recommendation")%>
                     </div>
 
                     <!-- validation -->
                     <div class="padding-double">
                         <% for (String claim : missingClaimList) { %>
                         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                            <label class="control-label"><%=claim%>
+                            <label class="control-label"><%=Encode.forHtmlContent(claim)%>
                             </label>
-                            <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>"
+                            <input type="text" name="claim_mand_<%=Encode.forHtmlAttribute(claim)%>" id="claim_mand_<%=Encode.forHtmlAttribute(claim)%>"
                                    class="form-control" required="required">
                         </div>
                         <%}%>
