@@ -23,6 +23,9 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.stub.ClaimMetadataManagementServiceClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.stub.ClaimMetadataManagementServiceStub;
 import org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimPropertyDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.user.mgt.ui.ClaimDataAdminException;
 
 import java.rmi.RemoteException;
 
@@ -53,12 +56,46 @@ public class ClaimDataAdminClient {
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
     }
 
-    public LocalClaimDTO[] getLocalClaims() throws RemoteException, ClaimMetadataManagementServiceClaimMetadataException {
+    public LocalClaimDTO[] getLocalClaims()
+            throws RemoteException, ClaimMetadataManagementServiceClaimMetadataException {
 
         LocalClaimDTO[] localClaimDTOs = stub.getLocalClaims();
         if (localClaimDTOs == null) {
             localClaimDTOs = new LocalClaimDTO[0];
         }
         return localClaimDTOs;
+    }
+
+    public String getRegex(LocalClaimDTO[] localClaimDTO, String claimURI) {
+
+        String pattern = "";
+        for (LocalClaimDTO localClaim : localClaimDTO) {
+            if (claimURI.equals(localClaim.getLocalClaimURI())) {
+                ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
+                if (claimPropertyDTOs != null) {
+                    for (ClaimPropertyDTO claimPropertyDTO : claimPropertyDTOs) {
+                        if (ClaimConstants.REGULAR_EXPRESSION_PROPERTY.equals(claimPropertyDTO.getPropertyName())) {
+                            pattern = claimPropertyDTO.getPropertyValue();
+                            pattern = "/" + pattern + "/";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return pattern;
+    }
+
+    public String getRegex(String claimURI) throws ClaimDataAdminException {
+
+        LocalClaimDTO[] localClaims = new LocalClaimDTO[0];
+        try {
+            localClaims = getLocalClaims();
+        } catch (ClaimMetadataManagementServiceClaimMetadataException e) {
+            throw new ClaimDataAdminException("Error while accessing claims.", e);
+        } catch (RemoteException e) {
+            throw new ClaimDataAdminException("Error while getting new claims.", e);
+        }
+        return getRegex(localClaims, claimURI);
     }
 }
