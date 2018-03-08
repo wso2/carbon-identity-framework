@@ -98,7 +98,7 @@
                                 if (callback != null) {
                             %>
                             <div>
-                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                                <input type="hidden" name="callback" value="<%=Encode.forHtmlAttribute(callback) %>"/>
                             </div>
                             <%
                                 }
@@ -107,7 +107,7 @@
                                 if (tenantDomain != null) {
                             %>
                             <div>
-                                <input type="hidden" name="tenantdomain" value="<%=tenantDomain %>"/>
+                                <input type="hidden" name="tenantdomain" value="<%=Encode.forHtmlAttribute(tenantDomain) %>"/>
                             </div>
                             <%
                                 }
