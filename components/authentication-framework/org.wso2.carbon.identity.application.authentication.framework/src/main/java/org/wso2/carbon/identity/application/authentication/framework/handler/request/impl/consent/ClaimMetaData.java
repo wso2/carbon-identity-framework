@@ -18,6 +18,8 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import java.io.Serializable;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
 /**
  * This class represents claim meta data required for concept receipt creation.
  */
@@ -70,6 +72,10 @@ public class ClaimMetaData implements Serializable {
         }
 
         ClaimMetaData that = (ClaimMetaData) o;
+
+        if (isNotBlank(claimUri) && isNotBlank(that.claimUri)) {
+            return claimUri.equals(that.claimUri);
+        }
 
         return id == that.id;
     }
