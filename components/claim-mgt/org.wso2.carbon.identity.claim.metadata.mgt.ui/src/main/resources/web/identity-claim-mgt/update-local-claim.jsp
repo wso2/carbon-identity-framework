@@ -45,6 +45,12 @@
         display: inline-block;
         color: #555;
     }
+    .readonly_text{
+        color: #000;
+        font-size: 12px;
+        border: none;
+        margin-left: 8px;
+    }
 </style>
 
 <%
@@ -475,28 +481,21 @@
                                             %>
                                             <tr>
                                                 <td class="leftCol-big">
-                                                    <select style="width: 98%;"
-                                                            id="userstore_<%=attributeCounter%>"
-                                                            name="userstore_<%=attributeCounter%>"/>
-                                                        <%
-                                                            if (domainNames != null && domainNames.length > 0) {
-                                                                for (String domainName : domainNames) {
-                                                                    if (domainName.equalsIgnoreCase(userStoreDomainName)) {
-                                                        %>
-                                                    <option value="<%=Encode.forHtmlAttribute(domainName)%>" selected>
-                                                        <%=Encode.forHtmlContent(domainName)%>
-                                                    </option>
                                                     <%
-                                                                    } else {
+                                                        if (domainNames != null && domainNames.length > 0) {
+                                                            for (String domainName : domainNames) {
+                                                                if (domainName.equalsIgnoreCase(userStoreDomainName)) {
                                                     %>
-                                                    <option value="<%=Encode.forHtmlAttribute(domainName)%>">
-                                                        <%=Encode.forHtmlContent(domainName)%>
-                                                    </option>
+                                                    <input type="text" id="userstore_<%=attributeCounter%>"
+                                                           name="userstore_<%=attributeCounter%>"
+                                                           value="<%=Encode.forHtmlAttribute(domainName)%>" readonly
+                                                           class="readonly_text"/>
+
                                                     <%
-                                                                    }
                                                                 }
                                                             }
-                                                        %>
+                                                        }
+                                                    %>
                                                     </select>
                                                 </td>
                                                 <td class="leftCol-big">
@@ -505,12 +504,7 @@
                                                            id="attribute_<%=attributeCounter%>"
                                                            name="attribute_<%=attributeCounter%>"/>
                                                 </td>
-                                                <td>
-                                                    <a href="#" class="icon-link deleteLink"
-                                                       style="background-image:url(../identity-claim-mgt/images/delete.gif);"
-                                                       onclick="deleteAttributeRow(this);return false;"><fmt:message
-                                                            key='delete'/></a>
-                                                </td>
+                                                <td style="width: 20%;">&nbsp;</td>
                                             </tr>
                                             <%
                                                 }

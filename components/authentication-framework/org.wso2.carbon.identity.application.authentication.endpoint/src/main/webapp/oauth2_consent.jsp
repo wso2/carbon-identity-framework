@@ -72,12 +72,18 @@
     function approved() {
         var mandatoryClaimCBs = $(".mandatory-claim");
         var checkedMandatoryClaimCBs = $(".mandatory-claim:checked");
+        var scopeApprovalIsChecked = $("input[name='scope-approval']").is(':checked');
 
-        if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
-            document.getElementById('consent').value = "approve";
-            document.getElementById("profile").submit();
-        } else{
-            $("#modal_claim_validation").modal();
+        if(scopeApprovalIsChecked){
+            if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
+                document.getElementById('consent').value = "approve";
+                document.getElementById("profile").submit();
+            } else{
+                $("#modal_claim_validation").modal();
+            }
+        }else{
+            $("#modal_scope_validation").modal();
+
         }
     }
 
@@ -150,14 +156,14 @@
                                     List<String> openIdScopes = Stream.of(scopeString.split(" "))
                                             .filter(x -> !StringUtils.equalsIgnoreCase(x, "openid"))
                                             .collect(Collectors.toList());
-            
+
                                     if (CollectionUtils.isNotEmpty(openIdScopes)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "for.scopes")%>
+                                <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.scopes")%>
                                 </h5>
-                                <div class="border-gray margin-bottom-double padding">
-                                    <ul class="scopes-list">
+                                <div class="border-gray margin-bottom-double">
+                                    <ul class="scopes-list padding">
                                         <%
                                             for (String scopeID : openIdScopes) {
                                         %>
@@ -167,6 +173,20 @@
                                             }
                                         %>
                                     </ul>
+                                    <div class="scope-approval-container padding">
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="1">
+                                                Approve Always
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="scope-approval" id="approveCb" value="2">
+                                                Approve
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <%
@@ -179,62 +199,69 @@
                                 <input type="hidden" name="user_claims_consent" id="user_claims_consent" value="true"/>
                                 <!-- validation -->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                    <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "for.attributes")%></h5>
-                                    <div class="border-gray margin-bottom-double padding">
-                                        <div class="text-left padding-bottom">
-                                            <span class="required font-medium">*</span>
-                                            <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
+                                    <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.attributes")%></h5>
+                                    <div class="border-gray margin-bottom-double">
+                                        <div class="claim-alert" role="alert">
+                                            <p class="margin-bottom-double">
+                                                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "by.selecting.following.attributes")%>
+                                            </p>
                                         </div>
-                                        <div class="select-all">
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
-                                                    Select All
-                                                </label>
+                                        <div class="padding">
+                                            <div class="select-all">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox" name="consent_select_all" id="consent_select_all"/>
+                                                        Select All
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="claim-list">
-                                            <% for (String claim : mandatoryClaimList) {
-                                                String[] mandatoryClaimData = claim.split("_", 2);
-                                                if (mandatoryClaimData.length == 2) {
-                                                    String claimId = mandatoryClaimData[0];
-                                                    String displayName = mandatoryClaimData[1];
-                                            %>
-                                            <div class="checkbox claim-cb">
-                                                <label>
-                                                    <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
-                                                           required/>
-                                                    <%=Encode.forHtml(displayName)%>
-                                                    <span class="required font-medium">*</span>
-                                                </label>
-                                            </div>
-                                            <%
+                                            <div class="claim-list">
+                                                <% for (String claim : mandatoryClaimList) {
+                                                    String[] mandatoryClaimData = claim.split("_", 2);
+                                                    if (mandatoryClaimData.length == 2) {
+                                                        String claimId = mandatoryClaimData[0];
+                                                        String displayName = mandatoryClaimData[1];
+                                                %>
+                                                <div class="checkbox claim-cb">
+                                                    <label>
+                                                        <input class="mandatory-claim" type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"
+                                                               required/>
+                                                        <%=Encode.forHtml(displayName)%>
+                                                        <span class="required font-medium">*</span>
+                                                    </label>
+                                                </div>
+                                                <%
+                                                        }
                                                     }
-                                                }
-                                            %>
-                                            <% for (String claim : requestedClaimList) {
-                                                String[] requestedClaimData = claim.split("_", 2);
-                                                if (requestedClaimData.length == 2) {
-                                                    String claimId = requestedClaimData[0];
-                                                    String displayName = requestedClaimData[1];
-                                            %>
-                                            <div class="checkbox claim-cb">
-                                                <label>
-                                                    <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
-                                                    <%=Encode.forHtml(displayName)%>
-                                                </label>
-                                            </div>
-                                            <%
+                                                %>
+                                                <% for (String claim : requestedClaimList) {
+                                                    String[] requestedClaimData = claim.split("_", 2);
+                                                    if (requestedClaimData.length == 2) {
+                                                        String claimId = requestedClaimData[0];
+                                                        String displayName = requestedClaimData[1];
+                                                %>
+                                                <div class="checkbox claim-cb">
+                                                    <label>
+                                                        <input type="checkbox" name="consent_<%=Encode.forHtmlAttribute(claimId)%>" id="consent_<%=Encode.forHtmlAttribute(claimId)%>"/>
+                                                        <%=Encode.forHtml(displayName)%>
+                                                    </label>
+                                                </div>
+                                                <%
+                                                        }
                                                     }
-                                                }
-                                            %>
+                                                %>
+                                            </div>
+                                            <div class="text-left padding-top-double">
+                                                <span class="mandatory"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.recommendation")%></span>
+                                                <span class="required font-medium">( * )</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <% } %>
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                    <div class="alert alert-warning margin-none padding-10" role="alert">
+                                    <div class="alert alert-warning padding-10 margin-bottom-double" role="alert">
                                         <div>
                                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description.approving")%>
                                             <a href="privacy_policy.do" target="policy-pane">
@@ -255,7 +282,7 @@
                                                 <div style="text-align:left;">
                                                     <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                                            onclick="approved(); return false;"
-                                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"approve")%>"/>
+                                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"continue")%>"/>
                                                     <input class="btn" type="reset"
                                                            onclick="deny(); return false;"
                                                            value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"/>
@@ -265,11 +292,7 @@
                                                     <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                                            onclick="approved(); return false;"
                                                            value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
-                                                            "approve")%>"/>
-                                                    <input type="button" class="btn" id="chkApprovedAlways"
-                                                           onclick="approvedAlways(); return false;"
-                                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
-                                                            "approve.always")%>"/>
+                                                            "continue")%>"/>
                                                     <input type="hidden" id="hasApprovedAlways" name="hasApprovedAlways"
                                                            value="false"/>
                                                     <input class="btn" type="reset"
@@ -301,7 +324,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Mandatory Claims</h4>
+                <h4 class="modal-title"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims")%></h4>
             </div>
             <div class="modal-body">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.1")%>
@@ -309,7 +332,24 @@
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "mandatory.claims.warning.msg.3")%>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "ok")%></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_scope_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.scopes")%></h4>
+            </div>
+            <div class="modal-body">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "please.select.approve.always")%>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "ok")%></button>
             </div>
         </div>
     </div>
