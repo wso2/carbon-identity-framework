@@ -18,6 +18,11 @@
 
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.util.stream.Collectors" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.util.stream.Stream" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.apache.commons.collections.CollectionUtils" %>
 <%@include file="localize.jsp" %>
 
 <%
@@ -97,15 +102,16 @@
                                 </p>
                                 <%
                                     if (displayScopes && scopeString != null) {
+                                        // Remove "openid" from the scope list to display.
+                                        List<String> openIdScopes = Stream.of(scopeString.split(" "))
+                                                .filter(x -> !StringUtils.equalsIgnoreCase(x, "openid"))
+                                                .collect(Collectors.toList());
+    
+                                        if (CollectionUtils.isNotEmpty(openIdScopes)) {
                                 %>
                                 <ul>
                                 <%
-                                        String[] scopes = scopeString.split(" ");
-                                        for (String scopeID : scopes) {
-
-                                            if ("openid".equals(scopeID)) {
-                                                continue;
-                                            }
+                                        for (String scopeID : openIdScopes) {
                                 %>
                                         <li><%=Encode.forHtml(scopeID)%></li>
                                 <%
@@ -113,6 +119,7 @@
                                 %>
                                 </ul>
                                 <%
+                                        }
                                     }
                                 %>
                             </div>
