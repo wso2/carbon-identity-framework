@@ -72,18 +72,27 @@
     function approved() {
         var mandatoryClaimCBs = $(".mandatory-claim");
         var checkedMandatoryClaimCBs = $(".mandatory-claim:checked");
-        var scopeApprovalIsChecked = $("input[name='scope-approval']").is(':checked');
+        var scopeApproval = $("input[name='scope-approval']");
 
-        if(scopeApprovalIsChecked){
-            if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
-                document.getElementById('consent').value = "approve";
-                document.getElementById("profile").submit();
-            } else{
-                $("#modal_claim_validation").modal();
+        // If scope approval radio button is rendered then we need to validate that it's checked
+        if (scopeApproval.length > 0) {
+            if (scopeApproval.is(":checked")) {
+                var checkScopeConsent = $("input[name='scope-approval']:checked");
+                debugger;
+                document.getElementById('consent').value = checkScopeConsent.val();
+            } else {
+                $("#modal_scope_validation").modal();
+                return;
             }
-        }else{
-            $("#modal_scope_validation").modal();
+        } else {
+            // Scope radio button was not rendered therefore set the consent to 'approve'
+            document.getElementById('consent').value = "approve";
+        }
 
+        if (checkedMandatoryClaimCBs.length === mandatoryClaimCBs.length) {
+            document.getElementById("profile").submit();
+        } else {
+            $("#modal_claim_validation").modal();
         }
     }
 
@@ -176,13 +185,13 @@
                                     <div class="scope-approval-container padding">
                                         <div class="radio">
                                             <label>
-                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="1">
+                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="approveAlways">
                                                 Approve Always
                                             </label>
                                         </div>
                                         <div class="radio">
                                             <label>
-                                                <input type="radio" name="scope-approval" id="approveCb" value="2">
+                                                <input type="radio" name="scope-approval" id="approveCb" value="approve">
                                                 Approve
                                             </label>
                                         </div>
@@ -258,7 +267,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <% } %>
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                                     <div class="alert alert-warning padding-10 margin-bottom-double" role="alert">
@@ -278,7 +286,6 @@
                                                 <input type="hidden" name="<%=Constants.SESSION_DATA_KEY_CONSENT%>"
                                                        value="<%=Encode.forHtmlAttribute(request.getParameter(Constants.SESSION_DATA_KEY_CONSENT))%>"/>
                                                 <input type="hidden" name="consent" id="consent" value="deny"/>
-                                                <% if (userClaimsConsentOnly) {%>
                                                 <div style="text-align:left;">
                                                     <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                                            onclick="approved(); return false;"
@@ -287,19 +294,6 @@
                                                            onclick="deny(); return false;"
                                                            value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"/>
                                                 </div>
-                                                <%} else {%>
-                                                <div style="text-align:left;">
-                                                    <input type="button" class="btn  btn-primary" id="approve" name="approve"
-                                                           onclick="approved(); return false;"
-                                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
-                                                            "continue")%>"/>
-                                                    <input type="hidden" id="hasApprovedAlways" name="hasApprovedAlways"
-                                                           value="false"/>
-                                                    <input class="btn" type="reset"
-                                                           value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"deny")%>"
-                                                           onclick="deny(); return false;"/>
-                                                </div>
-                                                <%} %>
                                             </td>
                                         </tr>
                                         </tbody>
