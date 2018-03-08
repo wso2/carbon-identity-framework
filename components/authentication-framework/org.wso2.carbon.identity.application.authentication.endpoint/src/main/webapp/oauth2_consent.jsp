@@ -16,9 +16,14 @@
   ~ under the License.
   --%>
 
+<%@ page import="org.apache.commons.collections.CollectionUtils" %>
 <%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.stream.Collectors" %>
+<%@ page import="java.util.stream.Stream" %>
 <%@include file="localize.jsp" %>
 
 <%
@@ -135,21 +140,26 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                    <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "for.scopes")%></h5>
-                                    <div class="border-gray margin-bottom-double padding">
-                                    <%
-                                        if (!userClaimsConsentOnly) {
-                                            if (displayScopes && scopeString != null) {
-                                    %>
+                            <% if (userClaimsConsentOnly) {
+                                // If we are getting consent for user claims only we don't need to display OIDC
+                                // scopes in the consent page
+                            } else {%>
+                            <%
+                                if (displayScopes && scopeString != null) {
+                                    // Remove "openid" from the scope list to display.
+                                    List<String> openIdScopes = Stream.of(scopeString.split(" "))
+                                            .filter(x -> !StringUtils.equalsIgnoreCase(x, "openid"))
+                                            .collect(Collectors.toList());
+            
+                                    if (CollectionUtils.isNotEmpty(openIdScopes)) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "for.scopes")%>
+                                </h5>
+                                <div class="border-gray margin-bottom-double padding">
                                     <ul class="scopes-list">
                                         <%
-                                            String[] scopes = scopeString.split(" ");
-                                            for (String scopeID : scopes) {
-
-                                                if ("openid".equals(scopeID)) {
-                                                    continue;
-                                                }
+                                            for (String scopeID : openIdScopes) {
                                         %>
                                         <li><%=Encode.forHtml(scopeID)%>
                                         </li>
@@ -157,15 +167,13 @@
                                             }
                                         %>
                                     </ul>
-                                    <%
-                                            }
-                                        } else {
-                                            // If we are getting consent for user claims only we don't need to display OIDC
-                                            // scopes in the consent page
-                                        }
-                                    %>
-                                    </div>
                                 </div>
+                            </div>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
                                 <!-- Prompting for consent is only needed if we have mandatory or requested claims without any consent -->
                                 <% if (ArrayUtils.isNotEmpty(mandatoryClaimList) || ArrayUtils.isNotEmpty(requestedClaimList)) { %>
                                 <input type="hidden" name="user_claims_consent" id="user_claims_consent" value="true"/>
