@@ -58,8 +58,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -626,7 +631,20 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<PIICategoryValidity> piiCategoriesFromServices = getPIICategoriesFromServices(receipt.getServices());
         List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategoriesFromServices);
         claimsWithConsent.addAll(claimsFromPIICategoryValidity);
-        return claimsWithConsent;
+        return getDistinctClaims(claimsWithConsent);
+    }
+
+    private List<ClaimMetaData> getDistinctClaims(List<ClaimMetaData> claimsWithConsent) {
+
+        return claimsWithConsent.stream()
+                                .filter(distinctByKey(ClaimMetaData::getClaimUri))
+                                .collect(Collectors.toList());
+    }
+
+    private Predicate<ClaimMetaData> distinctByKey(Function<ClaimMetaData, String> keyExtractor) {
+
+        final Set<String > claimUris = new HashSet<>();
+        return claimUri -> claimUris.add(keyExtractor.apply(claimUri));
     }
 
     private List<ClaimMetaData> getConsentRequiredClaimMetaData(ConsentClaimsData consentClaimsData) {
