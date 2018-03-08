@@ -250,9 +250,10 @@ h2:target {
     margin: 0;
 }
 .claim-alert{
-    padding: 15px;
+    padding: 10px;
     color: #666666;
     border-bottom: 1px solid #d8d8d8;
+    font-size: 13px;
 }
 input[type=reset].btn, .btn-primary + .btn{
     border: 1px solid #dadada;
@@ -266,4 +267,11 @@ input[type=reset].btn, .btn-primary + .btn{
 .scopes-list{
     margin: 0;
     padding-left: 30px;
+}
+.scope-approval-container{
+    border-top: 1px solid #d8d8d8;
+}
+.scope-approval-container .radio{
+    padding: 4px 10px;
+    margin-bottom: 2px;
 }
