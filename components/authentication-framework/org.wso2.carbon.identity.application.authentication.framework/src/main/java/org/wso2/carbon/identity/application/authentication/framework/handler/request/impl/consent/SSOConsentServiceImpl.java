@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
         .SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -67,7 +68,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections.MapUtils.isNotEmpty;
+import static org.apache.commons.lang.ArrayUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isEmpty;
@@ -171,17 +175,27 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<String> requestedClaims = new ArrayList<>();
         List<String> mandatoryClaims = new ArrayList<>();
 
+        Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+
         String subjectClaimUri = getSubjectClaimUri(serviceProvider);
         mandatoryClaims.add(subjectClaimUri);
 
-        for (ClaimMapping claimMapping : claimMappings) {
-            if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
-                continue;
+        if (isPassThroughScenario(claimMappings, userAttributes)) {
+            for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
+                Claim remoteClaim = userAttribute.getKey().getRemoteClaim();
+                mandatoryClaims.add(remoteClaim.getClaimUri());
             }
-            if (claimMapping.isMandatory()) {
-                mandatoryClaims.add(claimMapping.getLocalClaim().getClaimUri());
-            } else if (claimMapping.isRequested()) {
-                requestedClaims.add(claimMapping.getLocalClaim().getClaimUri());
+        } else {
+
+            for (ClaimMapping claimMapping : claimMappings) {
+                if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                    continue;
+                }
+                if (claimMapping.isMandatory()) {
+                    mandatoryClaims.add(claimMapping.getLocalClaim().getClaimUri());
+                } else if (claimMapping.isRequested()) {
+                    requestedClaims.add(claimMapping.getLocalClaim().getClaimUri());
+                }
             }
         }
 
@@ -198,6 +212,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                                                                           spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
+    }
+
+    private boolean isPassThroughScenario(ClaimMapping[] claimMappings, Map<ClaimMapping, String> userAttributes) {
+
+        return isEmpty(claimMappings) && isNotEmpty(userAttributes);
     }
 
     private String getSubjectClaimUri(ServiceProvider serviceProvider) {
@@ -832,30 +851,41 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             List<ClaimMetaData> mandatoryClaimsMetaData = new ArrayList<>();
             List<ClaimMetaData> requestedClaimsMetaData = new ArrayList<>();
 
+            int claimId = 0;
             if (isNotEmpty(localClaims)) {
-                int claimId = 0;
                 for (LocalClaim localClaim : localClaims) {
-
-                    if (isAllRequiredClaimsChecked(mandatoryClaims, requestedClaims, mandatoryClaimsMetaData,
-                                                   requestedClaimsMetaData)) {
+                    if (isAllRequiredClaimsChecked(mandatoryClaims, requestedClaims)) {
                         break;
                     }
-
                     String claimURI = localClaim.getClaimURI();
-                    if (mandatoryClaims.contains(claimURI)) {
+                    if (mandatoryClaims.remove(claimURI)) {
                         ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
                         mandatoryClaimsMetaData.add(claimMetaData);
                         claimId++;
-                    } else if(requestedClaims.contains(claimURI)) {
+                    } else if(requestedClaims.remove(claimURI)) {
                         ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
                         requestedClaimsMetaData.add(claimMetaData);
                         claimId++;
                     }
                 }
 
-                consentClaimsData.setMandatoryClaims(mandatoryClaimsMetaData);
-                consentClaimsData.setRequestedClaims(requestedClaimsMetaData);
             }
+            if (isNotEmpty(mandatoryClaims)) {
+                for (String claimUri : mandatoryClaims) {
+                    ClaimMetaData claimMetaData = buildClaimMetaData(claimId, claimUri);
+                    mandatoryClaimsMetaData.add(claimMetaData);
+                    claimId++;
+                }
+            }
+            if (isNotEmpty(requestedClaims)) {
+                for (String claimUri : mandatoryClaims) {
+                    ClaimMetaData claimMetaData = buildClaimMetaData(claimId, claimUri);
+                    requestedClaimsMetaData.add(claimMetaData);
+                    claimId++;
+                }
+            }
+            consentClaimsData.setMandatoryClaims(mandatoryClaimsMetaData);
+            consentClaimsData.setRequestedClaims(requestedClaimsMetaData);
         } catch (ClaimMetadataException e) {
             throw new SSOConsentServiceException("Error while retrieving local claims", "Error occurred while " +
                                                            "retrieving local claims for tenant: " + tenantDomain, e);
@@ -863,10 +893,21 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return consentClaimsData;
     }
 
-    private ClaimMetaData buildClaimMetaData(int i, LocalClaim localClaim, String claimURI) {
+    private boolean isAllRequiredClaimsChecked(List<String> mandatoryClaims, List<String> requestedClaims) {
+
+        return isEmpty(mandatoryClaims) && isEmpty(requestedClaims);
+    }
+
+    private ClaimMetaData buildClaimMetaData(int claimId, String claimUri) {
+
+        LocalClaim localClaim = new LocalClaim(claimUri);
+        return buildClaimMetaData(claimId, localClaim, claimUri);
+    }
+
+    private ClaimMetaData buildClaimMetaData(int claimId, LocalClaim localClaim, String claimURI) {
 
         ClaimMetaData claimMetaData = new ClaimMetaData();
-        claimMetaData.setId(i);
+        claimMetaData.setId(claimId);
         claimMetaData.setClaimUri(claimURI);
         String displayName = localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY);
 
@@ -914,13 +955,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             PrivilegedCarbonContext.endTenantFlow();
         }
         return currentReceipt;
-    }
-
-    private boolean isAllRequiredClaimsChecked(List<String> mandatoryClaims, List<String>
-            requestedClaims, List<ClaimMetaData> mandatoryClaimsMetaData, List<ClaimMetaData> requestedClaimsMetaData) {
-
-        return mandatoryClaims.size() + requestedClaims.size() == mandatoryClaimsMetaData.size() +
-                                                                  requestedClaimsMetaData.size();
     }
 
     private boolean hasUserSingleReceipt(List<ReceiptListResponse> receiptListResponses) {
