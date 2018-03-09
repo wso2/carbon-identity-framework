@@ -380,23 +380,23 @@
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
 
-            if(agreementChk.length > 0){
+            if (agreementChk.length > 0) {
                 registrationBtn.prop("disabled", true).addClass("disabled");
             }
-            agreementChk.click(function(){
-                if($(this).is(":checked")){
+            agreementChk.click(function () {
+                if ($(this).is(":checked")) {
                     registrationBtn.prop("disabled", false).removeClass("disabled");
-                }else{
+                } else {
                     registrationBtn.prop("disabled", true).addClass("disabled");
                 }
             });
 
-            container.bind('ready.jstree', function(event, data) {
+            container.bind('ready.jstree', function (event, data) {
                 var $tree = $(this);
                 $($tree.jstree().get_json($tree, {
                     flat: true
                 }))
-                    .each(function(index, value) {
+                    .each(function (index, value) {
                         var node = container.jstree().get_node(this.id);
                         allAttributes.push(node.id);
                     });
@@ -420,12 +420,12 @@
                     }
                 }
 
-                if(ALL_ATTRIBUTES_MANDATORY){
+                if (ALL_ATTRIBUTES_MANDATORY) {
 
                     var selectedAttributes = container.jstree(true).get_selected();
-                    var allSelected = compareArrays(allAttributes,selectedAttributes) ? true : false;
+                    var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
 
-                    if(!allSelected){
+                    if (!allSelected) {
                         $("#attribute_selection_validation").modal();
                         return false;
                     }
@@ -463,14 +463,14 @@
                 <%
                 if (hasPurposes) {
                 %>
-                    var self = this;
-                    e.preventDefault();
-                    var recipt = addReciptInformation(container);
-                    $('<input />').attr('type', 'hidden')
-                        .attr('name', "consent")
-                        .attr('value', JSON.stringify(recipt))
-                        .appendTo('#register');
-                    self.submit();
+                var self = this;
+                e.preventDefault();
+                var recipt = addReciptInformation(container);
+                $('<input />').attr('type', 'hidden')
+                    .attr('name', "consent")
+                    .attr('value', JSON.stringify(recipt))
+                    .appendTo('#register');
+                self.submit();
                 <%
                 }
                 %>
@@ -486,11 +486,11 @@
         <%
             if (hasPurposes) {
         %>
-            renderReceiptDetails(<%=purposes%>);
+        renderReceiptDetails(<%=purposes%>);
         <%
             }
         %>
-        
+
         function renderReceiptDetails(data) {
 
             var treeTemplate =
@@ -516,43 +516,43 @@
 
             container = $("#html1").jstree({
                 plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
-                checkbox: { "keep_selected_style" : false },
+                checkbox: {"keep_selected_style": false},
             });
-            
+
         }
-        
-        function addReciptInformation(container){
-           // var oldReceipt = receiptData.receipts;
+
+        function addReciptInformation(container) {
+            // var oldReceipt = receiptData.receipts;
             var newReceipt = {};
             var services = [];
             var service = {};
 
-            var selectedNodes = container.jstree(true).get_selected('full',true);
-            var undeterminedNodes = container.jstree(true).get_undetermined('full',true);
+            var selectedNodes = container.jstree(true).get_selected('full', true);
+            var undeterminedNodes = container.jstree(true).get_undetermined('full', true);
 
-            if(!selectedNodes || selectedNodes.length < 1 ){
+            if (!selectedNodes || selectedNodes.length < 1) {
                 //revokeReceipt(oldReceipt.consentReceiptID);
                 return;
             }
             selectedNodes = selectedNodes.concat(undeterminedNodes);
             var relationshipTree = unflatten(selectedNodes); //Build relationship tree
             var purposes = relationshipTree[0].children;
-            var newPurposes =[];
+            var newPurposes = [];
 
-            for(var i=0; i< purposes.length; i++){
+            for (var i = 0; i < purposes.length; i++) {
                 var purpose = purposes[i];
                 var newPurpose = {};
-                newPurpose["purposeId"]  =  purpose.li_attr.purposeid;
+                newPurpose["purposeId"] = purpose.li_attr.purposeid;
                 //newPurpose = oldPurpose[0];
                 newPurpose['piiCategory'] = [];
                 newPurpose['purposeCategoryId'] = [1];
 
                 var piiCategory = [];
                 var categories = purpose.children;
-                for(var j=0; j< categories.length; j++){
+                for (var j = 0; j < categories.length; j++) {
                     var category = categories[j];
                     var c = {};
-                    c['piiCategoryId']  =  category.li_attr.piicategoryid;
+                    c['piiCategoryId'] = category.li_attr.piicategoryid;
                     piiCategory.push(c);
                 }
                 newPurpose['piiCategory'] = piiCategory;
@@ -572,7 +572,7 @@
                 mappedElem;
 
             // First map the nodes of the array to an object -> create a hash table.
-            for(var i = 0, len = arr.length; i < len; i++) {
+            for (var i = 0, len = arr.length; i < len; i++) {
                 arrElem = arr[i];
                 mappedArr[arrElem.id] = arrElem;
                 mappedArr[arrElem.id]['children'] = [];
