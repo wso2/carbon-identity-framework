@@ -147,7 +147,7 @@
                                                value="false"/>
                                         <input class="btn" type="reset"
                                                value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"cancel")%>"
-                                               onclick="javascript:document.location.href='<%=openidreturnto%>'"/>
+                                               onclick="javascript:document.location.href='<%=Encode.forJavaScript(openidreturnto)%>'"/>
                                     </div>
                                 </form>
 
