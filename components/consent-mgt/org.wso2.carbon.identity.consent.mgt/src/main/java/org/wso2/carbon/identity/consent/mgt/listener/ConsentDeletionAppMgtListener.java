@@ -116,7 +116,7 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
         }
         try {
             List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
-                    "*", tenantDomain, applicationName, null);
+                    "*", tenantDomain, applicationName, null, null);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
                         applicationName));
