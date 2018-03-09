@@ -159,7 +159,7 @@
                                 // scopes in the consent page
                             } else {%>
                             <%
-                                if (displayScopes && scopeString != null) {
+                                if (displayScopes && StringUtils.isNotBlank(scopeString)) {
                                     // Remove "openid" from the scope list to display.
                                     List<String> openIdScopes = Stream.of(scopeString.split(" "))
                                             .filter(x -> !StringUtils.equalsIgnoreCase(x, "openid"))
@@ -184,14 +184,14 @@
                                     <div class="scope-approval-container padding">
                                         <div class="radio">
                                             <label>
-                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="approveAlways">
-                                                Approve Always
+                                                <input type="radio" name="scope-approval" id="approveCb" value="approve">
+                                                Approve Once
                                             </label>
                                         </div>
                                         <div class="radio">
                                             <label>
-                                                <input type="radio" name="scope-approval" id="approveCb" value="approve">
-                                                Approve
+                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="approveAlways">
+                                                Approve Always
                                             </label>
                                         </div>
                                     </div>
