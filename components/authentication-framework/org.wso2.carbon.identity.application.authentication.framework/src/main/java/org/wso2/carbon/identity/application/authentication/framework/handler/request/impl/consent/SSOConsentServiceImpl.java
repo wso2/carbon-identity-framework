@@ -554,8 +554,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private PurposeCategory addDefaultPurposeCategory() throws SSOConsentServiceException {
 
         PurposeCategory purposeCategory;
-        PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY, "Core " +
-                                                                                               "functionality");
+        PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY,
+                                                                     "For core functionalities of the product");
         try {
             purposeCategory = getConsentManager().addPurposeCategory(defaultPurposeCategory);
         } catch (ConsentManagementException e) {
@@ -594,7 +594,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private Purpose addDefaultPurpose() throws SSOConsentServiceException {
 
         Purpose purpose;
-        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "Core functionality");
+        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product");
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {
