@@ -197,3 +197,8 @@ img.idp-image {
 .margin-bottom-half {
     margin-bottom:5px;
 }
+span.required{
+    color: red;
+    vertical-align: middle;
+}
+

@@ -277,6 +277,9 @@
                                             </p>
                                             <div id="tree-table"></div>
                                         </div>
+                                        <div class="text-left padding-top-double">
+                                            <span class="required"><strong>Please note that all consents are mandatory</strong></span>
+                                        </div>
                                     </div>
                                 </div>
                                 <!--End User Consents-->
@@ -369,7 +372,11 @@
     <script type="text/javascript">
 
         var container;
+        var allAttributes = [];
         $(document).ready(function () {
+
+            var ALL_ATTRIBUTES_MANDATORY = true;
+
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
 
@@ -382,6 +389,17 @@
                 }else{
                     registrationBtn.prop("disabled", true).addClass("disabled");
                 }
+            });
+
+            container.bind('ready.jstree', function(event, data) {
+                var $tree = $(this);
+                $($tree.jstree().get_json($tree, {
+                    flat: true
+                }))
+                    .each(function(index, value) {
+                        var node = container.jstree().get_node(this.id);
+                        allAttributes.push(node.id);
+                    });
             });
 
             $("#register").submit(function (e) {
@@ -401,6 +419,19 @@
                         return false;
                     }
                 }
+
+                if(ALL_ATTRIBUTES_MANDATORY){
+
+                    var selectedAttributes = container.jstree(true).get_selected();
+                    var allSelected = compareArrays(allAttributes,selectedAttributes) ? true : false;
+
+                    if(!allSelected){
+                        $("#attribute_selection_validation").modal();
+                        return false;
+                    }
+
+                }
+
                 if (invalidInput) {
                     return false;
                 }
@@ -443,10 +474,14 @@
                 <%
                 }
                 %>
-                
+
                 return true;
             });
         });
+
+        function compareArrays(arr1, arr2) {
+            return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
+        };
 
         <%
             if (hasPurposes) {
@@ -560,6 +595,24 @@
         }
         
     </script>
+
+    <div id="attribute_selection_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Consent Selection</h4>
+                </div>
+                <div class="modal-body">
+                    You need to provide consent for all the claims in order to proceed..!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </body>
     </html>
 </fmt:bundle>
