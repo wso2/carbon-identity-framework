@@ -95,8 +95,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
 
         // If OAuth flow, skip handling consent from the authentication handler. OAuth related consent will be
-        // handled from OAuth endpoint.
-        if (isOAuthFlow(context)) {
+        // handled from OAuth endpoint. OpenID flow is skipped as it is deprecated.
+        if (isOAuthFlow(context) || isOpenIDFlow(context)) {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
@@ -111,6 +111,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         return FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(context.getRequestType()) || REQUEST_TYPE_OAUTH2
                 .equalsIgnoreCase(context.getRequestType());
+    }
+
+    private boolean isOpenIDFlow(AuthenticationContext context) {
+
+        return FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType());
     }
 
     private boolean isDebugEnabled() {
