@@ -408,12 +408,12 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                                            List<ClaimMetaData> claims) throws SSOConsentServiceException {
 
         String collectionMethod = "Web Form - Sign-in";
-        String jurisdiction = "LK";
+        String jurisdiction = "NONE";
         String language = "us_EN";
         String consentType = "EXPLICIT";
         String termination = CONSENT_VALIDITY_TYPE_VALID_UNTIL + CONSENT_VALIDITY_TYPE_SEPARATOR +
                              CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
-        String policyUrl = "http://nolink";
+        String policyUrl = "NONE";
 
         Purpose purpose = getDefaultPurpose();
         PurposeCategory purposeCategory = getDefaultPurposeCategory();
