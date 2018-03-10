@@ -2,15 +2,15 @@ package org.wso2.carbon.identity.workflow.mgt.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Document;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -22,10 +22,9 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.sax.SAXSource;
 
 public class WorkflowManagementUtil {
     private static Log log = LogFactory.getLog(WorkflowManagementUtil.class);
@@ -122,31 +121,18 @@ public class WorkflowManagementUtil {
         if (xmlString != null) {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlString.getBytes());
             JAXBContext jaxbContext = JAXBContext.newInstance(classType);
+
             try {
-                SAXParserFactory spf = getSecuredSAXParserFactory();
-                Source xmlSource = new SAXSource(getXmlReader(spf), new InputSource(byteArrayInputStream));
+                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document document = builder.parse(byteArrayInputStream);
                 Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-                t = (T) jaxbUnmarshaller.unmarshal(xmlSource);
-            } catch (SAXException | ParserConfigurationException e) {
-                log.error("Error while unmarshalling the XML String", e);
+                t = (T) jaxbUnmarshaller.unmarshal(document);
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                log.error("Error while unmarshalling the XML.", e);
             }
         }
         return t;
-    }
-
-    private static XMLReader getXmlReader(SAXParserFactory spf) throws SAXException, ParserConfigurationException {
-
-        return spf.newSAXParser().getXMLReader();
-    }
-
-    private static SAXParserFactory getSecuredSAXParserFactory() throws ParserConfigurationException, SAXException {
-        // Fix from https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#JAXB_Unmarshaller
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
-        return spf;
     }
 
     /**
