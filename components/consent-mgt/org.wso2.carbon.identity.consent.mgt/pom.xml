@@ -66,6 +66,10 @@
             <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.commons</groupId>
+            <artifactId>org.wso2.carbon.tenant.common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
@@ -98,6 +102,9 @@
                         <Import-Package>
                             org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.util;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.model;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event;version="${carbon.identity.package.import.version.range}",
@@ -112,6 +119,7 @@
                             org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
+                            org.wso2.carbon.stratos.common.*;version="${carbon.commons.imp.pkg.version}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

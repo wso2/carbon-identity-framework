@@ -31,8 +31,10 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener;
 import org.wso2.carbon.identity.consent.mgt.handler.ConsentDeletionUserEventHandler;
+import org.wso2.carbon.identity.consent.mgt.listener.TenantConsentMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of IdentityConsentServiceComponent.
@@ -54,6 +56,8 @@ public class IdentityConsentServiceComponent {
                     new ConsentDeletionUserEventHandler(), null);
             ctxt.getBundleContext().registerService(ApplicationMgtListener.class.getName(),
                     new ConsentDeletionAppMgtListener(), null);
+            ctxt.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantConsentMgtListener()
+                    , null);
         } catch (Throwable throwable) {
             log.error("Error while activating Identity Consent Service Component.", throwable);
         }

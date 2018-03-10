@@ -56,9 +56,12 @@ public class SelfRegistrationMgtClient {
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";
     private static final String PURPOSES_ENDPOINT_RELATIVE_PATH = "/consents/purposes";
+    private static final String PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH = "/consents/purpose-categories";
     private static final String PURPOSES = "purposes";
     private static final String PURPOSE = "purpose";
     private static final String PII_CATEGORIES = "piiCategories";
+    private static final String PURPOSE_CATEGORY = "purposeCategory";
+    private static final String PURPOSE_CATEGORY_ID = "purposeCategoryId";
     private static final String DEFAULT = "DEFAULT";
     private static final String USERNAME = "username";
 
@@ -100,6 +103,24 @@ public class SelfRegistrationMgtClient {
         }
     }
 
+    public int getDefaultPurposeId(String tenantDomain) throws SelfRegistrationMgtClientException {
+
+        try {
+            String purposesCategoriesResponse = executeGet(getPurposeCategoriesEndpoint(tenantDomain));
+            JSONArray purposesCategories = new JSONArray(purposesCategoriesResponse);
+            for (int purpseCatIndex = 0; purpseCatIndex < purposesCategories.length(); purpseCatIndex++) {
+                JSONObject purposeCategory = (JSONObject) purposesCategories.get(purpseCatIndex);
+                if (DEFAULT.equals(purposeCategory.getString(PURPOSE_CATEGORY))) {
+                    return purposeCategory.getInt(PURPOSE_CATEGORY_ID);
+                }
+            }
+        } catch (IOException e) {
+            throw new SelfRegistrationMgtClientException("Error while retrieving default purpose for tenant: " +
+                    tenantDomain, e);
+        }
+        throw new SelfRegistrationMgtClientException("Couldn't find default purpose for tenant: " + tenantDomain);
+    }
+
     private String getPurposesEndpoint(String tenantDomain) {
 
         String purposesEndpoint;
@@ -111,6 +132,22 @@ public class SelfRegistrationMgtClient {
             purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
                     .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
+        }
+        return purposesEndpoint;
+    }
+
+    private String getPurposeCategoriesEndpoint(String tenantDomain) {
+
+        String purposesEndpoint;
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH +
+                                    PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
+        } else {
+            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
         }
         return purposesEndpoint;
     }
