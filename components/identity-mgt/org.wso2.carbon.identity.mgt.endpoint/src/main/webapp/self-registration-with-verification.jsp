@@ -43,6 +43,7 @@
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
+    Integer defaultPurposeCatId = null;
     Integer userNameValidityStatusCode = null;
     String username = request.getParameter("username");
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
@@ -83,6 +84,9 @@
     String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
     
+    if (hasPurposes) {
+        defaultPurposeCatId = selfRegistrationMgtClient.getDefaultPurposeId(user.getTenantDomain());
+    }
     Claim[] claims = new Claim[0];
 
     List<Claim> claimsList;
@@ -545,7 +549,7 @@
                 newPurpose["purposeId"] = purpose.li_attr.purposeid;
                 //newPurpose = oldPurpose[0];
                 newPurpose['piiCategory'] = [];
-                newPurpose['purposeCategoryId'] = [1];
+                newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
 
                 var piiCategory = [];
                 var categories = purpose.children;
