@@ -154,6 +154,8 @@
                                         </p>
                                     </div>
                                 </div>
+                            
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                             <% if (userClaimsConsentOnly) {
                                 // If we are getting consent for user claims only we don't need to display OIDC
                                 // scopes in the consent page
@@ -167,10 +169,9 @@
 
                                     if (CollectionUtils.isNotEmpty(openIdScopes)) {
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                                 <h5 class="section-heading-5"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.scopes")%>
                                 </h5>
-                                <div class="border-gray margin-bottom-double">
+                                <div class="border-gray" style="border-bottom: none;">
                                     <ul class="scopes-list padding">
                                         <%
                                             for (String scopeID : openIdScopes) {
@@ -181,27 +182,33 @@
                                             }
                                         %>
                                     </ul>
-                                    <div class="scope-approval-container padding">
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="scope-approval" id="approveCb" value="approve">
-                                                Approve Once
-                                            </label>
-                                        </div>
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="scope-approval" id="approveAlwaysCb" value="approveAlways">
-                                                Approve Always
-                                            </label>
-                                        </div>
+                                </div>
+                            <%
+                                        }
+                                    } %>
+    
+                            <div class="border-gray margin-bottom-double">
+                                <div class="padding">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="scope-approval" id="approveCb" value="approve">
+                                            Approve Once
+                                        </label>
+                                    </div>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="scope-approval" id="approveAlwaysCb" value="approveAlways">
+                                            Approve Always
+                                        </label>
                                     </div>
                                 </div>
                             </div>
+                            
+    
                             <%
-                                        }
-                                    }
                                 }
                             %>
+                            </div>
                                 <!-- Prompting for consent is only needed if we have mandatory or requested claims without any consent -->
                                 <% if (ArrayUtils.isNotEmpty(mandatoryClaimList) || ArrayUtils.isNotEmpty(requestedClaimList)) { %>
                                 <input type="hidden" name="user_claims_consent" id="user_claims_consent" value="true"/>
