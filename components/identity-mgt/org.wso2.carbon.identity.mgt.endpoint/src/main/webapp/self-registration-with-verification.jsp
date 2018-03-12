@@ -395,17 +395,6 @@
                 }
             });
 
-            container.bind('ready.jstree', function (event, data) {
-                var $tree = $(this);
-                $($tree.jstree().get_json($tree, {
-                    flat: true
-                }))
-                    .each(function (index, value) {
-                        var node = container.jstree().get_node(this.id);
-                        allAttributes.push(node.id);
-                    });
-            });
-
             $("#register").submit(function (e) {
 
                 var unsafeCharPattern = /[<>`\"]/;
@@ -523,6 +512,17 @@
                 checkbox: {"keep_selected_style": false},
             });
 
+            container.on('ready.jstree', function (event, data) {
+                var $tree = $(this);
+                $($tree.jstree().get_json($tree, {
+                    flat: true
+                }))
+                    .each(function (index, value) {
+                        var node = container.jstree().get_node(this.id);
+                        allAttributes.push(node.id);
+                    });
+            });
+
         }
 
         function addReciptInformation(container) {
@@ -597,7 +597,7 @@
             }
             return tree;
         }
-        
+
     </script>
 
     <div id="attribute_selection_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
