@@ -92,6 +92,10 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
         .SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .SSOConsentConstants.FEDERATED_USER_DOMAIN_PREFIX;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
+        .SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
         .SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
@@ -183,6 +187,9 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
                 Claim remoteClaim = userAttribute.getKey().getRemoteClaim();
+                if (subjectClaimUri.equals(remoteClaim.getClaimUri())) {
+                    continue;
+                }
                 mandatoryClaims.add(remoteClaim.getClaimUri());
             }
         } else {
@@ -717,7 +724,23 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
     private String buildSubjectWithUserStoreDomain(AuthenticatedUser authenticatedUser) {
 
-        return UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser.getUserStoreDomain());
+        String userStoreDomain;
+        if (authenticatedUser.isFederatedUser()) {
+            userStoreDomain = getFederatedUserDomain(authenticatedUser.getFederatedIdPName());
+        } else {
+            userStoreDomain = authenticatedUser.getUserStoreDomain();
+        }
+
+        return UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), userStoreDomain);
+    }
+
+    private String getFederatedUserDomain(String authenticatedIDP) {
+
+        if (isNotBlank(authenticatedIDP)) {
+            return FEDERATED_USER_DOMAIN_PREFIX + FEDERATED_USER_DOMAIN_SEPARATOR + authenticatedIDP;
+        } else {
+            return FEDERATED_USER_DOMAIN_PREFIX;
+        }
     }
 
     private List<ReceiptListResponse> getReceiptListOfUserForSP(AuthenticatedUser authenticatedUser,
