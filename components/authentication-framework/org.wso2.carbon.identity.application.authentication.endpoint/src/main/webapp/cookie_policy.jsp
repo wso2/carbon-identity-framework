@@ -77,7 +77,7 @@
                     <div class="margin-bottom-double"></div>
                     <h2 id="how-wso2-is-5.5.0-processes-cookies">How does WSO2 IS 5.5.0 process cookies?</h2>
                     <p>WSO2 IS 5.5.0 stores and retrieves information on your browser using cookies. This information is used to provide a better experience. Some cookies serve the primary purposes of allowing a user to log in to the system, maintaining sessions, and keeping track of activities you do within the login session.</p>
-                    <p>The primary purpose of some cookies used in WSO2 IS 5.5.0 is to personally identify you as this is the primary function of the WSO2 Identity Server. However the cookie lifetime ends once your session ends i.e., after you log-out, or after the session expiry time has elapsed.</p>
+                    <p>The primary purpose of some cookies used in WSO2 IS 5.5.0 is to personally identify you as this is the main function of the WSO2 Identity Server. However the cookie lifetime ends once your session ends i.e., after you log-out, or after the session expiry time has elapsed.</p>
                     <p>Some cookies are simply used to give you a more personalised web experience and these cookies can not be used to personally identify you or your activities.</p>
                     <p>This cookie policy is part of the <a href="privacy_policy.do">WSO2 IS 5.5.0 Privacy Policy.</a></p>
                     <div class="margin-bottom-double"></div>
@@ -87,7 +87,7 @@
                     <h2 id="what-does-wso2-is-5.5.0-use-cookies-for">What does WSO2 IS 5.5.0 use cookies for?</h2>
                     <p>Cookies are used for two purposes in WSO2 IS 5.5.0.</p>
                     <ol>
-                        <li>To identify you and provide security (as this is the primary function of WSO2 IS).</li>
+                        <li>To identify you and provide security (as this is the main function of WSO2 IS).</li>
                         <li>To provide a satisfying user experience.</li>
                     </ol>
                     <div class="margin-bottom"></div>
@@ -126,7 +126,7 @@
                     <h2 id="how-do-i-control-my-cookies">How do I control my cookies?</h2>
                     <p>Most browsers allow you to control cookies through their settings preferences. However, if you limit the given ability for websites to set cookies, you may worsen your overall user experience since it will no longer be personalized to you. It may also stop you from saving customized settings like login information.</p>
                     <p>Most likely, disabling cookies will make you unable to use authentication and authorization functionalities offered by WSO2 IS 5.5.0.</p>
-                    <p>If you have any questions or concerns regarding the use of cookies, please contact the Data Protection Officer of the organization running this WSO2 IS 5.5.0 instance.</p>
+                    <p>If you have any questions or concerns regarding the use of cookies, please contact the entity or individuals (or their data protection officer, if applicable) of the organization running this WSO2 IS 5.5.0 instance.</p>
                     <div class="margin-bottom-double"></div>
                     <h2 id="what-are-the-cookies-used">What are the cookies used?</h2>
                     <table class="table table-bordered">
@@ -191,7 +191,8 @@
                     </table>
                     <div class="margin-bottom-double"></div>
                     <h2 id="disclaimer">Disclaimer</h2>
-                    <p>This cookie policy is only for the illustrative purpose of the product WSO2 IS 5.5.0. The content in the policy is technically correct at the time of the product shipment. The organization which runs this WSO2 IS 5.5.0 instance has full authority and responsibility of the effective Cookie Policy.</p>
+                    <p>This cookie policy is only for the illustrative purposes of the product WSO2 IS 5.5.0. The content in the policy is technically correct at the time of the product shipment. The organization which runs this WSO2 IS 5.5.0 instance has full authority and responsibility with regard to the effective Cookie Policy. </p>
+                    <p>WSO2, its employees, partners, and affiliates do not have access to and do not require, store, process or control any of the data, including personal data contained in WSO2 IS 5.5.0. All data, including personal data is controlled and processed by the entity or individual running WSO2 IS 5.5.0.  WSO2, its employees partners and affiliates are not a data processor or a data controller within the meaning of any data privacy regulations.  WSO2 does not provide any warranties or undertake any responsibility or liability in connection with the lawfulness or the manner and purposes for which WSO2 IS 5.5.0 is used by such entities or persons. </p>
                 </div>
                 <%-- /Costomizable content --%>
                 <div class="clearfix"></div>
