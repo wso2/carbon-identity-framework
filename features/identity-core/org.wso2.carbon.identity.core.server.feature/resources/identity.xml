@@ -387,8 +387,8 @@
             -->
             <RequestObjectBuilders>
                 <RequestObjectBuilder>
-                    <BuilderName>request_param_value_builder</BuilderName>
-                    <RequestObjectBuilderImplClass>org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder</RequestObjectBuilderImplClass>
+                    <Type>request_param_value_builder</Type>
+                    <ClassName>org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder</ClassName>
                 </RequestObjectBuilder>
             </RequestObjectBuilders>
 
