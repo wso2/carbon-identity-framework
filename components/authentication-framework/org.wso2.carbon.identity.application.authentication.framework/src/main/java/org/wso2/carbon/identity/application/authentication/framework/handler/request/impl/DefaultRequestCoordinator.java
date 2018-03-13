@@ -204,6 +204,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private void associateTransientRequestData(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) {
 
+        if(context == null) {
+            return;
+        }
         // set current request and response to the authentication context.
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(request));
         context.setProperty(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(response));
