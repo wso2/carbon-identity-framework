@@ -447,21 +447,21 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // First get the certificate reference from the application properties.
             ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
 
-            String certificateReferenceId = getCertificateReferenceID(serviceProviderProperties);
+            String certificateReferenceIdString = getCertificateReferenceID(serviceProviderProperties);
 
             // If there is a reference, update the relevant certificate record.
-            if (certificateReferenceId != null) { // Update the existing record.
+            if (certificateReferenceIdString != null) { // Update the existing record.
                 PreparedStatement statementToUpdateCertificate = null;
                 try {
                     statementToUpdateCertificate = connection.prepareStatement(ApplicationMgtDBQueries.
                             UPDATE_CERTIFICATE);
                     setBlobValue(serviceProvider.getCertificateContent(), statementToUpdateCertificate, 1);
-                    statementToUpdateCertificate.setString(2, certificateReferenceId);
+                    statementToUpdateCertificate.setInt(2, Integer.parseInt(certificateReferenceIdString));
 
                     statementToUpdateCertificate.executeUpdate();
                 } catch (IOException e) {
-                    throw new IdentityApplicationManagementException("An error occurred while processing content stream " +
-                            "of certificate.", e);
+                    throw new IdentityApplicationManagementException("An error occurred while processing content " +
+                            "stream of certificate.", e);
                 } finally {
                     IdentityApplicationManagementUtil.closeStatement(statementToUpdateCertificate);
                 }
