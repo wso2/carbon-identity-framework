@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -47,6 +48,15 @@ public class UserDeletionEventListener extends AbstractIdentityUserOperationEven
     private static final String EVENT_RECORDERS_ELEMENT = "UserDeleteEventRecorders";
     private static final String ENABLE_ATTRIBUTE = "enable";
     private static final String NAME_ATTRIBUTE = "name";
+
+    @Override
+    public int getExecutionOrderId() {
+        int orderId = getOrderId();
+        if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
+            return orderId;
+        }
+        return 98;
+    }
 
     @Override
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
