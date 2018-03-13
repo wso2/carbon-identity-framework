@@ -89,7 +89,7 @@
         reCaptchaEnabled = true;
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
+
     <html>
     <head>
         <meta charset="utf-8">
@@ -212,6 +212,3 @@
     </footer>
     </body>
     </html>
-</fmt:bundle>
-
-
