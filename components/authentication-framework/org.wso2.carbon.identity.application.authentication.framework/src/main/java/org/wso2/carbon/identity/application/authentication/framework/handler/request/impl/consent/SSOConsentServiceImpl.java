@@ -182,7 +182,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
 
         String subjectClaimUri = getSubjectClaimUri(serviceProvider);
-        mandatoryClaims.add(subjectClaimUri);
 
         if (isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
@@ -194,9 +193,17 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             }
         } else {
 
+            boolean isCustomClaimMapping = isCustomClaimMapping(serviceProvider);
             for (ClaimMapping claimMapping : claimMappings) {
-                if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
-                    continue;
+                if (isCustomClaimMapping) {
+                    if (subjectClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                        subjectClaimUri = claimMapping.getLocalClaim().getClaimUri();
+                        continue;
+                    }
+                } else {
+                    if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                        continue;
+                    }
                 }
                 if (claimMapping.isMandatory()) {
                     mandatoryClaims.add(claimMapping.getLocalClaim().getClaimUri());
@@ -205,6 +212,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 }
             }
         }
+        mandatoryClaims.add(subjectClaimUri);
 
         List<ClaimMetaData> receiptConsentMetaData = new ArrayList<>();
         Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
@@ -219,6 +227,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                                                                           spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
+    }
+
+    private boolean isCustomClaimMapping(ServiceProvider serviceProvider) {
+
+        return !serviceProvider.getClaimConfig().isLocalClaimDialect();
     }
 
     private boolean isPassThroughScenario(ClaimMapping[] claimMappings, Map<ClaimMapping, String> userAttributes) {
