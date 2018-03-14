@@ -553,7 +553,7 @@
                             %>
                             <input type="text" name=<%=value%>
                             id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                 }
                             %>
@@ -699,7 +699,7 @@
                             %>
                             <input type="text" name=<%=value%>
                             id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                     }
                                 } else {
@@ -726,7 +726,7 @@
                                         <input type="hidden" name=<%=value%>
                                         id=<%=value%>
                                         style="width:95%"
-                                               value="<%=propertyValue%>"/>
+                                               value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
 
                                     </td>
                                     <td class="sectionHelp" width="50%" style="display:none;">
@@ -835,7 +835,7 @@
                             %>
                             <input type="text" name=<%=value%>
                              id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                     }
                                 } else {
@@ -899,7 +899,7 @@
                     '&connectionPassword=' + encodeURIComponent(connectionPassword);
 
             <%if(messageID != null && !"".equals(messageID)) {%>
-            url += '&messageID=<%=messageID%>';
+            url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
             <%}%>
 
             $.ajax({
