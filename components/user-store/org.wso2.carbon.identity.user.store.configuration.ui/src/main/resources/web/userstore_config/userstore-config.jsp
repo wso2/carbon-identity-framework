@@ -699,7 +699,7 @@
                             %>
                             <input type="text" name=<%=value%>
                             id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtml(propertyValue)%>"/>
                             <%
                                     }
                                 } else {
