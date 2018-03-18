@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultClaimHandler implements ClaimHandler {
 
@@ -216,17 +217,16 @@ public class DefaultClaimHandler implements ClaimHandler {
     private void filterSPClaims(Map<String, String> spRequestedClaimMappings, Map<String, String> localUnfilteredClaims,
                                 Map<String, String> spUnfilteredClaims, Map<String, String> spFilteredClaims,
                                 Map<String, String> localToSPClaimMappings) {
-        for (Entry<String, String> entry : localToSPClaimMappings.entrySet()) {
-            String localClaimURI = entry.getKey();
-            String spClaimURI = entry.getValue();
-            String claimValue = localUnfilteredClaims.get(localClaimURI);
-            if (claimValue != null) {
-                spUnfilteredClaims.put(spClaimURI, claimValue);
-                if (spRequestedClaimMappings.get(spClaimURI) != null) {
-                    spFilteredClaims.put(spClaimURI, claimValue);
+
+        localToSPClaimMappings.entrySet().stream().filter(entry -> StringUtils.isNotBlank(localUnfilteredClaims.
+                get(entry.getKey()))).forEach(entry -> {
+                    spUnfilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
+                    if (StringUtils.isNotBlank(spRequestedClaimMappings.get(entry.getValue()))) {
+                        spFilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
+                    }
                 }
-            }
-        }
+        );
+
     }
 
     private Map<String, String> mapLocalSpClaimsToRemoteSPClaims(String spStandardDialect,
@@ -294,24 +294,20 @@ public class DefaultClaimHandler implements ClaimHandler {
                                          context.getTenantDomain() + " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
-        for (ClaimMapping claimMapping : idPClaimMappings) {
-            if (StringUtils.isNotBlank(claimMapping.getDefaultValue()) && !localToIdPClaimMap.containsKey
-                    (claimMapping.getLocalClaim().getClaimUri())) {
-                localToIdPClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), claimMapping.getDefaultValue());
-            }
-        }
+        localToIdPClaimMap.putAll(Arrays.asList(idPClaimMappings).stream().filter(claimMapping -> StringUtils.
+                isNotBlank(claimMapping.getDefaultValue()) && !localToIdPClaimMap.containsKey(claimMapping.
+                getLocalClaim().getClaimUri())).collect(Collectors.toMap(claimMapping -> claimMapping.getLocalClaim().
+                getClaimUri(), claimMapping -> claimMapping.getDefaultValue())));
+
         return localToIdPClaimMap;
     }
 
     private void loadDefaultValuesForClaims(ClaimMapping[] idPClaimMappings,
                                             Map<String, String> defaultValuesForClaims) {
-        for (ClaimMapping claimMapping : idPClaimMappings) {
-            String defaultValue = claimMapping.getDefaultValue();
-            if (defaultValue != null && !defaultValue.isEmpty()) {
-                defaultValuesForClaims
-                        .put(claimMapping.getLocalClaim().getClaimUri(), defaultValue);
-            }
-        }
+
+        defaultValuesForClaims.putAll(Arrays.asList(idPClaimMappings).stream().filter(claimMapping -> StringUtils.
+                isNotBlank(claimMapping.getDefaultValue())).collect(Collectors.toMap(claimMapping -> claimMapping.
+                getLocalClaim().getClaimUri(), claimMapping -> claimMapping.getDefaultValue())));
     }
 
     /**
@@ -325,13 +321,15 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         Map<String, String> localToSpRoleMapping = applicationConfig.getRoleMappings();
 
-        if (!MapUtils.isEmpty(localToSpRoleMapping)) {
-            for (Map.Entry<String, String> roleMapping : localToSpRoleMapping.entrySet()) {
-                if (locallyMappedUserRoles.contains(roleMapping.getKey())) {
-                    locallyMappedUserRoles.remove(roleMapping.getKey());
-                    locallyMappedUserRoles.add(roleMapping.getValue());
-                }
-            }
+        if (MapUtils.isNotEmpty(localToSpRoleMapping)) {
+
+            localToSpRoleMapping.entrySet().stream().filter(roleMapping -> locallyMappedUserRoles.contains(roleMapping.
+                    getKey())).forEach(roleMapping -> {
+                        locallyMappedUserRoles.remove(roleMapping.getKey());
+                        locallyMappedUserRoles.add(roleMapping.getValue());
+
+                    }
+            );
         }
 
         return StringUtils.join(locallyMappedUserRoles, claimSeparator);
@@ -445,18 +443,16 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings,
                                                                   Map<String, String> carbonToStandardClaimMapping) {
-        Map<String, String> requestedClaimMappingsInStandardDialect = new HashMap<>();
-        if (requestedClaimMappings != null) {
-            Iterator iterator = requestedClaimMappings.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Entry<String, String> mapping = (Entry) iterator.next();
-                String standardMappedClaim = carbonToStandardClaimMapping.get(mapping.getValue());
-                if (StringUtils.isNotBlank(standardMappedClaim)) {
-                    requestedClaimMappingsInStandardDialect.put(standardMappedClaim, mapping.getValue());
-                }
-            }
+
+        if (MapUtils.isEmpty(requestedClaimMappings)) {
+            return new HashMap<>();
         }
-        return requestedClaimMappingsInStandardDialect;
+
+        return requestedClaimMappings.entrySet().stream().filter(mapping -> StringUtils.
+                isNotBlank(carbonToStandardClaimMapping.get(mapping.getValue()))).collect(Collectors.
+                toMap(mapping -> carbonToStandardClaimMapping.get(mapping.getValue()), mapping -> mapping.
+                        getValue()));
+
     }
 
     private void addMultiAttributeSperatorToRequestedClaims(AuthenticatedUser authenticatedUser,
@@ -478,17 +474,16 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                      Map<String, String> allLocalClaims,
                                                      Map<String, String> allSPMappedClaims,
                                                      Map<String, String> spRequestedClaims) {
-        for (Entry<String, String> entry : spToLocalClaimMappings.entrySet()) {
-            String spClaimURI = entry.getKey();
-            String localClaimURI = entry.getValue();
-            String claimValue = allLocalClaims.get(localClaimURI);
-            if (claimValue != null) {
-                allSPMappedClaims.put(spClaimURI, claimValue);
-                if (requestedClaimMappings.get(spClaimURI) != null) {
-                    spRequestedClaims.put(spClaimURI, claimValue);
+
+        spToLocalClaimMappings.entrySet().stream().filter(entry -> StringUtils.isNotBlank(allLocalClaims.get(entry.
+                getValue()))).forEach(entry -> {
+                    allSPMappedClaims.put(entry.getKey(), allLocalClaims.get(entry.getValue()));
+                    if (requestedClaimMappings.get(entry.getKey()) != null) {
+                        spRequestedClaims.put(entry.getKey(), allLocalClaims.get(entry.getValue()));
+                    }
                 }
-            }
-        }
+        );
+
     }
 
     private Map<String, String> getStanderDialectToCarbonMapping(String spStandardDialect,
