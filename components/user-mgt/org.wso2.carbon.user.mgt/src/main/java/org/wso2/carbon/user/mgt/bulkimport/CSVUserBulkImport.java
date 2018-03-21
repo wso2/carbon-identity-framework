@@ -25,16 +25,18 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.bulkimport.util.JSONConverter;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CSVUserBulkImport {
+public class CSVUserBulkImport extends UserBulkImport {
 
     private static final Log log = LogFactory.getLog(CSVUserBulkImport.class);
 
@@ -42,23 +44,22 @@ public class CSVUserBulkImport {
     private BulkImportConfig config;
 
     public CSVUserBulkImport(BulkImportConfig config) {
+
         this.config = config;
         this.reader = new BufferedReader(new InputStreamReader(config.getInStream(), Charset.forName("UTF-8")));
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
+
         CSVReader csvReader = new CSVReader(reader, ',', '"', 1);
         try {
-
-            String domain = config.getUserStoreDomain();
+            userStoreDomain = config.getUserStoreDomain();
             String[] line = csvReader.readNext();
             boolean isDuplicate = false;
             boolean fail = false;
             boolean success = false;
+            StringBuilder content = new StringBuilder();
             String lastError = "UNKNOWN";
-            int successCount = 0;
-            int failCount = 0;
-            int duplicateCount = 0;
             while (line != null && line.length > 0) {
                 String userName = line[0];
 
@@ -66,12 +67,13 @@ public class CSVUserBulkImport {
                 index = userName.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
                 if (index > 0) {
                     String domainFreeName = userName.substring(index + 1);
-                    userName = UserCoreUtil.addDomainToName(domainFreeName, domain);
+                    userName = UserCoreUtil.addDomainToName(domainFreeName, userStoreDomain);
                 } else {
-                    userName = UserCoreUtil.addDomainToName(userName, domain);
+                    userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
                 }
 
                 if (userName != null && userName.trim().length() > 0) {
+                    totalCount++;
                     try {
                         if (!userStore.isExistingUser(userName)) {
                             if (line.length == 1) {
@@ -83,13 +85,14 @@ public class CSVUserBulkImport {
                                     addUserWithClaims(userName, line, userStore);
                                     success = true;
                                     successCount++;
-                                    if (log.isDebugEnabled()){
+                                    if (log.isDebugEnabled()) {
                                         log.debug("User import successful - Username : " + userName);
                                     }
-                                }catch (UserAdminException e){
+                                } catch (UserAdminException e) {
                                     fail = true;
                                     failCount++;
                                     lastError = e.getMessage();
+                                    errorUsersMap.put(userName, e.getMessage());
                                     log.error("User import unsuccessful - Username : " + userName + " - Error: " +
                                             e.getMessage());
                                 }
@@ -97,43 +100,52 @@ public class CSVUserBulkImport {
                         } else {
                             isDuplicate = true;
                             duplicateCount++;
+                            duplicateUsers.add(userName);
                             log.error("User import unsuccessful - Username : " + userName + " - Error: Duplicate user");
                         }
                     } catch (UserStoreException e) {
                         if (log.isDebugEnabled()) {
-                            log.debug(e);
+                            log.debug(e.getMessage());
                         }
                         lastError = e.getMessage();
                         fail = true;
                         failCount++;
+                        errorUsersMap.put(userName, e.getMessage());
                         log.error("User import unsuccessful - Username : " + userName + " - Error: " + e.getMessage());
                     }
                 }
                 line = csvReader.readNext();
             }
 
+            InputStream inputStream = config.getInStream();
+            inputStream.reset();
+            JSONConverter jsonConverter = new JSONConverter();
+            String usersImported = jsonConverter.csvToJSON(inputStream);
+
+            Log auditLog = CarbonConstants.AUDIT_LOG;
+
             log.info("Success count: " + successCount + ", Fail count: " + failCount + ", Duplicate count: " +
                     duplicateCount);
+            String summeryLog = buildBulkImportSummery();
+            String audit = "{ \"Initiator\" : \"%s\", \"Action\" : \"Bulk User Import\", \"Target\" : \"%s\", " +
+                    "\"Data\" : %s, \"Result\": %s";
 
-            if (fail && success) {
-                throw new UserAdminException("Error occurs while importing user names. " +
-                        "Success count: " + successCount + ", Fail count: " + failCount + ", Duplicate count: " +
-                        duplicateCount+". Last error was : " + lastError);
-            }
+            auditLog.info(String.format(audit, tenantUser, userStoreDomain, usersImported, summeryLog));
 
-            if(fail && !success){
-                throw new UserAdminException("Error occurs while importing user names. " +
-                        "All user names were not imported. Last error was : " + lastError);
-            }
-            if (isDuplicate) {
-                throw new UserAdminException("Detected " + duplicateCount +" duplicate user names. " +
-                        "Failed to import duplicate users. Non-duplicate user names were successfully imported.");
+            log.info(summeryLog);
+
+            if (fail || isDuplicate) {
+
+                String messageBuilder = "Bulk User Import was completed with Errors. " + "Success count : " +
+                        successCount + " Failed Count : " + failCount + " Duplicate Count : " + duplicateCount;
+
+                throw new UserAdminException(messageBuilder);
             }
         } catch (UserAdminException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error occured while adding userlist", e);
-            throw new UserAdminException("Error occured while adding userlist", e);
+            log.error("Error occurred while adding user list", e);
+            throw new UserAdminException("Error occurred while adding user list", e);
         } finally {
             try {
                 if (csvReader != null) {
@@ -147,6 +159,7 @@ public class CSVUserBulkImport {
 
     private void addUserWithClaims(String username, String[] line, UserStoreManager userStore)
             throws UserStoreException, UserAdminException {
+
         String roleString = null;
         String[] roles = null;
         String password = line[1];
