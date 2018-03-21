@@ -16,27 +16,34 @@
 
 package org.wso2.carbon.identity.mgt.policy.password;
 
-import junit.framework.TestCase;
 
-public class DefaultPasswordLengthPolicyTest extends TestCase {
+import org.testng.annotations.Test;
 
-	DefaultPasswordLengthPolicy policy = new DefaultPasswordLengthPolicy();
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
-	public void testMaxLength() {
+public class DefaultPasswordLengthPolicyTest {
 
-		assertFalse("max length check failed", policy.enforce("password123"));
-		assertTrue("max length check failed", policy.enforce("password"));
-	}
+    private DefaultPasswordLengthPolicy policy = new DefaultPasswordLengthPolicy();
 
-	public void testMinLength() {
+    @Test
+    public void testMaxLength() {
 
-		assertFalse("min length check failed", policy.enforce("passw"));
-		assertTrue("min length check failed", policy.enforce("password"));
+        assertFalse(policy.enforce("password123"), "max length check failed");
+        assertTrue(policy.enforce("password"), "max length check failed");
+    }
 
-	}
+    @Test
+    public void testMinLength() {
 
-	public void testNullInput() {
+        assertFalse(policy.enforce("passw"), "min length check failed");
+        assertTrue(policy.enforce("password"), "min length check failed");
 
-		assertTrue("null input check failed", policy.enforce(null));
-	}
+    }
+
+    @Test
+    public void testNullInput() {
+
+        assertTrue(policy.enforce(null), "null input check failed");
+    }
 }

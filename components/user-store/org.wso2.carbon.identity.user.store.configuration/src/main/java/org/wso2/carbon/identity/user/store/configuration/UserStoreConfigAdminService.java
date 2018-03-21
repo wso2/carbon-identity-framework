@@ -558,6 +558,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         RandomPasswordContainer randomPasswordContainer = null;
         if (editSecondaryUserStore) {
             String uniqueID = getUniqueIDFromUserDTO(propertyDTOs);
+            if (uniqueID == null) {
+                throw new IdentityUserStoreMgtException("UniqueID property is not provided.");
+            }
             randomPasswordContainer = getAndRemoveRandomPasswordContainer(uniqueID);
             if (randomPasswordContainer == null) {
                 String errorMsg = "randomPasswordContainer is null for uniqueID therefore " +

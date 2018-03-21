@@ -1,0 +1,97 @@
+
+.templateName {
+    text-decoration: none;
+    display: inline-table;
+}
+
+#template_list .name {
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-top: 0;
+}
+#template_list .name a span{
+    display: inline-table;
+    vertical-align: top;
+    margin-left: 2px;
+}
+#template_list li h2{
+    -webkit-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
+    -moz-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
+    border-radius: 0px 0px 0px 0px;
+    -moz-border-radius: 0px 0px 0px 0px;
+    -webkit-border-radius: 0px 0px 0px 0px;
+}
+#template_list .helpLink{
+    display: inline-table;
+    margin-top: 4px;
+
+}
+.helpLink {
+    display: inline-block;
+    float: right;
+}
+
+#lamda_func_dropdown{
+    padding-top: 20px;
+}
+
+#codeMirror{
+    padding: 0;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+}
+#codeMirrorTemplate{
+    padding-top: 0px;
+}
+.templateHeading{
+    padding: 0 0 2px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.cm-s-disabled{
+    background: #f7f7f7;
+}
+.cm-s-disabled span{
+    color: #ccc!important;
+}
+
+.highlight1{
+    animation: colorchange1 2000ms;
+    -webkit-animation: colorchange1 2000ms;
+    animation-iteration-count: 1;
+    -webkit-animation-iteration-count: 1;
+    animation-fill-mode: none;
+    -webkit-animation-fill-mode: none;
+}
+.highlight2{
+    animation: colorchange2 2000ms;
+    -webkit-animation: colorchange2 2000ms;
+    animation-iteration-count: 1;
+    -webkit-animation-iteration-count: 1;
+    animation-fill-mode: none;
+    -webkit-animation-fill-mode: none;
+}
+
+@keyframes colorchange1
+{
+    0%  {background: rgba(255, 255, 0, 0.8);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+
+@-webkit-keyframes colorchange1
+{
+    0%  {background: rgba(255, 255, 0, 0.8);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+@keyframes colorchange2
+{
+    0%  {background: rgba(255, 180, 0, 0.6);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}
+
+@-webkit-keyframes colorchange2
+{
+    0%  {background: rgba(255, 180, 0, 0.6);}
+    100%   {background: rgba(255, 255, 255, 0);}
+}

@@ -80,7 +80,7 @@
         return;
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
+
     <html>
     <head>
         <meta charset="utf-8">
@@ -154,5 +154,3 @@
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
     </body>
     </html>
-</fmt:bundle>
-

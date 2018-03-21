@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework-feature</artifactId>
-        <version>5.10.135-SNAPSHOT</version>
+        <version>5.11.149-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -135,6 +135,7 @@
                                 <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.user.profile.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.idp.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.consent.mgt.server:compatible:${carbon.consent.mgt.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

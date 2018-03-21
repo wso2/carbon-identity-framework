@@ -150,6 +150,7 @@
 
         <ScopeValidators>
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
+            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
         <ScopeHandlers>
@@ -331,7 +332,7 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            <Context>/api/identity/user/v0.9</Context>
+            <Context>/api/identity/user/v1.0</Context>
             <Context>/api/identity/recovery/v0.9</Context>
             <Context>/oauth2</Context>
         </WebApp>

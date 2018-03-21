@@ -126,4 +126,31 @@ public class LoginContextManagementUtil {
         }
         return null;
     }
+
+    /**
+     * Returns whether post authentication handler execution is ended or not.
+     *
+     * @param authenticationContext Authentication context.
+     * @return True if post authentication handlers have finished execution on this context. else false.
+     */
+    public static boolean isPostAuthenticationExtensionCompleted(AuthenticationContext authenticationContext) {
+
+        Object object = authenticationContext.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Mark post authentication handler execution completion on authentication context.
+     *
+     * @param authenticationContext Authentication context.
+     */
+    public static void markPostAuthenticationCompleted(AuthenticationContext authenticationContext) {
+
+        authenticationContext.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED,
+                true);
+    }
 }

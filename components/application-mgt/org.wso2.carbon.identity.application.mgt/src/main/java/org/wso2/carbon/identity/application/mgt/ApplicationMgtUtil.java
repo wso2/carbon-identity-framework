@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -65,9 +66,10 @@ public class ApplicationMgtUtil {
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
     // Regex for validating application name
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]*$";
+    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
@@ -518,11 +520,7 @@ public class ApplicationMgtUtil {
 
         String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
         Pattern regexPattern = Pattern.compile(spValidatorRegex);
-        if (regexPattern.matcher(applicationName).matches()) {
-            return true;
-        } else {
-            return false;
-        }
+        return regexPattern.matcher(applicationName).matches();
     }
 
     /**
