@@ -489,7 +489,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         mappedAttrs.put(
                                 spRoleUri,
                                 getServiceProviderMappedUserRoles(sequenceConfig,
-                                Arrays.asList(roles))
+                                        Arrays.asList(roles))
                         );
                     }
 
@@ -710,7 +710,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<String, String> mappedAttrs;
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,
-                                                                               extAttrs, isFederatedClaims);
+                    extAttrs, isFederatedClaims);
             return mappedAttrs;
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);
@@ -744,14 +744,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             // framework.
             ThreadLocalProvisioningServiceProvider serviceProvider = new ThreadLocalProvisioningServiceProvider();
             serviceProvider.setServiceProviderName(context.getSequenceConfig()
-                                                           .getApplicationConfig().getApplicationName());
+                    .getApplicationConfig().getApplicationName());
             serviceProvider.setJustInTimeProvisioning(true);
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
             IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
-                                                           extAttributesValueMap, userStoreDomain, context.getTenantDomain());
+                    extAttributesValueMap, userStoreDomain, context.getTenantDomain());
 
         } catch (FrameworkException e) {
             log.error("User provisioning failed!", e);
@@ -760,8 +760,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
+    /*
+       TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+        */
     protected void resetAuthenticationContext(AuthenticationContext context) throws FrameworkException {
-
         context.setSubject(null);
         context.setStateInfo(null);
         context.setExternalIdP(null);

@@ -26,16 +26,15 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
 public class WorkflowAuditLogger extends AbstractWorkflowListener {
 
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
-    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result " +
-            ":  %s ";
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
-
 
     /**
      * Trigger after deleting the request
@@ -49,6 +48,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Request ID" + "\" : \"" + workflowRequest.getRequestId() + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow request", auditData,
                 AUDIT_SUCCESS));
@@ -66,6 +69,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Workflow ID" + "\" : \"" + workflow.getWorkflowId() + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow", auditData, AUDIT_SUCCESS));
     }
@@ -85,6 +92,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Workflow Name" + "\" : \"" + workflowDTO.getWorkflowName() + "\",\""
                 + "Workflow  Impl ID" + "\" : \"" + workflowDTO.getWorkflowImplId() + "\",\""
                 + "Workflow ID" + "\" : \"" + workflowDTO.getWorkflowId() + "\",\""
@@ -109,6 +120,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Association Name" + "\" : \"" + associationName+ "\",\""
                 + "Workflow ID" + "\" : \"" + workflowId + "\",\""
                 + "Event ID" + "\" : \"" + eventId + "\",\""
@@ -128,6 +143,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove Association", auditData, AUDIT_SUCCESS));
     }
@@ -145,6 +164,10 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\",\""
                 + "Resulting State" + "\" : \"" + isEnable + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Change Association State", auditData,

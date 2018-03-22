@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -165,8 +166,8 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
         }
-        // if dumbMode
-        else if (ConfigurationFacade.getInstance().isDumbMode()) {
+        // If dumbMode is enabled and no previous authenticated IDPs exist we redirect for Home Realm Discovery.
+        else if (ConfigurationFacade.getInstance().isDumbMode() && authenticatedIdPs.isEmpty()) {
 
             if (log.isDebugEnabled()) {
                 log.debug("Executing in Dumb mode");
@@ -477,7 +478,7 @@ public class DefaultStepHandler implements StepHandler {
         ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
         if (authenticator == null) {
-            log.error("Authenticator is null");
+            log.error("Authenticator is null for AuthenticatorConfig: " + authenticatorConfig.getName());
             return;
         }
 
@@ -492,6 +493,7 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
+                context.setCurrentAuthenticator(authenticator.getName());
                 if (log.isDebugEnabled()) {
                     log.debug(authenticator.getName() + " is redirecting");
                 }
@@ -539,6 +541,7 @@ public class DefaultStepHandler implements StepHandler {
             authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
+            context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName));
 
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {

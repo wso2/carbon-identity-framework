@@ -16,25 +16,28 @@
 
 package org.wso2.carbon.identity.mgt.policy.password;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /* Policy to check using username as password. */
-public class DefaultPasswordNamePolicyTest extends TestCase {
+public class DefaultPasswordNamePolicyTest {
 
-	DefaultPasswordNamePolicy policy = new DefaultPasswordNamePolicy();
-	
-	public void testUsernameSameasPassword(){
-		
-		assertFalse("username same as password failed", policy.enforce("password", "password"));
-	}
-	
-	public void testDifferentUsername() {
-		
-		assertTrue("username different than password failed", policy.enforce("password","username"));
-	}
-	
-	public void testNullInput() {
-		
-		assertTrue("null input failed", policy.enforce(null));
-	}
+    private DefaultPasswordNamePolicy policy = new DefaultPasswordNamePolicy();
+
+    @Test
+    public void testUsernameSameAsPassword() {
+        assertFalse(policy.enforce("password", "password"), "username same as password failed");
+    }
+
+    @Test
+    public void testDifferentUsername() {
+        assertTrue(policy.enforce("password", "username"), "username different than password failed");
+    }
+
+    @Test
+    public void testNullInput() {
+        assertTrue(policy.enforce(null), "null input failed");
+    }
 }

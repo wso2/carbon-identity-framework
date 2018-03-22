@@ -30,21 +30,34 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
+import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -54,6 +67,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -81,6 +95,9 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
+    private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -118,6 +135,14 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
+    /**
+     *
+     * @return
+     * @throws FrameworkException
+     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * provide necessary wiring for any place which require the BundleContext.
+     */
+    @Deprecated
     public static BundleContext getBundleContext() throws FrameworkException {
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
         if (bundleContext == null) {
@@ -139,7 +164,7 @@ public class FrameworkServiceComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        ;
+        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistry, null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -152,6 +177,12 @@ public class FrameworkServiceComponent {
                           "enabled.");
             }
         }
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
+        bundleContext
+                .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
+        FrameworkServiceDataHolder.getInstance()
+                .setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
 
         // Register Common servlet
         Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
@@ -178,7 +209,26 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
+        jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        jsGraphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+        jsGraphBuilderFactory.init();
+        UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistry);
+        FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
+        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
+        PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
+        bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
+        FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
+        // Registering missing mandatory claim handler as a post authn handler
+        PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
+
+        SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
+        bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
+        FrameworkServiceDataHolder.getInstance().setSSOConsentService(ssoConsentService);
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
 
@@ -419,5 +469,65 @@ public class FrameworkServiceComponent {
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
+    }
+
+    @Reference(
+            name = "identity.post.authn.handler",
+            service = PostAuthenticationHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPostAuthenticationHandler"
+    )
+    protected void setPostAuthenticationHandler(PostAuthenticationHandler postAuthenticationHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " registered");
+        }
+        FrameworkServiceDataHolder.getInstance().addPostAuthenticationHandler(postAuthenticationHandler);
+    }
+
+    protected void unsetPostAuthenticationHandler(PostAuthenticationHandler postAuthenticationHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " unregistered");
+        }
+        FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
+    }
+
+    @Reference(
+            name = "consent.mgt.service",
+            service = ConsentManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentMgtService"
+    )
+    protected void setConsentMgtService(ConsentManager consentManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Consent Manger is set in the Application Authentication Framework bundle.");
+        }
+        FrameworkServiceDataHolder.getInstance().setConsentManager(consentManager);
+    }
+
+    protected void unsetConsentMgtService(ConsentManager consentManager) {
+
+        FrameworkServiceDataHolder.getInstance().setConsentManager(null);
+    }
+
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        FrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        FrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }

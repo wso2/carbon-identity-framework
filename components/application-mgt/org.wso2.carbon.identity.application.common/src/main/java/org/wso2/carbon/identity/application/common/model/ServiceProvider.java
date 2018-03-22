@@ -35,6 +35,7 @@ public class ServiceProvider implements Serializable {
     private int applicationID = 0;
     private String applicationName;
     private String description;
+    private String certificateContent;
     private User owner;
     private InboundAuthenticationConfig inboundAuthenticationConfig;
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
@@ -45,6 +46,7 @@ public class ServiceProvider implements Serializable {
     private PermissionsAndRoleConfig permissionAndRoleConfig;
     private boolean saasApp;
     private ServiceProviderProperty []spProperties = new ServiceProviderProperty[0];
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -83,6 +85,8 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
+            } else if( "Certificate".equals(elementName)){
+                serviceProvider.setCertificateContent(element.getText());
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -319,5 +323,25 @@ public class ServiceProvider implements Serializable {
 
     public void setSpProperties(ServiceProviderProperty[] spProperties) {
         this.spProperties = spProperties;
+    }
+
+    /**
+     *
+     * Returns the certificate content
+     *
+     * @return the certificate in PEM format.
+     */
+    public String getCertificateContent() {
+        return certificateContent;
+    }
+
+    /**
+     *
+     * Sets the given certificate.
+     *
+     * @param certificateContent the certificate in PEM format
+     */
+    public void setCertificateContent(String certificateContent) {
+        this.certificateContent = certificateContent;
     }
 }

@@ -22,21 +22,27 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
-import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
-import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
-import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
+import org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder;
+import org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder;
+import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
+import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
+import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Component(
          name = "usermgt.component", 
@@ -46,13 +52,18 @@ public class UserMgtDSComponent {
     private static final Log log = LogFactory.getLog(UserMgtDSComponent.class);
 
     private static RegistryService registryService = null;
-
     private static RealmService realmService = null;
+    private static Map<String, UserDeletionEventRecorder> userDeleteEventRecorders = new HashMap<>();
 
     @Activate
     protected void activate(ComponentContext ctxt) {
-        log.debug("User Mgt bundle is activated ");
-        // for new cahing, every thread should has its own populated CC. During the deployment time we assume super tenant
+
+        if (log.isDebugEnabled()) {
+            log.debug("User Mgt bundle is activated ");
+        }
+
+        // For new caching, every thread should has its own populated CC. During the deployment time we
+        // assume super tenant.
         PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
         carbonContext.setTenantDomain(org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         carbonContext.setTenantId(org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID);
@@ -69,7 +80,9 @@ public class UserMgtDSComponent {
             }
             // register the Authorization listener to restriction tenant!=0 setting super tenant
             // specific permissions
-            ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(AuthorizationManagerListener.class.getName(), new PermissionAuthorizationListener(), null);
+            ServiceRegistration serviceRegistration = ctxt.getBundleContext()
+                    .registerService(AuthorizationManagerListener.class.getName(),
+                            new PermissionAuthorizationListener(), null);
             if (serviceRegistration == null) {
                 log.error("Error while registering PermissionAuthorizationListener.");
             } else {
@@ -77,12 +90,36 @@ public class UserMgtDSComponent {
                     log.debug("PermissionAuthorizationListener successfully registered.");
                 }
             }
-            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(), new UserMgtAuditLogger(), null);
+
+            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                    new UserMgtAuditLogger(), null);
             if (serviceRegistration == null) {
                 log.error("Error while registering UserMgtAuditLogger.");
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserMgtAuditLogger successfully registered.");
+                }
+            }
+
+            // Register the UserDeletionEventListener
+            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class,
+                    new UserDeletionEventListener(), null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserDeletionEventListener.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserDeletionEventListener successfully registered.");
+                }
+            }
+
+            // Register the default UserDeletionEventRecorder.
+            serviceRegistration = ctxt.getBundleContext().registerService(UserDeletionEventRecorder.class,
+                    new DefaultUserDeletionEventRecorder(), null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering DefaultUserDeletionEventRecorder.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("DefaultUserDeletionEventRecorder successfully registered.");
                 }
             }
         } catch (Throwable e) {
@@ -137,10 +174,37 @@ public class UserMgtDSComponent {
     }
 
     @Reference(
-             name = "identityCoreInitializedEventService", 
-             service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+            name = "org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder",
+            service = UserDeletionEventRecorder.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserDeleteEventRecorder")
+    protected void setUserDeleteEventRecorder(UserDeletionEventRecorder userDeletionEventRecorder) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully added a user deletion event recorder. " + userDeletionEventRecorder.getClass()
+                    .getName());
+        }
+
+        UserMgtDSComponent.userDeleteEventRecorders.put(userDeletionEventRecorder.getClass().getName(),
+                userDeletionEventRecorder);
+    }
+
+    protected void unsetUserDeleteEventRecorder(UserDeletionEventRecorder userDeletionEventRecorder) {
+
+        UserMgtDSComponent.userDeleteEventRecorders.remove(userDeletionEventRecorder.getClass().getName());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully removed the user deletion event recorder. " + userDeletionEventRecorder.getClass()
+                    .getName());
+        }
+    }
+
+    @Reference(
+             name = "identityCoreInitializedEventService",
+             service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
@@ -158,6 +222,10 @@ public class UserMgtDSComponent {
 
     public static RealmService getRealmService() {
         return realmService;
+    }
+
+    public static Map<String, UserDeletionEventRecorder> getUserDeleteEventRecorders() {
+        return userDeleteEventRecorders;
     }
 }
 

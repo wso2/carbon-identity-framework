@@ -54,7 +54,7 @@
    </context-param-->
     <context-param>
        <param-name>AccountRecoveryRESTEndpointURL</param-name>
-       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v0.9/</param-value>
+       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v1.0/</param-value>
    </context-param>
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
 
@@ -207,6 +207,21 @@
         <jsp-file>/registration.jsp</jsp-file>
     </servlet>
 
+    <servlet>
+        <servlet-name>consent.do</servlet-name>
+        <jsp-file>/consent.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cookie_policy.do</servlet-name>
+        <jsp-file>/cookie_policy.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_policy.do</servlet-name>
+        <jsp-file>/privacy_policy.jsp</jsp-file>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
@@ -290,6 +305,21 @@
     <servlet-mapping>
         <servlet-name>claims.do</servlet-name>
         <url-pattern>/claims.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>consent.do</servlet-name>
+        <url-pattern>/consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cookie_policy.do</servlet-name>
+        <url-pattern>/cookie_policy.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_policy.do</servlet-name>
+        <url-pattern>/privacy_policy.do</url-pattern>
     </servlet-mapping>
 
     <error-page>

@@ -157,7 +157,7 @@
             <div class="col-md-12">
 
                 <!-- content -->
-                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
+                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                     <div>
                         <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
@@ -325,7 +325,6 @@
 
 
                             <% } %>
-
                             <div class="clearfix"></div>
                         </div>
                     </div>

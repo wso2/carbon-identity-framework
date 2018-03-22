@@ -94,6 +94,26 @@ public class IdentityManagementEndpointConstants {
     public static final String SECRET_ALIAS = "secretAlias:";
     public static final String SECRET_ALIAS_SEPARATOR = ":";
 
+    public static class Consent {
+
+        public static final String COLLECTION_METHOD_SELF_REGISTRATION = "Web Form - Self Registration";
+        public static final String LANGUAGE_ENGLISH = "en";
+        public static final String CONSENT_TYPE_KEY = "consentType";
+        public static final String PRIMARY_PURPOSE_KEY = "primaryPurpose";
+        public static final String THRID_PARTY_DISCLOSURE_KEY = "thirdPartyDisclosure";
+        public static final String TERMINATION_KEY = "termination";
+        public static final String VALIDITY_KEY = "validity";
+        public static final String JURISDICTION_KEY = "jurisdiction";
+        public static final String COLLECTION_METHOD_KEY = "collectionMethod";
+        public static final String LANGUAGE_KEY = "language";
+        public static final String PII_PRINCIPAL_ID_KEY = "piiPrincipalId";
+        public static final String POLICY_URL_KEY = "policyURL";
+        public static final String SERVICES = "services";
+        public static final String PURPOSES = "purposes";
+        public static final String PII_CATEGORY = "piiCategory";
+        public static final String EXPLICIT_CONSENT_TYPE = "EXPLICIT";
+        public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
+    }
 
     private IdentityManagementEndpointConstants() {
     }
