@@ -23,13 +23,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.wso2.balana.ObligationResult;
+import org.wso2.balana.attr.AttributeValue;
+import org.wso2.balana.attr.StringAttribute;
 import org.wso2.balana.ctx.AbstractResult;
+import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.AttributeAssignment;
 import org.wso2.balana.ctx.ResponseCtx;
 import org.wso2.balana.ctx.Status;
+import org.wso2.balana.ctx.xacml3.Result;
 import org.wso2.balana.xacml3.Advice;
+import org.wso2.balana.xacml3.Attributes;
 import org.wso2.balana.xacml3.Obligation;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.ResponseWriteException;
+
+import java.util.Set;
 
 /**
  * Converts ReponseCtx to JSON object
@@ -104,7 +111,7 @@ public class JSONResponseWriter {
             jsonResult.add(EntitlementEndpointConstants.OBLIGATIONS, obligations);
         }
 
-        //Do the same with attributes
+        // Do the same with attributes
         if (result.getAdvices() != null && !result.getAdvices().isEmpty()) {
             //can only get ObligationResult objects from balana
             JsonArray advices = new JsonArray();
@@ -115,14 +122,213 @@ public class JSONResponseWriter {
             jsonResult.add(EntitlementEndpointConstants.ASSOCIATED_ADVICE, advices);
         }
 
+        // If includeInResponse=true, other attributes will be populated from here with the decision.
+        if (((Result) result).getAttributes() != null && !((Result) result).getAttributes().isEmpty()) {
+            Set<Attributes> attributes = ((Result) result).getAttributes();
+
+            for (Attributes attribute : attributes) {
+
+                switch (attribute.getCategory().toString()) {
+                    case EntitlementEndpointConstants.CATEGORY_ACTION_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_ACTION, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_RESOURCE_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_RESOURCE, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_ENVIRONMENT_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_ENVIRONMENT, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_CODEBASE_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_CODEBASE, getJsonObject(attribute));
+                        break;
+
+                    case EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE_URI:
+
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE, getJsonObject(attribute));
+                        break;
+                }
+            }
+
+        }
+
         /**
-         * Todo: Category, PolicyIdentifierList
+         * Todo: PolicyIdentifierList
          */
 
         return jsonResult;
     }
 
-    /**
+    /***
+     * Create json object value of an Attribute
+     * @param attribute an element of type Attributes
+     * @return
+     */
+    private static JsonObject getJsonObject(Attributes attribute) {
+        JsonObject jsonObject = new JsonObject();
+        JsonArray jsonArray = new JsonArray();
+        for (Object att : attribute.getAttributes().toArray()) {
+            Attribute atri = (Attribute) att;
+            if (atri.isIncludeInResult()) {
+                JsonObject ele = new JsonObject();
+                if (atri.getId() != null) {
+                    ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, uriToShortenForm(atri.getId().toString()));
+                }
+                if (atri.getValues() != null) {
+                    for (AttributeValue val : atri.getValues()) {
+                        if (((StringAttribute) val).getValue() != null) {
+                            ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE, ((StringAttribute) val).getValue());
+                        }
+                    }
+                }
+                ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_INCLUDE_IN_RESULT, String.valueOf(atri.isIncludeInResult()));
+                if (atri.getType() != null) {
+                    ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE, uriToShortenForm(atri.getType().toString()));
+                }
+                jsonArray.add(ele);
+            }
+        }
+        jsonObject.add(EntitlementEndpointConstants.ATTRIBUTE, jsonArray);
+        return jsonObject;
+    }
+
+    /***
+     *  This converts the XACML xml data type to simple shorten data type format
+     * @param uriName XACML xml data type uri
+     * @return
+     */
+    private static String uriToShortenForm(String uriName) {
+        String shortenString = null;
+        switch (uriName) {
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_BOOLEAN:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_BOOLEAN_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_INTEGER:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_INTEGER_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DOUBLE:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DOUBLE_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_TIME:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_TIME_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE_TIME:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE_TIME_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE_TIME_DURATION:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DATE_TIME_DURATION_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_YEAR_MONTH_DURATION:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_YEAR_MONTH_DURATION_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_ANY_URI:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_ANY_URI_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_HEX_BINARY:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_HEX_BINARY_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_BASE64_BINARY:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_BASE64_BINARY_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_RFC_822_NAME:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_RFC_822_NAME_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_X_500_NAME:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_X_500_NAME_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_IP_ADDRESS:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_IP_ADDRESS_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DNS_NAME:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DNS_NAME_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION_SHORT;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_RESOURCE_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_RESOURCE_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_ACTION_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_ACTION_ID__SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_ENVIRONMENT_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_ENVIRONMENT_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_SUBJECT_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_SUBJECT_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_RECIPIENT_SUBJECT_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_RECIPIENT_SUBJECT_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_INTERMEDIARY_SUBJECT_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_INTERMEDIARY_SUBJECT_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRBUTE_REQUESTING_MACHINE_ID:
+                shortenString = EntitlementEndpointConstants.ATTRBUTE_REQUESTING_MACHINE_ID_SHORTEN;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_CODEBASE_ID:
+                shortenString = EntitlementEndpointConstants.ATTRIBUTE_CODEBASE_ID_SHORTEN;
+                break;
+
+            default:
+                shortenString = uriName;
+                break;
+        }
+        return shortenString;
+    }
+
+    /***
      * Private method to convert Balana <code>{@link Status}</code> to <code>{@link JsonObject}</code>
      *
      * @param status <code>{@link Status}</code>
@@ -198,11 +404,11 @@ public class JSONResponseWriter {
                 .toString());
         /*As per the xacml 3.0 core spec(section 5.41), Category and Issuer are optional categories for
         Element <AttributeAssignmentExpression>*/
-        if(attributeAssignment.getIssuer() != null) {
+        if (attributeAssignment.getIssuer() != null) {
             jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer()
                     .toString());
         }
-        if(attributeAssignment.getCategory() != null) {
+        if (attributeAssignment.getCategory() != null) {
             jsonAa.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
                     .toString());
         }
@@ -212,12 +418,12 @@ public class JSONResponseWriter {
             JsonObject attributeValue = gson.fromJson(gson.toJson(attributeAssignment), JsonObject.class);
             /*As per the xacml 3.0 core spec(section 7.3.1), data-type is a required attribute and content is optional
             for Element <AttributeValue>*/
-            if(attributeValue.get("content") != null) {
+            if (attributeValue.get("content") != null) {
                 jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE,
                         attributeValue.get("content").getAsString());
             }
             jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                    attributeValue.get("type").getAsString());
+                    uriToShortenForm(attributeValue.get("type").getAsString()));
         } catch (Exception e) {
             return null;
         }
