@@ -108,20 +108,19 @@ public class JSONRequestParser {
                 JsonObject jsonCategory = null;
                 if (jsonAttribute.getValue().isJsonObject()) {
                     jsonCategory = jsonAttribute.getValue().getAsJsonObject();
-                    jsonAttributeSeperator(jsonAttribute, jsonCategory, categories, multiRequests);
+                    jsonAttributeSeperator(jsonAttribute, jsonCategory, categories);
 
                 } else if (jsonAttribute.getValue().isJsonArray()) {
-                    for (JsonElement jsonEle : jsonAttribute.getValue().getAsJsonArray()) {
-                        jsonCategory = jsonEle.getAsJsonObject();
-                        jsonAttributeSeperator(jsonAttribute, jsonCategory, categories, multiRequests);
+                    for (JsonElement jsonElement : jsonAttribute.getValue().getAsJsonArray()) {
+                        jsonCategory = jsonElement.getAsJsonObject();
+                        jsonAttributeSeperator(jsonAttribute, jsonCategory, categories);
                     }
                 } else if (EntitlementEndpointConstants.MULTI_REQUESTS.equals(jsonAttribute.getKey())) {
                     Set<Map.Entry<String, JsonElement>> jsonRequestReferences = jsonCategory.entrySet();
                     Set<RequestReference> requestReferences = new HashSet<>();
 
                     if (jsonRequestReferences.isEmpty()) {
-                        throw new RequestParseException("MultiRequest should contain at least one " +
-                                "Reference Request");
+                        throw new RequestParseException("MultiRequest should contain at least one Reference Request");
                     }
                     for (Map.Entry<String, JsonElement> jsonRequstReference : jsonRequestReferences) {
                         requestReferences.add(jsonObjectToRequestReference(jsonRequstReference.getValue()
@@ -133,76 +132,71 @@ public class JSONRequestParser {
 
         }
 
-        return new RequestCtx(null, categories, returnPolicyIdList, combinedDecision,
-                multiRequests, requestDefaults);
+        return new RequestCtx(null,
+                categories, returnPolicyIdList, combinedDecision, multiRequests, requestDefaults);
 
     }
 
-    private static void jsonAttributeSeperator(Map.Entry<String, JsonElement> jsonAttribute, JsonObject jsonCategory, Set<Attributes> categories, MultiRequests multiRequests) throws RequestParseException, UnknownIdentifierException {
+    /**
+     * This is to seperate JSON to attributes
+     * @param jsonAttribute - the map of category string and the JSON Element
+     * @param jsonCategory - the  main object category
+     * @param categories - the set of categories
+     * @throws RequestParseException
+     * @throws UnknownIdentifierException
+     */
+    private static void jsonAttributeSeperator(Map.Entry<String, JsonElement> jsonAttribute, JsonObject jsonCategory,
+                                               Set<Attributes> categories) throws
+            RequestParseException, UnknownIdentifierException {
 
         Node content = null;
         URI category = null;
         Set<Attribute> attributes = null;
         String id = null;
-        switch (jsonAttribute.getKey()) {
 
-            // For a custom Category
-            // Or a Category with long identifier
-            case EntitlementEndpointConstants.CATEGORY_DEFAULT:
-                if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
-                    category = stringCateogryToURI(jsonCategory
-                            .get(EntitlementEndpointConstants.CATEGORY_ID)
-                            .getAsString());
+        if (EntitlementEndpointConstants.CATEGORY_DEFAULT.equals(jsonAttribute.getKey())) {
+            if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
+                category = stringCateogryToURI(jsonCategory
+                        .get(EntitlementEndpointConstants.CATEGORY_ID)
+                        .getAsString());
+            }
+        } else {
+            if (category == null) {
+                category = stringCateogryToURI(jsonAttribute.getKey());
+            }
+            if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
+                id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
+            }
+            if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
+                DocumentBuilderFactory dbf;
+                Document doc = null;
+
+                String xmlContent = stringContentToXMLContent(jsonCategory
+                        .get(EntitlementEndpointConstants.CONTENT)
+                        .getAsString());
+                dbf = IdentityUtil.getSecuredDocumentBuilderFactory();
+                dbf.setNamespaceAware(true);
+
+                try (ByteArrayInputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes())) {
+                    doc = dbf.newDocumentBuilder().parse(inputStream);
+                } catch (Exception e) {
+                    throw new JsonParseException("DOM of request element can not be created from String.", e);
                 }
-            case EntitlementEndpointConstants.CATEGORY_RESOURCE:
-            case EntitlementEndpointConstants.CATEGORY_ACTION:
-            case EntitlementEndpointConstants.CATEGORY_ENVIRONMENT:
-            case EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT:
-            case EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT:
-            case EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT:
-            case EntitlementEndpointConstants.CATEGORY_CODEBASE:
-            case EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE:
-
-                if (category == null) {
-                    category = stringCateogryToURI(jsonAttribute.getKey());
+                if (doc != null) {
+                    content = doc;
                 }
-                if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
-                    id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
-                }
-                if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
-                    DocumentBuilderFactory dbf;
-                    Document doc = null;
+            }
 
-                    String xmlContent = stringContentToXMLContent(jsonCategory
-                            .get(EntitlementEndpointConstants.CONTENT)
-                            .getAsString());
-                    dbf = IdentityUtil.getSecuredDocumentBuilderFactory();
-                    dbf.setNamespaceAware(true);
-
-                    try (
-                            ByteArrayInputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes())
-                    ){
-                        doc = dbf.newDocumentBuilder().parse(inputStream);
-                    } catch (Exception e) {
-                        throw new JsonParseException("DOM of request element can not be created from String" + e.getMessage());
-                    }
-                    if (doc != null) {
-                        content = doc;
+            // Add all category attributes
+            if (jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)) {
+                if (jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()) {
+                    attributes = new HashSet<>();
+                    for (JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
+                            .getAsJsonArray()) {
+                        attributes.add(jsonObjectToAttribute(jsonElement.getAsJsonObject()));
                     }
                 }
-
-                //add all category attributes
-                if (jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)) {
-                    if (jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()) {
-                        attributes = new HashSet<>();
-                        for (JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
-                                .getAsJsonArray()) {
-                            attributes.add(jsonObjectToAttribute(jsonElement.getAsJsonObject()));
-
-                        }
-                    }
-                }
-                break;
+            }
 
         }
         //Build the Attributes object using above values
@@ -404,9 +398,8 @@ public class JSONRequestParser {
         return null;
     }
 
-
     /**
-     * Converts a given String attribute to the corresponsing <code>URI</code>
+     * Converts a given String attribute to the corresponding <code>URI</code>
      *
      * @param attribute <code>String</code>
      * @return <code>URI</code>

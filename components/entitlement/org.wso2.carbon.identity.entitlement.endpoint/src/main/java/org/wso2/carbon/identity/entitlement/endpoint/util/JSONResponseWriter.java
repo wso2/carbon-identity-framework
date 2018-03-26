@@ -34,16 +34,20 @@ import org.wso2.balana.ctx.xacml3.Result;
 import org.wso2.balana.xacml3.Advice;
 import org.wso2.balana.xacml3.Attributes;
 import org.wso2.balana.xacml3.Obligation;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
+import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.ResponseWriteException;
 
+import java.util.Properties;
 import java.util.Set;
 
 /**
- * Converts ReponseCtx to JSON object
- * according to the XACML JSON Profile
+ * Converts ResponseCtx to JSON object according to the XACML JSON Profile
  */
 public class JSONResponseWriter {
+
     private static Gson gson = new Gson();
+    private static boolean xacmlJSONProfileShortFormEnable = false;
 
     /**
      * Returns <code>JsonObject</code> created by parsing the contents of a given
@@ -54,11 +58,18 @@ public class JSONResponseWriter {
      * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
      */
     public static JsonObject write(ResponseCtx response) throws ResponseWriteException {
+
         JsonObject responseWrap = new JsonObject();
 
         //JsonObject jsonResponse = new JsonObject();
         JsonArray results = new JsonArray();
 
+        Properties properties = EntitlementUtil.getPropertiesFromEntitlementConfig();
+        if (properties != null) {
+            if (Boolean.parseBoolean(properties.getProperty(PDPConstants.XACML_JSON_SHORT_FORM_ENABLED))) {
+                xacmlJSONProfileShortFormEnable = true;
+            }
+        }
         //Loop all AbstractResult objects in ResponseCtx and add them as
         //Requests to JSON Response
         //There should be at least 1 request
@@ -67,6 +78,8 @@ public class JSONResponseWriter {
         }
 
         for (AbstractResult result : response.getResults()) {
+            /* AbstractResult type does not contain PolicyIdentifierList, as per XACML 3.0, the PolicyIdentifier is
+            optional. Hence, Result type is not used. */
             results.add(abstractResultToJSONObject(result));
         }
         responseWrap.add(EntitlementEndpointConstants.RESPONSE, results);
@@ -82,6 +95,7 @@ public class JSONResponseWriter {
      * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
      */
     private static JsonObject abstractResultToJSONObject(AbstractResult result) throws ResponseWriteException {
+
         JsonObject jsonResult = new JsonObject();
 
         //Decision property is mandatory, if not set throw error
@@ -130,95 +144,106 @@ public class JSONResponseWriter {
 
                 switch (attribute.getCategory().toString()) {
                     case EntitlementEndpointConstants.CATEGORY_ACTION_URI:
-
                         jsonResult.add(EntitlementEndpointConstants.CATEGORY_ACTION, getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_RESOURCE_URI:
-
                         jsonResult.add(EntitlementEndpointConstants.CATEGORY_RESOURCE, getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT_URI:
-
                         jsonResult.add(EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT, getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_ENVIRONMENT_URI:
-
                         jsonResult.add(EntitlementEndpointConstants.CATEGORY_ENVIRONMENT, getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT_URI:
-
-                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT, getJsonObject(attribute));
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT,
+                                getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT_URI:
-
-                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT, getJsonObject(attribute));
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT,
+                                getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_CODEBASE_URI:
-
                         jsonResult.add(EntitlementEndpointConstants.CATEGORY_CODEBASE, getJsonObject(attribute));
                         break;
 
                     case EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE_URI:
+                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE,
+                                getJsonObject(attribute));
+                        break;
 
-                        jsonResult.add(EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE, getJsonObject(attribute));
+                    default:
+                        jsonResult.add(attribute.getCategory().toString(), getJsonObject(attribute));
                         break;
                 }
             }
-
         }
-
-        /**
-         * Todo: PolicyIdentifierList
-         */
 
         return jsonResult;
     }
 
-    /***
+    /**
      * Create json object value of an Attribute
-     * @param attribute an element of type Attributes
-     * @return
+     *
+     * @param attributes an element of type Attributes
+     * @return a JSONObject
      */
-    private static JsonObject getJsonObject(Attributes attribute) {
+    private static JsonObject getJsonObject(Attributes attributes) {
+
         JsonObject jsonObject = new JsonObject();
         JsonArray jsonArray = new JsonArray();
-        for (Object att : attribute.getAttributes().toArray()) {
-            Attribute atri = (Attribute) att;
-            if (atri.isIncludeInResult()) {
-                JsonObject ele = new JsonObject();
-                if (atri.getId() != null) {
-                    ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, uriToShortenForm(atri.getId().toString()));
+        for (Object att : attributes.getAttributes().toArray()) {
+            Attribute attrib = (Attribute) att;
+            if (attrib.isIncludeInResult()) {
+                JsonObject element = new JsonObject();
+                if (attrib.getId() != null) {
+                    if (xacmlJSONProfileShortFormEnable) {
+                        element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, uriToShortenForm(attrib
+                                .getId().toString()));
+                    } else {
+                        element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, attrib.getId().toString());
+                    }
                 }
-                if (atri.getValues() != null) {
-                    for (AttributeValue val : atri.getValues()) {
+                if (attrib.getValues() != null) {
+                    for (AttributeValue val : attrib.getValues()) {
                         if (((StringAttribute) val).getValue() != null) {
-                            ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE, ((StringAttribute) val).getValue());
+                            element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE,
+                                    ((StringAttribute) val).getValue());
                         }
                     }
                 }
-                ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_INCLUDE_IN_RESULT, String.valueOf(atri.isIncludeInResult()));
-                if (atri.getType() != null) {
-                    ele.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE, uriToShortenForm(atri.getType().toString()));
+                element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_INCLUDE_IN_RESULT,
+                        String.valueOf(attrib.isIncludeInResult()));
+                if (attrib.getType() != null) {
+                    if (xacmlJSONProfileShortFormEnable) {
+                        element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
+                                uriToShortenForm(attrib.getType().toString()));
+                    } else {
+                        element.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
+                                attrib.getType().toString());
+                    }
                 }
-                jsonArray.add(ele);
+                jsonArray.add(element);
             }
         }
         jsonObject.add(EntitlementEndpointConstants.ATTRIBUTE, jsonArray);
         return jsonObject;
     }
 
-    /***
-     *  This converts the XACML xml data type to simple shorten data type format
+    /**
+     * This converts the XACML xml data type to simple shorten data type format
+     *
      * @param uriName XACML xml data type uri
      * @return
      */
     private static String uriToShortenForm(String uriName) {
+
         String shortenString = null;
         switch (uriName) {
             case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING:
@@ -328,7 +353,7 @@ public class JSONResponseWriter {
         return shortenString;
     }
 
-    /***
+    /**
      * Private method to convert Balana <code>{@link Status}</code> to <code>{@link JsonObject}</code>
      *
      * @param status <code>{@link Status}</code>
@@ -360,10 +385,8 @@ public class JSONResponseWriter {
     private static JsonObject obligationToJsonObject(Obligation obligation) {
         JsonObject jsonObligation = new JsonObject();
 
-        /**
-         * Todo: Add obligation id
-         */
-        //jsonObligation.addProperty(EntitlementEndpointConstants.OBLIGATION_OR_ADVICE_ID,obligation);
+        jsonObligation.addProperty(EntitlementEndpointConstants.OBLIGATION_OR_ADVICE_ID,
+                obligation.getObligationId().toString());
         JsonArray attributeAssignments = new JsonArray();
         for (AttributeAssignment aa : obligation.getAssignments()) {
             attributeAssignments.add(attributeAssignmentToJsonObject(aa));
@@ -399,17 +422,17 @@ public class JSONResponseWriter {
      * @return <code>{@link JsonObject}</code>
      */
     private static JsonObject attributeAssignmentToJsonObject(AttributeAssignment attributeAssignment) {
-        JsonObject jsonAa = new JsonObject();
-        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, attributeAssignment.getAttributeId()
+        JsonObject jsonObjectAttribute = new JsonObject();
+        jsonObjectAttribute.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, attributeAssignment.getAttributeId()
                 .toString());
         /*As per the xacml 3.0 core spec(section 5.41), Category and Issuer are optional categories for
         Element <AttributeAssignmentExpression>*/
         if (attributeAssignment.getIssuer() != null) {
-            jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer()
+            jsonObjectAttribute.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer()
                     .toString());
         }
         if (attributeAssignment.getCategory() != null) {
-            jsonAa.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
+            jsonObjectAttribute.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
                     .toString());
         }
 
@@ -419,16 +442,21 @@ public class JSONResponseWriter {
             /*As per the xacml 3.0 core spec(section 7.3.1), data-type is a required attribute and content is optional
             for Element <AttributeValue>*/
             if (attributeValue.get("content") != null) {
-                jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE,
+                jsonObjectAttribute.addProperty(EntitlementEndpointConstants.ATTRIBUTE_VALUE,
                         attributeValue.get("content").getAsString());
             }
-            jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                    uriToShortenForm(attributeValue.get("type").getAsString()));
+            if (xacmlJSONProfileShortFormEnable) {
+                jsonObjectAttribute.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
+                        uriToShortenForm(attributeValue.get("type").getAsString()));
+            } else {
+                jsonObjectAttribute.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
+                        attributeValue.get("type").getAsString());
+            }
         } catch (Exception e) {
             return null;
         }
 
 
-        return jsonAa;
+        return jsonObjectAttribute;
     }
 }

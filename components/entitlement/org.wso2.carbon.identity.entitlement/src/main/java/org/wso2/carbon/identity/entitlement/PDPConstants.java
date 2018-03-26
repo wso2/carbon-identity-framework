@@ -277,4 +277,6 @@ public class PDPConstants {
 
     public static final String POLICY_CACHING_INTERVAL = "PDP.PolicyCaching.CachingInterval";
 
+    public static final String XACML_JSON_SHORT_FORM_ENABLED = "JSON.Shorten.Form.Enabled";
+
 }
