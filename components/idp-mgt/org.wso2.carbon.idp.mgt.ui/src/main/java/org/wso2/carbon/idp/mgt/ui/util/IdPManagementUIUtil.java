@@ -540,6 +540,7 @@ public class IdPManagementUIUtil {
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("scim");
 
+        Property scimVersionProp = null;
         Property userNameProp = null;
         Property passwordProp = null;
         Property userEpProp = null;
@@ -557,6 +558,12 @@ public class IdPManagementUIUtil {
 
         if (paramMap.get("scimProvDefault") != null && "on".equals(paramMap.get("scimProvDefault"))) {
             fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
+        }
+
+        if (paramMap.get("scim-version") != null) {
+            scimVersionProp = new Property();
+            scimVersionProp.setName("scim-version");
+            scimVersionProp.setValue(paramMap.get("scim-version"));
         }
 
         if (paramMap.get("scim-username") != null) {
@@ -609,7 +616,7 @@ public class IdPManagementUIUtil {
             uniqueID.setValue(paramMap.get("scim-unique-id"));
         }
 
-        Property[] proProperties = new Property[]{userNameProp, passwordProp, userEpProp,
+        Property[] proProperties = new Property[]{scimVersionProp, userNameProp, passwordProp, userEpProp,
                 groupEpProp, scimUserStoreDomain, scimEnablePwdProvisioning, defaultPwdProp, uniqueID};
 
         proConnector.setProvisioningProperties(proProperties);

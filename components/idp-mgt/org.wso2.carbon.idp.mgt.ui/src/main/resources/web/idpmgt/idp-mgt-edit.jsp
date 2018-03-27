@@ -169,6 +169,7 @@
 
     boolean isScimProvEnabled = false;
     boolean isScimProvDefault = false;
+    String scimVersion = "scim1";
     String scimUserName = null;
     String scimPassword = null;
     String scimGroupEp = null;
@@ -699,7 +700,9 @@
                 for (Property scimProperty : scimProperties) {
                     //This is a safety to check to avoid NPE
                     if (scimProperty != null) {
-                        if ("scim-username".equals(scimProperty.getName())) {
+                        if ("scim-version".equals(scimProperty.getName())) {
+                            scimVersion = scimProperty.getValue();
+                        } else if ("scim-username".equals(scimProperty.getName())) {
                             scimUserName = scimProperty.getValue();
                         } else if ("scim-password".equals(scimProperty.getName())) {
                             scimPassword = scimProperty.getValue();
@@ -5250,6 +5253,22 @@
                                             key='scim.provisioning.default.help'/>
                                         </span>
                                     </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='scim.provisioning.select.version'/>:
+                                </td>
+                                <td>
+                                    <label>
+                                        <input type="radio" value="scim1"
+                                               name="scim-version" checked="checked" />
+                                        SCIM 1.1
+                                    </label>
+                                    <label>
+                                        <input type="radio" value="scim2"
+                                               name="scim-version" />
+                                        SCIM 2.0
+                                    </label>
                                 </td>
                             </tr>
 
