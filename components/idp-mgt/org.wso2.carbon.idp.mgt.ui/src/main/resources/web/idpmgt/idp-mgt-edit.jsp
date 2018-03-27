@@ -37,6 +37,7 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -169,7 +170,9 @@
 
     boolean isScimProvEnabled = false;
     boolean isScimProvDefault = false;
-    String scimVersion = "scim1";
+    boolean isScim1Enabled = true;
+    String scimProtocolVersion = IdPManagementUIConstants.SCIM_PROTOCOL_VERSION;
+    String scimVersion = IdPManagementUIConstants.SCIM_VERSION;
     String scimUserName = null;
     String scimPassword = null;
     String scimGroupEp = null;
@@ -700,7 +703,7 @@
                 for (Property scimProperty : scimProperties) {
                     //This is a safety to check to avoid NPE
                     if (scimProperty != null) {
-                        if ("scim-version".equals(scimProperty.getName())) {
+                        if (scimProtocolVersion.equals(scimProperty.getName())) {
                             scimVersion = scimProperty.getValue();
                         } else if ("scim-username".equals(scimProperty.getName())) {
                             scimUserName = scimProperty.getValue();
@@ -726,7 +729,9 @@
             if (scim.getEnabled()) {
                 isScimProvEnabled = true;
             }
-
+            if (scimVersion.equals("scim2")) {
+                isScim1Enabled = false;
+            }
         }
 
         // Provisioning
@@ -5261,12 +5266,14 @@
                                 <td>
                                     <label>
                                         <input type="radio" value="scim1"
-                                               name="scim-version" checked="checked" />
+                                               name="scim-version" <% if (isScim1Enabled)
+                                               { %> checked="checked" <% } %> />
                                         SCIM 1.1
                                     </label>
                                     <label>
                                         <input type="radio" value="scim2"
-                                               name="scim-version" />
+                                               name="scim-version" <% if (!isScim1Enabled)
+                                               { %> checked="checked" <% } %> />
                                         SCIM 2.0
                                     </label>
                                 </td>
