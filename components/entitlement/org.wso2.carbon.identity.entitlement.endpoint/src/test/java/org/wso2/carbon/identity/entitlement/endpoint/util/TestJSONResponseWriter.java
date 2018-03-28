@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.endpoint.test;
+package org.wso2.carbon.identity.entitlement.endpoint.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,7 +34,6 @@ import org.wso2.balana.ctx.xacml3.Result;
 import org.wso2.balana.xacml3.Advice;
 import org.wso2.balana.xacml3.Obligation;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.ResponseWriteException;
-import org.wso2.carbon.identity.entitlement.endpoint.util.JSONResponseWriter;
 
 import java.net.URI;
 import java.net.URISyntaxException;

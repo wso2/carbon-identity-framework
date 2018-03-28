@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.endpoint.test;
+package org.wso2.carbon.identity.entitlement.endpoint.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,8 +27,6 @@ import org.wso2.balana.attr.StringAttribute;
 import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.balana.xacml3.Attributes;
-import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
-import org.wso2.carbon.identity.entitlement.endpoint.util.JSONRequestParser;
 
 import java.net.URI;
 import java.util.ArrayList;
