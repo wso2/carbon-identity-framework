@@ -41,8 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
@@ -552,14 +551,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             String tenantDomain) throws FrameworkException {
 
         try {
-            ApplicationConfig appConfig = new ApplicationConfig(ApplicationManagementService.getInstance()
-                    .getServiceProviderByClientId(clientId, clientType, tenantDomain));
+            ServiceProvider serviceProvider = getServiceProvider(clientType, clientId, tenantDomain);
+            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider);
             sequenceConfig.setApplicationConfig(appConfig);
             if (log.isDebugEnabled()) {
                 log.debug("Refresh application config in sequence config for application id: " + sequenceConfig
                         .getApplicationId() + " in tenant: " + tenantDomain);
             }
-        } catch (IdentityApplicationManagementException e) {
+        } catch (FrameworkException e) {
             String message =
                     "No application found for application id: " + sequenceConfig.getApplicationId() + " in tenant: "
                             + tenantDomain + " Probably, the Service Provider would have been removed.";
