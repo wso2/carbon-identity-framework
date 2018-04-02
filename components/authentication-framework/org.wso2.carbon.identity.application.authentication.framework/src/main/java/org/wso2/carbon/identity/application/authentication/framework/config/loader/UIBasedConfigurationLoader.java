@@ -21,12 +21,12 @@ package org.wso2.carbon.identity.application.authentication.framework.config.loa
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -59,7 +59,7 @@ import java.util.Map;
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
-    private JsFunctionRegistryImpl jsFunctionRegistrar;
+    private JsFunctionRegistry jsFunctionRegistrar;
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Override
@@ -87,7 +87,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             sequenceConfig.getStepMap().clear();
 
             JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
-            jsGraphBuilder.setJsFunctionRegistry(jsFunctionRegistrar);
             context.setServiceProviderName(serviceProvider.getApplicationName());
 
             AuthenticationGraph graph = jsGraphBuilder
@@ -304,7 +303,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
     }
 
-    public void setJsFunctionRegistrar(JsFunctionRegistryImpl jsFunctionRegistrar) {
+    public void setJsFunctionRegistrar(JsFunctionRegistry jsFunctionRegistrar) {
         this.jsFunctionRegistrar = jsFunctionRegistrar;
     }
 

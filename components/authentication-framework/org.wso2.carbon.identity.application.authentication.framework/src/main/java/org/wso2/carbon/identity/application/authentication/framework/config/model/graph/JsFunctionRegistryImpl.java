@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -37,12 +38,13 @@ public class JsFunctionRegistryImpl implements JsFunctionRegistry {
         functionNameMap.put(functionName, function);
     }
 
-    public void stream(Subsystem subsystem, Consumer<Map.Entry<String, Object>> consumer) {
-        Map<String, Object> functionNameMap = subsystemMap.get(subsystem);
-
-        if (functionNameMap != null) {
-            functionNameMap.entrySet().forEach(consumer::accept);
+    @Override
+    public Map<String, Object> getSubsystemFunctionsMap(Subsystem subsystem) {
+        Map<String, Object> functionMap = subsystemMap.get(subsystem);
+        if (functionMap == null) {
+            return Collections.emptyMap();
         }
+        return Collections.unmodifiableMap(functionMap);
     }
 
     @Override

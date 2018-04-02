@@ -95,7 +95,6 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
-    private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
     private JsGraphBuilderFactory jsGraphBuilderFactory;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
@@ -161,10 +160,12 @@ public class FrameworkServiceComponent {
     @SuppressWarnings("unchecked")
     @Activate
     protected void activate(ComponentContext ctxt) {
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistry, null);
+        bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -181,8 +182,7 @@ public class FrameworkServiceComponent {
         authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
         bundleContext
                 .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
-        FrameworkServiceDataHolder.getInstance()
-                .setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
+        dataHolder.setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
 
         // Register Common servlet
         Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
@@ -203,31 +203,29 @@ public class FrameworkServiceComponent {
             throw new RuntimeException(errMsg, e);
         }
 
-        FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
-                FrameworkLoginResponseFactory());
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
-                FrameworkLogoutResponseFactory());
+        dataHolder.setBundleContext(bundleContext);
+        dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
+        dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
+        dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+        jsGraphBuilderFactory.setJsFunctionRegistry(dataHolder.getJsFunctionRegistry());
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
-        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistry);
-        FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
-        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        uiBasedConfigurationLoader.setJsFunctionRegistrar(dataHolder.getJsFunctionRegistry());
+        dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
+        dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
-        FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
+        dataHolder.setPostAuthenticationMgtService(postAuthenticationMgtService);
         // Registering missing mandatory claim handler as a post authn handler
         PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
 
         SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
-        FrameworkServiceDataHolder.getInstance().setSSOConsentService(ssoConsentService);
+        dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
