@@ -15,6 +15,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2468:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2468:IdentityProviderProperty"/>

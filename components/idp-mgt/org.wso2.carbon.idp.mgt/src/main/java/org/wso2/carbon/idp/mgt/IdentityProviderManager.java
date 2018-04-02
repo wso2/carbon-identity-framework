@@ -973,6 +973,39 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
+    @Override
+    public IdentityProvider getIdPById(String id, String tenantDomain,
+                                       boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (StringUtils.isEmpty(id)) {
+            String msg = "Invalid argument: Identity Provider ID value is empty";
+            throw new IdentityProviderManagementException(msg);
+        }
+
+        Integer intId;
+        IdentityProvider identityProvider = null;
+
+        try {
+            intId = Integer.parseInt(id);
+            identityProvider = dao.getIdPById(null, intId, tenantId, tenantDomain);
+        } catch (NumberFormatException e) {
+            // Ignore this.
+        }
+        if (!ignoreFileBasedIdps) {
+
+            if (identityProvider == null) {
+                identityProvider = new FileBasedIdPMgtDAO().getIdPByName(id, tenantDomain);
+            }
+
+            if (identityProvider == null) {
+                identityProvider = IdPManagementServiceComponent.getFileBasedIdPs().get(
+                        IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
+            }
+        }
+
+        return identityProvider;
+    }
     /**
      * @param idPName
      * @param tenantDomain
@@ -1004,6 +1037,12 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByName(String idPName, String tenantDomain)
             throws IdentityProviderManagementException {
         return getIdPByName(idPName, tenantDomain, false);
+    }
+
+    @Override
+    public IdentityProvider getIdPById(String id, String tenantDomain) throws IdentityProviderManagementException {
+
+        return getIdPById(id, tenantDomain, false);
     }
 
     /**

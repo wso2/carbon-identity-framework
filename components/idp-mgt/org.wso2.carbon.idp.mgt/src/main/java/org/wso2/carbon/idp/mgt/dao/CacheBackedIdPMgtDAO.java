@@ -114,6 +114,41 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * @param dbConnection Database connection.
+     * @param id Id of the identity provider.
+     * @param tenantId Tenant Id of the identity provider.
+     * @param tenantDomain Tenant domain of the identity provider.
+     * @return Identity provider with given ID.
+     * @throws IdentityProviderManagementException
+     */
+    public IdentityProvider getIdPById(Connection dbConnection, int id,
+                                       int tenantId, String tenantDomain) throws IdentityProviderManagementException {
+
+        IdentityProvider identityProvider = idPMgtDAO.getIDPbyId(dbConnection, id,
+                tenantId, tenantDomain);
+
+        if (identityProvider != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry fetched from DB for Identity Provider " + identityProvider.getIdentityProviderName()
+                        + ". Updating cache");
+            }
+            IdPNameCacheKey cacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName(), tenantDomain);
+            idPCacheByName.addToCache(cacheKey, new IdPCacheEntry(identityProvider));
+            if (identityProvider.getHomeRealmId() != null) {
+                IdPHomeRealmIdCacheKey homeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
+                        identityProvider.getHomeRealmId(), tenantDomain);
+                idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
+            }
+        } else {
+            if(log.isDebugEnabled()) {
+                log.debug(String.format("No IDP found with ID: %d either in cache or DB", id));
+            }
+        }
+
+        return identityProvider;
+    }
+
+    /**
      * @param dbConnection
      * @param property
      * @param value
