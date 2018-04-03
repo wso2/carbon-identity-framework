@@ -2752,8 +2752,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
+                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
             connection.commit();
