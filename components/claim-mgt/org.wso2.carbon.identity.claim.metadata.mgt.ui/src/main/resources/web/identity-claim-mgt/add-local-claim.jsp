@@ -39,6 +39,12 @@
         display: inline-block;
         color: #555;
     }
+    .readonly_text{
+        color: #000;
+        font-size: 12px;
+        border: none;
+        margin-left: 8px;
+    }
 </style>
 
 <%
@@ -339,30 +345,23 @@
                                             <tbody>
                                             <tr>
                                                 <td class="leftCol-big">
-                                                    <select style="width: 98%;" id="userstore_0" name="userstore_0">
-                                                        <%
-                                                            if (domainNames != null && domainNames.length > 0) {
-                                                                for (String domainName : domainNames) {
-                                                        %>
-                                                        <option value="<%=Encode.forHtmlAttribute(domainName)%>">
-                                                            <%=Encode.forHtmlContent(domainName)%>
-                                                        </option>
-                                                        <%
-                                                                }
+                                                    <%
+                                                        if (domainNames != null && domainNames.length > 0) {
+                                                            for (String domainName : domainNames) {
+                                                    %>
+                                                    <input type="text" id="userstore_0" name="userstore_0"
+                                                           value="<%=Encode.forHtmlAttribute(domainName)%>" readonly
+                                                           class="readonly_text"/>
+                                                    <%
                                                             }
-                                                        %>
-                                                    </select>
+                                                        }
+                                                    %>
                                                 </td>
                                                 <td class="leftCol-big">
                                                     <input style="width: 98%;" type="text"
                                                            id="attribute_0" name="attribute_0"/>
                                                 </td>
-                                                <td>
-                                                    <a href="#" class="icon-link deleteLink"
-                                                       style="background-image:url(../identity-claim-mgt/images/delete.gif);"
-                                                       onclick="deleteAttributeRow(this);return false;"><fmt:message
-                                                            key='delete'/></a>
-                                                </td>
+                                                <td style="width: 20%;">&nbsp;</td>
                                             </tr>
                                             </tbody>
                                         </table>
