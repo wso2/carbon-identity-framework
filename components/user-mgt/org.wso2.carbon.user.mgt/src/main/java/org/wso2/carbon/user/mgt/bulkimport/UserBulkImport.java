@@ -20,9 +20,6 @@ package org.wso2.carbon.user.mgt.bulkimport;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
@@ -34,9 +31,6 @@ import java.util.Map;
 
 public abstract class UserBulkImport {
 
-    private static final Log log = LogFactory.getLog(UserBulkImport.class);
-    private static final Log audit = CarbonConstants.AUDIT_LOG;
-
     Map<String, String> errorUsersMap = new HashMap<>();
     List<String> duplicateUsers = new ArrayList<>();
     String userStoreDomain = "";
@@ -44,7 +38,6 @@ public abstract class UserBulkImport {
     int successCount = 0;
     int failCount = 0;
     int duplicateCount = 0;
-    JsonObject summeryJson;
     String tenantUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername() + "@"
             + PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
@@ -69,7 +62,7 @@ public abstract class UserBulkImport {
      */
     String buildBulkImportSummery() {
 
-        summeryJson = new JsonObject();
+        JsonObject summeryJson = new JsonObject();
         JsonObject duplicateUsersJson = new JsonObject();
         JsonArray duplicateUsersJsonArray = new JsonArray();
         JsonObject errorUsersJson = new JsonObject();

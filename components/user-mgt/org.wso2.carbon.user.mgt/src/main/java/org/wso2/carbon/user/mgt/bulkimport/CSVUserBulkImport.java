@@ -57,9 +57,6 @@ public class CSVUserBulkImport extends UserBulkImport {
             String[] line = csvReader.readNext();
             boolean isDuplicate = false;
             boolean fail = false;
-            boolean success = false;
-            StringBuilder content = new StringBuilder();
-            String lastError = "UNKNOWN";
             while (line != null && line.length > 0) {
                 String userName = line[0];
 
@@ -78,12 +75,10 @@ public class CSVUserBulkImport extends UserBulkImport {
                         if (!userStore.isExistingUser(userName)) {
                             if (line.length == 1) {
                                 userStore.addUser(userName, null, null, null, null, true);
-                                success = true;
                                 successCount++;
                             } else {
                                 try {
                                     addUserWithClaims(userName, line, userStore);
-                                    success = true;
                                     successCount++;
                                     if (log.isDebugEnabled()) {
                                         log.debug("User import successful - Username : " + userName);
@@ -91,7 +86,6 @@ public class CSVUserBulkImport extends UserBulkImport {
                                 } catch (UserAdminException e) {
                                     fail = true;
                                     failCount++;
-                                    lastError = e.getMessage();
                                     errorUsersMap.put(userName, e.getMessage());
                                     log.error("User import unsuccessful - Username : " + userName + " - Error: " +
                                             e.getMessage());
@@ -107,7 +101,6 @@ public class CSVUserBulkImport extends UserBulkImport {
                         if (log.isDebugEnabled()) {
                             log.debug(e.getMessage());
                         }
-                        lastError = e.getMessage();
                         fail = true;
                         failCount++;
                         errorUsersMap.put(userName, e.getMessage());
@@ -127,8 +120,7 @@ public class CSVUserBulkImport extends UserBulkImport {
             log.info("Success count: " + successCount + ", Fail count: " + failCount + ", Duplicate count: " +
                     duplicateCount);
             String summeryLog = buildBulkImportSummery();
-            String audit = "{ \"Initiator\" : \"%s\", \"Action\" : \"Bulk User Import\", \"Target\" : \"%s\", " +
-                    "\"Data\" : %s, \"Result\": %s";
+            String audit = "Initiator=%s Action=Bulk_User_Import Target=%s Data=%s Result=%s";
 
             auditLog.info(String.format(audit, tenantUser, userStoreDomain, usersImported, summeryLog));
 
@@ -148,9 +140,7 @@ public class CSVUserBulkImport extends UserBulkImport {
             throw new UserAdminException("Error occurred while adding user list", e);
         } finally {
             try {
-                if (csvReader != null) {
-                    csvReader.close();
-                }
+                csvReader.close();
             } catch (IOException e) {
                 log.error("Error occurred while closing CSV Reader", e);
             }
@@ -163,7 +153,7 @@ public class CSVUserBulkImport extends UserBulkImport {
         String roleString = null;
         String[] roles = null;
         String password = line[1];
-        Map<String, String> claims = new HashMap<String, String>();
+        Map<String, String> claims = new HashMap<>();
         for (int i = 2; i < line.length; i++) {
             if (line[i] != null && !line[i].isEmpty()) {
                 String[] claimStrings = line[i].split("=");

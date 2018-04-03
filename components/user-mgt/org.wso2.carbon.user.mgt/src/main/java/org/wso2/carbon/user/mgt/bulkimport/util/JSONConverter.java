@@ -38,11 +38,8 @@ public class JSONConverter {
 
     private static final Log log = LogFactory.getLog(JSONConverter.class);
 
-    private BufferedReader bufferedReader;
     private JsonObject content = new JsonObject();
     private JsonArray users = new JsonArray();
-    private String[] headers = null;
-    private String[] line = null;
 
     public JSONConverter() {
 
@@ -58,12 +55,12 @@ public class JSONConverter {
      */
     public String csvToJSON(InputStream sourceStream) throws IOException {
 
-        this.bufferedReader = new BufferedReader(new InputStreamReader(sourceStream));
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sourceStream));
 
         CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 0);
-        headers = csvReader.readNext();
+        String[] headers = csvReader.readNext();
 
-        line = csvReader.readNext();
+        String[] line = csvReader.readNext();
 
         if (log.isDebugEnabled()) {
             log.debug("Converting csv to json.");
