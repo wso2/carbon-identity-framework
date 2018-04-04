@@ -23,7 +23,9 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
@@ -62,6 +64,7 @@ public class FrameworkServiceDataHolder {
     private ConsentManager consentManager = null;
     private ClaimMetadataManagementService claimMetadataManagementService = null;
     private SSOConsentService ssoConsentService;
+    private JsFunctionRegistry jsFunctionRegistry;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -89,7 +92,6 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     *
      * @return
      * @throws FrameworkException
      * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
@@ -238,7 +240,7 @@ public class FrameworkServiceDataHolder {
      * Set {@link ClaimMetadataManagementService}.
      * @param claimMetadataManagementService Instance of {@link ClaimMetadataManagementService}.
      */
-    public void setClaimMetadataManagementService (ClaimMetadataManagementService claimMetadataManagementService) {
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
@@ -257,5 +259,21 @@ public class FrameworkServiceDataHolder {
      */
     public void setSSOConsentService(SSOConsentService ssoConsentService) {
         this.ssoConsentService = ssoConsentService;
+    }
+
+    /**
+     * Get the {@link JsFunctionRegistry}
+     * @return JsFunctionRegistry which hold the native functions
+     */
+    public JsFunctionRegistry getJsFunctionRegistry() {
+        return jsFunctionRegistry;
+    }
+
+    /**
+     * Set the {@link JsFunctionRegistry}
+     * @param jsFunctionRegistry JsFunctionRegistry which hold the native functions
+     */
+    public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
+        this.jsFunctionRegistry = jsFunctionRegistry;
     }
 }
