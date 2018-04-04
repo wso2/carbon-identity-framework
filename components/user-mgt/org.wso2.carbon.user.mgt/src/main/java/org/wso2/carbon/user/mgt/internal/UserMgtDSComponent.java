@@ -32,13 +32,16 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
+import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
+import org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger;
 import org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder;
-import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
-import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
 
 import java.util.HashMap;
@@ -98,6 +101,27 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserMgtAuditLogger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                    new UserManagementAuditLogger(), null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserManagementAuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserManagementtAuditLogger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext()
+                    .registerService(UserManagementErrorEventListener.class.getName(), new UserMgtFailureAuditLogger(),
+                            null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserMgtFailureAuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserMgtFailureAuditLogger successfully registered.");
                 }
             }
 
