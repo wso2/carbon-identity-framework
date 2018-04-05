@@ -29,28 +29,30 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.user.mgt.bulkimport.util.JSONConverter;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Class to import users from Excel format files.
+ */
 public class ExcelUserBulkImport extends UserBulkImport {
 
     private static final Log log = LogFactory.getLog(ExcelUserBulkImport.class);
-
     private BulkImportConfig config;
 
     public ExcelUserBulkImport(BulkImportConfig config) {
-
         super();
         this.config = config;
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
-
         Workbook wb = this.createWorkbook();
         Sheet sheet = wb.getSheet(wb.getSheetName(0));
         userStoreDomain = config.getUserStoreDomain();
@@ -90,7 +92,7 @@ public class ExcelUserBulkImport extends UserBulkImport {
                         log.error("User import unsuccessful - Username : " + userName + " - Error: Duplicate user");
                         duplicateUsers.add(userName);
                     }
-                } catch (Exception e) {
+                } catch (UserStoreException e) {
                     fail = true;
                     failCount++;
                     log.error("User import unsuccessful - Username : " + userName + " - Error: " +
@@ -105,19 +107,21 @@ public class ExcelUserBulkImport extends UserBulkImport {
 
         JSONConverter jsonConverter = new JSONConverter();
         String importedUsers = jsonConverter.xlsToJSON(sheet);
-
         auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser, UserMgtConstants.OPERATION_NAME,
                 userStoreDomain, importedUsers, summeryLog));
 
         if (fail || isDuplicate) {
-            String messageBuilder = "Bulk User Import was completed with Errors. " + "Success count : " +
-                    successCount + " Failed Count : " + failCount + " Duplicate Count : " + duplicateCount + ". ";
-            throw new UserAdminException(messageBuilder);
+            throw new UserAdminException(String.format(UserMgtConstants.ERROR_MESSAGE, successCount, failCount,
+                    duplicateCount));
         }
     }
 
+    /**
+     * Generate a WorkBook object from the excel file.
+     * @return : The generated workbook
+     * @throws UserAdminException : Throws if there is any error occurred in the process of creating the workbook.
+     */
     private Workbook createWorkbook() throws UserAdminException {
-
         String filename = config.getFileName();
         InputStream ins = config.getInStream();
         Workbook wb;
@@ -128,13 +132,11 @@ public class ExcelUserBulkImport extends UserBulkImport {
                 POIFSFileSystem fs = new POIFSFileSystem(ins);
                 wb = new HSSFWorkbook(fs);
             }
-        } catch (Exception e) {
-            log.error("Bulk import failed" + e.getMessage(), e);
-            throw new UserAdminException("Bulk import failed" + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UserAdminException("Error reading the xls file " + e.getMessage(), e);
         } finally {
             IdentityIOStreamUtils.closeInputStream(ins);
         }
         return wb;
     }
-
 }

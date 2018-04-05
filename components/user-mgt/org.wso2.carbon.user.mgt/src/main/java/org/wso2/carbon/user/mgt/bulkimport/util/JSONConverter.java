@@ -39,12 +39,10 @@ import java.io.InputStreamReader;
 public class JSONConverter {
 
     private static final Log log = LogFactory.getLog(JSONConverter.class);
-
     private JsonObject content = new JsonObject();
-    private JsonArray users = new JsonArray();
+    private JsonArray users;
 
     public JSONConverter() {
-
     }
 
     /**
@@ -53,20 +51,17 @@ public class JSONConverter {
      * UserName, Password, Claims.
      *
      * @return : JSON representation of the input csv stream.
-     * @throws IOException :
+     * @throws IOException : Throws if there is any error occurred when reading from the input stream.
      */
     public String csvToJSON(InputStream sourceStream) throws IOException {
-
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sourceStream));
-
-        CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 0);
-
+        CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 1);
         String[] line = csvReader.readNext();
+        users = new JsonArray();
 
         if (log.isDebugEnabled()) {
             log.debug("Converting csv to json.");
         }
-
         while (line != null) {
             JsonPrimitive user = new JsonPrimitive(line[0]);
             users.add(user);
@@ -85,8 +80,8 @@ public class JSONConverter {
      * @return : Json string which represents the sheet.
      */
     public String xlsToJSON(Sheet sheet) {
-
         int limit = sheet.getLastRowNum();
+        users = new JsonArray();
 
         if (log.isDebugEnabled()) {
             log.debug("Converting XLS sheet to json.");
@@ -100,7 +95,6 @@ public class JSONConverter {
             users.add(userJson);
         }
         content.add(UserMgtConstants.USERS, users);
-
         return content.toString();
     }
 }

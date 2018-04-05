@@ -37,21 +37,21 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class to handle import users from a CSV file.
+ */
 public class CSVUserBulkImport extends UserBulkImport {
 
     private static final Log log = LogFactory.getLog(CSVUserBulkImport.class);
-
     private BufferedReader reader;
     private BulkImportConfig config;
 
     public CSVUserBulkImport(BulkImportConfig config) {
-
         this.config = config;
         this.reader = new BufferedReader(new InputStreamReader(config.getInStream(), Charset.forName("UTF-8")));
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
-
         CSVReader csvReader = new CSVReader(reader, ',', '"', 1);
         try {
             userStoreDomain = config.getUserStoreDomain();
@@ -71,7 +71,6 @@ public class CSVUserBulkImport extends UserBulkImport {
                 }
 
                 if (userName != null && userName.trim().length() > 0) {
-                    totalCount++;
                     try {
                         if (!userStore.isExistingUser(userName)) {
                             if (line.length == 1) {
@@ -84,12 +83,12 @@ public class CSVUserBulkImport extends UserBulkImport {
                                     if (log.isDebugEnabled()) {
                                         log.debug("User import successful - Username : " + userName);
                                     }
-                                } catch (UserAdminException e) {
+                                } catch (IllegalArgumentException e) {
                                     fail = true;
                                     failCount++;
                                     errorUsersMap.put(userName, e.getMessage());
                                     log.error("User import unsuccessful - Username : " + userName + " - Error: " +
-                                            e.getMessage());
+                                            e.getMessage(), e);
                                 }
                             }
                         } else {
@@ -99,13 +98,11 @@ public class CSVUserBulkImport extends UserBulkImport {
                             log.error("User import unsuccessful - Username : " + userName + " - Error: Duplicate user");
                         }
                     } catch (UserStoreException e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(e.getMessage());
-                        }
                         fail = true;
                         failCount++;
                         errorUsersMap.put(userName, e.getMessage());
-                        log.error("User import unsuccessful - Username : " + userName + " - Error: " + e.getMessage());
+                        log.error("User import unsuccessful - Username : " + userName + " - Error: " +
+                                e.getMessage(), e);
                     }
                 }
                 line = csvReader.readNext();
@@ -115,40 +112,39 @@ public class CSVUserBulkImport extends UserBulkImport {
             inputStream.reset();
             JSONConverter jsonConverter = new JSONConverter();
             String usersImported = jsonConverter.csvToJSON(inputStream);
-
-            log.info("Success count: " + successCount + ", Fail count: " + failCount + ", Duplicate count: " +
-                    duplicateCount);
             String summeryLog = buildBulkImportSummery();
 
             auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser,
                     UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summeryLog));
-
             log.info(summeryLog);
 
             if (fail || isDuplicate) {
-
-                String messageBuilder = "Bulk User Import was completed with Errors. " + "Success count : " +
-                        successCount + " Failed Count : " + failCount + " Duplicate Count : " + duplicateCount;
-
-                throw new UserAdminException(messageBuilder);
+                throw new UserAdminException(String.format(UserMgtConstants.ERROR_MESSAGE, successCount, failCount,
+                        duplicateCount));
             }
-        } catch (UserAdminException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error occurred while adding user list", e);
+        } catch (IOException e) {
             throw new UserAdminException("Error occurred while adding user list", e);
         } finally {
             try {
-                csvReader.close();
+                if (csvReader != null) {
+                    csvReader.close();
+                }
             } catch (IOException e) {
                 log.error("Error occurred while closing CSV Reader", e);
             }
         }
     }
 
+    /**
+     * Method to handle adding users with claim values.
+     *
+     * @param username : The name of the importing user.
+     * @param line : The line read from the CSV file.
+     * @param userStore : The user store which the user should be imported to.
+     * @throws UserStoreException : Throws when there is any error occurred while adding the user to user store.
+     */
     private void addUserWithClaims(String username, String[] line, UserStoreManager userStore)
-            throws UserStoreException, UserAdminException {
-
+            throws UserStoreException {
         String roleString = null;
         String[] roles = null;
         String password = line[1];
@@ -157,7 +153,7 @@ public class CSVUserBulkImport extends UserBulkImport {
             if (line[i] != null && !line[i].isEmpty()) {
                 String[] claimStrings = line[i].split("=");
                 if (claimStrings.length != 2) {
-                    throw new UserAdminException("Claims and values are not in correct format");
+                    throw new IllegalArgumentException("Claims and values are not in correct format");
                 } else {
                     String claimURI = claimStrings[0];
                     String claimValue = claimStrings[1];
@@ -171,7 +167,6 @@ public class CSVUserBulkImport extends UserBulkImport {
                         }
                     }
                 }
-
             }
         }
 

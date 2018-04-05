@@ -1,0 +1,4 @@
+UserName,Password,Claims
+testUser1,testPassword1,http://wso2.org/claims/emailaddress=test1@gmail.com.com
+testUser2,testPassword2,http://wso2.org/claims/emailaddress=test2@gmail.com.com
+testUser3,testPassword3,http://wso2.org/claims/emailaddress=test3@gmail.com.com

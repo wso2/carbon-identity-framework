@@ -43,7 +43,7 @@ public class UserMgtConstants {
 
     public static final String APPLICATION_DOMAIN = "Application";
 
-    //Constants for log messages
+    // Constants for log messages
     public static final String OPERATION_NAME = "bulk_user_import";
     public static final String OPERATION = "operation";
     public static final String PERFORMED_BY = "performedBy";
@@ -56,5 +56,7 @@ public class UserMgtConstants {
     public static final String NAME = "name";
     public static final String CAUSE = "cause";
     public static final String AUDIT_LOG_FORMAT = "Initiator : %s | Action : %s | Target : %s | Data : %s | Result : %s";
-    //component xml constants
+    public static final String ERROR_MESSAGE = "Bulk User Import was completed with Errors. Success count : %d,  " +
+            "Failed Count : %d, Duplicate Count : %d.";
+    // component xml constants
 }

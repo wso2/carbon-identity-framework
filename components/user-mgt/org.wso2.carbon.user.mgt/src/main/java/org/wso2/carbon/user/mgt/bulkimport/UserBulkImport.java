@@ -33,19 +33,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class to import multiple users to the Identity user store.
+ * The users can be added in the format of CSV or Excel format.
+ */
 public abstract class UserBulkImport {
 
-    Log auditLog = CarbonConstants.AUDIT_LOG;
-    Map<String, String> errorUsersMap = new HashMap<>();
-    List<String> duplicateUsers = new ArrayList<>();
+    static final Log auditLog = CarbonConstants.AUDIT_LOG;
+    static final Map<String, String> errorUsersMap = new HashMap<>();
+    static final List<String> duplicateUsers = new ArrayList<>();
     String userStoreDomain = "";
-    int totalCount = 0;
     int successCount = 0;
     int failCount = 0;
     int duplicateCount = 0;
     String tenantUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername() + "@"
             + PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
+    /**
+     * Method to add users to the given user store.
+     *
+     * @param userStore : The UserStore that the users should be imported to.
+     * @throws UserAdminException :
+     */
     public abstract void addUserList(UserStoreManager userStore) throws UserAdminException;
 
     /**
@@ -62,7 +71,6 @@ public abstract class UserBulkImport {
      * }
      */
     String buildBulkImportSummery() {
-
         JsonObject summeryJson = new JsonObject();
         JsonObject duplicateUsersJson = new JsonObject();
         JsonArray duplicateUsersJsonArray = new JsonArray();

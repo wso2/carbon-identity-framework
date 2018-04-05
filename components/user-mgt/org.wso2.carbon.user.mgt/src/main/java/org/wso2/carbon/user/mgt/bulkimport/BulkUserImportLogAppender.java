@@ -42,7 +42,6 @@ public class BulkUserImportLogAppender extends DailyRollingFileAppender {
 
     @Override
     protected void subAppend(LoggingEvent loggingEvent) {
-
         int tenantId = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
             public Integer run() {
 
