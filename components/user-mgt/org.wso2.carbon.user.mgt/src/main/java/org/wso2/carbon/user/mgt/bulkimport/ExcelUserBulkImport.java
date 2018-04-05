@@ -31,6 +31,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.user.mgt.bulkimport.util.JSONConverter;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
@@ -105,11 +106,8 @@ public class ExcelUserBulkImport extends UserBulkImport {
         JSONConverter jsonConverter = new JSONConverter();
         String importedUsers = jsonConverter.xlsToJSON(sheet);
 
-        Log auditLog = CarbonConstants.AUDIT_LOG;
-
-        String audit = "Initiator=%s Action=Bulk_User_Import Target=%s Data=%s Result=%s";
-
-        auditLog.info(String.format(audit, tenantUser, userStoreDomain, importedUsers, summeryLog));
+        auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser, UserMgtConstants.OPERATION_NAME,
+                userStoreDomain, importedUsers, summeryLog));
 
         if (fail || isDuplicate) {
             String messageBuilder = "Bulk User Import was completed with Errors. " + "Success count : " +

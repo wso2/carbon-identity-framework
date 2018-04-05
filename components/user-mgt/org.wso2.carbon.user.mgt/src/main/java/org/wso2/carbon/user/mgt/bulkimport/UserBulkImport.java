@@ -20,8 +20,12 @@ package org.wso2.carbon.user.mgt.bulkimport;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import org.apache.commons.logging.Log;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
 import java.util.ArrayList;
@@ -31,6 +35,7 @@ import java.util.Map;
 
 public abstract class UserBulkImport {
 
+    Log auditLog = CarbonConstants.AUDIT_LOG;
     Map<String, String> errorUsersMap = new HashMap<>();
     List<String> duplicateUsers = new ArrayList<>();
     String userStoreDomain = "";
@@ -46,19 +51,15 @@ public abstract class UserBulkImport {
     /**
      * Build the summery log for the bulk user import operation.
      * The structure of the summery would be as follows.
-     * <p>
-     * SUMMERY
-     * Bulk User Import Operation Performed by : <User Name>
-     * User Store : <User Store Domain>
-     * <p>
-     * Duplicate User count :
-     * Duplicate Users : n
-     * [userName1, userName2, ...., userName(n)]
-     * <p>
-     * Failed User Count : n
-     * Failed Users :
-     * UserName : failed_UserName1
-     * Cause : Cause of the failure
+     *
+     * {
+     *     operation : bulk_user_import
+     *     performedBy : <Logged in User>
+     *     userStore : <User Store Domain>
+     *     successCount : x
+     *     duplicateUsers : {count: x, users: [userName_1, userName_2, ..., userName_n]}
+     *     failedUsers : {count: x, users: [{name: userName, cause: cause_for_the_failure}, ...]}
+     * }
      */
     String buildBulkImportSummery() {
 
@@ -69,35 +70,35 @@ public abstract class UserBulkImport {
         JsonObject errorUserJson;
         JsonArray errorUsersJsonArray = new JsonArray();
 
-        summeryJson.addProperty("Bulk User Import Operation Performed by",
+        summeryJson.addProperty(UserMgtConstants.OPERATION, UserMgtConstants.OPERATION_NAME);
+        summeryJson.addProperty(UserMgtConstants.PERFORMED_BY,
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername());
-        summeryJson.addProperty("User Store", userStoreDomain);
-        summeryJson.addProperty("Success Count", successCount);
+        summeryJson.addProperty(UserMgtConstants.USER_STORE, userStoreDomain);
+        summeryJson.addProperty(UserMgtConstants.SUCCESS_COUNT, successCount);
 
         if (duplicateCount > 0) {
-            duplicateUsersJson.addProperty("Duplicate User Count", duplicateCount);
+            duplicateUsersJson.addProperty(UserMgtConstants.COUNT, duplicateCount);
 
             for (String user : duplicateUsers) {
-                JsonObject userJson = new JsonObject();
-                userJson.addProperty("Name", user);
+                JsonPrimitive userJson = new JsonPrimitive(user);
                 duplicateUsersJsonArray.add(userJson);
             }
 
-            duplicateUsersJson.add("User Names", duplicateUsersJsonArray);
-            summeryJson.add("Duplicate Users", duplicateUsersJson);
+            duplicateUsersJson.add(UserMgtConstants.USERS, duplicateUsersJsonArray);
+            summeryJson.add(UserMgtConstants.DUPLICATE_USERS, duplicateUsersJson);
         }
 
         if (failCount > 0) {
-            errorUsersJson.addProperty("Failed User Count", failCount);
+            errorUsersJson.addProperty(UserMgtConstants.COUNT, failCount);
             for (Object o : errorUsersMap.entrySet()) {
                 Map.Entry pair = (Map.Entry) o;
                 errorUserJson = new JsonObject();
-                errorUserJson.addProperty("Name", pair.getKey().toString());
-                errorUserJson.addProperty("Cause", pair.getValue().toString());
+                errorUserJson.addProperty(UserMgtConstants.NAME, pair.getKey().toString());
+                errorUserJson.addProperty(UserMgtConstants.CAUSE, pair.getValue().toString());
                 errorUsersJsonArray.add(errorUserJson);
             }
-            errorUsersJson.add("Failed Users List", errorUsersJsonArray);
-            summeryJson.add("Failed Users", errorUsersJson);
+            errorUsersJson.add(UserMgtConstants.USERS, errorUsersJsonArray);
+            summeryJson.add(UserMgtConstants.FAILED_USERS, errorUsersJson);
         }
 
         return summeryJson.toString();

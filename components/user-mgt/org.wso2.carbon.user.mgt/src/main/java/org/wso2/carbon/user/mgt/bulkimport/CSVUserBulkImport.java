@@ -25,6 +25,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.user.mgt.bulkimport.util.JSONConverter;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
@@ -115,14 +116,12 @@ public class CSVUserBulkImport extends UserBulkImport {
             JSONConverter jsonConverter = new JSONConverter();
             String usersImported = jsonConverter.csvToJSON(inputStream);
 
-            Log auditLog = CarbonConstants.AUDIT_LOG;
-
             log.info("Success count: " + successCount + ", Fail count: " + failCount + ", Duplicate count: " +
                     duplicateCount);
             String summeryLog = buildBulkImportSummery();
-            String audit = "Initiator=%s Action=Bulk_User_Import Target=%s Data=%s Result=%s";
 
-            auditLog.info(String.format(audit, tenantUser, userStoreDomain, usersImported, summeryLog));
+            auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser,
+                    UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summeryLog));
 
             log.info(summeryLog);
 

@@ -20,11 +20,13 @@ package org.wso2.carbon.user.mgt.bulkimport.util;
 import au.com.bytecode.opencsv.CSVReader;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -58,7 +60,6 @@ public class JSONConverter {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sourceStream));
 
         CSVReader csvReader = new CSVReader(bufferedReader, ',', '"', 0);
-        String[] headers = csvReader.readNext();
 
         String[] line = csvReader.readNext();
 
@@ -67,25 +68,12 @@ public class JSONConverter {
         }
 
         while (line != null) {
-            JsonObject user = new JsonObject();
-            user.addProperty(headers[0], line[0]);
-            user.addProperty(headers[1], line[1]);
-            JsonArray claims = new JsonArray();
-
-            if (line.length > 3 && headers.length > 2) {
-                for (int i = 2; i < line.length; i++) {
-                    JsonObject claim = new JsonObject();
-                    String[] claimVal = line[i].split("=");
-                    claim.addProperty(claimVal[0], claimVal[1]);
-                    claims.add(claim);
-                }
-                user.add(headers[2], claims);
-            }
+            JsonPrimitive user = new JsonPrimitive(line[0]);
             users.add(user);
             line = csvReader.readNext();
         }
 
-        content.add("users", users);
+        content.add(UserMgtConstants.USERS, users);
         return content.toString();
     }
 
@@ -99,22 +87,19 @@ public class JSONConverter {
     public String xlsToJSON(Sheet sheet) {
 
         int limit = sheet.getLastRowNum();
-        Row headers = sheet.getRow(0);
-        Cell userName = headers.getCell(0);
 
         if (log.isDebugEnabled()) {
             log.debug("Converting XLS sheet to json.");
         }
 
         for (int i = 1; i < limit + 1; i++) {
-            JsonObject userJson = new JsonObject();
             Row row = sheet.getRow(i);
             Cell cell = row.getCell(0);
             String name = cell.getStringCellValue();
-            userJson.addProperty(userName.getStringCellValue(), name);
+            JsonPrimitive userJson = new JsonPrimitive(name);
             users.add(userJson);
         }
-        content.add("users", users);
+        content.add(UserMgtConstants.USERS, users);
 
         return content.toString();
     }
