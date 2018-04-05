@@ -107,7 +107,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
@@ -115,7 +115,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider,tenantDomain, username)) {
-                return serviceProvider;
+                return;
             }
         }
 
@@ -145,8 +145,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             try {
                 ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-                int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
-                serviceProvider.setApplicationID(applicationId);
+                appDAO.createApplication(serviceProvider, tenantDomain);
             } catch (IdentityApplicationManagementException e) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
@@ -158,11 +157,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
-                return serviceProvider;
+                return;
             }
         }
-
-        return serviceProvider;
     }
 
     @Override
