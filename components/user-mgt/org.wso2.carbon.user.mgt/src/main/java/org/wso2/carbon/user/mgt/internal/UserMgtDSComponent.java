@@ -110,7 +110,7 @@ public class UserMgtDSComponent {
                 log.error("Error while registering UserManagementAuditLogger.");
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("UserManagementtAuditLogger successfully registered.");
+                    log.debug("UserManagementAuditLogger successfully registered.");
                 }
             }
 

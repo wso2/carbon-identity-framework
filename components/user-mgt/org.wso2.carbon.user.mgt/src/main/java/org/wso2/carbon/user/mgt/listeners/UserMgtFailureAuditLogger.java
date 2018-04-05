@@ -131,7 +131,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, userName, dataObject, errorCode,
+        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, userName, dataObject, errorCode,
                 errorMessage));
         return true;
     }
