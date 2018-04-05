@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.common.AbstractUserManagementErrorListener;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 
 /**
  * This class maintains the utility methods to check whether a particular listener is enabled or not and to get the
@@ -38,7 +38,7 @@ public class AbstractIdentityUserMgtFailureEventListener extends AbstractUserMan
     public int getOrderId() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (UserOperationEventListener.class.getName(), this.getClass().getName());
+                (UserManagementErrorEventListener.class.getName(), this.getClass().getName());
         if (identityEventListenerConfig == null) {
             return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
         }

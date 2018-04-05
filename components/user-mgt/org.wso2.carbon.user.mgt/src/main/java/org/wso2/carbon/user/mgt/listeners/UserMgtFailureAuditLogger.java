@@ -43,6 +43,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     @Override
     public boolean onAuthenticateFailure(String errorCode, String errorMessage, String userName, Object credential,
             UserStoreManager userStoreManager) {
+
         audit.warn(createAuditMessage(ListenerUtils.AUTHENTICATION_ACTION, userName, null, errorCode, errorMessage));
         return true;
     }
@@ -113,8 +114,13 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserClaimValuesFailure(String errorCode, String errorMessage, String userName,
             String[] claims, String profileName, UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, userName,
-                claims == null ? null : new JSONArray(claims), errorCode, errorMessage));
+        JSONArray data = new JSONArray();
+        if (ArrayUtils.isNotEmpty(claims)) {
+            data = new JSONArray(claims);
+        }
+
+        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, userName, data, errorCode,
+                errorMessage));
         return true;
     }
 
@@ -276,6 +282,5 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         return identityEventListenerConfig != null && StringUtils.isNotEmpty(identityEventListenerConfig.getEnable())
                 && Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
-
 
 }

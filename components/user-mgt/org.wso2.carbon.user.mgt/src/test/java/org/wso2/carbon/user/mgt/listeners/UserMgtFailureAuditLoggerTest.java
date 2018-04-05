@@ -35,6 +35,7 @@ import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -47,14 +48,13 @@ public class UserMgtFailureAuditLoggerTest {
     private Logger logger;
     private ByteArrayOutputStream out;
     private Appender appender;
-    private  UserMgtFailureAuditLogger userMgtFailureAuditLogger;
+    private UserMgtFailureAuditLogger userMgtFailureAuditLogger;
 
     @BeforeClass
     public void init() {
 
         logger = Logger.getLogger("AUDIT_LOG");
         System.setProperty(CarbonBaseConstants.CARBON_HOME, ".");
-
     }
 
     @BeforeMethod
@@ -78,15 +78,16 @@ public class UserMgtFailureAuditLoggerTest {
     @Test(description = "This method tests whether relevant audit log message is getting printed correctly")
     public void testOnUpdateRoleNameFailure() throws UnsupportedEncodingException {
 
-        userMgtFailureAuditLogger
-                .onUpdateRoleNameFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                        null, null, null, null);
+        userMgtFailureAuditLogger.onUpdateRoleNameFailure(
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_ROLE_NAME.getCode(), null, null,
+                null, null);
 
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a role name update failure");
         Assert.assertTrue(logMsg.contains(
-                "\"Error Code\":\"" + UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode()),
+                "\"Error Code\":\"" + UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_ROLE_NAME
+                        .getCode()),
                 "Error code was missing in the relevant audit log of role name update failure. Actual log message "
                         + "received " + logMsg);
     }
@@ -100,7 +101,7 @@ public class UserMgtFailureAuditLoggerTest {
                         String.format(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_INVALID_ROLE_NAME.getMessage(),
                                 "test", "test123"), "test123", null, null, null);
 
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is add role failure");
         Assert.assertTrue(logMsg.contains("\"Error Message\":\"" + String
@@ -118,7 +119,7 @@ public class UserMgtFailureAuditLoggerTest {
                 .onAddUserFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_USER_ALREADY_EXISTS.getCode(),
                         String.format(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_USER_ALREADY_EXISTS.getMessage(),
                                 "existing-user"), null, null, null, null, null, null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is add user failure");
         Assert.assertTrue(logMsg.contains("\"Error Message\":\"" + String
@@ -136,7 +137,7 @@ public class UserMgtFailureAuditLoggerTest {
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_OLD_CREDENTIAL_DOES_NOT_MATCH.getCode(),
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_OLD_CREDENTIAL_DOES_NOT_MATCH.getMessage(), null, null,
                 null, null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is add user failure");
         Assert.assertTrue(logMsg.contains("Outcome=Failure"),
@@ -150,9 +151,9 @@ public class UserMgtFailureAuditLoggerTest {
 
         userMgtFailureAuditLogger.onUpdateCredentialByAdminFailure(
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_CREDENTIAL_TYPE.getCode(),
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_CREDENTIAL_TYPE.getMessage(), "test",
-                null, null);
-        String logMsg = out.toString("UTF-8");
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_CREDENTIAL_TYPE.getMessage(), "test", null,
+                null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is update credential by admin failure");
         Assert.assertTrue(logMsg.contains("Target=test"),
@@ -168,7 +169,7 @@ public class UserMgtFailureAuditLoggerTest {
                 .onDeleteUserFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_NON_EXISTING_USER.getCode(),
                         String.format(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_NON_EXISTING_USER.getMessage(),
                                 "test", "primary"), "test", null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while deleting a user ");
         Assert.assertTrue(logMsg.contains("Initiator=" + ListenerUtils.getUser()),
@@ -184,7 +185,7 @@ public class UserMgtFailureAuditLoggerTest {
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_FETCH_CLAIM_MAPPING.getCode(), String.format(
                         UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_FETCH_CLAIM_MAPPING.getMessage(),
                         "test"), "test", null, null, null, null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while setting user claim value.");
         Assert.assertTrue(logMsg.contains("Target=test"),
@@ -200,7 +201,7 @@ public class UserMgtFailureAuditLoggerTest {
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_CANNOT_UPDATE_EVERYONE_ROLE.getCode(),
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_CANNOT_UPDATE_EVERYONE_ROLE.getMessage(), "test",
                 new String[] {}, null, null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while updating user list of role.");
         Assert.assertTrue(logMsg.contains(
@@ -218,7 +219,7 @@ public class UserMgtFailureAuditLoggerTest {
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_CANNOT_UPDATE_ADMIN_ROLE.getCode(),
                 UserCoreErrorConstants.ErrorMessages.ERROR_CODE_CANNOT_UPDATE_ADMIN_ROLE.getMessage(), "test",
                 new String[] {}, new String[] {}, null);
-        String logMsg = out.toString("UTF-8");
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while updating role list of user.");
     }
@@ -227,11 +228,11 @@ public class UserMgtFailureAuditLoggerTest {
             + "failure while getting user list.")
     public void testOnGetUserListFailure() throws UnsupportedEncodingException {
 
-        userMgtFailureAuditLogger
-                .onGetUserListFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null,
-                        null, null);
-        String logMsg = out.toString("UTF-8");
+        userMgtFailureAuditLogger.onGetUserListFailure(
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_DURING_PRE_GET_USER_LIST.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_DURING_PRE_GET_USER_LIST.getMessage(), null, null,
+                null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while getting user list.");
     }
@@ -241,10 +242,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void testOnGetUserClaimValuesFailure() throws UnsupportedEncodingException {
 
         userMgtFailureAuditLogger.onGetUserClaimValuesFailure(
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, new String[] {},
-                null, null);
-        String logMsg = out.toString("UTF-8");
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_DURING_POST_GET_USER_CLAIM_VALUE.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_DURING_POST_GET_USER_CLAIM_VALUE.getMessage(),
+                null, new String[] {}, null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while getting user claim values.");
     }
@@ -254,9 +255,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void testOnDeleteUserClaimValueFailure() throws UnsupportedEncodingException {
 
         userMgtFailureAuditLogger.onDeleteUserClaimValueFailure(
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null, null, null);
-        String logMsg = out.toString("UTF-8");
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUE.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUE.getMessage(),
+                null, null, null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while deleting user claim value.");
     }
@@ -265,11 +267,11 @@ public class UserMgtFailureAuditLoggerTest {
             + "failure while getting claim value of a user.")
     public void testOnGetUserClaimValueFailure() throws UnsupportedEncodingException {
 
-        userMgtFailureAuditLogger
-                .onGetUserClaimValueFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null,
-                        null, null);
-        String logMsg = out.toString("UTF-8");
+        userMgtFailureAuditLogger.onGetUserClaimValueFailure(
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_USER_CLAIM_VALUE.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_USER_CLAIM_VALUE.getMessage(), null,
+                null, null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while getting user claim value.");
     }
@@ -279,9 +281,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void testOnSetUserClaimValuesFailure() throws UnsupportedEncodingException {
 
         userMgtFailureAuditLogger.onSetUserClaimValuesFailure(
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null, null, null);
-        String logMsg = out.toString("UTF-8");
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_SETTING_USER_CLAIM_VALUES.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_SETTING_USER_CLAIM_VALUES.getMessage(),
+                null, null, null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while setting user claim values.");
     }
@@ -291,9 +294,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void testOnDeleteUserClaimValuesFailure() throws UnsupportedEncodingException {
 
         userMgtFailureAuditLogger.onDeleteUserClaimValuesFailure(
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null, null, null);
-        String logMsg = out.toString("UTF-8");
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUES.getCode(),
+                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUES.getMessage(),
+                null, null, null, null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while deleting user claim values.");
     }
@@ -303,9 +307,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void testOnDeleteRoleFailure() throws UnsupportedEncodingException {
 
         userMgtFailureAuditLogger
-                .onDeleteRoleFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getCode(),
-                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_UN_EXPECTED_ERROR.getMessage(), null, null);
-        String logMsg = out.toString("UTF-8");
+                .onDeleteRoleFailure(UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETE_ROLE.getCode(),
+                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETE_ROLE.getMessage(), null,
+                        null);
+        String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while deleting role.");
     }
