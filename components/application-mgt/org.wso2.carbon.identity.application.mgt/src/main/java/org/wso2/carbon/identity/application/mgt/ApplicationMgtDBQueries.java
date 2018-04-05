@@ -49,6 +49,10 @@ public class ApplicationMgtDBQueries {
                                                                              "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE = "UPDATE SP_APP SET AUTH_TYPE=? WHERE TENANT_ID= ? " +
                                                                      "AND ID = ?";
+    public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
+            "ID = ?";
+    public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
+            "VALUES(?, ?, ?)";
     public static final String UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES = "UPDATE SP_APP SET PROVISIONING_USERSTORE_" +
                                                                           "DOMAIN=?, IS_DUMB_MODE=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_SP_PERMISSIONS = "UPDATE UM_PERMISSION SET UM_RESOURCE_ID=? WHERE UM_ID=?";
@@ -59,6 +63,8 @@ public class ApplicationMgtDBQueries {
                                                  "IS_SUBJECT_STEP, IS_ATTRIBUTE_STEP) VALUES (?,?,?,?,?)";
     public static final String STORE_STEP_IDP_AUTH = "INSERT INTO SP_FEDERATED_IDP (ID, TENANT_ID, AUTHENTICATOR_ID) " +
                                                      "VALUES (?,?,?)";
+    public static final String STORE_SP_AUTH_SCRIPT = "INSERT INTO SP_AUTH_SCRIPT (TENANT_ID, APP_ID, TYPE, CONTENT, IS_ENABLED)" +
+                                                      " VALUES (?,?,?,?,?)";
     public static final String STORE_CLAIM_MAPPING = "INSERT INTO SP_CLAIM_MAPPING (TENANT_ID, IDP_CLAIM, SP_CLAIM, " +
                                                      "APP_ID, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE) VALUES (?,?,?,?,?,?,?)";
     public static final String STORE_ROLE_MAPPING = "INSERT INTO SP_ROLE_MAPPING (TENANT_ID, IDP_ROLE, SP_ROLE, APP_ID)" +
@@ -71,7 +77,8 @@ public class ApplicationMgtDBQueries {
 
     // LOAD Queries
     public static final String LOAD_APP_ID_BY_APP_NAME = "SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
-    public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT APP_NAME, DESCRIPTION FROM SP_APP WHERE TENANT_ID = ?";
+    public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
+            "TENANT_ID = ?";
     public static final String LOAD_APP_ID_BY_CLIENT_ID_AND_TYPE = "SELECT APP_ID FROM SP_AUTH_STEP WHERE CLIENT_ID = ? "
                                                                    + "AND CLIENT_TYPE= ? AND TENANT_ID = ?";
     public static final String LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE = "SELECT APP_NAME "
@@ -116,7 +123,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_LOCAL_AND_OUTBOUND_CONFIG_BY_APP_ID = "SELECT IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                           "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI FROM " +
                                                                           "SP_APP WHERE TENANT_ID= ? AND ID = ?";
-
+    public static final String LOAD_SCRIPT_BY_APP_ID_QUERY = "SELECT CONTENT, IS_ENABLED FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
     public static final String LOAD_REQ_PATH_AUTHENTICATORS_BY_APP_ID = "SELECT AUTHENTICATOR_NAME FROM " +
                                                                         "SP_REQ_PATH_AUTHENTICATOR WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_PRO_PROPERTIES_BY_APP_ID = "SELECT PROVISIONING_USERSTORE_DOMAIN, IS_DUMB_MODE FROM " +
@@ -136,6 +143,7 @@ public class ApplicationMgtDBQueries {
                                                                   "AND TENANT_ID = ?";
     public static final String REMOVE_STEP_FROM_APPMGT_STEP = "DELETE FROM SP_AUTH_STEP WHERE APP_ID = ? AND " +
                                                               "TENANT_ID = ?";
+    public static final String REMOVE_AUTH_SCRIPT = "DELETE FROM SP_AUTH_SCRIPT WHERE APP_ID = ?";
     public static final String REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING = "DELETE FROM SP_CLAIM_MAPPING " +
                                                                                  "WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String REMOVE_ROLE_MAPPINGS_FROM_APPMGT_ROLE_MAPPING = "DELETE FROM SP_ROLE_MAPPING " +
@@ -165,5 +173,20 @@ public class ApplicationMgtDBQueries {
                                                  "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 
+    public static final String GET_CERTIFICATE_BY_ID = "SELECT CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE WHERE ID = ?";
+
+    public static final String GET_CERTIFICATE_ID_BY_NAME = "SELECT ID FROM IDN_CERTIFICATE WHERE NAME = ? AND " +
+            "TENANT_ID = ?";
+    public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL = "SELECT ID FROM IDN_CERTIFICATE " +
+            "LIMIT 1";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_DB2SQL = "SELECT ID FROM IDN_CERTIFICATE " +
+            "FETCH FIRST 1 ROWS ONLY";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MSSQL = "SELECT TOP 1 ID FROM " +
+            "IDN_CERTIFICATE";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_INFORMIX = "SELECT FIRST 1 ID " +
+            "FROM IDN_CERTIFICATE";
+    public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_ORACLE = "SELECT ID FROM " +
+            "IDN_CERTIFICATE WHERE ROWNUM < 2";
 
 }

@@ -20,9 +20,14 @@ package org.wso2.carbon.identity.mgt.endpoint;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +38,8 @@ import java.util.Map;
  * This class defines utility methods used within this web application.
  */
 public class IdentityManagementEndpointUtil {
+
+    private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
 
     private IdentityManagementEndpointUtil() {
     }
@@ -187,5 +194,101 @@ public class IdentityManagementEndpointUtil {
             request.setAttribute("reCaptchaAPI", headers.get("reCaptchaAPI").get(0));
             request.setAttribute("reCaptchaKey", headers.get("reCaptchaKey").get(0));
         }
+    }
+
+    /**
+     * Builds consent string according to consent API. This string can be used as the body of add receipt API
+     *
+     * @param username               Username of the user.
+     * @param consent                Consent String which contains services.
+     * @param jurisdiction           Jurisdiction.
+     * @param collectionMethod       Collection Method.
+     * @param language               Language.
+     * @param policyURL              Policy URL.
+     * @param consentType            Consent Type.
+     * @param isPrimaryPurpose       Whether this this receipt is for primary purpose.
+     * @param isThirdPartyDisclosure Whether this receipt can be disclosed to thrid parties.
+     * @param termination            Termination date.
+     * @return Consent string which contains above facts.
+     */
+    public static String buildConsentForResidentIDP(String username, String consent, String jurisdiction,
+                                                    String collectionMethod, String language, String policyURL,
+                                                    String consentType, boolean isPrimaryPurpose, boolean
+                                                            isThirdPartyDisclosure, String termination) {
+
+        if (StringUtils.isEmpty(consent)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Empty consent string. Hence returning without building consent from endpoint");
+            }
+            return consent;
+        }
+        String piiPrincipalId = getPiiPrincipalID(username);
+        JSONObject receipt = new JSONObject(consent);
+        receipt.put(IdentityManagementEndpointConstants.Consent.JURISDICTION_KEY, jurisdiction);
+        receipt.put(IdentityManagementEndpointConstants.Consent.COLLECTION_METHOD_KEY, collectionMethod);
+        receipt.put(IdentityManagementEndpointConstants.Consent.LANGUAGE_KEY, language);
+        receipt.put(IdentityManagementEndpointConstants.Consent.PII_PRINCIPAL_ID_KEY, piiPrincipalId);
+        receipt.put(IdentityManagementEndpointConstants.Consent.POLICY_URL_KEY, policyURL);
+        buildServices(receipt, consentType, isPrimaryPurpose,
+                isThirdPartyDisclosure, termination);
+        if (log.isDebugEnabled()) {
+            log.debug("Built consent from endpoint util : " + consent);
+        }
+
+        return receipt.toString();
+    }
+
+    private static String getPiiPrincipalID(String username) {
+
+        User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+        String piiPrincipalId;
+
+        if (StringUtils.isNotBlank(user.getRealm()) && !IdentityManagementEndpointConstants.PRIMARY_USER_STORE_DOMAIN
+                .equals(user.getRealm())) {
+            piiPrincipalId = user.getRealm() + IdentityManagementEndpointConstants.USER_STORE_DOMAIN_SEPARATOR
+                    + user.getUsername();
+        } else {
+            piiPrincipalId = user.getUsername();
+        }
+        return piiPrincipalId;
+    }
+
+    private static void buildServices(JSONObject receipt, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
+
+        JSONArray services = (JSONArray) receipt.get(IdentityManagementEndpointConstants.Consent.SERVICES);
+        for (int serviceIndex = 0; serviceIndex < services.length(); serviceIndex++) {
+            buildService((JSONObject) services.get(serviceIndex), consentType, isPrimaryPurpose,
+                    isThirdPartyDisclosure, termination);
+        }
+    }
+
+    private static void buildService(JSONObject service, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
+
+        JSONArray purposes = (JSONArray) service.get(IdentityManagementEndpointConstants.Consent.PURPOSES);
+
+        for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
+            buildPurpose((JSONObject) purposes.get(purposeIndex), consentType, isPrimaryPurpose,
+                    isThirdPartyDisclosure, termination);
+        }
+    }
+
+    private static void buildPurpose(JSONObject purpose, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
+
+        purpose.put(IdentityManagementEndpointConstants.Consent.CONSENT_TYPE_KEY, consentType);
+        purpose.put(IdentityManagementEndpointConstants.Consent.PRIMARY_PURPOSE_KEY, isPrimaryPurpose);
+        purpose.put(IdentityManagementEndpointConstants.Consent.THRID_PARTY_DISCLOSURE_KEY, isThirdPartyDisclosure);
+        purpose.put(IdentityManagementEndpointConstants.Consent.TERMINATION_KEY, termination);
+        JSONArray piiCategories = (JSONArray) purpose.get(IdentityManagementEndpointConstants.Consent.PII_CATEGORY);
+        for (int categoryIndex = 0; categoryIndex < piiCategories.length(); categoryIndex++) {
+            buildCategory((JSONObject) piiCategories.get(categoryIndex), termination);
+        }
+    }
+
+    private static void buildCategory(JSONObject piiCategory, String validity) {
+
+        piiCategory.put(IdentityManagementEndpointConstants.Consent.VALIDITY_KEY, validity);
     }
 }

@@ -233,6 +233,7 @@ public class ApplicationManagementServiceClient {
         }
     }
 
+
     private void handleException(Exception e) throws AxisFault {
         String errorMessage = "Unknown error occurred.";
 

@@ -16,26 +16,29 @@
 
 package org.wso2.carbon.identity.mgt.policy.password;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class DefaultPasswordWhitespacePolicyTest extends TestCase {
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
-	DefaultPasswordWhitespacePolicy policy = new DefaultPasswordWhitespacePolicy();
-	
-	public void testWhitespacesinPassword() {
-		
-		assertFalse("white spaces in password check failed", policy.enforce("passwor s"));
-		assertFalse("white spaces in password check failed", policy.enforce("pass wor s"));
-		assertFalse("white spaces in password check failed", policy.enforce("pas   swor s"));
-	}
-	
-	public void testCorrectPassword() {
-		
-		assertTrue("no white spaces in password check failed", policy.enforce("passwors"));
-	}
-	
-	public void testNullInput(){
-		
-		assertTrue("null input failed", policy.enforce(null));
-	}
+public class DefaultPasswordWhitespacePolicyTest {
+
+    DefaultPasswordWhitespacePolicy policy = new DefaultPasswordWhitespacePolicy();
+
+    @Test
+    public void testWhiteSpacesInPassword() {
+        assertFalse(policy.enforce("passwor s"), "white spaces in password check failed");
+        assertFalse(policy.enforce("pass wor s"), "white spaces in password check failed");
+        assertFalse(policy.enforce("pas   swor s"), "white spaces in password check failed");
+    }
+
+    @Test
+    public void testCorrectPassword() {
+        assertTrue(policy.enforce("passwors"), "no white spaces in password check failed");
+    }
+
+    @Test
+    public void testNullInput() {
+        assertTrue(policy.enforce(null), "null input failed");
+    }
 }

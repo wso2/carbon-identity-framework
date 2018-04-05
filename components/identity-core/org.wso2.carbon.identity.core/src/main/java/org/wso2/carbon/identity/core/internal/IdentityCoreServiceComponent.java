@@ -33,6 +33,8 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
+import org.wso2.carbon.identity.core.KeyProviderService;
+import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -57,8 +59,12 @@ public class IdentityCoreServiceComponent {
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
+    private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
+    private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
+    private DefaultKeyProviderService defaultKeyProviderService;
 
     public IdentityCoreServiceComponent() {
+        defaultKeyProviderService = new DefaultKeyProviderService(defaultKeystoreManagerExtension);
     }
 
     public static ServerConfigurationService getServerConfigurationService() {
@@ -166,6 +172,8 @@ public class IdentityCoreServiceComponent {
                     new IdentityCoreInitializedEventImpl(), null);
 
 
+            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
+                    defaultKeyProviderService, null);
         } catch (MigrationClientException e) {
             // Throwing migration client exception to wait till migration client implementation bundle starts if
             // -Dmigrate option is used.
@@ -180,6 +188,7 @@ public class IdentityCoreServiceComponent {
      */
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
+        defaultKeystoreManagerServiceRef.unregister();
         IdentityTenantUtil.setBundleContext(null);
         if (log.isDebugEnabled()) {
             log.debug("Identity Core bundle is deactivated");
@@ -213,12 +222,14 @@ public class IdentityCoreServiceComponent {
     )
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
+        defaultKeystoreManagerExtension.setRealmService(realmService);
     }
 
     /**
      * @param realmService
      */
     protected void unsetRealmService(RealmService realmService) {
+        defaultKeystoreManagerExtension.setRealmService(null);
         IdentityTenantUtil.setRealmService(null);
     }
 
@@ -293,4 +304,15 @@ public class IdentityCoreServiceComponent {
         migrationClient = null;
     }
 
+    protected void setKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        if (log.isDebugEnabled()) {
+            log.debug("KeyStoreManagerExtension is being set by an OSGI component. The extension class is: "
+                    + keyStoreManagerExtension);
+        }
+        defaultKeyProviderService.setKeyStoreManagerExtension(keyStoreManagerExtension);
+    }
+
+    protected void unsetKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        defaultKeyProviderService.setKeyStoreManagerExtension(defaultKeystoreManagerExtension);
+    }
 }

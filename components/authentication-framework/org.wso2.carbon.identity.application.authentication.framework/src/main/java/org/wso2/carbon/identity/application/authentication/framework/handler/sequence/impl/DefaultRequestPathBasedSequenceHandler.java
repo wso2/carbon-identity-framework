@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -127,6 +128,8 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     context.getCurrentAuthenticatedIdPs().put(FrameworkConstants.LOCAL_IDP_NAME, authenticatedIdPData);
 
                     handlePostAuthentication(request, response, context, authenticatedIdPData);
+                    context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(),
+                            authenticatedIdPData.getIdpName()));
 
                 } catch (InvalidCredentialsException e) {
                     if(log.isDebugEnabled()){

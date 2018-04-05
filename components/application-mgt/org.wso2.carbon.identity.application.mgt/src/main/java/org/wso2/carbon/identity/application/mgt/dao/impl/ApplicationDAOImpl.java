@@ -26,30 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalRole;
-import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -60,14 +38,24 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -93,6 +81,8 @@ import java.util.Map.Entry;
  * </ul>
  */
 public class ApplicationDAOImpl implements ApplicationDAO {
+
+    private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -313,7 +303,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection;
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Couldn't get a database connection.", e);
+        }
+
         int applicationId = serviceProvider.getApplicationID();
 
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -331,6 +327,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // update basic information of the application.
             // you can change application name, description, isSasApp...
             updateBasicApplicationData(serviceProvider, connection);
+
+            updateApplicationCertificate(serviceProvider, tenantID, connection);
+
             updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                     connection);
 
@@ -390,6 +389,221 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * Updates the application certificate record in the database, with the certificate in the given service provider
+     * object. If the certificate content is available in the given service provider and a reference is not available,
+     * create a new database record for the certificate and add the reference to the given service provider object.
+     *
+     * @param serviceProvider
+     * @param tenantID
+     * @param connection
+     * @throws SQLException
+     */
+    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID,
+                                              Connection connection) throws SQLException, IdentityApplicationManagementException {
+
+        // If the certificate content is empty, remove the certificate reference property if exists.
+        // And remove the certificate.
+        if (StringUtils.isBlank(serviceProvider.getCertificateContent())) {
+
+            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+
+            if (serviceProviderProperties != null) {
+
+                // Get the index of the certificate reference property index in the properties array.
+                int certificateReferenceIdIndex = -1;
+                String certificateReferenceId = null;
+                for (int i = 0; i < serviceProviderProperties.length; i++) {
+                    if ("CERTIFICATE".equals(serviceProviderProperties[i].getName())) {
+                        certificateReferenceIdIndex = i;
+                        certificateReferenceId = serviceProviderProperties[i].getValue();
+                        break;
+                    }
+                }
+
+                // If there is a certificate reference, remove it from the properties array.
+                // Removing will be done by creating a new array and copying the elements other than the
+                // certificate reference from the existing array,
+                if (certificateReferenceIdIndex > -1) {
+
+                    ServiceProviderProperty[] propertiesWithoutCertificateReference =
+                            new ServiceProviderProperty[serviceProviderProperties.length - 1];
+
+                    System.arraycopy(serviceProviderProperties, 0, propertiesWithoutCertificateReference,
+                            0, certificateReferenceIdIndex);
+                    System.arraycopy(serviceProviderProperties, certificateReferenceIdIndex + 1,
+                            propertiesWithoutCertificateReference, certificateReferenceIdIndex,
+                            propertiesWithoutCertificateReference.length - certificateReferenceIdIndex);
+
+                    serviceProvider.setSpProperties(propertiesWithoutCertificateReference);
+                    deleteCertificate(connection, Integer.parseInt(certificateReferenceId));
+                }
+            }
+        } else {
+            // First get the certificate reference from the application properties.
+            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+
+            String certificateReferenceIdString = getCertificateReferenceID(serviceProviderProperties);
+
+            // If there is a reference, update the relevant certificate record.
+            if (certificateReferenceIdString != null) { // Update the existing record.
+                PreparedStatement statementToUpdateCertificate = null;
+                try {
+                    statementToUpdateCertificate = connection.prepareStatement(ApplicationMgtDBQueries.
+                            UPDATE_CERTIFICATE);
+                    setBlobValue(serviceProvider.getCertificateContent(), statementToUpdateCertificate, 1);
+                    statementToUpdateCertificate.setInt(2, Integer.parseInt(certificateReferenceIdString));
+
+                    statementToUpdateCertificate.executeUpdate();
+                } catch (IOException e) {
+                    throw new IdentityApplicationManagementException("An error occurred while processing content " +
+                            "stream of certificate.", e);
+                } finally {
+                    IdentityApplicationManagementUtil.closeStatement(statementToUpdateCertificate);
+                }
+            } else {
+                // There is no existing reference. Persist the certificate in the given service provider as a new record.
+                persistApplicationCertificate(serviceProvider, tenantID, connection);
+            }
+        }
+    }
+
+    /**
+     * Returns the certificate reference ID from the given service provider properties.
+     *
+     * @param serviceProviderProperties
+     * @return
+     */
+    private String getCertificateReferenceID(ServiceProviderProperty[] serviceProviderProperties) {
+        String certificateReferenceId = null;
+        if (serviceProviderProperties != null) {
+            for (ServiceProviderProperty property : serviceProviderProperties) {
+                if (SP_PROPERTY_NAME_CERTIFICATE.equals(property.getName())) {
+                    certificateReferenceId = property.getValue();
+                }
+            }
+        }
+        return certificateReferenceId;
+    }
+
+    /**
+     * Persists the certificate content of the given service provider object,
+     * and adds ID of the newly added certificate as a property of the service provider object.
+     *
+     * @param serviceProvider
+     * @param tenantID
+     * @param connection
+     * @throws SQLException
+     */
+    private void persistApplicationCertificate(ServiceProvider serviceProvider, int tenantID,
+                                               Connection connection) throws SQLException, IdentityApplicationManagementException {
+
+        // Configure the prepared statement to collect the auto generated id of the database record.
+        PreparedStatement statementToAddCertificate = null;
+        ResultSet results = null;
+        try {
+
+            String dbProductName = connection.getMetaData().getDatabaseProductName();
+            statementToAddCertificate = connection.prepareStatement(
+                    ApplicationMgtDBQueries.ADD_CERTIFICATE,
+                    new String[]{DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
+
+            statementToAddCertificate.setString(1, serviceProvider.getApplicationName());
+            setBlobValue(serviceProvider.getCertificateContent(), statementToAddCertificate, 2);
+            statementToAddCertificate.setInt(3, tenantID);
+            statementToAddCertificate.execute();
+
+            results = statementToAddCertificate.getGeneratedKeys();
+
+            int newlyAddedCertificateID = 0;
+            if (results.next()) {
+                newlyAddedCertificateID = results.getInt(1);
+            }
+
+            // Not all JDBC drivers support getting the auto generated database ID.
+            // So if the ID is not returned, get the ID by querying the database passing the certificate name.
+            if (newlyAddedCertificateID == 0) {
+                if (log.isDebugEnabled()) {
+                    log.debug("JDBC Driver did not return the application id, executing Select operation");
+                }
+                newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(),
+                        tenantID, connection);
+            }
+            addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
+       } catch (IOException e) {
+            throw new IdentityApplicationManagementException("An error occurred while processing content stream " +
+                    "of certificate.", e);
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(results);
+            IdentityApplicationManagementUtil.closeStatement(statementToAddCertificate);
+        }
+    }
+
+    /**
+     * Add the given certificate ID as a property of the given service provider object.
+     *
+     * @param serviceProvider
+     * @param newlyAddedCertificateID
+     */
+    private void addApplicationCertificateReferenceAsServiceProviderProperty(ServiceProvider serviceProvider,
+                                                                             int newlyAddedCertificateID) {
+        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+        ServiceProviderProperty[] newServiceProviderProperties;
+        if (serviceProviderProperties != null) {
+            newServiceProviderProperties = new ServiceProviderProperty[
+                    serviceProviderProperties.length + 1];
+
+            for (int i = 0; i < serviceProviderProperties.length; i++) {
+                newServiceProviderProperties[i] = serviceProviderProperties[i];
+            }
+        } else {
+            newServiceProviderProperties = new ServiceProviderProperty[1];
+        }
+
+        ServiceProviderProperty propertyForCertificate = new ServiceProviderProperty();
+        propertyForCertificate.setDisplayName("CERTIFICATE");
+        propertyForCertificate.setName("CERTIFICATE");
+        propertyForCertificate.setValue(String.valueOf(newlyAddedCertificateID));
+
+        newServiceProviderProperties[newServiceProviderProperties.length - 1] = propertyForCertificate;
+
+        serviceProvider.setSpProperties(newServiceProviderProperties);
+    }
+
+    /**
+     * Returns the database ID of the certificate with the given certificate name and the tenant ID.
+     *
+     * @param applicationName
+     * @param tenantID
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
+    private int getCertificateIDByName(String applicationName, int tenantID, Connection connection)
+            throws SQLException {
+
+        PreparedStatement statementToGetCertificateId = null;
+        ResultSet results = null;
+        try {
+            statementToGetCertificateId = connection.prepareStatement(
+                    ApplicationMgtDBQueries.GET_CERTIFICATE_ID_BY_NAME);
+            statementToGetCertificateId.setString(1, applicationName);
+            statementToGetCertificateId.setInt(2, tenantID);
+
+            results = statementToGetCertificateId.executeQuery();
+
+            int applicationId = -1;
+            while (results.next()) {
+                applicationId = results.getInt(1);
+            }
+
+            return applicationId;
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(results);
+            IdentityApplicationManagementUtil.closeStatement(statementToGetCertificateId);
         }
     }
 
@@ -811,11 +1025,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        PreparedStatement updateAuthTypePrepStmt = null;
         if (localAndOutboundAuthConfig == null) {
             // no local or out-bound configuration for this service provider.
             return;
         }
+
+        updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
+
+        PreparedStatement updateAuthTypePrepStmt = null;
 
         PreparedStatement storeSendAuthListOfIdPsPrepStmt = null;
         try {
@@ -1091,6 +1308,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
+
     /**
      * @param applicationId
      * @param claimConfiguration
@@ -1319,15 +1537,67 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             return serviceProvider;
 
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Failed to update service provider "
+        } catch (SQLException | CertificateRetrievingException e) {
+            throw new IdentityApplicationManagementException("Failed to retrieve service provider "
                     + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    /**
+     * Retrieves the certificate content from the database using the certificate reference id property of a
+     * service provider.
+     *
+     * @param serviceProviderProperties
+     * @param connection
+     * @return
+     * @throws CertificateRetrievingException
+     */
+    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties, Connection connection)
+            throws CertificateRetrievingException {
+
+        String certificateReferenceId = null;
+        for (ServiceProviderProperty property : serviceProviderProperties) {
+            if ("CERTIFICATE".equals(property.getName())) {
+                certificateReferenceId = property.getValue();
+            }
+        }
+
+        if (certificateReferenceId != null) {
+
+            PreparedStatement statementForFetchingCertificate = null;
+            ResultSet results = null;
+            try {
+                statementForFetchingCertificate = connection.prepareStatement(
+                        ApplicationMgtDBQueries.GET_CERTIFICATE_BY_ID);
+                statementForFetchingCertificate.setInt(1, Integer.parseInt(certificateReferenceId));
+
+                results = statementForFetchingCertificate.executeQuery();
+
+                String certificateContent = null;
+                while (results.next()) {
+                    certificateContent = getBlobValue(results.getBinaryStream("CERTIFICATE_IN_PEM"));
+                }
+
+                if (certificateContent != null) {
+                    return certificateContent;
+                }
+            } catch (SQLException | IOException e) {
+                String errorMessage = String.format("An error occurred while retrieving the certificate for the " +
+                        "application.");
+                log.error(errorMessage);
+                throw new CertificateRetrievingException(errorMessage, e);
+            } finally {
+                IdentityApplicationManagementUtil.closeResultSet(results);
+                IdentityApplicationManagementUtil.closeStatement(statementForFetchingCertificate);
+            }
+        }
+        return null;
     }
 
     /**
@@ -1932,7 +2202,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
      * @throws SQLException
      */
     private LocalAndOutboundAuthenticationConfig getLocalAndOutboundAuthenticationConfig(
-            int applicationId, Connection connection, int tenantId) throws SQLException {
+            int applicationId, Connection connection, int tenantId)
+            throws SQLException, IdentityApplicationManagementException {
         PreparedStatement getStepInfoPrepStmt = null;
         ResultSet stepInfoResultSet = null;
 
@@ -2093,6 +2364,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             localAndOutboundConfiguration.setAuthenticationType(authType);
 
+            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
+            if (authenticationScriptConfig != null) {
+                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
+            }
+
             PreparedStatement localAndOutboundConfigPrepStmt = null;
             ResultSet localAndOutboundConfigResultSet = null;
 
@@ -2125,6 +2401,42 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(getStepInfoPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(stepInfoResultSet);
         }
+    }
+
+    private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
+            throws SQLException, IdentityApplicationManagementException {
+
+        try (PreparedStatement localAndOutboundConfigScriptPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.LOAD_SCRIPT_BY_APP_ID_QUERY);) {
+
+            localAndOutboundConfigScriptPrepStmt.setInt(1, applicationId);
+            try (ResultSet localAndOutboundConfigScriptResultSet = localAndOutboundConfigScriptPrepStmt
+                    .executeQuery()) {
+                if (localAndOutboundConfigScriptResultSet.next()) {
+                    AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+
+                    try {
+                        boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
+                        StringBuilder sb = new StringBuilder();
+                        BufferedReader br = new BufferedReader(
+                                localAndOutboundConfigScriptResultSet.getCharacterStream(1));
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line).append("\r\n");
+                        }
+                        String targetString = sb.toString();
+                        authenticationScriptConfig.setContent(targetString);
+                        authenticationScriptConfig.setEnabled(isEnabled);
+                    } catch (IOException e) {
+                        throw new IdentityApplicationManagementException(
+                                "Could not read the Script for application : " + applicationId, e);
+                    }
+
+                    return authenticationScriptConfig;
+                }
+            }
+        }
+        return null;
     }
 
     private boolean isFederationHubIdP(String idPName, Connection connection, int tenantId)
@@ -2440,8 +2752,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
+                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
             connection.commit();
@@ -2475,6 +2788,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         // Now, delete the application
         PreparedStatement deleteClientPrepStmt = null;
         try {
+
+            // Delete the application certificate if there is any.
+            deleteCertificate(connection, appName, tenantID);
+
             // First, delete all the clients of the application
             int applicationID = getApplicationIDByName(appName, tenantID, connection);
             InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID,
@@ -2494,8 +2811,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 connection.commit();
             }
 
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error deleting application", e);
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ignore) {
+                }
+            }
+            String errorMessege = "An error occured while delete the application : " + appName;
+            log.error(errorMessege, e);
+            throw new IdentityApplicationManagementException(errorMessege, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
             IdentityApplicationManagementUtil.closeConnection(connection);
@@ -2605,6 +2930,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
+            deleteAuthenticationScript(applicationId, connection);
+
         } finally {
             IdentityApplicationManagementUtil
                     .closeStatement(deleteLocalAndOutboundAuthConfigPrepStmt);
@@ -2706,6 +3033,55 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteRoleMappingPrepStmt.execute();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteRoleMappingPrepStmt);
+        }
+    }
+
+    /**
+     *
+     * Delete the certificate of the given application if there is one.
+     *
+     * @param connection
+     * @param appName
+     * @param tenantID
+     * @throws UserStoreException
+     * @throws IdentityApplicationManagementException
+     * @throws SQLException
+     */
+    private void deleteCertificate(Connection connection, String appName, int tenantID)
+            throws UserStoreException, IdentityApplicationManagementException, SQLException {
+
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+
+        if(tenantID != MultitenantConstants.SUPER_TENANT_ID){
+            Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenant(tenantID);
+            tenantDomain = tenant.getDomain();
+        }
+
+        ServiceProvider application = getApplication(appName, tenantDomain);
+        String certificateReferenceID = getCertificateReferenceID(application.getSpProperties());
+
+        if (certificateReferenceID != null) {
+            deleteCertificate(connection, Integer.parseInt(certificateReferenceID));
+        }
+    }
+
+    /**
+     * Deletes the certificate for given ID from the database.
+     * @param connection
+     * @param id
+     */
+    private void deleteCertificate(Connection connection, int id) throws SQLException {
+
+        PreparedStatement statementToRemoveCertificate = null;
+        try{
+
+            statementToRemoveCertificate = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_CERTIFICATE);
+            statementToRemoveCertificate.setInt(1, id);
+            statementToRemoveCertificate.execute();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(statementToRemoveCertificate);
         }
     }
 
@@ -3165,4 +3541,98 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
+    /**
+     * Updates the authentication script configuration.
+     *
+     * @param applicationId
+     * @param localAndOutboundAuthConfig
+     * @param connection
+     * @param tenantID
+     * @throws SQLException
+     */
+    private void updateAuthenticationScriptConfiguration(int applicationId,
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection, int tenantID)
+            throws SQLException {
+
+        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
+                    .getAuthenticationScriptConfig();
+            try (PreparedStatement storeAuthScriptPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_SP_AUTH_SCRIPT)) {
+
+                storeAuthScriptPrepStmt.setInt(1, tenantID);
+                storeAuthScriptPrepStmt.setInt(2, applicationId);
+                storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
+                storeAuthScriptPrepStmt
+                        .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
+                storeAuthScriptPrepStmt.setString(5, authenticationScriptConfig.isEnabled() ? "1" : "0");
+                storeAuthScriptPrepStmt.execute();
+            }
+        }
+    }
+
+    /**
+     * Deletes the authentication Script, given the application (SP) ID.
+     *
+     * @param applicationId
+     * @param connection
+     * @throws SQLException
+     */
+    private void deleteAuthenticationScript(int applicationId, Connection connection) throws SQLException {
+
+        PreparedStatement deleteLocalAndOutboundAuthScriptConfigPrepStmt;
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT);
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt.setInt(1, applicationId);
+        deleteLocalAndOutboundAuthScriptConfigPrepStmt.execute();
+    }
+
+    /**
+     * Set given string as Blob for the given index into the prepared-statement
+     * @param value string value to be converted to blob
+     * @param prepStmt Prepared statement
+     * @param index column index
+     * @throws SQLException
+     * @throws IOException
+     */
+    private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
+        if (value != null) {
+            InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+            prepStmt.setBinaryStream(index, inputStream, inputStream.available());
+        } else {
+            prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);
+        }
+    }
+
+    /**
+     * Get string from inputStream of a blob
+     * @param is input stream
+     * @return
+     * @throws IOException
+     */
+    private String getBlobValue(InputStream is) throws IOException {
+
+        if (is != null) {
+            BufferedReader br = null;
+            StringBuilder sb = new StringBuilder();
+            String line;
+            try {
+                br = new BufferedReader(new InputStreamReader(is));
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.error("Error in retrieving the Blob value", e);
+                    }
+                }
+            }
+
+            return sb.toString();
+        }
+        return null;
+    }
 }

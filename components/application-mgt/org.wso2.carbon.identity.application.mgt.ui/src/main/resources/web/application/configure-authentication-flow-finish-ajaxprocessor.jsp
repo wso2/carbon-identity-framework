@@ -35,6 +35,7 @@
 	String spName = request.getParameter("spName");
 	ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, spName);
 	appBean.updateOutBoundAuthenticationConfig(request);
+	appBean.conditionalAuthentication(request);
 %>
 
 	<script>

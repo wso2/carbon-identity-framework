@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>5.10.135-SNAPSHOT</version>
+        <version>5.11.162-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -164,6 +164,7 @@
 
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base;version="${carbon.base.imp.pkg.version.range}",
+                            org.wso2.carbon.base.api;version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*;version="${carbon.commons.imp.pkg.version}",

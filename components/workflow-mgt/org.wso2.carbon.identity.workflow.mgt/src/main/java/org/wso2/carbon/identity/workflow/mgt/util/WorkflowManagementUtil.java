@@ -1,18 +1,17 @@
 package org.wso2.carbon.identity.workflow.mgt.util;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Document;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,6 +19,12 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class WorkflowManagementUtil {
     private static Log log = LogFactory.getLog(WorkflowManagementUtil.class);
@@ -114,14 +119,21 @@ public class WorkflowManagementUtil {
     public static <T> T unmarshalXML(String xmlString, Class<T> classType) throws JAXBException {
         T t = null;
         if (xmlString != null) {
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlString.toString().getBytes());
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlString.getBytes());
             JAXBContext jaxbContext = JAXBContext.newInstance(classType);
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            t = (T) jaxbUnmarshaller.unmarshal(byteArrayInputStream);
+
+            try {
+                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document document = builder.parse(byteArrayInputStream);
+                Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+                t = (T) jaxbUnmarshaller.unmarshal(document);
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                log.error("Error while unmarshalling the XML.", e);
+            }
         }
         return t;
     }
-
 
     /**
      * Reading File Content from the resource path

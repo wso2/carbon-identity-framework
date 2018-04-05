@@ -23,14 +23,13 @@ import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
-
 
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     private static String SUCCESS = "Success";
-
 
     @Override
     public int getDefaultOrderId() {
@@ -38,33 +37,48 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     }
 
     @Override
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         int appId = -1;
         String name = "Undefined";
         if (serviceProvider != null) {
             appId = serviceProvider.getApplicationID();
             name = serviceProvider.getApplicationName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, userName, "create", appId,
-                name, SUCCESS));
+
+        // Append tenant domain to username.
+        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+
+        audit.info(String.format(AUDIT_MESSAGE, userName, "create", appId, name, SUCCESS));
         return true;
     }
 
     @Override
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         int appId = -1;
         String name = "Undefined";
         if (serviceProvider != null) {
             appId = serviceProvider.getApplicationID();
             name = serviceProvider.getApplicationName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, userName, "update", appId,
-                name, SUCCESS));
+
+        // Append tenant domain to username.
+        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+
+        audit.info(String.format(AUDIT_MESSAGE, userName, "update", appId, name, SUCCESS));
         return true;
     }
 
     @Override
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        // Append tenant domain to username.
+        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+
         audit.info(String.format(AUDIT_MESSAGE, userName, "delete", applicationName, null, SUCCESS));
         return true;
     }

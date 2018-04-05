@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
  * Application management service implementation
@@ -106,7 +107,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public ServiceProvider createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
@@ -114,7 +115,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider,tenantDomain, username)) {
-                return;
+                return serviceProvider;
             }
         }
 
@@ -144,7 +145,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             try {
                 ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-                appDAO.createApplication(serviceProvider, tenantDomain);
+                int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
+                serviceProvider.setApplicationID(applicationId);
             } catch (IdentityApplicationManagementException e) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
@@ -156,9 +158,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
-                return;
+                return serviceProvider;
             }
         }
+
+        return serviceProvider;
     }
 
     @Override
@@ -282,6 +286,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
 
+            if (!isValidPEMCertificate(serviceProvider.getCertificateContent())) {
+                String errorMessage = "Application certificate of the service provider " +
+                        serviceProvider.getApplicationName() + " is malformed";
+                log.error(errorMessage);
+                throw new IdentityApplicationManagementException(errorMessage);
+            }
+
+            ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
                     .PATH_SEPARATOR + storedAppName;
             org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()

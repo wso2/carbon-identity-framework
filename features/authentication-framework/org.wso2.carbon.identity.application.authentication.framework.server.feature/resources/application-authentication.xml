@@ -40,13 +40,12 @@
         <RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
         <AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
         <LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
-        <StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler</StepBasedSequenceHandler>
+        <StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler</StepBasedSequenceHandler>
         <RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
         <StepHandler>org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler</StepHandler>
         <HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
         <ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
         <ProvisioningHandler>org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler</ProvisioningHandler>
-        <AuthorizationHandler>org.wso2.carbon.identity.application.authz.xacml.handler.impl.XACMLBasedAuthorizationHandler</AuthorizationHandler>
     </Extensions>
 
 	<!--
@@ -88,7 +87,7 @@
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="OpenIDConnectAuthenticator" enabled="true">
 			<!--Parameter name="IDTokenHandler">org.wso2.carbon.identity.application.authenticator.oidc.DefaultIDTokenHandler</Parameter-->
-			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->	
+			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="GoogleOIDCAuthenticator" enabled="true">
 			<Parameter name="GoogleTokenEndpoint">https://accounts.google.com/o/oauth2/token</Parameter>
@@ -108,6 +107,8 @@
 		</AuthenticatorConfig>
 		<AuthenticatorConfig  name="FIDOAuthenticator" enabled="true">
 			<Parameter name="FidoAuth">/authenticationendpoint/fido-auth.jsp</Parameter>
+                       <!--Please uncomment the following property and define AppID if you are using proxy configurations-->
+                       <!--<Parameter name="AppID">https://localhost</Parameter>-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="YahooOAuth2Authenticator" enabled="true">
 			<Parameter name="YahooTokenEndpoint">https://api.login.yahoo.com/oauth2/get_token</Parameter>
