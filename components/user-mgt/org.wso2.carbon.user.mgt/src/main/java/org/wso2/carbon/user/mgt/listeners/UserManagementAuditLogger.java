@@ -56,6 +56,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(roleList)) {
                 data.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
+            data.put(ListenerUtils.PROFILE_FIELD, profile);
             audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION, userName, data, SUCCESS));
         }
         return true;
@@ -78,6 +79,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
+            dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             audit.info(
                     createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, userName, dataObject, IN_PROGRESS));
         }
