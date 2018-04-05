@@ -50,10 +50,10 @@ public abstract class ApplicationManagementService {
      * @param serviceProvider Service Provider Name
      * @param tenantDomain Tenant Domain
      * @param username User Name
-     * @return Created service provider
+     * @return
      * @throws IdentityApplicationManagementException
      */
-    public abstract ServiceProvider createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public abstract void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
 
     /**
