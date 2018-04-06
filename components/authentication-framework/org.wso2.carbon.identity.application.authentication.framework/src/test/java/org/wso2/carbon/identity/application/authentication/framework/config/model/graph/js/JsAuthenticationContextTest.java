@@ -82,8 +82,6 @@ public class JsAuthenticationContextTest {
 
     }
 
-
-
     @Test(dataProvider = "claimCreation")
     public void testClaimAddition(String scriptPart, boolean isNull, String expectedValue) throws ScriptException {
 
