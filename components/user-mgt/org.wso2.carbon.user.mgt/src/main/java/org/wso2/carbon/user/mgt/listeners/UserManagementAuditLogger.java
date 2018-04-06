@@ -348,16 +348,6 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         return true;
     }
 
-
-    @Override
-    public boolean isEnable() {
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (UserOperationEventListener.class.getName(), this.getClass().getName());
-
-        return identityEventListenerConfig != null && StringUtils.isNotEmpty(identityEventListenerConfig.getEnable())
-                && Boolean.parseBoolean(identityEventListenerConfig.getEnable());
-    }
-
     @Override
     public int getExecutionOrderId() {
         int orderId = getOrderId();

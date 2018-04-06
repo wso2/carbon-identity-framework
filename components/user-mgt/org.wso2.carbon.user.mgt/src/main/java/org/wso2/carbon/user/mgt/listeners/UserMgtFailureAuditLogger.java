@@ -302,13 +302,4 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         return String.format(auditMessage, ListenerUtils.getUser(), action, target, data, error);
     }
 
-    @Override
-    public boolean isEnable() {
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (UserManagementErrorEventListener.class.getName(), this.getClass().getName());
-
-        return identityEventListenerConfig != null && StringUtils.isNotEmpty(identityEventListenerConfig.getEnable())
-                && Boolean.parseBoolean(identityEventListenerConfig.getEnable());
-    }
-
 }

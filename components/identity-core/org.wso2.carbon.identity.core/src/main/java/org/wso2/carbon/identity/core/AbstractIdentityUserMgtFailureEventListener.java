@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -43,5 +44,15 @@ public class AbstractIdentityUserMgtFailureEventListener extends AbstractUserMan
             return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
         }
         return identityEventListenerConfig.getOrder();
+    }
+
+    @Override
+    public boolean isEnable() {
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil
+                .readEventListenerProperty(UserManagementErrorEventListener.class.getName(), this.getClass().getName());
+
+        return identityEventListenerConfig == null || StringUtils.isEmpty(identityEventListenerConfig.getEnable())
+                || Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
 }
