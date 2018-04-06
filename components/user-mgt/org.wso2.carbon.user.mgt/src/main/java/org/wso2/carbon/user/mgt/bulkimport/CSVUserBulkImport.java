@@ -19,6 +19,7 @@
 package org.wso2.carbon.user.mgt.bulkimport;
 
 import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -70,7 +71,7 @@ public class CSVUserBulkImport extends UserBulkImport {
                     userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
                 }
 
-                if (userName != null && userName.trim().length() > 0) {
+                if (StringUtils.isNotEmpty(userName) && userName.trim().length() > 0) {
                     try {
                         if (!userStore.isExistingUser(userName)) {
                             if (line.length == 1) {
@@ -112,11 +113,11 @@ public class CSVUserBulkImport extends UserBulkImport {
             inputStream.reset();
             JSONConverter jsonConverter = new JSONConverter();
             String usersImported = jsonConverter.csvToJSON(inputStream);
-            String summeryLog = buildBulkImportSummery();
+            String summaryLog = buildBulkImportSummary();
 
             auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser,
-                    UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summeryLog));
-            log.info(summeryLog);
+                    UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summaryLog));
+            log.info(summaryLog);
 
             if (fail || isDuplicate) {
                 throw new UserAdminException(String.format(UserMgtConstants.ERROR_MESSAGE, successCount, failCount,

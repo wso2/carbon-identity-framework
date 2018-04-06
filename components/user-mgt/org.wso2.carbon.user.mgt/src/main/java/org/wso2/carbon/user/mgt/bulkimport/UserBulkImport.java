@@ -70,19 +70,19 @@ public abstract class UserBulkImport {
      *     failedUsers : {count: x, users: [{name: userName, cause: cause_for_the_failure}, ...]}
      * }
      */
-    String buildBulkImportSummery() {
-        JsonObject summeryJson = new JsonObject();
+    String buildBulkImportSummary() {
+        JsonObject summaryJson = new JsonObject();
         JsonObject duplicateUsersJson = new JsonObject();
         JsonArray duplicateUsersJsonArray = new JsonArray();
         JsonObject errorUsersJson = new JsonObject();
         JsonObject errorUserJson;
         JsonArray errorUsersJsonArray = new JsonArray();
 
-        summeryJson.addProperty(UserMgtConstants.OPERATION, UserMgtConstants.OPERATION_NAME);
-        summeryJson.addProperty(UserMgtConstants.PERFORMED_BY,
+        summaryJson.addProperty(UserMgtConstants.OPERATION, UserMgtConstants.OPERATION_NAME);
+        summaryJson.addProperty(UserMgtConstants.PERFORMED_BY,
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername());
-        summeryJson.addProperty(UserMgtConstants.USER_STORE, userStoreDomain);
-        summeryJson.addProperty(UserMgtConstants.SUCCESS_COUNT, successCount);
+        summaryJson.addProperty(UserMgtConstants.USER_STORE, userStoreDomain);
+        summaryJson.addProperty(UserMgtConstants.SUCCESS_COUNT, successCount);
 
         if (duplicateCount > 0) {
             duplicateUsersJson.addProperty(UserMgtConstants.COUNT, duplicateCount);
@@ -93,7 +93,7 @@ public abstract class UserBulkImport {
             }
 
             duplicateUsersJson.add(UserMgtConstants.USERS, duplicateUsersJsonArray);
-            summeryJson.add(UserMgtConstants.DUPLICATE_USERS, duplicateUsersJson);
+            summaryJson.add(UserMgtConstants.DUPLICATE_USERS, duplicateUsersJson);
         }
 
         if (failCount > 0) {
@@ -106,9 +106,9 @@ public abstract class UserBulkImport {
                 errorUsersJsonArray.add(errorUserJson);
             }
             errorUsersJson.add(UserMgtConstants.USERS, errorUsersJsonArray);
-            summeryJson.add(UserMgtConstants.FAILED_USERS, errorUsersJson);
+            summaryJson.add(UserMgtConstants.FAILED_USERS, errorUsersJson);
         }
 
-        return summeryJson.toString();
+        return summaryJson.toString();
     }
 }

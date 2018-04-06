@@ -102,7 +102,7 @@ public class ExcelUserBulkImport extends UserBulkImport {
             }
         }
 
-        String summeryLog = super.buildBulkImportSummery();
+        String summeryLog = super.buildBulkImportSummary();
         log.info(summeryLog);
 
         JSONConverter jsonConverter = new JSONConverter();
