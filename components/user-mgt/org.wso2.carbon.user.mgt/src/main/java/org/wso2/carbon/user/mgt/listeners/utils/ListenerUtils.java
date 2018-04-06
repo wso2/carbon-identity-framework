@@ -21,6 +21,9 @@ package org.wso2.carbon.user.mgt.listeners.utils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 /**
  * Utility class that handles the relevant utility tasks of listeners.
@@ -49,6 +52,7 @@ public class ListenerUtils {
     public static final String GET_ROLES_OF_USER_ACTION = "Get-Roles-of-User";
     public static final String GET_USERS_OF_ROLE_ACTION = "Get-Users-of-Role";
     public static final String AUTHENTICATION_ACTION = "Authentication";
+    public static final String UPDATE_PERMISSIONS_OF_ROLE_ACTION = "Update-Permissions-of-Role";
 
     /**
      * Audit Log listener data fields.
@@ -91,5 +95,26 @@ public class ListenerUtils {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         return user;
+    }
+
+    /**
+     * This method will append the user store domain with user/role name.
+     *
+     * @param entity           Entity that need to modified.
+     * @param userStoreManager UserStore Manager particular user/role handled by.
+     * @return UserStoreDomain/UserName or UserStoreDomain/RoleName
+     */
+    public static String getEntityWithUserStoreDomain(String entity, UserStoreManager userStoreManager) {
+
+        String entityWithUserStoreDomain = entity;
+        if (StringUtils.isNotEmpty(entity) && !entity.contains(UserCoreConstants.DOMAIN_SEPARATOR)
+                && userStoreManager != null) {
+            String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+
+            if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(userStoreDomain)) {
+                entityWithUserStoreDomain = userStoreDomain + "/" + entity;
+            }
+        }
+        return entityWithUserStoreDomain;
     }
 }

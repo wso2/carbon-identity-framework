@@ -57,7 +57,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 data.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
             data.put(ListenerUtils.PROFILE_FIELD, profile);
-            audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION, userName, data, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), data, SUCCESS));
         }
         return true;
     }
@@ -66,7 +67,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION, userName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -80,8 +82,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(
-                    createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, userName, dataObject, IN_PROGRESS));
+            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
     }
@@ -90,7 +92,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostSetUserClaimValue(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, userName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -103,7 +106,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, userName, dataObject, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -116,8 +120,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, userName, dataObject,
-                    IN_PROGRESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
     }
@@ -126,7 +130,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUserClaimValues(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, userName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -139,8 +144,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, userName, dataObject,
-                    IN_PROGRESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
     }
@@ -149,7 +154,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUserClaimValue(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, userName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -158,7 +164,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION, userName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -168,7 +175,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, userName, null, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -177,7 +185,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteRole(String roleName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.DELETE_ROLE_ACTION, roleName, null, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.DELETE_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -191,14 +200,12 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(userList)) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
             }
-            JSONArray permissionsArray = new JSONArray();
             if (ArrayUtils.isNotEmpty(permissions)) {
-                for (Permission permission : permissions) {
-                    permissionsArray.put(permission.getResourceId());
-                }
+                JSONArray permissionsArray = new JSONArray(permissions);
                 dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
             }
-            audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION, roleName, dataObject, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -207,8 +214,24 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostUpdateRoleName(String roleName, String newRoleName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLE_NAME_ACTION, roleName, newRoleName, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLE_NAME_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), newRoleName, SUCCESS));
         }
+        return true;
+    }
+
+    @Override
+    public boolean doPostUpdatePermissionsOfRole(String roleName, Permission[] permissions, UserStoreManager
+            userStoreManager) {
+
+        JSONObject dataObject = new JSONObject();
+        if (ArrayUtils.isNotEmpty(permissions)) {
+            JSONArray permissionsArray = new JSONArray(permissions);
+            dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+        }
+
+        audit.warn(createAuditMessage(ListenerUtils.UPDATE_PERMISSIONS_OF_ROLE_ACTION,
+                ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
         return true;
     }
 
@@ -224,7 +247,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(newUsers)) {
                 dataObject.put(ListenerUtils.NEW_USERS, new JSONArray(newUsers));
             }
-            audit.info(createAuditMessage(ListenerUtils.UPDATE_USERS_OF_ROLE_ACTION, roleName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.UPDATE_USERS_OF_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -241,7 +265,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(newRoles)) {
                 dataObject.put(ListenerUtils.NEW_ROLES, new JSONArray(newRoles));
             }
-            audit.info(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION, userName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -257,7 +282,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, new JSONArray(claimValue));
             }
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION, userName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, storeManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -270,7 +296,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claimMap));
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION, userName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, storeManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -301,7 +328,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(roleList)) {
                 dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
-            audit.info(createAuditMessage(ListenerUtils.GET_ROLES_OF_USER_ACTION, userName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_ROLES_OF_USER_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -314,10 +342,12 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(userList)) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
             }
-            audit.info(createAuditMessage(ListenerUtils.GET_USERS_OF_ROLE_ACTION, roleName, dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USERS_OF_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
+
 
     @Override
     public boolean isEnable() {
