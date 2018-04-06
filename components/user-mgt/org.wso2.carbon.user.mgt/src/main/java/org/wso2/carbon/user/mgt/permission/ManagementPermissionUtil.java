@@ -111,9 +111,9 @@ public class ManagementPermissionUtil {
             for (UserManagementErrorEventListener listener : UserMgtDSComponent
                     .getUserManagementErrorEventListeners()) {
                 if (listener.isEnable() && !listener.onUpdatePermissionsOfRoleFailure(
-                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_PERMISSIONS_OF_USER
+                        UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_PERMISSIONS_OF_ROLE
                                 .getCode(), String.format(
-                                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_PERMISSIONS_OF_USER
+                                UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_PERMISSIONS_OF_ROLE
                                         .getMessage(), errorMessage), roleName, permissions, userStoreManager)) {
                     return;
                 }
