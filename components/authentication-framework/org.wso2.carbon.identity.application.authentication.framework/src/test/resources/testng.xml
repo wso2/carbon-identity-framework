@@ -40,6 +40,8 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClusterTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
 
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContextTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderTest"/>
         </classes>
     </test>
 </suite>

@@ -55,6 +55,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
         case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
             return getWrapped().getTenantDomain();
+         case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
+                return getWrapped().getServiceProviderName();
         case FrameworkConstants.JSAttributes.JS_REQUEST:
             return new JsServletRequest((TransientObjectWrapper) getWrapped()
                     .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
