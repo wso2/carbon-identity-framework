@@ -92,12 +92,12 @@
     String type = request.getParameter("type");
     if ("samlsso".equals(type)) {
 %>
-<form action="/samlsso" method="post" id="loginForm">
+<form action="../samlsso" method="post" id="loginForm">
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
 <%
     } else if ("oauth2".equals(type)){
 %>
-    <form action="/oauth2/authorize" method="post" id="loginForm">
+    <form action="../oauth2/authorize" method="post" id="loginForm">
         <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
 
 <%
