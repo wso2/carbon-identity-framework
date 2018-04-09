@@ -1613,7 +1613,7 @@ public class IdPManagementDAO {
      * @param tenantId
      * @throws IdentityProviderManagementException
      */
-    public IdentityProvider addIdP(IdentityProvider identityProvider, int tenantId)
+    public void addIdP(IdentityProvider identityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
@@ -1721,7 +1721,6 @@ public class IdPManagementDAO {
             // get the id of the just added identity provider.
             int idPId = getIdentityProviderIdByName(dbConnection,
                     identityProvider.getIdentityProviderName(), tenantId);
-            identityProvider.setId(Integer.toString(idPId));
 
             if (idPId <= 0) {
                 String msg = "Error adding Identity Provider for tenant " + tenantId;
@@ -1788,7 +1787,6 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
-        return identityProvider;
     }
 
     /**
