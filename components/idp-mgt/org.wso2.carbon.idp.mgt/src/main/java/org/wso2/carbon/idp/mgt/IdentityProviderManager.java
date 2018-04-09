@@ -977,12 +977,11 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPById(String id, String tenantDomain,
                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (StringUtils.isEmpty(id)) {
             String msg = "Invalid argument: Identity Provider ID value is empty";
             throw new IdentityProviderManagementException(msg);
         }
-
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         Integer intId;
         IdentityProvider identityProvider = null;
 

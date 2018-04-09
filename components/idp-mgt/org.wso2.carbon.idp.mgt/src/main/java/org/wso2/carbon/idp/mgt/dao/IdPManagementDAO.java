@@ -1152,7 +1152,6 @@ public class IdPManagementDAO {
                     federatedIdp.setId(Integer.toString(idpId));
                 }
 
-
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
                 } else {
@@ -1233,7 +1232,7 @@ public class IdPManagementDAO {
                             userClaimUri, roleClaimUri, idpId, tenantId));
                 }
 
-                // get provisioning connectors.f
+                // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
 
