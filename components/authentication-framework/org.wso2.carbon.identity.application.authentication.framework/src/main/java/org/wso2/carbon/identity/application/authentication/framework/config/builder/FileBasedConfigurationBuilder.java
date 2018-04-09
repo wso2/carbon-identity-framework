@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.JITProvisioningConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -92,6 +93,7 @@ public class FileBasedConfigurationBuilder {
     private Map<String, Integer> cacheTimeouts = new HashMap<>();
     private String authEndpointQueryParamsAction;
     private boolean authEndpointQueryParamsConfigAvailable;
+    private JITProvisioningConfig jitProvisioningConfig;
 
     public static FileBasedConfigurationBuilder getInstance() {
         if (instance == null) {
@@ -197,12 +199,16 @@ public class FileBasedConfigurationBuilder {
 
             //########### Read Sequence Configs ###########
             readSequenceConfigs(rootElement);
+
+            //########### Read JIT Provisioning Configs ##########
+            readJITProvisioningConfigs(rootElement);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
             log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         }
     }
+
 
     private void readChildElements(OMElement serverConfig, Stack<String> nameStack) {
 
@@ -290,6 +296,35 @@ public class FileBasedConfigurationBuilder {
 
                 if (sequenceConfig != null) {
                     this.sequenceList.add(sequenceConfig);
+                }
+            }
+        }
+    }
+
+    private void readJITProvisioningConfigs(OMElement rootElement) {
+
+        jitProvisioningConfig = new JITProvisioningConfig();
+
+        OMElement jitProvisioningElem = rootElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_JIT_PROVISIONING));
+
+        if (jitProvisioningElem != null) {
+            Iterator iterator = jitProvisioningElem.getChildElements();
+            while (iterator.hasNext()) {
+                Object elem = iterator.next();
+                if (elem instanceof OMElement) {
+                    OMElement omElement = (OMElement) elem;
+                    if (omElement.getLocalName().equals(FrameworkConstants.Config.QNAME_ENABLE_UUID_USERNAME)) {
+                        jitProvisioningConfig.setEnableUUIDUsername(Boolean.parseBoolean(omElement.getText()));
+                    } else if (omElement.getLocalName().equals(FrameworkConstants.Config
+                            .QNAME_ENABLE_AUTO_ASSOCIATION)) {
+                        jitProvisioningConfig.setEnableAutoAssociation(Boolean.parseBoolean(omElement.getText()));
+                    } else if (omElement.getLocalName().equals(FrameworkConstants.Config.QNAME_IDP_COMMON_CLAIM)) {
+                        jitProvisioningConfig.setIdpCommonClaim(omElement.getText());
+                    } else if (omElement.getLocalName().equals(FrameworkConstants.Config
+                            .QNAME_IDP_UNIQUE_CLAIM_HEADER)) {
+                        jitProvisioningConfig.setIdpUniqueClaimHeader(omElement.getText());
+                    }
                 }
             }
         }
@@ -787,6 +822,9 @@ public class FileBasedConfigurationBuilder {
         return sequenceList;
     }
 
+    public JITProvisioningConfig getJitProvisioningConfig() {
+        return jitProvisioningConfig;
+    }
 
     public List<ExternalIdPConfig> getIdpList() {
         return idpList;

@@ -154,6 +154,11 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
         public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
+        public static final String QNAME_JIT_PROVISIONING = "JITProvisioning";
+        public static final String QNAME_ENABLE_UUID_USERNAME = "EnableUUIDUsername";
+        public static final String QNAME_IDP_COMMON_CLAIM = "IDPCommonClaim";
+        public static final String QNAME_IDP_UNIQUE_CLAIM_HEADER = "IDPUniqueClaimHeader";
+        public static final String QNAME_ENABLE_AUTO_ASSOCIATION = "EnableAutoAssociation";
 
         private Config() {
         }

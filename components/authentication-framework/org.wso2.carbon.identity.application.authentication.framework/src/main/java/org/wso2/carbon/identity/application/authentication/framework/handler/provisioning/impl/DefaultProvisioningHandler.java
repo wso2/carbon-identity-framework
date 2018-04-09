@@ -27,6 +27,8 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.JITProvisioningConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -44,22 +46,22 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static volatile DefaultProvisioningHandler instance;
-    private SecureRandom random = new SecureRandom();
 
     public static DefaultProvisioningHandler getInstance() {
+
         if (instance == null) {
             synchronized (DefaultProvisioningHandler.class) {
                 if (instance == null) {
@@ -77,16 +79,54 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
 
+        FileBasedConfigurationBuilder fileBasedConfigurationBuilder = FileBasedConfigurationBuilder.getInstance();
+        JITProvisioningConfig jitProvisioningConfig = fileBasedConfigurationBuilder.getJitProvisioningConfig();
+
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                          realmService, tenantDomain);
-
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService, realmService, tenantDomain);
             String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
 
-            String username = MultitenantUtils.getTenantAwareUsername(subject);
+            String username;
+            if (jitProvisioningConfig.isEnableUUIDUsername()) {
+                username = UUID.randomUUID().toString();
+            } else {
+                username = MultitenantUtils.getTenantAwareUsername(subject);
+            }
 
             UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
+
+            if (jitProvisioningConfig.isEnableAutoAssociation()) {
+                String idpName = attributes.get(FrameworkConstants.IDP_ID);
+                String idpUniqueClaim = jitProvisioningConfig.getIdpUniqueClaimHeader() + idpName;
+
+                String[] userList = userStoreManager.getUserList(idpUniqueClaim.trim(), subject, "default");
+
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP Unique claim: " + idpUniqueClaim.trim());
+                    log.debug("User list count for IDP unique attribute: " + userList.length);
+                }
+
+                if (userList.length != 0) {
+                    username = userList[0];
+                } else {
+                    String idpCommonAttributeValue = attributes.get(jitProvisioningConfig.getIdpCommonClaim().trim());
+                    if (log.isDebugEnabled()) {
+                        log.debug("IDP Common claim: " + jitProvisioningConfig.getIdpCommonClaim().trim());
+                        log.debug("IDP common attribute value: " + idpCommonAttributeValue);
+                    }
+                    if (idpCommonAttributeValue != null) {
+                        userList = userStoreManager.getUserList(jitProvisioningConfig.getIdpCommonClaim(),
+                                idpCommonAttributeValue, "default");
+                        if (log.isDebugEnabled()) {
+                            log.debug("User list count for IDP common attribute: " + userList.length);
+                        }
+                        if (userList.length != 0) {
+                            username = userList[0];
+                        }
+                    }
+                }
+            }
 
             // Remove userStoreManager domain from username if the userStoreDomain is not primary
             if (realm.getUserStoreManager().getRealmConfiguration().isPrimary()) {
