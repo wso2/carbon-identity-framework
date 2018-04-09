@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import java.util.Map;
+
 /**
  * Registry to add or remove custom functions implemented in Java to javascript based execution engine.
  */
@@ -37,6 +39,13 @@ public interface JsFunctionRegistry {
      * @param function
      */
     void register(Subsystem subsystem, String functionName, Object function);
+
+    /**
+     * Get the function map registered for the given sub system
+     * @param subsystem Subsystem of which the function map is retrieved
+     * @return function map
+     */
+    Map<String, Object> getSubsystemFunctionsMap(Subsystem subsystem);
 
     /**
      * Removes the custom functions with the given name from the given subsystem.

@@ -456,6 +456,34 @@
 				<AttributeID>oneTimePassword</AttributeID>
 				<Description>One Time Password</Description>
 		    </Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/extendedRef</ClaimURI>
+				<DisplayName>Extended Ref</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>extendedRef</AttributeID>
+				<Description>Extended Ref</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/extendedDisplayName</ClaimURI>
+				<DisplayName>Extended Display Name</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>extendedDisplayName</AttributeID>
+				<Description>Extended Display Name</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/costCenter</ClaimURI>
+				<DisplayName>Cost Center</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>costCenter</AttributeID>
+				<Description>Cost Center</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/extendedExternalId</ClaimURI>
+				<DisplayName>Extended External ID</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>extendedExternalId</AttributeID>
+				<Description>Extended External ID</Description>
+			</Claim>
 		    <Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountLocked</ClaimURI>
 				<DisplayName>Account Locked</DisplayName>
@@ -1914,23 +1942,23 @@
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
-				<DisplayName>employeeNumber</DisplayName>
-				<AttributeID>externalId</AttributeID>
-				<Description>employeeNumber</Description>
+				<DisplayName>Employee Number</DisplayName>
+				<AttributeID>extendedExternalId</AttributeID>
+				<Description>Employee Number</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/externalid</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/extendedExternalId</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:costCenter</ClaimURI>
-				<DisplayName>oneTimePassword</DisplayName>
-				<AttributeID>userType</AttributeID>
-				<Description>costCenter</Description>
+				<DisplayName>Cost Center</DisplayName>
+				<AttributeID>costCenter</AttributeID>
+				<Description>Cost Center</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/costCenter</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:organization</ClaimURI>
@@ -1975,22 +2003,22 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.$ref</ClaimURI>
 				<DisplayName>Manager - home</DisplayName>
-				<AttributeID>ref</AttributeID>
+				<AttributeID>extendedRef</AttributeID>
 				<Description>Manager - home</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/extendedRef</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.displayName</ClaimURI>
-				<DisplayName>Manager - home</DisplayName>
-				<AttributeID>displayName</AttributeID>
-				<Description>Manager - home</Description>
+				<DisplayName>Manager - Display Name</DisplayName>
+				<AttributeID>extendedDisplayName</AttributeID>
+				<Description>Manager - Display Name</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/extendedDisplayName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>

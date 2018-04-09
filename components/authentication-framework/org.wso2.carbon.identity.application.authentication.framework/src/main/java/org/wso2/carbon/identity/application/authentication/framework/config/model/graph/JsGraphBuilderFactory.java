@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -46,7 +46,7 @@ public class JsGraphBuilderFactory {
 
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
     private static final String NASHORN_GLOBAL = "nashorn.global";
-    private JsFunctionRegistryImpl jsFunctionRegistry;
+    private JsFunctionRegistry jsFunctionRegistry;
     private ScriptEngineManager nashornScriptManager;
 
     private static final Log jsLog = LogFactory
@@ -129,16 +129,15 @@ public class JsGraphBuilderFactory {
 
         JsGraphBuilder result = new JsGraphBuilder(authenticationContext, stepConfigMap,
                 createEngine(authenticationContext));
-        result.setJsFunctionRegistry(jsFunctionRegistry);
         return result;
     }
 
-    public JsFunctionRegistryImpl getJsFunctionRegistry() {
+    public JsFunctionRegistry getJsFunctionRegistry() {
 
         return jsFunctionRegistry;
     }
 
-    public void setJsFunctionRegistry(JsFunctionRegistryImpl jsFunctionRegistry) {
+    public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
