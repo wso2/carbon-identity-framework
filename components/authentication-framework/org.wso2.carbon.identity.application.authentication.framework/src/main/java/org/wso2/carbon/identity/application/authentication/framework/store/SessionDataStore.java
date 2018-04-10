@@ -45,6 +45,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,6 +71,10 @@ public class SessionDataStore {
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, TENANT_ID) VALUES (?,?,?,?,?,?)";
     private static final String SQL_INSERT_DELETE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
+    private static final String SQL_INSERT_TEMP_STORE_OPERATION =
+            "INSERT INTO IDN_AUTH_SESSION_STORE_TEMP(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, TENANT_ID) VALUES (?,?,?,?,?,?)";
+    private static final String SQL_INSERT_TEMP_DELETE_OPERATION =
+            "INSERT INTO IDN_AUTH_SESSION_STORE_TEMP(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '"+OPERATION_STORE+"' AND SESSION_ID in (" +
             "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '"+OPERATION_DELETE+"' AND TIME_CREATED < ?)";
@@ -78,24 +85,26 @@ public class SessionDataStore {
                     "IDN_AUTH_SESSION_STORE_SELECT)";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '"+OPERATION_DELETE+"' AND  TIME_CREATED < ?";
+    private static final String SQL_DELETE_TEMP_RECORDS =
+            "DELETE FROM IDN_AUTH_SESSION_STORE_TEMP WHERE SESSION_ID = ? AND  SESSION_TYPE = ?";
 
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_DB2SQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
     private static final String SQL_DESERIALIZE_OBJECT_MSSQL =
-            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
     private static final String SQL_DESERIALIZE_OBJECT_POSTGRESQL =
-            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_INFORMIX =
-            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
-            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM %s WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
 
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
@@ -122,12 +131,20 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
-    private static int maxPoolSize = 100;
+    public static final String SESSION_STORE_TABLE = "IDN_AUTH_SESSION_STORE";
+    public static final String TEMP_SESSION_STORE_TABLE = "IDN_AUTH_SESSION_STORE_TEMP";
+    private static int maxSessionDataPoolSize = 20;
+    private static int maxTempSessionDataPoolSize = 100;
+    private static int maxDeleteTempDataPoolSize = 50;
     private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
+    private static BlockingDeque<SessionContextDO> tempSessionContextQueue = new LinkedBlockingDeque();
+    private static BlockingDeque<SessionContextDO> tempSessionContextDeleteQueue = new LinkedBlockingDeque();
     private static volatile SessionDataStore instance;
     private boolean enablePersist;
     private String sqlInsertSTORE;
+    private String sqlInsertTempSTORE;
     private String sqlInsertDELETE;
+    private String sqlInsertTempDELETE;
     private String sqlDeleteSTORETask;
     private String sqlDeleteDELETETask;
     private String sqlSelect;
@@ -135,12 +152,22 @@ public class SessionDataStore {
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
+    private List<String> temporaryCache;
+
 
     static {
         try {
-            String maxPoolSizeConfigValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
-            if (StringUtils.isNotBlank(maxPoolSizeConfigValue)) {
-                maxPoolSize = Integer.parseInt(maxPoolSizeConfigValue);
+            String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
+            String maxTempDataPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataPoolSize");
+            String maxTempDataDeletePoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataDeletePoolSize");
+            if (StringUtils.isNotBlank(maxPoolSizeValue)) {
+                maxSessionDataPoolSize = Integer.parseInt(maxPoolSizeValue);
+            }
+            if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
+                maxTempSessionDataPoolSize = Integer.parseInt(maxTempDataPoolSizeValue);
+            }
+            if (StringUtils.isNotBlank(maxTempDataDeletePoolSizeValue)) {
+                maxDeleteTempDataPoolSize = Integer.parseInt(maxTempDataDeletePoolSizeValue);
             }
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
@@ -148,11 +175,25 @@ public class SessionDataStore {
             }
             log.warn("Session data persistence pool size is not configured. Using default value.");
         }
-        if (maxPoolSize > 0) {
-            log.info("Thread pool size for session persistent consumer : " + maxPoolSize);
-            ExecutorService threadPool = Executors.newFixedThreadPool(maxPoolSize);
-            for (int i = 0; i < maxPoolSize; i++) {
+        if (maxSessionDataPoolSize > 0) {
+            log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
+            ExecutorService threadPool = Executors.newFixedThreadPool(maxSessionDataPoolSize);
+            for (int i = 0; i < maxSessionDataPoolSize; i++) {
                 threadPool.execute(new SessionDataPersistTask(sessionContextQueue));
+            }
+        }
+        if (maxTempSessionDataPoolSize > 0) {
+            log.info("Thread pool size for temp session data persistent consumer : " + maxTempSessionDataPoolSize);
+            ExecutorService threadPool = Executors.newFixedThreadPool(maxTempSessionDataPoolSize);
+            for (int i = 0; i < maxTempSessionDataPoolSize; i++) {
+                threadPool.execute(new SessionDataPersistTask(tempSessionContextQueue));
+            }
+        }
+        if (maxDeleteTempDataPoolSize > 0) {
+            log.info("Thread pool size for temp session data delete consumer : " + maxDeleteTempDataPoolSize);
+            ExecutorService threadPool = Executors.newFixedThreadPool(maxDeleteTempDataPoolSize);
+            for (int i = 0; i < maxDeleteTempDataPoolSize; i++) {
+                threadPool.execute(new SessionDataDeleteRecordsTask(tempSessionContextDeleteQueue));
             }
         }
     }
@@ -197,6 +238,15 @@ public class SessionDataStore {
         if (!StringUtils.isBlank(selectSQL)) {
             sqlSelect = selectSQL;
         }
+
+        //TODO: check the requirement for configurable option
+        sqlInsertTempSTORE = SQL_INSERT_TEMP_STORE_OPERATION;
+        sqlInsertTempDELETE = SQL_INSERT_TEMP_DELETE_OPERATION;
+        temporaryCache = new ArrayList<>(Arrays.asList("AuthenticationRequestCache",
+                "AuthenticationContextCache",
+                "SAMLSSOSessionDataCache",
+                "AuthenticationResultCache",
+                "OAuthSessionDataCache"));
 
         String deleteChunkSizeString = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
                 ".SessionDataCleanUp.DeleteChunkSize");
@@ -284,7 +334,7 @@ public class SessionDataStore {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
                 }
             }
-            preparedStatement = connection.prepareStatement(sqlSelect);
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(type, sqlSelect));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             resultSet = preparedStatement.executeQuery();
@@ -314,8 +364,10 @@ public class SessionDataStore {
             return;
         }
         long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        if (maxPoolSize > 0) {
+        if (maxSessionDataPoolSize > 0 && isOperationalData(type)) {
             sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
+        } else if (maxTempSessionDataPoolSize > 0 && !isOperationalData(type)) {
+            tempSessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
         } else {
             persistSessionData(key, type, entry, nanoTime, tenantId);
         }
@@ -326,8 +378,10 @@ public class SessionDataStore {
             return;
         }
         long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        if (maxPoolSize > 0) {
+        if (maxSessionDataPoolSize > 0 && isOperationalData(type)) {
             sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
+        } else if (maxTempSessionDataPoolSize > 0 && !isOperationalData(type)) {
+            tempSessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
             removeSessionData(key, type, nanoTime);
         }
@@ -491,7 +545,7 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(sqlInsertSTORE);
+            preparedStatement = connection.prepareStatement(getSessionStoreQuery(type));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_STORE);
@@ -522,7 +576,7 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(sqlInsertDELETE);
+            preparedStatement = connection.prepareStatement(getSessionDeleteQuery(type));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
@@ -533,6 +587,36 @@ public class SessionDataStore {
             }
         } catch (Exception e) {
             log.error("Error while storing DELETE operation session data", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
+        }
+        if (maxDeleteTempDataPoolSize >0 && !isOperationalData(type)) {
+            tempSessionContextDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
+        }
+    }
+
+    public void removeSessionDataRecords(String key, String type) {
+        if (!enablePersist) {
+            return;
+        }
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+        } catch (IdentityRuntimeException e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement(SQL_DELETE_TEMP_RECORDS);
+            preparedStatement.setString(1, key);
+            preparedStatement.setString(2, type);
+            preparedStatement.executeUpdate();
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
+        } catch (Exception e) {
+            log.error("Error while deleting temporary records", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
@@ -632,6 +716,34 @@ public class SessionDataStore {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
+        }
+    }
+
+    private boolean isOperationalData(String type) {
+        return !temporaryCache.contains(String.valueOf(type));
+    }
+
+    private String getSessionStoreQuery(String type) {
+        if (isOperationalData(type)) {
+            return sqlInsertSTORE;
+        } else {
+            return sqlInsertTempSTORE;
+        }
+    }
+
+    private String getSessionStoreDBQuery(String type, String query) {
+        if (isOperationalData(type)) {
+            return String.format(query, SESSION_STORE_TABLE);
+        } else {
+            return String.format(query, TEMP_SESSION_STORE_TABLE);
+        }
+    }
+
+    private String getSessionDeleteQuery(String type) {
+        if (isOperationalData(type)) {
+            return sqlInsertDELETE;
+        } else {
+            return sqlInsertTempDELETE;
         }
     }
 }
