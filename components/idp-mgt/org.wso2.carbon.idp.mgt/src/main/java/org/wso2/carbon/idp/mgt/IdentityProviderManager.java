@@ -381,30 +381,46 @@ public class IdentityProviderManager implements IdpManager {
             saml2SSOFedAuthn = new FederatedAuthenticatorConfig();
             saml2SSOFedAuthn.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(saml2SSOFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL) == null) {
-            Property ssoUrlProp = new Property();
-            ssoUrlProp.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
-            ssoUrlProp.setValue(samlSSOUrl);
-            propertiesList.add(ssoUrlProp);
+
+        propertiesList = new ArrayList<>();
+        Property samlSSOUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+        if (samlSSOUrlProperty == null) {
+            samlSSOUrlProperty = new Property();
+            samlSSOUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
         }
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL) == null) {
-            Property logoutReqUrlProp = new Property();
-            logoutReqUrlProp
-                    .setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
-            logoutReqUrlProp.setValue(samlLogoutUrl);
-            propertiesList.add(logoutReqUrlProp);
+        // Set the generated saml sso endpoint value.
+        samlSSOUrlProperty.setValue(samlSSOUrl);
+        propertiesList.add(samlSSOUrlProperty);
+
+        Property samlLogoutUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+        if (samlLogoutUrlProperty == null) {
+            samlLogoutUrlProperty = new Property();
+            samlLogoutUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
         }
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID) == null) {
-            Property idPEntityIdProp = new Property();
-            idPEntityIdProp
-                    .setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            idPEntityIdProp.setValue(IdPManagementUtil.getResidentIdPEntityId());
-            propertiesList.add(idPEntityIdProp);
+        // Set the generated saml slo endpoint value.
+        samlLogoutUrlProperty.setValue(samlLogoutUrl);
+        propertiesList.add(samlLogoutUrlProperty);
+
+        Property idPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+        if (idPEntityIdProperty == null) {
+            idPEntityIdProperty = new Property();
+            idPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+            idPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
         }
+        propertiesList.add(idPEntityIdProperty);
+
+        for (Property property : saml2SSOFedAuthn.getProperties()) {
+            if (property != null &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
+                propertiesList.add(property);
+            }
+        }
+
         saml2SSOFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(saml2SSOFedAuthn);
 
@@ -543,24 +559,35 @@ public class IdentityProviderManager implements IdpManager {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(passiveSTSFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL) == null) {
-            Property passiveSTSUrlProp = new Property();
-            passiveSTSUrlProp
-                    .setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-            passiveSTSUrlProp.setValue(passiveStsUrl);
-            propertiesList.add(passiveSTSUrlProp);
+
+        propertiesList = new ArrayList<>();
+        Property passiveSTSUrlProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
+                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
+        if (passiveSTSUrlProperty == null) {
+            passiveSTSUrlProperty = new Property();
+            passiveSTSUrlProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
+        }
+        passiveSTSUrlProperty.setValue(passiveStsUrl);
+        propertiesList.add(passiveSTSUrlProperty);
+
+        Property stsIdPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
+                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
+        if (stsIdPEntityIdProperty == null) {
+            stsIdPEntityIdProperty = new Property();
+            stsIdPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS
+                    .IDENTITY_PROVIDER_ENTITY_ID);
+            stsIdPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+        }
+        propertiesList.add(stsIdPEntityIdProperty);
+
+        for (Property property : passiveSTSFedAuthn.getProperties()) {
+            if (property != null && !IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL
+                    .equals(property.getName()) && !IdentityApplicationConstants.Authenticator.PassiveSTS
+                    .IDENTITY_PROVIDER_ENTITY_ID.equals(property.getName())) {
+                propertiesList.add(property);
+            }
         }
 
-        if (IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID) == null) {
-            Property idPEntityIdProp = new Property();
-            idPEntityIdProp
-                    .setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-            idPEntityIdProp.setValue(IdPManagementUtil.getResidentIdPEntityId());
-            propertiesList.add(idPEntityIdProp);
-        }
         passiveSTSFedAuthn
                 .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(passiveSTSFedAuthn);
