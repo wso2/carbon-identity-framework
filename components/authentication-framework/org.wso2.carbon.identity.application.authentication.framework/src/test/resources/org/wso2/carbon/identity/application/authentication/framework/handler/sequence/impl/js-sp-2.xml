@@ -81,7 +81,7 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function(context) {
+function onInitialRequest(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 

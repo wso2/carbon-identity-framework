@@ -73,15 +73,10 @@ public class JsGraphBuilderFactory {
 
     public static void persistCurrentContext(AuthenticationContext context, ScriptEngine engine) {
 
-        Bindings bindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        Map<String, Object> globalMap = (Map<String, Object>) bindings.get(NASHORN_GLOBAL);
-        if (globalMap != null) {
-            Map<String, Object> map = new HashMap<>();
-            for (Map.Entry<String, Object> entry : globalMap.entrySet()) {
-                map.put(entry.getKey(), toJsSerializable(entry.getKey(), entry.getValue()));
-            }
-            context.setProperty(JS_BINDING_CURRENT_CONTEXT, map);
-        }
+        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        Map<String, Object> persistableMap = new HashMap<>();
+        engineBindings.forEach((key, value) -> persistableMap.put(key, toJsSerializable(key, value)));
+        context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
     private static Object toJsSerializable(String name, Object value) {
