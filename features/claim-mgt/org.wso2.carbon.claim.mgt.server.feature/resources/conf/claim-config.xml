@@ -1431,6 +1431,24 @@
 				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
 			</Claim>
 			<Claim>
+				<ClaimURI>upn</ClaimURI>
+				<DisplayName>User Principal</DisplayName>
+				<AttributeID>upn</AttributeID>
+				<Description>The user principal name</Description>
+				<DisplayOrder>11</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/username</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>groups</ClaimURI>
+				<DisplayName>User Groups</DisplayName>
+				<AttributeID>groups</AttributeID>
+				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
+				<DisplayOrder>12</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+			</Claim>
+			<Claim>
 				<ClaimURI>email</ClaimURI>
 				<DisplayName>Email</DisplayName>
 				<AttributeID>mail</AttributeID>
