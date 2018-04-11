@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -98,10 +99,6 @@ public class JsGraphBuilder {
     public JsGraphBuilder createWith(String script) {
 
         try {
-            Compilable compilable = (Compilable) engine;
-            //TODO: Think about keeping a cached compiled scripts. May be the last updated timestamp.
-            CompiledScript compiledScript = compilable.compile(script);
-
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (Consumer<Map>) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (Consumer<Map>) this::sendError);
@@ -111,12 +108,21 @@ public class JsGraphBuilder {
                         .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
                 functionMap.forEach(globalBindings::put);
             }
-            JSObject builderFunction = (JSObject) compiledScript.eval(globalBindings);
-            builderFunction.call(null, new JsAuthenticationContext(authenticationContext));
+            Invocable invocable = (Invocable) engine;
+            engine.eval(script);
+            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_INITIATE_REQUEST,
+                    new JsAuthenticationContext(authenticationContext));
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. Nested exception is: " + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Error in executing the Javascript.", e);
+            }
+        } catch (NoSuchMethodException e) {
+            result.setBuildSuccessful(false);
+            result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
+                    .JS_FUNC_INITIATE_REQUEST + " function is not defined.");
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
@@ -128,8 +134,8 @@ public class JsGraphBuilder {
      * Add authentication fail node to the authentication graph.
      *
      * @param parameterMap
-     * TODO: This method works in conditional mode and need to implement separate method for dynamic mode
      */
+    // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
     public void sendError(Map<String, Object> parameterMap) {
 
         FailNode newNode = new FailNode();
