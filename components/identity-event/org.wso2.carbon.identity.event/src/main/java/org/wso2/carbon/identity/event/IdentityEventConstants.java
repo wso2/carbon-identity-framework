@@ -133,6 +133,7 @@ public class IdentityEventConstants {
         public static final String CONTEXT = "context";
         public static final String SESSION_CONTEXT = "sessionContext";
         public static final String PARAMS = "params";
+        public static final String AUTHENTICATION_STATUS = "authenticationStatus";
 
     }
 
