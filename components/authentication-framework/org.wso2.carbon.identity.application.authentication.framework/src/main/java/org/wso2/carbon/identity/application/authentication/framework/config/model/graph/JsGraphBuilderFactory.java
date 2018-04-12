@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +36,6 @@ import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 /**
@@ -45,23 +45,24 @@ import javax.script.ScriptException;
 public class JsGraphBuilderFactory {
 
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
-    private static final String NASHORN_GLOBAL = "nashorn.global";
     private JsFunctionRegistry jsFunctionRegistry;
-    private ScriptEngineManager nashornScriptManager;
+    private NashornScriptEngineFactory factory;
 
     private static final Log jsLog = LogFactory
             .getLog(JsGraphBuilder.class.getPackage().getName() + ".JsBasedSequence");
 
     public void init() {
 
-        nashornScriptManager = new ScriptEngineManager();
+        factory = new NashornScriptEngineFactory();
     }
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        ScriptEngine engine = nashornScriptManager.getEngineByName("nashorn");
+        ScriptEngine engine = factory.getScriptEngine("--no-java");
 
-        Bindings bindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        Bindings bindings = engine.createBindings();
+        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+        engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
         bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
                 (SelectOneFunction) selectAcrFromFunction::evaluate);
