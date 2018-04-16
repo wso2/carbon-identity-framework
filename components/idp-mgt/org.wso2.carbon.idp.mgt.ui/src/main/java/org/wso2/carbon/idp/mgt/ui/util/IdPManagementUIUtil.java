@@ -540,6 +540,9 @@ public class IdPManagementUIUtil {
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("scim");
 
+        List<Property> propertyList = new ArrayList<Property>();
+
+        Property scimVersionProp = null;
         Property userNameProp = null;
         Property passwordProp = null;
         Property userEpProp = null;
@@ -559,10 +562,18 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
         }
 
+        if (paramMap.get("scim-version") != null) {
+            scimVersionProp = new Property();
+            scimVersionProp.setName("scim-version");
+            scimVersionProp.setValue(paramMap.get("scim-version"));
+            propertyList.add(scimVersionProp);
+        }
+
         if (paramMap.get("scim-username") != null) {
             userNameProp = new Property();
             userNameProp.setName("scim-username");
             userNameProp.setValue(paramMap.get("scim-username"));
+            propertyList.add(userNameProp);
         }
 
         if (paramMap.get("scim-password") != null) {
@@ -570,24 +581,28 @@ public class IdPManagementUIUtil {
             passwordProp.setConfidential(true);
             passwordProp.setName("scim-password");
             passwordProp.setValue(paramMap.get("scim-password"));
+            propertyList.add(passwordProp);
         }
 
         if (paramMap.get("scim-user-ep") != null) {
             userEpProp = new Property();
             userEpProp.setName("scim-user-ep");
             userEpProp.setValue(paramMap.get("scim-user-ep"));
+            propertyList.add(userEpProp);
         }
 
         if (paramMap.get("scim-group-ep") != null) {
             groupEpProp = new Property();
             groupEpProp.setName("scim-group-ep");
             groupEpProp.setValue(paramMap.get("scim-group-ep"));
+            propertyList.add(groupEpProp);
         }
 
         if (paramMap.get("scim-user-store-domain") != null) {
             scimUserStoreDomain = new Property();
             scimUserStoreDomain.setName("scim-user-store-domain");
             scimUserStoreDomain.setValue(paramMap.get("scim-user-store-domain"));
+            propertyList.add(scimUserStoreDomain);
         }
 
         if (paramMap.get("scimPwdProvEnabled") != null && "on".equals(paramMap.get("scimPwdProvEnabled"))) {
@@ -595,22 +610,24 @@ public class IdPManagementUIUtil {
             scimEnablePwdProvisioning.setName("scim-enable-pwd-provisioning");
             scimEnablePwdProvisioning.setDefaultValue("false");
             scimEnablePwdProvisioning.setValue("true");
+            propertyList.add(scimEnablePwdProvisioning);
         }
 
         if (paramMap.get("scim-default-pwd") != null) {
             defaultPwdProp = new Property();
             defaultPwdProp.setName("scim-default-pwd");
             defaultPwdProp.setValue(paramMap.get("scim-default-pwd"));
+            propertyList.add(defaultPwdProp);
         }
 
         if (paramMap.get("scim-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("scim-unique-id"));
+            propertyList.add(uniqueID);
         }
 
-        Property[] proProperties = new Property[]{userNameProp, passwordProp, userEpProp,
-                groupEpProp, scimUserStoreDomain, scimEnablePwdProvisioning, defaultPwdProp, uniqueID};
+        Property[] proProperties = propertyList.toArray(new Property[propertyList.size()]);
 
         proConnector.setProvisioningProperties(proProperties);
 
