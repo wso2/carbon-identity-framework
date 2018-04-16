@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
@@ -53,6 +54,9 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
                 return getWrapped().getServiceProviderName();
+            case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
+                return new JsAuthenticatedUser((AuthenticatedUser) getWrapped()
+                        .getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER));
             case FrameworkConstants.JSAttributes.JS_REQUEST:
                 return new JsServletRequest((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
@@ -80,6 +84,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return getWrapped().getTenantDomain() != null;
             case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
                 return getWrapped().getServiceProviderName() != null;
+            case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
+                return getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER) != null;
             case FrameworkConstants.JSAttributes.JS_REQUEST:
                 return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_REQUEST);
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
