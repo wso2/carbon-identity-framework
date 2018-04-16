@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -131,7 +133,7 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Add authentication fail node to the authentication graph.
+     * Add authentication fail node to the authentication graph in the initial request.
      *
      * @param parameterMap
      */
@@ -149,6 +151,30 @@ public class JsGraphBuilder {
 
         if (currentNode == null) {
             result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    /**
+     * Add authentication fail node to the authentication graph during subsequent requests.
+     *
+     * @param parameterMap
+     */
+    public static void sendErrorAsync(Map<String, Object> parameterMap) {
+
+        FailNode newNode = new FailNode();
+
+        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE) != null) {
+            newNode.setShowErrorPage((boolean) parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE));
+        }
+        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI) != null) {
+            newNode.setErrorPageUri((String) parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI));
+        }
+
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+        if (currentNode == null) {
+            dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
         }
@@ -372,6 +398,8 @@ public class JsGraphBuilder {
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
                             (Consumer<Map>) JsGraphBuilder::executeStepInAsyncEvent);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
+                            (Consumer<Map>) JsGraphBuilder::sendErrorAsync);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {
