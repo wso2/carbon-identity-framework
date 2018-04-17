@@ -1433,7 +1433,7 @@
 			<Claim>
 				<ClaimURI>upn</ClaimURI>
 				<DisplayName>User Principal</DisplayName>
-				<AttributeID>upn</AttributeID>
+				<AttributeID>uid</AttributeID>
 				<Description>The user principal name</Description>
 				<DisplayOrder>11</DisplayOrder>
 				<SupportedByDefault />
@@ -1442,7 +1442,7 @@
 			<Claim>
 				<ClaimURI>groups</ClaimURI>
 				<DisplayName>User Groups</DisplayName>
-				<AttributeID>groups</AttributeID>
+				<AttributeID>role</AttributeID>
 				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
