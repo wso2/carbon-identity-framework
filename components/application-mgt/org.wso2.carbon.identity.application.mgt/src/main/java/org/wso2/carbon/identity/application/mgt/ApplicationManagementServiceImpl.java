@@ -110,56 +110,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        doAddApplication(serviceProvider, tenantDomain, username);
+    }
 
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider,tenantDomain, username)) {
-                return;
-            }
-        }
+    @Override
+    public ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
 
-        String applicationName = serviceProvider.getApplicationName();
-        if (!isRegexValidated(serviceProvider.getApplicationName())) {
-            throw new IdentityApplicationManagementException("The Application name " +
-                    serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
-                    "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
-        }
-        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
-            throw new IdentityApplicationManagementException(
-                    "Application with the same name loaded from the file system.");
-        }
-
-        try {
-            startTenantFlow(tenantDomain, username);
-
-            // First we need to create a role with the application name. Only the users in this role will be able to
-            // edit/update the application.
-            ApplicationMgtUtil.createAppRole(applicationName, username);
-            try {
-                ApplicationMgtUtil.storePermissions(applicationName, username,
-                        serviceProvider.getPermissionAndRoleConfig());
-            } catch (IdentityApplicationManagementException e) {
-                deleteApplicationRole(applicationName);
-                throw e;
-            }
-            try {
-                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-                appDAO.createApplication(serviceProvider, tenantDomain);
-            } catch (IdentityApplicationManagementException e) {
-                deleteApplicationRole(applicationName);
-                deleteApplicationPermission(applicationName);
-                throw e;
-            }
-        } finally {
-            endTenantFlow();
-        }
-
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
-                return;
-            }
-        }
+        return doAddApplication(serviceProvider, tenantDomain, username);
     }
 
     @Override
@@ -983,5 +941,63 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (IdentityApplicationManagementException e) {
             log.error("Failed to delete the application role for: " + applicationName, e);
         }
+    }
+
+    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        // Invoking the listeners.
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationMgtListeners();
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                return serviceProvider;
+            }
+        }
+
+        String applicationName = serviceProvider.getApplicationName();
+        if (!isRegexValidated(serviceProvider.getApplicationName())) {
+            throw new IdentityApplicationManagementException("The Application name " +
+                    serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
+                    "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
+        }
+        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
+            throw new IdentityApplicationManagementException(
+                    "Application with the same name loaded from the file system.");
+        }
+
+        try {
+            startTenantFlow(tenantDomain, username);
+
+            // First we need to create a role with the application name. Only the users in this role will be able to
+            // edit/update the application.
+            ApplicationMgtUtil.createAppRole(applicationName, username);
+            try {
+                ApplicationMgtUtil.storePermissions(applicationName, username,
+                        serviceProvider.getPermissionAndRoleConfig());
+            } catch (IdentityApplicationManagementException e) {
+                deleteApplicationRole(applicationName);
+                throw e;
+            }
+            try {
+                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+                int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
+                serviceProvider.setApplicationID(applicationId);
+            } catch (IdentityApplicationManagementException e) {
+                deleteApplicationRole(applicationName);
+                deleteApplicationPermission(applicationName);
+                throw e;
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
+                return serviceProvider;
+            }
+        }
+        return serviceProvider;
     }
 }
