@@ -71,7 +71,7 @@ public class CSVUserBulkImport extends UserBulkImport {
                     userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
                 }
 
-                if (StringUtils.isNotEmpty(userName) && userName.trim().length() > 0) {
+                if (StringUtils.isNotBlank(userName)) {
                     try {
                         if (!userStore.isExistingUser(userName)) {
                             if (line.length == 1) {
@@ -151,7 +151,7 @@ public class CSVUserBulkImport extends UserBulkImport {
         String password = line[1];
         Map<String, String> claims = new HashMap<>();
         for (int i = 2; i < line.length; i++) {
-            if (line[i] != null && !line[i].isEmpty()) {
+            if (StringUtils.isNotBlank(line[i])) {
                 String[] claimStrings = line[i].split("=");
                 if (claimStrings.length != 2) {
                     throw new IllegalArgumentException("Claims and values are not in correct format");
@@ -171,7 +171,7 @@ public class CSVUserBulkImport extends UserBulkImport {
             }
         }
 
-        if (roleString != null && !roleString.isEmpty()) {
+        if (StringUtils.isNotBlank(roleString)) {
             roles = roleString.split(":");
         }
 

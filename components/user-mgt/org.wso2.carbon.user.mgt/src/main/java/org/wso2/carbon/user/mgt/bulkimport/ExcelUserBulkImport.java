@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.user.mgt.bulkimport;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -48,11 +49,13 @@ public class ExcelUserBulkImport extends UserBulkImport {
     private BulkImportConfig config;
 
     public ExcelUserBulkImport(BulkImportConfig config) {
+
         super();
         this.config = config;
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
+
         Workbook wb = this.createWorkbook();
         Sheet sheet = wb.getSheet(wb.getSheetName(0));
         userStoreDomain = config.getUserStoreDomain();
@@ -77,7 +80,7 @@ public class ExcelUserBulkImport extends UserBulkImport {
                 userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
             }
 
-            if (userName != null && userName.trim().length() > 0) {
+            if (StringUtils.isNotBlank(userName)) {
                 try {
                     if (!userStore.isExistingUser(userName)) {
                         userStore.addUser(userName, null, null, null, null, true);
@@ -118,10 +121,12 @@ public class ExcelUserBulkImport extends UserBulkImport {
 
     /**
      * Generate a WorkBook object from the excel file.
+     *
      * @return : The generated workbook
      * @throws UserAdminException : Throws if there is any error occurred in the process of creating the workbook.
      */
     private Workbook createWorkbook() throws UserAdminException {
+
         String filename = config.getFileName();
         InputStream ins = config.getInStream();
         Workbook wb;

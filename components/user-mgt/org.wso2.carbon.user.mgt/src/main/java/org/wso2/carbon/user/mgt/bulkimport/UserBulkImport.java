@@ -71,12 +71,13 @@ public abstract class UserBulkImport {
      * }
      */
     String buildBulkImportSummary() {
-        JsonObject summaryJson = new JsonObject();
-        JsonObject duplicateUsersJson = new JsonObject();
-        JsonArray duplicateUsersJsonArray = new JsonArray();
-        JsonObject errorUsersJson = new JsonObject();
+
+        JsonArray duplicateUsersJsonArray;
+        JsonArray errorUsersJsonArray;
+        JsonObject duplicateUsersJson;
+        JsonObject errorUsersJson;
         JsonObject errorUserJson;
-        JsonArray errorUsersJsonArray = new JsonArray();
+        JsonObject summaryJson = new JsonObject();
 
         summaryJson.addProperty(UserMgtConstants.OPERATION, UserMgtConstants.OPERATION_NAME);
         summaryJson.addProperty(UserMgtConstants.PERFORMED_BY,
@@ -85,6 +86,8 @@ public abstract class UserBulkImport {
         summaryJson.addProperty(UserMgtConstants.SUCCESS_COUNT, successCount);
 
         if (duplicateCount > 0) {
+            duplicateUsersJson = new JsonObject();
+            duplicateUsersJsonArray = new JsonArray();
             duplicateUsersJson.addProperty(UserMgtConstants.COUNT, duplicateCount);
 
             for (String user : duplicateUsers) {
@@ -97,6 +100,8 @@ public abstract class UserBulkImport {
         }
 
         if (failCount > 0) {
+            errorUsersJson = new JsonObject();
+            errorUsersJsonArray = new JsonArray();
             errorUsersJson.addProperty(UserMgtConstants.COUNT, failCount);
             for (Object o : errorUsersMap.entrySet()) {
                 Map.Entry pair = (Map.Entry) o;
