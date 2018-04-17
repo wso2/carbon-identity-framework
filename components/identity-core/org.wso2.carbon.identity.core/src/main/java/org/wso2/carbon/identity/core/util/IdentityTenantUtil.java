@@ -45,6 +45,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IdentityTenantUtil {
 
@@ -53,6 +54,7 @@ public class IdentityTenantUtil {
     private static Log log = LogFactory.getLog(IdentityTenantUtil.class);
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
+    protected static ConcurrentHashMap<Integer,Boolean> tenatIdMap = new ConcurrentHashMap<Integer,Boolean>();
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
         return tenantRegistryLoader;
@@ -200,35 +202,44 @@ public class IdentityTenantUtil {
     public static void initializeRegistry(int tenantId, String tenantDomain) throws IdentityException {
 
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
-            try {
-                PrivilegedCarbonContext.startTenantFlow();
-                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-                carbonContext.setTenantDomain(tenantDomain, true);
-                BundleContext bundleContext = IdentityTenantUtil.getBundleContext();
-                if (bundleContext != null) {
-                    ServiceTracker tracker = new ServiceTracker(bundleContext, AuthenticationObserver.class.getName(), null);
-                    tracker.open();
-                    Object[] services = tracker.getServices();
-                    if (services != null) {
-                        for (Object service : services) {
-                            ((AuthenticationObserver) service).startedAuthentication(tenantId);
+
+            if (tenatIdMap.get(tenantId) == null || !tenatIdMap.get(tenantId)) {
+                try {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                    carbonContext.setTenantDomain(tenantDomain, true);
+                    BundleContext bundleContext = IdentityTenantUtil.getBundleContext();
+                    if (bundleContext != null) {
+                        ServiceTracker tracker = new ServiceTracker(bundleContext, AuthenticationObserver.class.getName(), null);
+                        tracker.open();
+                        Object[] services = tracker.getServices();
+                        if (services != null) {
+                            for (Object service : services) {
+                                ((AuthenticationObserver) service).startedAuthentication(tenantId);
+                            }
+                        }
+                        tracker.close();
+                        try {
+                            IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+                        } catch (RegistryException e) {
+                            throw IdentityException.error("Error loading tenant registry for tenant domain " + tenantDomain, e);
+                        }
+                        try {
+                            registryService.getGovernanceSystemRegistry(tenantId);
+                            tenatIdMap.put(tenantId, true);
+                            if (log.isDebugEnabled()) {
+                                log.debug("The tenant Id Map is populated in the successful registry initialization." +
+                                        " Added tenant is :" + tenantId);
+                            }
+
+                        } catch (RegistryException e) {
+                            throw IdentityException.error("Error obtaining governance system registry for tenant domain " +
+                                    tenantDomain, e);
                         }
                     }
-                    tracker.close();
-                    try {
-                        IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
-                    } catch (RegistryException e) {
-                        throw IdentityException.error("Error loading tenant registry for tenant domain " + tenantDomain, e);
-                    }
-                    try {
-                        registryService.getGovernanceSystemRegistry(tenantId);
-                    } catch (RegistryException e) {
-                        throw IdentityException.error("Error obtaining governance system registry for tenant domain " +
-                                                    tenantDomain, e);
-                    }
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
                 }
-            } finally {
-                PrivilegedCarbonContext.endTenantFlow();
             }
         }
     }
