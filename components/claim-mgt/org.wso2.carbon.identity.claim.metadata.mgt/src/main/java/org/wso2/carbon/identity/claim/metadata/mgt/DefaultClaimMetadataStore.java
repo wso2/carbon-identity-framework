@@ -58,8 +58,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
 
-    ClaimConfig claimConfig;
-    int tenantId;
+    private int tenantId;
 
     public static DefaultClaimMetadataStore getInstance(int tenantId) {
         ClaimConfig claimConfig = new ClaimConfig();
@@ -161,6 +160,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
                         localClaimDAO.addLocalClaim(localClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding local claim " + claimURI, e);
@@ -199,6 +201,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
                         externalClaimDAO.addExternalClaim(externalClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding external claim " + claimURI + " to dialect " + claimDialectURI,
