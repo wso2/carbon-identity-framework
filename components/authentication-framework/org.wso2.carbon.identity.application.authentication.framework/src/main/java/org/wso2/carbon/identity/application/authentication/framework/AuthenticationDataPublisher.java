@@ -22,9 +22,20 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.core.handler.IdentityMessageHandler;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
+/**
+ * The AuthnDataPublisherProxy implements AuthenticationDataPublisher interface to
+ * register as a service. The iterative data publishing in AuthnDataPublisherProxy will
+ * be removed after v6.0.0 and it will be replaced by a method of invoking event handlers. So the need of
+ * proxy will be removed and the service registration of AuthnDataPublisherProxy get removed.
+ *
+ * @deprecated In future,a {@link org.wso2.carbon.identity.event.event.Event} should be created for corresponding
+ * event and pass it to {@link org.wso2.carbon.identity.event.handler.IdentityEventServiceImpl} \} for handling.
+ * The handlers registered to it will invoke the action according to the event.
+ */
+@Deprecated
 public interface AuthenticationDataPublisher extends IdentityMessageHandler {
 
     /**
