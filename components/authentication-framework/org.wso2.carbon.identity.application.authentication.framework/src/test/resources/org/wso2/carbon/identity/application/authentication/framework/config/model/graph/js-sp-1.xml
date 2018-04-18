@@ -62,7 +62,7 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-function(context) {
+function onInitialRequest(context) {
 	executeStep({id :'0'});
 	makeDecisionWith(function(c) {return 's';})
 		.when('s').thenExecute('1')

@@ -242,6 +242,7 @@ public abstract class FrameworkConstants {
         public static final String JS_USERNAME = "username";
         public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
         public static final String JS_TENANT_DOMAIN = "tenantDomain";
+        public static final String JS_SERVICE_PROVIDER_NAME = "serviceProviderName";
         public static final String JS_REQUESTED_ACR = "requestedAcr";
         public static final String JS_LAST_AUTHENTICATED_USER = "lastAuthenticatedUser";
         public static final String JS_AUTHENTICATED_SUBJECT = "subject";
@@ -265,6 +266,7 @@ public abstract class FrameworkConstants {
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
+        public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
@@ -277,5 +279,14 @@ public abstract class FrameworkConstants {
         public static final String JS_CLAIM_MEMBER_PUSH = "push";
         public static final String JS_CLAIM_MEMBER_VALUE = "value";
         public static final String JS_CLAIM_MEMBER_URI = "uri";
+    }
+
+    public static class InternalRoleDomains {
+
+        public static final String APPLICATION_DOMAIN = "Application";
+        public static final String WORKFLOW_DOMAIN = "Workflow";
+
+        private InternalRoleDomains() {
+        }
     }
 }

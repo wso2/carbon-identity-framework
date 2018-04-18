@@ -33,6 +33,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 @Test
@@ -64,7 +65,6 @@ public class JsAuthenticationContextTest {
         authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
         authenticatedUser.getUserAttributes().put(claimMapping2, "TestClaimVal2");
         AuthenticationContext authenticationContext = new AuthenticationContext();
-
         authenticationContext.setSubject(authenticatedUser);
 
         JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
@@ -118,5 +118,23 @@ public class JsAuthenticationContextTest {
                         + "claim1.local.uri = 'local.uri';claim1.remote.uri = 'remote.uri';"
                         + "claim1.value = 'AssignedByJs'", false, "AssignedByJs" },
                 { "claim1 = {'local' : {'uri' : 'local.uri'}, 'remote' : {'uri' : 'remote.uri'}}", true, null } };
+    }
+
+    @Test
+    public void testGetServiceProviderFromWrappedContext() throws Exception {
+
+        final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.serviceProviderName");
+        assertNotNull(result);
+        assertEquals(result, SERVICE_PROVIDER_NAME, "Service Provider name set in AuthenticationContext is not " +
+                "accessible from JSAuthenticationContext");
     }
 }

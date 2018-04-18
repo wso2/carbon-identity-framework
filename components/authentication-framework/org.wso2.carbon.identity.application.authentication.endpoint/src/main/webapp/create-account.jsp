@@ -105,7 +105,7 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <form action="registration.do" method="post" id="register">
+                <form action="../registration.do" method="post" id="register">
                     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "create.an.account")%>
                     </h2>

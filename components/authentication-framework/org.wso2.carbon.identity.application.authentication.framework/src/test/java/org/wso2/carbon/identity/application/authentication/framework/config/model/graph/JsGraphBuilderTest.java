@@ -87,7 +87,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     public void testCreate_Javascript() throws Exception {
-        String script = "function(context) { executeStep({id :'1', on : {success : function(context) {"
+        String script = "function onInitialRequest(context) { executeStep({id :'1', on : {success : function(context) {"
                 + "executeStep({id :'2'});}}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");

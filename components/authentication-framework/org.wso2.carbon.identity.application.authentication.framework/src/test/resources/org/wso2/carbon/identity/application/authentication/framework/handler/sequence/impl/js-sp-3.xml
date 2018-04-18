@@ -81,7 +81,7 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest (context) {
+function onInitialRequest(context) {
 
     var variable1 = 'internal_val_1';
     variable2 = 'internal_val_2';
