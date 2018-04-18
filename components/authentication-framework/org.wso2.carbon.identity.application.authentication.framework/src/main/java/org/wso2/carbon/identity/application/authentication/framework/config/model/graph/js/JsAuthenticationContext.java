@@ -62,7 +62,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
                 return new JsServletResponse((TransientObjectWrapper) getWrapped()
-                        .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
+                        .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
             default:
                 return super.getMember(name);
         }

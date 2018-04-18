@@ -94,7 +94,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
         String script =
-                "function(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
+                "function onInitialRequest(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
                         + "    Log.info(\"My Bool Value \"+myBool);\n" + "    if(myBool) {\n"
                         + "        Log.info(\"My Bool Is Selected \"+myBool);\n" + "        executeStep({id :'1',\n"
                         + "        on : {\n" + "            success : function(context) {executeStep({id :'3'});}\n"
