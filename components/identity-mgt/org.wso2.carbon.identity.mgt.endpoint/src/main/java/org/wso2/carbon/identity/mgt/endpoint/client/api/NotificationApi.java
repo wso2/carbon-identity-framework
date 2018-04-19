@@ -228,6 +228,10 @@ public class NotificationApi {
      */
     public void validateCodePostCall(CodeValidationRequest code) throws ApiException {
 
+        // verify the required parameter 'code' is set
+        if (code == null) {
+            throw new ApiException(400, "Missing the required parameter 'code' when calling validateCodePost(Async)");
+        }
         List<Pair> queryParams = new ArrayList<>();
         Map<String, String> headerParams = new HashMap<>();
         Map<String, Object> formParams = new HashMap<>();
@@ -236,11 +240,6 @@ public class NotificationApi {
         };
         final String headerAccept = apiClient.selectHeaderAccept(contentType);
         final String headerContentType = apiClient.selectHeaderContentType(contentType);
-
-        // verify the required parameter 'code' is set
-        if (code == null) {
-            throw new ApiException(400, "Missing the required parameter 'code' when calling validateCodePost(Async)");
-        }
         String tenantDomain = getTenantDomain(code);
         setBasePath(tenantDomain);
 
@@ -248,14 +247,12 @@ public class NotificationApi {
             headerParams.put("Accept", headerAccept);
         }
         headerParams.put("Content-Type", headerContentType);
-
-        String[] localVarAuthNames = new String[]{};
+        String[] authNames = new String[]{};
         GenericType<String> localVarReturnType = new GenericType<String>() {};
-
         // create path and map variables
         String path = "/validate-code".replaceAll("\\{format\\}", "json");
         apiClient.invokeAPI(path, "POST", queryParams, code, headerParams,
-                formParams, headerAccept, headerContentType, localVarAuthNames, localVarReturnType);
+                formParams, headerAccept, headerContentType, authNames, localVarReturnType);
     }
 
     private void setBasePath(String tenantDomain) {
