@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -68,13 +70,9 @@ public class SessionDataStore {
     private static final String OPERATION_DELETE = "DELETE";
     private static final String OPERATION_STORE = "STORE";
     private static final String SQL_INSERT_STORE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, TENANT_ID) VALUES (?,?,?,?,?,?)";
+            "INSERT INTO %s(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, TENANT_ID) VALUES (?,?,?,?,?,?)";
     private static final String SQL_INSERT_DELETE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
-    private static final String SQL_INSERT_TEMP_STORE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE_TEMP(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, TENANT_ID) VALUES (?,?,?,?,?,?)";
-    private static final String SQL_INSERT_TEMP_DELETE_OPERATION =
-            "INSERT INTO IDN_AUTH_SESSION_STORE_TEMP(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
+            "INSERT INTO %s(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '"+OPERATION_STORE+"' AND SESSION_ID in (" +
             "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '"+OPERATION_DELETE+"' AND TIME_CREATED < ?)";
@@ -133,6 +131,7 @@ public class SessionDataStore {
     private static final int DEFAULT_DELETE_LIMIT = 50000;
     public static final String SESSION_STORE_TABLE = "IDN_AUTH_SESSION_STORE";
     public static final String TEMP_SESSION_STORE_TABLE = "IDN_AUTH_SESSION_STORE_TEMP";
+    private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private static int maxSessionDataPoolSize = 20;
     private static int maxTempSessionDataPoolSize = 100;
     private static int maxDeleteTempDataPoolSize = 50;
@@ -152,8 +151,6 @@ public class SessionDataStore {
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
-    private List<String> temporaryCache;
-
 
     static {
         try {
@@ -162,18 +159,27 @@ public class SessionDataStore {
             String maxTempDataDeletePoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataDeletePoolSize");
             if (StringUtils.isNotBlank(maxPoolSizeValue)) {
                 maxSessionDataPoolSize = Integer.parseInt(maxPoolSizeValue);
+                if (log.isDebugEnabled()) {
+                    log.debug("Assigned PoolSize value: " + maxSessionDataPoolSize);
+                }
             }
             if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
                 maxTempSessionDataPoolSize = Integer.parseInt(maxTempDataPoolSizeValue);
+                if (log.isDebugEnabled()) {
+                    log.debug("Assigned TempDataPoolSize value: " + maxTempSessionDataPoolSize);
+                }
             }
             if (StringUtils.isNotBlank(maxTempDataDeletePoolSizeValue)) {
                 maxDeleteTempDataPoolSize = Integer.parseInt(maxTempDataDeletePoolSizeValue);
+                if (log.isDebugEnabled()) {
+                    log.debug("Assigned TempDataDeletePoolSize value: " + maxDeleteTempDataPoolSize);
+                }
             }
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Exception ignored : ", e);
             }
-            log.warn("Session data persistence pool size is not configured. Using default value.");
+            log.warn("One or more pool size configurations causing parsing error. Default values may be used.");
         }
         if (maxSessionDataPoolSize > 0) {
             log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
@@ -238,15 +244,6 @@ public class SessionDataStore {
         if (!StringUtils.isBlank(selectSQL)) {
             sqlSelect = selectSQL;
         }
-
-        //TODO: check the requirement for configurable option
-        sqlInsertTempSTORE = SQL_INSERT_TEMP_STORE_OPERATION;
-        sqlInsertTempDELETE = SQL_INSERT_TEMP_DELETE_OPERATION;
-        temporaryCache = new ArrayList<>(Arrays.asList("AuthenticationRequestCache",
-                "AuthenticationContextCache",
-                "SAMLSSOSessionDataCache",
-                "AuthenticationResultCache",
-                "OAuthSessionDataCache"));
 
         String deleteChunkSizeString = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
                 ".SessionDataCleanUp.DeleteChunkSize");
@@ -545,7 +542,7 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(getSessionStoreQuery(type));
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(type, sqlInsertSTORE));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_STORE);
@@ -576,7 +573,7 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(getSessionDeleteQuery(type));
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(type, sqlInsertDELETE));
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
@@ -603,7 +600,7 @@ public class SessionDataStore {
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
+            log.error(e);
             return;
         }
         PreparedStatement preparedStatement = null;
@@ -620,6 +617,11 @@ public class SessionDataStore {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
+    }
+
+    public void stopService() {
+        SessionDataDeleteRecordsTask.shutdown();
+        SessionDataPersistTask.shutdown();
     }
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
@@ -720,18 +722,18 @@ public class SessionDataStore {
     }
 
     private boolean isOperationalData(String type) {
-        return !temporaryCache.contains(String.valueOf(type));
-    }
 
-    private String getSessionStoreQuery(String type) {
-        if (isOperationalData(type)) {
-            return sqlInsertSTORE;
-        } else {
-            return sqlInsertTempSTORE;
+        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, type);
+
+        if (identityCacheConfig != null) {
+            return !identityCacheConfig.isTemporary();
         }
+        // If cache is not configured in the identity.xml, it is considered as operational cache.
+        return true;
     }
 
     private String getSessionStoreDBQuery(String type, String query) {
+
         if (isOperationalData(type)) {
             return String.format(query, SESSION_STORE_TABLE);
         } else {
@@ -739,11 +741,4 @@ public class SessionDataStore {
         }
     }
 
-    private String getSessionDeleteQuery(String type) {
-        if (isOperationalData(type)) {
-            return sqlInsertDELETE;
-        } else {
-            return sqlInsertTempDELETE;
-        }
-    }
 }

@@ -242,6 +242,7 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
+        SessionDataStore.getInstance().stopService();
     }
 
     @Reference(

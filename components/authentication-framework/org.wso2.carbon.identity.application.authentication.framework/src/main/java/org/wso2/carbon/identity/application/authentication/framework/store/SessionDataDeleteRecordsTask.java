@@ -26,6 +26,7 @@ public class SessionDataDeleteRecordsTask implements Runnable {
 
     private static final Log log = LogFactory.getLog(SessionDataDeleteRecordsTask.class);
     private BlockingDeque<SessionContextDO> sessionContextDeleteTempQueue;
+    private static volatile boolean running;
 
     public SessionDataDeleteRecordsTask(BlockingDeque<SessionContextDO> sessionContextDeleteTempQueue) {
         this.sessionContextDeleteTempQueue = sessionContextDeleteTempQueue;
@@ -38,7 +39,8 @@ public class SessionDataDeleteRecordsTask implements Runnable {
             log.debug("Session Context delete temp records consumer is started");
         }
 
-        while (true) {
+        running = true;
+        while (running) {
 
             try {
                 SessionContextDO sessionContextDO = sessionContextDeleteTempQueue.take();
@@ -52,5 +54,9 @@ public class SessionDataDeleteRecordsTask implements Runnable {
             }
 
         }
+    }
+
+    public static void shutdown() {
+        running = false;
     }
 }
