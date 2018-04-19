@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
  * The data publishing changed to publish data through event handling. {@link AuthenticationDataPublisher} interface not
  * be used to register data publishing services from this release.
  *
- * @since 5.11.162
+ * @since 5.11.179
  *
  * @deprecated to use  {@link org.wso2.carbon.identity.event.event.Event} to create a event and
  * and use {@link org.wso2.carbon.identity.event.handler.IdentityEventServiceImpl} \} for handling the event.
