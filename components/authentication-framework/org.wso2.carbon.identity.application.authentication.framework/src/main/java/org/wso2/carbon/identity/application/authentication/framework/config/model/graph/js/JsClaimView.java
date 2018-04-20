@@ -24,6 +24,9 @@ import java.util.Map;
 
 /**
  * Provides an array like view inJavascript for the Claim Mapping in the User attibutes.
+ *
+ *  @deprecated
+ *  @see JsClaims
  */
 public class JsClaimView extends AbstractJSObjectWrapper<Map<ClaimMapping, String>> {
 

@@ -246,7 +246,10 @@ public abstract class FrameworkConstants {
         public static final String JS_REQUESTED_ACR = "requestedAcr";
         public static final String JS_LAST_AUTHENTICATED_USER = "lastAuthenticatedUser";
         public static final String JS_AUTHENTICATED_SUBJECT = "subject";
+        public static final String JS_LOCAL_CLAIMS = "localClaims";
+        public static final String JS_REMOTE_CLAIMS = "remoteClaims";
         public static final String JS_SELECTED_ACR = "selectedAcr";
+        public static final String JS_STEPS = "steps";
         public static final String JS_REQUEST = "request";
         public static final String JS_RESPONSE = "response";
         public static final String JS_HEADERS = "headers";

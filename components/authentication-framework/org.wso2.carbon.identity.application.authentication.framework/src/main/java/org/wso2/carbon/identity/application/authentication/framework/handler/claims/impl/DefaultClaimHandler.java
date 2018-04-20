@@ -294,10 +294,10 @@ public class DefaultClaimHandler implements ClaimHandler {
                                          context.getTenantDomain() + " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
-        localToIdPClaimMap.putAll(Arrays.asList(idPClaimMappings).stream().filter(claimMapping -> StringUtils.
+        localToIdPClaimMap.putAll(Arrays.stream(idPClaimMappings).filter(claimMapping -> StringUtils.
                 isNotBlank(claimMapping.getDefaultValue()) && !localToIdPClaimMap.containsKey(claimMapping.
                 getLocalClaim().getClaimUri())).collect(Collectors.toMap(claimMapping -> claimMapping.getLocalClaim().
-                getClaimUri(), claimMapping -> claimMapping.getDefaultValue())));
+                getClaimUri(), ClaimMapping::getDefaultValue)));
 
         return localToIdPClaimMap;
     }

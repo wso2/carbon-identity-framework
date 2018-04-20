@@ -27,7 +27,11 @@ import java.util.function.Consumer;
 
 /**
  * Javascript wrapper for Java level User Claims.
+ *
+ * @deprecated
+ * @see JsClaims
  */
+@Deprecated
 public class JsClaimSet extends AbstractJSObjectWrapper<Map<ClaimMapping, String>> {
 
     private JsClaimView localView;

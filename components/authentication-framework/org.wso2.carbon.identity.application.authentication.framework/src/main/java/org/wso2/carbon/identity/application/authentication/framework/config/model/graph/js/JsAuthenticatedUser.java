@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -37,10 +38,17 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
  */
 public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> {
 
-    public JsAuthenticatedUser(AuthenticatedUser wrapped) {
+    private AuthenticationContext context;
+    private int step;
+    private String idp;
+
+    public JsAuthenticatedUser(AuthenticatedUser wrapped, AuthenticationContext context, int step, String idp) {
+
         super(wrapped);
+        this.context = context;
+        this.step = step;
+        this.idp = idp;
     }
-    private JsClaimSet jsClaimSet;
 
     @Override
     public Object getMember(String name) {
@@ -54,8 +62,10 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain();
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
-                return getCliamsSet();
+            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
+                return new JsClaims(context, step, idp, false);
+            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
+                return new JsClaims(context, step, idp, true);
             default:
                 return super.getMember(name);
         }
@@ -73,17 +83,12 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain() != null;
-            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
-                return !getCliamsSet().isEmpty();
+            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
+                return idp != null;
+            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
+                return idp != null && !FrameworkConstants.LOCAL.equals(idp);
             default:
                 return super.hasMember(name);
         }
-    }
-
-    private JsClaimSet getCliamsSet() {
-        if(jsClaimSet == null) {
-            jsClaimSet = new JsClaimSet(getWrapped().getUserAttributes());
-        }
-        return jsClaimSet;
     }
 }
