@@ -16,10 +16,15 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
+import java.io.Serializable;
+
 /**
  * Represents the simplest form of the metadata of a claim dialect.
  */
-public class ClaimDialect {
+public class ClaimDialect implements Serializable {
+
+    private static final long serialVersionUID = -3907634389860801704L;
+
     private String claimDialectURI;
 
     public ClaimDialect(String claimDialectURI) {
