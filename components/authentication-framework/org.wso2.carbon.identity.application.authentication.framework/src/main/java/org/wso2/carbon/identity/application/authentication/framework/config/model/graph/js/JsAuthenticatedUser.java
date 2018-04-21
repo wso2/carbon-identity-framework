@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -63,9 +64,17 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                return new JsClaims(context, step, idp, false);
+                if(StringUtils.isNotBlank(idp)){
+                    return new JsClaims(context, step, idp, false);
+                } else {
+                    return new JsClaims(context,getWrapped(),false);
+                }
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                return new JsClaims(context, step, idp, true);
+                if(StringUtils.isNotBlank(idp)){
+                    return new JsClaims(context, step, idp, true);
+                } else {
+                    return new JsClaims(context, getWrapped(), true);
+                }
             default:
                 return super.getMember(name);
         }

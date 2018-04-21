@@ -24,6 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+/**
+ * Returns when context.steps[<step_number] is called
+ */
 public class JsSteps extends AbstractJSObject {
 
     private static final Log LOG = LogFactory.getLog(JsSteps.class);
