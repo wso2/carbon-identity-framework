@@ -254,6 +254,7 @@ public abstract class FrameworkConstants {
         public static final String JS_RESPONSE = "response";
         public static final String JS_HEADERS = "headers";
         public static final String JS_PARAMS = "params";
+        public static final String JS_REQUEST_IP = "ip";
         public static final String JS_COOKIES = "cookies";
         public static final String JS_COOKIE_NAME = "name";
         public static final String JS_COOKIE_VALUE = "value";

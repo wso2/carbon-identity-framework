@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -49,29 +50,31 @@ public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWra
     public Object getMember(String name) {
 
         switch (name) {
-        case FrameworkConstants.JSAttributes.JS_HEADERS:
-            Map headers = new HashMap();
-            Enumeration<String> headerNames = getRequest().getHeaderNames();
-            if (headerNames != null) {
-                while (headerNames.hasMoreElements()) {
-                    String headerName = headerNames.nextElement();
-                    headers.put(headerName, getRequest().getHeader(headerName));
+            case FrameworkConstants.JSAttributes.JS_HEADERS:
+                Map headers = new HashMap();
+                Enumeration<String> headerNames = getRequest().getHeaderNames();
+                if (headerNames != null) {
+                    while (headerNames.hasMoreElements()) {
+                        String headerName = headerNames.nextElement();
+                        headers.put(headerName, getRequest().getHeader(headerName));
+                    }
                 }
-            }
-            return new JsParameters(headers);
-        case FrameworkConstants.JSAttributes.JS_PARAMS:
-            return new JsParameters(getRequest().getParameterMap());
-        case FrameworkConstants.JSAttributes.JS_COOKIES:
-            Map cookies = new HashMap();
-            Cookie[] cookieArr = getRequest().getCookies();
-            if (cookieArr != null) {
-                for (Cookie cookie : cookieArr) {
-                    cookies.put(cookie.getName(), new JsCookie(cookie));
+                return new JsParameters(headers);
+            case FrameworkConstants.JSAttributes.JS_PARAMS:
+                return new JsParameters(getRequest().getParameterMap());
+            case FrameworkConstants.JSAttributes.JS_COOKIES:
+                Map cookies = new HashMap();
+                Cookie[] cookieArr = getRequest().getCookies();
+                if (cookieArr != null) {
+                    for (Cookie cookie : cookieArr) {
+                        cookies.put(cookie.getName(), new JsCookie(cookie));
+                    }
                 }
-            }
-            return new JsParameters(cookies);
-        default:
-            return super.getMember(name);
+                return new JsParameters(cookies);
+            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
+                return IdentityUtil.getClientIpAddress(getRequest());
+            default:
+                return super.getMember(name);
         }
     }
 
@@ -84,14 +87,14 @@ public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWra
         }
 
         switch (name) {
-        case FrameworkConstants.JSAttributes.JS_HEADERS:
-            return getRequest().getHeaderNames() != null;
-        case FrameworkConstants.JSAttributes.JS_PARAMS:
-            return getRequest().getParameterMap() != null;
-        case FrameworkConstants.JSAttributes.JS_COOKIES:
-            return getRequest().getCookies() != null;
-        default:
-            return super.hasMember(name);
+            case FrameworkConstants.JSAttributes.JS_HEADERS:
+                return getRequest().getHeaderNames() != null;
+            case FrameworkConstants.JSAttributes.JS_PARAMS:
+                return getRequest().getParameterMap() != null;
+            case FrameworkConstants.JSAttributes.JS_COOKIES:
+                return getRequest().getCookies() != null;
+            default:
+                return super.hasMember(name);
         }
     }
 
