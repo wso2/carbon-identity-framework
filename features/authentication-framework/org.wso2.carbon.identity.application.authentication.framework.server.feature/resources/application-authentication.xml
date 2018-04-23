@@ -204,4 +204,17 @@
 		  <TenantDataListenerURL>/authenticationendpoint/tenantlistrefresher.do</TenantDataListenerURL>
 	    </TenantDataListenerURLs-->
 
+    <!-- This configuration section is used to enable UUID username creation and auto account association while JIT
+         provisioning. -->
+    <JITProvisioning>
+        <!-- This attribute is used to UUID username will be used when user is provisioned to IS using JIT provisioning -->
+        <EnableUUIDUsername>false</EnableUUIDUsername>
+        <!-- This attribute is used to enable account auto association-->
+        <EnableAutoAssociation>false</EnableAutoAssociation>
+        <!-- This attribute is used if auto association is enabled, to uniquely identify user across the identity providers. -->
+        <IDPCommonClaim>http://wso2.org/claims/social/idp-common-attribute</IDPCommonClaim>
+        <!-- This attribute is used if auto association is enabled, to uniquely identify the user withing the identity provider. -->
+        <IDPUniqueClaimHeader>http://wso2.org/claims/social/unique/</IDPUniqueClaimHeader>
+    </JITProvisioning>
+
 </ApplicationAuthentication>
