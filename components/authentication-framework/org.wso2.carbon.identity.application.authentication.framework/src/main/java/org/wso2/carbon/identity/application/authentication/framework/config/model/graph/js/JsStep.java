@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+/**
+ * Represents a authentication step.
+ */
 public class JsStep extends AbstractJSObject {
 
     private static final Log LOG = LogFactory.getLog(JsSteps.class);

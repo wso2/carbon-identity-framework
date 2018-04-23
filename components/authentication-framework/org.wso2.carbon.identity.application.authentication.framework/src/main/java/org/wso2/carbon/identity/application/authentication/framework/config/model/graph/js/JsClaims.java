@@ -48,6 +48,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Represent the user's claim. Can be either remote or local.
+ */
 public class JsClaims extends AbstractJSObject {
 
     private static final Log LOG = LogFactory.getLog(JsClaims.class);
@@ -80,13 +83,11 @@ public class JsClaims extends AbstractJSObject {
      * Constructor to get user who is not directly from a authentication step. Eg. Associated user of authenticated
      * federated user in a authentication step.
      *
-     * @param wrappedContext       Authentication context
      * @param authenticatedUser    Authenticated user
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext wrappedContext, AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public JsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
-        this.wrappedContext = wrappedContext;
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
     }

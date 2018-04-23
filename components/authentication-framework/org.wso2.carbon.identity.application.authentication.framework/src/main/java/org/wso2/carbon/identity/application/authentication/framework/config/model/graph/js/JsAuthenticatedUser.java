@@ -43,12 +43,30 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
     private int step;
     private String idp;
 
-    public JsAuthenticatedUser(AuthenticatedUser wrapped, AuthenticationContext context, int step, String idp) {
+    /**
+     * Constructor to be used when required to access step specific user details.
+     *
+     * @param wrappedUser Authenticated user
+     * @param context     Authentication context
+     * @param step        Authentication step
+     * @param idp         Authenticated Idp
+     */
+    public JsAuthenticatedUser(AuthenticatedUser wrappedUser, AuthenticationContext context, int step, String idp) {
 
-        super(wrapped);
+        super(wrappedUser);
         this.context = context;
         this.step = step;
         this.idp = idp;
+    }
+
+    /**
+     * Constructor to be used when required to access step independent user.
+     *
+     * @param wrappedUser Authenticated user
+     */
+    public JsAuthenticatedUser(AuthenticatedUser wrappedUser) {
+
+        super(wrappedUser);
     }
 
     @Override
@@ -64,16 +82,18 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                if(StringUtils.isNotBlank(idp)){
+                if (StringUtils.isNotBlank(idp)) {
                     return new JsClaims(context, step, idp, false);
                 } else {
-                    return new JsClaims(context,getWrapped(),false);
+                    // Represent step independent user
+                    return new JsClaims(getWrapped(), false);
                 }
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                if(StringUtils.isNotBlank(idp)){
+                if (StringUtils.isNotBlank(idp)) {
                     return new JsClaims(context, step, idp, true);
                 } else {
-                    return new JsClaims(context, getWrapped(), true);
+                    // Represent step independent user
+                    return new JsClaims(getWrapped(), true);
                 }
             default:
                 return super.getMember(name);
