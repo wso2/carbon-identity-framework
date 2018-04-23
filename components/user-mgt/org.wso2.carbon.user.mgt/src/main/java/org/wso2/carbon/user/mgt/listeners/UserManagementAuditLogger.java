@@ -224,14 +224,16 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostUpdatePermissionsOfRole(String roleName, Permission[] permissions, UserStoreManager
             userStoreManager) {
 
-        JSONObject dataObject = new JSONObject();
-        if (ArrayUtils.isNotEmpty(permissions)) {
-            JSONArray permissionsArray = new JSONArray(permissions);
-            dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
-        }
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (ArrayUtils.isNotEmpty(permissions)) {
+                JSONArray permissionsArray = new JSONArray(permissions);
+                dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+            }
 
-        audit.warn(createAuditMessage(ListenerUtils.UPDATE_PERMISSIONS_OF_ROLE_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            audit.warn(createAuditMessage(ListenerUtils.UPDATE_PERMISSIONS_OF_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+        }
         return true;
     }
 

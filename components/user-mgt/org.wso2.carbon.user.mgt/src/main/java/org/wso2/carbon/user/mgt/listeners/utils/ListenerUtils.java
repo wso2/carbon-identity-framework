@@ -56,7 +56,6 @@ public class ListenerUtils {
 
     /**
      * Audit Log listener data fields.
-     *
      */
     public static final String ROLES_FIELD = "Roles";
     public static final String CLAIMS_FIELD = "Claims";

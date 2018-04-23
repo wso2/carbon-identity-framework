@@ -59,11 +59,11 @@ public class ManagementPermissionUtil {
         UserStoreManager userStoreManager = null;
         try {
             String[] optimizedList = UserCoreUtil.optimizePermissions(rawPermissions);
-            UserRealm realm  = AdminServicesUtil.getUserRealm();
+            UserRealm realm = AdminServicesUtil.getUserRealm();
             AuthorizationManager authMan = realm.getAuthorizationManager();
             authMan.clearRoleActionOnAllResources(roleName, UserMgtConstants.EXECUTE_ACTION);
-			permissions = new Permission[optimizedList.length];
-            for (int i = 0; i < optimizedList.length; i ++) {
+            permissions = new Permission[optimizedList.length];
+            for (int i = 0; i < optimizedList.length; i++) {
                 authMan.authorizeRole(roleName, optimizedList[i], UserMgtConstants.EXECUTE_ACTION);
                 permissions[i] = new Permission(optimizedList[i], UserMgtConstants.EXECUTE_ACTION);
             }
