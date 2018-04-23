@@ -86,6 +86,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService, realmService, tenantDomain);
             String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+            String idp = attributes.remove(FrameworkConstants.IDP_ID);
+            String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
 
             String username;
             if (jitProvisioningConfig.isEnableUUIDUsername()) {
@@ -97,8 +99,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
 
             if (jitProvisioningConfig.isEnableAutoAssociation()) {
-                String idpName = attributes.get(FrameworkConstants.IDP_ID);
-                String idpUniqueClaim = jitProvisioningConfig.getIdpUniqueClaimHeader() + idpName;
+                String idpUniqueClaim = jitProvisioningConfig.getIdpUniqueClaimHeader() + idp;
 
                 String[] userList = userStoreManager.getUserList(idpUniqueClaim.trim(), subject, "default");
 
@@ -123,6 +124,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         }
                         if (userList.length != 0) {
                             username = userList[0];
+
+                            // If we are here, that means this user is already provisioned using another IDP but new
+                            // login from this IDP. So we have to associate this user for this IDP.
+                            associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                         }
                     }
                 }
@@ -147,10 +152,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             // addingRoles = newRoles AND allExistingRoles
             Collection<String> addingRoles = getRolesToAdd(userStoreManager, newRoles);
-
-            String idp = attributes.remove(FrameworkConstants.IDP_ID);
-            String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
-
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
