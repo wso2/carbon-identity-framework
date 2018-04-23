@@ -27,6 +27,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
 
     private static final long serialVersionUID = 6754801699494009980L;
 
+    private boolean passwordProvisioningEnabled;
     private String userStoreClaimUri;
 
     /*
@@ -56,6 +57,11 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
                     justInTimeProvisioningConfig.setProvisioningEnabled(Boolean
                             .parseBoolean(element.getText()));
                 }
+            } else if("IsPasswordProvisioningEnabled".equals(elementName)) {
+                if (element.getText() != null && element.getText().trim().length() > 0) {
+                    justInTimeProvisioningConfig
+                            .setPasswordProvisioningEnabled(Boolean.parseBoolean(element.getText()));
+                }
             }
         }
 
@@ -76,4 +82,21 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
         this.userStoreClaimUri = userStoreClaimUri;
     }
 
+    /**
+     * To set password provisioning is enabled or disabled.
+     *
+     * @param isPasswordProvisioningEnabled Parameter to specify whether password provisioning is enabled or not.
+     */
+    public void setPasswordProvisioningEnabled(boolean isPasswordProvisioningEnabled) {
+        this.passwordProvisioningEnabled = isPasswordProvisioningEnabled;
+    }
+
+    /**
+     * To check whether password provisioning is enabled or not.
+     *
+     * @return true if the password provisioning is enabled, otherwise false.
+     */
+    public boolean isPasswordProvisioningEnabled() {
+        return passwordProvisioningEnabled;
+    }
 }

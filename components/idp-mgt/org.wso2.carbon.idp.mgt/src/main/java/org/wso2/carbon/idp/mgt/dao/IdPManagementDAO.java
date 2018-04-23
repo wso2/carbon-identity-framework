@@ -1165,6 +1165,10 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
+
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
+                        jitProConfig.setPasswordProvisioningEnabled(true);
+                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1320,6 +1324,9 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if (IdPManagementConstants.IS_TRUE_VALUE.equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
+                        jitProConfig.setPasswordProvisioningEnabled(true);
+                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1474,6 +1481,9 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if (IdPManagementConstants.IS_TRUE_VALUE.equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
+                        jitProConfig.setPasswordProvisioningEnabled(true);
+                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1663,9 +1673,15 @@ public class IdPManagementDAO {
                 prepStmt.setString(7, IdPManagementConstants.IS_TRUE_VALUE);
                 // user will be provisioned to the configured user store.
                 prepStmt.setString(8, identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
+
+                String passWordProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig()
+                        .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
+                        IdPManagementConstants.IS_FALSE_VALUE;
+                prepStmt.setString(19, passWordProvisioningEnabled);
             } else {
                 prepStmt.setString(7, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt.setString(8, null);
+                prepStmt.setString(19, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (identityProvider.getClaimConfig() != null) {
@@ -1847,9 +1863,15 @@ public class IdPManagementDAO {
                 prepStmt1.setString(6, IdPManagementConstants.IS_TRUE_VALUE);
                 prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
 
+                String isPasswordProvisionConfigEnabled = newIdentityProvider.getJustInTimeProvisioningConfig()
+                        .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
+                        IdPManagementConstants.IS_FALSE_VALUE;
+                prepStmt1.setString(18, isPasswordProvisionConfigEnabled);
+
             } else {
                 prepStmt1.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt1.setString(7, null);
+                prepStmt1.setString(18, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (newIdentityProvider.getClaimConfig() != null) {
@@ -1903,8 +1925,8 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(17, newIdentityProvider.getDisplayName());
 
-            prepStmt1.setInt(18, tenantId);
-            prepStmt1.setString(19, currentIdentityProvider.getIdentityProviderName());
+            prepStmt1.setInt(19, tenantId);
+            prepStmt1.setString(20, currentIdentityProvider.getIdentityProviderName());
 
             prepStmt1.executeUpdate();
 

@@ -1750,6 +1750,12 @@ public class IdPManagementUIUtil {
             }
         }
 
+        if (paramMap.get("password_provisioning") != null && "on".equals(paramMap.get("password_provisioning"))) {
+            jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+        } else {
+            jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+        }
+
         fedIdp.setJustInTimeProvisioningConfig(jitProvisioningConfiguration);
 
     }

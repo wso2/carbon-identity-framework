@@ -998,9 +998,11 @@ jQuery('#roleMappingDeleteLink').click(function () {
 });
 jQuery('#provision_disabled').click(function () {
     jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
+    jQuery('#password_provisioning').attr('disabled', 'disabled');
 });
 jQuery('#provision_static').click(function () {
     jQuery('#provision_static_dropdown').removeAttr('disabled');
+    jQuery('#password_provisioning').removeAttr('disabled');
 });
 
 

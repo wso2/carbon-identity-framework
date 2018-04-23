@@ -76,6 +76,7 @@
     String idPAlias = null;
     boolean isProvisioningEnabled = false;
     boolean isCustomClaimEnabled = false;
+    boolean isPasswordProvisioningEnabled = false;
 
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
@@ -615,6 +616,8 @@
         idPAlias = identityProvider.getAlias();
         isProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig().getProvisioningEnabled();
         provisioningUserStoreId = identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore();
+        isPasswordProvisioningEnabled =
+                identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
@@ -849,9 +852,11 @@
     }
     String provisionStaticDropdownDisabled = "";
     String provisionDynamicDropdownDisabled = "";
+    String passowordProvisioningCheckBoxDisabled = "";
     if (!isProvisioningEnabled) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
         provisionDynamicDropdownDisabled = "disabled=\'disabled\'";
+        passowordProvisioningCheckBoxDisabled = "disabled=\'disabled\'";
     } else if (isProvisioningEnabled && provisioningUserStoreId != null) {
         provisionDynamicDropdownDisabled = "disabled=\'disabled\'";
     } else if (isProvisioningEnabled && provisioningUserStoreId == null) {
@@ -4963,6 +4968,12 @@
 
                                 <div class="sectionHelp">
                                     <fmt:message key='provisioning.enabled.help'/>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <input type="checkbox" id="password_provisioning" name="password_provisioning"
+                                           <%=passowordProvisioningCheckBoxDisabled%> <% if (isPasswordProvisioningEnabled) {
+                                    %> checked="checked" <% } %>/>
+                                    Enable Password Provisioning
                                 </div>
                             </td>
                         </tr>
