@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import javax.script.ScriptException;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class JsAuthenticationContextTest {
@@ -131,5 +133,53 @@ public class JsAuthenticationContextTest {
         assertNotNull(result);
         assertEquals(result, SERVICE_PROVIDER_NAME, "Service Provider name set in AuthenticationContext is not " +
             "accessible from JSAuthenticationContext");
+    }
+
+
+    @Test
+    public void testGetLastLoginFailedUserFromWrappedContext() throws Exception {
+
+        final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
+        final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
+        final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
+
+        AuthenticatedUser lastAttemptedUser = new AuthenticatedUser();
+        lastAttemptedUser.setUserName(LAST_ATTEMPTED_USER_USERNAME);
+        lastAttemptedUser.setTenantDomain(LAST_ATTEMPTED_USER_TENANT_DOMAIN);
+        lastAttemptedUser.setUserStoreDomain(LAST_ATTEMPTED_USER_USERSTORE_DOMAIN);
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.lastLoginFailedUser");
+        assertNotNull(result);
+        assertTrue(result instanceof JsAuthenticatedUser);
+
+        String username = (String) scriptEngine.eval("context.lastLoginFailedUser.username");
+        assertEquals(username, LAST_ATTEMPTED_USER_USERNAME);
+
+        String tenantDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.tenantDomain");
+        assertEquals(tenantDomain, LAST_ATTEMPTED_USER_TENANT_DOMAIN);
+
+        String userStoreDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.userStoreDomain");
+        assertEquals(userStoreDomain, LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
+    }
+
+    @Test
+    public void testGetLastLoginFailedUserNullFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, null);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.lastLoginFailedUser");
+        assertNull(result);
     }
 }
