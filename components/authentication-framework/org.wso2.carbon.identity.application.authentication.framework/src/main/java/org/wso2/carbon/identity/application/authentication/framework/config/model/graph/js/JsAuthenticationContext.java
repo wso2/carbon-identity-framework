@@ -55,8 +55,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
                 return getWrapped().getServiceProviderName();
             case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
-                return new JsAuthenticatedUser((AuthenticatedUser) getWrapped()
-                        .getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER));
+                return getLastLoginFailedUserFromWrappedContext();
             case FrameworkConstants.JSAttributes.JS_REQUEST:
                 return new JsServletRequest((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
@@ -121,5 +120,15 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
         TransientObjectWrapper transientObjectWrapper = (TransientObjectWrapper) getWrapped().getParameter(key);
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
+    }
+
+    private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+
+        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+        if (lastLoginFailedUser != null && lastLoginFailedUser instanceof AuthenticatedUser) {
+            return new JsAuthenticatedUser((AuthenticatedUser) lastLoginFailedUser);
+        } else {
+            return null;
+        }
     }
 }

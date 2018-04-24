@@ -169,7 +169,7 @@ public class JsAuthenticationContextTest {
         assertEquals(userStoreDomain, LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
     }
 
-    @Test (expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void testGetLastLoginFailedUserNullFromWrappedContext() throws Exception {
 
         AuthenticationContext authenticationContext = new AuthenticationContext();
@@ -179,6 +179,7 @@ public class JsAuthenticationContextTest {
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
-        scriptEngine.eval("context.lastLoginFailedUser");
+        Object result = scriptEngine.eval("context.lastLoginFailedUser");
+        assertNull(result);
     }
 }
