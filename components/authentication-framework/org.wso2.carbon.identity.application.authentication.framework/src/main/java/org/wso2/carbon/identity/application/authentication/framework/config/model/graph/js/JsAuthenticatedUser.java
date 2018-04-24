@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -37,10 +39,35 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
  */
 public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> {
 
-    public JsAuthenticatedUser(AuthenticatedUser wrapped) {
-        super(wrapped);
+    private AuthenticationContext context;
+    private int step;
+    private String idp;
+
+    /**
+     * Constructor to be used when required to access step specific user details.
+     *
+     * @param wrappedUser Authenticated user
+     * @param context     Authentication context
+     * @param step        Authentication step
+     * @param idp         Authenticated Idp
+     */
+    public JsAuthenticatedUser(AuthenticatedUser wrappedUser, AuthenticationContext context, int step, String idp) {
+
+        super(wrappedUser);
+        this.context = context;
+        this.step = step;
+        this.idp = idp;
     }
-    private JsClaimSet jsClaimSet;
+
+    /**
+     * Constructor to be used when required to access step independent user.
+     *
+     * @param wrappedUser Authenticated user
+     */
+    public JsAuthenticatedUser(AuthenticatedUser wrappedUser) {
+
+        super(wrappedUser);
+    }
 
     @Override
     public Object getMember(String name) {
@@ -54,8 +81,20 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain();
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
-                return getCliamsSet();
+            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new JsClaims(context, step, idp, false);
+                } else {
+                    // Represent step independent user
+                    return new JsClaims(getWrapped(), false);
+                }
+            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new JsClaims(context, step, idp, true);
+                } else {
+                    // Represent step independent user
+                    return new JsClaims(getWrapped(), true);
+                }
             default:
                 return super.getMember(name);
         }
@@ -73,17 +112,12 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain() != null;
-            case FrameworkConstants.JSAttributes.JS_USER_CLAIMS:
-                return !getCliamsSet().isEmpty();
+            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
+                return idp != null;
+            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
+                return idp != null && !FrameworkConstants.LOCAL.equals(idp);
             default:
                 return super.hasMember(name);
         }
-    }
-
-    private JsClaimSet getCliamsSet() {
-        if(jsClaimSet == null) {
-            jsClaimSet = new JsClaimSet(getWrapped().getUserAttributes());
-        }
-        return jsClaimSet;
     }
 }

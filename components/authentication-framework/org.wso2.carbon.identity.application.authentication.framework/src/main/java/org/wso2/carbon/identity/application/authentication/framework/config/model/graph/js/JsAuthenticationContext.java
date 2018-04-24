@@ -49,10 +49,6 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
                 return getWrapped().getRequestedAcr();
-            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return new JsAuthenticatedUser(getWrapped().getSubject());
-            case FrameworkConstants.JSAttributes.JS_LAST_AUTHENTICATED_USER:
-                return new JsAuthenticatedUser(getWrapped().getLastAuthenticatedUser());
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
@@ -63,6 +59,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
                 return new JsServletResponse((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
+            case FrameworkConstants.JSAttributes.JS_STEPS:
+                return new JsSteps(getWrapped());
             default:
                 return super.getMember(name);
         }
@@ -86,6 +84,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_REQUEST);
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
                 return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_RESPONSE);
+            case FrameworkConstants.JSAttributes.JS_STEPS:
+                return !getWrapped().getSequenceConfig().getStepMap().isEmpty();
             default:
                 return super.hasMember(name);
         }
