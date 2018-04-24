@@ -79,6 +79,7 @@ public class IdentityApplicationConstants {
         public static final String ATTR_ENABLED = "enabled";
         public static final String PROPERTY_TYPE_STRING = "STRING";
         public static final String PROPERTY_TYPE_BLOB = "BLOB";
+        public static final String PROPERTY_SP_DIALECT = "SPClaimDialects";
 
         private ConfigElements() {
             throw new AssertionError("Must not initiate an object of ConfigElements class");

@@ -23,6 +23,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient"%>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
@@ -31,6 +32,13 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl" %>
+<%@ page import="org.wso2.carbon.context.PrivilegedCarbonContext" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.stream.Collectors" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -71,6 +79,16 @@
 		
 				IdentityProvider[] federatedIdPs = serviceClient.getAllFederatedIdentityProvider();
 				String[] claimUris = serviceClient.getAllClaimUris();
+
+				String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+				ClaimMetadataManagementService claimMetadataMgtService = new ClaimMetadataManagementServiceImpl();
+				List<ClaimDialect> claimDialects = claimMetadataMgtService.getClaimDialects(tenantDomain);
+				List<String> claimDialectUris = new ArrayList<String>();
+				for (ClaimDialect claimDialect : claimDialects) {
+					String claimDialectURI = claimDialect.getClaimDialectURI();
+					claimDialectUris.add(claimDialectURI);
+				}
+
 				LocalAuthenticatorConfig[] localAuthenticatorConfigs = serviceClient.getAllLocalAuthenticators();
 				RequestPathAuthenticatorConfig[] requestPathAuthenticators = serviceClient.getAllRequestPathAuthenticators();
 				appBean.setServiceProvider(serviceProvider);
@@ -78,6 +96,7 @@
 				appBean.setFederatedIdentityProviders(federatedIdPs);
 				appBean.setRequestPathAuthenticators(requestPathAuthenticators);
 				appBean.setClaimUris(claimUris);
+				appBean.setClaimDialectUris(claimDialectUris);
 
 			} catch (Exception e) {
 				String message = resourceBundle.getString("alert.error.while.reading.service.provider") + " : " + e.getMessage();

@@ -37,6 +37,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
+    public static final String SP_REQUESTED_CLAIMS_IN_REQUEST = "SP_REQUESTED_CLAIMS_IN_REQUEST";
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";
@@ -82,6 +83,11 @@ public abstract class FrameworkConstants {
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
+
+    public static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
+    public static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+    public static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
+    public static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
 
     private FrameworkConstants() {
 

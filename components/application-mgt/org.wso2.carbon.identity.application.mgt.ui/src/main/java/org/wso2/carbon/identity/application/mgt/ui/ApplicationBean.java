@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.mgt.ui;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -42,8 +45,14 @@ import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnect
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -81,8 +90,11 @@ public class ApplicationBean {
     private String passiveSTSWReply;
     private String openid;
     private String[] claimUris;
+    private List<String> claimDialectUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
+
+    Log log = LogFactory.getLog(ApplicationBean.class);
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -853,6 +865,23 @@ public class ApplicationBean {
         this.claimUris = claimUris;
     }
 
+    public String[] getSPClaimDialects() {
+
+        return serviceProvider.getClaimConfig() != null &&
+                !ArrayUtils.isEmpty(serviceProvider.getClaimConfig().getSpClaimDialects()) ?
+                serviceProvider.getClaimConfig().getSpClaimDialects() : null;
+    }
+
+    public void setClaimDialectUris(List<String> claimDialectUris) {
+
+        this.claimDialectUris = claimDialectUris;
+    }
+
+    public List<String> getClaimDialectUris() {
+
+        return claimDialectUris;
+    }
+
 
     private boolean isCustomInboundAuthType(String authType) {
         return !standardInboundAuthTypes.contains(authType);
@@ -890,7 +919,7 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
-        
+
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
@@ -1375,6 +1404,14 @@ public class ApplicationBean {
                 claimMappingList.add(mapping);
             }
         }
+
+        String spClaimDialectParam = request.getParameter(ApplicationMgtUIConstants.Params.SP_CLAIM_DIALECT);
+        String[] spClaimDialects = null;
+        if (spClaimDialectParam != null) {
+            spClaimDialects = spClaimDialectParam.split(",");
+
+        }
+        serviceProvider.getClaimConfig().setSpClaimDialects(spClaimDialects);
 
         serviceProvider.getClaimConfig().setClaimMappings(
                 claimMappingList.toArray(new ClaimMapping[claimMappingList.size()]));

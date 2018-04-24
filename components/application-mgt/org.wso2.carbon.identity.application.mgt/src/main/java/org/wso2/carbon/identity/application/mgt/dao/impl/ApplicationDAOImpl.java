@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -1322,6 +1323,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement storeRoleClaimPrepStmt = null;
+        PreparedStatement storeSPDialectsPrepStmt = null;
         PreparedStatement storeClaimDialectPrepStmt = null;
         PreparedStatement storeSendLocalSubIdPrepStmt = null;
 
@@ -1344,6 +1346,27 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeRoleClaimPrepStmt);
+        }
+
+        try {
+            // update the application data with SP dialects
+            String[] spClaimDialects = claimConfiguration.getSpClaimDialects();
+            String spClaimDialectsString = null;
+            if (spClaimDialects != null) {
+                String spClaimDialectsBuilder = Arrays.stream(spClaimDialects).map(dialects -> dialects + ",")
+                        .collect(Collectors.joining());
+                spClaimDialectsString = spClaimDialectsBuilder;
+            }
+
+            storeSPDialectsPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SP_DIALECTS);
+            storeSPDialectsPrepStmt.setString(1, spClaimDialectsString);
+            storeSPDialectsPrepStmt.setInt(2, tenantID);
+            storeSPDialectsPrepStmt.setInt(3, applicationId);
+            storeSPDialectsPrepStmt.executeUpdate();
+
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(storeSPDialectsPrepStmt);
         }
 
         try {
@@ -2561,6 +2584,28 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 claimConfig.setLocalClaimDialect("1".equals(loadClaimConfigsResultSet.getString(2)));
                 claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(loadClaimConfigsResultSet
                                                                                  .getString(3)));
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving all application");
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
+        }
+
+        PreparedStatement loadSPDialectsPrepStmt = null;
+        ResultSet loadSPDialectsResultSet = null;
+
+        try {
+            loadSPDialectsPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_SP_DIALECTS_BY_APP_ID);
+            loadSPDialectsPrepStmt.setInt(1, tenantID);
+            loadSPDialectsPrepStmt.setInt(2, applicationId);
+            loadSPDialectsResultSet = loadSPDialectsPrepStmt.executeQuery();
+
+            while (loadSPDialectsResultSet.next()) {
+                if(loadSPDialectsResultSet.getString(1) != null) {
+                    claimConfig.setSpClaimDialects(loadSPDialectsResultSet.getString(1).split(","));
+                }
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving all application");
