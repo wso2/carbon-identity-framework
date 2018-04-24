@@ -18,8 +18,8 @@ package org.wso2.carbon.identity.adaptive.auth.deployer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.adaptive.auth.EmbeddedSiddhiEngine;
 import org.wso2.carbon.identity.adaptive.auth.Utils;
+import org.wso2.carbon.identity.adaptive.auth.internal.AdaptiveDataHolder;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -34,14 +34,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
+/**
+ * Siddhi app deployer.
+ */
 public class SiddhiAppDeployer {
 
-    public static final String SIDDHI_FILE_SUFFIX = ".siddhi";
+    private static final String SIDDHI_FILE_SUFFIX = ".siddhi";
     private Path rootPath;
     private boolean isFileWatcherRunning;
-    private Thread serviceWatcherThread;
     private WatchKey fileWatcherKey;
 
     // Map to have a correlation between siddhi app name and file name
@@ -54,6 +55,9 @@ public class SiddhiAppDeployer {
         this.rootPath = rootPath;
     }
 
+    /**
+     * Start siddhi app deployer.
+     */
     public void start() {
 
         loadSiddhiApps();
@@ -72,6 +76,9 @@ public class SiddhiAppDeployer {
         }
     }
 
+    /**
+     * Stop siddhi app deployer.
+     */
     public void stop() {
 
         stopWatching();
@@ -79,7 +86,7 @@ public class SiddhiAppDeployer {
 
     private void startWatching() {
 
-        serviceWatcherThread = new Thread(() -> {
+        Thread serviceWatcherThread = new Thread(() -> {
 
             try {
                 WatchService watcher = FileSystems.getDefault().newWatchService();
@@ -92,17 +99,24 @@ public class SiddhiAppDeployer {
                 try {
                     for (WatchEvent<?> event : fileWatcherKey.pollEvents()) {
                         WatchEvent.Kind<?> kind = event.kind();
-                        if (kind == OVERFLOW) {
-                            continue;
-                        } else if (kind == ENTRY_CREATE) {
+                        if (kind == ENTRY_CREATE) {
                             WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            deploySiddhiApp(getResolvedPathRelativeToRoot(ev.context()));
+                            Path appPath = getResolvedPathRelativeToRoot(ev.context());
+                            if (appPath.getFileName().toString().endsWith(SIDDHI_FILE_SUFFIX)) {
+                                deploySiddhiApp(appPath);
+                            }
                         } else if (kind == ENTRY_DELETE) {
                             WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            undeploySiddhiApp(getResolvedPathRelativeToRoot(ev.context()));
+                            Path appPath = getResolvedPathRelativeToRoot(ev.context());
+                            if (appPath.getFileName().toString().endsWith(SIDDHI_FILE_SUFFIX)) {
+                                undeploySiddhiApp(appPath);
+                            }
                         } else if (kind == ENTRY_MODIFY) {
                             WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            updateSiddhiApp(getResolvedPathRelativeToRoot(ev.context()));
+                            Path appPath = getResolvedPathRelativeToRoot(ev.context());
+                            if (appPath.getFileName().toString().endsWith(SIDDHI_FILE_SUFFIX)) {
+                                updateSiddhiApp(appPath);
+                            }
                         }
                     }
                 } catch (Exception ex) {
@@ -131,8 +145,12 @@ public class SiddhiAppDeployer {
 
         String siddhiAppName = fileNameToAppName.get(siddhiAppPath.getFileName().toString());
         if (siddhiAppName != null) {
-            EmbeddedSiddhiEngine.getInstance().undeployApp(siddhiAppName);
-            log.info("Siddhi App : " + siddhiAppName + " undeployed Successfully.");
+            boolean result = AdaptiveDataHolder.getInstance().getSiddhiEngine().undeployApp(siddhiAppName);
+            if (result) {
+                log.info("Siddhi App : " + siddhiAppName + " undeployed successfully.");
+            } else {
+                log.error("Siddhi App : " + siddhiAppName + " could not be undeployed successfully.");
+            }
         }
     }
 
@@ -141,12 +159,19 @@ public class SiddhiAppDeployer {
         String siddhiApp;
         try {
             siddhiApp = getSiddhiApp(siddhiAppPath);
-            EmbeddedSiddhiEngine.getInstance().deployApp(siddhiApp);
-            String siddhiAppName = Utils.getSiddhiAppName(siddhiApp);
-            fileNameToAppName.put(siddhiAppPath.getFileName().toString(), siddhiAppName);
-            log.info("Siddhi App : " + siddhiAppName + " deployed Successfully. \n" + siddhiApp);
+            boolean result = AdaptiveDataHolder.getInstance().getSiddhiEngine().deployApp(siddhiApp);
+            if (result) {
+                String siddhiAppName = Utils.getSiddhiAppName(siddhiApp);
+                fileNameToAppName.put(siddhiAppPath.getFileName().toString(), siddhiAppName);
+                log.info("Siddhi App : " + siddhiAppName + " deployed Successfully.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Siddhi App deployed Successfully. \n" + siddhiApp);
+                }
+            } else {
+                log.error("Error while deploying siddhiApp from path: " + siddhiAppPath.toAbsolutePath());
+            }
         } catch (IOException e) {
-            log.error("Error while deploying siddhiApp from path: " + siddhiAppPath.toAbsolutePath());
+            log.error("Error while deploying siddhiApp from path: " + siddhiAppPath.toAbsolutePath(), e);
         }
 
     }

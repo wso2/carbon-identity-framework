@@ -20,8 +20,18 @@ import org.wso2.siddhi.core.event.Event;
 
 import java.util.List;
 
+/**
+ * Query siddhi runtime function.
+ */
 @FunctionalInterface
 public interface QuerySiddhiRuntimeFunction {
 
+    /**
+     * Query from siddhi runtime.
+     *
+     * @param appName Name of the application to query.
+     * @param query Query to run
+     * @return Result of the query.
+     */
     List<Event> query(String appName, String query);
 }

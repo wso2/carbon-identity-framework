@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>adaptive-authentication</artifactId>
-        <version>5.11.180-SNAPSHOT</version>
+        <version>5.11.187-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -85,33 +85,25 @@
                             org.wso2.carbon.identity.adaptive.auth.internal,
                         </Private-Package>
                         <Import-Package>
-                            org.wso2.siddhi.core,
-                            org.wso2.siddhi.annotation,
-                            org.wso2.siddhi.query,
-                            javax.cache,
-                            javax.cache.event.*,
-                            javax.crypto,
-                            javax.crypto.spec,
-                            javax.naming,
-                            javax.sql,
-                            javax.xml.namespace,
-                            javax.xml.stream,
-
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.persistence; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.siddhi.core; version="${siddhi.version.range}",
+                            org.wso2.siddhi.core.event; version="${siddhi.version.range}",
+                            org.wso2.siddhi.core.stream.input; version="${siddhi.version.range}",
+                            org.wso2.siddhi.query.api; version="${siddhi.version.range}",
+                            org.wso2.siddhi.query.api.annotation; version="${siddhi.version.range}",
+                            org.wso2.siddhi.query.api.definition; version="${siddhi.version.range}",
+                            org.wso2.siddhi.query.api.util; version="${siddhi.version.range}",
+                            org.wso2.siddhi.query.compiler; version="${siddhi.version.range}",
+                            org.wso2.siddhi.core.*; version="${siddhi.version.range}",
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework;resolution:=optional; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.adaptive.auth.internal,
                             org.wso2.carbon.identity.adaptive.auth.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
-                        <Embed-Dependency>
-                            *;scope=!provided|!compile;artifactId=siddhi-core|siddhi-query-compiler|siddhi-query-compiler|siddhi-annotations|quartz|disruptor|snakeyaml|antlr4-runtime
-                        </Embed-Dependency>
-                        <!--<Embed-Transitive>true</Embed-Transitive>-->
-                        <!--<DynamicImport-Package>*</DynamicImport-Package>-->
                     </instructions>
                 </configuration>
             </plugin>

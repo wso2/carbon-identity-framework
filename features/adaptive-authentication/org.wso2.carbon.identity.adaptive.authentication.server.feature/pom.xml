@@ -21,7 +21,7 @@
     <parent>
         <artifactId>adaptive-authentication-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.11.180-SNAPSHOT</version>
+        <version>5.11.187-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -67,7 +67,7 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
-                                        <include>*.json</include>
+                                        <include>accountLockApp.siddhi</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                     </includes>
@@ -122,9 +122,9 @@
                                 <bundleDef>
                                     org.antlr:antlr4-runtime:${antlr.version}
                                 </bundleDef>
-                                <!--<bundleDef>-->
-                                    <!--org.wso2.carbon.identity.framework:org.wso2.carbon.identity.adaptive.auth:${identity.framework.version}-->
-                                <!--</bundleDef>-->
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.adaptive.auth:${identity.framework.version}
+                                </bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
@@ -157,14 +157,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <properties>
-        <sample.version>1.0.0</sample.version>
-        <quartz.version>2.1.1.wso2v1</quartz.version>
-        <disruptor.orbit.version>3.3.2.wso2v2</disruptor.orbit.version>
-        <antlr.version>4.5</antlr.version>
-        <guava.version>19.0</guava.version>
-        <snakeyaml.version>1.11</snakeyaml.version>
-    </properties>
 
 </project>

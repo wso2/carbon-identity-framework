@@ -20,10 +20,19 @@ import org.wso2.siddhi.query.api.SiddhiApp;
 import org.wso2.siddhi.query.api.util.AnnotationHelper;
 import org.wso2.siddhi.query.compiler.SiddhiCompiler;
 
+/**
+ * Utilities for adaptive authentication.
+ */
 public class Utils {
 
     private static final String ANNOTATION_APP_NAME = "name";
 
+    /**
+     * Get siddhi app name from app.
+     *
+     * @param siddhiAppString Siddhi application
+     * @return Name of the siddhi application
+     */
     public static String getSiddhiAppName(String siddhiAppString) {
 
         SiddhiApp parsedSiddhiApp = SiddhiCompiler.parse(siddhiAppString);

@@ -18,10 +18,13 @@ package org.wso2.carbon.identity.adaptive.auth.js;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.adaptive.auth.EmbeddedSiddhiEngine;
+import org.wso2.carbon.identity.adaptive.auth.internal.AdaptiveDataHolder;
 
 import java.util.Map;
 
+/**
+ * Publish event function.
+ */
 public class PublishEventFunctionImpl implements PublishEventFunction {
 
     private static final Log log = LogFactory.getLog(PublishEventFunctionImpl.class);
@@ -29,6 +32,6 @@ public class PublishEventFunctionImpl implements PublishEventFunction {
     @Override
     public void publishEvent(String siddhiAppName, String streamName, Map<String, Object> payloadData) {
 
-        EmbeddedSiddhiEngine.getInstance().getEventPublisher().publish(siddhiAppName, streamName, payloadData);
+        AdaptiveDataHolder.getInstance().getEventPublisher().publish(siddhiAppName, streamName, payloadData);
     }
 }

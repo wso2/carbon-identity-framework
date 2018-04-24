@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Siddhi event publisher.
+ */
 public class SiddhiEventPublisher {
 
     private static final Log log = LogFactory.getLog(SiddhiEventPublisher.class);
@@ -36,6 +39,13 @@ public class SiddhiEventPublisher {
         this.siddhiAppRuntimeMap = siddhiAppRuntimeMap;
     }
 
+    /**
+     * Publish siddhi event to siddhi runtime.
+     *
+     * @param appName Name of the siddhi app
+     * @param streamName Name of the stream
+     * @param payloadData Data to publish
+     */
     public void publish(String appName, String streamName, Map<String, Object> payloadData) {
 
         SiddhiAppRuntime appRunTime = siddhiAppRuntimeMap.get(appName);
@@ -50,7 +60,7 @@ public class SiddhiEventPublisher {
         try {
             inputHandler.send(eventPayload.toArray());
         } catch (InterruptedException e) {
-            log.error(e);
+            log.error("Error while publishing event to stream : " + streamName + " siddhi app :" + appName, e);
         }
 
     }

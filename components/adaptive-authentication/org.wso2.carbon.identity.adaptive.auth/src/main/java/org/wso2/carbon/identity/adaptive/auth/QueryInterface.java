@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ *  Interface to query from siddhi app runtime.
+ */
 public class QueryInterface {
 
     private static final Log log = LogFactory.getLog(QueryInterface.class);
@@ -40,7 +43,7 @@ public class QueryInterface {
 
         SiddhiAppRuntime appRunTime = siddhiAppRunTimeMap.get(appName);
         if (appRunTime == null) {
-            log.info("Siddhi app: " + appName + " is not registered/started.");
+            log.error("Siddhi app: " + appName + " is not registered/started.");
         } else {
             Event[] result = appRunTime.query(query);
             if (result == null) {

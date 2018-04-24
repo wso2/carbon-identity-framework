@@ -19,8 +19,18 @@ package org.wso2.carbon.identity.adaptive.auth.js;
 
 import java.util.Map;
 
+/**
+ * Publish event function.
+ */
 @FunctionalInterface
 public interface PublishEventFunction {
 
+    /**
+     * Publish event to siddhi runtime.
+     *
+     * @param siddhiAppName Name of the Siddhi app to publish events.
+     * @param streamName Name of the stream to publish the events.
+     * @param payloadData Data to publish.
+     */
     void publishEvent(String siddhiAppName, String streamName, Map<String, Object> payloadData);
 }

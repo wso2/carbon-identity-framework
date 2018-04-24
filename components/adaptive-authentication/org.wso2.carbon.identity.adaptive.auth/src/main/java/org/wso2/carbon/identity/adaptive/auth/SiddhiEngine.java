@@ -18,11 +18,32 @@ package org.wso2.carbon.identity.adaptive.auth;
 
 import org.wso2.siddhi.core.SiddhiAppRuntime;
 
+/**
+ * Siddhi engine.
+ */
 public interface SiddhiEngine {
 
-    public boolean deployApp(String siddhiAppString);
+    /**
+     * Deploy app to siddhi runtime.
+     *
+     * @param siddhiAppString Siddhi app
+     * @return Status of deployment operation
+     */
+    boolean deployApp(String siddhiAppString);
 
-    public boolean undeployApp(String siddhiAppName);
+    /**
+     * Undeploy app from siddhi runtime.
+     *
+     * @param siddhiAppName App name
+     * @return Status of undeployment operation
+     */
+    boolean undeployApp(String siddhiAppName);
 
-    public SiddhiAppRuntime getAppRunTime(String siddhiAppName);
+    /**
+     * Get app runtime.
+     *
+     * @param siddhiAppName App name
+     * @return Siddhi app runtime
+     */
+    SiddhiAppRuntime getAppRunTime(String siddhiAppName);
 }

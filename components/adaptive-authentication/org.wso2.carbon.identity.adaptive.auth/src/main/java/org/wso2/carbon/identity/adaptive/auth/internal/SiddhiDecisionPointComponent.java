@@ -25,19 +25,16 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.adaptive.auth.EmbeddedSiddhiEngine;
+import org.wso2.carbon.identity.adaptive.auth.QueryInterface;
+import org.wso2.carbon.identity.adaptive.auth.SiddhiEventPublisher;
 import org.wso2.carbon.identity.adaptive.auth.deployer.SiddhiAppDeployer;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.CarbonUtils;
+import org.wso2.siddhi.core.SiddhiManager;
+import org.wso2.siddhi.core.util.SiddhiComponentActivator;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
 
 @Component(
         name = "org.wso2.sample.siddhi.decision.point",
@@ -51,38 +48,30 @@ public class SiddhiDecisionPointComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        log.info("-------------- SiddhiDecisionPointComponent ACTIVATION STARTED ----------------");
+        if (log.isDebugEnabled()) {
+            log.debug("-------------- SiddhiDecisionPointComponent ACTIVATION STARTED ----------------");
+        }
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        QueryInterface queryInterface = new QueryInterface(siddhiManager.getSiddhiAppRuntimeMap());
+        SiddhiEventPublisher eventPublisher = new SiddhiEventPublisher(siddhiManager.getSiddhiAppRuntimeMap());
+        EmbeddedSiddhiEngine siddhiEngine = new EmbeddedSiddhiEngine();
+        AdaptiveDataHolder.getInstance().setSiddhiManager(siddhiManager);
+        AdaptiveDataHolder.getInstance().setQueryInterface(queryInterface);
+        AdaptiveDataHolder.getInstance().setEventPublisher(eventPublisher);
+        AdaptiveDataHolder.getInstance().setSiddhiEngine(siddhiEngine);
 
         try {
-            Path siddhiAppRootPath = Paths.get(CarbonUtils.getCarbonRepository(), "siddhiApps");
-            if (Files.notExists(siddhiAppRootPath)) {
-                // TODO : ideally we should create this folder during feature installation....
-                Files.createDirectory(siddhiAppRootPath);
-            }
-
-            // Copy our sample app to siddhiApps folder
-            Path toWrite = Paths.get(siddhiAppRootPath.toAbsolutePath().toString(), "accountLockApp.siddhi");
-            Files.write(toWrite, getSampleSiddhiApp().getBytes(StandardCharsets.UTF_8));
+            Path siddhiAppRootPath = Paths.get(CarbonUtils.getCarbonRepository(), "siddhiapps");
 
             deployer = new SiddhiAppDeployer(siddhiAppRootPath);
             deployer.start();
         } catch (Throwable throwable) {
-            log.error(throwable);
+            log.error("Error while activating bundle.", throwable);
         }
 
-        log.info("-------------- SiddhiDecisionPointComponent ACTIVATION COMPLETED ----------------");
-    }
-
-    private String getSampleSiddhiApp() throws IOException {
-
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("accountLockOnFailureApp.siddhi");
-        return readInputStream(stream);
-    }
-
-    private String readInputStream(InputStream input) throws IOException {
-
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
-            return buffer.lines().collect(Collectors.joining("\n"));
+        if (log.isDebugEnabled()) {
+            log.debug("-------------- SiddhiDecisionPointComponent ACTIVATION COMPLETED ----------------");
         }
     }
 
@@ -95,19 +84,28 @@ public class SiddhiDecisionPointComponent {
         }
     }
 
+    /**
+     * This bind method will be called when Siddhi ComponentActivator OSGi service is registered.
+     *
+     * @param siddhiComponentActivator The SiddhiComponentActivator instance registered by Siddhi OSGi service
+     */
     @Reference(
-            name = "identityCoreInitializedEventService",
-            service = IdentityCoreInitializedEvent.class,
+            name = "siddhi.component.activator.service",
+            service = SiddhiComponentActivator.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityCoreInitializedEventService")
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+            unbind = "unsetSiddhiComponentActivator"
+    )
+    protected void setSiddhiComponentActivator(SiddhiComponentActivator siddhiComponentActivator) {
+
     }
 
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+    /**
+     * This is the unbind method which gets called at the un-registration of CarbonRuntime OSGi service.
+     *
+     * @param siddhiComponentActivator The SiddhiComponentActivator instance registered by Siddhi OSGi service
+     */
+    protected void unsetSiddhiComponentActivator(SiddhiComponentActivator siddhiComponentActivator) {
+
     }
 }

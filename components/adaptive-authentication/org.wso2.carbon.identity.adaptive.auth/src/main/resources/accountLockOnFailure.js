@@ -5,9 +5,7 @@ function onInitialRequest(context) {
         on: {
             success: function (context) {
 
-
-                // DUMMY TEST
-                var user = context.subject;
+                var user = context.steps[1].subject;
                 var username = user.username;
                 var isUserLocked = isAccountLocked(username);
                 if (isUserLocked) {
@@ -17,22 +15,15 @@ function onInitialRequest(context) {
             },
             fail : function (context) {
 
-                var accountLocked = function (username) {
-                    var x = querySiddhiRuntime("LockAccountOnFailureApp", "from AccountLockedTable on user == '" + username + "'");
-                    return x !== null && x.length > 0;
-                };
-
-                // DUMMY TEST
                 var appName = 'LockAccountOnFailureApp';
                 var streamName = 'login_failure_stream';
 
-                var user = context.lastAttemptedSubject;
-                var username = context.lastAttemptedSubject.username;
+                var user = context.lastLoginFailedUser;
+                var username = context.lastLoginFailedUser.username;
                 var sp = context.serviceProviderName;
 
                 var payload = {'user' : username, 'service_provider' : sp };
                 publishEvent(appName, streamName, payload);
-
 
                 // Let's check whether user was locked
                 var isUserLocked = isAccountLocked(username);

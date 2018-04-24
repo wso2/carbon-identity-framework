@@ -23,6 +23,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.adaptive.auth.Constants;
 import org.wso2.carbon.identity.adaptive.auth.js.PublishEventFunctionImpl;
 import org.wso2.carbon.identity.adaptive.auth.js.QuerySiddhiRuntimeFunctionImpl;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -37,16 +38,19 @@ public class CustomFunctionRegisterComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
 
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "publishEvent", new PublishEventFunctionImpl());
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "querySiddhiRuntime", new QuerySiddhiRuntimeFunctionImpl());
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, Constants.FUNC_PUBLISH_EVENT, new
+                PublishEventFunctionImpl());
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, Constants
+                .FUNC_QUERY_SIDDHI_RUNTIME, new QuerySiddhiRuntimeFunctionImpl());
     }
 
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
         if (jsFunctionRegistry != null) {
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "publishEvent");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "querySiddhiRuntime");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, Constants.FUNC_PUBLISH_EVENT);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, Constants
+                    .FUNC_QUERY_SIDDHI_RUNTIME);
         }
     }
 

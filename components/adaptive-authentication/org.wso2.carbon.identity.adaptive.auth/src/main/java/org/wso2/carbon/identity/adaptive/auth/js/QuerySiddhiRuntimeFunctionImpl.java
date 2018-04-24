@@ -16,17 +16,20 @@
 
 package org.wso2.carbon.identity.adaptive.auth.js;
 
-import org.wso2.carbon.identity.adaptive.auth.EmbeddedSiddhiEngine;
+import org.wso2.carbon.identity.adaptive.auth.internal.AdaptiveDataHolder;
 import org.wso2.siddhi.core.event.Event;
 
 import java.util.List;
 
+/**
+ * Query siddhi runtime function.
+ */
 public class QuerySiddhiRuntimeFunctionImpl implements QuerySiddhiRuntimeFunction {
 
     @Override
     public List<Event> query(String appName, String query) {
 
-        return EmbeddedSiddhiEngine.getInstance().getQueryInterface().query(appName, query);
+        return AdaptiveDataHolder.getInstance().getQueryInterface().query(appName, query);
     }
 
 }
