@@ -267,8 +267,6 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
 
-        public static final String JS_USER_CLAIMS = "claims";
-
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
@@ -279,11 +277,7 @@ public abstract class FrameworkConstants {
         public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
         public static final String JS_PAGE_URI = "pageUri";
 
-        public static final String JS_CLAIM_MEMBER_LOCAL = "local";
-        public static final String JS_CLAIM_MEMBER_REMOTE = "remote";
-        public static final String JS_CLAIM_MEMBER_PUSH = "push";
-        public static final String JS_CLAIM_MEMBER_VALUE = "value";
-        public static final String JS_CLAIM_MEMBER_URI = "uri";
+        public static final String JS_LOCAL_ROLES = "roles";
     }
 
     public static class InternalRoleDomains {

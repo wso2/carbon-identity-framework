@@ -18,10 +18,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 /**
  * Javascript wrapper for Java level AuthenticatedUser.
@@ -38,6 +47,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
  * @see AuthenticatedUser
  */
 public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> {
+
+    private static final Log LOG = LogFactory.getLog(JsAuthenticatedUser.class);
 
     private AuthenticationContext context;
     private int step;
@@ -95,6 +106,8 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                     // Represent step independent user
                     return new JsClaims(getWrapped(), true);
                 }
+            case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
+                return getLocalRoles();
             default:
                 return super.getMember(name);
         }
@@ -119,5 +132,23 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             default:
                 return super.hasMember(name);
         }
+    }
+
+    private String[] getLocalRoles() {
+
+        if (idp == null || FrameworkConstants.LOCAL.equals(idp)) {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int usersTenantId = IdentityTenantUtil.getTenantId(getWrapped().getTenantDomain());
+
+            try {
+                String usernameWithDomain = UserCoreUtil.addDomainToName(getWrapped().getUserName(), getWrapped()
+                    .getUserStoreDomain());
+                UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
+                return userRealm.getUserStoreManager().getRoleListOfUser(usernameWithDomain);
+            } catch (UserStoreException e) {
+                LOG.error("Error when getting role list of user: " + getWrapped(), e);
+            }
+        }
+        return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 }
