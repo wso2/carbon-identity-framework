@@ -185,6 +185,12 @@
 				<Description>Username</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/userprincipal</ClaimURI>
+				<DisplayName>User Principal</DisplayName>
+				<AttributeID>uid</AttributeID>
+				<Description>User Principal</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/userid</ClaimURI>
 				<DisplayName>User ID</DisplayName>
 				<AttributeID>scimId</AttributeID>
@@ -1437,7 +1443,7 @@
 				<Description>The user principal name</Description>
 				<DisplayOrder>11</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/username</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/userprincipal</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>groups</ClaimURI>
