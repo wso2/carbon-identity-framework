@@ -64,8 +64,10 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -337,7 +339,7 @@ public class FrameworkUtils {
         if (obj instanceof StepBasedSequenceHandler) {
             stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
-            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
+            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
         }
 
         return stepBasedSequenceHandler;
@@ -373,7 +375,7 @@ public class FrameworkUtils {
         if (obj instanceof StepHandler) {
             stepHandler = (StepHandler) obj;
         } else {
-            stepHandler = DefaultStepHandler.getInstance();
+            stepHandler = new GraphBasedStepHandler();
         }
 
         return stepHandler;
