@@ -232,25 +232,25 @@ public class NotificationApi {
         if (code == null) {
             throw new ApiException(400, "Missing the required parameter 'code' when calling validateCodePost(Async)");
         }
-        List<Pair> queryParams = new ArrayList<>();
-        Map<String, String> headerParams = new HashMap<>();
-        Map<String, Object> formParams = new HashMap<>();
         final String[] contentType = {
                 "application/json"
         };
         final String headerAccept = apiClient.selectHeaderAccept(contentType);
-        final String headerContentType = apiClient.selectHeaderContentType(contentType);
         String tenantDomain = getTenantDomain(code);
         setBasePath(tenantDomain);
 
+        Map<String, String> headerParams = new HashMap<>();
         if (headerAccept != null) {
             headerParams.put("Accept", headerAccept);
         }
+        final String headerContentType = apiClient.selectHeaderContentType(contentType);
         headerParams.put("Content-Type", headerContentType);
         String[] authNames = new String[]{};
         GenericType<String> localVarReturnType = new GenericType<String>() {};
         // create path and map variables
         String path = "/validate-code".replaceAll("\\{format\\}", "json");
+        List<Pair> queryParams = new ArrayList<>();
+        Map<String, Object> formParams = new HashMap<>();
         apiClient.invokeAPI(path, "POST", queryParams, code, headerParams,
                 formParams, headerAccept, headerContentType, authNames, localVarReturnType);
     }
