@@ -263,7 +263,7 @@ var img = "";
 				"type": [{
 					"name": "ACR",
 					"img": "./images/user.gif",
-					"code": "function(context) {\n" +
+					"code": "function onInitialRequest(context) {\n" +
 					"\n" +
 					"    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
 					"\n" +

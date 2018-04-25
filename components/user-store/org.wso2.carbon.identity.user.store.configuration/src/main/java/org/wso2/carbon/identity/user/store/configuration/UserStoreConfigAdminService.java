@@ -141,27 +141,16 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                     updatePasswordContainer(randomPasswords, uuid);
                 }
 
-                String originalPassword = null;
-                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword)) {
-                    originalPassword = userStoreProperties.get(UserStoreConfigConstants.connectionPassword);
-                    userStoreProperties.put(UserStoreConfigConstants.connectionPassword, randomPhrase);
+                // Replace the property with random password.
+                for (RandomPassword randomPassword : randomPasswords) {
+                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getRandomPhrase());
                 }
-                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD)) {
-                    originalPassword = userStoreProperties.get(JDBCRealmConstants.PASSWORD);
-                    userStoreProperties.put(JDBCRealmConstants.PASSWORD, randomPhrase);
-                }
+
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
-                //Now revert back to original password
-                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(UserStoreConfigConstants.connectionPassword, originalPassword);
-                    }
-                }
-                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(JDBCRealmConstants.PASSWORD, originalPassword);
-                    }
+                // Now revert back to original password.
+                for (RandomPassword randomPassword : randomPasswords) {
+                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
                 }
 
                 domains.add(userStoreDTO);

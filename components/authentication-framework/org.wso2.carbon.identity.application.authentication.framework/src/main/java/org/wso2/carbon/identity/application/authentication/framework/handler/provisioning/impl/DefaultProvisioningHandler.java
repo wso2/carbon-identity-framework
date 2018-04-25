@@ -52,6 +52,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .InternalRoleDomains.WORKFLOW_DOMAIN;
+
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
@@ -93,20 +98,15 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 username = UserCoreUtil.removeDomainFromName(username);
             }
 
-            String[] newRoles = new String[]{};
-
-            if (roles != null) {
-                roles = removeDomainFromNamesExcludeInternal(roles, userStoreManager.getTenantId());
-                newRoles = roles.toArray(new String[roles.size()]);
-            }
-
             if (log.isDebugEnabled()) {
-                log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles)
-                          + " going to be provisioned");
+                log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
             }
 
-            // addingRoles = newRoles AND allExistingRoles
-            Collection<String> addingRoles = getRolesToAdd(userStoreManager, newRoles);
+            // If internal roles exists convert internal role domain names to pre defined camel case domain names.
+            List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
+
+            // addingRoles = rolesToAdd AND allExistingRoles
+            Collection<String> addingRoles = getRolesAvailableToAdd(userStoreManager, rolesToAdd);
 
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
@@ -124,8 +124,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                     Collection<String> deletingRoles = new ArrayList<String>();
                     deletingRoles.addAll(currentRolesList);
-                    // deletingRoles = currentRolesList - newRoles
-                    deletingRoles.removeAll(Arrays.asList(newRoles));
+                    // deletingRoles = currentRolesList - rolesToAdd
+                    deletingRoles.removeAll(rolesToAdd);
 
                     // Exclude Internal/everyonerole from deleting role since its cannot be deleted
                     deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
@@ -134,7 +134,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     // Check for case whether superadmin login
                     handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
 
-                    updateUserWithNewRoleSet(username, userStoreManager, newRoles, addingRoles, deletingRoles);
+                    updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, addingRoles, deletingRoles);
                 }
 
                 if (!userClaims.isEmpty()) {
@@ -204,7 +204,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return e.getMessage() != null && e.getMessage().contains(ALREADY_ASSOCIATED_MESSAGE);
     }
 
-    private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, String[] newRoles,
+    private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, List<String> rolesToAdd,
                                           Collection<String> addingRoles, Collection<String> deletingRoles)
             throws UserStoreException {
         if (log.isDebugEnabled()) {
@@ -219,7 +219,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         if (log.isDebugEnabled()) {
             log.debug("Federated user: " + username
                       + " is updated by authentication framework with roles : "
-                      + Arrays.toString(newRoles));
+                      + rolesToAdd);
         }
     }
 
@@ -261,26 +261,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return userClaims;
     }
 
-    private Collection<String> getRolesToAdd(UserStoreManager userStoreManager, String[] newRoles)
+    private Collection<String> getRolesAvailableToAdd(UserStoreManager userStoreManager, List<String> roles)
             throws UserStoreException {
 
-        List<String> rolesToAdd = Arrays.asList(newRoles);
-        List<String> updatedRolesToAdd = new ArrayList<>();
+        List<String> rolesAvailableToAdd = new ArrayList<>();
+        rolesAvailableToAdd.addAll(roles);
 
-        // Make Internal domain name case insensitive
-        for (String role : rolesToAdd) {
-            if (StringUtils.containsIgnoreCase(role, UserCoreConstants.INTERNAL_DOMAIN +
-                    CarbonConstants.DOMAIN_SEPARATOR)) {
-                updatedRolesToAdd.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
-                        UserCoreUtil.removeDomainFromName(role));
-            } else {
-                updatedRolesToAdd.add(role);
-            }
+        String[] roleNames = userStoreManager.getRoleNames();
+        if(roleNames != null) {
+            rolesAvailableToAdd.retainAll(Arrays.asList(roleNames));
         }
-        List<String> allExistingRoles = removeDomainFromNamesExcludeInternal(
-                Arrays.asList(userStoreManager.getRoleNames()), userStoreManager.getTenantId());
-        updatedRolesToAdd.retainAll(allExistingRoles);
-        return updatedRolesToAdd;
+        return rolesAvailableToAdd;
     }
 
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)
@@ -344,5 +335,38 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return nameList;
+    }
+
+    /**
+     * Check for internal roles and convert internal role domain names to camel case to match with predefined
+     * internal role domains.
+     *
+     * @param roles roles to verify and update
+     * @return updated role list
+     */
+    private List<String> convertInternalRoleDomainsToCamelCase(List<String> roles) {
+
+        List<String> updatedRoles = new ArrayList<>();
+
+        if (roles != null) {
+            // If internal roles exist, convert internal role domain names to case sensitive predefined domain names.
+            for (String role : roles) {
+                if (StringUtils.containsIgnoreCase(role, UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants
+                        .DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
+                            UserCoreUtil.removeDomainFromName(role));
+                } else if (StringUtils.containsIgnoreCase(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
+                            .removeDomainFromName(role));
+                } else if (StringUtils.containsIgnoreCase(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
+                            .removeDomainFromName(role));
+                } else {
+                    updatedRoles.add(role);
+                }
+            }
+        }
+
+        return updatedRoles;
     }
 }

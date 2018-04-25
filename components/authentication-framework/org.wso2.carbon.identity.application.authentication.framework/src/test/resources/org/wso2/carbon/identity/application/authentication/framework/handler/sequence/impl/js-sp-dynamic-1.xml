@@ -84,7 +84,7 @@ var jsFn1 = function(context, a) {
     Log.debug('Test fn1 '+a);
 }
 
-function(context) {
+function onInitialRequest(context) {
 Log.info('Test0');
 	executeStep({
 	    id : '1',

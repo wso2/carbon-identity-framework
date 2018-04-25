@@ -92,6 +92,19 @@ public interface IdpManager {
                                   boolean ignoreFileBasedIdps) throws IdentityProviderManagementException;
 
     /**
+     * Returns IDP with passed ID.
+     * @param id ID of the IDP.
+     * @param tenantDomain Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @return IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default IdentityProvider getIdPById(String id, String tenantDomain,
+                                boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * @param idPName
      * @param tenantDomain
      * @param ignoreFileBasedIdps
@@ -111,6 +124,19 @@ public interface IdpManager {
      *                                                information by IdP name
      */
     IdentityProvider getIdPByName(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Returns IDP with given IDP.
+     *
+     * @param id           ID of the IDP.
+     * @param tenantDomain Tenant domain of the IDP.
+     * @return Identity provider with given ID.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    default IdentityProvider getIdPById(String id, String tenantDomain) throws IdentityProviderManagementException {
+
+        return null;
+    }
 
     /**
      * @param property     IDP authenticator property (E.g.: IdPEntityId)
