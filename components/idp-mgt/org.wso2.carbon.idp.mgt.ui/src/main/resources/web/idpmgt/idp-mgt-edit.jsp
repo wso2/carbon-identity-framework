@@ -192,6 +192,10 @@
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
 
+    boolean isArtifactBindingEnabled = false;
+    String artifactResolveUrl = "";
+    boolean isArtifactResolveReqSigned = false;
+
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
 
@@ -558,6 +562,24 @@
                             IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
                     if (attributeConsumingServiceIndexProp != null) {
                         attributeConsumingServiceIndex = attributeConsumingServiceIndexProp.getValue();
+                    }
+
+                    Property artifactBindingEnableProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+                    if (artifactBindingEnableProp != null) {
+                        isArtifactBindingEnabled = Boolean.parseBoolean(artifactBindingEnableProp.getValue());
+                    }
+
+                    Property artifactResolveUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+                    if (artifactResolveUrlProp != null) {
+                        artifactResolveUrl = artifactResolveUrlProp.getValue();
+                    }
+
+                    Property artifactResolveReqSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+                    if (artifactResolveReqSignedProp != null) {
+                        isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
                     }
 
                     Property requestMethodProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -991,12 +1013,12 @@
     }
 
     String signAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String digestAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
@@ -1247,6 +1269,24 @@
         }
     }
 
+    if (artifactResolveUrl == null) {
+        artifactResolveUrl = "";
+    }
+
+    String isArtifactBindingEnabledChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactBindingEnabled) {
+            isArtifactBindingEnabledChecked = "checked=\'checked\'";
+        }
+    }
+
+    String isArtifactResolveReqSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResolveReqSigned) {
+            isArtifactResolveReqSignedChecked = "checked=\'checked\'";
+        }
+    }
+
     // If SCIM Provisioning has not been Configured at all,
     // make password provisioning enable by default.
     // Since scimUserName is a required field,
@@ -1294,6 +1334,15 @@
     advancedClaimMappinRowID = <%=claimMappings.length-1%>;
     <% } %>
 
+    function disableArtifactBinding(chkbx) {
+        if ($(chkbx).is(':checked')) {
+            $("#artifactResolveUrl").prop('disabled', false);
+            $("#artifactResolveReqSigned").prop('disabled', false);
+        } else {
+            $("#artifactResolveUrl").prop('disabled', true);
+            $("#artifactResolveReqSigned").prop('disabled', true);
+        }
+    }
 
     var claimURIDropdownPopulator = function () {
         var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
@@ -3889,6 +3938,58 @@
                                                    type="checkbox" <%=authnResponseSignedChecked%>/>
                                             <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.response.signed.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Enable Artifact Binding -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableArtifactBinding"><fmt:message
+                                                key='attr.artifact.binding.enable'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="enableArtifactBinding" name="ISArtifactBindingEnabled"
+                                                   onclick="disableArtifactBinding(this);"
+                                                   type="checkbox" <%=isArtifactBindingEnabledChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.binding.enable.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Artifact Resolve Url -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"><fmt:message key='attr.artifact.resolve.url'/>:</td>
+                                    <td>
+                                        <input id="artifactResolveUrl" name="ArtifactResolveUrl" class="text-box-big" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>
+                                        type="text" value=<%=Encode.forHtml(artifactResolveUrl)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='attr.artifact.resolve.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                 <!-- Enable Artifact Resolve Request Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResolveReqSignedLabel"><fmt:message
+                                                key='attr.artifact.resolve.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResolveReqSigned" name="ISArtifactResolveReqSigned"
+                                                   type="checkbox" <%=isArtifactResolveReqSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.resolve.sign.help'/>
                                 </span>
                                         </div>
                                     </td>

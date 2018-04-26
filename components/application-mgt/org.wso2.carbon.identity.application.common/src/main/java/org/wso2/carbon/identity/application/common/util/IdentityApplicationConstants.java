@@ -136,7 +136,9 @@ public class IdentityApplicationConstants {
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
-
+            public static final String IS_ARTIFACT_BINDING_ENABLED = "ISArtifactBindingEnabled";
+            public static final String ARTIFACT_RESOLVE_URL="ArtifactResolveUrl";
+            public static final String IS_ARTIFACT_RESOLVE_REQ_SIGNED = "ISArtifactResolveReqSigned";
 
             private SAML2SSO() {
                 throw new AssertionError("Must not initiate an object of SAMLSSO class");
