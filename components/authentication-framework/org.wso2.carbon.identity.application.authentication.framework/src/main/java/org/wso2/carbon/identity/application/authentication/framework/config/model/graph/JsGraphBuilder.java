@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -52,7 +54,6 @@ public class JsGraphBuilder {
     private AuthenticationGraph result = new AuthenticationGraph();
     private AuthGraphNode currentNode = null;
     private AuthenticationContext authenticationContext;
-    private JsFunctionRegistryImpl jsFunctionRegistrar;
     private ScriptEngine engine;
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
@@ -64,7 +65,7 @@ public class JsGraphBuilder {
      * @param stepConfigMap         The Step map from the service provider configuration.
      */
     public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-            ScriptEngine scriptEngine) {
+                          ScriptEngine scriptEngine) {
 
         this.engine = scriptEngine;
         this.authenticationContext = authenticationContext;
@@ -74,6 +75,7 @@ public class JsGraphBuilder {
 
     /**
      * Returns the built graph.
+     *
      * @return AuthenticationGraph built from JsGraphBuilder
      */
     public AuthenticationGraph build() {
@@ -99,24 +101,30 @@ public class JsGraphBuilder {
     public JsGraphBuilder createWith(String script) {
 
         try {
-            Compilable compilable = (Compilable) engine;
-            //TODO: Think about keeping a cached compiled scripts. May be the last updated timestamp.
-            CompiledScript compiledScript = compilable.compile(script);
-
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (Consumer<Map>) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (Consumer<Map>) this::sendError);
+            JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
-                jsFunctionRegistrar.stream(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, entry -> {
-                    globalBindings.put(entry.getKey(), entry.getValue());
-                });
+                Map<String, Object> functionMap = jsFunctionRegistrar
+                        .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
+                functionMap.forEach(globalBindings::put);
             }
-            JSObject builderFunction = (JSObject) compiledScript.eval(globalBindings);
-            builderFunction.call(null, new JsAuthenticationContext(authenticationContext));
+            Invocable invocable = (Invocable) engine;
+            engine.eval(script);
+            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_INITIATE_REQUEST,
+                    new JsAuthenticationContext(authenticationContext));
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. Nested exception is: " + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("Error in executing the Javascript.", e);
+            }
+        } catch (NoSuchMethodException e) {
+            result.setBuildSuccessful(false);
+            result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
+                    .JS_FUNC_INITIATE_REQUEST + " function is not defined.");
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
@@ -125,10 +133,11 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Add authentication fail node to the authentication graph.
+     * Add authentication fail node to the authentication graph in the initial request.
+     *
      * @param parameterMap
-     * TODO: This method works in conditional mode and need to implement separate method for dynamic mode
      */
+    // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
     public void sendError(Map<String, Object> parameterMap) {
 
         FailNode newNode = new FailNode();
@@ -142,6 +151,30 @@ public class JsGraphBuilder {
 
         if (currentNode == null) {
             result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    /**
+     * Add authentication fail node to the authentication graph during subsequent requests.
+     *
+     * @param parameterMap
+     */
+    public static void sendErrorAsync(Map<String, Object> parameterMap) {
+
+        FailNode newNode = new FailNode();
+
+        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE) != null) {
+            newNode.setShowErrorPage((boolean) parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE));
+        }
+        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI) != null) {
+            newNode.setErrorPageUri((String) parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI));
+        }
+
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+        if (currentNode == null) {
+            dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
         }
@@ -338,7 +371,6 @@ public class JsGraphBuilder {
     }
 
     /**
-
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
      * is happening.
@@ -366,6 +398,15 @@ public class JsGraphBuilder {
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
                             (Consumer<Map>) JsGraphBuilder::executeStepInAsyncEvent);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
+                            (Consumer<Map>) JsGraphBuilder::sendErrorAsync);
+                    JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
+                            .getJsFunctionRegistry();
+                    if (jsFunctionRegistry != null) {
+                        Map<String, Object> functionMap = jsFunctionRegistry
+                                .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
+                        functionMap.forEach(globalBindings::put);
+                    }
                     Compilable compilable = (Compilable) scriptEngine;
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
@@ -407,10 +448,5 @@ public class JsGraphBuilder {
             return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
                     .createEngine(authenticationContext);
         }
-    }
-
-    public void setJsFunctionRegistry(JsFunctionRegistryImpl jsFunctionRegistrar) {
-
-        this.jsFunctionRegistrar = jsFunctionRegistrar;
     }
 }

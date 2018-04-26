@@ -20,12 +20,33 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
-
+    NotificationApi notificationApi = new NotificationApi();
+    try {
+        CodeValidationRequest validationRequest = new CodeValidationRequest();
+        validationRequest.setCode(confirmationKey);
+        notificationApi.validateCodePostCall(validationRequest);
+        
+    } catch (ApiException e) {
+        Error error = new Gson().fromJson(e.getMessage(), Error.class);
+        request.setAttribute("error", true);
+        if (error != null) {
+            request.setAttribute("errorMsg", error.getDescription());
+            request.setAttribute("errorCode", error.getCode());
+        }
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+    
     if (StringUtils.isBlank(tenantDomain)) {
         tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
     }
@@ -33,7 +54,7 @@
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
-
+    
     if ( StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.setAttribute("callback", callback);
@@ -47,3 +68,4 @@
         return;
     }
 %>
+

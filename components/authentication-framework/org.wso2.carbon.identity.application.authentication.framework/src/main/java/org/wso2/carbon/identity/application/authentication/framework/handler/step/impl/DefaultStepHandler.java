@@ -42,6 +42,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -547,15 +549,23 @@ public class DefaultStepHandler implements StepHandler {
             if (log.isDebugEnabled()) {
                 log.debug("A login attempt was failed due to invalid credentials", e);
             }
-            context.setRequestAuthenticated(false);
+            handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             log.error(e.getMessage(), e);
-            context.setRequestAuthenticated(false);
+            handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
 
         stepConfig.setCompleted(true);
+    }
+
+    protected void handleFailedAuthentication(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              AuthenticationContext context,
+                                              AuthenticatorConfig authenticatorConfig,
+                                              User user) {
+        context.setRequestAuthenticated(false);
     }
 
     protected void populateStepConfigWithAuthenticationDetails(StepConfig stepConfig,

@@ -80,7 +80,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public void testHandle_Dynamic_Boolean() throws Exception {
 
-        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
@@ -93,7 +94,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
         String script =
-                "function(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
+                "function onInitialRequest(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
                         + "    Log.info(\"My Bool Value \"+myBool);\n" + "    if(myBool) {\n"
                         + "        Log.info(\"My Bool Is Selected \"+myBool);\n" + "        executeStep({id :'1',\n"
                         + "        on : {\n" + "            success : function(context) {executeStep({id :'3'});}\n"
@@ -173,7 +174,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     @Test
     public void testHandle_Dynamic_Javascript_Serialization() throws Exception {
 
-        JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);

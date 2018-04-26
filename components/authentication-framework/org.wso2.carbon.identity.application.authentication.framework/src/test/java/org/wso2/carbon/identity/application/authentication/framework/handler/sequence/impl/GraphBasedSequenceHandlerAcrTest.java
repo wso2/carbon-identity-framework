@@ -144,4 +144,24 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
         graphBasedSequenceHandler.handle(req, resp, context);
 
     }
+
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testHandle_Incorrect_Function_Javascript_Acr() throws Exception {
+        ServiceProvider sp1 = getTestServiceProvider("incorrect-function-js-sp-1.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, context);
+
+    }
 }

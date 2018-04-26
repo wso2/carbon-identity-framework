@@ -23,8 +23,29 @@ public class ApplicationBasicInfo implements Serializable {
 
     private static final long serialVersionUID = -16127229981193883L;
 
+    private int applicationId;
     private String applicationName;
     private String description;
+
+    /**
+     * Get application id.
+     *
+     * @return application id
+     */
+    public int getApplicationId() {
+
+        return applicationId;
+    }
+
+    /**
+     * Set application id.
+     *
+     * @param applicationId application id
+     */
+    public void setApplicationId(int applicationId) {
+
+        this.applicationId = applicationId;
+    }
 
     /**
      * @return

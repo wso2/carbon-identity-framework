@@ -83,7 +83,6 @@ import java.util.Map.Entry;
 public class ApplicationDAOImpl implements ApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
-    public static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -1030,11 +1029,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // no local or out-bound configuration for this service provider.
             return;
         }
-        String authType = localAndOutboundAuthConfig.getAuthenticationType();
 
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-            updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
-        }
+        updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
         PreparedStatement updateAuthTypePrepStmt = null;
 
@@ -2368,12 +2364,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             localAndOutboundConfiguration.setAuthenticationType(authType);
 
-            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-                AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId,
-                        connection);
-                if (authenticationScriptConfig != null) {
-                    localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
-                }
+            AuthenticationScriptConfig authenticationScriptConfig = getScriptConfiguration(applicationId, connection);
+            if (authenticationScriptConfig != null) {
+                localAndOutboundConfiguration.setAuthenticationScriptConfig(authenticationScriptConfig);
             }
 
             PreparedStatement localAndOutboundConfigPrepStmt = null;
@@ -2759,8 +2752,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
+                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
             connection.commit();
@@ -2927,7 +2921,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
 
         PreparedStatement deleteLocalAndOutboundAuthConfigPrepStmt = null;
-        PreparedStatement deleteLocalAndOutboundAuthScriptConfigPrepStmt = null;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
@@ -2937,9 +2930,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-                deleteAuthenticationScript(applicationId, connection);
-            }
+            deleteAuthenticationScript(applicationId, connection);
 
         } finally {
             IdentityApplicationManagementUtil

@@ -50,6 +50,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.bulkimport.BulkImportConfig;
 import org.wso2.carbon.user.mgt.bulkimport.CSVUserBulkImport;
 import org.wso2.carbon.user.mgt.bulkimport.ExcelUserBulkImport;
+import org.wso2.carbon.user.mgt.bulkimport.UserBulkImport;
 import org.wso2.carbon.user.mgt.common.ClaimValue;
 import org.wso2.carbon.user.mgt.common.FlaggedName;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
@@ -2142,10 +2143,10 @@ public class UserRealmProxy {
             userStore = userStore.getSecondaryUserStoreManager(userStoreDomain);
 
             if (fileName.endsWith("csv")) {
-                CSVUserBulkImport csvAdder = new CSVUserBulkImport(config);
+                UserBulkImport csvAdder = new CSVUserBulkImport(config);
                 csvAdder.addUserList(userStore);
             } else if (fileName.endsWith("xls") || fileName.endsWith("xlsx")) {
-                ExcelUserBulkImport excelAdder = new ExcelUserBulkImport(config);
+                UserBulkImport excelAdder = new ExcelUserBulkImport(config);
                 excelAdder.addUserList(userStore);
             } else {
                 throw new UserAdminException("Unsupported format");

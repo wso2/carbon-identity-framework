@@ -25,7 +25,7 @@
             <class name="org.wso2.carbon.user.mgt.UserRealmProxyTest"/>
             <class name="org.wso2.carbon.user.mgt.UserDeletionEventListenerTest"/>
             <class name="org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorderTest" />
-            <class name="org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLoggerTest" />
+            <class name="org.wso2.carbon.user.mgt.bulkImport.JsonConverterTest" />
         </classes>
     </test>
 </suite>

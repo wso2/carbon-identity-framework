@@ -82,8 +82,6 @@
 		}
 	}
 
-	//This is to deactivate ConditionalAuthentication on 5.5.0, as it is experimental on this release.
-	boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
 %>
 <script type="text/javascript" >
 var authMap = {};
@@ -265,7 +263,7 @@ var img = "";
 				"type": [{
 					"name": "ACR",
 					"img": "./images/user.gif",
-					"code": "function(context) {\n" +
+					"code": "function onInitialRequest(context) {\n" +
 					"\n" +
 					"    var acr = selectAcrFrom(context, [\"acr1\", \"acr2\", \"acr3\",\"acr4\"]);\n" +
 					"\n" +
@@ -687,7 +685,6 @@ var img = "";
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
 
-			<div id="conditinal_authentication_enabled_div" <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
                 <h2 id="conditional_script" class="active sectionSeperator trigger step_heads" style="font-size:large ">
 					<a href="#">JavaScript Based Conditional Steps</a>
 				</h2>
@@ -725,7 +722,6 @@ var img = "";
                         </tr>
                     </table>
                 </div>
-			</div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input type="button" value="<fmt:message key='button.update.service.provider'/>"
                            onclick="createAppOnclick();"/>

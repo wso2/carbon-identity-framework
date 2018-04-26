@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.user.mgt.bulkimport;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -27,93 +28,108 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
+import org.wso2.carbon.user.mgt.bulkimport.util.JSONConverter;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-public class ExcelUserBulkImport {
+/**
+ * Class to import users from Excel format files.
+ */
+public class ExcelUserBulkImport extends UserBulkImport {
 
     private static final Log log = LogFactory.getLog(ExcelUserBulkImport.class);
-
     private BulkImportConfig config;
 
     public ExcelUserBulkImport(BulkImportConfig config) {
+
         super();
         this.config = config;
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
-        try {
-            Workbook wb = this.createWorkbook();
-            Sheet sheet = wb.getSheet(wb.getSheetName(0));
-            String domain = config.getUserStoreDomain();
 
-            if (sheet == null || sheet.getLastRowNum() == -1) {
-                throw new UserAdminException("The first sheet is empty");
+        Workbook wb = this.createWorkbook();
+        Sheet sheet = wb.getSheet(wb.getSheetName(0));
+        userStoreDomain = config.getUserStoreDomain();
+
+        if (sheet == null || sheet.getLastRowNum() == -1) {
+            throw new UserAdminException("The first sheet is empty");
+        }
+        int limit = sheet.getLastRowNum();
+        boolean isDuplicate = false;
+        boolean fail = false;
+        for (int i = 1; i < limit + 1; i++) {
+            Row row = sheet.getRow(i);
+            Cell cell = row.getCell(0);
+            String userName = cell.getStringCellValue();
+
+            int index;
+            index = userName.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
+            if (index > 0) {
+                String domainFreeName = userName.substring(index + 1);
+                userName = UserCoreUtil.addDomainToName(domainFreeName, userStoreDomain);
+            } else {
+                userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
             }
-            int limit = sheet.getLastRowNum();
-            boolean isDuplicate = false;
-            boolean fail = false;
-            boolean success = false;
-            String lastError = "UNKNOWN";
-            for (int i = 1; i < limit + 1; i++) {
-                Row row = sheet.getRow(i);
-                Cell cell = row.getCell(0);
-                String userName = cell.getStringCellValue();
 
-                int index;
-                index = userName.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-                if (index > 0) {
-                    String domainFreeName = userName.substring(index + 1);
-                    userName = UserCoreUtil.addDomainToName(domainFreeName, domain);
-                } else {
-                    userName = UserCoreUtil.addDomainToName(userName, domain);
-                }
-
-                if (userName != null && userName.trim().length() > 0) {
-                    try {
-                        if (!userStore.isExistingUser(userName)) {
-                            userStore.addUser(userName, null, null, null, null, true);
-                            success = true;
-                        } else {
-                            isDuplicate = true;
-                        }
-                    } catch (Exception e) {
+            if (StringUtils.isNotBlank(userName)) {
+                try {
+                    if (!userStore.isExistingUser(userName)) {
+                        userStore.addUser(userName, null, null, null, null, true);
+                        successCount++;
                         if (log.isDebugEnabled()) {
-                            log.debug(e);
+                            log.debug("User import successful - Username : " + userName);
                         }
-                        lastError = e.getMessage();
-                        fail = true;
+                    } else {
+                        duplicateCount++;
+                        duplicateUsers.add(userName);
+                        isDuplicate = true;
+                        log.error("User import unsuccessful - Username : " + userName + " - Error: Duplicate user");
+                        duplicateUsers.add(userName);
                     }
+                } catch (UserStoreException e) {
+                    fail = true;
+                    failCount++;
+                    log.error("User import unsuccessful - Username : " + userName + " - Error: " +
+                            e.getMessage());
+                    errorUsersMap.put(userName, e.getMessage());
                 }
             }
+        }
 
-            if (fail && success) {
-                throw new UserAdminException("Error occurs while importing user names. " +
-                        "Some user names were successfully imported. Some were not. Last error was : " + lastError);
-            }
+        String summeryLog = super.buildBulkImportSummary();
+        log.info(summeryLog);
 
-            if (fail && !success) {
-                throw new UserAdminException("Error occurs while importing user names. " +
-                        "All user names were not imported. Last error was : " + lastError);
-            }
-            if (isDuplicate) {
-                throw new UserAdminException("Detected duplicate user names. " +
-                        "Failed to import duplicate users. Non-duplicate user names were successfully imported.");
-            }
-        } catch (UserAdminException e) {
-            throw e;
+        JSONConverter jsonConverter = new JSONConverter();
+        String importedUsers = jsonConverter.xlsToJSON(sheet);
+        auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser, UserMgtConstants.OPERATION_NAME,
+                userStoreDomain, importedUsers, summeryLog));
+
+        if (fail || isDuplicate) {
+            throw new UserAdminException(String.format(UserMgtConstants.ERROR_MESSAGE, successCount, failCount,
+                    duplicateCount));
         }
     }
 
-    public Workbook createWorkbook() throws UserAdminException {
+    /**
+     * Generate a WorkBook object from the excel file.
+     *
+     * @return : The generated workbook
+     * @throws UserAdminException : Throws if there is any error occurred in the process of creating the workbook.
+     */
+    private Workbook createWorkbook() throws UserAdminException {
+
         String filename = config.getFileName();
         InputStream ins = config.getInStream();
-        Workbook wb = null;
+        Workbook wb;
         try {
             if (filename.endsWith(".xlsx")) {
                 wb = new XSSFWorkbook(ins);
@@ -121,13 +137,11 @@ public class ExcelUserBulkImport {
                 POIFSFileSystem fs = new POIFSFileSystem(ins);
                 wb = new HSSFWorkbook(fs);
             }
-        } catch (Exception e) {
-            log.error("Bulk import failed" + e.getMessage(), e);
-            throw new UserAdminException("Bulk import failed" + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UserAdminException("Error reading the xls file " + e.getMessage(), e);
         } finally {
             IdentityIOStreamUtils.closeInputStream(ins);
         }
         return wb;
     }
-
 }

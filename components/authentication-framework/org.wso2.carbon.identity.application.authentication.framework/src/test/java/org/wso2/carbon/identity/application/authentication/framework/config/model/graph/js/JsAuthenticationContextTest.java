@@ -19,13 +19,17 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -33,11 +37,14 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class JsAuthenticationContextTest {
 
+    public static final String TEST_IDP = "testIdP";
     private ScriptEngine scriptEngine;
 
     @BeforeClass
@@ -46,77 +53,133 @@ public class JsAuthenticationContextTest {
         scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
     }
 
+    @Test
     public void testClaimAssignment() throws ScriptException {
 
-        ClaimMapping claimMapping1 = new ClaimMapping();
-        claimMapping1.setLocalClaim(new Claim());
-        claimMapping1.setRemoteClaim(new Claim());
+        ClaimMapping claimMapping1 = ClaimMapping.build("", "", "", false);
 
-        ClaimMapping claimMapping2 = new ClaimMapping();
-        Claim localClaim1 = new Claim();
-        localClaim1.setClaimUri("Test.Local.Claim.Url.2");
-        Claim remoteClaim1 = new Claim();
-        remoteClaim1.setClaimUri("Test.Remote.Claim.Url.2");
-        claimMapping2.setLocalClaim(localClaim1);
-        claimMapping2.setRemoteClaim(remoteClaim1);
+        ClaimMapping claimMapping2 = ClaimMapping.build("Test.Remote.Claim.Url.2", "Test.Remote.Claim.Url.2", "",
+            false);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
         authenticatedUser.getUserAttributes().put(claimMapping2, "TestClaimVal2");
         AuthenticationContext authenticationContext = new AuthenticationContext();
-
-        authenticationContext.setSubject(authenticatedUser);
+        setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
-        Object result = scriptEngine.eval("context.lastAuthenticatedUser.claims.local['Test.Local.Claim.Url.1']");
+        Object result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']");
         assertNull(result);
-        result = scriptEngine.eval("context.lastAuthenticatedUser.claims.local['Test.Local.Claim.Url.2']");
+        result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']");
         assertEquals(result, "TestClaimVal2");
 
-        scriptEngine.eval("context.lastAuthenticatedUser.claims.local['Test.Local.Claim.Url.2'] = 'Modified2'");
-        result = scriptEngine.eval("context.lastAuthenticatedUser.claims.local['Test.Local.Claim.Url.2']");
+        scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'");
+        result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']");
         assertEquals(result, "Modified2");
 
     }
 
-    @Test(dataProvider = "claimCreation")
-    public void testClaimAddition(String scriptPart, boolean isNull, String expectedValue) throws ScriptException {
+    private void setupAuthContextWithStepData(AuthenticationContext context, AuthenticatedUser authenticatedUser) {
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setAuthenticatedIdP(TEST_IDP);
+        stepConfigMap.put(1, stepConfig);
+        sequenceConfig.setStepMap(stepConfigMap);
+        context.setSequenceConfig(sequenceConfig);
+        Map<String, AuthenticatedIdPData> idPDataMap = new HashMap<>();
+        AuthenticatedIdPData idPData = new AuthenticatedIdPData();
+        idPData.setUser(authenticatedUser);
+        idPData.setIdpName(TEST_IDP);
+        idPDataMap.put(TEST_IDP, idPData);
+        context.setCurrentAuthenticatedIdPs(idPDataMap);
+    }
+
+    @Test
+    public void testRemoteAddition() throws ScriptException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         AuthenticationContext authenticationContext = new AuthenticationContext();
-
-        authenticationContext.setSubject(authenticatedUser);
+        setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
-        scriptEngine.eval(scriptPart);
-        scriptEngine.eval("context.lastAuthenticatedUser.claims.push(claim1)");
+        scriptEngine.eval("context.steps[1].subject.remoteClaims['testClaim']='testValue'");
 
-        ClaimMapping claimMapping2 = new ClaimMapping();
-        Claim localClaim1 = new Claim();
-        localClaim1.setClaimUri("local.uri");
-        Claim remoteClaim1 = new Claim();
-        remoteClaim1.setClaimUri("remote.uri");
-        claimMapping2.setLocalClaim(localClaim1);
-        claimMapping2.setRemoteClaim(remoteClaim1);
-
-        String claimCreatedByJs = authenticatedUser.getUserAttributes().get(claimMapping2);
-        assertEquals(claimCreatedByJs, expectedValue);
+        ClaimMapping claimMapping = ClaimMapping.build("testClaim", "testClaim", "", false);
+        String claimCreatedByJs = authenticatedUser.getUserAttributes().get(claimMapping);
+        assertEquals(claimCreatedByJs, "testValue");
     }
 
-    @DataProvider(name = "claimCreation")
-    public Object[][] getClaimCreationData() {
+    @Test
+    public void testGetServiceProviderFromWrappedContext() throws Exception {
 
-        return new Object[][] { { "claim1 =  {'local' : {'uri' : 'local.uri'}, 'remote' : {'uri' : 'remote.uri'},"
-                + " 'value' : 'AssignedByJs'}", false, "AssignedByJs" },
-                { "claim1 = {}; claim1.local = {}; claim1.remote= {}; "
-                        + "claim1.local.uri = 'local.uri';claim1.remote.uri = 'remote.uri';"
-                        + "claim1.value = 'AssignedByJs'", false, "AssignedByJs" },
-                { "claim1 = {'local' : {'uri' : 'local.uri'}, 'remote' : {'uri' : 'remote.uri'}}", true, null } };
+        final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.serviceProviderName");
+        assertNotNull(result);
+        assertEquals(result, SERVICE_PROVIDER_NAME, "Service Provider name set in AuthenticationContext is not " +
+            "accessible from JSAuthenticationContext");
+    }
+
+
+    @Test
+    public void testGetLastLoginFailedUserFromWrappedContext() throws Exception {
+
+        final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
+        final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
+        final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
+
+        AuthenticatedUser lastAttemptedUser = new AuthenticatedUser();
+        lastAttemptedUser.setUserName(LAST_ATTEMPTED_USER_USERNAME);
+        lastAttemptedUser.setTenantDomain(LAST_ATTEMPTED_USER_TENANT_DOMAIN);
+        lastAttemptedUser.setUserStoreDomain(LAST_ATTEMPTED_USER_USERSTORE_DOMAIN);
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.lastLoginFailedUser");
+        assertNotNull(result);
+        assertTrue(result instanceof JsAuthenticatedUser);
+
+        String username = (String) scriptEngine.eval("context.lastLoginFailedUser.username");
+        assertEquals(username, LAST_ATTEMPTED_USER_USERNAME);
+
+        String tenantDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.tenantDomain");
+        assertEquals(tenantDomain, LAST_ATTEMPTED_USER_TENANT_DOMAIN);
+
+        String userStoreDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.userStoreDomain");
+        assertEquals(userStoreDomain, LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
+    }
+
+    @Test
+    public void testGetLastLoginFailedUserNullFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, null);
+
+        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.lastLoginFailedUser");
+        assertNull(result);
     }
 }

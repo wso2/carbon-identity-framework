@@ -61,6 +61,7 @@ import java.util.Properties;
  * PDP.DecisionCaching.CachingInterval=30000
  * PDP.ResourceCaching.Enable=true
  * PDP.ResourceCaching.CachingInterval=30000
+ * JSON.Shorten.Form.Enabled.ForDefault=false
  * <p/>
  * PDP.Extensions.Extension.1=org.wso2.carbon.identity.entitlement.pdp.DefaultExtension
  * <p/>
@@ -214,6 +215,7 @@ public class EntitlementExtensionBuilder {
         setProperty(properties, pdpProperties, PDPConstants.ENTITLEMENT_ENGINE_CACHING_INTERVAL);
         setProperty(properties, pdpProperties, PDPConstants.PDP_REGISTRY_LEVEL_POLICY_CACHE_CLEAR);
         setProperty(properties, pdpProperties, PDPConstants.POLICY_CACHING_INTERVAL);
+        setProperty(properties, pdpProperties, PDPConstants.XACML_JSON_SHORT_FORM_ENABLED);
 
         holder.setEngineProperties(pdpProperties);
     }

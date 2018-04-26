@@ -57,6 +57,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
 
+    private String id;
     private String identityProviderName;
     private String identityProviderDescription;
     private String alias;
@@ -547,4 +548,11 @@ public class IdentityProvider implements Serializable {
         this.idpProperties = idpProperties;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return this.id;
+    }
 }

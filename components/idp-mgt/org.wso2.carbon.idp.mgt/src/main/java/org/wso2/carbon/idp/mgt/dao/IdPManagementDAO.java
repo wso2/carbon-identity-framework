@@ -131,8 +131,9 @@ public class IdPManagementDAO {
                         .equals(identityProvider.getIdentityProviderName())) {
                     idps.add(identityProvider);
                 }
+                identityProvider.setId(rs.getString("ID"));
                 List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                        Integer.parseInt(rs.getString("ID")));
+                        Integer.parseInt(identityProvider.getId()));
                 identityProvider
                         .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
@@ -1063,14 +1064,47 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Retrieves an IDP from name.
+     *
+     * @param dbConnection Database connection.
+     * @param idPName      IDP name.
+     * @param tenantId     Tenant ID of the IDP.
+     * @param tenantDomain Tenant Domain of the IDP.
+     * @return An Identity Provider with given name.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId,
+                                         String tenantDomain) throws IdentityProviderManagementException {
+
+        return getIDP(dbConnection, idPName, -1, tenantId, tenantDomain);
+    }
+
+    /**
+     * Retrieves an IDP by it's ID.
+     *
+     * @param dbConnection Database Connection.
+     * @param idpId        Identity Provider ID.
+     * @param tenantId     Tenant ID of the IDP.
+     * @param tenantDomain Tenant Domain of the IDP.
+     * @return An Identity Provider with given name.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    public IdentityProvider getIDPbyId(Connection dbConnection, int idpId, int tenantId,
+                                       String tenantDomain) throws IdentityProviderManagementException {
+
+        return getIDP(dbConnection, null, idpId, tenantId, tenantDomain);
+    }
+
+    /**
      * @param dbConnection
      * @param idPName
+     * @param idpId
      * @param tenantId
      * @param tenantDomain
      * @return
      * @throws IdentityProviderManagementException
      */
-    public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId,
+    private IdentityProvider getIDP(Connection dbConnection, String idPName, int idpId, int tenantId,
                                          String tenantDomain) throws IdentityProviderManagementException {
 
         PreparedStatement prepStmt = null;
@@ -1090,18 +1124,33 @@ public class IdPManagementDAO {
             // SP_IDP_USER_CLAIM_URI,
             // SP_IDP_ROLE_CLAIM_URI,SP_IDP_DEFAULT_AUTHENTICATOR_NAME,SP_IDP_DEFAULT_PRO_CONNECTOR_NAME
             String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_BY_NAME_SQL;
+            if(StringUtils.isEmpty(idPName)) {
+                sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_BY_ID_SQL;
+            }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, tenantId);
             prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
-            prepStmt.setString(3, idPName);
+            if (StringUtils.isNotEmpty(idPName)) {
+                prepStmt.setString(3, idPName);
+            } else {
+                prepStmt.setInt(3, idpId);
+            }
+
             rs = prepStmt.executeQuery();
-            int idpId = -1;
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
                 federatedIdp.setIdentityProviderName(idPName);
 
-                idpId = rs.getInt("ID");
+                if(StringUtils.isNotEmpty(idPName)) {
+                    idpId = rs.getInt("ID");
+                    federatedIdp.setId(Integer.toString(idpId));
+                    federatedIdp.setDisplayName(idPName);
+                } else {
+                    idPName = rs.getString("NAME");
+                    federatedIdp.setIdentityProviderName(idPName);
+                    federatedIdp.setId(Integer.toString(idpId));
+                }
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -1191,8 +1240,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                        Integer.parseInt(rs.getString("ID")));
+                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection, idpId);
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
