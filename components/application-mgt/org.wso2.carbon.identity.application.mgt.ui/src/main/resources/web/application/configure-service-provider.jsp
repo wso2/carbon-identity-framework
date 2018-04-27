@@ -32,6 +32,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.oauth.ui.client.OAuthAdminClient"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -72,6 +73,8 @@
     List<String> permissions = null;
     permissions = appBean.getPermissions();
 
+    OAuthAdminClient client = null;
+    Boolean isHashDisabled = false;
     String[] allClaimUris = appBean.getClaimUris();
     Map<String, String> claimMapping = appBean.getClaimMapping();
     Map<String, String> roleMapping = appBean.getRoleMapping();
@@ -270,6 +273,8 @@
                 .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
+        client = new OAuthAdminClient(cookie, backendServerURL, configContext);
+        isHashDisabled = client.isHashDisabled();
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error occured while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
     }
@@ -1442,7 +1447,11 @@
                                                         <td>
                                                             <%
                                                                 if (oauthConsumerSecret == null || oauthConsumerSecret.isEmpty()) {
-                                                                    oauthConsumerSecret = appBean.getOauthConsumerSecret();
+                                                                    if (isHashDisabled) {
+                                                                        oauthConsumerSecret = appBean.getOauthConsumerSecret();
+                                                                    } else {
+                                                                        oauthConsumerSecret = null;
+                                                                    }
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
