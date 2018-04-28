@@ -97,7 +97,7 @@
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input id="securityQuestionAnswer" name="securityQuestionAnswer" type="text"
+                                <input id="securityQuestionAnswer" name="securityQuestionAnswer" type="password"
                                        class="form-control"
                                        tabindex="0" autocomplete="off" required/>
                             </div>
