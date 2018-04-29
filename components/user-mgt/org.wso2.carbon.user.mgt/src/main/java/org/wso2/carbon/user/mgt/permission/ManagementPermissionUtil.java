@@ -137,11 +137,11 @@ public class ManagementPermissionUtil {
 
         for (UserOperationEventListener userOperationEventListener : UserMgtDSComponent
                 .getUserOperationEventListeners()) {
-            if (userOperationEventListener instanceof AbstractUserOperationEventListener) {
-                if (!((AbstractUserOperationEventListener) userOperationEventListener)
-                        .doPostUpdatePermissionsOfRole(roleName, permissions, userStoreManager)) {
-                    return;
-                }
+            if (userOperationEventListener instanceof AbstractUserOperationEventListener
+                    && !((AbstractUserOperationEventListener) userOperationEventListener)
+                    .doPostUpdatePermissionsOfRole(roleName, permissions, userStoreManager)) {
+                return;
+
             }
         }
     }
