@@ -1,0 +1,39 @@
+@App:name('LockAccountOnFailureApp')
+
+-- @sink(type='log')
+define stream login_failure_stream (user string, service_provider string);
+
+@sink(type='log')
+define stream login_failure_count_stream (user string, counter long);
+
+@sink(type='log')
+define stream account_lock_stream (user string);
+
+@sink(type='log')
+define stream account_unlock_stream (user string);
+
+@Index('user')
+define table AccountLockedTable (user string);
+
+--- DETECT LOGIN FAILURES WITHIN 60s INTERVAL ---
+from login_failure_stream#window.time(60 sec)
+select user, count() as counter group by user
+insert into login_failure_count_stream;
+
+--  --
+@info(name='account_lock_query')
+from login_failure_count_stream#window.time(120 sec)[(counter >= 3)]
+select user
+insert into account_lock_stream;
+
+from account_lock_stream
+select user
+insert into AccountLockedTable;
+
+@info(name='account_unlock_query')
+from login_failure_count_stream#window.time(120 sec)[(counter >= 3)]
+select user
+insert expired events into account_unlock_stream;
+
+from account_unlock_stream
+delete AccountLockedTable on AccountLockedTable.user == user;

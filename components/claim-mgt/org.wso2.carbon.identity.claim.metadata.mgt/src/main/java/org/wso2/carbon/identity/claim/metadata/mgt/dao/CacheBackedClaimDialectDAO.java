@@ -40,10 +40,20 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
         List<ClaimDialect> claimDialectList = claimDialectCache.getClaimDialects(tenantId);
         if (claimDialectList != null && !claimDialectList.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache hit for claim dialect list for tenant: " + tenantId + ". Claim dialect list size: "
+                        + claimDialectList.size());
+            }
             return claimDialectList;
         }
+
         claimDialectList = super.getClaimDialects(tenantId);
         claimDialectCache.putClaimDialects(tenantId, claimDialectList);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Cache miss for claim dialect list for tenant: " + tenantId + ". Updated cache with claim " +
+                    "dialect list retrieved from database. Claim dialect list size: " + claimDialectList.size());
+        }
         return claimDialectList;
     }
 
@@ -53,6 +63,11 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
         super.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
         claimDialectCache.clearClaimDialects(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Claim dialect: " + oldClaimDialect.getClaimDialectURI() + " is renamed to new claim dialect: "
+                    + newClaimDialect.getClaimDialectURI() + " for tenant: " + tenantId + ". Invalidated " +
+                    "ClaimDialectCache." );
+        }
     }
 
     @Override
@@ -60,5 +75,21 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
         super.removeClaimDialect(claimDialect, tenantId);
         claimDialectCache.clearClaimDialects(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is removed for tenant: " + tenantId +
+                    ". Invalidated ClaimDialectCache.");
+        }
     }
+
+    @Override
+    public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
+
+        super.addClaimDialect(claimDialect, tenantId);
+        claimDialectCache.clearClaimDialects(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is added for tenant: " + tenantId +
+                    ". Invalidated ClaimDialectCache.");
+        }
+    }
+
 }
