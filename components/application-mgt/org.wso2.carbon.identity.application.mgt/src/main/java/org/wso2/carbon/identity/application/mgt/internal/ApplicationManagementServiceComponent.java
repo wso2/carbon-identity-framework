@@ -20,9 +20,13 @@ package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -32,18 +36,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
-import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtValidationListener;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -53,10 +54,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -86,6 +84,7 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
                     null);
             buildFileBasedSPList();
+            loadAuthenticationTemplates();
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
@@ -214,4 +213,46 @@ public class ApplicationManagementServiceComponent {
         }
     }
 
+    /**
+     * Load the authentication template files from [IS_HOME]/repository/resources/identity/authntemplates/ . Files
+     * need to have .json as the extension to be read as an template. Will be ignored otherwise.
+     */
+    private void loadAuthenticationTemplates() {
+
+        File templatesDir = new File(ApplicationConstants.TEMPLATES_DIR_PATH);
+        JSONObject templatesJsonObject = new JSONObject();
+        if (templatesDir.exists() && templatesDir.isDirectory()) {
+            File[] jsonFiles = templatesDir.listFiles((d, name) -> name.endsWith(ApplicationConstants.FILE_EXT_JSON));
+            if (jsonFiles != null) {
+                for (File jsonFile : jsonFiles) {
+                    if (jsonFile.isFile()) {
+                        try {
+                            String templateJsonString = FileUtils.readFileToString(jsonFile);
+                            JSONObject templateObject = new JSONObject(templateJsonString);
+                            if (templateObject.has(ApplicationConstants.TEMPLATE_CATEGORY)) {
+                                String category = templateObject.getString(ApplicationConstants.TEMPLATE_CATEGORY);
+                                if (!templatesJsonObject.has(category)) {
+                                    templatesJsonObject.put(category, Collections.emptyList());
+                                }
+                                JSONArray categoryTemplateArray = templatesJsonObject.getJSONArray(category);
+                                categoryTemplateArray.put(templateObject);
+                            }
+                            if (log.isDebugEnabled()) {
+                                log.debug("Authentication template file loaded from: " + jsonFile.getName());
+                            }
+                        } catch (JSONException e) {
+                            log.error("Error when parsing json content from file " + jsonFile.getName(), e);
+                        } catch (IOException e) {
+                            log.error("Error when reading authentication template file " + jsonFile.getName(), e);
+                        }
+                    }
+                }
+            } else {
+                log.warn("Authentication template files could not be read from " + ApplicationConstants
+                    .TEMPLATES_DIR_PATH);
+            }
+        }
+        ApplicationManagementServiceComponentHolder.getInstance().setAuthenticationTemplatesJson(templatesJsonObject
+            .toString());
+    }
 }

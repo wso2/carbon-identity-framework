@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
+import java.io.File;
+
 public class ApplicationConstants {
 
     private ApplicationConstants() {
@@ -44,4 +48,10 @@ public class ApplicationConstants {
     public static final String APPLICATION_DOMAIN = "Application";
     // Regex for validating application name.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+
+    public static final String TEMPLATE_CATEGORY = "category";
+    public static final String FILE_EXT_JSON = ".json";
+    public static final String TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
+        + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
+        .separator;
 }
