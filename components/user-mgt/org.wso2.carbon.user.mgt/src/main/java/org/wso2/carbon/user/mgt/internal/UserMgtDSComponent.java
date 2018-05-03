@@ -32,17 +32,22 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
+import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
+import org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger;
 import org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder;
-import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
-import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Component(
          name = "usermgt.component", 
@@ -54,6 +59,10 @@ public class UserMgtDSComponent {
     private static RegistryService registryService = null;
     private static RealmService realmService = null;
     private static Map<String, UserDeletionEventRecorder> userDeleteEventRecorders = new HashMap<>();
+    private static Collection<UserOperationEventListener> userOperationEventListenerCollection;
+    private static Map<Integer, UserOperationEventListener> userOperationEventListeners;
+    private static Map<Integer, UserManagementErrorEventListener> userManagementErrorEventListeners;
+    private static Collection<UserManagementErrorEventListener> userManagementErrorEventListenerCollection;
 
     @Activate
     protected void activate(ComponentContext ctxt) {
@@ -98,6 +107,27 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserMgtAuditLogger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                    new UserManagementAuditLogger(), null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserManagementAuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserManagementAuditLogger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext()
+                    .registerService(UserManagementErrorEventListener.class.getName(), new UserMgtFailureAuditLogger(),
+                            null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserMgtFailureAuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserMgtFailureAuditLogger successfully registered.");
                 }
             }
 
@@ -201,6 +231,58 @@ public class UserMgtDSComponent {
     }
 
     @Reference(
+            name = "org.wso2.carbon.user.core.listener.UserOperationEventListener",
+            service = UserOperationEventListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserOperationEventListenerService")
+    protected static synchronized void setUserOperationEventListenerService(
+            UserOperationEventListener userOperationEventListenerService) {
+
+        userOperationEventListenerCollection = null;
+        if (userOperationEventListeners == null) {
+            userOperationEventListeners = new TreeMap<>();
+        }
+        userOperationEventListeners
+                .put(userOperationEventListenerService.getExecutionOrderId(), userOperationEventListenerService);
+    }
+
+    protected static synchronized void unsetUserOperationEventListenerService(
+            UserOperationEventListener userOperationEventListenerService) {
+
+        if (userOperationEventListenerService != null && userOperationEventListeners != null) {
+            userOperationEventListeners.remove(userOperationEventListenerService.getExecutionOrderId());
+            userOperationEventListenerCollection = null;
+        }
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.user.core.listener.UserManagementErrorEventListener",
+            service = UserManagementErrorEventListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserManagementErrorEventListenerService")
+    protected static synchronized void setUserManagementErrorEventListenerService(
+            UserManagementErrorEventListener userManagementErrorEventListenerService) {
+
+        userManagementErrorEventListenerCollection = null;
+        if (userManagementErrorEventListeners == null) {
+            userManagementErrorEventListeners = new TreeMap<>();
+        }
+        userManagementErrorEventListeners.put(userManagementErrorEventListenerService.getExecutionOrderId(),
+                userManagementErrorEventListenerService);
+    }
+
+    protected static synchronized void unsetUserManagementErrorEventListenerService(
+            UserManagementErrorEventListener userManagementErrorEventListener) {
+
+        if (userManagementErrorEventListener != null && userManagementErrorEventListeners != null) {
+            userManagementErrorEventListeners.remove(userManagementErrorEventListener.getExecutionOrderId());
+            userManagementErrorEventListenerCollection = null;
+        }
+    }
+
+    @Reference(
              name = "identityCoreInitializedEventService",
              service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
              cardinality = ReferenceCardinality.MANDATORY,
@@ -226,6 +308,38 @@ public class UserMgtDSComponent {
 
     public static Map<String, UserDeletionEventRecorder> getUserDeleteEventRecorders() {
         return userDeleteEventRecorders;
+    }
+
+    /**
+     * To get UserOperationEventListeners that are registered in particular environment.
+     *
+     * @return UserOperationEventListeners
+     */
+    public static synchronized Collection<UserOperationEventListener> getUserOperationEventListeners() {
+
+        if (userOperationEventListeners == null) {
+            userOperationEventListeners = new TreeMap<>();
+        }
+        if (userOperationEventListenerCollection == null) {
+            userOperationEventListenerCollection = userOperationEventListeners.values();
+        }
+        return userOperationEventListenerCollection;
+    }
+
+    /**
+     * To get the UserManagementErrorEventListeners that are registered for handling error.
+     *
+     * @return relevant UserManagementErrorEventListeners that are registered in the current environment.
+     */
+    public static synchronized Collection<UserManagementErrorEventListener> getUserManagementErrorEventListeners() {
+
+        if (userManagementErrorEventListeners == null) {
+            userManagementErrorEventListeners = new TreeMap<>();
+        }
+        if (userManagementErrorEventListenerCollection == null) {
+            userManagementErrorEventListenerCollection = userManagementErrorEventListeners.values();
+        }
+        return userManagementErrorEventListenerCollection;
     }
 }
 
