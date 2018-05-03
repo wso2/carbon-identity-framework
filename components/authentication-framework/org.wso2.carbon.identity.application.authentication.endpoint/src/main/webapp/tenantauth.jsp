@@ -23,18 +23,19 @@
 
 <form action="../commonauth" method="post" id="loginForm">
     <% if (Boolean.parseBoolean(loginFailed)) { %>
-    <div class="alert alert-danger" id="error-msg">Username or password is
-        invalid
+    <div class="alert alert-danger" id="error-msg">
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "username.or.password.invalid")%>
     </div>
     <%}%>
 
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <select class="form-control" id='tenantList' name="tenantList" size='1'>
-            <option value="<fmt:message key='select.tenant.dropdown.display.name'/>">
-                <fmt:message key='select.tenant.dropdown.display.name'/>
+            <option value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "select.tenant.dropdown.display.name")%>">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "select.tenant.dropdown.display.name")%>
             </option>
-            <option value="<fmt:message key='super.tenant'/>"><fmt:message key='super.tenant.display.name'/>
+            <option value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "super.tenant")%>">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "super.tenant.display.name")%>
             </option>
 
             <%
@@ -55,11 +56,11 @@
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id='username_tmp' name="username_tmp" type="text" class="form-control" tabindex="0"
-               placeholder="Username">
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%>">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
-               placeholder="Password">
+               placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%>">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
@@ -69,7 +70,8 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="checkbox">
             <label>
-                <input type="checkbox" id="chkRemember" name="chkRemember"> Remember me on this computer
+                <input type="checkbox" id="chkRemember" name="chkRemember">
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "remember.me")%>
             </label>
         </div>
         <br>
@@ -77,15 +79,17 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit" onclick="appendTenantDomain();">Sign in
+                    type="submit" onclick="appendTenantDomain();">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
 
     <%if(request.getParameter("relyingParty").equals("wso2.my.dashboard")) { %>
     <a id="registerLink" href="create-account.jsp?sessionDataKey=<%=Encode.forHtmlAttribute
-            (request.getParameter("sessionDataKey"))%>" class="font-large">Create an
-        account</a>
+            (request.getParameter("sessionDataKey"))%>" class="font-large">
+        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "create.an.account")%>
+    </a>
     <%} %>
 
     <script>
@@ -99,7 +103,7 @@
 
             setSelectedTenantCookie(tenantDomain, 30);
 
-            if (tenantDomain != "<fmt:message key='select.tenant.dropdown.display.name'/>") {
+            if (tenantDomain != "<%=AuthenticationEndpointUtil.i18n(resourceBundle,"select.tenant.dropdown.display.name")%>") {
 
                 var username = document.getElementsByName("username_tmp")[0].value;
                 var userWithDomain = username + "@" + tenantDomain;
@@ -153,7 +157,7 @@
             }
 
             //remove super tenant from dropdown based on the properties
-            var superTenant = "<fmt:message key='super.tenant'/>";
+            var superTenant = "<%=AuthenticationEndpointUtil.i18n(resourceBundle,"super.tenant")%>";
             if (superTenant == null || superTenant == "") {
                 for (i = 0; i < element.options.length; i++) {
                     if (element.options[i].value == superTenant) {

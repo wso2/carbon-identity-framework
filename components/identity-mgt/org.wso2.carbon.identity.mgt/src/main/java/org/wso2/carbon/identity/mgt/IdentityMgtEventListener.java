@@ -530,6 +530,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
         //Removing existing thread local before setting
         IdentityUtil.threadLocalProperties.get().remove(EMPTY_PASSWORD_USED);
+        IdentityUtil.threadLocalProperties.get().remove(USER_IDENTITY_DO);
         
         IdentityMgtConfig config = IdentityMgtConfig.getInstance();
         try {
@@ -703,6 +704,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // Remove thread local variable
             IdentityUtil.threadLocalProperties.get().remove(DO_POST_ADD_USER);
             IdentityUtil.threadLocalProperties.get().remove(EMPTY_PASSWORD_USED);
+            IdentityUtil.threadLocalProperties.get().remove(USER_IDENTITY_DO);
         }
     }
 

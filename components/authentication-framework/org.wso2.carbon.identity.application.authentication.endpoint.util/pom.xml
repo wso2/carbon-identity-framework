@@ -19,15 +19,15 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.10.47-SNAPSHOT</version>
+        <version>5.11.189-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
-    <name>WSO2 Carbon - Identity Application Authentication Endpoint</name>
+    <name>WSO2 Carbon - Identity Application Authentication Endpoint(Utils)</name>
     <packaging>bundle</packaging>
-    <description>Identity Application Authentication Endpoint</description>
+    <description>Identity Application Authentication Endpoint Utilities</description>
     <url>http://wso2.org</url>
 
     <dependencies>
@@ -93,6 +93,11 @@
             <version>${carbon.kernel.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+            <artifactId>encoder</artifactId>
+            <version>${encoder.wso2.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -142,6 +147,7 @@
                             javax.xml.namespace,
                             org.w3c.dom,
                             org.xml.sax,
+                            org.owasp.encoder.*,
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",

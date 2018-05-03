@@ -698,25 +698,24 @@
             if (scimProperties != null && scimProperties.length > 0) {
                 for (Property scimProperty : scimProperties) {
                     //This is a safety to check to avoid NPE
-                    if (scimProperty == null) {
-                        continue;
-                    }
-                    if ("scim-username".equals(scimProperty.getName())) {
-                        scimUserName = scimProperty.getValue();
-                    } else if ("scim-password".equals(scimProperty.getName())) {
-                        scimPassword = scimProperty.getValue();
-                    } else if ("scim-user-ep".equals(scimProperty.getName())) {
-                        scimUserEp = scimProperty.getValue();
-                    } else if ("scim-group-ep".equals(scimProperty.getName())) {
-                        scimGroupEp = scimProperty.getValue();
-                    } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
-                        scimUserStoreDomain = scimProperty.getValue();
-                    } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
-                        isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
-                    } else if ("scim-default-pwd".equals(scimProperty.getName())) {
-                        scimDefaultPwd = scimProperty.getValue();
-                    } else if ("UniqueID".equals(scimProperty.getName())) {
-                        scimUniqueID = scimProperty.getValue();
+                    if (scimProperty != null) {
+                        if ("scim-username".equals(scimProperty.getName())) {
+                            scimUserName = scimProperty.getValue();
+                        } else if ("scim-password".equals(scimProperty.getName())) {
+                            scimPassword = scimProperty.getValue();
+                        } else if ("scim-user-ep".equals(scimProperty.getName())) {
+                            scimUserEp = scimProperty.getValue();
+                        } else if ("scim-group-ep".equals(scimProperty.getName())) {
+                            scimGroupEp = scimProperty.getValue();
+                        } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
+                            scimUserStoreDomain = scimProperty.getValue();
+                        } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
+                            isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
+                        } else if ("scim-default-pwd".equals(scimProperty.getName())) {
+                            scimDefaultPwd = scimProperty.getValue();
+                        } else if ("UniqueID".equals(scimProperty.getName())) {
+                            scimUniqueID = scimProperty.getValue();
+                        }
                     }
                 }
             }
@@ -752,30 +751,32 @@
             Property[] googleProperties = googleApps.getProvisioningProperties();
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
-                    if ("google_prov_domain_name".equals(googleProperty.getName())) {
-                        googleDomainName = googleProperty.getValue();
-                    } else if ("google_prov_givenname".equals(googleProperty.getName())) {
-                        googleGivenNameDefaultValue = googleProperty.getValue();
-                    } else if ("google_prov_familyname".equals(googleProperty.getName())) {
-                        googleFamilyNameDefaultValue = googleProperty.getValue();
-                    } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
-                        googleProvServiceAccEmail = googleProperty.getValue();
-                    } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
-                        googleProvAdminEmail = googleProperty.getValue();
-                    } else if ("google_prov_application_name".equals(googleProperty.getName())) {
-                        googleProvApplicationName = googleProperty.getValue();
-                    } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
-                        googlePrimaryEmailClaim = googleProperty.getValue();
-                    } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
-                        googleGivenNameClaim = googleProperty.getValue();
-                    } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
-                        googleFamilyNameClaim = googleProperty.getValue();
-                    } else if ("google_prov_private_key".equals(googleProperty.getName())) {
-                        googleProvPrivateKeyData = googleProperty.getValue();
-                    } else if ("google_prov_pattern".equals(googleProperty.getName())) {
-                        googleProvPattern = googleProperty.getValue();
-                    } else if ("google_prov_separator".equals(googleProperty.getName())) {
-                        googleProvisioningSeparator = googleProperty.getValue();
+                    if (googleProperty != null) {
+                        if ("google_prov_domain_name".equals(googleProperty.getName())) {
+                            googleDomainName = googleProperty.getValue();
+                        } else if ("google_prov_givenname".equals(googleProperty.getName())) {
+                            googleGivenNameDefaultValue = googleProperty.getValue();
+                        } else if ("google_prov_familyname".equals(googleProperty.getName())) {
+                            googleFamilyNameDefaultValue = googleProperty.getValue();
+                        } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
+                            googleProvServiceAccEmail = googleProperty.getValue();
+                        } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
+                            googleProvAdminEmail = googleProperty.getValue();
+                        } else if ("google_prov_application_name".equals(googleProperty.getName())) {
+                            googleProvApplicationName = googleProperty.getValue();
+                        } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
+                            googlePrimaryEmailClaim = googleProperty.getValue();
+                        } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
+                            googleGivenNameClaim = googleProperty.getValue();
+                        } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
+                            googleFamilyNameClaim = googleProperty.getValue();
+                        } else if ("google_prov_private_key".equals(googleProperty.getName())) {
+                            googleProvPrivateKeyData = googleProperty.getValue();
+                        } else if ("google_prov_pattern".equals(googleProperty.getName())) {
+                            googleProvPattern = googleProperty.getValue();
+                        } else if ("google_prov_separator".equals(googleProperty.getName())) {
+                            googleProvisioningSeparator = googleProperty.getValue();
+                        }
                     }
                 }
             }
@@ -795,16 +796,18 @@
             Property[] spmlProperties = spml.getProvisioningProperties();
             if (spmlProperties != null && spmlProperties.length > 0) {
                 for (Property spmlProperty : spmlProperties) {
-                    if ("spml-username".equals(spmlProperty.getName())) {
-                        spmlUserName = spmlProperty.getValue();
-                    } else if ("spml-password".equals(spmlProperty.getName())) {
-                        spmlPassword = spmlProperty.getValue();
-                    } else if ("spml-ep".equals(spmlProperty.getName())) {
-                        spmlEndpoint = spmlProperty.getValue();
-                    } else if ("spml-oc".equals(spmlProperty.getName())) {
-                        spmlObjectClass = spmlProperty.getValue();
-                    } else if ("UniqueID".equals(spmlProperty.getName())) {
-                        spmlUniqueID = spmlProperty.getValue();
+                    if (spmlProperty != null) {
+                        if ("spml-username".equals(spmlProperty.getName())) {
+                            spmlUserName = spmlProperty.getValue();
+                        } else if ("spml-password".equals(spmlProperty.getName())) {
+                            spmlPassword = spmlProperty.getValue();
+                        } else if ("spml-ep".equals(spmlProperty.getName())) {
+                            spmlEndpoint = spmlProperty.getValue();
+                        } else if ("spml-oc".equals(spmlProperty.getName())) {
+                            spmlObjectClass = spmlProperty.getValue();
+                        } else if ("UniqueID".equals(spmlProperty.getName())) {
+                            spmlUniqueID = spmlProperty.getValue();
+                        }
                     }
                 }
             }
@@ -1567,12 +1570,6 @@
             jQuery('#google_enable_logo').show();
         } else {
             jQuery('#google_enable_logo').hide();
-        }
-
-        if (<%=isSfProvEnabled%>) {
-            jQuery('#sf_enable_logo').show();
-        } else {
-            jQuery('#sf_enable_logo').hide();
         }
 
         if (<%=isScimProvEnabled%>) {

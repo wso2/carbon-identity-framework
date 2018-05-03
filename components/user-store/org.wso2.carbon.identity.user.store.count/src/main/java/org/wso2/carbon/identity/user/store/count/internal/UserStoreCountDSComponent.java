@@ -23,6 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
@@ -33,22 +37,10 @@ import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetr
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetrieverFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
-/**
- * @scr.component name="identity.user.store.count.component" immediate="true"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="user.store.count"
- * interface="org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory"
- * cardinality="0..n" policy="dynamic" bind="setCountRetrieverFactory"
- * unbind="unsetCountRetrieverFactory"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- *
- */
-
+@Component(
+        name = "identity.user.store.count.component",
+        immediate = true
+)
 public class UserStoreCountDSComponent {
 
     private static final Log log = LogFactory.getLog(UserStoreCountDSComponent.class);
@@ -57,6 +49,13 @@ public class UserStoreCountDSComponent {
         return UserStoreCountDataHolder.getInstance().getRealmService();
     }
 
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
 
         UserStoreCountDataHolder.getInstance().setRealmService(realmService);
@@ -113,6 +112,13 @@ public class UserStoreCountDSComponent {
         UserStoreCountDataHolder.getInstance().setBundleContext(null);
     }
 
+    @Reference(
+            name = "user.store.count",
+            service = AbstractCountRetrieverFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCountRetrieverFactory"
+    )
     protected void setCountRetrieverFactory(AbstractCountRetrieverFactory countRetrieverFactory) {
 
         UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
@@ -133,6 +139,13 @@ public class UserStoreCountDSComponent {
         }
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */

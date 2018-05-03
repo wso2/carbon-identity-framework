@@ -74,8 +74,8 @@
 
 
                     var value = document.getElementsByName("displayName")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="displayname.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="displayname.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 30) {
                         CARBON.showWarningDialog('<fmt:message key="displayname.is.too.long"/>');
@@ -84,8 +84,8 @@
 
 
                     var value = document.getElementsByName("description")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="description.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="description.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 150) {
                         CARBON.showWarningDialog('<fmt:message key="description.is.too.long"/>');
@@ -93,8 +93,8 @@
                     }
 
                     var value = document.getElementsByName("claimUri")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="claim.uri.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 100) {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.too.long"/>');
@@ -127,6 +127,10 @@
                     }
 
                     document.adddialect.submit();
+                }
+
+                function isEmpty(value){
+                  return (value == null || value.trim() == '');
                 }
 
             </script>

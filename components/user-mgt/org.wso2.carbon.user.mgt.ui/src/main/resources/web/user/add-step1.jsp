@@ -33,6 +33,10 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.client.ClaimDataAdminClient" %>
+<%@ page import="org.apache.log4j.Logger"%>
+<%@ page import="org.wso2.carbon.user.mgt.ui.ClaimDataAdminException" %>
+
 <jsp:useBean id="userBean"
              type="org.wso2.carbon.user.mgt.ui.UserBean"
              class="org.wso2.carbon.user.mgt.ui.UserBean" scope="session"/>
@@ -41,10 +45,14 @@
 
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
+<%!
+    private static final String EMAIL_CLAIM = "http://wso2.org/claims/emailaddress";
+%>
 <%
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
+    Logger logger = Logger.getLogger(this.getClass());
 
     List<String> domainNames = null;
     String selectedDomain = null;
@@ -232,7 +240,34 @@
                     return false;
                 }
             } else {
-                var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+                <%
+                String pattern = "";
+
+                if (isAskPasswordEnabled) {
+                    ClaimDataAdminClient claimDataAdminClient = new ClaimDataAdminClient((String)
+                session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE),
+                CarbonUIUtil.getServerURL(config.getServletContext(), session),
+                (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT));
+                try {
+                    pattern = claimDataAdminClient.getRegex(EMAIL_CLAIM);
+                }
+                catch (ClaimDataAdminException e) {
+                    logger.error("Error while getting local claims", e);
+                }
+                }
+                %>
+                var emailPattern;
+                <%
+                if (pattern.isEmpty() || pattern.length() == 2) {
+                %>
+                emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+                <%
+                } else {
+                %>
+                emailPattern = <%=pattern%>;
+                <%
+                }
+                %>
                 reason = validateString("email", emailPattern);
                 if (reason != "") {
                     if (reason == "Empty string") {

@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -118,7 +120,18 @@ public class ClaimMetadataManagementAdminService {
 
 
             LocalClaim[] localClaims = localClaimList.toArray(new LocalClaim[0]);
-            return ClaimMetadataUtils.convertLocalClaimsToLocalClaimDTOs(localClaims);
+
+            LocalClaimDTO[] localClaimDTOS = ClaimMetadataUtils.convertLocalClaimsToLocalClaimDTOs(localClaims);
+            // Sort the claim dialects in the alphabetical order
+            Arrays.sort(localClaimDTOS, new Comparator<LocalClaimDTO>() {
+                @Override
+                public int compare(LocalClaimDTO o1, LocalClaimDTO o2) {
+                    return o1.getLocalClaimURI().toLowerCase().compareTo(
+                            o2.getLocalClaimURI().toLowerCase());
+                }
+            });
+
+            return localClaimDTOS;
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);

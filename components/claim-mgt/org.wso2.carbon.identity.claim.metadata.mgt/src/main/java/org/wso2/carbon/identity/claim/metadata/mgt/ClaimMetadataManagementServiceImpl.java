@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
@@ -41,7 +42,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);
 
-    private ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+    private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
 
@@ -143,6 +144,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
             throw new ClaimMetadataException("Local claim URI cannot be empty");
+        } else if (localClaim.getMappedAttributes().isEmpty()) {
+            throw new ClaimMetadataException("Mapped attribute of the claim dialect URI : " + localClaim
+                    .getClaimDialectURI() + " and Claim URI : " + localClaim.getClaimURI() + " cannot be empty");
         }
 
         // TODO : validate claim dialect already exists?

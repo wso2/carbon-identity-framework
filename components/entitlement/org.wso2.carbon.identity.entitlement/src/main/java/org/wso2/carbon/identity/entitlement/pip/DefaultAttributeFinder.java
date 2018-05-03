@@ -71,6 +71,12 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
                                           String environmentId, String attributeId, String issuer) throws Exception {
         Set<String> values = new HashSet<String>();
 
+        if (StringUtils.isEmpty(subjectId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("subjectId value is null or empty. Returning empty attribute set");
+            }
+            return values;
+        }
         subjectId = MultitenantUtils.getTenantAwareUsername(subjectId);
         if (UserCoreConstants.ClaimTypeURIs.ROLE.equals(attributeId)) {
             if (log.isDebugEnabled()) {

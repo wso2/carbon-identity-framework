@@ -24,6 +24,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@include file="localize.jsp" %>
 
 <%
     String errorCode = request.getParameter("errorCode");
@@ -65,12 +66,11 @@
         errorCode = e.getMessage();
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
     <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -93,7 +93,7 @@
                 <a href="#">
                     <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
                 </a>
             </div>
         </div>
@@ -105,9 +105,10 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <form action="registration.do" method="post" id="register">
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Create
-                        An Account</h2>
+                <form action="../registration.do" method="post" id="register">
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "create.an.account")%>
+                    </h2>
 
                     <div class="clearfix"></div>
                     <div class="boarder-all ">
@@ -121,7 +122,10 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration</div>
+                        <div class="padding-double font-large">
+                            <%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                    "enter.required.fields.to.complete.registration")%>
+                        </div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
@@ -129,7 +133,9 @@
 
                             <% if(isFirstNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">First Name</label>
+                                <label class="control-label">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "first.name")%>
+                                </label>
                                 <input type="text" name="First Name"
                                        data-claim-uri="http://wso2.org/claims/givenname"
                                        class="form-control"
@@ -139,7 +145,9 @@
 
                             <% if(isLastNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Last Name</label>
+                                <label class="control-label">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "last.name")%>
+                                </label>
                                 <input type="text" name="Last Name" data-claim-uri="http://wso2.org/claims/lastname"
                                        class="form-control  required null"
                                        <% if (isLastNameRequired) {%> required <%}%>>
@@ -147,26 +155,31 @@
                             <%}%>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Username</label>
+                                <label class="control-label"><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                        "username")%></label>
                                 <input id="reg-username" name="reg_username" type="text"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Password</label>
+                                <label class="control-label"><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                        "password")%></label>
                                 <input id="reg-password" name="reg_password" type="password"
                                        class="form-control" required>
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Confirm password</label>
+                                <label class="control-label"><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                        "confirm.password")%></label>
                                 <input id="reg-password2" name="reg-password2" type="password" class="form-control"
                                        data-match="reg-password" required>
                             </div>
 
                             <% if(isEmailInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label <% if (isEmailRequired) {%> class="control-label" <%}%>>Email</label>
+                                <label <% if (isEmailRequired) {%> class="control-label" <%}%>>
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                        "email")%></label>
                                 <input type="email" name="Email" data-claim-uri="http://wso2.org/claims/emailaddress"
                                        class="form-control" data-validate="email"
                                        <% if (isEmailRequired) {%> required <%}%>>
@@ -202,12 +215,16 @@
                                 <br><br>
                                 <button id="registrationSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Register
+                                        type="submit"><%=AuthenticationEndpointUtil.i18n(resourceBundle,"register")%>
                                 </button>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <span class="margin-top padding-top-double font-large">Already have an account? </span>
-                                <a href="../dashboard/index.jag" id="signInLink" class="font-large">Sign in</a>
+                                <span class="margin-top padding-top-double font-large">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle,"have.account")%>
+                                </span>
+                                <a href="../dashboard/index.jag" id="signInLink" class="font-large">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle,"login")%>
+                                </a>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -222,9 +239,11 @@
     <!-- footer -->
     <footer class="footer" style="position: relative">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+                </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
             </p>
         </div>
     </footer>
@@ -242,7 +261,7 @@
                 var error_msg = $("#error-msg");
 
                 if(password != password2) {
-                    error_msg.text("Passwords did not match. Please try again.");
+                    error_msg.text("<%=AuthenticationEndpointUtil.i18n(resourceBundle, "password.mismatch")%>.");
                     error_msg.show();
                     $("html, body").animate({ scrollTop: error_msg.offset().top }, 'slow');
                     return false;
@@ -253,7 +272,7 @@
                     data: { is_validation: "true", reg_username: $("#reg-username").val() },
                     success: function(data) {
                         if($.trim(data) === "User Exist") {
-                            error_msg.text("User already exist");
+                            error_msg.text("<%=AuthenticationEndpointUtil.i18n(resourceBundle, "user.exists")%>");
                             error_msg.show();
                             $("html, body").animate({ scrollTop: error_msg.offset().top }, 'slow');
                             e.preventDefault();
@@ -267,7 +286,7 @@
                         }
                     },
                     error: function() {
-                        error_msg.val("Unknown error occurred");
+                        error_msg.val("<%=AuthenticationEndpointUtil.i18n(resourceBundle, "unknown.error")%>");
                         error_msg.show();
                         e.preventDefault();
                     }
@@ -278,5 +297,3 @@
     </script>
     </body>
     </html>
-</fmt:bundle>
-

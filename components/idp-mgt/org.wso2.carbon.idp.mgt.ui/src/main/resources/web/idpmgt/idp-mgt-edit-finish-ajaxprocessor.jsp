@@ -62,9 +62,6 @@
 		}
       		
 		client.updateIdP(oldIdpName.toString(), identityProvider);
-      	
-		String message = MessageFormat.format(resourceBundle.getString("success.updating.idp"),	null);
-		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 	} catch (Exception e) {
 		String message = MessageFormat.format(
 				resourceBundle.getString("error.updating.idp"),

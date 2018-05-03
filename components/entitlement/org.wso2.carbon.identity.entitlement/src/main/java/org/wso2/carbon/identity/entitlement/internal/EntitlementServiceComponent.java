@@ -28,6 +28,12 @@ import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -58,33 +64,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * @scr.component name="identity.entitlement.component" immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService"
- * cardinality="1..1" policy="dynamic"
- * bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticationServiceComponent"
- * interface="org.wso2.carbon.identity.thrift.authentication.ThriftAuthenticatorService"
- * cardinality="1..1" policy="dynamic" bind="setThriftAuthenticationService"  unbind="unsetThriftAuthenticationService"
- * @scr.reference name="carbon.identity.notification.mgt"
- * interface="org.wso2.carbon.identity.notification.mgt.NotificationSender"
- * cardinality="1..1" policy="dynamic" bind="setNotificationSender"
- * unbind="unsetNotificationSender"
- */
-
-
+@Component(
+        name = "identity.entitlement.component",
+        immediate = true)
 public class EntitlementServiceComponent {
     
     /**
@@ -140,6 +122,13 @@ public class EntitlementServiceComponent {
      *
      * @param registryService <code>RegistryService</code>
      */
+    @Reference(
+            name = "registry.service",
+            service = RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService set in Entitlement bundle");
@@ -175,6 +164,13 @@ public class EntitlementServiceComponent {
         return EntitlementServiceComponent.notificationSender;
     }
 
+    @Reference(
+            name = "carbon.identity.notification.mgt",
+            service = NotificationSender.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetNotificationSender"
+    )
     protected void setNotificationSender(NotificationSender notificationSender) {
         if (log.isDebugEnabled()) {
             log.debug("Un-setting notification sender in Entitlement bundle");
@@ -185,6 +181,7 @@ public class EntitlementServiceComponent {
     /**
      * @param ctxt
      */
+    @Activate
     protected void activate(ComponentContext ctxt) {
 
         if (log.isDebugEnabled()) {
@@ -313,6 +310,7 @@ public class EntitlementServiceComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Entitlement bundle is deactivated");
@@ -336,6 +334,13 @@ public class EntitlementServiceComponent {
      *
      * @param realmService <code>RealmService</code>
      */
+    @Reference(
+            name = "user.realmservice.default",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm set in Entitlement bundle");
@@ -360,6 +365,13 @@ public class EntitlementServiceComponent {
      *
      * @param authenticationService <code>ThriftAuthenticatorService</code>
      */
+    @Reference(
+            name = "org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticationServiceComponent",
+            service = ThriftAuthenticatorService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetThriftAuthenticationService"
+    )
     protected void setThriftAuthenticationService(ThriftAuthenticatorService authenticationService) {
         if (log.isDebugEnabled()) {
             log.debug("ThriftAuthenticatorService set in Entitlement bundle");
@@ -524,18 +536,31 @@ public class EntitlementServiceComponent {
         this.notificationSender = null;
     }
 
-
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
 
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
 
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
     protected void setConfigurationContextService(ConfigurationContextService configCtxtService) {
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService set in EntitlementServiceComponent bundle.");

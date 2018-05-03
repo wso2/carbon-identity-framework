@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -197,8 +198,14 @@ public class LocalClaimDAO extends ClaimDAO {
             try {
                 String query = SQLConstants.ADD_CLAIM_MAPPED_ATTRIBUTE;
                 prepStmt = connection.prepareStatement(query);
-
                 for (AttributeMapping attributeMapping : attributeMappings) {
+                    if (StringUtils.isBlank(attributeMapping.getUserStoreDomain())) {
+                        throw new ClaimMetadataException("User store domain of mapped Attribute cannot be empty for " +
+                                "the local claim id : " + localClaimId);
+                    } else if (StringUtils.isBlank(attributeMapping.getAttributeName())) {
+                        throw new ClaimMetadataException("Mapped attribute of the local claim id : " + localClaimId +
+                                " cannot be empty");
+                    }
                     prepStmt.setInt(1, localClaimId);
                     prepStmt.setString(2, attributeMapping.getUserStoreDomain());
                     prepStmt.setString(3, attributeMapping.getAttributeName());

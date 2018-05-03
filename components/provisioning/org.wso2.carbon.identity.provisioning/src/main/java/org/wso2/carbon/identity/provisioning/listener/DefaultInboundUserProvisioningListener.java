@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.provisioning.listener;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -214,7 +215,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     public boolean doPreDeleteUserClaimValues(String userName, String[] attributesToDelete,
                                               String profileName, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable()) {
+        if (!isEnable() || ArrayUtils.isEmpty(attributesToDelete)) {
             return true;
         }
 

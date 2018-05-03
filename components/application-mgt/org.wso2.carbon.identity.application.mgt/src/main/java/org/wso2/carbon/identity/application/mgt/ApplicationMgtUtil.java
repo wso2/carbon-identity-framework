@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -43,8 +44,10 @@ import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
@@ -54,6 +57,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class ApplicationMgtUtil {
 
@@ -61,8 +65,11 @@ public class ApplicationMgtUtil {
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
+    // Regex for validating application name
+    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
@@ -112,8 +119,14 @@ public class ApplicationMgtUtil {
                 log.debug("Checking whether user has role : " + applicationRoleName + " by retrieving role list of " +
                           "user : " + username);
             }
-            String[] userRoles = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                    .getUserStoreManager().getRoleListOfUser(username);
+
+            UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                    .getUserStoreManager();
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                return ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName);
+            }
+
+            String[] userRoles = userStoreManager.getRoleListOfUser(username);
             for (String userRole : userRoles) {
                 if (applicationRoleName.equals(userRole)) {
                     return true;
@@ -496,6 +509,18 @@ public class ApplicationMgtUtil {
 
         return CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR + APPLICATION_ROOT_PERMISSION;
 
+    }
+
+    /**
+     * Validate application name according to the regex
+     *
+     * @return validated or not
+     */
+    public static boolean isRegexValidated(String applicationName) {
+
+        String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        Pattern regexPattern = Pattern.compile(spValidatorRegex);
+        return regexPattern.matcher(applicationName).matches();
     }
 
     /**

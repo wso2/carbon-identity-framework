@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.ui;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.xsd.Claim;
@@ -42,12 +43,12 @@ import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenti
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 public class ApplicationBean {
 
@@ -889,7 +890,7 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
-
+        
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
@@ -989,14 +990,35 @@ public class ApplicationBean {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(new LocalAndOutboundAuthenticationConfig());
             }
-
             if (CollectionUtils.isNotEmpty(authStepList)) {
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
-                        authStepList.toArray(new AuthenticationStep[authStepList.size()]));
-            }
 
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+            }
+        }
+    }
+
+    /**
+     * @param request
+     */
+    public void conditionalAuthentication(HttpServletRequest request) {
+
+        AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        String flawByScript = request.getParameter("scriptTextArea");
+
+        if (StringUtils.isBlank(flawByScript)) {
+            authenticationScriptConfig.setEnabled(false);
+        } else {
+            if ("true".equalsIgnoreCase(request.getParameter("enableScript"))) {
+                authenticationScriptConfig.setEnabled(true);
+            } else {
+                authenticationScriptConfig.setEnabled(false);
+            }
         }
 
+        authenticationScriptConfig.setContent(flawByScript);
+        localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
     }
 
     /**
@@ -1007,6 +1029,10 @@ public class ApplicationBean {
         // update basic info.
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
+        serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
+        if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
+            serviceProvider.setCertificateContent("");
+        }
         String isSasApp = request.getParameter("isSaasApp");
         serviceProvider.setSaasApp((isSasApp != null && "on".equals(isSasApp)) ? true : false);
 

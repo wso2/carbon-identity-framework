@@ -20,32 +20,22 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.user.store.configuration.component" immediate="true"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="server.configuration.service"
- * interface="org.wso2.carbon.base.api.ServerConfigurationService" cardinality="1..1"
- * policy="dynamic"  bind="setServerConfigurationService"
- * unbind="unsetServerConfigurationService"
- * @scr.reference name="user.store.config.event.listener.service"
- * interface="org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setUserStoreConfigListenerService"
- * unbind="unsetIdentityProviderMgtListerService"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- *
- */
+@Component(
+        name = "org.wso2.carbon.identity.user.store.configuration.component",
+        immediate = true
+)
 public class UserStoreConfigComponent {
     private static Log log = LogFactory.getLog(UserStoreConfigComponent.class);
     private static RealmService realmService = null;
@@ -59,6 +49,13 @@ public class UserStoreConfigComponent {
         return realmService;
     }
 
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         UserStoreConfigComponent.realmService = realmService;
         if (log.isDebugEnabled()) {
@@ -75,6 +72,13 @@ public class UserStoreConfigComponent {
         return UserStoreConfigComponent.serverConfigurationService;
     }
 
+    @Reference(
+            name = "server.configuration.service",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServerConfigurationService"
+    )
     protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
         if (log.isDebugEnabled()) {
             log.debug("Set the ServerConfiguration Service");
@@ -86,6 +90,7 @@ public class UserStoreConfigComponent {
     /**
      * @param ctxt
      */
+    @Activate
     protected void activate(ComponentContext ctxt) {
 
         if (log.isDebugEnabled()) {
@@ -104,6 +109,7 @@ public class UserStoreConfigComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Identity User Store-Config bundle is deactivated");
@@ -124,6 +130,13 @@ public class UserStoreConfigComponent {
         UserStoreConfigComponent.serverConfigurationService = null;
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
@@ -134,12 +147,19 @@ public class UserStoreConfigComponent {
          is started */
     }
 
+    @Reference(
+            name = "user.store.config.event.listener.service",
+            service = UserStoreConfigListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserStoreConfigListenerService"
+    )
     protected void setUserStoreConfigListenerService(UserStoreConfigListener userStoreConfigListener) {
 
         UserStoreConfigListenersHolder.getInstance().setUserStoreConfigListenerService(userStoreConfigListener);
     }
 
-    protected static void unsetIdentityProviderMgtListerService(UserStoreConfigListener userStoreConfigListener) {
+    protected static void unsetUserStoreConfigListenerService(UserStoreConfigListener userStoreConfigListener) {
 
         UserStoreConfigListenersHolder.getInstance().unsetUserStoreConfigListenerService(userStoreConfigListener);
     }

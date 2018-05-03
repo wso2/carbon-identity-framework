@@ -102,7 +102,7 @@
 
     } catch (Exception e) {
     	String message = resourceBundle.getString("error.while.loading.policy")+ " " + e.getMessage();
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo = "../admin/error.jsp";
 %>
 

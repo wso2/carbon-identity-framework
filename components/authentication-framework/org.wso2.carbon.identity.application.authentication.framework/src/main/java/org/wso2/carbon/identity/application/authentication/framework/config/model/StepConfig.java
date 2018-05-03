@@ -39,8 +39,8 @@ public class StepConfig implements Serializable {
     private boolean subjectAttributeStep;
     private String authenticatedIdP;
     private AuthenticatorConfig authenticatedAutenticator;
-    private List<AuthenticatorConfig> authenticatorList = new ArrayList<AuthenticatorConfig>();
-    private List<String> authenticatorMappings = new ArrayList<String>();
+    private List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
+    private List<String> authenticatorMappings = new ArrayList<>();
 
     private boolean completed;
     private boolean multiOption;

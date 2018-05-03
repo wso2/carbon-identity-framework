@@ -46,8 +46,6 @@ public class CacheBackedIdPMgtDAO {
     private IdPCacheByName idPCacheByName = null;
     private IdPCacheByHRI idPCacheByHRI = null;
     private IdPCacheByAuthProperty idPCacheByAuthProperty = null;
-    private Map<String, IdentityProvider> primaryIdPs = null;
-    private Map<String, IdentityProvider> residentIdPs = null;
 
     /**
      * @param idPMgtDAO
@@ -57,8 +55,6 @@ public class CacheBackedIdPMgtDAO {
         idPCacheByName = IdPCacheByName.getInstance();
         idPCacheByHRI = IdPCacheByHRI.getInstance();
         idPCacheByAuthProperty = IdPCacheByAuthProperty.getInstance();
-        primaryIdPs = new ConcurrentHashMap<String, IdentityProvider>();
-        residentIdPs = new ConcurrentHashMap<String, IdentityProvider>();
     }
 
     /**
@@ -110,16 +106,43 @@ public class CacheBackedIdPMgtDAO {
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
             }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
-            }
         } else {
             log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
+        }
+
+        return identityProvider;
+    }
+
+    /**
+     * @param dbConnection Database connection.
+     * @param id Id of the identity provider.
+     * @param tenantId Tenant Id of the identity provider.
+     * @param tenantDomain Tenant domain of the identity provider.
+     * @return Identity provider with given ID.
+     * @throws IdentityProviderManagementException
+     */
+    public IdentityProvider getIdPById(Connection dbConnection, int id,
+                                       int tenantId, String tenantDomain) throws IdentityProviderManagementException {
+
+        IdentityProvider identityProvider = idPMgtDAO.getIDPbyId(dbConnection, id,
+                tenantId, tenantDomain);
+
+        if (identityProvider != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry fetched from DB for Identity Provider " + identityProvider.getIdentityProviderName()
+                        + ". Updating cache");
+            }
+            IdPNameCacheKey cacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName(), tenantDomain);
+            idPCacheByName.addToCache(cacheKey, new IdPCacheEntry(identityProvider));
+            if (identityProvider.getHomeRealmId() != null) {
+                IdPHomeRealmIdCacheKey homeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
+                        identityProvider.getHomeRealmId(), tenantDomain);
+                idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
+            }
+        } else {
+            if(log.isDebugEnabled()) {
+                log.debug(String.format("No IDP found with ID: %d either in cache or DB", id));
+            }
         }
 
         return identityProvider;
@@ -165,14 +188,6 @@ public class CacheBackedIdPMgtDAO {
                 IdPHomeRealmIdCacheKey homeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
-            }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
             }
         } else {
             log.debug("Entry for Identity Provider with authenticator property " + property + " and with value "
@@ -224,14 +239,6 @@ public class CacheBackedIdPMgtDAO {
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
             }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
-            }
         } else {
             log.debug("Entry for Identity Provider with authenticator property " + property + " and with value "
                     + value + " not found in cache or DB");
@@ -269,13 +276,6 @@ public class CacheBackedIdPMgtDAO {
             IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
                     identityProvider.getIdentityProviderName(), tenantDomain);
             idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider));
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
-            }
         } else {
             log.debug("Entry for Identity Provider with Home Realm ID " + realmId
                     + " not found in cache or DB");
@@ -309,15 +309,8 @@ public class CacheBackedIdPMgtDAO {
                 idPCacheByHRI.addToCache(idPHomeRealmIdCacheKey,
                         new IdPCacheEntry(identityProvider));
             }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
-            }
         } else {
-            log.debug("Entry for Identity Provider not found in DB");
+            log.debug("Entry for Identity Provider not found in Database");
         }
     }
 
@@ -344,13 +337,6 @@ public class CacheBackedIdPMgtDAO {
                     currentIdentityProvider.getHomeRealmId(), tenantDomain);
             idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
         }
-        if (currentIdentityProvider.isPrimary()) {
-            primaryIdPs.remove(tenantDomain);
-        }
-        if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                currentIdentityProvider.getIdentityProviderName())) {
-            residentIdPs.remove(tenantDomain);
-        }
 
         idPMgtDAO.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId);
 
@@ -368,13 +354,6 @@ public class CacheBackedIdPMgtDAO {
                 idPCacheByHRI.addToCache(idPHomeRealmIdCacheKey,
                         new IdPCacheEntry(identityProvider));
             }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.put(tenantDomain, identityProvider);
-            }
-            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                    identityProvider.getIdentityProviderName())) {
-                residentIdPs.put(tenantDomain, identityProvider);
-            }
         } else {
             log.debug("Entry for Identity Provider "
                     + newIdentityProvider.getIdentityProviderName() + " not found in DB");
@@ -391,30 +370,60 @@ public class CacheBackedIdPMgtDAO {
             throws IdentityProviderManagementException {
 
         if (idPMgtDAO.isIdpReferredBySP(idPName, tenantId)) {
-            throw new IdentityProviderManagementException("Identitiy Provider '" + idPName + "' " +
-                    "cannot be deleted as it is reffered by Service Providers.");
+            throw new IdentityProviderManagementException("Identity Provider '" + idPName + "' " +
+                    "cannot be deleted as it is referred by Service Providers.");
         }
-        log.debug("Removing entry for Identity Provider " + idPName + " from cache");
-        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId,
-                tenantDomain);
+
+        idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Removing entry for Identity Provider " + idPName + " from caches.");
+        }
+
+        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
         IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
         idPCacheByName.clearCacheEntry(idPNameCacheKey);
+
         if (identityProvider.getHomeRealmId() != null) {
             IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                     identityProvider.getHomeRealmId(), tenantDomain);
             idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
         }
-        if (identityProvider.isPrimary()) {
-            primaryIdPs.remove(tenantDomain);
-        }
-        if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
-                identityProvider.getIdentityProviderName())) {
-            residentIdPs.remove(tenantDomain);
-        }
 
-        idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
 
     }
+
+
+    public void forceDeleteIdP(String idPName, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Force deleting IDP:%s of tenantDomain:%s started.", idPName, tenantDomain));
+        }
+
+        idPMgtDAO.forceDeleteIdP(idPName, tenantId, tenantDomain);
+
+        // Remove cache entries related to the force deleted idps.
+        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug("Removing entry for Identity Provider " + idPName + " from caches.");
+        }
+        IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
+        idPCacheByName.clearCacheEntry(idPNameCacheKey);
+
+        if (identityProvider.getHomeRealmId() != null) {
+            IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey =
+                    new IdPHomeRealmIdCacheKey(identityProvider.getHomeRealmId(), tenantDomain);
+            idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Force deleting IDP:%s of tenantDomain:%s completed.", idPName,
+                    tenantDomain));
+        }
+    }
+
+
 
     /**
      * @param tenantId
@@ -438,9 +447,6 @@ public class CacheBackedIdPMgtDAO {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
-            }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.remove(tenantDomain);
             }
         }
 
@@ -471,9 +477,6 @@ public class CacheBackedIdPMgtDAO {
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
             }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.remove(tenantDomain);
-            }
         }
 
         idPMgtDAO.renameTenantRole(newRoleName, oldRoleName, tenantId, tenantDomain);
@@ -501,9 +504,6 @@ public class CacheBackedIdPMgtDAO {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
-            }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.remove(tenantDomain);
             }
         }
 
@@ -533,9 +533,6 @@ public class CacheBackedIdPMgtDAO {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
                         identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
-            }
-            if (identityProvider.isPrimary()) {
-                primaryIdPs.remove(tenantDomain);
             }
         }
 

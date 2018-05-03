@@ -33,9 +33,9 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
         <meta charset="utf-8">
@@ -75,17 +75,27 @@
         <%
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
-
+            
             String userLocale = request.getHeader("Accept-Language");
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
-
+            String tenantDomain = request.getParameter("tenantDomain");
+            String consent = request.getParameter("consent");
+            String policyURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                    "/authenticationendpoint/privacy_policy.do");
+            if (StringUtils.isNotEmpty(consent)) {
+                consent = IdentityManagementEndpointUtil.buildConsentForResidentIDP
+                        (username, consent, "USA",
+                                IdentityManagementEndpointConstants.Consent.COLLECTION_METHOD_SELF_REGISTRATION,
+                                IdentityManagementEndpointConstants.Consent.LANGUAGE_ENGLISH, policyURL,
+                                IdentityManagementEndpointConstants.Consent.EXPLICIT_CONSENT_TYPE,
+                                true, false, IdentityManagementEndpointConstants.Consent.INFINITE_TERMINATION);
+            }
             if (StringUtils.isBlank(callback)) {
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
             }
-
             if (StringUtils.isBlank(username)) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
@@ -168,7 +178,12 @@
                 Property sessionKey = new Property();
                 sessionKey.setKey("callback");
                 sessionKey.setValue(URLEncoder.encode(callback, "UTF-8"));
+                
+                Property consentProperty = new Property();
+                consentProperty.setKey("consent");
+                consentProperty.setValue(consent);
                 properties.add(sessionKey);
+                properties.add(consentProperty);
 
 
                 SelfUserRegistrationRequest selfUserRegistrationRequest = new SelfUserRegistrationRequest();
@@ -216,5 +231,3 @@
 
     </body>
     </html>
-</fmt:bundle>
-

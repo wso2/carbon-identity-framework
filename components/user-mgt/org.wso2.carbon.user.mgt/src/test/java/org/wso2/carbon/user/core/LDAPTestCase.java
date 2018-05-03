@@ -100,7 +100,7 @@ public class LDAPTestCase extends TestCase {
 				searchCtls.setReturningAttributes(returnedAtts);
 
 				// / search filter TODO
-				StringBuffer buff = new StringBuffer();
+				StringBuilder buff = new StringBuilder();
 				buff.append("(&").append(searchFilter).append("(").append(roleNameProperty)
 				    .append("=").append(filter).append("))");
 

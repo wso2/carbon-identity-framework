@@ -176,8 +176,8 @@
                 function validate() {
 
                     var value = document.getElementsByName("localClaimURI")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="claim.uri.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 100) {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.too.long"/>');
@@ -185,8 +185,8 @@
                     }
 
                     var value = document.getElementsByName("displayName")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="displayname.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="displayname.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 30) {
                         CARBON.showWarningDialog('<fmt:message key="displayname.is.too.long"/>');
@@ -194,8 +194,8 @@
                     }
 
                     var value = document.getElementsByName("description")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="description.is.required"/>');
+                    if (isEmpty(value)) {
+                        CARBON.showWarningDialog('<fmt:message key="description.cannot.be.empty"/>');
                         return false;
                     } else if (value.length > 150) {
                         CARBON.showWarningDialog('<fmt:message key="description.is.too.long"/>');
@@ -212,7 +212,7 @@
                         for (var i = 0; i < attributeAddTableRowCount; i++) {
                             var row = attributeAddTable.rows[i];
                             var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
-                            if (mappedAttributeValue == '') {
+                            if (isEmpty(mappedAttributeValue)) {
                                 CARBON.showWarningDialog('<fmt:message key="attribute.mapping.cannot.be.empty"/>');
                                 return false;
                             }
@@ -251,6 +251,10 @@
                     document.getElementById('number_of_ClaimProperties').value=numberOfClaimProperties;
 
                     document.addclaim.submit();
+                }
+
+                function isEmpty(value){
+                  return (value == null || value.trim() == '');
                 }
 
             </script>

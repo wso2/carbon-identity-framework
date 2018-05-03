@@ -261,5 +261,4 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         }
     }
-
 }

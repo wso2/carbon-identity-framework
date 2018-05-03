@@ -36,6 +36,7 @@ import org.opensaml.xml.io.UnmarshallingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -60,6 +61,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
+import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -72,6 +74,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +91,14 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
 
 public class IdentityUtil {
 
@@ -113,6 +128,13 @@ public class IdentityUtil {
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
+    public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
+    public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
+
+    // System Property for trust managers.
+    public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
+            "org.wso2.carbon.identity.core.util.TRUST_STORE_UPDATE_REQUIRED";
+
 
     /**
      * @return
@@ -413,8 +435,12 @@ public class IdentityUtil {
 
         try {
             DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
-            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(Charsets.UTF_8)));
+            documentBuilderFactory.setIgnoringComments(true);
+            Document document = getDocument(documentBuilderFactory, xmlString);
+            if (isSignedWithComments(document)) {
+                documentBuilderFactory.setIgnoringComments(false);
+                document = getDocument(documentBuilderFactory, xmlString);
+            }
             Element element = document.getDocumentElement();
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
@@ -423,6 +449,53 @@ public class IdentityUtil {
             String message = "Error in constructing XML Object from the encoded String";
             throw IdentityException.error(message, e);
         }
+    }
+
+    /**
+     * Return whether SAML Assertion has the canonicalization method
+     * set to 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'.
+     *
+     * @param document
+     * @return true if canonicalization method equals to 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'
+     */
+    private static boolean isSignedWithComments(Document document) {
+
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        try {
+            String assertionId = (String) xPath.compile("//*[local-name()='Assertion']/@ID")
+                    .evaluate(document, XPathConstants.STRING);
+
+            if (StringUtils.isBlank(assertionId)) {
+                return false;
+            }
+
+            NodeList nodeList = ((NodeList) xPath.compile(
+                    "//*[local-name()='Assertion']" +
+                            "/*[local-name()='Signature']" +
+                            "/*[local-name()='SignedInfo']" +
+                            "/*[local-name()='Reference'][@URI='#" + assertionId + "']" +
+                            "/*[local-name()='Transforms']" +
+                            "/*[local-name()='Transform']" +
+                            "[@Algorithm='http://www.w3.org/2001/10/xml-exc-c14n#WithComments']")
+                    .evaluate(document, XPathConstants.NODESET));
+            return nodeList != null && nodeList.getLength() > 0;
+        } catch (XPathExpressionException e) {
+            String message = "Failed to find the canonicalization algorithm of the assertion. Defaulting to: " +
+                    "http://www.w3.org/2001/10/xml-exc-c14n#";
+            log.warn(message);
+            if (log.isDebugEnabled()) {
+                log.debug(message, e);
+            }
+            return false;
+        }
+    }
+
+    private static Document getDocument(DocumentBuilderFactory documentBuilderFactory, String samlString)
+            throws IOException, SAXException, ParserConfigurationException {
+
+        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(samlString.getBytes());
+        return docBuilder.parse(inputStream);
     }
 
     /**
@@ -830,10 +903,16 @@ public class IdentityUtil {
             throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
         }
         StringBuilder queryString = new StringBuilder(baseUrl);
-        if (queryString.indexOf("?") < 0) {
-            queryString.append("?");
+
+        if (parameterMap != null && parameterMap.size() > 0) {
+            if(queryString.indexOf("?") < 0) {
+                queryString.append("?");
+            } else {
+                queryString.append("&");
+            }
+            queryString.append(buildQueryComponent(parameterMap));
         }
-        queryString.append(buildQueryComponent(parameterMap));
+
         return queryString.toString();
     }
 
@@ -959,5 +1038,182 @@ public class IdentityUtil {
             return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
         }
         return false;
+    }
+
+     /**
+     *
+     * Converts and returns a {@link Certificate} object for given PEM content.
+     *
+     * @param certificateContent
+     * @return
+     * @throws CertificateException
+     */
+    public static Certificate convertPEMEncodedContentToCertificate(String certificateContent) throws CertificateException {
+
+        certificateContent = getCertificateString(certificateContent);
+        byte[] bytes = org.apache.axiom.om.util.Base64.decode(certificateContent);
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(bytes));
+        return certificate;
+    }
+
+    /**
+     * Extract certificate content and returns a {@link String} object for given PEM content.
+     *
+     * @param certificateContent initial certificate content
+     * @return
+     * @throws CertificateException
+     */
+    public static String getCertificateString(String certificateContent) {
+        String certificateContentString = StringUtils.stripEnd(StringUtils.stripStart(certificateContent,
+                PEM_BEGIN_CERTFICATE),
+                PEM_END_CERTIFICATE);
+        return certificateContentString;
+    }
+
+    /**
+     *
+     * Returns the PEM encoded certificate out of the given certificate object.
+     *
+     * @param certificate
+     * @return PEM encoded certificate as a {@link String}
+     * @throws CertificateException
+     */
+    public static String convertCertificateToPEM(Certificate certificate) throws CertificateException {
+
+        byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
+
+        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
+                X509Factory.END_CERT);
+
+        return encodedPEM;
+    }
+
+    /**
+     * Checks whether the PEM content is valid.
+     *
+     * For now only checks whether the certificate is not malformed.
+     *
+     * @param certificateContent PEM content to be validated.
+     * @return true if the content is not malformed, false otherwise.
+     */
+    public static boolean isValidPEMCertificate(String certificateContent) {
+
+        // Empty content is a valid input since it means no certificate. We only validate if the content is there.
+        if (StringUtils.isBlank(certificateContent)) {
+            return true;
+        }
+
+        try {
+            convertPEMEncodedContentToCertificate(certificateContent);
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Encodes the given bytes as a base58 string (no checksum is appended).
+     *
+     * @param input the bytes to encode
+     * @return the base58-encoded string
+     */
+    public static String base58Encode(byte[] input) {
+
+        if (input.length == 0) {
+            return "";
+        }
+        // Count leading zeros.
+        int zeros = 0;
+        while (zeros < input.length && input[zeros] == 0) {
+            ++zeros;
+        }
+        // Convert base-256 digits to base-58 digits (plus conversion to ASCII characters)
+        input = Arrays.copyOf(input, input.length); // since we modify it in-place
+        char[] encoded = new char[input.length * 2]; // upper bound
+        int outputStart = encoded.length;
+        for (int inputStart = zeros; inputStart < input.length; ) {
+            encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
+            if (input[inputStart] == 0) {
+                ++inputStart; // optimization - skip leading zeros
+            }
+        }
+        // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
+        while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO) {
+            ++outputStart;
+        }
+        while (--zeros >= 0) {
+            encoded[--outputStart] = ENCODED_ZERO;
+        }
+        // Return encoded string (including encoded leading zeros).
+        return new String(encoded, outputStart, encoded.length - outputStart);
+    }
+
+    /**
+     * Decodes the given base58 string into the original data bytes.
+     *
+     * @param input the base58-encoded string to decode
+     * @return the decoded data bytes
+     * @throws RuntimeException if the given string is not a valid base58 string
+     */
+    public static byte[] base58Decode(String input) throws RuntimeException {
+
+        if (input.length() == 0) {
+            return new byte[0];
+        }
+        // Convert the base58-encoded ASCII chars to a base58 byte sequence (base58 digits).
+        byte[] input58 = new byte[input.length()];
+        for (int i = 0; i < input.length(); ++i) {
+            char c = input.charAt(i);
+            int digit = c < 128 ? INDEXES[c] : -1;
+            if (digit < 0) {
+                throw new RuntimeException(String.format("Invalid character %s at %s", c, i));
+            }
+            input58[i] = (byte) digit;
+        }
+        // Count leading zeros.
+        int zeros = 0;
+        while (zeros < input58.length && input58[zeros] == 0) {
+            ++zeros;
+        }
+        // Convert base-58 digits to base-256 digits.
+        byte[] decoded = new byte[input.length()];
+        int outputStart = decoded.length;
+        for (int inputStart = zeros; inputStart < input58.length; ) {
+            decoded[--outputStart] = divmod(input58, inputStart, 58, 256);
+            if (input58[inputStart] == 0) {
+                ++inputStart; // optimization - skip leading zeros
+            }
+        }
+        // Ignore extra leading zeroes that were added during the calculation.
+        while (outputStart < decoded.length && decoded[outputStart] == 0) {
+            ++outputStart;
+        }
+        // Return decoded data (including original number of leading zeros).
+        return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
+    }
+
+    /**
+     * Divides a number, represented as an array of bytes each containing a single digit
+     * in the specified base, by the given divisor. The given number is modified in-place
+     * to contain the quotient, and the return value is the remainder.
+     *
+     * @param number     the number to divide
+     * @param firstDigit the index within the array of the first non-zero digit
+     *                   (this is used for optimization by skipping the leading zeros)
+     * @param base       the base in which the number's digits are represented (up to 256)
+     * @param divisor    the number to divide by (up to 256)
+     * @return the remainder of the division operation
+     */
+    private static byte divmod(byte[] number, int firstDigit, int base, int divisor) {
+        // this is just long division which accounts for the base of the input digits
+        int remainder = 0;
+        for (int i = firstDigit; i < number.length; i++) {
+            int digit = (int) number[i] & 0xFF;
+            int temp = remainder * base + digit;
+            number[i] = (byte) (temp / divisor);
+            remainder = temp % divisor;
+        }
+        return (byte) remainder;
     }
 }

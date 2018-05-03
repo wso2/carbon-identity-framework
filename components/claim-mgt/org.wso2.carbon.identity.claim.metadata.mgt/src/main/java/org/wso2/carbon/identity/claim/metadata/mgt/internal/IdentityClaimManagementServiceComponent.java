@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 
 import org.apache.commons.logging.Log;
@@ -27,44 +26,29 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-/**
- * @scr.component name="identity.claim.metadata.component" immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic"
- * bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic"
- * bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="claim.manager.listener.service"
- * interface="org.wso2.carbon.user.core.listener.ClaimManagerListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setClaimManagerListener"
- * unbind="unsetClaimManagerListener" *
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- */
 @SuppressWarnings("unused")
+@Component(
+         name = "identity.claim.metadata.component", 
+         immediate = true)
 public class IdentityClaimManagementServiceComponent {
 
     private static final Log log = LogFactory.getLog(IdentityClaimManagementServiceComponent.class);
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         try {
             IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(ctxt.getBundleContext());
-
             ClaimMetadataStoreFactory claimMetadataStoreFactory = new ClaimMetadataStoreFactory();
-            ctxt.getBundleContext().registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory,
-                    null);
-
+            ctxt.getBundleContext().registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
             ClaimMetadataManagementService claimManagementService = new ClaimMetadataManagementServiceImpl();
-            ctxt.getBundleContext().registerService(ClaimMetadataManagementService.class.getName(),
-                    claimManagementService, null);
+            ctxt.getBundleContext().registerService(ClaimMetadataManagementService.class.getName(), claimManagementService, null);
             IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagementService(claimManagementService);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Claim Management Core bundle is activated");
@@ -74,12 +58,19 @@ public class IdentityClaimManagementServiceComponent {
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Claim Management bundle is deactivated");
         }
     }
 
+    @Reference(
+             name = "user.realmservice.default", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         IdentityClaimManagementServiceDataHolder.getInstance().setRealmService(realmService);
         if (log.isDebugEnabled()) {
@@ -94,6 +85,12 @@ public class IdentityClaimManagementServiceComponent {
         }
     }
 
+    @Reference(
+             name = "registry.service", 
+             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         IdentityClaimManagementServiceDataHolder.getInstance().setRegistryService(registryService);
         if (log.isDebugEnabled()) {
@@ -108,8 +105,13 @@ public class IdentityClaimManagementServiceComponent {
         }
     }
 
+    @Reference(
+             name = "claim.manager.listener.service", 
+             service = org.wso2.carbon.user.core.listener.ClaimManagerListener.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetClaimManagerListener")
     public static synchronized void setClaimManagerListener(ClaimManagerListener claimManagerListener) {
-
         IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagerListener(claimManagerListener);
         if (log.isDebugEnabled()) {
             log.debug("ClaimManagerListener set in Identity Claim Management bundle");
@@ -117,20 +119,26 @@ public class IdentityClaimManagementServiceComponent {
     }
 
     public static synchronized void unsetClaimManagerListener(ClaimManagerListener claimManagerListener) {
-
         IdentityClaimManagementServiceDataHolder.getInstance().unsetClaimManagerListener(claimManagerListener);
         if (log.isDebugEnabled()) {
             log.debug("ClaimManagerListener unset in Identity Claim Management bundle");
         }
     }
 
+    @Reference(
+             name = "identityCoreInitializedEventService", 
+             service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 }
+

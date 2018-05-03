@@ -40,6 +40,9 @@ public class IdentityProvisioningConstants {
     public static final String LOCAL_SP = ApplicationConstants.LOCAL_SP;
     public static final String JIT_PROVISIONING_ENABLED = "jitProvisioningEnabled";
 
+    public static final String IS_TRUE_VALUE = "1";
+    public static final String IS_FALSE_VALUE = "0";
+
     public static class SQLQueries {
 
         public static final String ADD_PROVISIONING_ENTITY_SQL = "INSERT INTO IDP_PROVISIONING_ENTITY " +

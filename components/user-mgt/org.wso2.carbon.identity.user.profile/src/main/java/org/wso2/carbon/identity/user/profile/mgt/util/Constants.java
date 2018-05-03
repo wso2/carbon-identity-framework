@@ -24,7 +24,15 @@ public class Constants {
         public static final String UPDATE_USER_DOMAIN_NAME = "UPDATE IDN_ASSOCIATED_ID SET DOMAIN_NAME = ?" +
                                                              " WHERE DOMAIN_NAME = ? AND TENANT_ID = ?";
 
-        public static final String DELETE_ASSOCIATED_ID_FROM_DOMAIN = "DELETE FROM IDN_ASSOCIATED_ID WHERE TENANT_ID = ? AND " +
-                                                         "DOMAIN_NAME = ?";
+        public static final String DELETE_ASSOCIATED_ID_FROM_DOMAIN = "DELETE FROM IDN_ASSOCIATED_ID WHERE TENANT_ID " +
+                "= ? AND DOMAIN_NAME = ?";
+
+        public static final String ASSOCIATE_USER_ACCOUNTS = "INSERT INTO IDN_ASSOCIATED_ID (TENANT_ID, IDP_ID, " +
+                "IDP_USER_ID, DOMAIN_NAME, USER_NAME) VALUES (? , (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = " +
+                "?), ? , ?, ?)";
+
+        public static final String RETRIEVE_EXISTING_ASSOCIATIONS = "SELECT USER_NAME, DOMAIN_NAME FROM " +
+                "IDN_ASSOCIATED_ID WHERE TENANT_ID = ? AND IDP_ID = (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID " +
+                "= ?) AND IDP_USER_ID = ?";
     }
 }

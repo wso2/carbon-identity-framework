@@ -18,6 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="java.net.URLDecoder" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <%
     String callback = (String) request.getAttribute("callback");
@@ -55,7 +56,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
+            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
         })
     });
 </script>

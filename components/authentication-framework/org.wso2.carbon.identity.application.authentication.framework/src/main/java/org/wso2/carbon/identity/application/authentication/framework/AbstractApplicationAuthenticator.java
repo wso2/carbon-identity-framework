@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,13 +35,15 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
 
 /**
  * This is the super class of all the Application Authenticators. Authenticator writers must extend
@@ -83,12 +86,18 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
                     publishAuthenticationStepAttempt(request, context, e.getUser(), false);
-                    if (retryAuthenticationEnabled()) {
+                    // Decide whether we need to redirect the
+                    boolean sendToMultiOptionPage =
+                            isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
+                    if (retryAuthenticationEnabled() && !sendToMultiOptionPage) {
+                        // The Authenticator will re-initiate the authentication and retry.
                         context.setRetrying(true);
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
+                        // By throwing this exception step handler will redirect to multi options page if
+                        // multi-option are available in the step.
                         throw e;
                     }
                 }
@@ -113,6 +122,20 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
     }
 
+    private boolean isStepHasMultiOption(AuthenticationContext context) {
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        boolean stepHasMultiOption = false;
+
+        if (stepMap != null && !stepMap.isEmpty()) {
+            StepConfig stepConfig = stepMap.get(context.getCurrentStep());
+
+            if (stepConfig != null) {
+                stepHasMultiOption = stepConfig.isMultiOption();
+            }
+        }
+        return stepHasMultiOption;
+    }
+
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
                                                   User user, boolean success) {
 
@@ -126,6 +149,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
+                paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);
@@ -163,8 +187,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     protected AuthenticatorConfig getAuthenticatorConfig() {
-        AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance()
-                .getAuthenticatorBean(getName());
+        AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(getName());
         if (authConfig == null) {
             authConfig = new AuthenticatorConfig();
             authConfig.setParameterMap(new HashMap<String, String>());
@@ -174,6 +197,29 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     protected boolean retryAuthenticationEnabled() {
         return false;
+    }
+
+    /**
+     * In case of the authenticator being an option in a multi-option step, decide whether to redirect to
+     * multi-options page to retry. By default all authenticators will redirect to the multi-option page on failure.
+     * <p>
+     * Some authenticators may want to avoid this by having their own retry mechanism/retry page rather than
+     * re-initiating the step from the multi-option page.
+     *
+     * @return
+     */
+    protected boolean isRedirectToMultiOptionPageOnFailure() {
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        boolean isRedirectToMultiOptionPageOnFailure = true;
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            String redirectToMultiOptionOnFailure = parameterMap.get(REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE);
+            isRedirectToMultiOptionPageOnFailure
+                    = redirectToMultiOptionOnFailure == null || Boolean.parseBoolean(redirectToMultiOptionOnFailure);
+            if (log.isDebugEnabled()) {
+                log.debug("redirectToMultiOptionOnFailure has been set as : " + isRedirectToMultiOptionPageOnFailure);
+            }
+        }
+        return isRedirectToMultiOptionPageOnFailure;
     }
 
     @Override

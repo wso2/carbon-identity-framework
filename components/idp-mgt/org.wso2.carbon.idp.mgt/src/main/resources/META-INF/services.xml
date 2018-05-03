@@ -33,6 +33,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/delete
             </parameter>
         </operation>
+        <operation name="forceDeleteIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/delete
+            </parameter>
+        </operation>
         <operation name="getAllFederatedAuthenticators">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
             </parameter>

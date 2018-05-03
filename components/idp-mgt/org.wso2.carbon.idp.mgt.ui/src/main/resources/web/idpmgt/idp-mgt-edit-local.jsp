@@ -97,6 +97,10 @@
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
+    String oidcWebFingerEndpoint = null;
+    String oauth2DcrEndpoint = null;
+    String oauth2JwksEndpoint = null;
+    String oidcDiscoveryEndpoint = null;
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -140,6 +144,14 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL).getValue();
             oidcLogoutEndpoint = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL).getValue();
+            oidcWebFingerEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL).getValue();
+            oauth2DcrEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL).getValue();
+            oauth2JwksEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL).getValue();
+            oidcDiscoveryEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME.equals(federatedAuthenticator.getName())){
             passiveSTSUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL).getValue();
@@ -152,6 +164,8 @@
     }
     String scimUserEp = null;
     String scimGroupEp = null;
+    String scim2UserEp = null;
+    String scim2GroupEp = null;
     ProvisioningConnectorConfig[] provisioningConnectors = residentIdentityProvider.getProvisioningConnectorConfigs();
     for(ProvisioningConnectorConfig provisioningConnector : provisioningConnectors){
         if(provisioningConnector.getName().equals("scim")){
@@ -160,10 +174,14 @@
                 provisioningProperties = new Property[0];
             }
             for(Property property : provisioningProperties){
-                if(property.getName().equals("scimUserEndpoint")){
+                if (property.getName().equals("scimUserEndpoint")) {
                     scimUserEp = property.getValue();
-                } else if(property.getName().equals("scimGroupEndpoint")){
+                } else if(property.getName().equals("scimGroupEndpoint")) {
                     scimGroupEp = property.getValue();
+                } else if(property.getName().equals("scim2UserEndpoint")) {
+                    scim2UserEp = property.getValue();
+                } else if(property.getName().equals("scim2GroupEndpoint")) {
+                    scim2GroupEp = property.getValue();
                 }
             }
         }
@@ -552,6 +570,22 @@ function idpMgtCancel(){
                             <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(oidcLogoutEndpoint)%></td>
                         </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='webfinger.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcWebFingerEndpoint)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='discovery.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcDiscoveryEndpoint)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='dcr.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oauth2DcrEndpoint)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='jwks.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oauth2JwksEndpoint)%></td>
+                        </tr>
                     </table>
                     </div>
 
@@ -615,6 +649,14 @@ function idpMgtCancel(){
                             <td class="leftCol-med labelField"><fmt:message key='scim.group.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(scimGroupEp)%></td>
                         </tr>
+                          <tr>
+                              <td class="leftCol-med labelField"><fmt:message key='scim2.user.endpoint'/>:</td>
+                              <td><%=Encode.forHtmlContent(scim2UserEp)%></td>
+                          </tr>
+                          <tr>
+                              <td class="leftCol-med labelField"><fmt:message key='scim2.group.endpoint'/>:</td>
+                              <td><%=Encode.forHtmlContent(scim2GroupEp)%></td>
+                          </tr>
                     </table>
 
             		</div>

@@ -189,6 +189,24 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     }
 
     /**
+     * Forcefully deletes an Identity Provider from the logged-in tenant. This will remove all associations this
+     * Identity Provider had with any Service Provider within the tenant
+     *
+     * @param idPName Name of the IdP to be deleted
+     * @throws IdentityProviderManagementException Error when deleting Identity Provider
+     */
+    public void forceDeleteIdP(String idPName) throws IdentityProviderManagementException {
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        try {
+            IdentityProviderManager.getInstance().forceDeleteIdp(idPName, tenantDomain);
+        } catch (IdentityProviderManagementException idpException) {
+            log.error(String.format("Error while force deleting IdP:%s in tenantDomain:%s", idPName, tenantDomain),
+                    idpException);
+            throw idpException;
+        }
+    }
+
+    /**
      * @return
      * @throws IdentityProviderManagementException
      */

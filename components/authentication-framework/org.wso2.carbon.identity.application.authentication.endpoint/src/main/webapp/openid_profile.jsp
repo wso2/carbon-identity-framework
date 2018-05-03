@@ -16,8 +16,7 @@
   ~ under the License.
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
-
-<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@include file="localize.jsp" %>
 
 <%
     String[] profiles = request.getParameterValues("profile");
@@ -30,13 +29,11 @@
     }
 %>
 
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
-
     <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>OpenID2.0 Profile</title>
+        <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid2.profile")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -76,7 +73,7 @@
                 <a href="#">
                     <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
                 </a>
             </div>
         </div>
@@ -91,9 +88,8 @@
                 <div
                         class="container col-xs-12 col-sm-10 col-md-7 col-lg-5 ol-centered wr-content wr-login col-centered">
                     <div>
-                        <h2
-                                class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                            Open ID User Claims
+                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "openid.user.claims")%>
                         </h2>
 
 
@@ -111,8 +107,10 @@
                                                 if (claimTags != null && claimTags.length > 0) { %>
                                             <table class="table table-striped table-bordered">
                                                 <tr>
-                                                    <th>Claim URI</th>
-                                                    <th>Claim Value</th>
+                                                    <th><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                            "claim.uri")%></th>
+                                                    <th><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                            "claim.value")%></th>
                                                 </tr>
                                                 <%
                                                     for (int i = 0; i < claimTags.length; i++) {
@@ -139,14 +137,17 @@
                                     <div style="text-align:left;">
                                         <input type="button" class="btn  btn-primary" id="approve" name="approve"
                                                onclick="javascript: approved(); return false;"
-                                               value="<fmt:message key='approve'/>"/>
+                                               value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                    "approve")%>"/>
                                         <input type="button" class="btn" id="chkApprovedAlways"
                                                onclick="javascript: approvedAlways();"
-                                               value="<fmt:message key='approve.always'/>"/>
+                                               value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                    "approve.always")%>"/>
                                         <input type="hidden" id="hasApprovedAlways" name="hasApprovedAlways"
                                                value="false"/>
-                                        <input class="btn" type="reset" value="<fmt:message key='cancel'/>"
-                                               onclick="javascript:document.location.href='<%=openidreturnto%>'"/>
+                                        <input class="btn" type="reset"
+                                               value="<%=AuthenticationEndpointUtil.i18n(resourceBundle,"cancel")%>"
+                                               onclick="javascript:document.location.href='<%=Encode.forJavaScript(openidreturnto)%>'"/>
                                     </div>
                                 </form>
 
@@ -167,9 +168,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+                </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
             </p>
         </div>
     </footer>
@@ -178,5 +181,3 @@
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
     </body>
     </html>
-
-</fmt:bundle>

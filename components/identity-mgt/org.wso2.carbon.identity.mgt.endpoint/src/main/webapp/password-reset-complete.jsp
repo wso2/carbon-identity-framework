@@ -32,29 +32,25 @@
 <%
     String passwordHistoryErrorCode = "20035";
     String passwordPatternErrorCode = "22001";
-
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
-
     String newPassword = request.getParameter("reset-password");
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
-
+    
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
     if (StringUtils.isNotBlank(newPassword)) {
-
         NotificationApi notificationApi = new NotificationApi();
-
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
         List<Property> properties = new ArrayList<Property>();
         Property property = new Property();
         property.setKey("callback");
         property.setValue(URLEncoder.encode(callback, "UTF-8"));
         properties.add(property);
-
+        
         Property tenantProperty = new Property();
         tenantProperty.setKey(IdentityManagementEndpointConstants.TENANT_DOMAIN);
         if (tenantDomain == null) {
@@ -62,38 +58,37 @@
         }
         tenantProperty.setValue(URLEncoder.encode(tenantDomain, "UTF-8"));
         properties.add(tenantProperty);
-
+        
         resetPasswordRequest.setKey(confirmationKey);
         resetPasswordRequest.setPassword(newPassword);
         resetPasswordRequest.setProperties(properties);
-
+    
         try {
             notificationApi.setPasswordPost(resetPasswordRequest);
         } catch (ApiException e) {
-
+        
             Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
             if (error != null) {
                 request.setAttribute("errorMsg", error.getDescription());
                 request.setAttribute("errorCode", error.getCode());
+                if (passwordHistoryErrorCode.equals(error.getCode()) ||
+                        passwordPatternErrorCode.equals(error.getCode())) {
+                    request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+                    return;
+                }
             }
-
-            if (passwordHistoryErrorCode.equals(error.getCode()) || passwordPatternErrorCode.equals(error.getCode())) {
-                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
-            } else {
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-            }
+            request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
-
-
+    
     } else {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", "Password cannot be empty.");
         request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         return;
     }
-
+    
     session.invalidate();
 %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -129,7 +124,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
+            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
         })
     });
 </script>

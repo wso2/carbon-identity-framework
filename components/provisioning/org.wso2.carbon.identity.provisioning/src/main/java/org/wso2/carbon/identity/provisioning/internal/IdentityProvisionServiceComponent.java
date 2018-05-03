@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.provisioning.internal;
 
 import org.apache.commons.logging.Log;
@@ -38,31 +37,13 @@ import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
-
 import java.util.Map;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
 
-/**
- * @scr.component name=
- * "org.wso2.carbon.identity.provision.internal.IdentityProvisionServiceComponent"
- * immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="realm.service" interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="provisioning.connector.factory"
- * interface="org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory"
- * cardinality="1..n" policy="dynamic" bind="setProvisioningConnectorFactory"
- * unbind="unsetProvisioningConnectorFactory"
- * @scr.reference name="identity.entitlement.service"
- * interface="org.wso2.carbon.identity.entitlement.EntitlementService"
- * cardinality="1..n" policy="dynamic" bind="setEntitlementService"
- * unbind="unsetEntitlementService"
- */
-
-
+@Component(
+         name = "org.wso2.carbon.identity.provision.internal.IdentityProvisionServiceComponent",
+         immediate = true)
 public class IdentityProvisionServiceComponent {
 
     private static final Log log = LogFactory.getLog(IdentityProvisionServiceComponent.class);
@@ -77,6 +58,12 @@ public class IdentityProvisionServiceComponent {
     /**
      * @param realmService
      */
+    @Reference(
+             name = "realm.service", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.debug("Setting the Realm Service");
@@ -94,6 +81,12 @@ public class IdentityProvisionServiceComponent {
     /**
      * @param registryService
      */
+    @Reference(
+             name = "registry.service", 
+             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("Setting the Registry Service");
@@ -111,11 +104,10 @@ public class IdentityProvisionServiceComponent {
     /**
      * @param context
      */
+    @Activate
     protected void activate(ComponentContext context) {
-
         try {
             ProvisioningServiceDataHolder.getInstance().setBundleContext(context.getBundleContext());
-
             ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserOperationEventListener.class.getName(), new DefaultInboundUserProvisioningListener(), null);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provision Event listener registered successfully");
@@ -136,10 +128,10 @@ public class IdentityProvisionServiceComponent {
         }
     }
 
-
     /**
      * @param context
      */
+    @Deactivate
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Provision bundle is de-activated");
@@ -166,14 +158,17 @@ public class IdentityProvisionServiceComponent {
         ProvisioningServiceDataHolder.getInstance().setRealmService(null);
     }
 
-
+    @Reference(
+             name = "provisioning.connector.factory", 
+             service = org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory.class, 
+             cardinality = ReferenceCardinality.AT_LEAST_ONE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetProvisioningConnectorFactory")
     protected void setProvisioningConnectorFactory(AbstractProvisioningConnectorFactory connectorFactory) {
-
         ProvisioningServiceDataHolder.getInstance().getConnectorFactories().put(connectorFactory.getConnectorType(), connectorFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added provisioning connector : " + connectorFactory.getConnectorType());
         }
-
         ProvisioningConnectorConfig provisioningConnectorConfig = new ProvisioningConnectorConfig();
         provisioningConnectorConfig.setName(connectorFactory.getConnectorType());
         Property[] property = new Property[connectorFactory.getConfigurationProperties().size()];
@@ -181,13 +176,10 @@ public class IdentityProvisionServiceComponent {
         ProvisioningConnectorService.getInstance().addProvisioningConnectorConfigs(provisioningConnectorConfig);
     }
 
-
     protected void unsetProvisioningConnectorFactory(AbstractProvisioningConnectorFactory connectorFactory) {
         ProvisioningServiceDataHolder.getInstance().getConnectorFactories().values().remove(connectorFactory);
-        ProvisioningConnectorConfig provisioningConnectorConfig = ProvisioningConnectorService.getInstance().
-                getProvisioningConnectorByName(connectorFactory.getConnectorType());
+        ProvisioningConnectorConfig provisioningConnectorConfig = ProvisioningConnectorService.getInstance().getProvisioningConnectorByName(connectorFactory.getConnectorType());
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(provisioningConnectorConfig);
-
         if (log.isDebugEnabled()) {
             log.debug("Removed provisioning connector : " + connectorFactory.getConnectorType());
         }
@@ -196,6 +188,12 @@ public class IdentityProvisionServiceComponent {
     /**
      * @param entitlementService
      */
+    @Reference(
+             name = "identity.entitlement.service", 
+             service = org.wso2.carbon.identity.entitlement.EntitlementService.class, 
+             cardinality = ReferenceCardinality.AT_LEAST_ONE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetEntitlementService")
     protected void setEntitlementService(EntitlementService entitlementService) {
         if (log.isDebugEnabled()) {
             log.debug("EntitlementService is set in the Application Authentication Framework bundle");
@@ -207,10 +205,10 @@ public class IdentityProvisionServiceComponent {
      * @param entitlementService
      */
     protected void unsetEntitlementService(EntitlementService entitlementService) {
-
         if (log.isDebugEnabled()) {
             log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
         }
         ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
     }
 }
+

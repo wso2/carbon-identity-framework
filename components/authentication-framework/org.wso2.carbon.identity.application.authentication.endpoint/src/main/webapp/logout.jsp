@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -17,12 +17,13 @@
   --%>
 
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="localize.jsp" %>
 
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -59,7 +60,7 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
             </a>
         </div>
     </div>
@@ -79,18 +80,16 @@
                     <div class="container">
                         <div class="row">
                             <div class="span12">
-                                <h1 style="margin-left: -100;">You have successfully logged out.</h1>
+                                <h1 style="margin-left: -100;">
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "logged.out")%>
+                                </h1>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
-
-
         </div>
         <!-- /content -->
-
     </div>
 </div>
 <!-- /content/body -->
@@ -100,7 +99,12 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p>WSO2 Identity Server | &copy; <script>document.write(new Date().getFullYear());</script> <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.</p>
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
+            <script>document.write(new Date().getFullYear());</script>
+            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
+        </p>
     </div>
 </footer>
 

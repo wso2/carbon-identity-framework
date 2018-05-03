@@ -40,8 +40,8 @@ public class AuthenticatorConfig implements Serializable {
     private ApplicationAuthenticator applicationAuthenticator;
     private AuthenticatorStateInfo authenticatorStateInfo;
     private Map<String, String> parameterMap;
-    private Map<String, IdentityProvider> idps = new HashMap<String, IdentityProvider>();
-    private List<String> idpNames = new ArrayList<String>();
+    private Map<String, IdentityProvider> idps = new HashMap<>();
+    private List<String> idpNames = new ArrayList<>();
 
     public AuthenticatorConfig() {
     }

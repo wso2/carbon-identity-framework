@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -37,6 +38,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_STEP_FOR_ATTRIBUTES = "AuthenticationStepForAttributes";
     private static final String AUTHENTICATION_STEP_FOR_SUBJECT = "AuthenticationStepForSubject";
     private static final String AUTHENTICATION_STEPS = "AuthenticationSteps";
+    private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
+    private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
 
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
     private String authenticationType;
@@ -47,6 +50,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
+    private AuthenticationScriptConfig authenticationScriptConfig;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -70,7 +74,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         while (iter.hasNext()) {
             OMElement member = (OMElement) iter.next();
 
-            if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
+            if (AUTHENTICATION_SCRIPT.equals(member.getLocalName())) {
+                localAndOutboundAuthenticationConfig.authenticationScriptConfig = AuthenticationScriptConfig
+                        .build(member);
+            } else if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
 
                 Iterator<?> authenticationStepsIter = member.getChildElements();
                 List<AuthenticationStep> authenticationStepsArrList = new ArrayList<AuthenticationStep>();
@@ -241,5 +248,11 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setEnableAuthorization(boolean enableAuthorization) {
 
         this.enableAuthorization = enableAuthorization;
+    }
+
+    public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}
+
+    public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
+        this.authenticationScriptConfig = authenticationScriptConfig;
     }
 }

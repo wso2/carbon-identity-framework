@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.workflow.mgt.internal;
 
 import org.apache.commons.logging.Log;
@@ -23,6 +22,11 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
@@ -35,65 +39,23 @@ import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-/**
- * @scr.component name="org.wso2.carbon.identity.workflow.mgt" immediate="true"
- * @scr.reference name="user.realmservice.default" interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="org.wso2.carbon.identity.workflow.mgt.extension.requesthandler"
- * interface="org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler"
- * cardinality="0..n" policy="dynamic"
- * bind="setWorkflowRequestHandler"
- * unbind="unsetWorkflowRequestHandler"
- * @scr.reference name="org.wso2.carbon.identity.workflow.mgt.template.abtracttemplate"
- * interface="org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate"
- * cardinality="0..n" policy="dynamic"
- * bind="setTemplate"
- * unbind="unsetTemplate"
- * @scr.reference name="org.wso2.carbon.identity.workflow.mgt.workflow.abstractworkflow"
- * interface="org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow"
- * cardinality="0..n" policy="dynamic"
- * bind="setWorkflowImplementation"
- * unbind="unsetWorkflowImplementation"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="org.wso2.carbon.utils.contextservice"
- * interface="org.wso2.carbon.utils.ConfigurationContextService"
- * cardinality="1..1" policy="dynamic"  bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="org.wso2.carbon.identity.workflow.mgt.listener.deleterequest"
- * interface="org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setWorkflowRequestDeleteListener"
- * unbind="unsetWorkflowRequestDeleteListener"
- * @scr.reference name="org.wso2.carbon.identity.workflow.mgt.listener.workflowexecutorlistner"
- * interface="org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setWorkflowExecutorListener"
- * unbind="unsetWorkflowExecutorListener"
- */
+@Component(
+         name = "org.wso2.carbon.identity.workflow.mgt", 
+         immediate = true)
 public class WorkflowMgtServiceComponent {
 
-
+    @Activate
     protected void activate(ComponentContext context) {
-
         BundleContext bundleContext = context.getBundleContext();
         WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
-
         bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
         WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
-
-
         WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
-        ServiceRegistration serviceRegistration = context.getBundleContext().registerService
-                (WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
-        context.getBundleContext().registerService
-                (WorkflowExecutorManagerListener.class.getName(), new WorkflowExecutorAuditLogger(), null);
+        ServiceRegistration serviceRegistration = context.getBundleContext().registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
+        context.getBundleContext().registerService(WorkflowExecutorManagerListener.class.getName(), new WorkflowExecutorAuditLogger(), null);
         if (serviceRegistration != null) {
             if (log.isDebugEnabled()) {
                 log.debug("WorkflowAuditLogger registered.");
@@ -102,99 +64,127 @@ public class WorkflowMgtServiceComponent {
             log.error("Workflow Audit Logger could not be registered.");
         }
         if (System.getProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID) == null) {
-            System.setProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance()
-                    .getFirstProperty(WFConstant.KEYSTORE_CARBON_CONFIG_PATH));
+            System.setProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance().getFirstProperty(WFConstant.KEYSTORE_CARBON_CONFIG_PATH));
         }
         if (System.getProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID) == null) {
-            System.setProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance()
-                    .getFirstProperty(WFConstant.KEYSTORE_PASSWORD_CARBON_CONFIG_PATH));
+            System.setProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance().getFirstProperty(WFConstant.KEYSTORE_PASSWORD_CARBON_CONFIG_PATH));
         }
     }
 
     private static Log log = LogFactory.getLog(WorkflowMgtServiceComponent.class);
 
+    @Reference(
+             name = "user.realmservice.default", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
-
         WorkflowServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
-
         WorkflowServiceDataHolder.getInstance().setRealmService(null);
     }
 
     protected void unsetConfigurationContextService(ConfigurationContextService contextService) {
-
         WorkflowServiceDataHolder.getInstance().setConfigurationContextService(null);
     }
 
+    @Reference(
+             name = "org.wso2.carbon.utils.contextservice", 
+             service = org.wso2.carbon.utils.ConfigurationContextService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetConfigurationContextService")
     protected void setConfigurationContextService(ConfigurationContextService contextService) {
-
         WorkflowServiceDataHolder.getInstance().setConfigurationContextService(contextService);
     }
 
+    @Reference(
+             name = "org.wso2.carbon.identity.workflow.mgt.extension.requesthandler", 
+             service = org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetWorkflowRequestHandler")
     protected void setWorkflowRequestHandler(WorkflowRequestHandler workflowRequestHandler) {
-
         WorkflowServiceDataHolder.getInstance().addWorkflowRequestHandler(workflowRequestHandler);
     }
 
     protected void unsetWorkflowRequestHandler(WorkflowRequestHandler workflowRequestHandler) {
-
         WorkflowServiceDataHolder.getInstance().removeWorkflowRequestHandler(workflowRequestHandler);
     }
 
+    @Reference(
+             name = "org.wso2.carbon.identity.workflow.mgt.template.abtracttemplate", 
+             service = org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetTemplate")
     protected void setTemplate(AbstractTemplate template) {
-
         WorkflowServiceDataHolder.getInstance().addTemplate(template);
     }
 
     protected void unsetTemplate(AbstractTemplate template) {
-
         WorkflowServiceDataHolder.getInstance().removeTemplate(template);
     }
 
+    @Reference(
+             name = "org.wso2.carbon.identity.workflow.mgt.workflow.abstractworkflow", 
+             service = org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetWorkflowImplementation")
     protected void setWorkflowImplementation(AbstractWorkflow workflowImplementation) {
-
         WorkflowServiceDataHolder.getInstance().addWorkflowImplementation(workflowImplementation);
     }
 
     protected void unsetWorkflowImplementation(AbstractWorkflow workflowImplementation) {
-
         WorkflowServiceDataHolder.getInstance().removeWorkflowImplementation(workflowImplementation);
     }
 
-
+    @Reference(
+             name = "org.wso2.carbon.identity.workflow.mgt.listener.deleterequest", 
+             service = org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetWorkflowRequestDeleteListener")
     protected void setWorkflowRequestDeleteListener(WorkflowListener workflowListener) {
-            WorkflowServiceDataHolder.getInstance().getWorkflowListenerList()
-                    .add(workflowListener);
+        WorkflowServiceDataHolder.getInstance().getWorkflowListenerList().add(workflowListener);
     }
 
     protected void unsetWorkflowRequestDeleteListener(WorkflowListener workflowListener) {
-            WorkflowServiceDataHolder.getInstance().getWorkflowListenerList()
-                    .remove(workflowListener);
+        WorkflowServiceDataHolder.getInstance().getWorkflowListenerList().remove(workflowListener);
     }
 
+    @Reference(
+             name = "org.wso2.carbon.identity.workflow.mgt.listener.workflowexecutorlistner", 
+             service = org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener.class, 
+             cardinality = ReferenceCardinality.MULTIPLE, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetWorkflowExecutorListener")
     protected void setWorkflowExecutorListener(WorkflowExecutorManagerListener workflowListener) {
-            WorkflowServiceDataHolder.getInstance().getExecutorListenerList()
-                    .add(workflowListener);
+        WorkflowServiceDataHolder.getInstance().getExecutorListenerList().add(workflowListener);
     }
 
     protected void unsetWorkflowExecutorListener(WorkflowExecutorManagerListener workflowListener) {
-            WorkflowServiceDataHolder.getInstance().getExecutorListenerList()
-                    .remove(workflowListener);
+        WorkflowServiceDataHolder.getInstance().getExecutorListenerList().remove(workflowListener);
     }
-
-
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
+    @Reference(
+             name = "identityCoreInitializedEventService", 
+             service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
-
-
 }
+

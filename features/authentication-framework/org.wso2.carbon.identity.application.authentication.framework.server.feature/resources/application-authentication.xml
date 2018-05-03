@@ -17,37 +17,36 @@
 
 <ApplicationAuthentication xmlns="http://wso2.org/projects/carbon/application-authentication.xml">
 
-	<!--
-		ProxyMode allows framework to operate in either 'smart' mode 
-		or 'dumb' mode.
-		smart = both local and federated authentication is supported
-		dumb = only federated authentication is supported
-	-->
-	<ProxyMode>smart</ProxyMode>	
-	 
-	<!-- 
-		AuthenticationEndpointURL is location of the web app containing 
-		the authentication related pages 
-	--> 
-	<AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
-	<AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
-	
-	<!--
-		Extensions allow extending the default behaviour of the authentication
-		process. 	
-	-->
-	<Extensions> 
-		<RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
-		<AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
-		<LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
-		<StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler</StepBasedSequenceHandler>
-		<RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
-		<StepHandler>org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler</StepHandler>
-		<HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
-		<ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
-		<ProvisioningHandler>org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler</ProvisioningHandler>
-		<AuthorizationHandler>org.wso2.carbon.identity.application.authz.xacml.handler.impl.XACMLBasedAuthorizationHandler</AuthorizationHandler>
-	</Extensions>
+    <!--
+        ProxyMode allows framework to operate in either 'smart' mode
+        or 'dumb' mode.
+        smart = both local and federated authentication is supported
+        dumb = only federated authentication is supported
+    -->
+    <ProxyMode>smart</ProxyMode>
+
+    <!--
+        AuthenticationEndpointURL is location of the web app containing
+        the authentication related pages
+    -->
+    <AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
+    <AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
+
+    <!--
+        Extensions allow extending the default behaviour of the authentication
+        process.
+    -->
+    <Extensions>
+        <RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
+        <AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
+        <LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
+        <StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler</StepBasedSequenceHandler>
+        <RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
+        <StepHandler>org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler</StepHandler>
+        <HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
+        <ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
+        <ProvisioningHandler>org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler</ProvisioningHandler>
+    </Extensions>
 
 	<!--
 		AuthenticatorNameMappings allow specifying an authenticator
@@ -63,7 +62,6 @@
         <AuthenticatorNameMapping name="IWAAuthenticator" alias="iwa" />
         <AuthenticatorNameMapping name="SAMLSSOAuthenticator" alias="samlsso" />
         <AuthenticatorNameMapping name="OpenIDConnectAuthenticator" alias="openidconnect" />
-        <AuthenticatorNameMapping name="OpenIDAuthenticator" alias="openid" />
         <AuthenticatorNameMapping name="PassiveSTSAuthenticator" alias="passive-sts" />
     </AuthenticatorNameMappings>
 
@@ -89,14 +87,7 @@
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="OpenIDConnectAuthenticator" enabled="true">
 			<!--Parameter name="IDTokenHandler">org.wso2.carbon.identity.application.authenticator.oidc.DefaultIDTokenHandler</Parameter-->
-			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->	
-		</AuthenticatorConfig>
-		<AuthenticatorConfig name="OpenIDAuthenticator" enabled="true">
-			<Parameter name="LoginPage">/authenticationendpoint/login.do</Parameter>
-			<Parameter name="TrustStorePath">/repository/resources/security/client-truststore.jks</Parameter>
-			<Parameter name="TrustStorePassword">wso2carbon</Parameter>
-			<!--Parameter name="OpenIDManager">org.wso2.carbon.identity.application.authenticator.openid.manager.DefaultOpenIDManager</Parameter>
-			<Parameter name="AttributesRequestor">org.wso2.carbon.identity.application.authenticator.openid.manager.SampleAttributesRequestor</Parameter-->
+			<!--Parameter name="ClaimsRetriever">org.wso2.carbon.identity.application.authenticator.oidc.OIDCUserInfoClaimsRetriever</Parameter-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="GoogleOIDCAuthenticator" enabled="true">
 			<Parameter name="GoogleTokenEndpoint">https://accounts.google.com/o/oauth2/token</Parameter>
@@ -112,9 +103,12 @@
 			<Parameter name="AuthTokenEndpoint">https://graph.facebook.com/oauth/access_token</Parameter>
 			<Parameter name="AuthnEndpoint">http://www.facebook.com/dialog/oauth</Parameter>
 			<Parameter name="UserInfoEndpoint">https://graph.facebook.com/me</Parameter>
+                        <!--<Parameter name="ClaimDialectUri">http://wso2.org/facebook/claims</Parameter>-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig  name="FIDOAuthenticator" enabled="true">
 			<Parameter name="FidoAuth">/authenticationendpoint/fido-auth.jsp</Parameter>
+                       <!--Please uncomment the following property and define AppID if you are using proxy configurations-->
+                       <!--<Parameter name="AppID">https://localhost</Parameter>-->
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="YahooOAuth2Authenticator" enabled="true">
 			<Parameter name="YahooTokenEndpoint">https://api.login.yahoo.com/oauth2/get_token</Parameter>
@@ -122,9 +116,10 @@
 			<Parameter name="YahooUserInfoEndpoint">https://social.yahooapis.com/v1/user/</Parameter>
 		</AuthenticatorConfig>
 		<AuthenticatorConfig name="MobileConnectAuthenticator" enabled="true">
-			<Parameter name="MobileConnectKey">mobileConnectClientId</Parameter>
-			<Parameter name="MobileConnectSecret">mobileConnectClientSecret</Parameter>
-		</AuthenticatorConfig>
+                       <Parameter name="MCAuthenticationEndpointURL">mobileconnectauthenticationendpoint/mobileconnect.jsp</Parameter>
+                       <Parameter name="MCDiscoveryAPIURL">https://discover.mobileconnect.io/gsma/v2/discovery/</Parameter>
+                       <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+                </AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>
             <Parameter name="GmailClientSecret">gmailClientSecretValue</Parameter>
@@ -139,6 +134,7 @@
             <Parameter name="GmailAuthTokenType">Bearer</Parameter>
             <Parameter name="GmailTokenEndpoint">https://www.googleapis.com/oauth2/v3/token</Parameter>
             <Parameter name="SendgridAuthTokenType">Bearer</Parameter>
+            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="SMSOTP" enabled="true">
             <Parameter name="SMSOTPAuthenticationEndpointURL">smsotpauthenticationendpoint/smsotp.jsp</Parameter>
@@ -151,11 +147,12 @@
             <Parameter name="SMSOTPMandatory">false</Parameter>
             <Parameter name="CaptureAndUpdateMobileNumber">true</Parameter>
             <Parameter name="SendOTPDirectlyToMobile">false</Parameter>
+            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
             <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
         </AuthenticatorConfig>
-        <AuthenticatorConfig name="totp" enabled="true">
+        <!--AuthenticatorConfig name="totp" enabled="true">
             <Parameter name="encodingMethod">Base32</Parameter>
             <Parameter name="timeStepSize">30</Parameter>
             <Parameter name="windowSize">3</Parameter>
@@ -166,7 +163,8 @@
             <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
             <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
             <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
-        </AuthenticatorConfig>
+            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+        </AuthenticatorConfig-->
 	</AuthenticatorConfigs>
 
     <!--

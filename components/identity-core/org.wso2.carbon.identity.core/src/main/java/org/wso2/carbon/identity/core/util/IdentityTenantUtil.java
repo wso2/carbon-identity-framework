@@ -173,10 +173,17 @@ public class IdentityTenantUtil {
         IdentityTenantUtil.registryService = registryService;
     }
 
+    /**
+     *
+     * @return
+     * @deprecated Please use OSGI wiring to get the realm service for your component.
+     */
+    @Deprecated
     public static RealmService getRealmService() {
         return realmService;
     }
 
+    @Deprecated
     public static void setRealmService(RealmService realmService) {
         IdentityTenantUtil.realmService = realmService;
     }
@@ -260,7 +267,7 @@ public class IdentityTenantUtil {
             throw IdentityRuntimeException.error("Error occurred while retrieving tenantDomain for tenantId: " +
                     tenantId + e.getMessage(), e);
         }
-        if(tenantDomain == null){
+        if (tenantDomain == null) {
             throw IdentityRuntimeException.error("Can not find the tenant domain for the tenant id " + tenantId);
         } else {
             return tenantDomain;

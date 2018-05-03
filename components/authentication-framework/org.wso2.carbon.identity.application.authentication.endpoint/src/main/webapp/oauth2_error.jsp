@@ -17,17 +17,26 @@
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@include file="localize.jsp" %>
 
 <%
     String errorCode = request.getParameter("oauthErrorCode");
     String errorMsg = request.getParameter("oauthErrorMsg");
+    String regex = "application=";
+    String errorMsgContext = errorMsg;
+    String errorMsgApp = "";
+    String[] error = errorMsg.split(regex);
+    if (error.length > 1) {
+        errorMsgContext = errorMsg.split(regex)[0] + regex;
+        errorMsgApp = errorMsg.split(regex)[1];
+    }
 %>
 
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSO2 Identity Server</title>
+    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -64,7 +73,7 @@
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-                <h1><em>Identity Server</em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
             </a>
         </div>
     </div>
@@ -79,8 +88,8 @@
             <!-- content -->
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
-                    <h2
-                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Invalid Request
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "invalid.request")%>
                     </h2>
                 </div>
 
@@ -94,18 +103,19 @@
                                         if (errorCode != null && errorMsg != null) {
                                     %>
                                     <tr>
-                                        <td><b><%=Encode.forHtmlContent(errorCode)%>
+                                        <td><b><%=AuthenticationEndpointUtil.i18n(resourceBundle, errorCode)%>
                                         </b></td>
                                     </tr>
                                     <tr>
-                                        <td><%=Encode.forHtmlContent(errorMsg)%>
+                                        <td><%=AuthenticationEndpointUtil.i18nBase64(resourceBundle, errorMsgContext)%><%=Encode.forHtml(errorMsgApp)%>
                                         </td>
                                     </tr>
                                     <%
                                     } else {
                                     %>
                                     <tr>
-                                        <td><fmt:message key='oauth.processing.error.msg'/></td>
+                                        <td><%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                "oauth.processing.error.msg")%></td>
                                     </tr>
                                     <%
                                         }
@@ -131,7 +141,12 @@
 <!-- footer -->
 <footer class="footer">
     <div class="container-fluid">
-        <p>WSO2 Identity Server | &copy; <script>document.write(new Date().getFullYear());</script> <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.</p>
+        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
+            <script>document.write(new Date().getFullYear());</script>
+            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
+            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
+        </p>
     </div>
 </footer>
 
@@ -139,5 +154,3 @@
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
 </body>
 </html>
-
-

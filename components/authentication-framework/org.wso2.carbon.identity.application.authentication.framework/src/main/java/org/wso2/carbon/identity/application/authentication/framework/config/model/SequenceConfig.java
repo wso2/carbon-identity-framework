@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,7 @@ import java.util.Map;
 /**
  * Configuration holder for an application
  */
-public class SequenceConfig implements Serializable {
+public class SequenceConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 6822366703354668075L;
 
@@ -38,6 +40,7 @@ public class SequenceConfig implements Serializable {
     private boolean isCheckAuthn;
     private String applicationId;
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
+    private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
     private ApplicationConfig applicationConfig = null;
     private boolean completed;
@@ -46,6 +49,7 @@ public class SequenceConfig implements Serializable {
     private String authenticatedIdPs;
 
     private AuthenticatorConfig authenticatedReqPathAuthenticator;
+    private List<String> requestedAcr;
 
     public SequenceConfig() {
     }
@@ -140,25 +144,49 @@ public class SequenceConfig implements Serializable {
         this.authenticatedReqPathAuthenticator = authenticatedReqPathAuthenticator;
     }
 
+    public AuthenticationGraph getAuthenticationGraph() {
+        return authenticationGraph;
+    }
+
+    public void setAuthenticationGraph(AuthenticationGraph authenticationGraph) {
+        this.authenticationGraph = authenticationGraph;
+    }
+
+    public List<String> getRequestedAcr() {
+        if (requestedAcr == null) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(requestedAcr);
+    }
+
+    public void addRequestedAcr(String acr) {
+        if (requestedAcr == null) {
+            requestedAcr = new ArrayList<>();
+        }
+        requestedAcr.add(acr);
+    }
+
     /**
      * This method will clone current class objects
      * This method is to solve the issue - multiple requests for same user/SP
      *
-     * @return SequenceConfig object
+     * @return Object object
      */
-    public SequenceConfig cloneObject() {
-        SequenceConfig sequenceConfig = new SequenceConfig();
+    public Object clone() throws CloneNotSupportedException {
+        SequenceConfig sequenceConfig = (SequenceConfig) super.clone();
+        sequenceConfig.setApplicationConfig((ApplicationConfig) applicationConfig.clone());
+        sequenceConfig.setStepMap(new HashMap<>(this.stepMap));
+        sequenceConfig.setReqPathAuthenticators(new ArrayList<>(this.reqPathAuthenticators));
         sequenceConfig.setName(this.getName());
         sequenceConfig.setForceAuthn(this.isForceAuthn());
         sequenceConfig.setCheckAuthn(this.isCheckAuthn());
         sequenceConfig.setApplicationId(this.getApplicationId());
-        sequenceConfig.setStepMap(this.getStepMap());
-        sequenceConfig.setReqPathAuthenticators(this.getReqPathAuthenticators());
-        sequenceConfig.setApplicationConfig(this.getApplicationConfig());
         sequenceConfig.setCompleted(this.isCompleted());
         sequenceConfig.setAuthenticatedUser(this.getAuthenticatedUser());
         sequenceConfig.setAuthenticatedIdPs(this.getAuthenticatedIdPs());
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
+        sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
+        sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
         return sequenceConfig;
     }
 

@@ -731,9 +731,14 @@ public class IdentityUtilTest {
 
     @Test(dataProvider = "getQueryBuilderData")
     public void testBuildQueryUrl(String base, Map<String, String[]> params, String expectedFragment) throws Exception {
-        assertEquals(IdentityUtil.buildQueryUrl(base, params), base + "?" + expectedFragment, String.format("Invalid response " +
-                "for input: base = %s, params = %s.", base, params));
 
+        if (params != null && params.size() > 0) {
+            assertEquals(IdentityUtil.buildQueryUrl(base, params), base + "?" + expectedFragment,
+                    String.format("Invalid response for input: base = %s, params = %s.", base, params));
+        } else {
+            assertEquals(IdentityUtil.buildQueryUrl(base, params), base + expectedFragment,
+                    String.format("Invalid response for input: base = %s, params = %s.", base, params));
+        }
     }
 
     @Test(dataProvider = "getQueryBuilderData")

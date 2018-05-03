@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
@@ -37,6 +38,7 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.claim.ClaimKey;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
@@ -53,12 +55,11 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
-    private ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+    private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
 
-    ClaimConfig claimConfig;
-    int tenantId;
+    private int tenantId;
 
     public static DefaultClaimMetadataStore getInstance(int tenantId) {
         ClaimConfig claimConfig = new ClaimConfig();
@@ -88,7 +89,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         }
 
 
-        if (claimConfig.getClaims() != null) {
+        if (claimConfig.getClaimMap() != null) {
 
             // Adding local claims
             String primaryDomainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
@@ -106,12 +107,13 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             // Adding external dialects and claims
             Set<String> claimDialectList = new HashSet<>();
 
-            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
-                String claimURI = entry.getKey();
+                ClaimKey claimKey = entry.getKey();
                 org.wso2.carbon.user.core.claim.ClaimMapping claimMapping = entry.getValue();
                 String claimDialectURI = claimMapping.getClaim().getDialectURI();
+                String claimURI = claimKey.getClaimUri();
 
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
@@ -129,7 +131,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         }
                     }
 
-                    Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
+                    Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
                     claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
                     claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
                     claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
@@ -159,6 +161,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
                         localClaimDAO.addLocalClaim(localClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding local claim " + claimURI, e);
@@ -182,19 +187,24 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
             }
 
-            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
-                String claimURI = entry.getKey();
+                ClaimKey claimKey = entry.getKey();
+                String claimURI = claimKey.getClaimUri();
+
                 String claimDialectURI = entry.getValue().getClaim().getDialectURI();
 
                 if (!ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
-                    String mappedLocalClaimURI = claimConfig.getPropertyHolder().get(claimURI).get(ClaimConstants
+                    String mappedLocalClaimURI = claimConfig.getPropertyHolderMap().get(claimKey).get(ClaimConstants
                             .MAPPED_LOCAL_CLAIM_PROPERTY);
                     ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
                         externalClaimDAO.addExternalClaim(externalClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding external claim " + claimURI + " to dialect " + claimDialectURI,

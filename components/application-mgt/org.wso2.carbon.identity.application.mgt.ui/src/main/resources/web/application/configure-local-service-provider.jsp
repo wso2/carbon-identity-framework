@@ -146,11 +146,11 @@
     }
 
 
-	function createAppOnclick() {
+    function createAppOnclick() {
 
-			document.getElementById("configure-sp-form").submit();
-		
-	}
+        document.getElementById("dumb").value = document.getElementById("scim-inbound-userstore").disabled;
+        document.getElementById("configure-sp-form").submit();
+    }
    
     jQuery(document).ready(function(){
         jQuery('#outboundProvisioning').hide();

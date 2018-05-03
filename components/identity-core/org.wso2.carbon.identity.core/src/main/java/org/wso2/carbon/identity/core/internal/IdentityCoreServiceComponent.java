@@ -18,14 +18,23 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.DefaultBootstrap;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.migrate.MigrationClient;
+import org.wso2.carbon.identity.core.migrate.MigrationClientException;
+import org.wso2.carbon.identity.core.KeyProviderService;
+import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -39,43 +48,36 @@ import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-/**
- * @scr.component name="identity.core.component" immediate="true"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
- * policy="dynamic" bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="server.configuration.service"
- * interface="org.wso2.carbon.base.api.ServerConfigurationService" cardinality="1..1"
- * policy="dynamic"  bind="setServerConfigurationService"
- * unbind="unsetServerConfigurationService"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="registry.loader.default"
- * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
- * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
- */
-
+@Component(
+        name = "identity.core.component",
+        immediate = true
+)
 public class IdentityCoreServiceComponent {
-    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom530to540";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
+    private static MigrationClient migrationClient = null;
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
+    private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
+    private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
+    private DefaultKeyProviderService defaultKeyProviderService;
 
     public IdentityCoreServiceComponent() {
+        defaultKeyProviderService = new DefaultKeyProviderService(defaultKeystoreManagerExtension);
     }
 
     public static ServerConfigurationService getServerConfigurationService() {
         return IdentityCoreServiceComponent.serverConfigurationService;
     }
 
+    @Reference(
+            name = "server.configuration.service",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServerConfigurationService"
+    )
     protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
         if (log.isDebugEnabled()) {
             log.debug("Set the ServerConfiguration Service");
@@ -98,7 +100,8 @@ public class IdentityCoreServiceComponent {
     /**
      * @param ctxt
      */
-    protected void activate(ComponentContext ctxt) {
+    @Activate
+    protected void activate(ComponentContext ctxt) throws MigrationClientException {
         IdentityTenantUtil.setBundleContext(ctxt.getBundleContext());
         if (log.isDebugEnabled()) {
             log.debug("Identity Core bundle is activated");
@@ -135,16 +138,14 @@ public class IdentityCoreServiceComponent {
 
             String migrate = System.getProperty("migrate");
             String component = System.getProperty("component");
-            try {
-                if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
-                    log.info("Migration process starting...");
-                    //Directly call migration client here and selectively check for component migrations at client
-                    Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                    c.getMethod("databaseMigration").invoke(c.newInstance());
-                    log.info("Migration process finished.");
+            if (Boolean.parseBoolean(migrate) && component != null && component.contains("identity")) {
+                if (migrationClient == null) {
+                    log.warn("Waiting for migration client.");
+                    throw new MigrationClientException("Migration client not found");
+                } else {
+                    log.info("Executing Migration client : " + migrationClient.getClass().getName());
+                    migrationClient.execute();
                 }
-            } catch (Exception e) {
-                log.error("Error occurred while initializing the migration client." , e);
             }
 
             //this is done to initialize primary key store
@@ -171,6 +172,12 @@ public class IdentityCoreServiceComponent {
                     new IdentityCoreInitializedEventImpl(), null);
 
 
+            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
+                    defaultKeyProviderService, null);
+        } catch (MigrationClientException e) {
+            // Throwing migration client exception to wait till migration client implementation bundle starts if
+            // -Dmigrate option is used.
+            throw e;
         } catch (Throwable e) {
             log.error("Error occurred while populating identity configuration properties", e);
         }
@@ -179,13 +186,22 @@ public class IdentityCoreServiceComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
+        defaultKeystoreManagerServiceRef.unregister();
         IdentityTenantUtil.setBundleContext(null);
         if (log.isDebugEnabled()) {
             log.debug("Identity Core bundle is deactivated");
         }
     }
 
+    @Reference(
+            name = "registry.service",
+            service = RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         IdentityTenantUtil.setRegistryService(registryService);
     }
@@ -197,17 +213,33 @@ public class IdentityCoreServiceComponent {
     /**
      * @param realmService
      */
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
+        defaultKeystoreManagerExtension.setRealmService(realmService);
     }
 
     /**
      * @param realmService
      */
     protected void unsetRealmService(RealmService realmService) {
+        defaultKeystoreManagerExtension.setRealmService(null);
         IdentityTenantUtil.setRealmService(null);
     }
 
+    @Reference(
+            name = "registry.loader.default",
+            service = TenantRegistryLoader.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetTenantRegistryLoader"
+    )
     protected void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
         if (log.isDebugEnabled()) {
             log.debug("Tenant Registry Loader is set in the SAML SSO bundle");
@@ -232,6 +264,13 @@ public class IdentityCoreServiceComponent {
     /**
      * @param service
      */
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
     protected void setConfigurationContextService(ConfigurationContextService service) {
         configurationContextService = service;
     }
@@ -243,4 +282,37 @@ public class IdentityCoreServiceComponent {
         configurationContextService = null;
     }
 
+    /**
+     *
+     * @param client
+     */
+    @Reference(
+            name = "is.migration.client",
+            service = MigrationClient.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMigrationClient"
+    )
+    protected void setMigrationClient(MigrationClient client) {
+        migrationClient = client;
+    }
+
+    /**
+     * @param client
+     */
+    protected void unsetMigrationClient(MigrationClient client) {
+        migrationClient = null;
+    }
+
+    protected void setKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        if (log.isDebugEnabled()) {
+            log.debug("KeyStoreManagerExtension is being set by an OSGI component. The extension class is: "
+                    + keyStoreManagerExtension);
+        }
+        defaultKeyProviderService.setKeyStoreManagerExtension(keyStoreManagerExtension);
+    }
+
+    protected void unsetKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        defaultKeyProviderService.setKeyStoreManagerExtension(defaultKeystoreManagerExtension);
+    }
 }

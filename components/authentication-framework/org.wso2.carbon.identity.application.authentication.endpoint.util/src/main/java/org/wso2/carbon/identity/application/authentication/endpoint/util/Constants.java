@@ -31,8 +31,11 @@ public class Constants {
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL" ;
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String REQUESTED_CLAIMS = "requestedClaims";
+    public static final String MANDATORY_CLAIMS = "mandatoryClaims";
+    public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
+    public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
-
 
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success" ;
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail" ;

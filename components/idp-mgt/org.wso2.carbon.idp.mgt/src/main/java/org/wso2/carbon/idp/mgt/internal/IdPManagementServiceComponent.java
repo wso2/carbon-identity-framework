@@ -26,6 +26,12 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -61,33 +67,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @scr.component name="idp.mgt.dscomponent" immediate="true"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
- * policy="dynamic" bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="idp.mgt.event.listener.service"
- * interface="org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setIdentityProviderMgtListenerService"
- * unbind="unsetIdentityProviderMgtListenerService"
- * @scr.reference name="identity.provider.saml.service.component"
- * interface="org.wso2.carbon.idp.mgt.util.MetadataConverter"
- * cardinality="0..n" policy="dynamic"
- * bind="setMetadataConverterService"
- * unbind="unsetMetadataConverterService"
- */
+@Component(
+        name = "idp.mgt.dscomponent",
+        immediate = true
+)
 public class IdPManagementServiceComponent {
 
     private static Log log = LogFactory.getLog(IdPManagementServiceComponent.class);
@@ -98,8 +81,13 @@ public class IdPManagementServiceComponent {
 
     private static Set<String> sharedIdps = new HashSet<String>();
 
-
-
+    @Reference(
+            name = "registry.service",
+            service = RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("Registry service in Identity idp-mgt bundle");
@@ -118,6 +106,13 @@ public class IdPManagementServiceComponent {
         IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
     }
 
+    @Reference(
+            name = "identity.provider.saml.service.component",
+            service = MetadataConverter.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMetadataConverterService"
+    )
     protected void setMetadataConverterService(MetadataConverter converter) {
         if (log.isDebugEnabled()) {
             log.debug("Metadata converter set in Identity idp-mgt bundle");
@@ -153,6 +148,13 @@ public class IdPManagementServiceComponent {
     /**
      * @param rlmService
      */
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService rlmService) {
         IdpMgtServiceComponentHolder.getInstance().setRealmService(rlmService);
     }
@@ -167,10 +169,18 @@ public class IdPManagementServiceComponent {
     /**
      * @param service
      */
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
     protected void setConfigurationContextService(ConfigurationContextService service) {
         IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(service);
     }
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         try {
             BundleContext bundleCtx = ctxt.getBundleContext();
@@ -314,6 +324,7 @@ public class IdPManagementServiceComponent {
     /**
      * @param ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         log.debug("Identity Provider Management bundle is deactivated");
     }
@@ -332,16 +343,30 @@ public class IdPManagementServiceComponent {
         IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
     }
 
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
-
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    @Reference(
+            name = "idp.mgt.event.listener.service",
+            service = IdentityProviderMgtListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityProviderMgtListenerService"
+    )
     protected void setIdentityProviderMgtListenerService(
             IdentityProviderMgtListener identityProviderMgtListenerService) {
 

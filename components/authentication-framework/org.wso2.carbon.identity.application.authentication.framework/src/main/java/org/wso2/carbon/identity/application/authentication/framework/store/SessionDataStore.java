@@ -101,9 +101,11 @@ public class SessionDataStore {
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID=? LIMIT %d";
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MSSQL =
-            "DELETE TOP %d FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID = ?";
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK_ORACLE = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
+            "DELETE TOP (%d) FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID = ?";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL = "DELETE FROM IDN_AUTH_SESSION_STORE WHERE " +
+            "CTID IN (SELECT CTID FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID=? LIMIT %d)";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_ORACLE = "DELETE FROM IDN_AUTH_SESSION_STORE WHERE ROWID" +
+            " IN (SELECT ROWID FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID=? AND ROWNUM <= %d)";
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL = "DELETE FROM (SELECT SESSION_ID, " +
             "SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID =" +
             " ? LIMIT %d) ";
@@ -430,6 +432,7 @@ public class SessionDataStore {
                 statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
                 statement.setLong(1, cleanupLimitNano);
                 statement.setInt(2, tenantId);
+
                 int noOfDeletedRecords = statement.executeUpdate();
                 deleteCompleted = noOfDeletedRecords < deleteChunkSize;
                 totalDeletedEntries += noOfDeletedRecords;

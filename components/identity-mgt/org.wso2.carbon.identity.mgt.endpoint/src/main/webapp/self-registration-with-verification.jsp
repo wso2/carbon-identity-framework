@@ -28,24 +28,71 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClientException" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-
+    SelfRegistrationMgtClient selfRegistrationMgtClient = new SelfRegistrationMgtClient();
     boolean isFirstNameInClaims = true;
     boolean isFirstNameRequired = true;
     boolean isLastNameInClaims = true;
     boolean isLastNameRequired = true;
     boolean isEmailInClaims = true;
     boolean isEmailRequired = true;
-
+    Integer defaultPurposeCatId = null;
+    Integer userNameValidityStatusCode = null;
+    String username = request.getParameter("username");
+    String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+    
+    if (StringUtils.isEmpty(username)) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "Pick a username");
+        request.getRequestDispatcher("register.do").forward(request, response);
+        return;
+    }
+    
+    try {
+        userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
+    } catch (SelfRegistrationMgtClientException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "Something went wrong while registering user : " + Encode.forHtmlContent(username) +
+                ". Please contact administrator");
+        request.getRequestDispatcher("register.do").forward(request, response);
+        return;
+    }
+    
+    
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
+    
+    if (userNameValidityStatusCode != null && !SelfRegistrationStatusCodes.CODE_USER_NAME_AVAILABLE.
+            equalsIgnoreCase(userNameValidityStatusCode.toString())) {
+        
+        request.setAttribute("error", true);
+        request.setAttribute("errorCode", userNameValidityStatusCode);
+        request.getRequestDispatcher("register.do").forward(request, response);
+        return;
+    }
+    
+    String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
+    boolean hasPurposes = StringUtils.isNotEmpty(purposes);
+    
+    if (hasPurposes) {
+        defaultPurposeCatId = selfRegistrationMgtClient.getDefaultPurposeId(user.getTenantDomain());
+    }
     Claim[] claims = new Claim[0];
 
     List<Claim> claimsList;
     UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
     try {
-        claimsList = usernameRecoveryApi.claimsGet(null);
+        claimsList = usernameRecoveryApi.claimsGet(user.getTenantDomain(), false);
         if (claimsList != null) {
             claims = claimsList.toArray(new Claim[claimsList.size()]);
         }
@@ -69,7 +116,6 @@
         reCaptchaEnabled = true;
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
         <meta charset="utf-8">
@@ -78,8 +124,10 @@
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="libs/font-awesome/css/font-awesome.css" rel="stylesheet">
         <link href="css/Roboto.css" rel="stylesheet">
         <link href="css/custom-common.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="libs/jstree/dist/themes/default/style.min.css" />
 
         <!--[if lt IE 9]>
         <script src="js/html5shiv.min.js"></script>
@@ -132,7 +180,8 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration</div>
+                        <div class="padding-double font-large">Enter required fields to complete registration of
+                            <b><%=Encode.forHtmlAttribute(username)%></b></div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
@@ -155,9 +204,8 @@
                             <%}%>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Username</label>
-                                <input id="username" name="username" type="text"
-                                       class="form-control required usrName usrNameLength" required>
+                                <input id="username" name="username" type="hidden" value="<%=Encode.forHtmlAttribute(username)%>"
+                                       class="form-control required usrName usrNameLength">
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
@@ -180,13 +228,6 @@
                                     <% if (isEmailRequired) {%> required <%}%>>
                             </div>
                             <%
-                                }
-
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
-                                if (StringUtils.isBlank(callback)) {
-                                    callback = IdentityManagementEndpointUtil.getUserPortalUrl(
-                                            application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
                                 }
 
                                 if (callback != null) {
@@ -223,6 +264,31 @@
                                     }
                                 }
                             %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group"></div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
+                            <%
+                                if (hasPurposes) {
+                            %>
+                                <!--User Consents-->
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
+                                    <div class="alert alert-warning margin-none" role="alert">
+                                        <div id="consent-mgt-container">
+                                            <p>
+                                                <strong>We need your consent on the attributes to use for the following purposes.</strong>
+                                                <span>By selecting preferred attributes, I consent to use them for the given purposes.</span>
+                                            </p>
+                                            <div id="tree-table"></div>
+                                        </div>
+                                        <div class="text-left padding-top-double">
+                                            <span class="required"><strong>Please note that all consents are mandatory</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--End User Consents-->
+                            <%
+                                }
+                            %>
                             <%
                                 if (reCaptchaEnabled) {
                             %>
@@ -235,16 +301,41 @@
                                 }
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <!--Cookie Policy-->
+                                <div class="alert alert-warning margin-bottom-double" role="alert">
+                                    <div>
+                                        After a successful sign in, we use a cookie in your browser to track your session. You can refer our
+                                        <a href="/authenticationendpoint/cookie_policy.do" target="policy-pane">
+                                            Cookie Policy
+                                        </a>
+                                        for more details.
+                                    </div>
+                                </div>
+                                <!--End Cookie Policy-->
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <!--Terms/Privacy Policy-->
+                                <div>
+                                    <label class="agreement-checkbox">
+                                        <input type="checkbox" /> I hereby confirm that I have read and understood the
+                                        <a href="/authenticationendpoint/privacy_policy.do" target="policy-pane">
+                                            Privacy Policy
+                                        </a>
+                                    </label>
+                                </div>
+                                <!--End Terms/Privacy Policy-->
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <button id="registrationSubmit"
+                                        class="wr-btn col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                                        type="submit">Register
+                                </button>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="isSelfRegistrationWithVerification" type="hidden"
                                        name="isSelfRegistrationWithVerification"
                                        value="true"/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <br/>
-                                <button id="registrationSubmit"
-                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Register
-                                </button>
+                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <span class="margin-top padding-top-double font-large">Already have an account? </span>
@@ -254,8 +345,12 @@
                             </div>
                             <div class="clearfix"></div>
                         </div>
+                        <div class="clearfix"></div>
                     </div>
                 </form>
+                
+                
+                </div>
             </div>
         </div>
         <!-- /content/body -->
@@ -274,15 +369,67 @@
 
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="libs/handlebars-v4.0.11.js"></script>
+    <script type="text/javascript" src="libs/jstree/dist/jstree.min.js"></script>
+    <script type="text/javascript" src="libs/jstree/src/jstree-actions.js"></script>
     <script type="text/javascript">
 
+        var container;
+        var allAttributes = [];
         $(document).ready(function () {
+
+            var ALL_ATTRIBUTES_MANDATORY = true;
+
+            var agreementChk = $(".agreement-checkbox input");
+            var registrationBtn = $("#registrationSubmit");
+
+            if (agreementChk.length > 0) {
+                registrationBtn.prop("disabled", true).addClass("disabled");
+            }
+            agreementChk.click(function () {
+                if ($(this).is(":checked")) {
+                    registrationBtn.prop("disabled", false).removeClass("disabled");
+                } else {
+                    registrationBtn.prop("disabled", true).addClass("disabled");
+                }
+            });
 
             $("#register").submit(function (e) {
 
+                var unsafeCharPattern = /[<>`\"]/;
+                var elements = document.getElementsByTagName("input");
+                var invalidInput = false;
+                var error_msg = $("#error-msg");
+
+                for (i = 0; i < elements.length; i++) {
+                    if (elements[i].type === 'text' && elements[i].value != null
+                        && elements[i].value.match(unsafeCharPattern) != null) {
+                        error_msg.text('For security measures following characters are restricted < > ` "');
+                        error_msg.show();
+                        $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
+                        invalidInput = true;
+                        return false;
+                    }
+                }
+
+                if (ALL_ATTRIBUTES_MANDATORY) {
+
+                    var selectedAttributes = container.jstree(true).get_selected();
+                    var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
+
+                    if (!allSelected) {
+                        $("#attribute_selection_validation").modal();
+                        return false;
+                    }
+
+                }
+
+                if (invalidInput) {
+                    return false;
+                }
+
                 var password = $("#password").val();
                 var password2 = $("#password2").val();
-                var error_msg = $("#error-msg");
 
                 if (password != password2) {
                     error_msg.text("Passwords did not match. Please try again.");
@@ -305,12 +452,169 @@
                 }
                 %>
 
+                <%
+                if (hasPurposes) {
+                %>
+                var self = this;
+                e.preventDefault();
+                var recipt = addReciptInformation(container);
+                $('<input />').attr('type', 'hidden')
+                    .attr('name', "consent")
+                    .attr('value', JSON.stringify(recipt))
+                    .appendTo('#register');
+                self.submit();
+                <%
+                }
+                %>
+
                 return true;
             });
         });
+
+        function compareArrays(arr1, arr2) {
+            return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
+        };
+
+        <%
+            if (hasPurposes) {
+        %>
+        renderReceiptDetails(<%=purposes%>);
+        <%
+            }
+        %>
+
+        function renderReceiptDetails(data) {
+
+            var treeTemplate =
+                '<div id="html1">' +
+                '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
+                '<ul>' +
+                '{{#purposes}}' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : {{description}}{{/if}}<ul>' +
+                '{{#piiCategories}}' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}</li>' +
+                '</li>' +
+                '{{/piiCategories}}' +
+                '</ul>' +
+                '{{/purposes}}' +
+                '</ul></li>' +
+                '</ul>' +
+                '</div>';
+
+            var tree = Handlebars.compile(treeTemplate);
+            var treeRendered = tree(data);
+
+            $("#tree-table").html(treeRendered);
+
+            container = $("#html1").jstree({
+                plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
+                checkbox: {"keep_selected_style": false},
+            });
+
+            container.on('ready.jstree', function (event, data) {
+                var $tree = $(this);
+                $($tree.jstree().get_json($tree, {
+                    flat: true
+                }))
+                    .each(function (index, value) {
+                        var node = container.jstree().get_node(this.id);
+                        allAttributes.push(node.id);
+                    });
+            });
+
+        }
+
+        function addReciptInformation(container) {
+            // var oldReceipt = receiptData.receipts;
+            var newReceipt = {};
+            var services = [];
+            var service = {};
+
+            var selectedNodes = container.jstree(true).get_selected('full', true);
+            var undeterminedNodes = container.jstree(true).get_undetermined('full', true);
+
+            if (!selectedNodes || selectedNodes.length < 1) {
+                //revokeReceipt(oldReceipt.consentReceiptID);
+                return;
+            }
+            selectedNodes = selectedNodes.concat(undeterminedNodes);
+            var relationshipTree = unflatten(selectedNodes); //Build relationship tree
+            var purposes = relationshipTree[0].children;
+            var newPurposes = [];
+
+            for (var i = 0; i < purposes.length; i++) {
+                var purpose = purposes[i];
+                var newPurpose = {};
+                newPurpose["purposeId"] = purpose.li_attr.purposeid;
+                //newPurpose = oldPurpose[0];
+                newPurpose['piiCategory'] = [];
+                newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
+
+                var piiCategory = [];
+                var categories = purpose.children;
+                for (var j = 0; j < categories.length; j++) {
+                    var category = categories[j];
+                    var c = {};
+                    c['piiCategoryId'] = category.li_attr.piicategoryid;
+                    piiCategory.push(c);
+                }
+                newPurpose['piiCategory'] = piiCategory;
+                newPurposes.push(newPurpose);
+            }
+            service['purposes'] = newPurposes;
+            services.push(service);
+            newReceipt['services'] = services;
+
+            return newReceipt;
+        }
+
+        function unflatten(arr) {
+            var tree = [],
+                mappedArr = {},
+                arrElem,
+                mappedElem;
+
+            // First map the nodes of the array to an object -> create a hash table.
+            for (var i = 0, len = arr.length; i < len; i++) {
+                arrElem = arr[i];
+                mappedArr[arrElem.id] = arrElem;
+                mappedArr[arrElem.id]['children'] = [];
+            }
+
+            for (var id in mappedArr) {
+                if (mappedArr.hasOwnProperty(id)) {
+                    mappedElem = mappedArr[id];
+                    // If the element is not at the root level, add it to its parent array of children.
+                    if (mappedElem.parent && mappedElem.parent != "#" && mappedArr[mappedElem['parent']]) {
+                        mappedArr[mappedElem['parent']]['children'].push(mappedElem);
+                    }
+                    // If the element is at the root level, add it to first level elements array.
+                    else {
+                        tree.push(mappedElem);
+                    }
+                }
+            }
+            return tree;
+        }
+
     </script>
+
+    <div id="attribute_selection_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Consent Selection</h4>
+                </div>
+                <div class="modal-body">
+                    You need to provide consent for all the claims in order to proceed..!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </body>
     </html>
-</fmt:bundle>
-
-

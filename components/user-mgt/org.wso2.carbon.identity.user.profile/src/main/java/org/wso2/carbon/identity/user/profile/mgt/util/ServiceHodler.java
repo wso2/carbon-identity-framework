@@ -35,7 +35,6 @@ public class ServiceHodler {
     private static UserRealm internalUserStore;
     private static boolean isIDNTableExist;
 
-
     private ServiceHodler(){
 
     }
@@ -76,4 +75,3 @@ public class ServiceHodler {
         return isIDNTableExist;
     }
 }
-

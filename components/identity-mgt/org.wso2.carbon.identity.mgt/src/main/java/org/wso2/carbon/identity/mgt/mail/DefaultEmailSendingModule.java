@@ -34,6 +34,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.CarbonConfigurationContextFactory;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,8 +45,9 @@ import java.util.Map;
 public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
 
     public static final String CONF_STRING = "confirmation";
+    private static final String SEND_MAIL_PROPERTY = "mailto:";
     private static Log log = LogFactory.getLog(DefaultEmailSendingModule.class);
-    private Notification notification;
+    private BlockingQueue<Notification> notificationQueue = new LinkedBlockingDeque<Notification>();
 
     /**
      * Replace the {user-parameters} in the config file with the respective
@@ -72,7 +75,8 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
         Map<String, String> headerMap = new HashMap<String, String>();
 
         try {
-            if (this.notification == null) {
+            Notification notification = notificationQueue.take();
+            if (notification == null) {
                 throw new IllegalStateException("Notification not set. " +
                         "Please set the notification before sending messages");
             }
@@ -87,15 +91,15 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
                 }
             }
 
-            headerMap.put(MailConstants.MAIL_HEADER_SUBJECT, this.notification.getSubject());
+            headerMap.put(MailConstants.MAIL_HEADER_SUBJECT, notification.getSubject());
 
             OMElement payload = OMAbstractFactory.getOMFactory().createOMElement(
                     BaseConstants.DEFAULT_TEXT_WRAPPER, null);
             StringBuilder contents = new StringBuilder();
-            contents.append(this.notification.getBody())
+            contents.append(notification.getBody())
                     .append(System.getProperty("line.separator"))
                     .append(System.getProperty("line.separator"))
-                    .append(this.notification.getFooter());
+                    .append(notification.getFooter());
             payload.setText(contents.toString());
             ServiceClient serviceClient;
             ConfigurationContext configContext = CarbonConfigurationContextFactory
@@ -110,17 +114,19 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
             options.setProperty(MessageContext.TRANSPORT_HEADERS, headerMap);
             options.setProperty(MailConstants.TRANSPORT_MAIL_FORMAT,
                     MailConstants.TRANSPORT_FORMAT_TEXT);
-            options.setTo(new EndpointReference("mailto:" + this.notification.getSendTo()));
+            options.setTo(new EndpointReference(SEND_MAIL_PROPERTY + notification.getSendTo()));
             serviceClient.setOptions(options);
-            log.info("Sending " + "user credentials configuration mail to " + this.notification.getSendTo());
+            log.info("Sending an email notification to " + notification.getSendTo());
             serviceClient.fireAndForget(payload);
             
             if (log.isDebugEnabled()) {
-                log.debug("Email content : " + this.notification.getBody());
+                log.debug("Email content : " + notification.getBody());
             }
-            log.info("User credentials configuration mail has been sent to " + this.notification.getSendTo());
+            log.info("Email notification has been sent to " + notification.getSendTo());
         } catch (AxisFault axisFault) {
             log.error("Failed Sending Email", axisFault);
+        } catch (InterruptedException e) {
+            log.error("Interrupted while waiting until an element becomes available in the notification queue.", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -151,12 +157,12 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
 
     @Override
     public Notification getNotification() {
-        return this.notification;
+        return notificationQueue.peek();
     }
 
     @Override
     public void setNotification(Notification notification) {
-        this.notification = notification;
+        notificationQueue.add(notification);
     }
 
 }

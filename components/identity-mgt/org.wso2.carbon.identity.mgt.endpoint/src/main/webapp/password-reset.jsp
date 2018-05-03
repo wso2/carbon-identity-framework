@@ -26,10 +26,12 @@
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
     String callback = (String) request.getAttribute("callback");
     String tenantDomain = (String) request.getAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN);
+    if (tenantDomain == null) {
+        tenantDomain = (String) session.getAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN);
+    }
 
 %>
 
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
         <meta charset="utf-8">
@@ -95,7 +97,7 @@
                                 if (callback != null) {
                             %>
                             <div>
-                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                                <input type="hidden" name="callback" value="<%=Encode.forHtmlAttribute(callback) %>"/>
                             </div>
                             <%
                                 }
@@ -104,7 +106,7 @@
                                 if (tenantDomain != null) {
                             %>
                             <div>
-                                <input type="hidden" name="tenantdomain" value="<%=tenantDomain %>"/>
+                                <input type="hidden" name="tenantdomain" value="<%=Encode.forHtmlAttribute(tenantDomain) %>"/>
                             </div>
                             <%
                                 }
@@ -174,4 +176,3 @@
     </script>
     </body>
     </html>
-</fmt:bundle>

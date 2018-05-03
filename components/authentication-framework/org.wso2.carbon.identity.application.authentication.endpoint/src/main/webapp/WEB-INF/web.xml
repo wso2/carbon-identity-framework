@@ -54,7 +54,7 @@
    </context-param-->
     <context-param>
        <param-name>AccountRecoveryRESTEndpointURL</param-name>
-       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v0.9/</param-value>
+       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v1.0/</param-value>
    </context-param>
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
 
@@ -207,6 +207,21 @@
         <jsp-file>/registration.jsp</jsp-file>
     </servlet>
 
+    <servlet>
+        <servlet-name>consent.do</servlet-name>
+        <jsp-file>/consent.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cookie_policy.do</servlet-name>
+        <jsp-file>/cookie_policy.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_policy.do</servlet-name>
+        <jsp-file>/privacy_policy.jsp</jsp-file>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
@@ -292,9 +307,73 @@
         <url-pattern>/claims.do</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>consent.do</servlet-name>
+        <url-pattern>/consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cookie_policy.do</servlet-name>
+        <url-pattern>/cookie_policy.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_policy.do</servlet-name>
+        <url-pattern>/privacy_policy.do</url-pattern>
+    </servlet-mapping>
+
     <error-page>
         <exception-type>java.lang.Throwable</exception-type>
         <location>/generic-exception-response.jsp</location>
+    </error-page>
+
+    <!-- custom error pages -->
+    <error-page>
+        <error-code>400</error-code>
+        <location>/errors/error_400.html</location>
+    </error-page>
+    <error-page>
+        <error-code>401</error-code>
+        <location>/errors/error_401.html</location>
+    </error-page>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/errors/error_403.html</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/errors/error_404.html</location>
+    </error-page>
+    <error-page>
+        <error-code>405</error-code>
+        <location>/errors/error_405.html</location>
+    </error-page>
+    <error-page>
+        <error-code>408</error-code>
+        <location>/errors/error_408.html</location>
+    </error-page>
+    <error-page>
+        <error-code>410</error-code>
+        <location>/errors/error_410.html</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/errors/error_500.html</location>
+    </error-page>
+    <error-page>
+        <error-code>502</error-code>
+        <location>/errors/error_502.html</location>
+    </error-page>
+    <error-page>
+        <error-code>503</error-code>
+        <location>/errors/error_503.html</location>
+    </error-page>
+    <error-page>
+        <error-code>504</error-code>
+        <location>/errors/error_504.html</location>
+    </error-page>
+    <error-page>
+        <location>/errors/error.html</location>
     </error-page>
 
     <session-config>

@@ -42,6 +42,12 @@ public class IdPManagementConstants {
                 "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE (TENANT_ID = ? OR" +
                 " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?";
 
+        public static final String GET_IDP_BY_ID_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, ALIAS, " +
+                "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
+                "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
+                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE (TENANT_ID = ? OR" +
+                " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND ID = ?";
+
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
@@ -163,6 +169,16 @@ public class IdPManagementConstants {
                 + "PROV_CONFIG_IS_SECRET = ? WHERE IDP_ID=?";
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
+
+        public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +
+                "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
+                "AND TENANT_ID=?))";
+
+        public static final String REMOVE_EMPTY_SP_AUTH_STEPS =
+                "DELETE FROM SP_AUTH_STEP WHERE ID NOT IN (SELECT ID FROM SP_FEDERATED_IDP)";
+
+        public static final String DELETE_IDP_SP_PROVISIONING_ASSOCIATIONS = "DELETE FROM SP_PROVISIONING_CONNECTOR " +
+                "WHERE IDP_NAME=? AND TENANT_ID=?";
 
         public static final String GET_IDP_ROW_ID_SQL = "SELECT ID FROM IDP WHERE ((TENANT_ID = ? OR (TENANT_ID = ? " +
                 "AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?)";

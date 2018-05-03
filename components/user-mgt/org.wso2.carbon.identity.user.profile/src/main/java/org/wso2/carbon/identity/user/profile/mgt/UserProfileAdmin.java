@@ -30,8 +30,10 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.util.Constants;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -88,6 +90,14 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
 
             if (!this.isAuthorized(username, USER_PROFILE_MANAGE_PERMISSION)) {
+                throw new UserProfileException(authorizationFailureMessage);
+            }
+
+            // Check whether we are trying to change the admin user profile. Only admin user can change his profile.
+            // Any other attempt is unauthorized. So attempts will be logged and denied.
+            if (isAdminProfileSpoof(username)) {
+                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " is trying to modify the profile of the admin user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -151,6 +161,14 @@ public class UserProfileAdmin extends AbstractAdmin {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
+            // Check whether we are trying to delete the admin user profile. Only admin user can delete his profile.
+            // Any other attempt is unauthorized. So attempts will be logged and denied.
+            if (isAdminProfileSpoof(username)) {
+                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " is trying to delete the profile of the admin user.");
+                throw new UserProfileException(authorizationFailureMessage);
+            }
+
             if (UserCoreConstants.DEFAULT_PROFILE.equals(profileName)) {
                 throw new UserProfileException("Cannot delete default profile");
             }
@@ -179,6 +197,14 @@ public class UserProfileAdmin extends AbstractAdmin {
         String profileConfig = null;
         try {
             if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
+                throw new UserProfileException(authorizationFailureMessage);
+            }
+
+            // Check whether we are trying to view the admin user profile. Only admin user can view his profile.
+            // Any other attempt is unauthorized. So attempts will be logged and denied.
+            if (isAdminProfileSpoof(username)) {
+                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " is trying to view the profile of the admin user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -337,6 +363,14 @@ public class UserProfileAdmin extends AbstractAdmin {
             }
 
             if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
+                throw new UserProfileException(authorizationFailureMessage);
+            }
+
+            // Check whether we are trying to view the admin user profile. Only admin user can view his profile.
+            // Any other attempt is unauthorized. So attempts will be logged and denied.
+            if (isAdminProfileSpoof(username)) {
+                log.warn("Unauthorized attempt. User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " is trying to view the profile of the admin user.");
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -591,36 +625,57 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     public void associateID(String idpID, String associatedID) throws UserProfileException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
-        String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
+        String userStoreDomainName = UserCoreUtil.extractDomainFromName(tenantAwareUsername);
         String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
-        try {
-            sql = "INSERT INTO IDN_ASSOCIATED_ID (TENANT_ID, IDP_ID, IDP_USER_ID, DOMAIN_NAME, USER_NAME) " +
-                  "VALUES (? , (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = ? ), ? , ?, ?)";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(Constants.SQLQueries
+                     .RETRIEVE_EXISTING_ASSOCIATIONS)) {
+            prepStmt.setInt(1, tenantID);
+            prepStmt.setString(2, idpID);
+            prepStmt.setInt(3, tenantID);
+            prepStmt.setString(4, associatedID);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Federated ID '" + associatedID + "' for IdP '" + idpID + "' is " +
+                                "already associated with the local user account '" + UserCoreUtil.addDomainToName
+                                (resultSet.getString(1), resultSet.getString(2)) + UserCoreConstants
+                                .TENANT_DOMAIN_COMBINER + tenantDomain + "'.");
+                    }
+                    throw new UserProfileException("UserAlreadyAssociated: Federated ID '" + associatedID + "' for " +
+                            "IdP '" + idpID + "' is already associated with a local user account.");
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            log.error("Error occurred while retrieving existing association for federated user ID '" + associatedID
+                    + "' for IdP '" + idpID + "' in tenant '" + tenantDomain + "'.", e);
+            throw new UserProfileException("Error occurred while retrieving existing association for federated user " +
+                    "ID.");
+        }
 
-            prepStmt = connection.prepareStatement(sql);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(Constants.SQLQueries
+                     .ASSOCIATE_USER_ACCOUNTS)) {
             prepStmt.setInt(1, tenantID);
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
             prepStmt.setString(5, userStoreDomainName);
             prepStmt.setString(6, username);
-
-
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
-            log.error("Error occurred while persisting the federated user ID", e);
-            throw new UserProfileException("Error occurred while persisting the federated user ID", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            log.error("Error occurred while persisting association for federated user ID '" + associatedID + "' for" +
+                    " IdP '" + idpID + "' with the local user account '" + UserCoreUtil.addDomainToName
+                    (username, userStoreDomainName) + UserCoreConstants.TENANT_DOMAIN_COMBINER + tenantDomain
+                    + "'.", e);
+            throw new UserProfileException("Error occurred while persisting the federated user ID");
         }
-
     }
 
     public String getNameAssociatedWith(String idpID, String associatedID) throws UserProfileException {
@@ -731,6 +786,40 @@ public class UserProfileAdmin extends AbstractAdmin {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
 
+    }
+
+    /**
+     * Checks whether the given user name is admin user name and the currently logged in user also admin.
+     * Only admin user is allowed for admin user profile related operations.
+     *
+     * @param username Username to be checked.
+     * @return True only if admin user.
+     * @throws UserStoreException Error occurred while retrieving realm configuration.
+     */
+    private boolean isAdminProfileSpoof(String username) throws UserStoreException {
+
+        if (StringUtils.isEmpty(username)) {
+            return false;
+        }
+
+        RealmConfiguration realmConfiguration = getUserRealm().getRealmConfiguration();
+        String adminUsername = IdentityUtil.addDomainToName(realmConfiguration.getAdminUserName(),
+                IdentityUtil.getPrimaryDomainName());
+        String targetUsername = IdentityUtil.addDomainToName(username, IdentityUtil.getPrimaryDomainName());
+
+        // If the given user name is not the admin username, simply we can allow and return false. Our intention is to
+        // check whether a non admin user is trying to do operations on an admin profile.
+        if (!StringUtils.equalsIgnoreCase(targetUsername, adminUsername)) {
+            return false;
+        }
+
+        String loggedInUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (loggedInUsername != null) {
+            loggedInUsername = IdentityUtil.addDomainToName(loggedInUsername, IdentityUtil.getPrimaryDomainName());
+        }
+
+        // If the currently logged in user is also the admin user this isn't a spoof attempt. Hence returning false.
+        return !StringUtils.equalsIgnoreCase(loggedInUsername, adminUsername);
     }
 
 }

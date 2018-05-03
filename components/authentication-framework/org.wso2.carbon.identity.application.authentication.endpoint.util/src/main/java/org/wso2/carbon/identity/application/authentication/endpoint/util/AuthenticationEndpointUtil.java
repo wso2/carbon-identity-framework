@@ -18,10 +18,17 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import org.owasp.encoder.Encode;
+import org.apache.axiom.om.util.Base64;
 
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
@@ -30,6 +37,8 @@ public class AuthenticationEndpointUtil {
     private static final String CUSTOM_PAGE_APP_SPECIFIC_CONFIG_KEY_SEPARATOR = "-";
     private static final String QUERY_STRING_APPENDER = "&";
     private static final String QUERY_STRING_INITIATOR = "?";
+    private static final String PADDING_CHAR = "=";
+    private static final String UNDERSCORE = "_";
 
     private AuthenticationEndpointUtil() {
     }
@@ -116,4 +125,43 @@ public class AuthenticationEndpointUtil {
         return user;
     }
 
+    /**
+     * To get the property value for the given key from the ResourceBundle
+     * Retrieve the value of property entry for key, return key if a value is not found for key
+     * @param resourceBundle
+     * @param key
+     * @return
+     */
+    public static String i18n(ResourceBundle resourceBundle, String key) {
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(key)) ?
+                    resourceBundle.getString(key) : key));
+        } catch (Exception e) {
+            // Intentionally catching Exception and if something goes wrong while finding the value for key, return
+            // default, not to break the UI
+            return Encode.forHtml(key);
+        }
+    }
+
+    /**
+     * To get the property value for the base64 encoded value of the key from the ResourceBundle
+     * Retrieve the value of property entry for where key is obtained after replacing "=" with "_" of base64 encoded
+     * value of the given key,
+     * return key if a value is not found for above calculated
+     * @param resourceBundle
+     * @param key
+     * @return
+     */
+    public static String i18nBase64(ResourceBundle resourceBundle, String key) {
+        String base64Key = Base64.encode(key.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(base64Key)) ?
+                    resourceBundle.getString(base64Key) : key));
+        } catch (Exception e) {
+            // Intentionally catching Exception and if something goes wrong while finding the value for key, return
+            // default, not to break the UI
+            return Encode.forHtml(key);
+        }
+    }
 }
+

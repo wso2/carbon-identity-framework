@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.user.registration.internal;
 
 import org.apache.commons.logging.Log;
@@ -23,30 +22,34 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-
-/**
- * @scr.component name="usermgt.component"" immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- */
+@Component(
+         name = "usermgt.component", 
+         immediate = true)
 public class UserRegistrationDSComponent {
 
     private static final Log log = LogFactory.getLog(UserRegistrationDSComponent.class);
 
     private static RegistryService registryService = null;
+
     private static RealmService realmService = null;
 
     public static RegistryService getRegistryService() {
         return registryService;
     }
 
+    @Reference(
+             name = "registry.service", 
+             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.info("Setting the Registry Service");
@@ -58,6 +61,12 @@ public class UserRegistrationDSComponent {
         return realmService;
     }
 
+    @Reference(
+             name = "user.realmservice.default", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.info("Setting the Realm Service");
@@ -65,10 +74,12 @@ public class UserRegistrationDSComponent {
         UserRegistrationDSComponent.realmService = realmService;
     }
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         log.debug("UserRegistration bundle is activated ");
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         log.debug("UserRegistration bundle is deactivated ");
     }
@@ -86,5 +97,5 @@ public class UserRegistrationDSComponent {
         }
         UserRegistrationDSComponent.realmService = null;
     }
-
 }
+

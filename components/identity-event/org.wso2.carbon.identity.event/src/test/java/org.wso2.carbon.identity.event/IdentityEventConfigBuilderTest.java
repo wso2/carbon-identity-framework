@@ -19,9 +19,11 @@ package org.wso2.carbon.identity.event;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import static org.testng.Assert.assertNotNull;
 
-public class IdentityEventConfigBuilderTest {
+
+public class IdentityEventConfigBuilderTest extends IdentityBaseTest {
 
     @BeforeSuite
     public void setup() throws NoSuchFieldException, IllegalAccessException {

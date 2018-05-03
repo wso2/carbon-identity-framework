@@ -25,6 +25,9 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -32,6 +35,7 @@
 
 
     String username = request.getParameter("username");
+    String tenantdomain = request.getParameter("tenantdomain");
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
 
@@ -49,7 +53,14 @@
     try {
         SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
         CodeValidationRequest validationRequest = new CodeValidationRequest();
+        List<Property> properties = new ArrayList<>();
+        Property tenantDomainProperty = new Property();
+        tenantDomainProperty.setKey(MultitenantConstants.TENANT_DOMAIN);
+        tenantDomainProperty.setValue(tenantdomain);
+        properties.add(tenantDomainProperty);
+
         validationRequest.setCode(confirmationKey);
+        validationRequest.setProperties(properties);
 
         selfRegisterApi.validateCodePostCall(validationRequest);
 
@@ -61,15 +72,15 @@
         Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
         if (errorD != null) {
-            errorMsg = errorD.getDescription();
             request.setAttribute("errorMsg", errorD.getDescription());
             request.setAttribute("errorCode", errorD.getCode());
-        } else {
-            errorMsg = e.getMessage();
         }
+
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
+
     <html>
     <head>
         <meta charset="utf-8">
@@ -143,5 +154,3 @@
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
     </body>
     </html>
-</fmt:bundle>
-
