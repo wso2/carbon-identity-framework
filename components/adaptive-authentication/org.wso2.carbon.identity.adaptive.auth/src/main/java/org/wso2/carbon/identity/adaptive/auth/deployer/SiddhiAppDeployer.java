@@ -43,7 +43,7 @@ public class SiddhiAppDeployer {
     private static final String SIDDHI_FILE_SUFFIX = ".siddhi";
     private Path rootPath;
     private boolean isFileWatcherRunning;
-    private WatchKey fileWatcherKey;
+    WatchService watcher;
 
     // Map to have a correlation between siddhi app name and file name
     private Map<String, String> fileNameToAppName = new ConcurrentHashMap<>();
@@ -67,12 +67,14 @@ public class SiddhiAppDeployer {
     private void loadSiddhiApps() {
 
         try {
-            Files.list(rootPath)
-                    .filter(Files::isRegularFile)
-                    .filter(x -> x.getFileName().toString().endsWith(SIDDHI_FILE_SUFFIX))
-                    .forEach(this::deploySiddhiApp);
+            if (Files.exists(rootPath)) {
+                Files.list(rootPath)
+                        .filter(Files::isRegularFile)
+                        .filter(x -> x.getFileName().toString().endsWith(SIDDHI_FILE_SUFFIX))
+                        .forEach(this::deploySiddhiApp);
+            }
         } catch (IOException e) {
-            log.error("Error while deploying siddhi app.", e);
+            log.error("Error while deploying siddhi apps in path: " + rootPath.toAbsolutePath(), e);
         }
     }
 
@@ -86,16 +88,31 @@ public class SiddhiAppDeployer {
 
     private void startWatching() {
 
-        Thread serviceWatcherThread = new Thread(() -> {
+        if (!Files.exists(rootPath)) {
+            return;
+        }
 
+        Thread serviceWatcherThread = new Thread(() -> {
+            WatchService watcher;
             try {
-                WatchService watcher = FileSystems.getDefault().newWatchService();
-                fileWatcherKey = rootPath.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+                watcher = FileSystems.getDefault().newWatchService();
+                rootPath.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
             } catch (IOException e) {
                 log.error("Error registering watcher for path: " + rootPath.toAbsolutePath());
+                return;
             }
             isFileWatcherRunning = true;
             while (isFileWatcherRunning) {
+                // Wait for key to be signaled
+                WatchKey fileWatcherKey;
+                try {
+                    fileWatcherKey = watcher.take();
+                } catch (InterruptedException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Watching for siddhi apps deployment folder interrupted.", e);
+                    }
+                    return;
+                }
                 try {
                     for (WatchEvent<?> event : fileWatcherKey.pollEvents()) {
                         WatchEvent.Kind<?> kind = event.kind();
@@ -119,6 +136,13 @@ public class SiddhiAppDeployer {
                             }
                         }
                     }
+                    //Reset the key -- this step is critical if you want to receive
+                    //further watch events. If the key is no longer valid, the directory
+                    //is inaccessible so exit the loop.
+                    boolean valid = fileWatcherKey.reset();
+                    if (!valid) {
+                        break;
+                    }
                 } catch (Exception ex) {
                     log.error("Error while watching deployment folder for siddhiApps.", ex);
                 }
@@ -131,7 +155,12 @@ public class SiddhiAppDeployer {
     private void stopWatching() {
 
         isFileWatcherRunning = false;
-        fileWatcherKey.cancel();
+        try {
+            watcher.close();
+        } catch (IOException e) {
+            log.error("Error while stop watching deployment folder for siddhiApps in path:"
+                    + rootPath.toAbsolutePath(), e);
+        }
     }
 
     private void updateSiddhiApp(Path siddhiAppPath) {
