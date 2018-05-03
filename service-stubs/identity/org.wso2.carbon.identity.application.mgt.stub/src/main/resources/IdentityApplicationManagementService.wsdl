@@ -32,20 +32,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getIdentityProvider">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getIdentityProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2140:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="createApplication">
                 <xs:complexType>
                     <xs:sequence>
@@ -124,6 +110,32 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAuthenticationTemplatesJSON">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAuthenticationTemplatesJSONResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdentityProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdentityProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2140:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -388,6 +400,12 @@
     <wsdl:message name="getAllRequestPathAuthenticatorsResponse">
         <wsdl:part name="parameters" element="ns1:getAllRequestPathAuthenticatorsResponse"/>
     </wsdl:message>
+    <wsdl:message name="getAllIdentityProvidersRequest">
+        <wsdl:part name="parameters" element="ns1:getAllIdentityProviders"/>
+    </wsdl:message>
+    <wsdl:message name="getAllIdentityProvidersResponse">
+        <wsdl:part name="parameters" element="ns1:getAllIdentityProvidersResponse"/>
+    </wsdl:message>
     <wsdl:message name="updateApplicationRequest">
         <wsdl:part name="parameters" element="ns1:updateApplication"/>
     </wsdl:message>
@@ -402,17 +420,19 @@
         <wsdl:part name="parameters" element="ns1:createApplication"/>
     </wsdl:message>
     <wsdl:message name="createApplicationResponse"/>
+    <wsdl:message name="getAuthenticationTemplatesJSONRequest">
+        <wsdl:part name="parameters" element="ns1:getAuthenticationTemplatesJSON"/>
+    </wsdl:message>
+    <wsdl:message name="getAuthenticationTemplatesJSONResponse">
+        <wsdl:part name="parameters" element="ns1:getAuthenticationTemplatesJSONResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAuthenticationFlowTemplatesRequest"/>
+    <wsdl:message name="getAuthenticationFlowTemplatesResponse"/>
     <wsdl:message name="getAllApplicationBasicInfoRequest">
         <wsdl:part name="parameters" element="ns1:getAllApplicationBasicInfo"/>
     </wsdl:message>
     <wsdl:message name="getAllApplicationBasicInfoResponse">
         <wsdl:part name="parameters" element="ns1:getAllApplicationBasicInfoResponse"/>
-    </wsdl:message>
-    <wsdl:message name="getAllIdentityProvidersRequest">
-        <wsdl:part name="parameters" element="ns1:getAllIdentityProviders"/>
-    </wsdl:message>
-    <wsdl:message name="getAllIdentityProvidersResponse">
-        <wsdl:part name="parameters" element="ns1:getAllIdentityProvidersResponse"/>
     </wsdl:message>
     <wsdl:message name="getIdentityProviderRequest">
         <wsdl:part name="parameters" element="ns1:getIdentityProvider"/>
@@ -440,6 +460,11 @@
             <wsdl:output message="tns:getAllRequestPathAuthenticatorsResponse" wsaw:Action="urn:getAllRequestPathAuthenticatorsResponse"/>
             <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllRequestPathAuthenticatorsIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdentityProviders">
+            <wsdl:input message="tns:getAllIdentityProvidersRequest" wsaw:Action="urn:getAllIdentityProviders"/>
+            <wsdl:output message="tns:getAllIdentityProvidersResponse" wsaw:Action="urn:getAllIdentityProvidersResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllIdentityProvidersIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
         <wsdl:operation name="updateApplication">
             <wsdl:input message="tns:updateApplicationRequest" wsaw:Action="urn:updateApplication"/>
             <wsdl:output message="tns:updateApplicationResponse" wsaw:Action="urn:updateApplicationResponse"/>
@@ -455,15 +480,18 @@
             <wsdl:output message="tns:createApplicationResponse" wsaw:Action="urn:createApplicationResponse"/>
             <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:createApplicationIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getAuthenticationTemplatesJSON">
+            <wsdl:input message="tns:getAuthenticationTemplatesJSONRequest" wsaw:Action="urn:getAuthenticationTemplatesJSON"/>
+            <wsdl:output message="tns:getAuthenticationTemplatesJSONResponse" wsaw:Action="urn:getAuthenticationTemplatesJSONResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAuthenticationFlowTemplates">
+            <wsdl:input message="tns:getAuthenticationFlowTemplatesRequest" wsaw:Action="urn:getAuthenticationFlowTemplates"/>
+            <wsdl:output message="tns:getAuthenticationFlowTemplatesResponse" wsaw:Action="urn:getAuthenticationFlowTemplatesResponse"/>
+        </wsdl:operation>
         <wsdl:operation name="getAllApplicationBasicInfo">
             <wsdl:input message="tns:getAllApplicationBasicInfoRequest" wsaw:Action="urn:getAllApplicationBasicInfo"/>
             <wsdl:output message="tns:getAllApplicationBasicInfoResponse" wsaw:Action="urn:getAllApplicationBasicInfoResponse"/>
             <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
-        </wsdl:operation>
-        <wsdl:operation name="getAllIdentityProviders">
-            <wsdl:input message="tns:getAllIdentityProvidersRequest" wsaw:Action="urn:getAllIdentityProviders"/>
-            <wsdl:output message="tns:getAllIdentityProvidersResponse" wsaw:Action="urn:getAllIdentityProvidersResponse"/>
-            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllIdentityProvidersIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="getIdentityProvider">
             <wsdl:input message="tns:getIdentityProviderRequest" wsaw:Action="urn:getIdentityProvider"/>
@@ -514,6 +542,18 @@
                 <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdentityProviders">
+            <soap:operation soapAction="urn:getAllIdentityProviders" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="updateApplication">
             <soap:operation soapAction="urn:updateApplication" style="document"/>
             <wsdl:input>
@@ -550,20 +590,26 @@
                 <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getAllApplicationBasicInfo">
-            <soap:operation soapAction="urn:getAllApplicationBasicInfo" style="document"/>
+        <wsdl:operation name="getAuthenticationTemplatesJSON">
+            <soap:operation soapAction="urn:getAuthenticationTemplatesJSON" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output>
                 <soap:body use="literal"/>
             </wsdl:output>
-            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
-                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
-            </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getAllIdentityProviders">
-            <soap:operation soapAction="urn:getAllIdentityProviders" style="document"/>
+        <wsdl:operation name="getAuthenticationFlowTemplates">
+            <soap:operation soapAction="urn:getAuthenticationFlowTemplates" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllApplicationBasicInfo">
+            <soap:operation soapAction="urn:getAllApplicationBasicInfo" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -637,6 +683,18 @@
                 <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdentityProviders">
+            <soap12:operation soapAction="urn:getAllIdentityProviders" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="updateApplication">
             <soap12:operation soapAction="urn:updateApplication" style="document"/>
             <wsdl:input>
@@ -673,20 +731,26 @@
                 <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getAllApplicationBasicInfo">
-            <soap12:operation soapAction="urn:getAllApplicationBasicInfo" style="document"/>
+        <wsdl:operation name="getAuthenticationTemplatesJSON">
+            <soap12:operation soapAction="urn:getAuthenticationTemplatesJSON" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
             <wsdl:output>
                 <soap12:body use="literal"/>
             </wsdl:output>
-            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
-                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
-            </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getAllIdentityProviders">
-            <soap12:operation soapAction="urn:getAllIdentityProviders" style="document"/>
+        <wsdl:operation name="getAuthenticationFlowTemplates">
+            <soap12:operation soapAction="urn:getAuthenticationFlowTemplates" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllApplicationBasicInfo">
+            <soap12:operation soapAction="urn:getAllApplicationBasicInfo" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -751,6 +815,15 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdentityProviders">
+            <http:operation location="getAllIdentityProviders"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="updateApplication">
             <http:operation location="updateApplication"/>
             <wsdl:input>
@@ -778,8 +851,8 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="getAllApplicationBasicInfo">
-            <http:operation location="getAllApplicationBasicInfo"/>
+        <wsdl:operation name="getAuthenticationTemplatesJSON">
+            <http:operation location="getAuthenticationTemplatesJSON"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -787,8 +860,17 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="getAllIdentityProviders">
-            <http:operation location="getAllIdentityProviders"/>
+        <wsdl:operation name="getAuthenticationFlowTemplates">
+            <http:operation location="getAuthenticationFlowTemplates"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllApplicationBasicInfo">
+            <http:operation location="getAllApplicationBasicInfo"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

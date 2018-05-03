@@ -233,6 +233,20 @@ public class ApplicationManagementServiceClient {
         }
     }
 
+    /**
+     * Retrieve the configured authentication templates as a JSON String.
+     *
+     * @return Authentication template configuration
+     * @throws AxisFault
+     */
+    public String getAuthenticationTemplatesJson() throws AxisFault {
+
+        try {
+            return stub.getAuthenticationTemplatesJSON();
+        } catch (RemoteException e) {
+            throw new AxisFault("Error occurred while retrieving authentication flow templates", e);
+        }
+    }
 
     private void handleException(Exception e) throws AxisFault {
         String errorMessage = "Unknown error occurred.";
