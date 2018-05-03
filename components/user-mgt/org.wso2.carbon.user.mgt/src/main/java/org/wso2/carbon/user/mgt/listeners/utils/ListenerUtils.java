@@ -21,7 +21,6 @@ package org.wso2.carbon.user.mgt.listeners.utils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -89,7 +88,8 @@ public class ListenerUtils {
 
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isNotEmpty(user)) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            user = UserCoreUtil
+                    .addTenantDomainToEntry(user, CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         } else {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
@@ -106,13 +106,9 @@ public class ListenerUtils {
     public static String getEntityWithUserStoreDomain(String entity, UserStoreManager userStoreManager) {
 
         String entityWithUserStoreDomain = entity;
-        if (StringUtils.isNotEmpty(entity) && !entity.contains(UserCoreConstants.DOMAIN_SEPARATOR)
-                && userStoreManager != null) {
+        if (StringUtils.isNotEmpty(entity) && userStoreManager != null) {
             String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
-
-            if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(userStoreDomain)) {
-                entityWithUserStoreDomain = userStoreDomain + "/" + entity;
-            }
+            entityWithUserStoreDomain = UserCoreUtil.addDomainToName(entity, userStoreDomain);
         }
         return entityWithUserStoreDomain;
     }
