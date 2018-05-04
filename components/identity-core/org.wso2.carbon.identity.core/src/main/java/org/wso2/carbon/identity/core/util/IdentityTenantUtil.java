@@ -43,9 +43,9 @@ import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class IdentityTenantUtil {
 
@@ -54,7 +54,7 @@ public class IdentityTenantUtil {
     private static Log log = LogFactory.getLog(IdentityTenantUtil.class);
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
-    protected static ConcurrentHashMap<Integer,Boolean> tenatIdMap = new ConcurrentHashMap<Integer,Boolean>();
+    private static ConcurrentHashMap<Integer, Boolean> tenantIdMap = new ConcurrentHashMap<>();
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
         return tenantRegistryLoader;
@@ -203,7 +203,7 @@ public class IdentityTenantUtil {
 
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
 
-            if (tenatIdMap.get(tenantId) == null || !tenatIdMap.get(tenantId)) {
+            if (tenantIdMap.get(tenantId) == null || !tenantIdMap.get(tenantId)) {
                 try {
                     PrivilegedCarbonContext.startTenantFlow();
                     PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
@@ -226,7 +226,7 @@ public class IdentityTenantUtil {
                         }
                         try {
                             registryService.getGovernanceSystemRegistry(tenantId);
-                            tenatIdMap.put(tenantId, true);
+                            tenantIdMap.put(tenantId, true);
                             if (log.isDebugEnabled()) {
                                 log.debug("The tenant Id Map is populated in the successful registry initialization." +
                                         " Added tenant is :" + tenantId);
