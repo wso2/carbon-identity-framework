@@ -48,6 +48,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
 <%@ page
         import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
@@ -67,6 +68,8 @@
     String description = null;
     boolean federationHubIdp = false;
     CertData certData = null;
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
     String userIdClaimURI = null;
     String roleClaimURI = null;
@@ -247,6 +250,15 @@
         provisioningRole = identityProvider.getProvisioningRole();
         if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
             certData = IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+        }
+        IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+        if (idpProperties != null) {
+            for (IdentityProviderProperty idpProperty : idpProperties) {
+                if (IdPManagementUIUtil.JWKS_URI.equals(idpProperty.getName())) {
+                    hasJWKSUri = true;
+                    jwksUri = idpProperty.getValue();
+                }
+            }
         }
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
@@ -824,6 +836,10 @@
 
     if (realmId == null) {
         realmId = "";
+    }
+
+    if (jwksUri == null) {
+        jwksUri = "";
     }
 
     if (idpDisplayName == null) {
@@ -1595,12 +1611,15 @@
         })
         jQuery('#publicCertDeleteLink').click(function () {
             $(jQuery('#publicCertDiv')).toggle();
-            var input = document.createElement('input');
-            input.type = "hidden";
-            input.name = "deletePublicCert";
-            input.id = "deletePublicCert";
-            input.value = "true";
-            document.forms['idp-mgt-edit-form'].appendChild(input);
+            if (!jQuery('#deletePublicCert').length) {
+
+                var input = document.createElement('input');
+                input.type = "hidden";
+                input.name = "deletePublicCert";
+                input.id = "deletePublicCert";
+                input.value = "true";
+                document.forms['idp-mgt-edit-form'].appendChild(input);
+            }
         })
         jQuery('#claimAddLink').click(function () {
 
@@ -1649,6 +1668,42 @@
         });
     })
 
+    function selectJWKS(certDataNotNull) {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'table-row';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'none';
+
+        // delete certificates if jwks_uri is selected.
+        if (jQuery('#certFile').val() != '') {
+            jQuery('#certFile').val('');
+        } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('true');
+        } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+            $(jQuery('#publicCertDiv')).toggle();
+            var publicCertDiv = document.getElementById('publicCertDiv').style;
+            publicCertDiv.display = 'none';
+            jQuery( '#publicCertDiv').empty();
+
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        }
+    }
+
+    function selectCertificate() {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'none';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'table-row';
+        if (jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('false');
+        }
+        $('#jwksUri').val("");
+    }
 
     function idpMgtUpdate() {
         document.getElementById("meta_data_saml").value = "";
@@ -3110,6 +3165,26 @@
                             </td>
                         </tr>
                         <tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='select_idp_certificate_type'/>:</td>
+                            <td>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && certData == null)) { %>
+                                           checked="checked" <% } %>
+                                           onclick="selectJWKS('<%=(certData != null)%>');" />
+                                    Use IDP JWKS endpoint
+                                </label>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                            <% if (certData != null) { %> checked="checked" <% } %>
+                                           value="choose_upload_certificate"
+                                           onclick="selectCertificate()" />
+                                    Upload IDP certificate
+                                </label>
+                            </td>
+                        </tr>
+                        <tr id="upload_certificate" <% if (certData == null) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3181,7 +3256,17 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr id="use_jwks_uri" <% if (certData != null) { %> style="display:none" <% } %>>
+                            <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
+                            <td>
+                                <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                       autofocus/>
 
+                                <div class="sectionHelp">
+                                    <fmt:message key='jwks.uri.help'/>
+                                </div>
+                            </td>
+                        </tr>
 
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='resident.idp.alias'/>:</td>

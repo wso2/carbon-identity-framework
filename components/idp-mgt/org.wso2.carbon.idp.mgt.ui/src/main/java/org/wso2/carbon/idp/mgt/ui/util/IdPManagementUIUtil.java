@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.LocalRole;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.PermissionsAndRoleConfig;
@@ -59,6 +60,7 @@ import java.util.Set;
 public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
+    public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
 
@@ -965,6 +967,16 @@ public class IdPManagementUIUtil {
 
         // set public certificate of the identity provider.
         fedIdp.setCertificate(certFile);
+
+        // set jwks_uri of the identity provider.
+        String jwksUri = paramMap.get(JWKS_URI);
+        if (StringUtils.isNotBlank(jwksUri)) {
+            IdentityProviderProperty jwksProperty = new IdentityProviderProperty();
+            jwksProperty.setName(JWKS_URI);
+            jwksProperty.setValue(jwksUri);
+            jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
+            fedIdp.addIdpProperties(jwksProperty);
+        }
     }
 
     /**
