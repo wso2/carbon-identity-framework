@@ -135,7 +135,7 @@ public class JsGraphBuilder {
     /**
      * Add authentication fail node to the authentication graph in the initial request.
      *
-     * @param parameterMap
+     * @param parameterMap Parameters needed to send the error.
      */
     // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
     public void sendError(Map<String, Object> parameterMap) {
@@ -159,7 +159,7 @@ public class JsGraphBuilder {
     /**
      * Add authentication fail node to the authentication graph during subsequent requests.
      *
-     * @param parameterMap
+     * @param parameterMap Parameters needed to send the error.
      */
     public static void sendErrorAsync(Map<String, Object> parameterMap) {
 
@@ -297,10 +297,10 @@ public class JsGraphBuilder {
      * Any immediate branches available in the destination will be re-attached to the new node.
      * New node may be cloned if needed to attach on multiple branches.
      *
-     * @param destination
-     * @param newNode
+     * @param destination Current node.
+     * @param newNode New node to attach.
      */
-    private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
+    public static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
@@ -310,20 +310,15 @@ public class JsGraphBuilder {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
             attachToLeaf(newNode, dynamicDecisionNode.getDefaultEdge());
             dynamicDecisionNode.setDefaultEdge(newNode);
+            if (newNode instanceof FailNode) {
+                FailNode failNode = (FailNode) newNode;
+                failNode.setPrevious(dynamicDecisionNode);
+            }
         } else {
             log.error("Can not infuse nodes in node type : " + destination);
         }
-    }
 
-    private static AuthGraphNode clone(AuthGraphNode node) {
-
-        if (node instanceof StepConfigGraphNode) {
-            StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) node);
-            return wrap(stepConfigGraphNode.getStepConfig());
-        } else {
-            log.error("Clone not implemented for the node type: " + node);
-        }
-        return null;
+        setPreviousNode(destination, newNode);
     }
 
     /**
@@ -331,8 +326,8 @@ public class JsGraphBuilder {
      * The new node is added to each leaf node of the Tree structure given in the destination node.
      * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
      *
-     * @param baseNode
-     * @param nodeToAttach
+     * @param baseNode Base node.
+     * @param nodeToAttach Node to attach.
      */
     private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
 
@@ -356,6 +351,18 @@ public class JsGraphBuilder {
             }
         } else {
             log.error("Unknown graph node found : " + baseNode);
+        }
+        setPreviousNode(baseNode, nodeToAttach);
+    }
+
+    private static void setPreviousNode(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
+
+        if (nodeToAttach instanceof DynamicDecisionNode) {
+            DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) nodeToAttach;
+            dynamicDecisionNode.setPrevious(baseNode);
+        } else if (nodeToAttach instanceof FailNode) {
+            FailNode failNode = (FailNode) nodeToAttach;
+            failNode.setPrevious(baseNode);
         }
     }
 

@@ -96,7 +96,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
-            handleAuthFail(request, response, context, sequenceConfig, currentNode);
+            handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
     }
@@ -144,22 +144,64 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     /**
      * Process FailNode.
-     * @param request
-     * @param response
-     * @param context
-     * @param sequenceConfig
-     * @param node
+     * @param request HTTP Servlet request
+     * @param response HTTP Servlet Response
+     * @param context Authentication Context
+     * @param sequenceConfig Sequence Config
+     * @param node Fail Node
      * @throws FrameworkException
      */
     private void handleAuthFail(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-            SequenceConfig sequenceConfig, AuthGraphNode node) throws FrameworkException {
+            SequenceConfig sequenceConfig, FailNode node) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
+
+        AuthGraphNode stepNode;
+
+        // Check if the retrying is enabled.
+        if (isRetryEnabled(context)) {
+            if (node != null && node.getPrevious() != null) {
+                AuthGraphNode previous = node.getPrevious();
+                if (previous instanceof DynamicDecisionNode && ((DynamicDecisionNode) previous).getPrevious() != null) {
+                    stepNode = ((DynamicDecisionNode) previous).getPrevious();
+                    if (stepNode instanceof StepConfigGraphNode) {
+                        resetGraphForRetrying(request, context, (StepConfigGraphNode)stepNode);
+                        return;
+                    }
+                } else if (previous instanceof StepConfigGraphNode) {
+                    resetGraphForRetrying(request, context, (StepConfigGraphNode) previous);
+                    return;
+                }
+            }
+        }
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
         //TODO:Need to consider sending error message to provided error page Uri instead of oauth redirect Uri
+    }
+
+    private boolean isRetryEnabled(AuthenticationContext context) {
+
+        if (context.getProperty(FrameworkConstants.JSAttributes.JS_RETRY_STEP) == null) {
+            // If the retry property is not set in the authentication context, it is assumed to be true.
+            return true;
+        } else {
+            return Boolean.parseBoolean((String) context.getProperty(FrameworkConstants.JSAttributes.JS_RETRY_STEP));
+        }
+    }
+
+    private void resetGraphForRetrying(HttpServletRequest request, AuthenticationContext context,
+                                       StepConfigGraphNode previous) throws FrameworkException {
+
+        resetAuthenticationContext(context);
+        StepConfig stepConfig = previous.getStepConfig();
+        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, previous);
+        stepConfig.setCompleted(false);
+        stepConfig.setRetrying(true);
+        context.setRetrying(true);
+        context.setRequestAuthenticated(true);
+        context.setProperty(FrameworkConstants.RETRYING_STEP, true);
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,
@@ -226,6 +268,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             stepConfig.setSubjectIdentifierStep(false);
         }
 
+        if (flowStatus != null && !(stepConfigGraphNode.getNext() instanceof DynamicDecisionNode)) {
+            switch (flowStatus) {
+                case SUCCESS_COMPLETED:
+                    if (stepConfigGraphNode.getNext() instanceof FailNode) {
+                        FailNode failNode = (FailNode)stepConfigGraphNode.getNext();
+                        JsGraphBuilder.infuse(stepConfigGraphNode,
+                                failNode.getNext() != null ? failNode.getNext() : new EndStep());
+                    }
+                    break;
+                case FAIL_COMPLETED:
+                    if (!(stepConfigGraphNode.getNext() instanceof FailNode)) {
+                        AuthGraphNode failNode = new FailNode();
+                        JsGraphBuilder.infuse(stepConfigGraphNode, failNode);
+                    }
+                    break;
+            }
+        }
+
         // if step is not completed, that means step wants to redirect to outside
         if (!stepConfig.isCompleted()) {
             if (log.isDebugEnabled()) {
@@ -251,9 +311,18 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             switch (flowStatus) {
             case SUCCESS_COMPLETED:
                 executeFunction("success", dynamicDecisionNode, context);
+                if (dynamicDecisionNode.getDefaultEdge() instanceof FailNode) {
+                    FailNode failNode = (FailNode)dynamicDecisionNode.getDefaultEdge();
+                    JsGraphBuilder.infuse(dynamicDecisionNode,
+                            failNode.getNext() != null ? failNode.getNext() : new EndStep());
+                }
                 break;
             case FAIL_COMPLETED:
                 executeFunction("fail", dynamicDecisionNode, context);
+                if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
+                    AuthGraphNode failNode = new FailNode();
+                    JsGraphBuilder.infuse(dynamicDecisionNode, failNode);
+                }
                 break;
             case FALLBACK:
                 executeFunction("fallback", dynamicDecisionNode, context);

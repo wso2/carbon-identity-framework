@@ -83,6 +83,10 @@ public abstract class FrameworkConstants {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
+    public static final String RETRYING_STEP = "stepRetrying";
+    
+    public static final String REMEMBER_ME_OPT_ON = "on";
+
     private FrameworkConstants() {
 
     }
@@ -278,6 +282,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
         public static final String JS_PAGE_URI = "pageUri";
+        public static final String JS_RETRY_STEP = "retry";
     }
 
     public static class InternalRoleDomains {

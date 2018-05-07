@@ -26,6 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 
 public interface SequenceHandler {
 
-    public void handle(HttpServletRequest request, HttpServletResponse response,
+    void handle(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException;
 }

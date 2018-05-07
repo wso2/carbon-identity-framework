@@ -25,7 +25,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -62,10 +64,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         // if an authentication flow
         if (!context.isLogoutRequest()) {
             if (!canHandle(request)
-                || (request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED) != null && ((Boolean) request
-                    .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
+                    || Boolean.TRUE.equals(context.getProperty(FrameworkConstants.RETRYING_STEP))
+                    || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
                 initiateAuthenticationRequest(request, response, context);
                 context.setCurrentAuthenticator(getName());
+                context.setProperty(FrameworkConstants.RETRYING_STEP, false);
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
@@ -89,7 +92,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     // Decide whether we need to redirect the
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
-                    if (retryAuthenticationEnabled() && !sendToMultiOptionPage) {
+                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setRetrying(true);
                         context.setCurrentAuthenticator(getName());
@@ -120,6 +123,15 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
+    }
+
+    protected boolean retryAuthenticationEnabled(AuthenticationContext context) {
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
+        if (graph == null || !graph.isEnabled()) {
+            retryAuthenticationEnabled();
+        }
+        return false;
     }
 
     private boolean isStepHasMultiOption(AuthenticationContext context) {

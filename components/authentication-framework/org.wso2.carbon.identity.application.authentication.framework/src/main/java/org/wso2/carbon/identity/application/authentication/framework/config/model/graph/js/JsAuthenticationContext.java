@@ -111,6 +111,9 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
                 getWrapped().setSelectedAcr(String.valueOf(value));
                 break;
+            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
+                getWrapped().setProperty(FrameworkConstants.JSAttributes.JS_RETRY_STEP, String.valueOf(value));
+                break;
             default:
                 super.setMember(name, value);
         }

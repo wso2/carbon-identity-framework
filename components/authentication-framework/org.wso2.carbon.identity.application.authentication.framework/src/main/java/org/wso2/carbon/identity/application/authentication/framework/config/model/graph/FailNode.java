@@ -27,6 +27,8 @@ public class FailNode implements AuthGraphNode {
     private static final long serialVersionUID = 9217119784147648132L;
     private boolean showErrorPage;
     private String errorPageUri;
+    private AuthGraphNode next;
+    private AuthGraphNode previous;
 
     public String getErrorPageUri() {
         return errorPageUri;
@@ -48,5 +50,25 @@ public class FailNode implements AuthGraphNode {
     public String getName() {
         //TODO: Implement this
         return null;
+    }
+
+    public AuthGraphNode getNext() {
+
+        return next;
+    }
+
+    public void setNext(AuthGraphNode next) {
+
+        this.next = next;
+    }
+
+    public AuthGraphNode getPrevious() {
+
+        return previous;
+    }
+
+    public void setPrevious(AuthGraphNode previous) {
+
+        this.previous = previous;
     }
 }
