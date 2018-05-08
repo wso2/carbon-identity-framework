@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningCon
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 public class IdPManagementUIUtil {
 
@@ -1159,7 +1159,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[8];
+        Property[] properties = new Property[9];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1209,6 +1209,15 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
         properties[7] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+        if (paramMap.get("oidcBasicAuthEnabled") != null && "on".equals(paramMap.get("oidcBasicAuthEnabled"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties[8] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
