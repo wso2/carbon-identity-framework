@@ -221,7 +221,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
-        if (flowStatus != AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
+        if (flowStatus != AuthenticatorFlowStatus.SUCCESS_COMPLETED && flowStatus != AuthenticatorFlowStatus
+                .INCOMPLETE) {
             stepConfig.setSubjectAttributeStep(false);
             stepConfig.setSubjectIdentifierStep(false);
         }
