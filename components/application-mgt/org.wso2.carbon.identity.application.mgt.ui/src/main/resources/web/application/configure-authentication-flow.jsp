@@ -44,6 +44,7 @@
 <script src="codemirror/addon/fold/foldcode.js"></script>
 <script src="codemirror/addon/fold/foldgutter.js"></script>
 <script src="codemirror/addon/display/fullscreen.js"></script>
+<script src="codemirror/addon/display/placeholder.js"></script>
 <script src="codemirror/addon/comment/comment.js"></script>
 <script src="codemirror/addon/selection/active-line.js"></script>
 <script src="codemirror/addon/dialog/dialog.js"></script>
@@ -738,7 +739,7 @@ var img = "";
                         <tr>
                             <td style="width: 80%" class="conditional-auth">
                                 <div class="sectionSub step_contents" id="codeMirror">
-				<textarea id="scriptTextArea" name="scriptTextArea" style="height: 500px;width: 100%"><%
+				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
                             out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
