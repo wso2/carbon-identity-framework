@@ -39,7 +39,7 @@
 #codeMirror{
     padding: 0;
     margin-bottom: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #afafaf;
 }
 #codeMirrorTemplate{
     padding-top: 0px;
@@ -94,4 +94,42 @@
 {
     0%  {background: rgba(255, 180, 0, 0.6);}
     100%   {background: rgba(255, 255, 255, 0);}
+}
+
+@keyframes maximizeCodeWindow {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(20px, 50px);
+    }
+}
+
+.conditional-auth{
+    position: relative;
+    font-size: 13px;
+}
+#toggleEditorSize{
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    margin: 0px;
+    padding: 8px;
+    text-align: center;
+    z-index: 999;
+    background-color: rgba(204, 204, 204, 0.4);
+    background-repeat: no-repeat;
+    border-left: 1px solid #afafaf;
+    border-bottom: 1px solid #afafaf;
+}
+#toggleEditorSize:hover{
+    background-color: rgba(204, 204, 204, 0.9);
+}
+.maximizeIcon{
+    background: url(../images/maximize.png) 50% 50%;
+}
+.minimizeIcon{
+    background: url(../images/minimize.png) 50% 50%;
 }
