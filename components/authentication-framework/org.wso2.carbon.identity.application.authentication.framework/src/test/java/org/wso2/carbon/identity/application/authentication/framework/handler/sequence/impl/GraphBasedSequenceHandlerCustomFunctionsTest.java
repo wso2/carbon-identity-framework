@@ -61,7 +61,7 @@ import static org.testng.Assert.assertTrue;
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
-    public void testHandle_Dynamic_Javascript_1() throws Exception {
+    public void testHandleDynamicJavascript1() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
@@ -78,7 +78,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
     }
 
-    public void testHandle_Dynamic_Boolean() throws Exception {
+    public void testHandleDynamicBoolean() throws Exception {
 
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
@@ -113,7 +113,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     }
 
     @Test
-    public void testHandle_Dynamic_OnFail() throws Exception {
+    public void testHandleDynamicOnFail() throws Exception {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
                 .add(new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
@@ -142,7 +142,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     }
 
     @Test
-    public void testHandle_Dynamic_OnFallback() throws Exception {
+    public void testHandleDynamicOnFallback() throws Exception {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
                 .add(new MockFallbackAuthenticator("MockFallbackAuthenticator"));
@@ -172,7 +172,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     }
 
     @Test
-    public void testHandle_Dynamic_Javascript_Serialization() throws Exception {
+    public void testHandleDynamicJavascriptSerialization() throws Exception {
 
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);

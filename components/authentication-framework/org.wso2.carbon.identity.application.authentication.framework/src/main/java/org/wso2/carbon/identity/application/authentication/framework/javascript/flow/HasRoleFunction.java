@@ -58,7 +58,7 @@ public class HasRoleFunction implements IsExistsStringFunction {
                 if (userStore != null) {
                     result = Arrays
                             .stream(userStore.getRoleListOfUser(authenticatedUser.getAuthenticatedSubjectIdentifier()))
-                            .filter(r -> r.equals(roleName)).findAny().isPresent();
+                            .anyMatch(r -> r.equals(roleName));
                 }
             }
         } catch (FrameworkException e) {

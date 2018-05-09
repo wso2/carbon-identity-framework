@@ -47,7 +47,7 @@ import static org.testng.Assert.assertNotNull;
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test(dataProvider = "staticAcrDataProvider")
-    public void testHandle_Static_Javascript_Acr(String spFileName, String[] acrArray, int authHistoryCount) throws
+    public void testHandleStaticJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount) throws
             Exception {
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
@@ -85,7 +85,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
     }
 
     @Test(dataProvider = "roleBasedAcrDataProvider")
-    public void testHandle_RoleBased_Javascript_Acr(String spFileName, String[] acrArray, int authHistoryCount,
+    public void testHandleRoleBasedJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount,
                                                     boolean hasRole) throws Exception {
         HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
         when(hasRoleFunction.contains(any(JsAuthenticationContext.class), anyString())).thenReturn(hasRole);
@@ -126,7 +126,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
     }
 
     @Test(expectedExceptions = FrameworkException.class)
-    public void testHandle_Incorrect_Javascript_Acr() throws Exception {
+    public void testHandleIncorrectJavascriptAcr() throws Exception {
         ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -146,7 +146,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
     }
 
     @Test(expectedExceptions = FrameworkException.class)
-    public void testHandle_Incorrect_Function_Javascript_Acr() throws Exception {
+    public void testHandleIncorrectFunctionJavascriptAcr() throws Exception {
         ServiceProvider sp1 = getTestServiceProvider("incorrect-function-js-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
