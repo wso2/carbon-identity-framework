@@ -30,7 +30,7 @@
 <script src="codemirror/keymap/sublime.js"></script>
 <script src="codemirror/mode/javascript/javascript.js"></script>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/jshint/2.9.5/jshint.min.js"></script>
+<script src="codemirror/addon/lint/jshint.min.js"></script>
 <script src="codemirror/addon/lint/lint.js"></script>
 <script src="codemirror/addon/lint/javascript-lint.js"></script>
 <script src="codemirror/addon/hint/anyword-hint.js"></script>
