@@ -25,6 +25,7 @@
 <%@ page import="java.util.stream.Collectors" %>
 <%@ page import="java.util.stream.Stream" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String app = request.getParameter("application");
@@ -143,7 +144,7 @@
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
                     <div class="padding-double login-form">
-                        <form action="../oauth2/authorize" method="post" id="profile" name="oauth2_authz"
+                        <form action="<%=oauth2AuthorizeURL%>" method="post" id="profile" name="oauth2_authz"
                               class="form-horizontal" >
 
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">

@@ -26,6 +26,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
@@ -170,7 +171,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
 
             try {
-                URIBuilder uriBuilder = new URIBuilder("/authenticationendpoint/claims.do");
+                URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
+                        .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,

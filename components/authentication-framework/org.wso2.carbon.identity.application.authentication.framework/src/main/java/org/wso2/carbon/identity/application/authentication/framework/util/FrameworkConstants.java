@@ -124,6 +124,8 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
+                "AuthenticationEndpointMissingClaimsURL";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
         public static final String QNAME_MAX_LOGIN_ATTEMPT_COUNT = "MaxLoginAttemptCount";
         public static final String QNAME_EXTENSIONS = "Extensions";
