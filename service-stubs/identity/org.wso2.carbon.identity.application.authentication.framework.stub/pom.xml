@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>carbon-service-stubs</artifactId>
-        <version>5.11.198-SNAPSHOT</version>
+        <version>5.11.198</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -51,8 +51,7 @@
                                     <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2/${axis2.wso2.version}/axis2-${axis2.wso2.version}.jar" />
                                 </path>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
-                                    <arg
-                                            line="-uri src/main/resources/ConditionalAuthenticationMgtService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.application.authentication.framework.stub -ns2p http://services.framework.authentication.application.identity.carbon.wso2.org=org.wso2.carbon.identity.application.authentication.framework.stub,http://dto.services.framework.authentication.application.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.application.authentication.framework.stub.dto,http://org.apache.axis2/xsd=org.wso2.carbon.identity.application.authentication.framework.stub.types.axis2" />
+                                    <arg line="-uri src/main/resources/ConditionalAuthenticationMgtService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.application.authentication.framework.stub -ns2p http://services.framework.authentication.application.identity.carbon.wso2.org=org.wso2.carbon.identity.application.authentication.framework.stub,http://dto.services.framework.authentication.application.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.application.authentication.framework.stub.dto,http://org.apache.axis2/xsd=org.wso2.carbon.identity.application.authentication.framework.stub.types.axis2" />
                                     <classpath refid="wsdl2java.classpath" />
                                     <classpath refid="maven.dependency.classpath" />
                                     <classpath refid="maven.compile.classpath" />
