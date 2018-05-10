@@ -300,7 +300,7 @@ public class JsGraphBuilder {
      * @param destination Current node.
      * @param newNode New node to attach.
      */
-    public static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
+    private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
@@ -310,15 +310,10 @@ public class JsGraphBuilder {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
             attachToLeaf(newNode, dynamicDecisionNode.getDefaultEdge());
             dynamicDecisionNode.setDefaultEdge(newNode);
-            if (newNode instanceof FailNode) {
-                FailNode failNode = (FailNode) newNode;
-                failNode.setPrevious(dynamicDecisionNode);
-            }
         } else {
             log.error("Can not infuse nodes in node type : " + destination);
         }
 
-        setPreviousNode(destination, newNode);
     }
 
     /**
@@ -351,18 +346,6 @@ public class JsGraphBuilder {
             }
         } else {
             log.error("Unknown graph node found : " + baseNode);
-        }
-        setPreviousNode(baseNode, nodeToAttach);
-    }
-
-    private static void setPreviousNode(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
-
-        if (nodeToAttach instanceof DynamicDecisionNode) {
-            DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) nodeToAttach;
-            dynamicDecisionNode.setPrevious(baseNode);
-        } else if (nodeToAttach instanceof FailNode) {
-            FailNode failNode = (FailNode) nodeToAttach;
-            failNode.setPrevious(baseNode);
         }
     }
 

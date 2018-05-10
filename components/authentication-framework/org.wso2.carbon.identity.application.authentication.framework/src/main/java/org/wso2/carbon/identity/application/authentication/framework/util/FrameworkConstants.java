@@ -83,8 +83,6 @@ public abstract class FrameworkConstants {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
-    public static final String RETRYING_STEP = "stepRetrying";
-    
     public static final String REMEMBER_ME_OPT_ON = "on";
 
     private FrameworkConstants() {

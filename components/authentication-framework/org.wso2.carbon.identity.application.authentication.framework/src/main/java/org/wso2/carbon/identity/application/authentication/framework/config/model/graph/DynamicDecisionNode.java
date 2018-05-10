@@ -30,7 +30,6 @@ public class DynamicDecisionNode implements AuthGraphNode {
 
     private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
-    private AuthGraphNode previous;
 
     @Override
     public String getName() {
@@ -52,15 +51,5 @@ public class DynamicDecisionNode implements AuthGraphNode {
 
     public void setDefaultEdge(AuthGraphNode defaultEdge) {
         this.defaultEdge = defaultEdge;
-    }
-
-    public AuthGraphNode getPrevious() {
-
-        return previous;
-    }
-
-    public void setPrevious(AuthGraphNode previous) {
-
-        this.previous = previous;
     }
 }
