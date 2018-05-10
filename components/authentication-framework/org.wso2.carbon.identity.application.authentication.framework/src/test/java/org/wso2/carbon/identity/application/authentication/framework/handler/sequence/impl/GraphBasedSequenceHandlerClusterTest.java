@@ -68,7 +68,7 @@ public class GraphBasedSequenceHandlerClusterTest extends GraphBasedSequenceHand
     }
 
     @Test(dataProvider = "roleBasedDataProvider")
-    public void testHandle_RequestHop(String spFileName, int authHistoryCount, boolean hasRole) throws Exception {
+    public void testHandleRequestHop(String spFileName, int authHistoryCount, boolean hasRole) throws Exception {
 
         HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
         when(hasRoleFunction.contains(any(JsAuthenticationContext.class), anyString())).thenReturn(hasRole);
