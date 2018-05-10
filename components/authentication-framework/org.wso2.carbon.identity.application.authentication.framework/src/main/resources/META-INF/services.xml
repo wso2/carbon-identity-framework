@@ -40,4 +40,21 @@
         </parameter>
     </service>
 
+    <service name="ConditionalAuthenticationMgtService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass" locked="false">
+            org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtService
+        </parameter>
+        <parameter name="adminService" locked="true">true</parameter>
+        <parameter name="hiddenService" locked="true">true</parameter>
+
+        <operation name="getAllAvailableFunctions">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view</parameter>
+        </operation>
+
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt/view
+        </parameter>
+    </service>
 </serviceGroup>

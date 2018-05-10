@@ -36,6 +36,7 @@
         <module>org.wso2.carbon.claim.mgt.stub</module>
         <module>org.wso2.carbon.identity.claim.metadata.mgt.stub</module>
         <module>org.wso2.carbon.identity.application.mgt.stub</module>
+        <module>org.wso2.carbon.identity.application.authentication.framework.stub</module>
         <module>org.wso2.carbon.identity.entitlement.stub</module>
         <module>org.wso2.carbon.identity.mgt.stub</module>
         <module>org.wso2.carbon.identity.user.profile.stub</module>
