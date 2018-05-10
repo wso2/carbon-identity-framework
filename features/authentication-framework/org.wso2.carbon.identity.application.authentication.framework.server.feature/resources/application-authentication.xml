@@ -31,6 +31,7 @@
     -->
     <AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
+    <AuthenticationEndpointMissingClaimsURL>/authenticationendpoint/claims.do</AuthenticationEndpointMissingClaimsURL>
 
     <!--
         Extensions allow extending the default behaviour of the authentication

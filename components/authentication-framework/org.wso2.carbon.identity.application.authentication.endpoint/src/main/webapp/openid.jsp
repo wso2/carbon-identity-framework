@@ -18,7 +18,7 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 
-<form action="../commonauth" method="post" id="loginForm" class="form-horizontal">
+<form action="<%=commonauthURL%>" method="post" id="loginForm" class="form-horizontal">
     <%
         loginFailed = request.getParameter("loginFailed");
         if (loginFailed != null) {

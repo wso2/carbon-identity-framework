@@ -56,8 +56,21 @@
        <param-name>AccountRecoveryRESTEndpointURL</param-name>
        <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v1.0/</param-value>
    </context-param>
+    <!--context-param>
+        <param-name>EnableRecoveryEndpoint</param-name>
+        <param-value>true</param-value>
+    </context-param-->
+    <!--context-param>
+        <param-name>EnableSelfSignUpEndpoint</param-name>
+        <param-value>true</param-value>
+    </context-param-->
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
-
+    <!-- *************** Identity Server Endpoint URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>IdentityServerEndpointContextURL</param-name>
+        <param-value>https://localhost:9443</param-value>
+    </context-param-->
+    <!-- *************** End of Identity Server Endpoint URL Configuration ********************** -->
     <!--Display scopes in the consent page.-->
     <context-param>
         <param-name>displayScopes</param-name>

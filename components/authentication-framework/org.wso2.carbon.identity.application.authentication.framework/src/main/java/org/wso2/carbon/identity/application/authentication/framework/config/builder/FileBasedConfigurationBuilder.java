@@ -70,6 +70,7 @@ public class FileBasedConfigurationBuilder {
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
+    private String authenticationEndpointMissingClaimsURL;
 
     /**
      * List of URLs that receive the tenant list
@@ -164,6 +165,7 @@ public class FileBasedConfigurationBuilder {
             //########### Read Authentication Endpoint URL ###########
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
+            readAuthenticationEndpointMissingClaimsURL(rootElement);
 
             //########### Read tenant data listener URLs ###########
             readTenantDataListenerURLs(rootElement);
@@ -498,6 +500,25 @@ public class FileBasedConfigurationBuilder {
         if (authEndpointRetryURLElem != null) {
             authenticationEndpointRetryURL = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
         }
+    }
+
+    private void readAuthenticationEndpointMissingClaimsURL(OMElement documentElement) {
+        OMElement authEndpointMissingClaimsURLElem = documentElement.getFirstChildWithName
+                (IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(FrameworkConstants.Config
+                        .QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL));
+
+        if (authEndpointMissingClaimsURLElem != null) {
+            authenticationEndpointMissingClaimsURL = IdentityUtil.fillURLPlaceholders
+                    (authEndpointMissingClaimsURLElem.getText());
+        }
+    }
+
+    public String getAuthenticationEndpointMissingClaimsURL() {
+        return authenticationEndpointMissingClaimsURL;
+    }
+
+    public void setAuthenticationEndpointMissingClaimsURL(String authenticationEndpointMissingClaimsURL) {
+        this.authenticationEndpointMissingClaimsURL = authenticationEndpointMissingClaimsURL;
     }
 
     private void readCacheTimeOut(OMElement cacheTimeoutElem, String value) {

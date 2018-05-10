@@ -20,6 +20,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String[] missingClaimList = null;
@@ -74,7 +75,7 @@
     <div class="row">
         <!-- content -->
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-            <form action="../commonauth" method="post" id="claimForm">
+            <form action="<%=commonauthURL%>" method="post" id="claimForm">
                 <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "provide.mandatory.details")%>
                 </h2>
