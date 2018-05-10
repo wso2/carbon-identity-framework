@@ -48,6 +48,7 @@
 <script src="codemirror/addon/comment/comment.js"></script>
 <script src="codemirror/addon/selection/active-line.js"></script>
 <script src="codemirror/addon/dialog/dialog.js"></script>
+<script src="codemirror/util/formatting.js"></script>
 
 <script src="../admin/js/main.js" type="text/javascript"></script>
 
@@ -247,6 +248,10 @@ var img = "";
 				},
 				"Esc": function (myCodeMirror) {
 					if (myCodeMirror.getOption("fullScreen")) myCodeMirror.setOption("fullScreen", false);
+				},
+				"Shift-Ctrl-F": function (myCodeMirror) {
+                    CodeMirror.commands["selectAll"](myCodeMirror);
+				    autoFormatSelection(myCodeMirror);
 				}
 			},
 			indentWithTabs: true,
@@ -271,6 +276,15 @@ var img = "";
                 myCodeMirror.setOption("fullScreen", true);
             }
         });
+
+        function getSelectedRange() {
+            return { from: myCodeMirror.getCursor(true), to: myCodeMirror.getCursor(false) };
+        }
+
+        function autoFormatSelection(cm) {
+            var range = getSelectedRange();
+            cm.autoFormatRange(range.from, range.to);
+        }
 
         jQuery('#ReqPathAuth').hide();
 		jQuery('#authenticationConfRow').hide();
