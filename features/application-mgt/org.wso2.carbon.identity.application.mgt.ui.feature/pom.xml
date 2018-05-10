@@ -69,6 +69,8 @@
                                 </bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.mgt.stub
                                 </bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.authentication.framework.stub
+                                </bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>

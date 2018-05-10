@@ -53,20 +53,23 @@
 <script src="../admin/js/main.js" type="text/javascript"></script>
 
 
-<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="com.google.gson.JsonArray" %>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="com.google.gson.JsonPrimitive" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page
-    import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
+        import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -87,7 +90,8 @@
 	LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
 	IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
     String templatesJson = null;
-
+    String availableJsFunctionsJson = null;
+    
     StringBuilder localAuthTypes = new StringBuilder();
 	String startOption = "<option value=\"";
 	String middleOption = "\">";
@@ -106,6 +110,14 @@
         ConfigurationContext configContext = (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         templatesJson = serviceClient.getAuthenticationTemplatesJson();
+        ConditionalAuthMgtClient conditionalAuthMgtClient = new
+                ConditionalAuthMgtClient(cookie, backendServerURL, configContext);
+        String[] functionList = conditionalAuthMgtClient.listAvailableFunctions();
+        JsonArray jsonArray = new JsonArray();
+        for (String function : functionList) {
+            jsonArray.add(new JsonPrimitive(function));
+        }
+        availableJsFunctionsJson = jsonArray.toString();
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP advanced outbound authentication " +
             "configuration", CarbonUIMessage.ERROR, request, e);
@@ -114,9 +126,11 @@
         templatesJson = "";
     }
     templatesJson = StringEscapeUtils.escapeJavaScript(templatesJson);
+
 %>
 <script type="text/javascript" >
 var authMap = {};
+var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 </script>
 
 <%
