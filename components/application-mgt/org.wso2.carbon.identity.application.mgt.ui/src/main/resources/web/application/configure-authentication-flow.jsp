@@ -371,6 +371,10 @@ var img = "";
 			cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
 			startLine = cursorCoordsBeforeChange.line;
 		});
+        myCodeMirror.on('inputRead', function onChange(editor, input) {
+            if (input.text[0] === ';' || input.text[0] === ' ') { return; }
+            CodeMirror.commands.autocomplete(myCodeMirror, null, { completeSingle: false })
+        });
 
 		$('[data-toggle=template-link]').click(function (e) {
 			e.preventDefault();
@@ -410,7 +414,7 @@ var img = "";
 		});
 
 
-	});
+    });
 
     var deletePermissionRows = [];
     function deletePermissionRow(obj){
