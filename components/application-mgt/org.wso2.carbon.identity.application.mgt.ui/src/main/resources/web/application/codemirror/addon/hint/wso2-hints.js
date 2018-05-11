@@ -18,6 +18,8 @@
 var orig = CodeMirror.hint.javascript;
 CodeMirror.hint.javascript = function(cm) {
     var inner = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
-    inner.list.push("executeStep","selectAcrFrom","sendError","log.info");
+    conditionalAuthFunctions.forEach(function(value, key, myArray){
+        inner.list.push(value);
+    });
     return inner;
 };
