@@ -198,6 +198,7 @@
     boolean isArtifactBindingEnabled = false;
     String artifactResolveUrl = "";
     boolean isArtifactResolveReqSigned = false;
+    boolean isArtifactResponseSigned = false;
 
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
@@ -592,6 +593,12 @@
                         IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
                     if (artifactResolveReqSignedProp != null) {
                         isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
+                    }
+
+                    Property artifactResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+                    if (artifactResponseSignedProp != null) {
+                        isArtifactResponseSigned = Boolean.parseBoolean(artifactResponseSignedProp.getValue());
                     }
 
                     Property requestMethodProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -1303,6 +1310,13 @@
         }
     }
 
+    String isArtifactResponseSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResponseSigned) {
+            isArtifactResponseSignedChecked = "checked=\'checked\'";
+        }
+    }
+
     // If SCIM Provisioning has not been Configured at all,
     // make password provisioning enable by default.
     // Since scimUserName is a required field,
@@ -1354,9 +1368,11 @@
         if ($(chkbx).is(':checked')) {
             $("#artifactResolveUrl").prop('disabled', false);
             $("#artifactResolveReqSigned").prop('disabled', false);
+            $("#artifactResponseSigned").prop('disabled', false);
         } else {
             $("#artifactResolveUrl").prop('disabled', true);
             $("#artifactResolveReqSigned").prop('disabled', true);
+            $("#artifactResponseSigned").prop('disabled', true);
         }
     }
 
@@ -4075,6 +4091,25 @@
                                                    class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
                                             <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='attr.artifact.resolve.sign.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Enable Artifact Response Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResponseSignedLabel"><fmt:message
+                                                key='attr.artifact.response.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResponseSigned" name="ISArtifactResponseSigned"
+                                                   type="checkbox" <%=isArtifactResponseSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.response.sign.help'/>
                                 </span>
                                         </div>
                                     </td>
