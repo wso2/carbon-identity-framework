@@ -27,6 +27,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
 
@@ -93,7 +94,8 @@
         } catch (ApiException e) {
             if (e.getCode() == 204) {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", "No valid user found");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "No.valid.user.found"));
                 request.getRequestDispatcher("recoverusername.do").forward(request, response);
                 return;
             }
@@ -128,7 +130,8 @@
                         response);
             } else {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", "Unknown Password Recovery Option");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "Unknown.password.recovery.option"));
                 request.getRequestDispatcher("error.jsp").forward(request, response);
             }
         }

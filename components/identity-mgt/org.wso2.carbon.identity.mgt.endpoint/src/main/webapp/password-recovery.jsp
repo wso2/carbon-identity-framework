@@ -20,6 +20,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -35,7 +36,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -56,9 +57,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -70,8 +73,8 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Recover
-                    Password
+                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Recover.password")%>
                 </h2>
 
                 <div class="clearfix"></div>
@@ -79,28 +82,30 @@
 
                     <% if (error) { %>
                     <div class="alert alert-danger" id="server-error-msg">
-                        <%= Encode.forHtmlContent(errorMsg) %>
+                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
                     </div>
                     <% } %>
                     <div class="alert alert-danger" id="error-msg" hidden="hidden"></div>
 
-                    <div class="padding-double font-large">Enter below details to recover your password</div>
+                    <div class="padding-double font-large">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.detail.to.recover.pwd")%></div>
                     <div class="padding-double">
                         <form method="post" action="verify.do" id="recoverDetailsForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input id="username" name="username" type="text" class="form-control" tabindex="0"
-                                       placeholder="Username" required>
+                                       placeholder=
+                                           <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%> required>
                             </div>
                             <%
                                 if (isEmailNotificationEnabled) {
                             %>
                             <div class="form-group">
                                 <input type="radio" name="recoveryOption" value="EMAIL" checked/>
-                                Recover with Email
+                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Recover.with.mail")%>
                             </div>
                             <div class="form-group">
                                 <input type="radio" name="recoveryOption" value="SECURITY_QUESTIONS"/>
-                                Recover with Security Questions
+                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Recover.with.question")%>
                             </div>
                             <%
                             } else {
@@ -130,7 +135,8 @@
                                         <td>
                                             <button id="recoverySubmit"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                                    type="submit">Submit
+                                                    type="submit">
+                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Submit")%>
                                             </button>
                                         </td>
                                         <td>&nbsp;&nbsp;</td>
@@ -138,7 +144,7 @@
                                             <button type="button" id="recoveryCancel" class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                                                     onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
                                                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
-                                                Cancel
+                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
                                             </button>
                                         </td>
                                     </tr>
@@ -158,9 +164,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>
