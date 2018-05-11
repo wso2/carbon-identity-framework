@@ -853,4 +853,14 @@
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 
+    <!-- JWT validator configurations -->
+    <JWTValidatorConfigs>
+        <Enable>true</Enable>
+        <JWKSEndpoint>
+            <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>1000</HTTPReadTimeout>
+            <HTTPSizeLimit>51200</HTTPSizeLimit>
+        </JWKSEndpoint>
+    </JWTValidatorConfigs>
+
 </Server>
