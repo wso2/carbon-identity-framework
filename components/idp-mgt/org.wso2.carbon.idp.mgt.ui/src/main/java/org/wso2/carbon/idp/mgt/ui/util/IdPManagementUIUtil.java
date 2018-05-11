@@ -1618,6 +1618,32 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        property.setValue(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL));
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
         property.setName(IdPManagementUIUtil.META_DATA_SAML);
         if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             property.setValue(paramMap.get(IdPManagementUIUtil.META_DATA_SAML));

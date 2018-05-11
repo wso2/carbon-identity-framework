@@ -77,6 +77,21 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
      */
     private boolean isUserIdInClaims;
 
+    /**
+     * If Artifact Binding is enabled
+     */
+    private boolean isArtifactBindingEnabled;
+
+    /**
+     * If Artifact Resolve Request should be signed
+     */
+    private boolean isArtifactResolveReqSigned;
+
+    /**
+     * End url to send artifact resolve soap request
+     */
+    private String artifactResolveUrl;
+
     public SAML2SSOFederatedAuthenticatorConfig(FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
         for (Property property : federatedAuthenticatorConfig.getProperties()) {
             if (IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
@@ -102,6 +117,15 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
             } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION.equals(
                     property.getName())) {
                 isAuthnResponseEncrypted = Boolean.parseBoolean(property.getValue());
+            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED.equals(
+                    property.getName())) {
+                isArtifactBindingEnabled = Boolean.parseBoolean(property.getValue());
+            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED.equals(
+                    property.getName())) {
+                isArtifactResolveReqSigned = Boolean.parseBoolean(property.getValue());
+            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL.equals(
+                    property.getName())) {
+                artifactResolveUrl = property.getValue();
             }
         }
     }
@@ -162,4 +186,14 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     public boolean isAuthnResponseEncrypted() {
         return isAuthnResponseEncrypted;
     }
+
+    public boolean isArtifactBindingEnabled() {
+        return isArtifactBindingEnabled;
+    }
+
+    public boolean isArtifactResolveReqSigned() {
+        return isArtifactResolveReqSigned;
+    }
+
+    public String getArtifactResolveUrl() { return artifactResolveUrl; }
 }
