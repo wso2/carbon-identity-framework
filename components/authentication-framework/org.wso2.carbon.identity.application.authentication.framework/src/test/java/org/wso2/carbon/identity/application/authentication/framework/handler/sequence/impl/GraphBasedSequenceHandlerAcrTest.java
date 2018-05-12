@@ -20,14 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.HasRoleFunction;
-import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.IsExistsStringFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -36,10 +32,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -81,47 +74,6 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
                 {"js-sp-1.xml", new String[]{"acr1"}, 1},
                 {"js-sp-1.xml", new String[]{"acr2"}, 2},
                 {"js-sp-1.xml", new String[]{"notMatchingAcr"}, 3}
-        };
-    }
-
-    @Test(dataProvider = "roleBasedAcrDataProvider")
-    public void testHandleRoleBasedJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount,
-                                                    boolean hasRole) throws Exception {
-        HasRoleFunction hasRoleFunction = mock(HasRoleFunction.class);
-        when(hasRoleFunction.contains(any(JsAuthenticationContext.class), anyString())).thenReturn(hasRole);
-        graphBuilderFactory.getJsFunctionRegistry().register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole",
-                                (IsExistsStringFunction) hasRoleFunction::contains);
-        ServiceProvider sp1 = getTestServiceProvider(spFileName);
-
-        AuthenticationContext context = getAuthenticationContext(sp1);
-        if (acrArray != null) {
-            for (String acr : acrArray) {
-                context.addRequestedAcr(acr);
-            }
-        }
-
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
-        context.setSequenceConfig(sequenceConfig);
-
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
-        UserCoreUtil.setDomainInThreadLocal("test_domain");
-
-        graphBasedSequenceHandler.handle(req, resp, context);
-
-        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
-        assertNotNull(authHistories);
-        assertEquals(authHistories.size(), authHistoryCount);
-    }
-
-    @DataProvider(name = "roleBasedAcrDataProvider")
-    public Object[][] getRoleBasedAcrUserRolesData() {
-        return new Object[][]{
-                {"js-sp-2.xml", new String[]{"acr1"}, 1, false},
-                {"js-sp-2.xml", new String[]{"acr2"}, 2, true}
         };
     }
 
