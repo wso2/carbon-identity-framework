@@ -64,11 +64,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         // if an authentication flow
         if (!context.isLogoutRequest()) {
             if (!canHandle(request)
-                    || Boolean.TRUE.equals(context.getProperty(FrameworkConstants.RETRYING_STEP))
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
                 initiateAuthenticationRequest(request, response, context);
                 context.setCurrentAuthenticator(getName());
-                context.setProperty(FrameworkConstants.RETRYING_STEP, false);
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
@@ -89,6 +87,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
                     publishAuthenticationStepAttempt(request, context, e.getUser(), false);
+                    request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect the
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();

@@ -111,9 +111,6 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
                 getWrapped().setSelectedAcr(String.valueOf(value));
                 break;
-            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
-                getWrapped().setProperty(FrameworkConstants.JSAttributes.JS_RETRY_STEP, String.valueOf(value));
-                break;
             default:
                 super.setMember(name, value);
         }
@@ -128,7 +125,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
         Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
-        if (lastLoginFailedUser != null && lastLoginFailedUser instanceof AuthenticatedUser) {
+        if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return new JsAuthenticatedUser((AuthenticatedUser) lastLoginFailedUser);
         } else {
             return null;
