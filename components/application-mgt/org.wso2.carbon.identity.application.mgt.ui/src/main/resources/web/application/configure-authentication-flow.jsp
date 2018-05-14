@@ -48,6 +48,7 @@
 <script src="codemirror/addon/comment/comment.js"></script>
 <script src="codemirror/addon/selection/active-line.js"></script>
 <script src="codemirror/addon/dialog/dialog.js"></script>
+<script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
 
 <script src="../admin/js/main.js" type="text/javascript"></script>
@@ -279,6 +280,8 @@ var img = "";
 		});
 
         $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
+        addNewPanel("bottom");
+
         $("#toggleEditorSize").click(function(){
             if (myCodeMirror.getOption("fullScreen")){
                 $(this).addClass("maximizeIcon");
@@ -298,6 +301,19 @@ var img = "";
         function autoFormatSelection(cm) {
             var range = getSelectedRange();
             cm.autoFormatRange(range.from, range.to);
+        }
+
+        function addNewPanel(where) {
+            var node = document.createElement("div");
+            node.className = "panel " + where;
+            var close = node.appendChild(document.createElement("a"));
+            var label = node.appendChild(document.createElement("span"));
+            close.setAttribute("title", "Remove this panel");
+            close.setAttribute("class", "remove-panel");
+            close.textContent = "x";
+            label.textContent = "F11(Maximize) | Esc(Minimize) | Shift+Ctrl+F(Format Code)";
+            var widget = myCodeMirror.addPanel(node, {position: where});
+            CodeMirror.on(close, "click", function() { widget.clear(); });
         }
 
         jQuery('#ReqPathAuth').hide();
