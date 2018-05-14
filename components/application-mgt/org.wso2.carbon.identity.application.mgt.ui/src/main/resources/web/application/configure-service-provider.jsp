@@ -32,7 +32,6 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
-<%@ page import="org.wso2.carbon.identity.oauth.ui.client.OAuthAdminClient"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -73,14 +72,14 @@
     List<String> permissions = null;
     permissions = appBean.getPermissions();
 
-    OAuthAdminClient client = null;
-    Boolean isHashDisabled = false;
     String[] allClaimUris = appBean.getClaimUris();
     Map<String, String> claimMapping = appBean.getClaimMapping();
     Map<String, String> roleMapping = appBean.getRoleMapping();
     boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
+    String isHashDisabled = request.getParameter("isHashDisabled");
     String idPName = request.getParameter("idPName");
     String action = request.getParameter("action");
+    String operation = request.getParameter("operation");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
 
@@ -273,8 +272,6 @@
                 .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
-        client = new OAuthAdminClient(cookie, backendServerURL, configContext);
-        isHashDisabled = client.isHashDisabled();
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error occured while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
     }
@@ -541,6 +538,34 @@
         event.preventDefault();
         document.getElementById('sp-certificate').value = document.getElementById('sp-old-certificate').value;
     };
+
+    function copyTextClick(value) {
+        var copyText = value;
+        copyText.select();
+        document.execCommand("Copy");
+
+        return false;
+    }
+
+    $(function() {
+        $( "#showDialog" ).dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+              OK: function() {$(this).dialog("close");}
+            },
+            height:300,
+            width:590,
+            modal:true
+        });
+    });
+
+    window.onload = function(e) {
+        <% if(isHashDisabled != null && "false".equals(isHashDisabled) && appBean.getOIDCClientId() != null &&
+           appBean.getOauthConsumerSecret() != null && ((operation != null && "add".equals(operation)) || "regenerate".equals(action))) { %>
+            $( "#showDialog" ).dialog( "open" );
+        <% } %>
+    }
 
     jQuery(document).ready(function () {
         jQuery('#authenticationConfRow').hide();
@@ -1447,11 +1472,7 @@
                                                         <td>
                                                             <%
                                                                 if (oauthConsumerSecret == null || oauthConsumerSecret.isEmpty()) {
-                                                                    if (isHashDisabled) {
-                                                                        oauthConsumerSecret = appBean.getOauthConsumerSecret();
-                                                                    } else {
-                                                                        oauthConsumerSecret = null;
-                                                                    }
+                                                                    oauthConsumerSecret = appBean.getOauthConsumerSecret();
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
@@ -1460,12 +1481,16 @@
                                                                        type="password" autocomplete="off"
                                                                        id="oauthConsumerSecret"
                                                                        name="oauthConsumerSecret"
+                                                                       <% if (!(isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null) { %>
                                                                        value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"
+                                                                       <% } %>
                                                                        readonly="readonly">
+                                                                <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                                 <span style="float: right;">
                                 						<a style="margin-top: 5px;" class="showHideBtn"
                                                            onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
+                                					<% } %>
                                                             </div>
                                                             <%} %>
                                                         </td>
@@ -2294,4 +2319,43 @@
         </div>
     </div>
 
+    <div id = "showDialog" title = "WSO2 Carbon">
+        <h2 style="margin-left:20px;margin-top:20px;">
+            <fmt:message key="title.oauth.application"/>
+        </h2>
+
+        <% if ("add".equals(operation)) { %>
+            <p style="font-size: 12px;margin-top:6px;margin-left:20px;"><fmt:message key="application.successfull"/></p>
+        <% } %>
+
+        <% if ("regenerate".equals(action)) { %>
+            <p style="font-size: 12px;margin-top:6px;margin-left:20px;"><fmt:message key="application.regenerated"/> <%=appBean.getOIDCClientId()%></p>
+        <% } %>
+
+        <div style="margin-left:20px;background-color: #f4f4f4; border-left: 6px solid #cccccc;height:50px;width:90%;">
+            <p style="margin:20px;padding-top:10px;display:block;"><strong>Note : <font color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
+        </div>
+        <table style="margin-left:20px;margin-top:25px;">
+            <thead>
+                <tr style="height: 35px;">
+                    <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumerkey"/></th>
+                    <td>
+                        <input style="border: none; background: white; font-size: 14px;" size="25" autocomplete="off" id="consumerKey" name="oauthConsumerKey" value=<%=appBean.getOIDCClientId()%> readonly="readonly">
+                        <span style="float: right;">
+                            <button onclick="return copyTextClick(document.getElementById('consumerKey'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
+                        </span>
+                    </td>
+                </tr>
+                <tr style="height: 35px;">
+                    <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumersecret"/></th>
+                    <td>
+                        <input style="border: none; background: white;font-size: 14px;" size="25" autocomplete="off" id="consumerSecret" name="oauthConsumerSecret" value="<%=oauthConsumerSecret%>" readonly="readonly">
+                        <span style="float: right;">
+                            <button onclick="return copyTextClick(document.getElementById('consumerSecret'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
+                        </span>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+    </div>
 </fmt:bundle>
