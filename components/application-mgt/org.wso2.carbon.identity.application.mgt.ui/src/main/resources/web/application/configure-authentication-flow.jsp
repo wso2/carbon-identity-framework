@@ -429,7 +429,12 @@ var img = "";
 
 		});
 
+        $("#enableScript").click(function() {
+            $(".scriptEditorContainer").slideToggle( "fast" );
+            checkScriptEnabled();
+        });
 
+        checkScriptEnabled();
     });
 
     var deletePermissionRows = [];
@@ -623,6 +628,16 @@ var img = "";
 		$(element).attr('checked', true);
 	}
 
+	function checkScriptEnabled(){
+		var scriptEnabled = $("#enableScript").is(":checked");
+		if(scriptEnabled){
+			$(".scriptEditorInfo").hide();
+		}else{
+			$(".scriptEditorInfo").show();
+			$(".scriptEditorContainer").hide();
+		}
+	}
+
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -768,44 +783,52 @@ var img = "";
             </div>
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
-
-                <h2 id="conditional_script" class="active sectionSeperator trigger step_heads" style="font-size:large ">
-					<a href="#">JavaScript Based Conditional Steps</a>
-				</h2>
-
-                <div class="toggle_container sectionSub" id="conditional_script_dropdown">
-                    <label>
-                        <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
-                            if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-                                    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
-                               checked="checked"  <% }
-                        }
-                        }%>/> Use this Script
-                    </label>
-                    <table style="width: 100%; margin-top: 4px;">
-                        <tr>
-                            <td style="width: 80%" class="conditional-auth">
-                                <div class="sectionSub step_contents" id="codeMirror">
+			<br/>
+				<table id="conditional_script" class="styledLeft">
+					<tbody>
+					<tr>
+						<td class="middle-header">
+							<label>
+								<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
+									if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+										if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+											if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
+									   checked="checked"  <% }
+								}
+								}%>/> Use Script Based Conditional Authentication
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="scriptEditorInfo">Please select script based conditional authentication to start editing.</div>
+							<table class="scriptEditorContainer" style="width: 100%; margin-top: 8px;">
+								<tr>
+									<td style="width: 80%" class="conditional-auth">
+										<div class="sectionSub step_contents" id="codeMirror">
 				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%; display: none;"><%
-                    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-                        if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-                            out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
-                        }
-                    }
-                %></textarea>
-                                </div>
-                            </td>
-                            <td style="width: 20%">
-                                <div class="sectionSub step_contents" style="margin-bottom:10px;"
-                                     id="codeMirrorTemplate">
-                                    <p class="templateHeading">Templates</p>
-                                    <ul id='template_list'></ul>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+					if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+							out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
+						}
+					}
+				%></textarea>
+										</div>
+									</td>
+									<td style="width: 20%; vertical-align: top!important;">
+										<div class="sectionSub step_contents" style="margin-bottom:10px;"
+											 id="codeMirrorTemplate">
+											<p class="templateHeading">Templates</p>
+											<ul id='template_list'></ul>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input type="button" value="<fmt:message key='button.update.service.provider'/>"
                            onclick="createAppOnclick();"/>

@@ -47,6 +47,7 @@
 
 #codeMirrorTemplate{
     padding-top: 0px;
+    padding-left: 0px;
 }
 #codeMirrorTemplate h2{
     white-space: nowrap;
@@ -131,6 +132,7 @@
     background-repeat: no-repeat;
     border-left: 1px solid #afafaf;
     border-bottom: 1px solid #afafaf;
+    cursor: pointer;
 }
 #toggleEditorSize:hover{
     background-color: rgba(204, 204, 204, 0.9);
@@ -164,4 +166,14 @@
 }
 .panel.bottom, .panel.before-bottom {
     border-top: 1px solid #ddd;
+}
+
+#conditional_script table tbody tr td{
+    border: none !important;
+}
+#conditional_script label{
+    cursor: pointer;
+}
+.scriptEditorInfo{
+    padding: 12px;
 }
