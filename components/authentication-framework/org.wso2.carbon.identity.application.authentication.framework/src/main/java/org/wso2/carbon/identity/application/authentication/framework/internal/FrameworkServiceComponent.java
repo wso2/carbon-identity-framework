@@ -45,7 +45,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedUserDomainHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostJITProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -227,6 +230,16 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
         dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
+
+        // Registering JIT, association and domain handler as post authentication handler
+        PostAuthenticationHandler postJITProvisioningHandler = new PostJITProvisioningHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
+        PostAuthenticationHandler postAuthAssociationHandler = new PostAuthAssociationHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = new PostAuthenticatedUserDomainHandler();
+        bundleContext
+                .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
 

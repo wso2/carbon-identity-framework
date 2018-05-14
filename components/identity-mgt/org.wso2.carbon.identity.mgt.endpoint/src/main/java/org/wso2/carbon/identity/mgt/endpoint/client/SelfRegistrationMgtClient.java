@@ -64,6 +64,7 @@ public class SelfRegistrationMgtClient {
     private static final String PURPOSE_CATEGORY_ID = "purposeCategoryId";
     private static final String DEFAULT = "DEFAULT";
     private static final String USERNAME = "username";
+    private static final String PROPERTIES = "properties";
 
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
@@ -193,19 +194,40 @@ public class SelfRegistrationMgtClient {
     }
 
     /**
+     * To check the validity of the user name.
+     *
+     * @param username Name of the user.
+     * @return the status code of user name validity check.
+     * @throws SelfRegistrationMgtClientException SelfRegistrationMgtClientException will be thrown.
+     */
+    public Integer checkUsernameValidity(String username) throws SelfRegistrationMgtClientException {
+        return checkUsernameValidity(username, false);
+    }
+
+    /**
      * Checks whether a given username is valid or not.
      *
      * @param username Username.
+     * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
+     *                        tenant.
      * @return An integer with status code.
      * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
      */
-    public Integer checkUsernameValidity(String username) throws SelfRegistrationMgtClientException {
+    public Integer checkUsernameValidity(String username, boolean skipSignUpCheck) throws
+            SelfRegistrationMgtClientException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             JSONObject user = new JSONObject();
             user.put(USERNAME, username);
+
+            JSONArray properties = new JSONArray();
+            JSONObject property = new JSONObject();
+            property.put("key","skipSignUpEnableCheck");
+            property.put("value", skipSignUpCheck);
+            properties.put(property);
+            user.put(PROPERTIES, properties);
 
             HttpPost post = new HttpPost(getUserAPIEndpoint());
             setAuthorizationHeader(post);

@@ -1169,6 +1169,9 @@ public class IdPManagementDAO {
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
                         jitProConfig.setPasswordProvisioningEnabled(true);
                     }
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
+                        jitProConfig.setModifyUserNameAllowed(true);
+                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1327,6 +1330,9 @@ public class IdPManagementDAO {
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
                         jitProConfig.setPasswordProvisioningEnabled(true);
                     }
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
+                        jitProConfig.setModifyUserNameAllowed(true);
+                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1483,6 +1489,9 @@ public class IdPManagementDAO {
                     jitProConfig.setProvisioningEnabled(true);
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
                         jitProConfig.setPasswordProvisioningEnabled(true);
+                    }
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
+                        jitProConfig.setModifyUserNameAllowed(true);
                     }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
@@ -1678,10 +1687,15 @@ public class IdPManagementDAO {
                         .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
                         IdPManagementConstants.IS_FALSE_VALUE;
                 prepStmt.setString(19, passWordProvisioningEnabled);
+                String modifyUserNameAllowed = identityProvider.getJustInTimeProvisioningConfig()
+                        .isModifyUserNameAllowed() ? IdPManagementConstants.IS_FALSE_VALUE : IdPManagementConstants
+                        .IS_FALSE_VALUE;
+                prepStmt.setString(20, modifyUserNameAllowed);
             } else {
                 prepStmt.setString(7, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt.setString(8, null);
                 prepStmt.setString(19, IdPManagementConstants.IS_FALSE_VALUE);
+                prepStmt.setString(20, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (identityProvider.getClaimConfig() != null) {
@@ -1868,10 +1882,16 @@ public class IdPManagementDAO {
                         IdPManagementConstants.IS_FALSE_VALUE;
                 prepStmt1.setString(18, isPasswordProvisionConfigEnabled);
 
+                String isModifyUserNameEnabled = newIdentityProvider.getJustInTimeProvisioningConfig()
+                        .isModifyUserNameAllowed() ? IdPManagementConstants.IS_TRUE_VALUE : IdPManagementConstants
+                        .IS_FALSE_VALUE;
+                prepStmt1.setString(19, isModifyUserNameEnabled);
+
             } else {
                 prepStmt1.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt1.setString(7, null);
                 prepStmt1.setString(18, IdPManagementConstants.IS_FALSE_VALUE);
+                prepStmt1.setString(19, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (newIdentityProvider.getClaimConfig() != null) {
@@ -1925,8 +1945,8 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(17, newIdentityProvider.getDisplayName());
 
-            prepStmt1.setInt(19, tenantId);
-            prepStmt1.setString(20, currentIdentityProvider.getIdentityProviderName());
+            prepStmt1.setInt(20, tenantId);
+            prepStmt1.setString(21, currentIdentityProvider.getIdentityProviderName());
 
             prepStmt1.executeUpdate();
 

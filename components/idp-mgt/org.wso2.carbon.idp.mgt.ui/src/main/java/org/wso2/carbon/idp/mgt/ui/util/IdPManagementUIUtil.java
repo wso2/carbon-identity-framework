@@ -1735,9 +1735,20 @@ public class IdPManagementUIUtil {
 
         if ("provision_disabled".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(false);
-        } else if ("provision_static".equals(provisioning)
-                || "provision_dynamic".equals(provisioning)) {
+            jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+            jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+        } else if ("provision_static".equals(provisioning) || "provision_dynamic".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(true);
+            if (("modify_username_password").equals(paramMap.get("choose_jit_type_group"))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(true);
+            } else if (("modify_password").equals(paramMap.get("choose_jit_type_group"))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+            } else {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+            }
         }
 
         jitProvisioningConfiguration.setProvisioningUserStore(paramMap
@@ -1750,14 +1761,7 @@ public class IdPManagementUIUtil {
             }
         }
 
-        if (paramMap.get("password_provisioning") != null && "on".equals(paramMap.get("password_provisioning"))) {
-            jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
-        } else {
-            jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
-        }
-
         fedIdp.setJustInTimeProvisioningConfig(jitProvisioningConfiguration);
-
     }
 
     /**
