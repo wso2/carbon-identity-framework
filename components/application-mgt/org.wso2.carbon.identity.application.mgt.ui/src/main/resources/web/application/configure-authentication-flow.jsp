@@ -371,6 +371,10 @@ var img = "";
 			cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
 			startLine = cursorCoordsBeforeChange.line;
 		});
+        myCodeMirror.on('inputRead', function onChange(editor, input) {
+            if (input.text[0] === ';' || input.text[0] === ' ') { return; }
+            CodeMirror.commands.autocomplete(myCodeMirror, null, { completeSingle: false })
+        });
 
 		$('[data-toggle=template-link]').click(function (e) {
 			e.preventDefault();
@@ -410,7 +414,7 @@ var img = "";
 		});
 
 
-	});
+    });
 
     var deletePermissionRows = [];
     function deletePermissionRow(obj){
@@ -754,7 +758,7 @@ var img = "";
 				</h2>
 
                 <div class="toggle_container sectionSub" id="conditional_script_dropdown">
-                    <span>
+                    <label>
                         <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                             if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                                 if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
@@ -762,12 +766,12 @@ var img = "";
                                checked="checked"  <% }
                         }
                         }%>/> Use this Script
-                    </span>
+                    </label>
                     <table style="width: 100%; margin-top: 4px;">
                         <tr>
                             <td style="width: 80%" class="conditional-auth">
                                 <div class="sectionSub step_contents" id="codeMirror">
-				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%"><%
+				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%; display: none;"><%
                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
                             out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
