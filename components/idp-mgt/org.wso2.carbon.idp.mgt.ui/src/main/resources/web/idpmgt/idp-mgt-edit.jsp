@@ -114,6 +114,7 @@
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
     boolean isOIDCDefault = false;
+    boolean isOIDCBasicAuthEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -443,6 +444,12 @@
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
                     if (queryParamProp != null) {
                         oidcQueryParam = queryParamProp.getValue();
+                    }
+
+                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+                    if (basicAuthEnabledProp != null) {
+                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
 
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
@@ -1106,6 +1113,11 @@
 
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
+    }
+
+    String oidcBasicAuthEnabledChecked = "";
+    if (isOIDCBasicAuthEnabled) {
+        oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
 
     String passiveSTSEnabledChecked = "";
@@ -4632,6 +4644,18 @@
 
                                     <div class="sectionHelp">
                                         <fmt:message key='query.param.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.basicauth'/>:</td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="oidcBasicAuthEnabled" name="oidcBasicAuthEnabled"
+                                               type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.basicauth.help'/>
+                                </span>
                                     </div>
                                 </td>
                             </tr>
