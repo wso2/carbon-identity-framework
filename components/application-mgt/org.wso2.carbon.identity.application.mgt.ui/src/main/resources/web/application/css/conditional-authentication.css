@@ -47,6 +47,10 @@
 
 #codeMirrorTemplate{
     padding-top: 0px;
+    padding-left: 0px;
+}
+#codeMirrorTemplate h2{
+    white-space: nowrap;
 }
 .templateHeading{
     padding: 0 0 2px 0;
@@ -69,8 +73,8 @@
     -webkit-animation-fill-mode: none;
 }
 .highlight2{
-    animation: colorchange2 2000ms;
-    -webkit-animation: colorchange2 2000ms;
+    animation: colorchange1 2000ms;
+    -webkit-animation: colorchange1 2000ms;
     animation-iteration-count: 1;
     -webkit-animation-iteration-count: 1;
     animation-fill-mode: none;
@@ -128,6 +132,7 @@
     background-repeat: no-repeat;
     border-left: 1px solid #afafaf;
     border-bottom: 1px solid #afafaf;
+    cursor: pointer;
 }
 #toggleEditorSize:hover{
     background-color: rgba(204, 204, 204, 0.9);
@@ -137,4 +142,38 @@
 }
 .minimizeIcon{
     background: url(../images/minimize.png) 50% 50%;
+}
+
+.remove-panel {
+    cursor: pointer;
+}
+.remove-panel {
+    float: right;
+    font-size: 10px;
+    line-height: 13px;
+}
+.remove-panel img{
+    height: 8px;
+    width: 8px;
+}
+.panel {
+    background: #efefef;
+    padding: 4px 8px;
+    font-size: 10px;
+}
+.panel.top, .panel.after-top {
+    border-bottom: 1px solid #ddd;
+}
+.panel.bottom, .panel.before-bottom {
+    border-top: 1px solid #ddd;
+}
+
+#conditional_script table tbody tr td{
+    border: none !important;
+}
+#conditional_script label{
+    cursor: pointer;
+}
+.scriptEditorInfo{
+    padding: 12px;
 }
