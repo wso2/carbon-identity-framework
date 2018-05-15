@@ -45,6 +45,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.KEY;
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.SKIP_SIGN_UP_ENABLE_CHECK;
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.VALUE;
+
 /**
  * Client which invokes consent mgt remote operations.
  */
@@ -224,8 +228,8 @@ public class SelfRegistrationMgtClient {
 
             JSONArray properties = new JSONArray();
             JSONObject property = new JSONObject();
-            property.put("key","skipSignUpEnableCheck");
-            property.put("value", skipSignUpCheck);
+            property.put(KEY, SKIP_SIGN_UP_ENABLE_CHECK);
+            property.put(VALUE, skipSignUpCheck);
             properties.put(property);
             user.put(PROPERTIES, properties);
 

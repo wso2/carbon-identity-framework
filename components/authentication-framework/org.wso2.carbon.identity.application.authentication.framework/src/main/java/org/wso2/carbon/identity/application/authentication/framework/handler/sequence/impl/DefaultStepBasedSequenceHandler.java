@@ -60,7 +60,6 @@ import javax.servlet.http.HttpServletResponse;
 
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
-    public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
 

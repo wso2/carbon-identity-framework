@@ -32,19 +32,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * This PostAuthenticationHandler handles user domin related post processing.
+ * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
  */
-public class PostAuthenticatedUserDomainHandler extends AbstractPostAuthnHandler {
+public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthnHandler {
 
-    private static final Log log = LogFactory.getLog(PostAuthenticatedUserDomainHandler.class);
-    private static PostAuthenticatedUserDomainHandler instance;
+    private static final Log log = LogFactory.getLog(PostAuthenticatedSubjectIdentifierHandler.class);
+    private static PostAuthenticatedSubjectIdentifierHandler instance;
 
-    public static PostAuthenticatedUserDomainHandler getInstance() {
+    /**
+     * To get the singleton instance of post authentication handler.
+     *
+     * @return instance of {@link PostAuthenticatedSubjectIdentifierHandler}.
+     */
+    public static PostAuthenticatedSubjectIdentifierHandler getInstance() {
 
         if (instance == null) {
-            synchronized (PostAuthenticatedUserDomainHandler.class) {
+            synchronized (PostAuthenticatedSubjectIdentifierHandler.class) {
                 if (instance == null) {
-                    instance = new PostAuthenticatedUserDomainHandler();
+                    instance = new PostAuthenticatedSubjectIdentifierHandler();
                 }
             }
         }
@@ -53,14 +58,17 @@ public class PostAuthenticatedUserDomainHandler extends AbstractPostAuthnHandler
 
     @Override
     public int getPriority() {
-
+        /*
+        The priority of this authentication handler should be greater than JIT and association post authentication
+        handler as subject identifier need to be set after all these handling.
+         */
         return 22;
     }
 
     @Override
     public String getName() {
 
-        return "PostAuthenticatedUserDomainHandler";
+        return "PostAuthenticatedSubjectIdentifierHandler";
     }
 
     @Override
@@ -91,27 +99,28 @@ public class PostAuthenticatedUserDomainHandler extends AbstractPostAuthnHandler
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Authenticated User: " +
-                            sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser()
+                            .getAuthenticatedSubjectIdentifier());
                     log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                             .getTenantDomain());
                 }
             } else {
                 log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
                 if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(sequenceConfig
-                            .getAuthenticatedUser().getUsernameAsSubjectIdentifier(sequenceConfig.getApplicationConfig()
-                                    .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig
-                                    .getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
+                            sequenceConfig.getAuthenticatedUser().getUsernameAsSubjectIdentifier(
+                                    sequenceConfig.getApplicationConfig()
+                                            .isUseUserstoreDomainInLocalSubjectIdentifier(),
+                                    sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
                 }
             }
 
         } else {
             if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
-                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(sequenceConfig
-                        .getAuthenticatedUser().getUsernameAsSubjectIdentifier(sequenceConfig.getApplicationConfig()
-                                .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig.getApplicationConfig
-                                ().isUseTenantDomainInLocalSubjectIdentifier()));
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
+                        sequenceConfig.getAuthenticatedUser().getUsernameAsSubjectIdentifier(
+                                sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier(),
+                                sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
             }
 
         }

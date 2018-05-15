@@ -24,9 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -41,7 +39,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -50,13 +47,20 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler.USER_TENANT_DOMAIN;
-
+/**
+ * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
+ */
 public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);
     private static PostAuthAssociationHandler instance;
+    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
+    /**
+     * To get an instance of {@link PostAuthAssociationHandler}.
+     *
+     * @return instance of PostAuthAssociationHandler
+     */
     public static PostAuthAssociationHandler getInstance() {
 
         if (instance == null) {
@@ -71,7 +75,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     @Override
     public int getPriority() {
-
+        /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims would
+         passed to the service provider given the assert local mapped user option is selected */
         return 21;
     }
 
@@ -82,6 +87,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
@@ -96,16 +102,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             if (authenticator instanceof FederatedApplicationAuthenticator) {
                 Map<String, String> localClaimValues;
 
-                ExternalIdPConfig externalIdPConfig = null;
-                try {
-                    externalIdPConfig = ConfigurationFacade.getInstance()
-                            .getIdPConfigByName(stepConfig.getAuthenticatedIdP(), context.getTenantDomain());
-                } catch (IdentityProviderManagementException e) {
-                    log.error("Exception while getting IdP by name", e);
-                }
-
-                context.setExternalIdP(externalIdPConfig);
-
                 String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
                         .getAuthenticatedSubjectIdentifier();
 
@@ -114,7 +110,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                     String associatedID = null;
 
                     // now we know the value of the subject - from the external identity provider.
-
                     if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
 
                         // okay - now we need to find out the corresponding mapped local subject
@@ -165,7 +160,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
                         // if we found a local mapped user - then we will also take attributes from
                         // that user - this will load local claim values for the user.
-                        Map<String, String> mappedAttrs = null;
+                        Map<String, String> mappedAttrs;
                         try {
                             mappedAttrs = FrameworkUtils.getClaimHandler()
                                     .handleClaimMappings(stepConfig, context, null, false);
@@ -179,7 +174,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
                         localClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
-
                         Map<String, String> idpClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
 
@@ -207,8 +201,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             authProperties = new HashMap<>();
                             context.setProperties(authProperties);
                         }
-
-                        //TODO: user tenant domain has to be an attribute in the AuthenticationContext
                         authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
 
                         if (log.isDebugEnabled()) {
@@ -218,11 +210,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                         }
 
                     } else {
-
                         sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
-
-                        // Only place we do not set the setAuthenticatedUserTenantDomain into the sequenceConfig
-                        // TODO : Check whether not setting setAuthenticatedUserTenantDomain is correct
 
                     }
 

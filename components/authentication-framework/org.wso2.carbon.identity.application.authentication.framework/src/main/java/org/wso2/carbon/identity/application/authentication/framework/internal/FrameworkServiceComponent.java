@@ -46,7 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedUserDomainHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostJITProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
@@ -236,7 +236,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
         PostAuthenticationHandler postAuthAssociationHandler = new PostAuthAssociationHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
-        PostAuthenticationHandler postAuthenticatedUserDomainHandler = new PostAuthenticatedUserDomainHandler();
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = new PostAuthenticatedSubjectIdentifierHandler();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
 

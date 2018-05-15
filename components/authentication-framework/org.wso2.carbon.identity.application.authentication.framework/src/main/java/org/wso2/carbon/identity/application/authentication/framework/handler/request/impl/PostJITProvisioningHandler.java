@@ -46,9 +46,8 @@ import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -138,7 +137,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
-                ExternalIdPConfig externalIdPConfig = null;
+                ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
@@ -169,6 +168,11 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                         }
                     }
 
+                    if (log.isDebugEnabled()) {
+                        log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
+                                + externalIdPConfig.getIdPName() + " claims at the end of response flow, "
+                                + localClaimValues.toString());
+                    }
                     localClaimValues
                             .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     String username = sequenceConfig.getAuthenticatedUser().getUserName();
@@ -206,7 +210,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
 
-                ExternalIdPConfig externalIdPConfig = null;
+                ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
 
@@ -233,17 +237,25 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                                 ErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP.getCode(), e);
                     }
 
-                    if (username == null) {
+                    // If username is null, that means relevant assication not exist already.
+                    if (StringUtils.isEmpty(username)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
+                                    + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
+                                    + " to the UI to get the consents");
+                        }
                         redirectToPasswordProvisioningUI(externalIdPConfig, context, localClaimValues, response,
                                 sequenceConfig.getAuthenticatedUser().getUserName());
+                        // Set the property to make sure the request is a returning one.
                         context.setProperty(PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
+                                    + externalIdPConfig.getIdPName() + " do have a local account, with the username "
+                                    + username);
+                        }
                     }
-
-                    if (StringUtils.isEmpty(username)) {
-                        username = stepConfig.getAuthenticatedUser().getUserName();
-                    }
-
                     callDefaultProvisioniningHandler(username, context, externalIdPConfig, localClaimValues, stepConfig);
                 }
 
@@ -262,7 +274,6 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      */
     private void handleExceptions(String errorMessage, String errorCode, Exception e)
             throws PostAuthenticationFailedException {
-        log.error(errorCode + " - " + errorMessage, e);
         throw new PostAuthenticationFailedException(errorCode, errorMessage, e);
     }
 
@@ -306,6 +317,10 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             String[] missingClaims = PostAuthnMissingClaimHandler.getInstance().getMissingClaims(context);
 
             if (StringUtils.isNotEmpty(missingClaims[1])) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Mandatory claims for SP, " + missingClaims[1] + " is missing for the user, " + username
+                            + " from the IDP " + externalIdPConfig.getIdPName());
+                }
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS, missingClaims[1]);
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS_DISPLAY_NAME, missingClaims[0]);
             }
@@ -365,8 +380,13 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
 
         // Getting only the supported claims.
         try {
-            claimMappings = realm.getClaimManager().getAllClaimMappings();
+            if (realm != null) {
+                ClaimManager claimManager = realm.getClaimManager();
 
+                if (claimManager != null) {
+                    claimMappings = claimManager.getAllClaimMappings();
+                }
+            }
         } catch (UserStoreException e) {
             handleExceptions(
                     String.format(ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION.getMessage(),

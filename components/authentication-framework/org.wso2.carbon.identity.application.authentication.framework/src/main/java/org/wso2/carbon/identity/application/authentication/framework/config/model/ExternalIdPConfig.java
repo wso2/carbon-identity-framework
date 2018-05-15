@@ -205,7 +205,7 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
-     * To check whether password provisioning is enabled.
+     * To check whether password provisioning is enabled, while JIT provisioning.
      *
      * @return true if the password provisioning is enabled otherwise false.
      */
@@ -217,7 +217,7 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
-     * To check whether modify user name is allowed.
+     * To check whether modify user name is allowed, while JIT provisioning.
      *
      * @return true if modification of user name is allowed.
      */

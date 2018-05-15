@@ -56,15 +56,31 @@ public class FrameworkErrorConstants {
         private final String code;
         private final String message;
 
+        /**
+         * Create an Error Message.
+         *
+         * @param code    Relevant error code.
+         * @param message Relevant error message.
+         */
         ErrorMessages(String code, String message) {
             this.code = code;
             this.message = message;
         }
 
+        /**
+         * To get the code of specific error.
+         *
+         * @return Error code.
+         */
         public String getCode() {
             return code;
         }
 
+        /**
+         * To get the message of specific error.
+         *
+         * @return Error message.
+         */
         public String getMessage() {
             return message;
         }

@@ -17,27 +17,25 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.apache.commons.collections.CollectionUtils" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
-<%@ page import="java.util.List" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClientException" %>
-<%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="java.util.Arrays" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
-<%@ page import="org.apache.commons.collections.CollectionUtils" %>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.util.List" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -177,7 +175,6 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-
                 <% if(skipSignUpEnableCheck) { %>
                     <form action="../commonauth" method="post" id="register">
                  <% } else { %>
@@ -187,8 +184,6 @@
                         An Account</h2>
 
                     <div class="clearfix"></div>
-
-
                     <div class="boarder-all ">
 
                         <% if (error) { %>
@@ -200,7 +195,7 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <% if (isPasswordProvisionEnabled || !skipSignUpEnableCheck) {%>
+                        <% if (isPasswordProvisionEnabled || !skipSignUpEnableCheck) { %>
                         <div class="padding-double font-large">Enter required fields to complete registration of
                             <b><%=Encode.forHtmlAttribute(username)%></b></div>
                         <!-- validation -->
@@ -344,14 +339,12 @@
                                     String claimValue = request.getParameter(claimUri);
 
                                     if (StringUtils.isNotEmpty(claimValue)) { %>
-
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=claim.getDisplayName()%>
-                                </label>
-                                <input type="text" class="form-control"
-                                       value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled>
-                            </div>
-
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <label class="control-label"><%=Encode.forHtmlContent(claim.getDisplayName())%>
+                                    </label>
+                                    <input type="text" class="form-control"
+                                           value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled>
+                                </div>
                             <% } }%>
                         </div>
                         <% } %>
