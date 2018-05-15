@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.IsExistsStringFunction;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -45,14 +44,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -89,7 +87,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>)GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -126,7 +124,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fail.xml");
 
@@ -155,7 +153,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (IsExistsStringFunction) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fallback.xml");
 
