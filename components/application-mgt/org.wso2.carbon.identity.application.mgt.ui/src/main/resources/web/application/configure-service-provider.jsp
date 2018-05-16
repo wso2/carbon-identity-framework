@@ -45,6 +45,8 @@
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.security.cert.CertificateException" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.ResourceBundle"%>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -57,6 +59,9 @@
 
 
 <%
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     if (appBean.getServiceProvider() == null || appBean.getServiceProvider().getApplicationName() == null) {
 // if appbean is not set properly redirect the user to list-service-provider.jsp.
@@ -2329,7 +2334,10 @@
         <% } %>
 
         <% if ("regenerate".equals(action)) { %>
-            <p style="font-size: 12px;margin-top:6px;margin-left:20px;"><fmt:message key="application.regenerated"/> <%=appBean.getOIDCClientId()%></p>
+            <p style="font-size: 12px;margin-top:6px;margin-left:20px;">
+                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), appBean.getOIDCClientId()); %>
+                <%= message %>
+            </p>
         <% } %>
 
         <div style="margin-left:20px;background-color: #f4f4f4; border-left: 6px solid #cccccc;height:50px;width:90%;">
