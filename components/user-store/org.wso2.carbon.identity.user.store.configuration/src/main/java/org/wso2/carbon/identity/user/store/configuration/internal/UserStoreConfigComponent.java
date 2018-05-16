@@ -159,7 +159,7 @@ public class UserStoreConfigComponent {
         UserStoreConfigListenersHolder.getInstance().setUserStoreConfigListenerService(userStoreConfigListener);
     }
 
-    protected static void unsetUserStoreConfigListenerService(UserStoreConfigListener userStoreConfigListener) {
+    protected void unsetUserStoreConfigListenerService(UserStoreConfigListener userStoreConfigListener) {
 
         UserStoreConfigListenersHolder.getInstance().unsetUserStoreConfigListenerService(userStoreConfigListener);
     }

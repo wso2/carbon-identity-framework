@@ -236,7 +236,7 @@ public class UserMgtDSComponent {
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetUserOperationEventListenerService")
-    protected static synchronized void setUserOperationEventListenerService(
+    protected synchronized void setUserOperationEventListenerService(
             UserOperationEventListener userOperationEventListenerService) {
 
         userOperationEventListenerCollection = null;
@@ -247,7 +247,7 @@ public class UserMgtDSComponent {
                 .put(userOperationEventListenerService.getExecutionOrderId(), userOperationEventListenerService);
     }
 
-    protected static synchronized void unsetUserOperationEventListenerService(
+    protected synchronized void unsetUserOperationEventListenerService(
             UserOperationEventListener userOperationEventListenerService) {
 
         if (userOperationEventListenerService != null && userOperationEventListeners != null) {
@@ -262,7 +262,7 @@ public class UserMgtDSComponent {
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetUserManagementErrorEventListenerService")
-    protected static synchronized void setUserManagementErrorEventListenerService(
+    protected synchronized void setUserManagementErrorEventListenerService(
             UserManagementErrorEventListener userManagementErrorEventListenerService) {
 
         userManagementErrorEventListenerCollection = null;
@@ -273,11 +273,11 @@ public class UserMgtDSComponent {
                 userManagementErrorEventListenerService);
     }
 
-    protected static synchronized void unsetUserManagementErrorEventListenerService(
-            UserManagementErrorEventListener userManagementErrorEventListener) {
+    protected synchronized void unsetUserManagementErrorEventListenerService(
+            UserManagementErrorEventListener userManagementErrorEventListenerService) {
 
-        if (userManagementErrorEventListener != null && userManagementErrorEventListeners != null) {
-            userManagementErrorEventListeners.remove(userManagementErrorEventListener.getExecutionOrderId());
+        if (userManagementErrorEventListenerService != null && userManagementErrorEventListeners != null) {
+            userManagementErrorEventListeners.remove(userManagementErrorEventListenerService.getExecutionOrderId());
             userManagementErrorEventListenerCollection = null;
         }
     }
