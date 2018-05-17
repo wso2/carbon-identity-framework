@@ -435,6 +435,9 @@ var img = "";
                 myCodeMirror.setOption("theme", "mdn-like");
                 $("#toggleEditorSize").show();
                 $("#addTemplate").show("fast");
+                $("#codeMirrorTemplate").show();
+                $("#addTemplate").text("Hide Template List");
+                $("#addTemplate").css("background-image", "url(images/up.gif)");
             }
             else {
                 myCodeMirror.setOption("readOnly", "nocursor");
@@ -448,16 +451,21 @@ var img = "";
         }
 
         $('#addTemplate').click(function (e) {
-            if ($("#codeMirrorTemplate").is(":visible")){
-                $("#codeMirrorTemplate").hide();
-                $("#addTemplate").text("Add From Template");
-            } else {
-                $("#codeMirrorTemplate").show();
-                $("#addTemplate").text("Hide Template List");
-            };
+            showHideTemplateList();
             e.preventDefault();
         });
 
+        function showHideTemplateList(){
+            if ($("#codeMirrorTemplate").is(":visible")){
+                $("#codeMirrorTemplate").hide();
+                $("#addTemplate").text("Add From Template");
+                $("#addTemplate").css("background-image", "url(images/add.gif)");
+            } else {
+                $("#codeMirrorTemplate").show();
+                $("#addTemplate").text("Hide Template List");
+                $("#addTemplate").css("background-image", "url(images/up.gif)");
+            };
+        }
 
     });
 
