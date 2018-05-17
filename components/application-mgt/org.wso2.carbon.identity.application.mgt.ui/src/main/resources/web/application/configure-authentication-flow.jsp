@@ -831,7 +831,7 @@ var img = "";
 								<tr>
 									<td class="conditional-auth">
 										<div class="sectionSub step_contents" id="codeMirror">
-				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%; display: none;"><%
+				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Write custom JavaScript or select from templates that match a scenario..." style="height: 500px;width: 100%; display: none;"><%
 					if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
 						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
 							out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
