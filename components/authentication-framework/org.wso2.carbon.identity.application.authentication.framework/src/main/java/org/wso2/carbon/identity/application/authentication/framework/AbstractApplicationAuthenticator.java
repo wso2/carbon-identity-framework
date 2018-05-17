@@ -128,7 +128,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
         if (graph == null || !graph.isEnabled()) {
-            retryAuthenticationEnabled();
+            return retryAuthenticationEnabled();
         }
         return false;
     }
