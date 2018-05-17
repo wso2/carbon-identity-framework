@@ -16,18 +16,34 @@
  * under the License.
  */
 var orig = CodeMirror.hint.javascript;
-CodeMirror.hint.javascript = function(cm) {
-    var inner = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
-    conditionalAuthFunctions.forEach(function(value, key, myArray){
-        inner.list.push(value);
+
+CodeMirror.hint.javascript = function (cm) {
+    var hintList = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
+    conditionalAuthFunctions.forEach(function(value){
+        hintList.list.push(value);
     });
-    [].slice.call(inner).sort(function(a, b){
-        var nameA=a.toLowerCase(), nameB=b.toLowerCase();
-        if (nameA < nameB) //sort string ascending
-            return -1;
-        if (nameA > nameB)
-            return 1;
-        return 0; //default return value (no sorting)
-    });
-    return inner;
+    var hintListArr = [];
+    if(hintList.constructor === Array){
+        hintListArr = hintList;
+    }else{
+        hintListArr = Array.from(hintList.list);
+    }
+    var cursor = cm.getCursor();
+    var currentLine = cm.getLine(cursor.line);
+    var start = cursor.ch;
+    var end = start;
+    while (end < currentLine.length && /[\w$]+/.test(currentLine.charAt(end))) ++end;
+    while (start && /[\w$]+/.test(currentLine.charAt(start - 1))) --start;
+    var curWord = (start != end) && currentLine.slice(start, end);
+    var regex = new RegExp('^' + curWord, 'i');
+    var subList = hintListArr.filter(function (item) {
+        return item.match(regex);
+    }).sort();
+    var result = {
+        list: !curWord ? hintListArr : subList,
+        from: CodeMirror.Pos(cursor.line, start),
+        to: CodeMirror.Pos(cursor.line, end)
+    };
+    return result;
 };
+
