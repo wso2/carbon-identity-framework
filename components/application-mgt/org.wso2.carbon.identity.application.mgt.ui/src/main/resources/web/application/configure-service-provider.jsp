@@ -1493,7 +1493,7 @@
                                                                 <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                                 <span style="float: right;">
                                 						<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
+                                                           onclick="showHidePassword(this, 'oauthConsumerSecret')"><fmt:message key='show'/></a>
                                 					</span>
                                 					<% } %>
                                                             </div>
@@ -2335,20 +2335,20 @@
 
         <% if ("regenerate".equals(action)) { %>
             <p style="font-size: 12px;margin-top:6px;margin-left:20px;">
-                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), appBean.getOIDCClientId()); %>
+                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), Encode.forHtmlAttribute(appBean.getOIDCClientId())); %>
                 <%= message %>
             </p>
         <% } %>
 
         <div style="margin-left:20px;background-color: #f4f4f4; border-left: 6px solid #cccccc;height:50px;width:90%;">
-            <p style="margin:20px;padding-top:10px;display:block;"><strong>Note : <font color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
+            <p style="margin:20px;padding-top:10px;display:block;"><strong><fmt:message key="note"/><font color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
         </div>
         <table style="margin-left:20px;margin-top:25px;">
             <thead>
                 <tr style="height: 35px;">
                     <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumerkey"/></th>
                     <td>
-                        <input style="border: none; background: white; font-size: 14px;" size="25" autocomplete="off" id="consumerKey" name="oauthConsumerKey" value=<%=appBean.getOIDCClientId()%> readonly="readonly">
+                        <input style="border: none; background: white; font-size: 14px;" size="25" autocomplete="off" id="consumerKey" name="oauthConsumerKey" value=<%=Encode.forHtmlAttribute(appBean.getOIDCClientId())%> readonly="readonly">
                         <span style="float: right;">
                             <button onclick="return copyTextClick(document.getElementById('consumerKey'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
                         </span>
@@ -2357,7 +2357,7 @@
                 <tr style="height: 35px;">
                     <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumersecret"/></th>
                     <td>
-                        <input style="border: none; background: white;font-size: 14px;" size="25" autocomplete="off" id="consumerSecret" name="oauthConsumerSecret" value="<%=oauthConsumerSecret%>" readonly="readonly">
+                        <input style="border: none; background: white;font-size: 14px;" size="25" autocomplete="off" id="consumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>" readonly="readonly">
                         <span style="float: right;">
                             <button onclick="return copyTextClick(document.getElementById('consumerSecret'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
                         </span>
