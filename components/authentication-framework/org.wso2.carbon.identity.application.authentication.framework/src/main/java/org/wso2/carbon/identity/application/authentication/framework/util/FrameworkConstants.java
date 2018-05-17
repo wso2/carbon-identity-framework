@@ -277,6 +277,9 @@ public abstract class FrameworkConstants {
 
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
+        public static final String JS_FUNC_SHOW_PROMPT = "prompt";
+        public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
+        public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";

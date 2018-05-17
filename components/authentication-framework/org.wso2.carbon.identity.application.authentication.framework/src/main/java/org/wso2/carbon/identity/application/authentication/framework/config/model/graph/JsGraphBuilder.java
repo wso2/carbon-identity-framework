@@ -22,13 +22,12 @@ import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -57,6 +56,7 @@ public class JsGraphBuilder {
     private ScriptEngine engine;
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
+    private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
 
     /**
      * Constructs the builder with the given authentication context.
@@ -101,6 +101,7 @@ public class JsGraphBuilder {
     public JsGraphBuilder createWith(String script) {
 
         try {
+            currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (Consumer<Map>) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (Consumer<Map>) this::sendError);
@@ -128,8 +129,20 @@ public class JsGraphBuilder {
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
+        } finally {
+            currentBuilder.remove();
         }
         return this;
+    }
+
+    public static void clear() {
+
+        currentBuilder.remove();
+    }
+
+    public static JsGraphBuilder getCurrentBuilder() {
+
+        return currentBuilder.get();
     }
 
     /**
@@ -246,12 +259,42 @@ public class JsGraphBuilder {
         attachEventListeners((Map<String, Object>) parameterMap.get(JsStepConstants.STEP_EVENT_ON), newNode);
     }
 
+    /**
+     * Adds a function to show a prompt in Javascript code.
+     *
+     * @param parameterMap parameterMap
+     */
+    public static void addLongWaitProcess(AsyncProcess asyncProcess,
+                                          Map<String, Object> parameterMap) {
+
+        addLongWaitProcess(getCurrentBuilder(), asyncProcess, parameterMap);
+    }
+
+    private static void addLongWaitProcess(JsGraphBuilder jsGraphBuilder, AsyncProcess asyncProcess,
+                                           Map<String, Object> parameterMap) {
+
+        LongWaitNode newNode = new LongWaitNode(asyncProcess);
+
+        Map<String, Object> eventHandlers = (Map<String, Object>) parameterMap.get(JsStepConstants.STEP_EVENT_ON);
+        if (eventHandlers != null) {
+            addEventListeners(newNode, eventHandlers);
+        }
+        if (jsGraphBuilder.currentNode == null) {
+            jsGraphBuilder.result.setStartNode(newNode);
+        } else {
+            attachToLeaf(jsGraphBuilder.currentNode, newNode);
+        }
+
+        jsGraphBuilder.currentNode = newNode;
+    }
+
     private static void attachEventListeners(Map<String, Object> eventsMap, AuthGraphNode currentNode) {
 
         if (eventsMap == null) {
             return;
         }
-        DynamicDecisionNode decisionNode = createDynamicDecisionNode(eventsMap);
+        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
+        addEventListeners(decisionNode, eventsMap);
         if (!decisionNode.getFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
         }
@@ -262,7 +305,8 @@ public class JsGraphBuilder {
         if (eventsMap == null) {
             return;
         }
-        DynamicDecisionNode decisionNode = createDynamicDecisionNode(eventsMap);
+        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
+        addEventListeners(decisionNode, eventsMap);
         if (!decisionNode.getFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
             currentNode = decisionNode;
@@ -270,14 +314,17 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Creates a Graph Node, which creates next nodes dynamically using Javascript function provided.
+     * Adds all the event listeners to the decision node.
      *
      * @param eventsMap Map of events and event handler functions, which is handled by this execution.
      * @return created Dynamic Decision node.
      */
-    private static DynamicDecisionNode createDynamicDecisionNode(Map<String, Object> eventsMap) {
+    private static void addEventListeners(DynamicDecisionNode decisionNode,
+                                          Map<String, Object> eventsMap) {
 
-        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
+        if (eventsMap == null) {
+            return;
+        }
         eventsMap.forEach((key, value) -> {
             if (value instanceof ScriptObjectMirror) {
                 SerializableJsFunction jsFunction = SerializableJsFunction
@@ -289,7 +336,6 @@ public class JsGraphBuilder {
                 }
             }
         });
-        return decisionNode;
     }
 
     /**
@@ -333,6 +379,9 @@ public class JsGraphBuilder {
             } else {
                 attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
             }
+        } else if (baseNode instanceof LongWaitNode) {
+            LongWaitNode longWaitNode = (LongWaitNode) baseNode;
+            longWaitNode.setDefaultEdge(nodeToAttach);
         } else if (baseNode instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
             dynamicDecisionNode.setDefaultEdge(nodeToAttach);
@@ -377,7 +426,7 @@ public class JsGraphBuilder {
         }
 
         @Override
-        public String evaluate(AuthenticationContext authenticationContext) {
+        public String evaluate(AuthenticationContext authenticationContext, Consumer<JSObject> jsConsumer) {
 
             String result = null;
             if (jsFunction.isFunction()) {
@@ -402,7 +451,7 @@ public class JsGraphBuilder {
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
                     JSObject builderFunction = (JSObject) compiledScript.eval();
-                    builderFunction.call(null, new JsAuthenticationContext(authenticationContext));
+                    jsConsumer.accept(builderFunction);
 
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
                     //TODO: New method ...
@@ -426,6 +475,15 @@ public class JsGraphBuilder {
                 result = jsFunction.getSource();
             }
             return result;
+        }
+
+        @Deprecated
+        public String evaluate(AuthenticationContext authenticationContext) {
+
+            return this.evaluate(authenticationContext, (fn) -> {
+                fn.call(null, new JsAuthenticationContext
+                        (authenticationContext));
+            });
         }
 
         private boolean canInfuse(AuthGraphNode executingNode) {

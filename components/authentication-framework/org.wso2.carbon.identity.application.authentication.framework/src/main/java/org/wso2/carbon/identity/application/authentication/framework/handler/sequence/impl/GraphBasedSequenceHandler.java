@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -29,14 +32,21 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -51,6 +61,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
             throws FrameworkException {
+
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }
@@ -86,10 +97,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private boolean handleNode(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-            SequenceConfig sequenceConfig, AuthGraphNode currentNode) throws FrameworkException {
+                               SequenceConfig sequenceConfig, AuthGraphNode currentNode) throws FrameworkException {
+
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
-        if (currentNode instanceof DynamicDecisionNode) {
+        if (currentNode instanceof LongWaitNode) {
+            isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
+            if (!isInterrupt) {
+                gotoToNextNode(context, sequenceConfig, currentNode);
+            }
+        } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
             isInterrupt = handleAuthenticationStep(request, response, context, sequenceConfig,
@@ -106,7 +123,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private void gotoToNextNode(AuthenticationContext context, SequenceConfig sequenceConfig,
-            AuthGraphNode currentNode) {
+                                AuthGraphNode currentNode) {
+
         AuthGraphNode nextNode = null;
         if (currentNode instanceof StepConfigGraphNode) {
             nextNode = ((StepConfigGraphNode) currentNode).getNext();
@@ -122,7 +140,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private void handleEndOfSequence(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context, SequenceConfig sequenceConfig) throws FrameworkException {
+                                     AuthenticationContext context, SequenceConfig sequenceConfig) throws
+            FrameworkException {
+
         if (log.isDebugEnabled()) {
             log.debug("There are no more steps to execute");
         }
@@ -155,7 +175,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @throws FrameworkException
      */
     private void handleAuthFail(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-            SequenceConfig sequenceConfig, FailNode node) throws FrameworkException {
+                                SequenceConfig sequenceConfig, AuthGraphNode node) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
@@ -167,7 +187,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context, SequenceConfig sequenceConfig, StepConfigGraphNode stepConfigGraphNode)
+                                             AuthenticationContext context, SequenceConfig sequenceConfig,
+                                             StepConfigGraphNode stepConfigGraphNode)
             throws FrameworkException {
 
         StepConfig stepConfig = stepConfigGraphNode.getStepConfig();
@@ -246,9 +267,71 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         return false;
     }
 
+    private boolean handleLongWait(HttpServletRequest request, HttpServletResponse response,
+                                   AuthenticationContext context, SequenceConfig sequenceConfig,
+                                   LongWaitNode longWaitNode) throws FrameworkException {
+
+        boolean isWaiting;
+        LongWaitStatusStoreService longWaitStatusStoreService =
+                FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
+        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(context.getSessionIdentifier());
+        if (longWaitStatus == null) {
+            //This is a initiation of long wait
+            longWaitStatus = new LongWaitStatus();
+            longWaitStatusStoreService.addWait(context.getSessionIdentifier(), longWaitStatus);
+            isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
+        } else {
+            // This is a continuation of long wait
+            isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
+            String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
+            Map<String, Object> data = (Map<String, Object>) context.getProperty(
+                    FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
+            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, null);
+            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, null);
+            if (outcomeName != null) {
+                executeFunction(outcomeName, longWaitNode, context, data);
+            }
+        }
+        return isWaiting;
+    }
+
+    private void resumeLongWait(HttpServletRequest request, HttpServletResponse response,
+                                AuthenticationContext context) throws
+            FrameworkException {
+
+        handle(request, response, context);
+    }
+
+    private boolean callExternalSystem(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context, SequenceConfig sequenceConfig,
+                                       LongWaitNode longWaitNode) throws FrameworkException {
+
+        AsyncProcess asyncProcess = longWaitNode.getAsyncProcess();
+        if (asyncProcess == null) {
+            return false;
+        }
+        AsyncCaller caller = asyncProcess.getAsyncCaller();
+
+        AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
+            authenticationContext.setProperty(
+                    FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
+            authenticationContext.setProperty(
+                    FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
+            resumeLongWait(request, response, context);
+        });
+
+        if (caller != null) {
+            FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
+            return true;
+        }
+        return false;
+    }
+
     private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context, SequenceConfig sequenceConfig, DynamicDecisionNode dynamicDecisionNode)
+                                     AuthenticationContext context, SequenceConfig sequenceConfig,
+                                     DynamicDecisionNode dynamicDecisionNode)
             throws FrameworkException {
+
         if (dynamicDecisionNode == null) {
             log.error("Dynamic decision node is null");
             return;
@@ -277,20 +360,61 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
-            AuthenticationContext context) {
+                                 AuthenticationContext context) {
+
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context);
     }
 
+    private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
+                                 AuthenticationContext context, Map<String, Object> data) {
+
+        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
+        jsBasedEvaluator.evaluate(context, (func) -> {
+            func.call(null, new JsAuthenticationContext(context),
+                    new JsParameters(data));
+        });
+    }
+
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context, SequenceConfig sequenceConfig, AuthenticationGraph graph)
+                                     AuthenticationContext context, SequenceConfig sequenceConfig,
+                                     AuthenticationGraph graph)
             throws FrameworkException {
+
         AuthGraphNode startNode = graph.getStartNode();
         if (startNode == null) {
             throw new FrameworkException("Start node is not set for authentication graph:" + graph.getName());
         }
         context.setCurrentStep(0);
         return handleNode(request, response, context, sequenceConfig, startNode);
+    }
+
+    /**
+     * This method allows a BiConsumer which throws exceptions to be used in places which expects a BiConsumer.
+     *
+     * @param <T>         the type of the input to the function
+     * @param <U>         the type of the input to the function
+     * @param <V>         the type of the input to the function
+     * @param <E>         the type of Exception
+     * @param triConsumer instances of the {@code TriConsumerWithExceptions} functional interface
+     * @return an instance of the {@code BiConsumer}
+     */
+    public static <T, U , V , E extends Exception> AsyncReturn rethrowTriConsumer(AsyncReturn triConsumer) {
+
+        return (t, u, v) -> {
+            try {
+                triConsumer.accept(t, u, v);
+            } catch (Exception exception) {
+                throwAsUnchecked(exception);
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
+
+        throw (E) exception;
     }
 }

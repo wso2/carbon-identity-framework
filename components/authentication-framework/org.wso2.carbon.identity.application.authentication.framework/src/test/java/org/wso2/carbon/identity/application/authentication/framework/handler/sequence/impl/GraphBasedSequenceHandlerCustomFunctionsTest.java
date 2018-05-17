@@ -265,9 +265,10 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         }
     }
 
-    public static class MockFailingAuthenticator extends MockAuthenticator{
+    public static class MockFailingAuthenticator extends MockAuthenticator {
 
         public MockFailingAuthenticator(String name) {
+
             super(name);
         }
 

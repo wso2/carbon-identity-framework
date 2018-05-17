@@ -63,10 +63,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -253,7 +251,14 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) {
 
         AuthenticationContext context = null;
-
+        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
+            String promptId = request.getParameter("promptId");
+            context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
+            if (context != null) {
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                return context;
+            }
+        }
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);

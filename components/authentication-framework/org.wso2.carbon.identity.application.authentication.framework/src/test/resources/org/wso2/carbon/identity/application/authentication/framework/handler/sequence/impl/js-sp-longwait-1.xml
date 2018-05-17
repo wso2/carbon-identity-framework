@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -78,43 +78,18 @@
                 <SubjectStep>fales</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
-            <AuthenticationStep>
-                <StepOrder>4</StepOrder>
-                <LocalAuthenticatorConfigs>
-                    <LocalAuthenticatorConfig>
-                        <Name>BasicFailingMockAuthenticator</Name>
-                        <DisplayName>basicauthfialing</DisplayName>
-                        <IsEnabled>true</IsEnabled>
-                    </LocalAuthenticatorConfig>
-                </LocalAuthenticatorConfigs>
-                <SubjectStep>true</SubjectStep>
-                <AttributeStep>true</AttributeStep>
-            </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-var jsFn1 = function(context, a) {
-    Log.debug('Test fn1 '+a);
-}
-
 function onInitialRequest(context) {
-    Log.info('Test0');
-        executeStep({
-            id : '4',
-            on : {
-                success : function(context) {
-                    Log.info('Test1');
-                    executeStep({
-                        context : context,
-                        id : 2});
-                },
-                fail : function(context) {
-                    Log.info('Test On Fail');
-                    executeStep({id : 1, context : context});
-                    executeStep({context : context, id : 3});
-                }
-            }
-        })
-    }
+    //TODO remove this executeStep and make it to work.
+    executeStep({id :'1'});
+    testLongWaitCall('a', 'b', 'c', {},  function() {},
+    {
+        "on" : {
+            "ok" : function(){Log.info('OK Called')}
+        }
+    });
+}
 ]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
