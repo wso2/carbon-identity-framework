@@ -21,5 +21,13 @@ CodeMirror.hint.javascript = function(cm) {
     conditionalAuthFunctions.forEach(function(value, key, myArray){
         inner.list.push(value);
     });
+    [].slice.call(inner).sort(function(a, b){
+        var nameA=a.toLowerCase(), nameB=b.toLowerCase();
+        if (nameA < nameB) //sort string ascending
+            return -1;
+        if (nameA > nameB)
+            return 1;
+        return 0; //default return value (no sorting)
+    });
     return inner;
 };
