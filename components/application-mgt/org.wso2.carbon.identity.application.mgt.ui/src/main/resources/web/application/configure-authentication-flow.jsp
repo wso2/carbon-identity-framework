@@ -280,7 +280,6 @@ var img = "";
 		});
 
         $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
-        addNewPanel("bottom");
 
         $("#toggleEditorSize").click(function(){
             if (myCodeMirror.getOption("fullScreen")){
@@ -301,19 +300,6 @@ var img = "";
         function autoFormatSelection(cm) {
             var range = getSelectedRange();
             cm.autoFormatRange(range.from, range.to);
-        }
-
-        function addNewPanel(where) {
-            var node = document.createElement("div");
-            node.className = "panel " + where;
-            var close = node.appendChild(document.createElement("a"));
-            var label = node.appendChild(document.createElement("span"));
-            close.setAttribute("title", "Remove this panel");
-            close.setAttribute("class", "remove-panel");
-            close.textContent = "x";
-            label.textContent = "F11(Maximize) | Esc(Minimize) | Shift+Ctrl+F(Format Code)";
-            var widget = myCodeMirror.addPanel(node, {position: where});
-            CodeMirror.on(close, "click", function() { widget.clear(); });
         }
 
         jQuery('#ReqPathAuth').hide();
@@ -358,26 +344,66 @@ var img = "";
 			}
         });
 
-        var templates = $.parseJSON('<%=templatesJson%>');
+        populateTemplates();
+		function populateTemplates(){
+            var templates = $.parseJSON('<%=templatesJson%>');
+            $.each(templates, function (category, categoryTemplates) {
 
-        $.each(templates, function (category, categoryTemplates) {
+                var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
+                    '<a href="#" title="'+ category +'">' + category + '</a></h2></li>';
+                var details = '<ul class="normal details">';
 
-			var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
-                '<a    href="#">' + category + '</a></h2></li>';
-			var details = '<ul class="normal details">';
+                $.each(categoryTemplates, function (i, template) {
+                    details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
+                        'data-type-name="' + template.name + '" title="'+ template.name +'"><img src="' + template.img + '"/>' +
+                        '<span>' + template.name + '</span></a><span  title="' + template.help + '" class="helpLink">' +
+                        '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
+                });
+                details += '</ul>';
+                $(tempType).appendTo('#template_list').append(details);
+            });
 
-            $.each(categoryTemplates, function (i, template) {
-                details += '<li  class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
-                    'data-type-name="' + template.name + '"><img src="' + template.img + '"/>' +
-                    '<span>' + template.name + '</span></a><span  title="' + template.help + '" class="helpLink">' +
-					'<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
-			});
-			details += '</ul>';
-			$(tempType).appendTo('#template_list').append(details);
-		});
+            $('[data-toggle=template-link]').click(function (e) {
+                e.preventDefault();
+                var typeName = $(this).data('type-name');
+                var data;
+                var tempName;
+
+                $.each(templates, function (category, categoryTemplates) {
+                    $.each(categoryTemplates, function (i, template) {
+                        if (template.name === typeName) {
+                            data = template.code.join("\n");
+                            tempName = template.name;
+                        }
+                    });
+                });
+
+                var cursor = doc.getCursor();
+                var line = doc.getLine(cursor.line); // get the line contents
+                var pos = {
+                    line: cursor.line,
+                    ch: line.length - 1
+                };
+                doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+
+                var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
+                var coordinatesLTB = myCodeMirror.cursorCoords();
+                if (startLine === cursorCoordsBeforeChange.ch) {
+                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
+                } else {
+                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
+                }
+                $('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
+                setTimeout(function () {
+                    mark.clear();
+                }, 2000);
+
+            });
+		}
 
 		var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
 		var doc = myCodeMirror.getDoc();
+        var editorContent = doc.getValue();
 
 		myCodeMirror.on("change", function (instance, ch) {
 			cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
@@ -392,49 +418,47 @@ var img = "";
             CodeMirror.commands.autocomplete(myCodeMirror, null, { completeSingle: false })
         });
 
-		$('[data-toggle=template-link]').click(function (e) {
-			e.preventDefault();
-			var typeName = $(this).data('type-name');
-			var data;
-			var tempName;
 
-            $.each(templates, function (category, categoryTemplates) {
-                $.each(categoryTemplates, function (i, template) {
-                    if (template.name === typeName) {
-                        data = template.code.join("\n");
-                        tempName = template.name;
-                    }
-                });
-            });
-
-			var cursor = doc.getCursor();
-			var line = doc.getLine(cursor.line); // get the line contents
-			var pos = {
-				line: cursor.line,
-				ch: line.length - 1
-            };
-			doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
-
-			var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
-			var coordinatesLTB = myCodeMirror.cursorCoords();
-			if (startLine === cursorCoordsBeforeChange.ch) {
-				mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
-			} else {
-				mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
-			}
-			$('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
-			setTimeout(function () {
-				mark.clear();
-			}, 2000);
-
-		});
 
         $("#enableScript").click(function() {
-            $(".scriptEditorContainer").slideToggle( "fast" );
             checkScriptEnabled();
         });
 
         checkScriptEnabled();
+
+        function checkScriptEnabled() {
+            var scriptEnabled = $("#enableScript").is(":checked");
+            if (scriptEnabled || (editorContent.length == 0)) {
+                myCodeMirror.setOption("readOnly", false);
+                myCodeMirror.setOption("styleActiveLine", true);
+                myCodeMirror.setOption("gutters", ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"]);
+                myCodeMirror.setOption("theme", "mdn-like");
+                $("#toggleEditorSize").show();
+                $("#addTemplate").show("fast");
+            }
+            else {
+                myCodeMirror.setOption("readOnly", "nocursor");
+                myCodeMirror.setOption("styleActiveLine", false);
+                myCodeMirror.setOption("gutters", ["CodeMirror-linenumbers"]);
+                myCodeMirror.setOption("theme", "");
+                $("#toggleEditorSize").hide();
+                $("#addTemplate").hide("fast");
+                $("#codeMirrorTemplate").hide();
+            }
+        }
+
+        $('#addTemplate').click(function (e) {
+            if ($("#codeMirrorTemplate").is(":visible")){
+                $("#codeMirrorTemplate").hide();
+                $("#addTemplate").text("Add From Template");
+            } else {
+                $("#codeMirrorTemplate").show();
+                $("#addTemplate").text("Hide Template List");
+            };
+            e.preventDefault();
+        });
+
+
     });
 
     var deletePermissionRows = [];
@@ -628,15 +652,6 @@ var img = "";
 		$(element).attr('checked', true);
 	}
 
-	function checkScriptEnabled(){
-		var scriptEnabled = $("#enableScript").is(":checked");
-		if(scriptEnabled){
-			$(".scriptEditorInfo").hide();
-		}else{
-			$(".scriptEditorInfo").show();
-			$(".scriptEditorContainer").hide();
-		}
-	}
 
 </script>
 
@@ -788,23 +803,25 @@ var img = "";
 					<tbody>
 					<tr>
 						<td class="middle-header">
-							<label>
+							<label class="noselect">
 								<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
 									if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
 										if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
 											if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
 									   checked="checked"  <% }
 								}
-								}%>/> Use Script Based Conditional Authentication
+								}%>/> Enable Script Based Conditional Authentication
 							</label>
 						</td>
 					</tr>
 					<tr>
-						<td>
-							<div class="scriptEditorInfo">Please select script based conditional authentication to start editing.</div>
+						<td style="position: relative;">
+							<div class="template-link-container">
+								<a id="addTemplate" class="icon-link noselect" style="background-image:url(images/add.gif);margin-left:0; display: none;">Add From Template</a>
+							</div>
 							<table class="scriptEditorContainer" style="width: 100%; margin-top: 8px;">
 								<tr>
-									<td style="width: 80%" class="conditional-auth">
+									<td class="conditional-auth">
 										<div class="sectionSub step_contents" id="codeMirror">
 				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Code goes here..." style="height: 500px;width: 100%; display: none;"><%
 					if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
@@ -815,15 +832,11 @@ var img = "";
 				%></textarea>
 										</div>
 									</td>
-									<td style="width: 20%; vertical-align: top!important;">
-										<div class="sectionSub step_contents" style="margin-bottom:10px;"
-											 id="codeMirrorTemplate">
-											<p class="templateHeading">Templates</p>
-											<ul id='template_list'></ul>
-										</div>
-									</td>
 								</tr>
 							</table>
+							<div id="codeMirrorTemplate" class="sectionSub step_contents" style="display:none;" >
+								<ul id="template_list"></ul>
+							</div>
 						</td>
 					</tr>
 					</tbody>

@@ -3,11 +3,26 @@
     text-decoration: none;
     display: inline-table;
 }
-
+#template_list{
+    height: 280px;
+    overflow-y: scroll;
+}
 #template_list .name {
     padding: 4px;
     border: 1px solid #ccc;
     border-top: 0;
+    height: 20px;
+}
+#template_list .name:after {
+    content: ' ';
+    clear: both;
+}
+#template_list .templateName span{
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100px;
 }
 #template_list .type {
     margin-bottom: 4px;
@@ -15,9 +30,21 @@
 #template_list .name a span{
     display: inline-table;
     vertical-align: top;
-    margin-left: 2px;
+    margin-left: 5px;
+}
+#template_list .name a {
+    margin-top: 2px;
+    float: left;
+}
+#template_list .name span {
+    float: right;
 }
 #template_list li h2{
+    width: 128px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 20px;
     -webkit-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
     -moz-box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
     box-shadow: 0px 0px 0px 0px rgba(0,0,0,0);
@@ -46,8 +73,19 @@
 }
 
 #codeMirrorTemplate{
-    padding-top: 0px;
-    padding-left: 0px;
+    background: #ffffff;
+    padding: 10px;
+    font-size: 12px;
+    position: absolute;
+    width: 150px;
+    right: 19px;
+    z-index: 999;
+    top: 42px;
+    overflow-y: scroll;
+    height: 280px;
+    -webkit-box-shadow: -4px 0 8px 0 #eaeaea;
+    box-shadow: -4px 0 8px 0 #eaeaea;
+    transition: width 0.5s, opacity 0.5s ease;
 }
 #codeMirrorTemplate h2{
     white-space: nowrap;
@@ -157,9 +195,14 @@
     width: 8px;
 }
 .panel {
-    background: #efefef;
+    background: #ffffff;
     padding: 4px 8px;
     font-size: 10px;
+    position: absolute;
+    width: 150px;
+    right: 10px;
+    z-index: 999;
+    top: 5px;
 }
 .panel.top, .panel.after-top {
     border-bottom: 1px solid #ddd;
@@ -177,3 +220,26 @@
 .scriptEditorInfo{
     padding: 12px;
 }
+.template-link-container{
+    margin-top: 10px;
+    margin-right: 6px;
+    float: right;
+    /*height: 25px;*/
+}
+.template-link-container a{
+    width: 116px;
+}
+
+/*theme customizations*/
+.cm-s-mdn-like .CodeMirror-linenumber{
+    padding-left: 0;
+}
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
