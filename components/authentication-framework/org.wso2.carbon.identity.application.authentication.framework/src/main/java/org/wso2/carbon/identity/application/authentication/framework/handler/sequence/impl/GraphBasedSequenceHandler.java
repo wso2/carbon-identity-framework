@@ -47,6 +47,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -312,16 +314,22 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         AsyncCaller caller = asyncProcess.getAsyncCaller();
 
+        //Need to lock the thread since the response should be continued in the same thread.
+        //TODO: As the thread is blocked, this can degrade performance. We have to add a mechanism to continue the
+        // response from out side in a new thread.
+        Lock lock = new ReentrantLock();
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
-            resumeLongWait(request, response, context);
+            lock.unlock();
         });
 
         if (caller != null) {
             FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
+            lock.lock();
+            resumeLongWait(request, response, context);
             return true;
         }
         return false;

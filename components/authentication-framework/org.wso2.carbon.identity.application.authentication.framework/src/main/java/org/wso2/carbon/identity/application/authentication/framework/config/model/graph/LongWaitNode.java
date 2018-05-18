@@ -29,7 +29,7 @@ import java.util.function.Function;
  */
 public class LongWaitNode extends DynamicDecisionNode implements AuthGraphNode {
 
-    private AsyncProcess asyncProcess;
+    private transient AsyncProcess asyncProcess;
 
     public LongWaitNode(AsyncProcess asyncProcess) {
 
