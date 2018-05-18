@@ -65,8 +65,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         if (!context.isLogoutRequest()) {
             if (!canHandle(request)
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
+                if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
+                    context.setRetrying(true);
+                }
                 initiateAuthenticationRequest(request, response, context);
                 context.setCurrentAuthenticator(getName());
+                context.setRetrying(false);
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
@@ -83,12 +87,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         }
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
+                    context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, null);
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
                     publishAuthenticationStepAttempt(request, context, e.getUser(), false);
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
-                    // Decide whether we need to redirect the
+                    // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
@@ -98,6 +103,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         initiateAuthenticationRequest(request, response, context);
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
+                        context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
                         // By throwing this exception step handler will redirect to multi options page if
                         // multi-option are available in the step.
                         throw e;
