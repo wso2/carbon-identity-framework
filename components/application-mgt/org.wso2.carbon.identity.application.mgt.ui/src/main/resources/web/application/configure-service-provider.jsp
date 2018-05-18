@@ -2335,7 +2335,7 @@
 
         <% if ("regenerate".equals(action)) { %>
             <p style="font-size: 12px;margin-top:6px;margin-left:20px;">
-                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), Encode.forHtmlAttribute(appBean.getOIDCClientId())); %>
+                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), Encode.forHtml(appBean.getOIDCClientId())); %>
                 <%= message %>
             </p>
         <% } %>
