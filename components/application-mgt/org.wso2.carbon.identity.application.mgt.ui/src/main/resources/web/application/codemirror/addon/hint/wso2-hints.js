@@ -19,13 +19,13 @@ var orig = CodeMirror.hint.javascript;
 
 CodeMirror.hint.javascript = function (cm) {
     var hintList = orig(cm) || {from: cm.getCursor(), to: cm.getCursor(), list: []};
-    conditionalAuthFunctions.forEach(function(value){
+    conditionalAuthFunctions.forEach(function (value) {
         hintList.list.push(value);
     });
     var hintListArr = [];
-    if(hintList.constructor === Array){
+    if (hintList.constructor === Array) {
         hintListArr = hintList;
-    }else{
+    } else {
         hintListArr = Array.from(hintList.list);
     }
     var cursor = cm.getCursor();
