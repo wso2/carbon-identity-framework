@@ -1481,22 +1481,20 @@
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
+                                                            <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
                                                                        type="password" autocomplete="off"
                                                                        id="oauthConsumerSecret"
                                                                        name="oauthConsumerSecret"
-                                                                       <% if (!(isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null) { %>
                                                                        value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"
-                                                                       <% } %>
                                                                        readonly="readonly">
-                                                                <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                                 <span style="float: right;">
                                 						<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'oauthConsumerSecret')"><fmt:message key='show'/></a>
+                                                           onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
-                                					<% } %>
                                                             </div>
+                                                            <% } %>
                                                             <%} %>
                                                         </td>
                                                         <td style="white-space: nowrap;">
@@ -2344,26 +2342,34 @@
             <p style="margin:20px;padding-top:10px;display:block;"><strong><fmt:message key="note"/><font color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
         </div>
         <table style="margin-left:20px;margin-top:25px;">
-            <thead>
-                <tr style="height: 35px;">
-                    <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumerkey"/></th>
-                    <td>
-                        <input style="border: none; background: white; font-size: 14px;" size="25" autocomplete="off" id="consumerKey" name="oauthConsumerKey" value=<%=Encode.forHtmlAttribute(appBean.getOIDCClientId())%> readonly="readonly">
-                        <span style="float: right;">
-                            <button onclick="return copyTextClick(document.getElementById('consumerKey'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
-                        </span>
-                    </td>
-                </tr>
-                <tr style="height: 35px;">
-                    <th class="leftCol-small" style="font-size: 12px;"><fmt:message key="config.application.consumersecret"/></th>
-                    <td>
-                        <input style="border: none; background: white;font-size: 14px;" size="25" autocomplete="off" id="consumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>" readonly="readonly">
-                        <span style="float: right;">
-                            <button onclick="return copyTextClick(document.getElementById('consumerSecret'))" name="copyBtn" id="copyBtn"><fmt:message key="button.copy"/></button>
-                        </span>
-                    </td>
-                </tr>
-            </thead>
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message key="config.application.consumerkey"/></b></td>
+                <td>
+                    <input style="border: none; background: white; font-size: 14px;" type="password" size="25" autocomplete="off" id="consumerKey" name="consumerKey" value=<%=Encode.forHtmlAttribute(appBean.getOIDCClientId())%> readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerKey')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerKey'))"><fmt:message key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message key="config.application.consumersecret"/></b></td>
+                <td>
+                    <input style="border: none; background: white;font-size: 14px;" type="password" size="25" autocomplete="off" id="consumerSecret" name="consumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>" readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerSecret')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerSecret'))"><fmt:message key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
         </table>
     </div>
 </fmt:bundle>
