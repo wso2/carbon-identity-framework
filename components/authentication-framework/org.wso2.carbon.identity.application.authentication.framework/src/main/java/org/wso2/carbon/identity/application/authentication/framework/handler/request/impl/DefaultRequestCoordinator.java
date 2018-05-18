@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -169,16 +170,24 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.error("Context does not exist. Probably due to invalidated cache");
                 FrameworkUtils.sendToRetryPage(request, response);
             }
+        } catch (JsFailureException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Script initiated Exception occured.", e);
+            }
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
+            if (log.isDebugEnabled()) {
+                log.debug("User will be redirected to retry page or the error page provided by script.");
+            }
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
-                log.error("Error occurred while evaluating post authentication", e);
+                log.debug("Error occurred while evaluating post authentication", e);
             }
             FrameworkUtils
-                    .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
+                .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
             try {
                 URIBuilder uriBuilder = new URIBuilder(
-                        ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
                 uriBuilder.addParameter("status", "Authentication attempt failed.");
                 uriBuilder.addParameter("statusMsg", e.getErrorCode());
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);

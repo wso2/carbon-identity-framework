@@ -90,10 +90,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     /* Holds any (state) information that would be required by the authenticator
      * for later processing.
-	 * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
-	 * Each authenticator should have an internal DTO that extends the
-	 * AuthenticatorStateInfoDTO and set all the required state info in it.
-	 */
+     * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
+     * Each authenticator should have an internal DTO that extends the
+     * AuthenticatorStateInfoDTO and set all the required state info in it.
+     */
     private AuthenticatorStateInfo stateInfo;
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();

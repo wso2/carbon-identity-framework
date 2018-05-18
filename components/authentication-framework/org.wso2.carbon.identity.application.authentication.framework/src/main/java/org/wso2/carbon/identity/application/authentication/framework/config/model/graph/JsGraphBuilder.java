@@ -146,6 +146,39 @@ public class JsGraphBuilder {
     }
 
     /**
+     * Add authentication fail node to the authentication graph during subsequent requests.
+     *
+     * @param parameterMap Parameters needed to send the error.
+     */
+    public static void sendErrorAsync(Map<String, Object> parameterMap) {
+
+        FailNode newNode = createFailNode(parameterMap);
+
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+        if (currentNode == null) {
+            dynamicallyBuiltBaseNode.set(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    private static FailNode createFailNode(Map<String, Object> parameterMap) {
+
+        FailNode failNode = new FailNode();
+
+        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
+            if (FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE.equals(entry.getKey())) {
+                failNode.setShowErrorPage(Boolean.TRUE.equals(entry.getValue()));
+            } else if (FrameworkConstants.JSAttributes.JS_PAGE_URI.equals(entry.getKey())) {
+                failNode.setErrorPageUri(String.valueOf(entry.getValue()));
+            } else {
+                failNode.getFailureData().put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+        }
+        return failNode;
+    }
+
+    /**
      * Add authentication fail node to the authentication graph in the initial request.
      *
      * @param parameterMap Parameters needed to send the error.
@@ -153,41 +186,9 @@ public class JsGraphBuilder {
     // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
     public void sendError(Map<String, Object> parameterMap) {
 
-        FailNode newNode = new FailNode();
-
-        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE) != null) {
-            newNode.setShowErrorPage((boolean) parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE));
-        }
-        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI) != null) {
-            newNode.setErrorPageUri((String) parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI));
-        }
-
+        FailNode newNode = createFailNode(parameterMap);
         if (currentNode == null) {
             result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-    }
-
-    /**
-     * Add authentication fail node to the authentication graph during subsequent requests.
-     *
-     * @param parameterMap Parameters needed to send the error.
-     */
-    public static void sendErrorAsync(Map<String, Object> parameterMap) {
-
-        FailNode newNode = new FailNode();
-
-        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE) != null) {
-            newNode.setShowErrorPage((boolean) parameterMap.get(FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE));
-        }
-        if (parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI) != null) {
-            newNode.setErrorPageUri((String) parameterMap.get(FrameworkConstants.JSAttributes.JS_PAGE_URI));
-        }
-
-        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
-        if (currentNode == null) {
-            dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
         }

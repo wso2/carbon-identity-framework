@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -39,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
@@ -46,6 +50,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -177,15 +183,36 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @throws FrameworkException
      */
     private void handleAuthFail(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-                                SequenceConfig sequenceConfig, AuthGraphNode node) throws FrameworkException {
+                                SequenceConfig sequenceConfig, FailNode node) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
+        String errorPage = node.getErrorPageUri();
+        String redirectURL = null;
+        if (StringUtils.isBlank(errorPage)) {
+            errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+        }
+        try {
+            URIBuilder uriBuilder = new URIBuilder(errorPage);
+
+            for (Map.Entry<String, String> entry : node.getFailureData().entrySet()) {
+                uriBuilder.addParameter(entry.getKey(), entry.getValue());
+            }
+            redirectURL = uriBuilder.toString();
+            response.sendRedirect(redirectURL);
+        } catch (IOException e) {
+            throw new FrameworkException("Error when redirecting user to " + errorPage, e);
+        } catch (URISyntaxException e) {
+            throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
+                + "URL.", e);
+        }
 
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
-        //TODO:Need to consider sending error message to provided error page Uri instead of oauth redirect Uri
+        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
+            redirectURL);
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,
