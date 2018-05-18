@@ -25,15 +25,16 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -65,6 +66,8 @@ public class FrameworkServiceDataHolder {
     private ClaimMetadataManagementService claimMetadataManagementService = null;
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
+    private AsyncSequenceExecutor asyncSequenceExecutor;
+    private LongWaitStatusStoreService longWaitStatusStoreService;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -275,5 +278,25 @@ public class FrameworkServiceDataHolder {
      */
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
         this.jsFunctionRegistry = jsFunctionRegistry;
+    }
+
+    public AsyncSequenceExecutor getAsyncSequenceExecutor() {
+
+        return asyncSequenceExecutor;
+    }
+
+    public void setAsyncSequenceExecutor(AsyncSequenceExecutor asyncSequenceExecutor) {
+
+        this.asyncSequenceExecutor = asyncSequenceExecutor;
+    }
+
+    public LongWaitStatusStoreService getLongWaitStatusStoreService() {
+
+        return longWaitStatusStoreService;
+    }
+
+    public void setLongWaitStatusStoreService(LongWaitStatusStoreService longWaitStatusStoreService) {
+
+        this.longWaitStatusStoreService = longWaitStatusStoreService;
     }
 }

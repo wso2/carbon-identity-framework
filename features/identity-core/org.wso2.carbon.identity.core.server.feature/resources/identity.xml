@@ -863,4 +863,11 @@
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
+    <AdaptiveAuth>
+        <EventPublisher>
+            <receiverURL>http://localhost:8280/</receiverURL>
+        </EventPublisher>
+        <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
+    </AdaptiveAuth>
+
 </Server>
