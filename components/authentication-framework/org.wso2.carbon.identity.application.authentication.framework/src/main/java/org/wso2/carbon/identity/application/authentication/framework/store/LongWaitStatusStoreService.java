@@ -31,7 +31,10 @@ public class LongWaitStatusStoreService {
     private Map<String, LongWaitStatus> longWaitStatusMap = new HashMap<>();
 
     public void addWait(String sessionId, LongWaitStatus longWaitStatus) {
-        longWaitStatusMap.put(sessionId, longWaitStatus);
+
+        if (sessionId != null) {
+            longWaitStatusMap.put(sessionId, longWaitStatus);
+        }
     }
 
     public LongWaitStatus getWait(String sessionId) {
