@@ -429,6 +429,9 @@ public class JsGraphBuilder {
         public String evaluate(AuthenticationContext authenticationContext, Consumer<JSObject> jsConsumer) {
 
             String result = null;
+            if (jsFunction == null) {
+                return null;
+            }
             if (jsFunction.isFunction()) {
                 ScriptEngine scriptEngine = getEngine(authenticationContext);
                 try {
