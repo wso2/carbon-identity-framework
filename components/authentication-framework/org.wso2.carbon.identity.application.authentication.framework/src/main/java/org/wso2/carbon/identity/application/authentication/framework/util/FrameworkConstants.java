@@ -86,6 +86,8 @@ public abstract class FrameworkConstants {
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
 
+    public static final String LONG_WAIT_KEY = "longWaitKey";
+
     private FrameworkConstants() {
 
     }
@@ -288,12 +290,10 @@ public abstract class FrameworkConstants {
         public static final String JS_PAGE_URI = "pageUri";
         public static final String JS_RETRY_STEP = "retry";
     }
-
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
         public static final String WORKFLOW_DOMAIN = "Workflow";
-
         private InternalRoleDomains() {
         }
     }

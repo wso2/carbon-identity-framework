@@ -47,8 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -105,9 +104,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isInterrupt = false;
         if (currentNode instanceof LongWaitNode) {
             isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
-            if (!isInterrupt) {
-                gotoToNextNode(context, sequenceConfig, currentNode);
-            }
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
@@ -276,11 +272,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isWaiting;
         LongWaitStatusStoreService longWaitStatusStoreService =
                 FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
-        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(context.getSessionIdentifier());
-        if (longWaitStatus == null) {
+        // TODO: Check why context.getSessionIdentifier() is null.
+        String longWaitKey = (String) context.getProperty(FrameworkConstants.LONG_WAIT_KEY);
+        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(longWaitKey);
+        if (longWaitKey == null || longWaitStatus == null) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
-            longWaitStatusStoreService.addWait(context.getSessionIdentifier(), longWaitStatus);
+            longWaitKey = UUID.randomUUID().toString();
+            context.setProperty(FrameworkConstants.LONG_WAIT_KEY, longWaitKey);
+            longWaitStatusStoreService.addWait(longWaitKey, longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
         } else {
             // This is a continuation of long wait
@@ -293,6 +293,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             if (outcomeName != null) {
                 executeFunction(outcomeName, longWaitNode, context, data);
             }
+            AuthGraphNode nextNode = longWaitNode.getDefaultEdge();
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
         }
         return isWaiting;
     }
@@ -317,18 +319,26 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         //Need to lock the thread since the response should be continued in the same thread.
         //TODO: As the thread is blocked, this can degrade performance. We have to add a mechanism to continue the
         // response from out side in a new thread.
-        Lock lock = new ReentrantLock();
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
-            lock.unlock();
+            synchronized (context) {
+                context.notify();
+            }
         });
 
         if (caller != null) {
             FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
-            lock.lock();
+            synchronized (context) {
+                try {
+                    context.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("Error while waiting for the external call the complete. ", e);
+                }
+            }
             resumeLongWait(request, response, context);
             return true;
         }
