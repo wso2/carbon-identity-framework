@@ -286,8 +286,6 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
-        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
-        public static final String JS_PAGE_URI = "pageUri";
         public static final String JS_RETRY_STEP = "retry";
     }
     public static class InternalRoleDomains {
