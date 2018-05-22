@@ -66,10 +66,9 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         graphBuilderFactory = new JsGraphBuilderFactory();
 
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
-        graphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();
-        configurationLoader.setJsGraphBuilderFactory(graphBuilderFactory);
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();

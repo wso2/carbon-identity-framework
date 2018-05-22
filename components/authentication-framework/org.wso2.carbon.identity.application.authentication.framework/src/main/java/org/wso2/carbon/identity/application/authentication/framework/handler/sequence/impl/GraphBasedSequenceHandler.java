@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
@@ -134,9 +135,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             nextNode = ((StepConfigGraphNode) currentNode).getNext();
         }
         if (nextNode == null) {
-            log.error(
-                    "No Next node found for the current graph node : " + currentNode.getName() + ", Service Provider: "
-                            + context.getServiceProviderName() + " . Ending the authentication flow.");
+            if (log.isDebugEnabled()) {
+                log.debug("No Next node found for the current graph node : " + currentNode.getName() +
+                        ", Service Provider: " + context.getServiceProviderName() +
+                        " . Ending the authentication flow.");
+            }
             nextNode = new EndStep();
         }
 
@@ -405,19 +408,34 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                                  AuthenticationContext context) {
 
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
+        jsBasedEvaluator.evaluate(context, (func) -> {
+            func.call(null, new JsAuthenticationContext(context));
+        });
+        if (dynamicDecisionNode.getDefaultEdge() == null) {
+            dynamicDecisionNode.setDefaultEdge(new EndStep());
+        }
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context, Map<String, Object> data) {
 
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context),
-                    new JsParameters(data));
+            func.call(null, new JsAuthenticationContext(context), new JsParameters(data));
         });
+        if (dynamicDecisionNode.getDefaultEdge() == null) {
+            dynamicDecisionNode.setDefaultEdge(new EndStep());
+        }
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
