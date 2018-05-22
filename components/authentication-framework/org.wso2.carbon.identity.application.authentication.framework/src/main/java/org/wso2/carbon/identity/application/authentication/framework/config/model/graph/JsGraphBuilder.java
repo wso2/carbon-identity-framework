@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
@@ -104,7 +105,8 @@ public class JsGraphBuilder {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (Consumer<Map>) this::executeStep);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (Consumer<Map>) this::sendError);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
+                this::sendError);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -150,9 +152,9 @@ public class JsGraphBuilder {
      *
      * @param parameterMap Parameters needed to send the error.
      */
-    public static void sendErrorAsync(Map<String, Object> parameterMap) {
+    public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap);
 
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
         if (currentNode == null) {
@@ -162,19 +164,12 @@ public class JsGraphBuilder {
         }
     }
 
-    private static FailNode createFailNode(Map<String, Object> parameterMap) {
+    private static FailNode createFailNode(String url, Map<String, Object> parameterMap) {
 
         FailNode failNode = new FailNode();
+        failNode.setErrorPageUri(url);
 
-        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
-            if (FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE.equals(entry.getKey())) {
-                failNode.setShowErrorPage(Boolean.TRUE.equals(entry.getValue()));
-            } else if (FrameworkConstants.JSAttributes.JS_PAGE_URI.equals(entry.getKey())) {
-                failNode.setErrorPageUri(String.valueOf(entry.getValue()));
-            } else {
-                failNode.getFailureData().put(entry.getKey(), String.valueOf(entry.getValue()));
-            }
-        }
+        parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
         return failNode;
     }
 
@@ -183,10 +178,9 @@ public class JsGraphBuilder {
      *
      * @param parameterMap Parameters needed to send the error.
      */
-    // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
-    public void sendError(Map<String, Object> parameterMap) {
+    public void sendError(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap);
         if (currentNode == null) {
             result.setStartNode(newNode);
         } else {
@@ -442,7 +436,7 @@ public class JsGraphBuilder {
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
                             (Consumer<Map>) JsGraphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                            (Consumer<Map>) JsGraphBuilder::sendErrorAsync);
+                        (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {

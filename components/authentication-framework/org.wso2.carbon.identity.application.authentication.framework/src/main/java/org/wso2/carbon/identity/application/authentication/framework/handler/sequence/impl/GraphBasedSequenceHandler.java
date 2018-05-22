@@ -191,10 +191,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         try {
             URIBuilder uriBuilder = new URIBuilder(errorPage);
-
-            for (Map.Entry<String, String> entry : node.getFailureData().entrySet()) {
-                uriBuilder.addParameter(entry.getKey(), entry.getValue());
-            }
+            node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
