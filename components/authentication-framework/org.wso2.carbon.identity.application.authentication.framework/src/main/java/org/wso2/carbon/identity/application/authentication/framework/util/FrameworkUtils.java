@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1330,6 +1332,131 @@ public class FrameworkUtils {
 
     public static String getPASTRCookieName (String sessionDataKey) {
         return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
+    }
+
+    /**
+     * Map the external IDP roles to local roles.
+     * If excludeUnmapped is true exclude unmapped roles.
+     * Otherwise include unmapped roles as well.
+     *
+     * @param externalIdPConfig     Relevant external IDP Config.
+     * @param extAttributesValueMap Attributes map.
+     * @param idpRoleClaimUri       IDP role claim URI.
+     * @param excludeUnmapped       to indicate whether to exclude unmapped.
+     * @return ArrayList<string> list of roles.
+     */
+    public static List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
+            Map<String, String> extAttributesValueMap, String idpRoleClaimUri, Boolean excludeUnmapped) {
+
+        if (idpRoleClaimUri == null) {
+            // Since idpRoleCalimUri is not defined cannot do role mapping.
+            if (log.isDebugEnabled()) {
+                log.debug("Role claim uri is not configured for the external IDP: " + externalIdPConfig.getIdPName()
+                        + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+
+        String idpRoleAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        }
+
+        String[] idpRoles;
+        if (idpRoleAttrValue != null) {
+            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
+        } else {
+            // No identity provider role values found.
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "No role attribute value has received from the external IDP: " + externalIdPConfig.getIdPName()
+                                + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+
+        Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
+
+        List<String> idpMappedUserRoles = new ArrayList<>();
+        // If no role mapping is configured in the identity provider.
+        if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No role mapping is configured in the external IDP: " + externalIdPConfig.getIdPName()
+                        + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+
+            if (excludeUnmapped) {
+                return new ArrayList<>();
+            }
+
+            idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
+            return idpMappedUserRoles;
+        }
+
+        for (String idpRole : idpRoles) {
+            if (idpToLocalRoleMapping.containsKey(idpRole)) {
+                idpMappedUserRoles.add(idpToLocalRoleMapping.get(idpRole));
+            } else if (!excludeUnmapped) {
+                idpMappedUserRoles.add(idpRole);
+            }
+        }
+        return idpMappedUserRoles;
+    }
+
+    /**
+     * To get the role claim uri of an IDP.
+     *
+     * @param externalIdPConfig Relevant external IDP Config.
+     * @return idp role claim URI.
+     */
+    public static String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) {
+        // get external identity provider role claim uri.
+        String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
+
+        if (idpRoleClaimUri == null || idpRoleClaimUri.isEmpty()) {
+            // no role claim uri defined
+            // we can still try to find it out - lets have a look at the claim
+            // mapping.
+            ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
+
+            if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
+
+                for (ClaimMapping mapping : idpToLocalClaimMapping) {
+                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
+                            && mapping.getRemoteClaim() != null) {
+                        return mapping.getRemoteClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+        return idpRoleClaimUri;
+    }
+
+    /**
+     * Returns the local claim uri that is mapped for the IdP role claim uri configured.
+     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
+     *
+     * @param externalIdPConfig IdP configurations
+     * @return local claim uri mapped for the IdP role claim uri.
+     */
+    public static String getLocalClaimUriMappedForIdPRoleClaim(ExternalIdPConfig externalIdPConfig) {
+        // get external identity provider role claim uri.
+        String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
+        if (StringUtils.isNotBlank(idpRoleClaimUri)) {
+            // Iterate over IdP claim mappings and check for the local claim that is mapped for the remote IdP role
+            // claim uri configured.
+            ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
+            if (!ArrayUtils.isEmpty(idpToLocalClaimMapping)) {
+                for (ClaimMapping mapping : idpToLocalClaimMapping) {
+                    if (mapping.getRemoteClaim() != null && idpRoleClaimUri
+                            .equals(mapping.getRemoteClaim().getClaimUri())) {
+                        return mapping.getLocalClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+
+        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
     }
 }
 

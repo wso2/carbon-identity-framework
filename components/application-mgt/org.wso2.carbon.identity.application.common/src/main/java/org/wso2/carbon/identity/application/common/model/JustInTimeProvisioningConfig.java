@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -27,7 +28,9 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
 
     private static final long serialVersionUID = 6754801699494009980L;
 
+    private boolean passwordProvisioningEnabled;
     private String userStoreClaimUri;
+    private boolean modifyUserNameAllowed;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -56,6 +59,15 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
                     justInTimeProvisioningConfig.setProvisioningEnabled(Boolean
                             .parseBoolean(element.getText()));
                 }
+            } else if (IdentityApplicationConstants.IS_PASSWORD_PROVISIONING_ENABLED_ELEMENT.equals(elementName)) {
+                if (element.getText() != null && element.getText().trim().length() > 0) {
+                    justInTimeProvisioningConfig
+                            .setPasswordProvisioningEnabled(Boolean.parseBoolean(element.getText()));
+                }
+            } else if (IdentityApplicationConstants.ALLOW_MODIFY_USERNAME.equals(elementName)) {
+                if (element.getText() != null && element.getText().trim().length() > 0) {
+                    justInTimeProvisioningConfig.setModifyUserNameAllowed(Boolean.parseBoolean(element.getText()));
+                }
             }
         }
 
@@ -76,4 +88,39 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
         this.userStoreClaimUri = userStoreClaimUri;
     }
 
+    /**
+     * To set password provisioning is enabled or disabled.
+     *
+     * @param isPasswordProvisioningEnabled Parameter to specify whether password provisioning is enabled or not.
+     */
+    public void setPasswordProvisioningEnabled(boolean isPasswordProvisioningEnabled) {
+        this.passwordProvisioningEnabled = isPasswordProvisioningEnabled;
+    }
+
+    /**
+     * To check whether password provisioning is enabled or not.
+     *
+     * @return true if the password provisioning is enabled, otherwise false.
+     */
+    public boolean isPasswordProvisioningEnabled() {
+        return passwordProvisioningEnabled;
+    }
+
+    /**
+     * To check whether change of user name is allowed for the user.
+     *
+     * @return true if the user name modification is allowed, otherwise returns false.
+     */
+    public boolean isModifyUserNameAllowed() {
+        return modifyUserNameAllowed;
+    }
+
+    /**
+     * To set whether modification user name is allowed or not.
+     *
+     * @param isModifyUserNameAllowed Parameter to specify whether modification of user name is allowed or not.
+     */
+    public void setModifyUserNameAllowed(boolean isModifyUserNameAllowed) {
+        this.modifyUserNameAllowed = isModifyUserNameAllowed;
+    }
 }

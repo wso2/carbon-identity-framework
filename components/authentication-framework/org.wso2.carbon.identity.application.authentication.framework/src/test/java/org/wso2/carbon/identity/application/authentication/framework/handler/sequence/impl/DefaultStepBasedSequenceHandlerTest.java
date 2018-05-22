@@ -400,8 +400,11 @@ public class DefaultStepBasedSequenceHandlerTest {
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
 
+
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getRoleMappings()).thenReturn(idpToLocalRoleMappings);
+        when(FrameworkUtils.getIdentityProvideMappedUserRoles(externalIdPConfig,
+                attributeValueMap, idpRoleClaimUri, excludeUnmapped)).thenCallRealMethod();
 
         List<String> mappedUserRoles = stepBasedSequenceHandler.getIdentityProvideMappedUserRoles(externalIdPConfig,
                 attributeValueMap, idpRoleClaimUri, excludeUnmapped);
@@ -898,7 +901,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     @Test(dataProvider = "postAuthenticationDataProvider")
-    public void testHandlePostAuthenticationSubjectIdentifier(String subjectClaimUriFromAppConfig,
+    public void testHandlePostUserName(String subjectClaimUriFromAppConfig,
                                                               String spSubjectClaimValue,
                                                               boolean appendTenantDomainToSubject,
                                                               boolean appendUserStoreDomainToSubject,
@@ -927,7 +930,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         stepBasedSequenceHandler.handlePostAuthentication(request, response, context);
 
-        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                expectedSubjectIdentifier);
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getUserName(),
+                authenticatedUserNameInSequence);
     }
 }

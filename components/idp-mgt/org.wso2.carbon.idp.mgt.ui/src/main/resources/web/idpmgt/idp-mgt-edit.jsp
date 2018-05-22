@@ -79,6 +79,8 @@
     String idPAlias = null;
     boolean isProvisioningEnabled = false;
     boolean isCustomClaimEnabled = false;
+    boolean isPasswordProvisioningEnabled = false;
+    boolean isUserNameModificationAllowed = false;
 
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
@@ -663,6 +665,9 @@
         idPAlias = identityProvider.getAlias();
         isProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig().getProvisioningEnabled();
         provisioningUserStoreId = identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore();
+        isPasswordProvisioningEnabled =
+                identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
+        isUserNameModificationAllowed = identityProvider.getJustInTimeProvisioningConfig().getModifyUserNameAllowed();
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
@@ -901,6 +906,7 @@
     }
     String provisionStaticDropdownDisabled = "";
     String provisionDynamicDropdownDisabled = "";
+
     if (!isProvisioningEnabled) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
         provisionDynamicDropdownDisabled = "disabled=\'disabled\'";
@@ -5208,6 +5214,36 @@
 
                                 <div class="sectionHelp">
                                     <fmt:message key='provisioning.enabled.help'/>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="modify_username_password" name="choose_jit_type_group"
+                                               value="modify_username_password" <% if (isPasswordProvisioningEnabled
+                                                && isUserNameModificationAllowed) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        Ask username and password
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id=modify_password" name="choose_jit_type_group"
+                                               value="modify_password"  <% if (isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        Ask password
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="do_not_modify" name="choose_jit_type_group"
+                                               value="don_not_modify"  <% if (!isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        Do not ask username or password
+                                    </label>
                                 </div>
                             </td>
                         </tr>

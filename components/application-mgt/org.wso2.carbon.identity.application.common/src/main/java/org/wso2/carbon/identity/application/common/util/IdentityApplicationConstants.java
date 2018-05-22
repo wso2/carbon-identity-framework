@@ -72,6 +72,10 @@ public class IdentityApplicationConstants {
 
     public static final String REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE = "redirectToMultiOptionPageOnFailure";
 
+    // JustInTimeProviderConfigElements
+    public static final String IS_PASSWORD_PROVISIONING_ENABLED_ELEMENT = "IsPasswordProvisioningEnabled";
+    public static final String ALLOW_MODIFY_USERNAME = "AllowModifyUserName";
+
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";

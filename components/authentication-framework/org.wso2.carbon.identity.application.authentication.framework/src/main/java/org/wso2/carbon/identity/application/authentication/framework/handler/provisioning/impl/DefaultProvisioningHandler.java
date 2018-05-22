@@ -138,12 +138,23 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 if (!userClaims.isEmpty()) {
+                    userClaims.remove(FrameworkConstants.PASSWORD);
                     userStoreManager.setUserClaimValues(username, userClaims, null);
                 }
 
-            } else {
+                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
 
-                userStoreManager.addUser(username, generatePassword(), addingRoles.toArray(
+                if (StringUtils.isEmpty(userProfileAdmin.getNameAssociatedWith(idp, subjectVal))) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                }
+            } else {
+                String password = generatePassword();
+                if (userClaims.get(FrameworkConstants.PASSWORD) != null) {
+                    password = userClaims.get(FrameworkConstants.PASSWORD);
+                }
+                userClaims.remove(FrameworkConstants.PASSWORD);
+                userStoreManager.addUser(username, password, addingRoles.toArray(
                         new String[addingRoles.size()]), userClaims, null);
 
                 // Associate User
@@ -158,7 +169,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException | UserProfileException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
