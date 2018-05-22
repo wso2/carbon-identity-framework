@@ -411,7 +411,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
-                .getSequenceConfig().getStepMap(), dynamicDecisionNode);
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context, (func) -> {
             func.call(null, new JsAuthenticationContext(context));
@@ -428,7 +428,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
-                .getSequenceConfig().getStepMap(), dynamicDecisionNode);
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context, (func) -> {
             func.call(null, new JsAuthenticationContext(context), new JsParameters(data));
