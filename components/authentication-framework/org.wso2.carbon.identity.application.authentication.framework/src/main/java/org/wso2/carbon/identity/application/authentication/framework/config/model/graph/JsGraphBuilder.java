@@ -64,12 +64,31 @@ public class JsGraphBuilder {
      *
      * @param authenticationContext current authentication context.
      * @param stepConfigMap         The Step map from the service provider configuration.
+     * @param scriptEngine          Script engine.
      */
     public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
                           ScriptEngine scriptEngine) {
 
         this.engine = scriptEngine;
         this.authenticationContext = authenticationContext;
+        stepNamedMap = stepConfigMap.entrySet().stream()
+                .collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue));
+    }
+
+    /**
+     * Constructs the builder with the given authentication context.
+     *
+     * @param authenticationContext current authentication context.
+     * @param stepConfigMap         The Step map from the service provider configuration.
+     * @param scriptEngine          Script engine.
+     * @param currentNode           Current authentication graph node.
+     */
+    public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
+                          ScriptEngine scriptEngine, AuthGraphNode currentNode) {
+
+        this.engine = scriptEngine;
+        this.authenticationContext = authenticationContext;
+        this.currentNode = currentNode;
         stepNamedMap = stepConfigMap.entrySet().stream()
                 .collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue));
     }
@@ -132,12 +151,12 @@ public class JsGraphBuilder {
                 log.debug("Error in executing the Javascript.", e);
             }
         } finally {
-            currentBuilder.remove();
+            clearCurrentBuilder();
         }
         return this;
     }
 
-    public static void clear() {
+    public static void clearCurrentBuilder() {
 
         currentBuilder.remove();
     }
@@ -410,7 +429,7 @@ public class JsGraphBuilder {
      * is happening.
      * The graph is re-organized based on last execution of the decision.
      */
-    public static class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
+    public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
         private SerializableJsFunction jsFunction;
@@ -423,6 +442,7 @@ public class JsGraphBuilder {
         @Override
         public String evaluate(AuthenticationContext authenticationContext, Consumer<JSObject> jsConsumer) {
 
+            JsGraphBuilder graphBuilder = JsGraphBuilder.this;
             String result = null;
             if (jsFunction == null) {
                 return null;
@@ -430,6 +450,7 @@ public class JsGraphBuilder {
             if (jsFunction.isFunction()) {
                 ScriptEngine scriptEngine = getEngine(authenticationContext);
                 try {
+                    currentBuilder.set(graphBuilder);
                     JsGraphBuilderFactory.restoreCurrentContext(authenticationContext, scriptEngine);
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
@@ -467,6 +488,7 @@ public class JsGraphBuilder {
                 } finally {
                     contextForJs.remove();
                     dynamicallyBuiltBaseNode.remove();
+                    clearCurrentBuilder();
                 }
 
             } else {

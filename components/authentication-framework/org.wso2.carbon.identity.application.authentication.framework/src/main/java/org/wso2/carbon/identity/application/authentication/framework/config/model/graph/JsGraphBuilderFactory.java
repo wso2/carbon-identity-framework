@@ -45,11 +45,7 @@ import javax.script.ScriptException;
 public class JsGraphBuilderFactory {
 
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
-    private JsFunctionRegistry jsFunctionRegistry;
     private NashornScriptEngineFactory factory;
-
-    private static final Log jsLog = LogFactory
-            .getLog(JsGraphBuilder.class.getPackage().getName() + ".JsBasedSequence");
 
     public void init() {
 
@@ -98,8 +94,7 @@ public class JsGraphBuilderFactory {
         if (value instanceof SerializableJsFunction) {
             SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
             try {
-                Object fn = engine.eval(serializableJsFunction.getSource());
-                return fn;
+                return engine.eval(serializableJsFunction.getSource());
             } catch (ScriptException e) {
                 throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
             }
@@ -123,18 +118,13 @@ public class JsGraphBuilderFactory {
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
             Map<Integer, StepConfig> stepConfigMap) {
 
-        JsGraphBuilder result = new JsGraphBuilder(authenticationContext, stepConfigMap,
-                createEngine(authenticationContext));
-        return result;
+        return new JsGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
     }
 
-    public JsFunctionRegistry getJsFunctionRegistry() {
+    public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                        Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
 
-        return jsFunctionRegistry;
-    }
-
-    public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
-
-        this.jsFunctionRegistry = jsFunctionRegistry;
+        return new JsGraphBuilder(authenticationContext, stepConfigMap,
+                createEngine(authenticationContext), currentNode);
     }
 }

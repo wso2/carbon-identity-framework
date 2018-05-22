@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -59,8 +60,6 @@ import java.util.Map;
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
-    private JsFunctionRegistry jsFunctionRegistrar;
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
@@ -85,7 +84,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
-
+            JsGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
+                    .getJsGraphBuilderFactory();
             JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
             context.setServiceProviderName(serviceProvider.getApplicationName());
 
@@ -301,13 +301,5 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
         }
-    }
-
-    public void setJsFunctionRegistrar(JsFunctionRegistry jsFunctionRegistrar) {
-        this.jsFunctionRegistrar = jsFunctionRegistrar;
-    }
-
-    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
-        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 }

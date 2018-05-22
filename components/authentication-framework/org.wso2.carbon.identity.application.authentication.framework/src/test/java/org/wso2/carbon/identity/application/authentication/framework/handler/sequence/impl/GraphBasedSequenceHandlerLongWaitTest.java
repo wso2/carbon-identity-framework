@@ -50,9 +50,8 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(new LongWaitStatusStoreService());
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "testLongWaitCall",
-                                     (Fn1) (new AsyncAnalyticsCbFunctionImpl()::publishEvent));
+                new AsyncAnalyticsCbFunctionImpl());
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-longwait-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
