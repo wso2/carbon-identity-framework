@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.LongW
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -75,8 +76,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
+            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled()) {
+        if (graph == null || !graph.isEnabled() || !ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType)) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "

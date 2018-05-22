@@ -96,6 +96,7 @@ function invalidName(context) {
     }
 }
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

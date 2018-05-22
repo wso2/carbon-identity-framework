@@ -79,7 +79,8 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript" enabled="false"><![CDATA[
+        <AuthenticationScript type="application/javascript" enabled="false">
+            <![CDATA[
 function onInitialRequest(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
@@ -95,7 +96,9 @@ function onInitialRequest(context) {
         default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'});
     }
 }
-]]></AuthenticationScript>
+]]>
+        </AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>
