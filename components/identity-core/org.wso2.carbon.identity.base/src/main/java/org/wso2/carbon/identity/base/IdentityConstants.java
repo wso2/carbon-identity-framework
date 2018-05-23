@@ -248,12 +248,16 @@ public class IdentityConstants {
                                                          ".OperationDataCleanUp.CleanUpPeriod";
         public static final String OPERATION_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
                                                                 ".OperationDataCleanUp.CleanUpTimeout";
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
+                                                                ".TempDataCleanup.CleanUpTimeout";
 
         public static final String CLEAN_UP_TIMEOUT_DEFAULT = "20160";
         public static final String CLEAN_UP_PERIOD_DEFAULT = "1140";
 
         public static final String OPERATION_CLEAN_UP_TIMEOUT_DEFAULT = "1";
         public static final String OPERATION_CLEAN_UP_PERIOD_DEFAULT = "720";
+
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT = "1";
 
         //PassiveSTS
         public static final String PASSIVE_STS_RETRY = "PassiveSTS.RetryURL";

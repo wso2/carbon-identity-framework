@@ -30,6 +30,7 @@ public class SessionDataPersistTask implements Runnable {
 
     private static final Log log = LogFactory.getLog(SessionDataPersistTask.class);
     private BlockingDeque<SessionContextDO> sessionContextQueue;
+    private static volatile boolean running;
 
     public SessionDataPersistTask(BlockingDeque<SessionContextDO> sessionContextQueue) {
         this.sessionContextQueue = sessionContextQueue;
@@ -40,7 +41,8 @@ public class SessionDataPersistTask implements Runnable {
 
         log.debug("Session Context persist consumer is started");
 
-        while (true) {
+        running = true;
+        while (running) {
 
             try {
                 SessionContextDO sessionContextDO = sessionContextQueue.take();
@@ -63,5 +65,9 @@ public class SessionDataPersistTask implements Runnable {
             }
 
         }
+    }
+
+    public static void shutdown() {
+        running = false;
     }
 }
