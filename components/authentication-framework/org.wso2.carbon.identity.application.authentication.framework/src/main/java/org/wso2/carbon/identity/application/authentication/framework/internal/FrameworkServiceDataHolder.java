@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -68,6 +69,7 @@ public class FrameworkServiceDataHolder {
     private JsFunctionRegistry jsFunctionRegistry;
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
+    private IdentityEventService identityEventService;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -298,5 +300,23 @@ public class FrameworkServiceDataHolder {
     public void setLongWaitStatusStoreService(LongWaitStatusStoreService longWaitStatusStoreService) {
 
         this.longWaitStatusStoreService = longWaitStatusStoreService;
+    }
+
+    /**
+     * Get {@link IdentityEventService}.
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set {@link IdentityEventService}.
+     * @param identityEventService Instance of {@link IdentityEventService}.
+     */
+    public void setIdentityEventService (IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
     }
 }

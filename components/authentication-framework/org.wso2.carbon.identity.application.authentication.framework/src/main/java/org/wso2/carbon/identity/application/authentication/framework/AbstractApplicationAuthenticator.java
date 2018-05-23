@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -33,10 +34,24 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticator;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +89,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
+                    boolean isBasicAuthenticator = this instanceof BasicAuthenticator;
+                    if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                        String eventName = IdentityEventConstants.Event.PRE_AUTHENTICATION;
+                        fireEvent(context, eventName, false);
+                    }
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator) {
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
@@ -91,6 +111,23 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
+                    String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                    String queryParams = context.getContextIdIncludedQueryParams();
+                    String errorCode = getErrorCode();
+                    if (StringUtils.isNotEmpty(errorCode) && errorCode.equals(UserCoreConstants.ErrorCode
+                            .USER_IS_LOCKED)) {
+                        context.setRetrying(true);
+                        context.setCurrentAuthenticator(getName());
+                        try {
+                            String redirectUrl = response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
+                                    FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
+                                    FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
+                            response.sendRedirect(redirectUrl);
+                        } catch (IOException e1) {
+                            throw new AuthenticationFailedException(" Error while redirecting to the retry page ", e1);
+                        }
+                        return AuthenticatorFlowStatus.INCOMPLETE;
+                    }
                     publishAuthenticationStepAttempt(request, context, e.getUser(), false);
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
@@ -154,12 +191,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
-                                                  User user, boolean success) {
+                                                  User user, boolean success) throws AuthenticationFailedException {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
+            boolean isBasicAuthenticator = this instanceof BasicAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             if (isFederated) {
@@ -173,15 +211,65 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, false);
             }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            String eventName;
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
+                if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                    eventName = IdentityEventConstants.Event.POST_AUTHENTICATION;
+                    fireEvent(context, eventName, true);
+                }
 
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
+                if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                    eventName = IdentityEventConstants.Event.POST_AUTHENTICATION;
+                    fireEvent(context, eventName, false);
+                }
             }
         }
+    }
+
+    private void fireEvent(AuthenticationContext context, String eventName, boolean operationStatus)
+            throws AuthenticationFailedException {
+
+        IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+        try {
+            Map<String, Object> eventProperties = new HashMap<>();
+            String userName = (String) context.getProperty(FrameworkConstants.USERNAME);
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(userName);
+            String tenantDomain = context.getTenantDomain();
+            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            UserRealm userRealm = realmService.getTenantUserRealm(tenantID);
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, tenantAwareUsername);
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userRealm
+                    .getUserStoreManager());
+            eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, operationStatus);
+            Event event = new Event(eventName, eventProperties);
+            eventService.handleEvent(event);
+        } catch (UserStoreException e) {
+            throw new AuthenticationFailedException(" Error in accessing user store ", e);
+        } catch (IdentityEventException e) {
+            throw new AuthenticationFailedException(" Error while firing the events ", e);
+        }
+    }
+
+    private String getErrorCode() {
+
+        String errorCode = null;
+        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+        IdentityUtil.clearIdentityErrorMsg();
+        if (errorContext != null && errorContext.getErrorCode() != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving error code " + errorContext.getErrorCode() + " from identity error message " +
+                        "context ");
+            }
+            errorCode = errorContext.getErrorCode();
+        }
+        return errorCode;
     }
 
     protected void initiateAuthenticationRequest(HttpServletRequest request,
