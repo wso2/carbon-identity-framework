@@ -42,6 +42,15 @@
             <OperationDataCleanUp>
                 <Enable>true</Enable>
             </OperationDataCleanUp>
+            <TempDataCleanup>
+                <!-- Enabling separated cleanup for temporary authentication context data -->
+                <Enable>true</Enable>
+                <!-- When PoolZize > 0, temporary data which have no usage after the authentication flow will be deleted immediately -->
+                <PoolSize>20</PoolSize>
+                <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
+                and would be deleted during cleanup task -->
+                <CleanUpTimeout>40</CleanUpTimeout>
+            </TempDataCleanup>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
