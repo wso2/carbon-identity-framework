@@ -123,6 +123,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_SP_DIALECTS_BY_APP_ID = "SELECT SP_DIALECT FROM SP_CLAIM_DIALECT WHERE TENANT_ID= ? AND APP_ID = ?";
     public static final String STORE_SP_DIALECTS_BY_APP_ID = "INSERT INTO SP_CLAIM_DIALECT (TENANT_ID, SP_DIALECT, APP_ID)" +
             " VALUES (?,?,?)";
+    public static final String DELETE_SP_DIALECTS_BY_APP_ID = "DELETE FROM SP_CLAIM_DIALECT WHERE APP_ID = ? AND TENANT_ID= ?";
     public static final String LOAD_LOCAL_AND_OUTBOUND_CONFIG_BY_APP_ID = "SELECT IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                           "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI FROM " +
                                                                           "SP_APP WHERE TENANT_ID= ? AND ID = ?";

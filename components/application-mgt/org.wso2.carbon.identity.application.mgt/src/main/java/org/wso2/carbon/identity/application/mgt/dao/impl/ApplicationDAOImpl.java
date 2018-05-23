@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -67,7 +66,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -352,7 +350,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
                     connection);
 
-            deteClaimConfiguration(applicationId, connection);
+            deleteClaimConfiguration(applicationId, connection);
             updateClaimConfiguration(serviceProvider.getApplicationID(), serviceProvider.getClaimConfig(),
                     applicationId, connection);
 
@@ -3037,7 +3035,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
      * @param connection
      * @throws IdentityApplicationManagementException
      */
-    private void deteClaimConfiguration(int applicationID, Connection connection)
+    private void deleteClaimConfiguration(int applicationID, Connection connection)
             throws SQLException {
 
         if (log.isDebugEnabled()) {
@@ -3047,6 +3045,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement deleteCliamPrepStmt = null;
+        PreparedStatement deleteSpDialectPrepStmt = null;
         try {
             deleteCliamPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING);
@@ -3056,6 +3055,21 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteCliamPrepStmt);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting Application SP Dialects " + applicationID);
+        }
+
+        try {
+            deleteSpDialectPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.DELETE_SP_DIALECTS_BY_APP_ID);
+            deleteSpDialectPrepStmt.setInt(1, applicationID);
+            deleteSpDialectPrepStmt.setInt(2, tenantID);
+            deleteSpDialectPrepStmt.execute();
+
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteSpDialectPrepStmt);
         }
     }
 
