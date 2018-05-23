@@ -33,6 +33,8 @@ public class ApplicationMgtDBQueries {
                                                       "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM = "UPDATE SP_APP SET ROLE_CLAIM=? WHERE TENANT_ID" +
                                                                       "= ? AND ID = ?";
+    public static final String UPDATE_BASIC_APPINFO_WITH_SP_DIALECTS = "UPDATE SP_APP SET SP_DIALECT=? WHERE TENANT_ID" +
+            "= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT = "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +
                                                                           "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID = "UPDATE SP_APP SET IS_SEND_LOCAL_SUBJECT_" +
@@ -120,6 +122,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_CLAIM_CONIFG_BY_APP_ID = "SELECT ROLE_CLAIM, IS_LOCAL_CLAIM_DIALECT, " +
                                                              "IS_SEND_LOCAL_SUBJECT_ID FROM SP_APP WHERE TENANT_ID= ? AND ID = ?";
 
+    public static final String LOAD_SP_DIALECTS_BY_APP_ID = "SELECT SP_DIALECT FROM SP_APP WHERE TENANT_ID= ? AND ID = ?";
     public static final String LOAD_LOCAL_AND_OUTBOUND_CONFIG_BY_APP_ID = "SELECT IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                           "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI FROM " +
                                                                           "SP_APP WHERE TENANT_ID= ? AND ID = ?";
