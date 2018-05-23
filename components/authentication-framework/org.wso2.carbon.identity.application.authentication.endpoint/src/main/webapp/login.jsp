@@ -28,6 +28,7 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 <%@ page import="java.net.URL" %>
 <%@include file="localize.jsp" %>
+<jsp:directive.include file="init-url.jsp"/>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -391,11 +392,11 @@
 
 
             if (domain != "") {
-                document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+                document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                         "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>&domain=" +
                         domain;
             } else {
-                document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+                document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                         "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>";
             }
         }
@@ -408,7 +409,7 @@
                         (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
                 }
             %>
-            document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+            document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                     "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>" +
                     "<%=multiOptionURIParam%>";
         }

@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.11.182-SNAPSHOT</version>
+        <version>5.11.221-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <name>WSO2 Carbon - Application Management UI</name>
@@ -44,6 +44,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework.stub</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -84,6 +88,7 @@
                         <Import-Package>
                             javax.servlet.http,
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            com.google.gson;version="${com.google.code.gson.osgi.version.range}",
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
@@ -95,6 +100,7 @@
                             org.wso2.carbon.user.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.mgt.stub.types.carbon; version="${carbon.identity.package.import.version.range}",
 
+                            org.wso2.carbon.identity.application.authentication.framework.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.xsd; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",

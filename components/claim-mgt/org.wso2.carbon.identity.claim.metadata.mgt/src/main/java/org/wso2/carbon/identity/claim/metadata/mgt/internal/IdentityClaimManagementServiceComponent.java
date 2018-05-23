@@ -111,14 +111,14 @@ public class IdentityClaimManagementServiceComponent {
              cardinality = ReferenceCardinality.MULTIPLE, 
              policy = ReferencePolicy.DYNAMIC, 
              unbind = "unsetClaimManagerListener")
-    public static synchronized void setClaimManagerListener(ClaimManagerListener claimManagerListener) {
+    public synchronized void setClaimManagerListener(ClaimManagerListener claimManagerListener) {
         IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagerListener(claimManagerListener);
         if (log.isDebugEnabled()) {
             log.debug("ClaimManagerListener set in Identity Claim Management bundle");
         }
     }
 
-    public static synchronized void unsetClaimManagerListener(ClaimManagerListener claimManagerListener) {
+    public synchronized void unsetClaimManagerListener(ClaimManagerListener claimManagerListener) {
         IdentityClaimManagementServiceDataHolder.getInstance().unsetClaimManagerListener(claimManagerListener);
         if (log.isDebugEnabled()) {
             log.debug("ClaimManagerListener unset in Identity Claim Management bundle");

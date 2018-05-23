@@ -31,6 +31,8 @@ public class ApplicationManagementServiceComponentHolder {
             ApplicationManagementServiceComponentHolder();
     private static Map<String, AbstractInboundAuthenticatorConfig> inboundAuthenticatorConfigs = new HashMap<String, AbstractInboundAuthenticatorConfig>();
 
+    private String authnTemplatesJson;
+
     private RegistryService registryService;
 
     private RealmService realmService;
@@ -111,5 +113,13 @@ public class ApplicationManagementServiceComponentHolder {
 
     public boolean isDatabaseBackedCertificateStoringSupportAvailable() {
         return databaseBackedCertificateStoringSupportAvailable;
+    }
+
+    public void setAuthenticationTemplatesJson(String jsonTemplate){
+        authnTemplatesJson = jsonTemplate;
+    }
+
+    public String getAuthenticationTemplatesJson(){
+        return authnTemplatesJson;
     }
 }

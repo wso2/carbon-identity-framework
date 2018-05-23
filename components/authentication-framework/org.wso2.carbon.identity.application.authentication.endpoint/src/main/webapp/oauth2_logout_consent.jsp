@@ -17,6 +17,7 @@
   --%>
 
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <html>
 <head>
@@ -80,7 +81,7 @@
 
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../oidc/logout" method="post" id="oidc_logout_consent_form"
+                    <form action="<%=oidcLogoutURL%>" method="post" id="oidc_logout_consent_form"
                           name="oidc_logout_consent_form"
                           class="form-horizontal">
                         <div class="padding-double login-form">

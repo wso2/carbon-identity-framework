@@ -50,6 +50,8 @@ public class JsStep extends AbstractJSObject {
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
                 return new JsAuthenticatedUser(getSubject(), wrappedContext, step, authenticatedIdp);
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
+                return authenticatedIdp;
             default:
                 return super.getMember(name);
         }
@@ -61,9 +63,7 @@ public class JsStep extends AbstractJSObject {
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
                 return true;
-            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                return true;
-            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return true;
             default:
                 return super.hasMember(name);

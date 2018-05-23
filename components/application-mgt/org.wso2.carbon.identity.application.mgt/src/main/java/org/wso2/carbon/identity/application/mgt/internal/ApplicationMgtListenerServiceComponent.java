@@ -45,14 +45,14 @@ public class ApplicationMgtListenerServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetApplicationMgtListenerService"
     )
-    protected static synchronized void setApplicationMgtListenerService(
+    protected synchronized void setApplicationMgtListenerService(
             ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.add(applicationMgtListenerService);
         Collections.sort(applicationMgtListeners, appMgtListenerComparator);
     }
 
-    protected static synchronized void unsetApplicationMgtListenerService(
+    protected synchronized void unsetApplicationMgtListenerService(
             ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.remove(applicationMgtListenerService);

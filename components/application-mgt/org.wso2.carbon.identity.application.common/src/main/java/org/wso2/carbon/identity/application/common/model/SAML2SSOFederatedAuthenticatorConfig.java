@@ -77,31 +77,68 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
      */
     private boolean isUserIdInClaims;
 
+    /**
+     * If Artifact Binding is enabled
+     */
+    private boolean isArtifactBindingEnabled;
+
+    /**
+     * If Artifact Resolve Request should be signed
+     */
+    private boolean isArtifactResolveReqSigned;
+
+    /**
+     * If Artifact Response will be signed
+     */
+    private boolean isArtifactResponseSigned;
+
+    /**
+     * End url to send artifact resolve soap request
+     */
+    private String artifactResolveUrl;
+
     public SAML2SSOFederatedAuthenticatorConfig(FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
         for (Property property : federatedAuthenticatorConfig.getProperties()) {
-            if (IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
-                idpEntityId = property.getValue();
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID.equals(property.getName())) {
-                spEntityId = property.getValue();
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL.equals(property.getName())) {
-                saml2SSOUrl = property.getValue();
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_REQ_SIGNED.equals(
-                    property.getName())) {
-                isAuthnRequestSigned = Boolean.parseBoolean(property.getValue());
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED.equals(
-                    property.getName())) {
-                isLogoutEnabled = Boolean.parseBoolean(property.getValue());
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED.equals(
-                    property.getName())) {
-                isLogoutRequestSigned = Boolean.parseBoolean(property.getValue());
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL.equals(property.getName())) {
-                logoutRequestUrl = property.getValue();
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED.equals(
-                    property.getName())) {
-                isAuthnResponseSigned = Boolean.parseBoolean(property.getValue());
-            } else if (IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION.equals(
-                    property.getName())) {
-                isAuthnResponseEncrypted = Boolean.parseBoolean(property.getValue());
+            switch (property.getName()) {
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID:
+                    idpEntityId = property.getValue();
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID:
+                    spEntityId = property.getValue();
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL:
+                    saml2SSOUrl = property.getValue();
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_REQ_SIGNED:
+                    isAuthnRequestSigned = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED:
+                    isLogoutEnabled = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED:
+                    isLogoutRequestSigned = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL:
+                    logoutRequestUrl = property.getValue();
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED:
+                    isAuthnResponseSigned = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION:
+                    isAuthnResponseEncrypted = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED:
+                    isArtifactBindingEnabled = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED:
+                    isArtifactResolveReqSigned = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED:
+                    isArtifactResponseSigned = Boolean.parseBoolean(property.getValue());
+                    break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL:
+                    artifactResolveUrl = property.getValue();
+                    break;
             }
         }
     }
@@ -162,4 +199,18 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     public boolean isAuthnResponseEncrypted() {
         return isAuthnResponseEncrypted;
     }
+
+    public boolean isArtifactBindingEnabled() {
+        return isArtifactBindingEnabled;
+    }
+
+    public boolean isArtifactResolveReqSigned() {
+        return isArtifactResolveReqSigned;
+    }
+
+    public boolean isArtifactResponseSigned() {
+        return isArtifactResponseSigned;
+    }
+
+    public String getArtifactResolveUrl() { return artifactResolveUrl; }
 }

@@ -84,10 +84,10 @@ public abstract class FrameworkConstants {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
-    public static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
-    public static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
-    public static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
-    public static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
+    public static final String REMEMBER_ME_OPT_ON = "on";
+    public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
+
+    public static final String LONG_WAIT_KEY = "longWaitKey";
 
     private FrameworkConstants() {
 
@@ -130,6 +130,8 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
+                "AuthenticationEndpointMissingClaimsURL";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
         public static final String QNAME_MAX_LOGIN_ATTEMPT_COUNT = "MaxLoginAttemptCount";
         public static final String QNAME_EXTENSIONS = "Extensions";
@@ -272,31 +274,25 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_SECURE = "secure";
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
-
-        public static final String JS_USER_CLAIMS = "claims";
+        public static final String JS_LOCAL_ROLES = "roles";
+        public static final String JS_AUTHENTICATED_IDP = "idp";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
+        public static final String JS_FUNC_SHOW_PROMPT = "prompt";
+        public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
+        public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
-        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
-        public static final String JS_PAGE_URI = "pageUri";
-
-        public static final String JS_CLAIM_MEMBER_LOCAL = "local";
-        public static final String JS_CLAIM_MEMBER_REMOTE = "remote";
-        public static final String JS_CLAIM_MEMBER_PUSH = "push";
-        public static final String JS_CLAIM_MEMBER_VALUE = "value";
-        public static final String JS_CLAIM_MEMBER_URI = "uri";
+        public static final String JS_RETRY_STEP = "retry";
     }
-
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
         public static final String WORKFLOW_DOMAIN = "Workflow";
-
         private InternalRoleDomains() {
         }
     }

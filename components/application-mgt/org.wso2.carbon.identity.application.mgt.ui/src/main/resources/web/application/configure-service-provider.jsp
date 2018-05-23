@@ -45,6 +45,8 @@
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.security.cert.CertificateException" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.ResourceBundle"%>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -57,6 +59,9 @@
 
 
 <%
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     if (appBean.getServiceProvider() == null || appBean.getServiceProvider().getApplicationName() == null) {
 // if appbean is not set properly redirect the user to list-service-provider.jsp.
@@ -78,8 +83,10 @@
     boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
     String[] spClaimDialects = appBean.getSPClaimDialects();
     List<String> claimDialectUris = appBean.getClaimDialectUris();
+    String isHashDisabled = request.getParameter("isHashDisabled");
     String idPName = request.getParameter("idPName");
     String action = request.getParameter("action");
+    String operation = request.getParameter("operation");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
 
@@ -617,6 +624,34 @@
         event.preventDefault();
         document.getElementById('sp-certificate').value = document.getElementById('sp-old-certificate').value;
     };
+
+    function copyTextClick(value) {
+        var copyText = value;
+        copyText.select();
+        document.execCommand("Copy");
+
+        return false;
+    }
+
+    $(function() {
+        $( "#showDialog" ).dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+              OK: function() {$(this).dialog("close");}
+            },
+            height:300,
+            width:590,
+            modal:true
+        });
+    });
+
+    window.onload = function(e) {
+        <% if(isHashDisabled != null && "false".equals(isHashDisabled) && appBean.getOIDCClientId() != null &&
+           appBean.getOauthConsumerSecret() != null && ((operation != null && "add".equals(operation)) || "regenerate".equals(action))) { %>
+            $( "#showDialog" ).dialog( "open" );
+        <% } %>
+    }
 
     jQuery(document).ready(function () {
         jQuery('#authenticationConfRow').hide();
@@ -1597,6 +1632,7 @@
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
+                                                            <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
                                                                        type="password" autocomplete="off"
@@ -1609,6 +1645,7 @@
                                                            onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
                                                             </div>
+                                                            <% } %>
                                                             <%} %>
                                                         </td>
                                                         <td style="white-space: nowrap;">
@@ -2436,4 +2473,54 @@
         </div>
     </div>
 
+    <div id = "showDialog" title = "WSO2 Carbon">
+        <h2 style="margin-left:20px;margin-top:20px;">
+            <fmt:message key="title.oauth.application"/>
+        </h2>
+
+        <% if ("add".equals(operation)) { %>
+            <p style="font-size: 12px;margin-top:6px;margin-left:20px;"><fmt:message key="application.successfull"/></p>
+        <% } %>
+
+        <% if ("regenerate".equals(action)) { %>
+            <p style="font-size: 12px;margin-top:6px;margin-left:20px;">
+                <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), Encode.forHtml(appBean.getOIDCClientId())); %>
+                <%= message %>
+            </p>
+        <% } %>
+
+        <div style="margin-left:20px;background-color: #f4f4f4; border-left: 6px solid #cccccc;height:50px;width:90%;">
+            <p style="margin:20px;padding-top:10px;display:block;"><strong><fmt:message key="note"/><font color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
+        </div>
+        <table style="margin-left:20px;margin-top:25px;">
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message key="config.application.consumerkey"/></b></td>
+                <td>
+                    <input style="border: none; background: white; font-size: 14px;" type="password" size="25" autocomplete="off" id="consumerKey" name="consumerKey" value=<%=Encode.forHtmlAttribute(appBean.getOIDCClientId())%> readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerKey')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerKey'))"><fmt:message key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message key="config.application.consumersecret"/></b></td>
+                <td>
+                    <input style="border: none; background: white;font-size: 14px;" type="password" size="25" autocomplete="off" id="consumerSecret" name="consumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>" readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerSecret')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerSecret'))"><fmt:message key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
 </fmt:bundle>

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -63,6 +65,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
+    private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+            + ".ReturnOnlyMappedLocalRoles";
+    private static boolean returnOnlyMappedLocalRoles = false;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -75,6 +80,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         return instance;
+    }
+
+    static {
+        if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
+            returnOnlyMappedLocalRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
     }
 
     /**
@@ -281,7 +293,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     // Get the mapped user roles according to the mapping in the IDP configuration.
                     // Include the unmapped roles as it is.
                     List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);
@@ -323,6 +335,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, originalExternalIdpSubjectValueForThisStep);
                     localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
+                    // Remove role claim from local claims as roles are specifically handled.
+                    localClaimValues.remove(getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
 
                     handleJitProvisioning(originalExternalIdpSubjectValueForThisStep, context,
                             identityProviderMappedUserRolesUnmappedExclusive, localClaimValues);
@@ -771,6 +785,35 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         context.setRetryCount(0);
         context.setRetrying(false);
         context.setCurrentAuthenticator(null);
+    }
+
+    /**
+     * Returns the local claim uri that is mapped for the IdP role claim uri configured.
+     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
+     *
+     * @param externalIdPConfig IdP configurations
+     * @return local claim uri mapped for the IdP role claim uri.
+     * @throws FrameworkException
+     */
+    protected String getLocalClaimUriMappedForIdPRoleClaim(ExternalIdPConfig externalIdPConfig) throws
+            FrameworkException {
+        // get external identity provider role claim uri.
+        String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
+        if (StringUtils.isNotBlank(idpRoleClaimUri)) {
+            // Iterate over IdP claim mappings and check for the local claim that is mapped for the remote IdP role
+            // claim uri configured.
+            ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
+            if (!ArrayUtils.isEmpty(idpToLocalClaimMapping)) {
+                for (ClaimMapping mapping : idpToLocalClaimMapping) {
+                    if (mapping.getRemoteClaim() != null && idpRoleClaimUri.equals(mapping.getRemoteClaim()
+                            .getClaimUri())) {
+                        return mapping.getLocalClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+
+        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
     }
 
 }

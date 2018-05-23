@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.LocalRole;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.PermissionsAndRoleConfig;
@@ -44,7 +45,6 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningCon
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -55,10 +55,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
+    public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
 
@@ -965,6 +967,16 @@ public class IdPManagementUIUtil {
 
         // set public certificate of the identity provider.
         fedIdp.setCertificate(certFile);
+
+        // set jwks_uri of the identity provider.
+        String jwksUri = paramMap.get(JWKS_URI);
+        if (StringUtils.isNotBlank(jwksUri)) {
+            IdentityProviderProperty jwksProperty = new IdentityProviderProperty();
+            jwksProperty.setName(JWKS_URI);
+            jwksProperty.setValue(jwksUri);
+            jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
+            fedIdp.addIdpProperties(jwksProperty);
+        }
     }
 
     /**
@@ -1159,7 +1171,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[8];
+        Property[] properties = new Property[9];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1209,6 +1221,15 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
         properties[7] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+        if (paramMap.get("oidcBasicAuthEnabled") != null && "on".equals(paramMap.get("oidcBasicAuthEnabled"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties[8] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
@@ -1611,6 +1632,42 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
         if ("on".equals(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        property.setValue(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL));
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED))) {
             property.setValue("true");
         } else {
             property.setValue("false");

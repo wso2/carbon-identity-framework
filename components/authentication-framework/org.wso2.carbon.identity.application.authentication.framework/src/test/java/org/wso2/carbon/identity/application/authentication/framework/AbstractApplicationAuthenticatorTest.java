@@ -79,6 +79,7 @@ public class AbstractApplicationAuthenticatorTest {
 
         // cannot handle
         doReturn(false).when(abstractApplicationAuthenticator).canHandle(request);
+        doReturn("AbstractApplicationAuthenticator").when(abstractApplicationAuthenticator).getName();
         doNothing().when(abstractApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
@@ -96,6 +97,7 @@ public class AbstractApplicationAuthenticatorTest {
         doReturn(true).when(abstractApplicationAuthenticator).canHandle(request);
         // request not handled yet by framework
         when(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)).thenReturn(true);
+        doReturn("AbstractApplicationAuthenticator").when(abstractApplicationAuthenticator).getName();
         doNothing().when(abstractApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);

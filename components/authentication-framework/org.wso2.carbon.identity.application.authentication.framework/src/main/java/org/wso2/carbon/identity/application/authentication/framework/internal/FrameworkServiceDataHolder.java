@@ -33,10 +33,12 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -69,6 +71,8 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
+    private AsyncSequenceExecutor asyncSequenceExecutor;
+    private LongWaitStatusStoreService longWaitStatusStoreService;
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
@@ -304,5 +308,25 @@ public class FrameworkServiceDataHolder {
     public void setClaimFilters(List<ClaimFilter> claimFilters) {
 
         this.claimFilters = claimFilters;
+    }
+
+    public AsyncSequenceExecutor getAsyncSequenceExecutor() {
+
+        return asyncSequenceExecutor;
+    }
+
+    public void setAsyncSequenceExecutor(AsyncSequenceExecutor asyncSequenceExecutor) {
+
+        this.asyncSequenceExecutor = asyncSequenceExecutor;
+    }
+
+    public LongWaitStatusStoreService getLongWaitStatusStoreService() {
+
+        return longWaitStatusStoreService;
+    }
+
+    public void setLongWaitStatusStoreService(LongWaitStatusStoreService longWaitStatusStoreService) {
+
+        this.longWaitStatusStoreService = longWaitStatusStoreService;
     }
 }
