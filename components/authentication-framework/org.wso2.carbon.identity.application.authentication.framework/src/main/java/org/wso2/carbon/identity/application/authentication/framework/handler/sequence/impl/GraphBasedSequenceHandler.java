@@ -312,11 +312,13 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else {
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
+            context.removeProperty(FrameworkConstants.LONG_WAIT_KEY);
+            longWaitStatusStoreService.removeWait(longWaitKey);
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
-            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, null);
-            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, null);
+            context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
+            context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
             if (outcomeName != null) {
                 executeFunction(outcomeName, longWaitNode, context, data);
             }

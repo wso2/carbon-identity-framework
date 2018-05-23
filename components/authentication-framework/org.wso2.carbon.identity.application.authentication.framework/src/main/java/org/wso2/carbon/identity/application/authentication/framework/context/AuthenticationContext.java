@@ -213,6 +213,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         parameters.put(key, value);
     }
 
+    public void removeProperty(String key) {
+        parameters.remove(key);
+    }
+
     public Object getProperty(String key) {
         return parameters.get(key);
     }
