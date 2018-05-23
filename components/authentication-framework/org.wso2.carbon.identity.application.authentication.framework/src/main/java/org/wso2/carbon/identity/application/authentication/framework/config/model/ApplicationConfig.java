@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -85,10 +86,8 @@ public class ApplicationConfig implements Serializable, Cloneable {
             roleClaim = claimConfig.getRoleClaimURI();
             alwaysSendMappedLocalSubjectId = claimConfig.isAlwaysSendMappedLocalSubjectId();
 
-            List<ClaimMapping> spClaimMappings = Arrays.asList(claimConfig.getClaimMappings());
-
+            List<ClaimMapping> spClaimMappings = new ArrayList<>(Arrays.asList(claimConfig.getClaimMappings()));
             setSpDialectClaims(claimConfig, spClaimMappings);
-
             if (CollectionUtils.isNotEmpty(spClaimMappings)) {
                 for (ClaimMapping claim : spClaimMappings) {
                     if (claim.getRemoteClaim() != null
@@ -200,6 +199,11 @@ public class ApplicationConfig implements Serializable, Cloneable {
         return requestedClaims;
     }
 
+    /**
+     * Set application requested claims.
+     *
+     * @param requestedClaims requested claims
+     */
     public void setRequestedClaims(Map<String, String> requestedClaims) {
 
         this.requestedClaims = requestedClaims;
@@ -209,6 +213,11 @@ public class ApplicationConfig implements Serializable, Cloneable {
         return mandatoryClaims;
     }
 
+    /**
+     * Get application requested mandatory claims.
+     *
+     * @param mandatoryClaims mandatory claims
+     */
     public void setMandatoryClaims(Map<String, String> mandatoryClaims) {
 
         this.mandatoryClaims = mandatoryClaims;
@@ -304,13 +313,14 @@ public class ApplicationConfig implements Serializable, Cloneable {
      * Set all the claim mappings of the configured SP claim dialects.
      *
      * @param claimConfig Application claim configuration
-     * @param spClaimMappings Application claim mappings
+     * return Application claim mappings
      */
     private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings) {
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
         if(!ArrayUtils.isEmpty(spClaimDialects)) {
             ClaimMetadataManagementService claimMetadataMgtService = new ClaimMetadataManagementServiceImpl();
-            Arrays.asList(spClaimDialects).forEach(spClaimDialect -> {
+            List<String> spClaimDialectsList = Arrays.asList(spClaimDialects);
+            spClaimDialectsList.forEach(spClaimDialect -> {
                 try {
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
                     List<ExternalClaim> externalClaims = claimMetadataMgtService.getExternalClaims(spClaimDialect,

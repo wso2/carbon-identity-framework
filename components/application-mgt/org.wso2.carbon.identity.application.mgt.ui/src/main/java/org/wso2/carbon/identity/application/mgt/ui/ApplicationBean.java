@@ -860,6 +860,11 @@ public class ApplicationBean {
         this.claimUris = claimUris;
     }
 
+    /**
+     * Get service provider claim dialects.
+     *
+     * @return claim dialects of service provider
+     */
     public List<String> getSPClaimDialects() {
 
         return serviceProvider.getClaimConfig() != null && !ArrayUtils.isEmpty(serviceProvider.getClaimConfig()
@@ -867,11 +872,21 @@ public class ApplicationBean {
                 new ArrayList<>();
     }
 
+    /**
+     * Set claim dialects Uris.
+     *
+     * @param claimDialectUris list of claim dialect Uris
+     */
     public void setClaimDialectUris(List<String> claimDialectUris) {
 
         this.claimDialectUris = claimDialectUris;
     }
 
+    /**
+     * Get claim dialects Uris.
+     *
+     * @return list of claim dialect Uris
+     */
     public List<String> getClaimDialectUris() {
 
         return claimDialectUris;

@@ -300,11 +300,21 @@ public class FrameworkServiceDataHolder {
         return claimFilters.get(0);
     }
 
+    /**
+     * Get all the registered claim filters.
+     *
+     * @return list of claim filters
+     */
     public List<ClaimFilter> getClaimFilters() {
 
         return claimFilters;
     }
 
+    /**
+     * Set claim filters.
+     *
+     * @param claimFilters list of claim filters
+     */
     public void setClaimFilters(List<ClaimFilter> claimFilters) {
 
         this.claimFilters = claimFilters;

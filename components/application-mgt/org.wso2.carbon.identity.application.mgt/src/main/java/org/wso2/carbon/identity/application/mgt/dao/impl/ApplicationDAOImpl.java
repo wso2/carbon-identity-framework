@@ -1348,12 +1348,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         try {
             // update the application data with SP dialects
-            List<String> spClaimDialects = Arrays.asList(claimConfiguration.getSpClaimDialects());
+            String[] spClaimDialects = claimConfiguration.getSpClaimDialects();
 
-            if (CollectionUtils.isNotEmpty(spClaimDialects)) {
+            if (ArrayUtils.isNotEmpty(spClaimDialects)) {
+                storeSPDialectsPrepStmt = connection
+                        .prepareStatement(ApplicationMgtDBQueries.STORE_SP_DIALECTS_BY_APP_ID);
+
                 for (String spClaimDialect : spClaimDialects) {
-                    storeSPDialectsPrepStmt = connection
-                            .prepareStatement(ApplicationMgtDBQueries.STORE_SP_DIALECTS_BY_APP_ID);
                     storeSPDialectsPrepStmt.setInt(1, tenantID);
                     storeSPDialectsPrepStmt.setString(2, spClaimDialect);
                     storeSPDialectsPrepStmt.setInt(3, applicationId);

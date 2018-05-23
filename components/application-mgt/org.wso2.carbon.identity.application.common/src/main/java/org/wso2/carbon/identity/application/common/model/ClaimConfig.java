@@ -172,11 +172,21 @@ public class ClaimConfig implements Serializable {
         this.alwaysSendMappedLocalSubjectId = alwaysSendMappedLocalSubjectId;
     }
 
+    /**
+     * Get service provider claim dialects.
+     *
+     * @return claim dialects of service provider
+     */
     public String[] getSpClaimDialects() {
 
         return spClaimDialects;
     }
 
+    /**
+     * Set service provider claim dialects.
+     *
+     * @param spClaimDialects claim dialects of service provider
+     */
     public void setSpClaimDialects(String[] spClaimDialects) {
 
         this.spClaimDialects = this.spClaimDialects == null ? spClaimDialects : (String[]) ArrayUtils.addAll(

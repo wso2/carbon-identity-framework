@@ -282,14 +282,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
 
             try {
-                String tenantDomain =
-                        context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
-                String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
-
-                ApplicationManagementServiceImpl applicationManagementService =
-                        ApplicationManagementServiceImpl.getInstance();
-                Map<String, String> claimMapping =
-                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName, tenantDomain);
+                Map<String, String> claimMapping = context.getSequenceConfig().getApplicationConfig()
+                        .getClaimMappings();
 
                 Map<String, String> localIdpClaims = new HashMap<>();
                 for (Map.Entry<String, String> entry : claims.entrySet()) {
@@ -310,10 +304,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);
-            } catch (IdentityApplicationManagementException e) {
-                throw new PostAuthenticationFailedException(
-                        "Error while handling missing mandatory claims",
-                        "Error while retrieving application claim mapping. Could not update profile", e);
             }
         }
 
