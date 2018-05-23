@@ -81,7 +81,7 @@
     Map<String, String> claimMapping = appBean.getClaimMapping();
     Map<String, String> roleMapping = appBean.getRoleMapping();
     boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
-    String[] spClaimDialects = appBean.getSPClaimDialects();
+    List<String> spClaimDialects = appBean.getSPClaimDialects();
     List<String> claimDialectUris = appBean.getClaimDialectUris();
     String isHashDisabled = request.getParameter("isHashDisabled");
     String idPName = request.getParameter("idPName");

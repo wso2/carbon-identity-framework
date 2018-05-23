@@ -22,7 +22,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -46,18 +45,14 @@ import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenti
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
-import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 public class ApplicationBean {
 
@@ -865,11 +860,11 @@ public class ApplicationBean {
         this.claimUris = claimUris;
     }
 
-    public String[] getSPClaimDialects() {
+    public List<String> getSPClaimDialects() {
 
-        return serviceProvider.getClaimConfig() != null &&
-                !ArrayUtils.isEmpty(serviceProvider.getClaimConfig().getSpClaimDialects()) ?
-                serviceProvider.getClaimConfig().getSpClaimDialects() : null;
+        return serviceProvider.getClaimConfig() != null && !ArrayUtils.isEmpty(serviceProvider.getClaimConfig()
+                .getSpClaimDialects()) ? Arrays.asList(serviceProvider.getClaimConfig().getSpClaimDialects()) :
+                new ArrayList<>();
     }
 
     public void setClaimDialectUris(List<String> claimDialectUris) {

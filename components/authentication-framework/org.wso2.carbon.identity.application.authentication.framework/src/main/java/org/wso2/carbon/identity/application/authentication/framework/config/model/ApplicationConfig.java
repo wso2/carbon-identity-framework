@@ -308,7 +308,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
      */
     private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings) {
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
-        if (!ArrayUtils.isEmpty(spClaimDialects)) {
+        if(!ArrayUtils.isEmpty(spClaimDialects)) {
             ClaimMetadataManagementService claimMetadataMgtService = new ClaimMetadataManagementServiceImpl();
             Arrays.asList(spClaimDialects).forEach(spClaimDialect -> {
                 try {

@@ -1350,21 +1350,23 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         try {
             // update the application data with SP dialects
-            String[] spClaimDialects = claimConfiguration.getSpClaimDialects();
-            String spClaimDialectsString = null;
-            if (spClaimDialects != null) {
-                String spClaimDialectsBuilder = Arrays.stream(spClaimDialects).map(dialects -> dialects + ",")
-                        .collect(Collectors.joining());
-                spClaimDialectsString = spClaimDialectsBuilder;
+            List<String> spClaimDialects = Arrays.asList(claimConfiguration.getSpClaimDialects());
+
+            if (CollectionUtils.isNotEmpty(spClaimDialects)) {
+                for (String spClaimDialect : spClaimDialects) {
+                    storeSPDialectsPrepStmt = connection
+                            .prepareStatement(ApplicationMgtDBQueries.STORE_SP_DIALECTS_BY_APP_ID);
+                    storeSPDialectsPrepStmt.setInt(1, tenantID);
+                    storeSPDialectsPrepStmt.setString(2, spClaimDialect);
+                    storeSPDialectsPrepStmt.setInt(3, applicationId);
+                    storeSPDialectsPrepStmt.addBatch();
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Storing SP Dialect: " + spClaimDialects);
+                    }
+                }
+                storeSPDialectsPrepStmt.executeBatch();
             }
-
-            storeSPDialectsPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SP_DIALECTS);
-            storeSPDialectsPrepStmt.setString(1, spClaimDialectsString);
-            storeSPDialectsPrepStmt.setInt(2, tenantID);
-            storeSPDialectsPrepStmt.setInt(3, applicationId);
-            storeSPDialectsPrepStmt.executeUpdate();
-
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeSPDialectsPrepStmt);
         }
@@ -2498,6 +2500,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         ClaimConfig claimConfig = new ClaimConfig();
         ArrayList<ClaimMapping> claimMappingList = new ArrayList<ClaimMapping>();
+        List<String> spDialectList = new ArrayList<String>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Claim Mappings of Application " + applicationId);
@@ -2604,9 +2607,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             while (loadSPDialectsResultSet.next()) {
                 if(loadSPDialectsResultSet.getString(1) != null) {
-                    claimConfig.setSpClaimDialects(loadSPDialectsResultSet.getString(1).split(","));
+                    spDialectList.add(loadSPDialectsResultSet.getString(1));
                 }
             }
+            claimConfig.setSpClaimDialects(spDialectList.toArray(new String[spDialectList.size()]));
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving all application");
         } finally {
