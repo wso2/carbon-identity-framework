@@ -247,6 +247,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
     jQuery(document).ready(function () {
 
+        var addTemplate = $("#addTemplate");
         var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
             theme: "mdn-like",
             keyMap: "sublime",
@@ -285,10 +286,12 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 $(this).addClass("maximizeIcon");
                 $(this).removeClass("minimizeIcon");
                 myCodeMirror.setOption("fullScreen", false);
+                $("#codeMirrorTemplate").show();
             } else {
                 $(this).addClass("minimizeIcon");
                 $(this).removeClass("maximizeIcon");
                 myCodeMirror.setOption("fullScreen", true);
+                $("#codeMirrorTemplate").hide();
             }
         });
 
@@ -333,7 +336,8 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
         jQuery('#stepsAddLink').click(function () {
             stepOrder++;
-            jQuery('#stepsConfRow').append(jQuery('<h2 id="step_head_' + stepOrder + '" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
+            jQuery('#stepsConfRow .steps').append(jQuery('<h2 id="step_head_' + stepOrder +
+				'" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
             if (!$('#stepsConfRow').is(":visible")) {
                 $(jQuery('#stepsConfRow')).toggle();
             }
@@ -424,48 +428,50 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             checkScriptEnabled();
         });
 
+        $("#editorRow").hide();
         checkScriptEnabled();
 
         function checkScriptEnabled() {
             var scriptEnabled = $("#enableScript").is(":checked");
-            if (scriptEnabled || (editorContent.length == 0)) {
-                myCodeMirror.setOption("readOnly", false);
-                myCodeMirror.setOption("styleActiveLine", true);
-                myCodeMirror.setOption("gutters", ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"]);
-                myCodeMirror.setOption("theme", "mdn-like");
-                $("#toggleEditorSize").show();
-                $("#addTemplate").show("fast");
-                $("#codeMirrorTemplate").show();
-                $("#addTemplate").text("Hide Template List");
-                $("#addTemplate").css("background-image", "url(images/up.gif)");
+            var stepConfigTrigger = $(".authentication_step_config_head");
+            var editorRow = $("#editorRow");
+
+            if (scriptEnabled) {
+                stepConfigTrigger.addClass('active');
+                editorRow.slideDown('fast');
             }
-            else {
-                myCodeMirror.setOption("readOnly", "nocursor");
-                myCodeMirror.setOption("styleActiveLine", false);
-                myCodeMirror.setOption("gutters", ["CodeMirror-linenumbers"]);
-                myCodeMirror.setOption("theme", "");
-                $("#toggleEditorSize").hide();
-                $("#addTemplate").hide("fast");
-                $("#codeMirrorTemplate").hide();
-            }
+
+            if(editorContent.length == 0){
+                contentToggle = 1;
+            }else{
+                contentToggle = 0;
+			}
+            showHideTemplateList();
         }
 
-        $('#addTemplate').click(function (e) {
+        var contentToggle = 0;
+
+        addTemplate.click(function (e) {
             showHideTemplateList();
             e.preventDefault();
         });
 
         function showHideTemplateList() {
-            if ($("#codeMirrorTemplate").is(":visible")) {
-                $("#codeMirrorTemplate").hide();
-                $("#addTemplate").text("Add From Template");
-                $("#addTemplate").css("background-image", "url(images/add.gif)");
-            } else {
-                $("#codeMirrorTemplate").show();
-                $("#addTemplate").text("Hide Template List");
-                $("#addTemplate").css("background-image", "url(images/up.gif)");
+            var codeMirror = $("#codeMirror");
+            var templates = $('#codeMirrorTemplate');
+
+            if (contentToggle == 0) {
+                addTemplate.css("background-image", "url(images/templates.png)");
+                templates.animate({width: 25}, { duration: 300, queue: false });
+                codeMirror.animate({marginRight: 26}, { duration: 200, queue: false });
+                contentToggle = 1;
             }
-            ;
+            else if (contentToggle == 1) {
+                addTemplate.css("background-image", "url(images/template-close.png)");
+                codeMirror.animate({marginRight: 212}, { duration: 300, queue: false });
+                templates.animate({width:210},{ duration: 200, queue: false });
+                contentToggle = 0;
+            }
         }
 
     });
@@ -688,7 +694,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     key='button.add.step'/></a></td>
             </tr>
             </table>
-
+			<div class="steps">
 
                 <%
 								if(steps != null && steps.length>0) {
@@ -805,54 +811,49 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
                 <% }
                 } %>
-
+			</div>
+			<div class="script-select-container">
+				<label class="noselect">
+					<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
+						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+							if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+								if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
+						   checked="checked"  <% }
+					}
+					}%>/> Enable Script Based Conditional Authentication
+				</label>
+			</div>
             </div>
+
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
 			<br/>
-				<table id="conditional_script" class="styledLeft">
-					<tbody>
-					<tr>
-						<td class="middle-header">
-							<label class="noselect">
-								<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
-									if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-										if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-											if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
-									   checked="checked"  <% }
-								}
-								}%>/> Enable Script Based Conditional Authentication
-							</label>
-						</td>
-					</tr>
-					<tr>
-						<td style="position: relative;">
-							<div class="template-link-container">
-								<a id="addTemplate" class="icon-link noselect" style="background-image:url(images/add.gif);margin-left:0; display: none;">Add From Template</a>
+				<h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
+					<a href="#">Script Based Conditional Authentication</a>
+				</h2>
+
+				<div class="toggle_container sectionSub" id="editorRow">
+					<div style="position: relative;">
+						<div class="sectionSub step_contents" id="codeMirror">
+<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Write custom JavaScript or select from templates that match a scenario..." style="height: 500px;width: 100%; display: none;"><%
+	if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+		if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+			out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
+		}
+	}
+%></textarea>
+						</div>
+						<div id="codeMirrorTemplate" class="step_contents">
+							<div class="add-template-container vertical-text">
+								<a id="addTemplate" class="icon-link noselect">Templates</a>
 							</div>
-							<table class="scriptEditorContainer" style="width: 100%; margin-top: 8px;">
-								<tr>
-									<td class="conditional-auth">
-										<div class="sectionSub step_contents" id="codeMirror">
-				<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Write custom JavaScript or select from templates that match a scenario..." style="height: 500px;width: 100%; display: none;"><%
-					if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-							out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
-						}
-					}
-				%></textarea>
-										</div>
-									</td>
-								</tr>
-							</table>
-							<div id="codeMirrorTemplate" class="sectionSub step_contents" style="display:none;" >
+							<div class="template-list-container">
 								<ul id="template_list"></ul>
 							</div>
-						</td>
-					</tr>
-					</tbody>
-				</table>
-
+						</div>
+					</div>
+				</div>
+				<div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input type="button" value="<fmt:message key='button.update.service.provider'/>"
                            onclick="createAppOnclick();"/>
