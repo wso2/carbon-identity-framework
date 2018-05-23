@@ -41,7 +41,6 @@ public class IdentityConfigParser {
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
-    public static final String IS_TEMPORARY = "isTemporary";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -262,11 +261,6 @@ public class IdentityConfigParser {
                             String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
                             if (StringUtils.isNotBlank(isDistributedCache)) {
                                 identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
-                            }
-
-                            String isTemporaryCache = cache.getAttributeValue(new QName(IS_TEMPORARY));
-                            if (StringUtils.isNotBlank(isTemporaryCache)) {
-                                identityCacheConfig.setTemporary(Boolean.parseBoolean(isTemporaryCache));
                             }
 
                             // Add the config to container
