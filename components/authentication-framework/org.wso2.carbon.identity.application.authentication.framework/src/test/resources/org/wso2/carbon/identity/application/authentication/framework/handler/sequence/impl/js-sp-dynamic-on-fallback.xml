@@ -123,6 +123,7 @@ Log.info('Test0');
 }
 
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

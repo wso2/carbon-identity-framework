@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.loa
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -42,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -80,7 +80,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
 
         //Use script based evaluation if script is present.
-        if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig())) {
+        if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
@@ -99,8 +99,15 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         return sequenceConfig;
     }
 
-    private boolean isAuthenticationScriptBasedSequence(AuthenticationScriptConfig authenticationScriptConfig) {
-        return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+    private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
+                                                            localAndOutboundAuthenticationConfig) {
+
+        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                .getAuthenticationScriptConfig();
+            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        }
+        return false;
     }
 
     /**

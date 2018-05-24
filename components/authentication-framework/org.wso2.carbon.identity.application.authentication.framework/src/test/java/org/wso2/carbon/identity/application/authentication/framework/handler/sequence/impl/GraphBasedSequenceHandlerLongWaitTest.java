@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.AsyncCallback;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -32,10 +31,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,7 +42,7 @@ import static org.mockito.Mockito.mock;
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
-    public void testHandle_LongWait() throws Exception {
+    public void testHandleLongWait() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);

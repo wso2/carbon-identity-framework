@@ -57,6 +57,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
      * <AuthenticationType></AuthenticationType>
      * <AuthenticationStepForSubject></AuthenticationStepForSubject>
      * <AuthenticationStepForAttributes></AuthenticationStepForAttributes>
+     * <AuthenticationScript></AuthenticationScript>
      * </LocalAndOutboundAuthenticationConfig>
      */
     public static LocalAndOutboundAuthenticationConfig build(
