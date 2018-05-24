@@ -28,7 +28,7 @@
     margin-bottom: 4px;
 }
 #template_list .name a span{
-    display: inline-table;
+    display: inline-block;
     vertical-align: top;
     margin-left: 5px;
 }
@@ -40,7 +40,6 @@
     float: right;
 }
 #template_list li h2{
-    width: 128px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -68,23 +67,22 @@
 
 #codeMirror{
     padding: 0;
-    margin-bottom: 10px;
     border: 1px solid #afafaf;
+    margin-right: 204px;
 }
 
 #codeMirrorTemplate{
-    background: #ffffff;
-    padding: 10px;
-    font-size: 12px;
     position: absolute;
-    width: 150px;
-    right: 19px;
+    overflow: hidden;
+    top: 0px;
+    right: 0px;
+    background: #ffffff;
+    font-size: 12px;
     z-index: 999;
-    top: 42px;
-    overflow-y: scroll;
-    height: 280px;
-    -webkit-box-shadow: -4px 0 8px 0 #eaeaea;
-    box-shadow: -4px 0 8px 0 #eaeaea;
+    border: 1px solid #afafaf;
+    border-left: 0px;
+    -webkit-box-shadow: -4px 0 4px 0 rgba(90, 90, 90, 0.2);
+    box-shadow: -4px 0 4px 0 rgba(90, 90, 90, 0.2);
     transition: width 0.5s, opacity 0.5s ease;
 }
 #codeMirrorTemplate h2{
@@ -156,25 +154,6 @@
     font-size: 13px;
 }
 
-#toggleEditorSize{
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 8px;
-    height: 8px;
-    margin: 0px;
-    padding: 8px;
-    text-align: center;
-    z-index: 999;
-    background-color: rgba(204, 204, 204, 0.4);
-    background-repeat: no-repeat;
-    border-left: 1px solid #afafaf;
-    border-bottom: 1px solid #afafaf;
-    cursor: pointer;
-}
-#toggleEditorSize:hover{
-    background-color: rgba(204, 204, 204, 0.9);
-}
 .maximizeIcon{
     background: url(../images/maximize.png) 50% 50%;
 }
@@ -220,15 +199,6 @@
 .scriptEditorInfo{
     padding: 12px;
 }
-.template-link-container{
-    margin-top: 10px;
-    margin-right: 6px;
-    float: right;
-    /*height: 25px;*/
-}
-.template-link-container a{
-    width: 116px;
-}
 
 /*theme customizations*/
 .cm-s-mdn-like .CodeMirror-linenumber{
@@ -242,3 +212,80 @@
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none;
 }
+.editor-header{
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #afafaf;
+    background: #f8f8f8;
+}
+.editor-header > *{
+    display: flex;
+}
+.editor-header ul{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.editor-header ul li{
+    display: flex;
+}
+.editor-header ul li a{
+    align-self: center;
+}
+.editor-header .title{
+    color: #333;
+    align-self: center;
+    padding: 2px 10px;
+}
+#toggleEditorSize{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 9px;
+    height: 9px;
+    margin: 0px;
+    padding: 8px;
+    text-align: center;
+    z-index: 999;
+    background-color: rgba(204, 204, 204, 0.4);
+    background-repeat: no-repeat;
+    border-left: 1px solid #afafaf;
+    border-bottom: 1px solid #afafaf;
+    cursor: pointer;
+}
+#addTemplate:hover, #toggleEditorSize:hover{
+    background-color: rgba(204, 204, 204, 0.9);
+}
+#addTemplate{
+    background:url('images/templates.png') 5px 50% no-repeat;
+    background-color: rgba(204, 204, 204, 0.4);
+    height: auto;
+    width: 260px;
+    line-height: inherit;
+    margin: 0px;
+    padding: 5px 10px;
+    padding-left: 30px;
+    color: #333;
+}
+.script-select-container{
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+.add-template-container{
+    position: absolute;
+    left: 25px;
+}
+.vertical-text {
+    float: left;
+    transform: rotate(90deg);
+    transform-origin: left top 0;
+}
+.cm-template-collapsed{
+    height: 300px;
+    width: 25px;
+}
+.template-list-container{
+    margin: 10px;
+    margin-left: 35px;
+}
+
