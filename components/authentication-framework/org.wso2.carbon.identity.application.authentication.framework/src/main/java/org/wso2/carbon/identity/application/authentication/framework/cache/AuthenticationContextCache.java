@@ -46,7 +46,7 @@ public class AuthenticationContextCache extends
      * Private constructor which will not allow to create objects of this class from outside
      */
     private AuthenticationContextCache() {
-        super(AUTHENTICATION_CONTEXT_CACHE_NAME);
+        super(AUTHENTICATION_CONTEXT_CACHE_NAME, true);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
