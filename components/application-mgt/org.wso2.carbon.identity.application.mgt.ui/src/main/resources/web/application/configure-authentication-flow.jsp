@@ -337,7 +337,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
         jQuery('#stepsAddLink').click(function () {
             stepOrder++;
             jQuery('#stepsConfRow .steps').append(jQuery('<h2 id="step_head_' + stepOrder +
-				'" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
+                '" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;"><input type="hidden" value="' + stepOrder + '" name="auth_step" id="auth_step"><a class="step_order_header" href="#">Step ' + stepOrder + '</a><a onclick="deleteStep(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif);float:right;width: 9px;"></a></h2><div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;" id="step_dev_' + stepOrder + '"> <div style="padding-bottom: 5px"><table class="carbonFormTable"><tr><td><input type="checkbox" style="vertical-align: middle;" id="subject_step_' + stepOrder + '" name="subject_step_' + stepOrder + '" class="subject_steps" onclick="setSubjectStep(this)"><label for="subject_step_' + stepOrder + '" style="cursor: pointer;">Use subject identifier from this step</label></td></tr><tr><td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_' + stepOrder + '" name="attribute_step_' + stepOrder + '" class="attribute_steps" onclick="setAttributeStep(this)" ><label for="attribute_step_' + stepOrder + '" style="cursor: pointer;">Use attributes from this step</label></td></tr></table></div><h2 id="local_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Local Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="local_auth_table_' + stepOrder + '"><thead><tr><td><select name="step_' + stepOrder + '_local_oauth_select" style="float: left; min-width: 150px;font-size:13px;"><%=localAuthTypes.toString()%></select><a id="claimMappingAddLinkss" onclick="addLocalRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table> </div><%if (enabledIdpType.length() > 0) { %> <h2 id="fed_auth_head_' + stepOrder + '" class="sectionSeperator trigger active" style="background-color: floralwhite;"><a href="#">Federated Authenticators</a></h2><div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fed_auth_head_dev_' + stepOrder + '"><table class="styledLeft" width="100%" id="fed_auth_table_' + stepOrder + '"><thead> <tr><td><select name="idpAuthType_' + stepOrder + '" style="float: left; min-width: 150px;font-size:13px;"><%=enabledIdpType.toString()%></select><a id="claimMappingAddLinkss" onclick="addIDPRow(this,' + stepOrder + ');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a></td></tr></thead></table></div><%}%></div>'));
             if (!$('#stepsConfRow').is(":visible")) {
                 $(jQuery('#stepsConfRow')).toggle();
             }
@@ -423,6 +423,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             CodeMirror.commands.autocomplete(myCodeMirror, null, {completeSingle: false})
         });
 
+        var contentToggle = 0;
 
         $("#enableScript").click(function () {
             checkScriptEnabled();
@@ -441,15 +442,13 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 editorRow.slideDown('fast');
             }
 
-            if(editorContent.length == 0){
+            if (editorContent.length == 0) {
                 contentToggle = 1;
-            }else{
+            } else {
                 contentToggle = 0;
-			}
+            }
             showHideTemplateList();
         }
-
-        var contentToggle = 0;
 
         addTemplate.click(function (e) {
             showHideTemplateList();
@@ -462,14 +461,14 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
             if (contentToggle == 0) {
                 addTemplate.css("background-image", "url(images/templates.png)");
-                templates.animate({width: 25}, { duration: 300, queue: false });
-                codeMirror.animate({marginRight: 26}, { duration: 200, queue: false });
+                templates.animate({width: 25}, {duration: 50, queue: false});
+                codeMirror.animate({marginRight: 26}, {duration: 125, queue: false});
                 contentToggle = 1;
             }
-            else if (contentToggle == 1) {
+            else {
                 addTemplate.css("background-image", "url(images/template-close.png)");
-                codeMirror.animate({marginRight: 212}, { duration: 300, queue: false });
-                templates.animate({width:210},{ duration: 200, queue: false });
+                codeMirror.animate({marginRight: 212}, {duration: 125, queue: false});
+                templates.animate({width: 210}, {duration: 50, queue: false});
                 contentToggle = 0;
             }
         }
