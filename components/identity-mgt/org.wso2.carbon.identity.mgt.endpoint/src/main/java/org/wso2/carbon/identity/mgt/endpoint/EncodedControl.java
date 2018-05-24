@@ -35,7 +35,6 @@ import java.util.ResourceBundle;
  * This class overrides the control of the resource bundle reading. code below referenced to Sun's/Oracle's code and
  * changed accordingly to read resource bundle to a given character format.
  */
-
 public class EncodedControl extends ResourceBundle.Control {
 
     public static final String JAVA_PROPERTIES = "java.properties";
