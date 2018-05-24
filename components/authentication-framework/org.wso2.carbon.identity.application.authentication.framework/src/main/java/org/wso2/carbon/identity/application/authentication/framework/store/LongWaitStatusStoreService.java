@@ -40,4 +40,8 @@ public class LongWaitStatusStoreService {
     public LongWaitStatus getWait(String sessionId) {
         return longWaitStatusMap.get(sessionId);
     }
+
+    public LongWaitStatus removeWait(String sessionId) {
+        return longWaitStatusMap.remove(sessionId);
+    }
 }

@@ -45,7 +45,8 @@
             <TempDataCleanup>
                 <!-- Enabling separated cleanup for temporary authentication context data -->
                 <Enable>true</Enable>
-                <!-- When PoolZize > 0, temporary data which have no usage after the authentication flow will be deleted immediately -->
+                <!-- When PoolZize > 0, temporary data which have no usage after the authentication flow will be deleted immediately
+                 When PoolZise = 0, data will be deleted only by the scheduled cleanup task-->
                 <PoolSize>20</PoolSize>
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
