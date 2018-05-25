@@ -152,6 +152,9 @@ public class SessionDataStore {
         try {
             String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
             if (StringUtils.isNotBlank(maxPoolSizeValue)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Session data pool size config value: " + maxPoolSizeValue);
+                }
                 maxSessionDataPoolSize = Integer.parseInt(maxPoolSizeValue);
             }
 
@@ -162,6 +165,9 @@ public class SessionDataStore {
 
             String maxTempDataPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
             if (StringUtils.isNotBlank(maxTempDataPoolSizeValue)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Temporary data pool size config value: " + maxPoolSizeValue);
+                }
                 maxTempDataPoolSize = Integer.parseInt(maxTempDataPoolSizeValue);
             }
 
@@ -169,7 +175,7 @@ public class SessionDataStore {
             if (log.isDebugEnabled()) {
                 log.debug("Exception ignored : ", e);
             }
-            log.warn("Session data persistence pool size is not configured. Using default value.");
+            log.warn("One or more pool size configurations cause NumberFormatException. Default values would be used");
         }
         if ( maxSessionDataPoolSize > 0) {
             log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
