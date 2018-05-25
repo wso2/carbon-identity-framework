@@ -60,11 +60,13 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     public BaseCache(String cacheName, boolean isTemp) {
         this.cacheName = cacheName;
         IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
-        if (identityCacheConfig != null && !identityCacheConfig.isDistributed()) {
-            this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
+        if (identityCacheConfig != null) {
+            if (!identityCacheConfig.isDistributed()) {
+                this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
+            }
+            identityCacheConfig.setTemporary(isTemp);
         }
 
-        identityCacheConfig.setTemporary(isTemp);
     }
 
     private Cache<K, V> getBaseCache() {
