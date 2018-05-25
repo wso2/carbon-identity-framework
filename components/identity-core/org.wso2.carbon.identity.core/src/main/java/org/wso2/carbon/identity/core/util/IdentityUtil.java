@@ -213,12 +213,6 @@ public class IdentityUtil {
         return identityCacheConfig;
     }
 
-    public static void setIdentityCacheConfig(String cacheManagerName, String cacheName,
-                                                             IdentityCacheConfig identityCacheConfig) {
-        IdentityCacheConfigKey configKey = new IdentityCacheConfigKey(cacheManagerName, cacheName);
-        identityCacheConfigurationHolder.put(configKey, identityCacheConfig);
-    }
-
     public static IdentityCookieConfig getIdentityCookieConfig(String cookieName) {
         return identityCookiesConfigurationHolder.get(cookieName);
     }

@@ -65,7 +65,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
         }
 
         identityCacheConfig.setTemporary(isTemp);
-        IdentityUtil.setIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName, identityCacheConfig);
     }
 
     private Cache<K, V> getBaseCache() {
