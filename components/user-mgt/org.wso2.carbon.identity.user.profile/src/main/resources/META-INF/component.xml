@@ -43,6 +43,27 @@
             <DisplayName>Delete</DisplayName>
             <ResourceId>/permission/admin/manage/identity/userprofile/delete</ResourceId>
         </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>User</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Association</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user/association</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user/association/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user/association/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user/association/delete</ResourceId>
+        </ManagementPermission>
     </ManagementPermissions>
 
 </component>
