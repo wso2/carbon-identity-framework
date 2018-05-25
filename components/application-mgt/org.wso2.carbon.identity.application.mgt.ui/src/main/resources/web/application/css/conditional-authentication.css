@@ -68,7 +68,8 @@
 #codeMirror{
     padding: 0;
     border: 1px solid #afafaf;
-    margin-right: 204px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 #codeMirrorTemplate{
