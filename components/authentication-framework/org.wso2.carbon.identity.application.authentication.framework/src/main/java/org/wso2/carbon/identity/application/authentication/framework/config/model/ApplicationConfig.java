@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -316,15 +317,15 @@ public class ApplicationConfig implements Serializable, Cloneable {
      * return Application claim mappings
      */
     private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings) {
+
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
-        if(!ArrayUtils.isEmpty(spClaimDialects)) {
-            ClaimMetadataManagementService claimMetadataMgtService = new ClaimMetadataManagementServiceImpl();
+        if (!ArrayUtils.isEmpty(spClaimDialects)) {
             List<String> spClaimDialectsList = Arrays.asList(spClaimDialects);
             spClaimDialectsList.forEach(spClaimDialect -> {
                 try {
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                    List<ExternalClaim> externalClaims = claimMetadataMgtService.getExternalClaims(spClaimDialect,
-                            tenantDomain);
+                    List<ExternalClaim> externalClaims = FrameworkServiceDataHolder.getInstance()
+                            .getClaimMetadataManagementService().getExternalClaims(spClaimDialect, tenantDomain);
                     externalClaims.stream().map(externalClaim -> ClaimMapping.build(externalClaim
                             .getMappedLocalClaim(), externalClaim.getClaimURI(), null, true))
                             .forEach(spClaimMappings::add);

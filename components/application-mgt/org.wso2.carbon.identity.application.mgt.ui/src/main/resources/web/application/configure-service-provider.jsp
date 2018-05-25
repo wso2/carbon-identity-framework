@@ -534,7 +534,8 @@
 
         var spClaimDialect = $("#standard_dialect").val();
         if (spClaimDialect == null || spClaimDialect.trim().length == 0) {
-            CARBON.showWarningDialog('<fmt:message key="config.application.claim.dialect.sp.not.valid"/>');
+            CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.not.valid'/>",
+                null, null);
             return false;
         }
         spClaimDialect = spClaimDialect.trim();
@@ -567,7 +568,8 @@
             $.each(spClaimDialects.split(","), function (index, value) {
                 if (value === spClaimDialect) {
                     isExist = true;
-                    CARBON.showWarningDialog('<fmt:message key="config.application.claim.dialect.sp.already.exists"/>');
+                    CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.already.exists'/>",
+                        null, null);
                     return false;
                 }
             });

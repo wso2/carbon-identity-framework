@@ -51,18 +51,16 @@ public class DefaultClaimFilter implements ClaimFilter {
     }
 
     @Override
-    public ApplicationConfig getFilteredClaims(AuthenticationContext context, ApplicationConfig appConfig) {
+    public List<ClaimMapping> getFilteredClaims(AuthenticationContext context, ApplicationConfig appConfig) {
 
         List<ClaimMapping> spClaimMappings = getSpClaimMappings(appConfig);
 
         List<ClaimMapping> requestedClaimsInRequest = null;
         if (context != null) {
-            requestedClaimsInRequest = (List<ClaimMapping>) context.getProperty(
-                    FrameworkConstants.SP_REQUESTED_CLAIMS_IN_REQUEST);
+            requestedClaimsInRequest = (List<ClaimMapping>) context.getProperty(FrameworkConstants
+                    .SP_REQUESTED_CLAIMS_IN_REQUEST);
         }
-        List<ClaimMapping> selectedRequestedClaims = filterRequestedClaims(spClaimMappings, requestedClaimsInRequest);
-        getMandatoryAndRequestedClaims(appConfig, selectedRequestedClaims);
-        return appConfig;
+        return filterRequestedClaims(spClaimMappings, requestedClaimsInRequest);
     }
 
     @Override
@@ -105,28 +103,6 @@ public class DefaultClaimFilter implements ClaimFilter {
         return spClaimMappingsList;
     }
 
-    private void getMandatoryAndRequestedClaims(ApplicationConfig appConfig,
-                                                List<ClaimMapping> selectedRequestedClaims) {
-
-        Map<String, String> claimMappings = new HashMap<>();
-        Map<String, String> requestedClaims = new HashMap<>();
-        Map<String, String> mandatoryClaims = new HashMap<>();
-
-        if (isNotEmpty(selectedRequestedClaims)) {
-            selectedRequestedClaims.stream().filter(claim -> claim.getRemoteClaim() != null
-                    && claim.getRemoteClaim().getClaimUri() != null).forEach(claim -> {
-                if (claim.getLocalClaim() != null) {
-                    setClaimsWhenLocalClaimExists(claimMappings, requestedClaims, mandatoryClaims, claim);
-                } else {
-                    setClaimsWhenLocalClaimNotExists(claimMappings, requestedClaims, mandatoryClaims, claim);
-                }
-            });
-        }
-        appConfig.setClaimMappings(claimMappings);
-        appConfig.setRequestedClaims(requestedClaims);
-        appConfig.setMandatoryClaims(mandatoryClaims);
-    }
-
     private boolean requestedClaimsFromSpConfigAndRequest(List<ClaimMapping> claimMappings,
                                                           List<ClaimMapping> requestedClaimsInRequest) {
 
@@ -143,33 +119,5 @@ public class DefaultClaimFilter implements ClaimFilter {
                                                List<ClaimMapping> requestedClaimsInRequest) {
 
         return isEmpty(claimMappings) && !isEmpty(requestedClaimsInRequest);
-    }
-
-    private void setClaimsWhenLocalClaimNotExists(Map<String, String> claimMappings,
-                                                  Map<String, String> requestedClaims,
-                                                  Map<String, String> mandatoryClaims, ClaimMapping claim) {
-
-        claimMappings.put(claim.getRemoteClaim().getClaimUri(), null);
-        if (claim.isRequested()) {
-            requestedClaims.put(claim.getRemoteClaim().getClaimUri(), null);
-        }
-        if (claim.isMandatory()) {
-            mandatoryClaims.put(claim.getRemoteClaim().getClaimUri(), null);
-        }
-    }
-
-    private void setClaimsWhenLocalClaimExists(Map<String, String> claimMappings, Map<String, String> requestedClaims,
-                                               Map<String, String> mandatoryClaims, ClaimMapping claim) {
-
-        claimMappings.put(claim.getRemoteClaim().getClaimUri(), claim
-                .getLocalClaim().getClaimUri());
-        if (claim.isRequested()) {
-            requestedClaims.put(claim.getRemoteClaim().getClaimUri(), claim
-                    .getLocalClaim().getClaimUri());
-        }
-        if (claim.isMandatory()) {
-            mandatoryClaims.put(claim.getRemoteClaim().getClaimUri(), claim
-                    .getLocalClaim().getClaimUri());
-        }
     }
 }

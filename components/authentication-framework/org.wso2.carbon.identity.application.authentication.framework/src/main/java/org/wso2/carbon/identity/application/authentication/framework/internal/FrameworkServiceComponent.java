@@ -79,7 +79,6 @@ import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import javax.servlet.Servlet;
 
@@ -554,18 +553,12 @@ public class FrameworkServiceComponent {
             log.debug("DefaultClaimFilter: " + claimFilter.getClass().getName() + " set in " +
                     "FrameworkServiceComponent.");
         }
-        FrameworkServiceDataHolder.getInstance().getClaimFilters().add(claimFilter);
-        FrameworkServiceDataHolder.getInstance().getClaimFilters().sort(getClaimFilterComparator());
+        FrameworkServiceDataHolder.getInstance().addClaimFilter(claimFilter);
     }
 
     protected void unsetClaimFilter (ClaimFilter claimFilter) {
 
-        FrameworkServiceDataHolder.getInstance().setClaimFilters(null);
+        FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
     }
 
-    private Comparator<ClaimFilter> getClaimFilterComparator() {
-
-        // Sort based on priority in descending order, ie. highest priority comes to the first element of the list.
-        return Comparator.comparingInt(ClaimFilter::getPriority).reversed();
-    }
 }
