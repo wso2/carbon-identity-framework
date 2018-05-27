@@ -44,6 +44,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
@@ -226,6 +228,9 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
         dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
+
+        bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
+
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
 
@@ -535,4 +540,26 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
+
+    @Reference(
+            name = "claim.filter.service",
+            service = ClaimFilter.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimFilter"
+    )
+    protected void setClaimFilter(ClaimFilter claimFilter) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("DefaultClaimFilter: " + claimFilter.getClass().getName() + " set in " +
+                    "FrameworkServiceComponent.");
+        }
+        FrameworkServiceDataHolder.getInstance().addClaimFilter(claimFilter);
+    }
+
+    protected void unsetClaimFilter (ClaimFilter claimFilter) {
+
+        FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
+    }
+
 }
