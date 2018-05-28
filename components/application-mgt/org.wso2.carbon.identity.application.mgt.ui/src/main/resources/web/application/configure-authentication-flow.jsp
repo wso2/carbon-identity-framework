@@ -425,23 +425,10 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
         var contentToggle = 0;
 
-        $("#enableScript").click(function () {
-            checkScriptEnabled();
-        });
-
         $("#editorRow").hide();
         checkScriptEnabled();
 
         function checkScriptEnabled() {
-            var scriptEnabled = $("#enableScript").is(":checked");
-            var stepConfigTrigger = $(".authentication_step_config_head");
-            var editorRow = $("#editorRow");
-
-            if (scriptEnabled) {
-                stepConfigTrigger.addClass('active');
-                editorRow.slideDown('fast');
-            }
-
             if (editorContent.length == 0) {
                 contentToggle = 1;
             } else {
@@ -810,17 +797,6 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
                 <% }
                 } %>
-			</div>
-			<div class="script-select-container">
-				<label class="noselect">
-					<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
-						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-							if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-								if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
-						   checked="checked"  <% }
-					}
-					}%>/> Enable Script Based Conditional Authentication
-				</label>
 			</div>
             </div>
 
