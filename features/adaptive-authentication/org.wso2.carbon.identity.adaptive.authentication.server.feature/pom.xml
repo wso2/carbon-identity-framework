@@ -19,7 +19,7 @@
     <parent>
         <artifactId>adaptive-authentication-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.11.232-SNAPSHOT</version>
+        <version>5.11.232</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
