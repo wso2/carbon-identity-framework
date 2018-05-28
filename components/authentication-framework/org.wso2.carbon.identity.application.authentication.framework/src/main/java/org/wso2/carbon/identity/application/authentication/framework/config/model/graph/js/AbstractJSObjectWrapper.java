@@ -18,14 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
-
 /**
  * Abstract wrapper class for objects used inside the javascript.
  *
  * @param <T> Wrapped object type
  */
-public abstract class AbstractJSObjectWrapper<T> extends AbstractJSObject {
+public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMemberObject {
 
     private T wrapped;
 
