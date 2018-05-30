@@ -1417,7 +1417,7 @@ public class ApplicationBean {
 
         String spClaimDialectParam = request.getParameter(ApplicationMgtUIConstants.Params.SP_CLAIM_DIALECT);
         String[] spClaimDialects = null;
-        if (spClaimDialectParam != null) {
+        if (StringUtils.isNotBlank(spClaimDialectParam)) {
             spClaimDialects = spClaimDialectParam.split(",");
 
         }
