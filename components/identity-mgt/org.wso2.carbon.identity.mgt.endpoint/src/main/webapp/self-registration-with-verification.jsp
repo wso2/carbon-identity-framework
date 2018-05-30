@@ -490,7 +490,7 @@
                 '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                 '<ul>' +
                 '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : {{description}}{{/if}}<ul>' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
                 '{{#piiCategories}}' +
                 '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}</li>' +
                 '</li>' +
@@ -507,8 +507,14 @@
             $("#tree-table").html(treeRendered);
 
             container = $("#html1").jstree({
-                plugins: ["table", "sort", "checkbox", "actions", "wholerow"],
+                plugins: ["table", "sort", "checkbox", "actions"],
                 checkbox: {"keep_selected_style": false},
+            });
+
+            container.bind('hover_node.jstree', function() {
+                var bar = $(this).find('.jstree-wholerow-hovered');
+                bar.css('height',
+                    bar.parent().children('a.jstree-anchor').height() + 'px');
             });
 
             container.on('ready.jstree', function (event, data) {
