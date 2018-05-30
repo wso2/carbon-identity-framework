@@ -11,7 +11,7 @@
     "               // Extracting authenticated subject from the first step",
     "               var user = context.steps[1].subject;",
     "               // Checking if the user is assigned for the given role",
-    "               var isAdmin = hasRole(user, 'ROLE-NAME-PLACEHOLDER');",
+    "               var isAdmin = hasRole(user, 'admin');",
     "               Log.info(user.username + ' Has Admin Role: ' + isAdmin);",
     "               if (isAdmin) {",
     "                   executeStep({id: '2'});",
