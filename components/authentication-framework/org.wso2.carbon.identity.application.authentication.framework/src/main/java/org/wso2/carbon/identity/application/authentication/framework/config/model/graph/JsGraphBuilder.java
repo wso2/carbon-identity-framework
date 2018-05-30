@@ -482,9 +482,12 @@ public class JsGraphBuilder {
 
                 } catch (Throwable e) {
                     //We need to catch all the javascript errors here, then log and handle.
-                    //TODO: do proper error handling
                     log.error("Error in executing the javascript for service provider : " + authenticationContext
                             .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
+                    AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
+                            .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
+                    FailNode failNode = new FailNode();
+                    attachToLeaf(executingNode, failNode);
                 } finally {
                     contextForJs.remove();
                     dynamicallyBuiltBaseNode.remove();
