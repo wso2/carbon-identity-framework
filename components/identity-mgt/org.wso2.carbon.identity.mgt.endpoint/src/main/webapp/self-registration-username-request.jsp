@@ -20,6 +20,7 @@
   ~ under the License.
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -52,7 +53,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -73,9 +74,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -89,7 +92,8 @@
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
                 <form action="signup.do" method="post" id="register">
                     <h2
-                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Start Signing Up
+                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Start.signing.up")%>
                     </h2>
                 
                     <div class="clearfix"></div>
@@ -98,19 +102,24 @@
                         </div>
                         <% if (error) { %>
                         <div class="alert alert-danger margin-left-double margin-right-double margin-top-double" id="server-error-msg">
-                            <%= Encode.forHtmlContent(errorMsg) %>
+                            <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
                         </div>
                         <% } %>
                         <!-- validation -->
                         <div class="padding-double">
                         
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <div class="font-large margin-bottom-double">Enter your username here</div>
-                                <label class="control-label">Username</label>
+                                <div class="font-large margin-bottom-double">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.your.username.here")%>
+                                </div>
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%></label>
                                 
                                 <input id="username" name="username" type="text"
                                        class="form-control required usrName usrNameLength" required>
-                                <div class="font-small">If you do not specify a tenant domain, you will be registered under super tenant</div>
+                                <div class="font-small">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                            "If.you.specify.tenant.domain.you.registered.under.super.tenant")%></div>
                                 <input id="callback" name="callback" type="hidden" value="<%=callback%>"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
@@ -118,7 +127,8 @@
                                 <br/>
                                 <button id="registrationSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Proceed to Self Register
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Proceed.to.self.register")%>
                                 </button>
                             </div>
                             <div class="clearfix"></div>
@@ -133,9 +143,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>
