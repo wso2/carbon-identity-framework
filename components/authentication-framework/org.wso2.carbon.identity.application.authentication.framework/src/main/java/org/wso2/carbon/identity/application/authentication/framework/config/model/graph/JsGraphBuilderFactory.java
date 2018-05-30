@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -52,20 +50,20 @@ public class JsGraphBuilderFactory {
         factory = new NashornScriptEngineFactory();
     }
 
-    public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
+    public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
+        throws FrameworkException {
 
-        ScriptEngine engine = factory.getScriptEngine("--no-java");
-
-        Bindings bindings = engine.createBindings();
-        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-        engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
-
-        JsLogger jsLogger = new JsLogger();
-        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
-        return engine;
+        Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
+        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                Object deserializedValue = fromJsSerializable(entry.getValue(), engine);
+                if (deserializedValue instanceof AbstractJSObjectWrapper) {
+                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
+                }
+                bindings.put(entry.getKey(), deserializedValue);
+            }
+        }
     }
 
     public static void persistCurrentContext(AuthenticationContext context, ScriptEngine engine) {
@@ -103,16 +101,21 @@ public class JsGraphBuilderFactory {
         return value;
     }
 
-    public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
-            throws FrameworkException {
+    public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-        if (map != null) {
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                bindings.put(entry.getKey(), fromJsSerializable(entry.getValue(), engine));
-            }
-        }
+        ScriptEngine engine = factory.getScriptEngine("--no-java");
+
+        Bindings bindings = engine.createBindings();
+        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+        engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+//        todo move to functions registry
+        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+            (SelectOneFunction) selectAcrFromFunction::evaluate);
+
+        JsLogger jsLogger = new JsLogger();
+        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        return engine;
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,

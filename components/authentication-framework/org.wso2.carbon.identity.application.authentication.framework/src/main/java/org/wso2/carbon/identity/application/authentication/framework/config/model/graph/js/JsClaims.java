@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,31 +51,40 @@ import java.util.Map;
 /**
  * Represent the user's claim. Can be either remote or local.
  */
-public class JsClaims extends AbstractJSObject {
+public class JsClaims extends AbstractJSContextMemberObject {
 
     private static final Log LOG = LogFactory.getLog(JsClaims.class);
-    private AuthenticationContext wrappedContext;
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
-    private AuthenticatedUser authenticatedUser;
+    private transient AuthenticatedUser authenticatedUser;
 
     /**
      * Constructor to get the user authenticated in step 'n'
      *
-     * @param wrappedContext       Authentication context
      * @param step                 The authentication step
      * @param idp                  The authenticated IdP
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext wrappedContext, int step, String idp, boolean isRemoteClaimRequest) {
+    public JsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 
-        this.wrappedContext = wrappedContext;
+        this(step, idp, isRemoteClaimRequest);
+        initializeContext(context);
+    }
+
+    public JsClaims(int step, String idp, boolean isRemoteClaimRequest) {
+
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.idp = idp;
         this.step = step;
-        if (StringUtils.isNotBlank(idp) && wrappedContext.getCurrentAuthenticatedIdPs().containsKey(idp)) {
-            this.authenticatedUser = wrappedContext.getCurrentAuthenticatedIdPs().get(idp).getUser();
+    }
+
+    @Override
+    public void initializeContext(AuthenticationContext context) {
+
+        super.initializeContext(context);
+        if (StringUtils.isNotBlank(idp) && getContext().getCurrentAuthenticatedIdPs().containsKey(idp)) {
+            this.authenticatedUser = getContext().getCurrentAuthenticatedIdPs().get(idp).getUser();
         }
     }
 
@@ -91,6 +99,12 @@ public class JsClaims extends AbstractJSObject {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
+    }
+
+    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+
+        this(authenticatedUser, isRemoteClaimRequest);
+        initializeContext(context);
     }
 
     @Override
@@ -207,7 +221,7 @@ public class JsClaims extends AbstractJSObject {
         try {
             // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are
             // prioritized over IdP claim mapping
-            ApplicationAuthenticator authenticator = wrappedContext.getSequenceConfig().getStepMap().get(step)
+            ApplicationAuthenticator authenticator = getContext().getSequenceConfig().getStepMap().get(step)
                     .getAuthenticatedAutenticator().getApplicationAuthenticator();
             authenticatorDialect = authenticator.getClaimDialectURI();
             ExternalIdPConfig idPConfig = ConfigurationFacade.getInstance().getIdPConfigByName(idp, tenantDomain);
