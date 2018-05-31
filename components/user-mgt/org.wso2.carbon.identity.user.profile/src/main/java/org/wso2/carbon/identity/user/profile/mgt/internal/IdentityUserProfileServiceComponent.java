@@ -26,8 +26,10 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.listener.ProfileMgtEventListener;
 import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
@@ -72,6 +74,16 @@ public class IdentityUserProfileServiceComponent {
                 }
             } else {
                 log.error("User profile management - ProfileMgtEventListener could not be registered.");
+            }
+            AbstractAdmin userProfileAdmin = new UserProfileAdmin();
+            ServiceRegistration profileAdminSR = ctxt.getBundleContext().registerService(AbstractAdmin.class.getName(),
+                    userProfileAdmin, null);
+            if (profileAdminSR != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User profile admin - UserProfileAdmin registered.");
+                }
+            } else {
+                log.error("User profile admin - UserProfileAdmin could not be registered.");
             }
         } catch (Throwable e) {
             log.error("Failed to activate ProfileMgt bundle ", e);
