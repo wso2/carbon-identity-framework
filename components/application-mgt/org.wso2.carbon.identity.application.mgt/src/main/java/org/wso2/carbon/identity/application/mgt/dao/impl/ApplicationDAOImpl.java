@@ -82,6 +82,7 @@ import java.util.Map.Entry;
 public class ApplicationDAOImpl implements ApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    private static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -1029,7 +1030,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             return;
         }
 
-        updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+            updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
+        }
 
         PreparedStatement updateAuthTypePrepStmt = null;
 
@@ -2978,7 +2981,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            deleteAuthenticationScript(applicationId, connection);
+            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+                deleteAuthenticationScript(applicationId, connection);
+            }
 
         } finally {
             IdentityApplicationManagementUtil
