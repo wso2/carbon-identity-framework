@@ -87,6 +87,7 @@
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
 	String spName = appBean.getServiceProvider().getApplicationName();
 	Map<String, String> claimMapping = appBean.getClaimMapping();
+	boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
 
 	LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
 	IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
@@ -811,7 +812,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 <% }
                 } %>
 			</div>
-			<div class="script-select-container">
+			<div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
 				<label class="noselect">
 					<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
 						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
@@ -827,11 +828,13 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 			<div style="clear:both"></div>
             <!-- sectionSub Div -->
 			<br/>
-				<h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
+				<h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
+				<%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
 					<a href="#">Script Based Conditional Authentication</a>
 				</h2>
 
-				<div class="toggle_container sectionSub" id="editorRow">
+				<div class="toggle_container sectionSub" <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %>
+				id="editorRow">
 					<div style="position: relative;">
 						<div class="sectionSub step_contents" id="codeMirror">
 <textarea id="scriptTextArea" name="scriptTextArea" placeholder="Write custom JavaScript or select from templates that match a scenario..." style="height: 500px;width: 100%; display: none;"><%
