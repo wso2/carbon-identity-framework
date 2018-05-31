@@ -89,19 +89,18 @@ function onInitialRequest(context) {
         Log.info('Some Function prints and return '+s);
         return true;
     }
-    executeStep({id :'1',
-            on : {
-                success : function(context) {
-                    //Log.info('VA1 '+variable1);
-                    Log.info('VA2 '+variable2);
-                    var isAdmin = fn2(context, 'admin');
-                    Log.info("--------------- Has Admin " + isAdmin);
-                    if (isAdmin) {
-                        executeStep({id :'2'});
-                    }
-                }
+    executeStep(1, {
+        onSuccess : function(context) {
+            //Log.info('VA1 '+variable1);
+            Log.info('VA2 '+variable2);
+            var isAdmin = fn2(context, 'admin');
+            Log.info("--------------- Has Admin " + isAdmin);
+            if (isAdmin) {
+                executeStep(2);
             }
-        });
+        }
+
+    });
 }
 ]]></AuthenticationScript>
         <AuthenticationType>flow</AuthenticationType>

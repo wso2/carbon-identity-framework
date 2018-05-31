@@ -391,16 +391,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (flowStatus != null) {
             switch (flowStatus) {
             case SUCCESS_COMPLETED:
-                executeFunction("success", dynamicDecisionNode, context);
+                executeFunction("onSuccess", dynamicDecisionNode, context);
                 break;
             case FAIL_COMPLETED:
-                executeFunction("fail", dynamicDecisionNode, context);
+                executeFunction("onFail", dynamicDecisionNode, context);
                 if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
                     dynamicDecisionNode.setDefaultEdge(new FailNode());
                 }
                 break;
             case FALLBACK:
-                executeFunction("fallback", dynamicDecisionNode, context);
+                executeFunction("onFallback", dynamicDecisionNode, context);
                 break;
             }
         }
