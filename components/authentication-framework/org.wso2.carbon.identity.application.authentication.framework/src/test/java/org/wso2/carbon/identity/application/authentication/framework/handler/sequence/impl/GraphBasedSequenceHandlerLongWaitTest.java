@@ -71,22 +71,19 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
     public interface Fn1 {
 
         void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
-                          Map<String, Object> payloadData,
-                          Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers);
+                          Map<String, Object> payloadData, Map<String, Object> eventHandlers);
     }
 
     public static class AsyncAnalyticsCbFunctionImpl implements Fn1 {
 
         public void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
-                                 Map<String, Object> payloadData,
-                                 Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
+                                 Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
                 System.out.println("Calling With : " + ctx);
-                r.accept(ctx, Collections.emptyMap(), "ok");
+                r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
             JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
-            callback.accept(payloadData);
         }
     }
 }
