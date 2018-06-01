@@ -35,7 +35,8 @@
 
 
 <script>
-        function submitCredentials () {
+        function submitCredentials (e) {
+            e.preventDefault();
             var userName = document.getElementById("username");
             userName.value = userName.value.trim();
             if(userName.value){
@@ -173,7 +174,7 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
-                    type="submit" onclick="submitCredentials()">
+                    type="submit" onclick="submitCredentials(event)">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
