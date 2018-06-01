@@ -31,8 +31,16 @@ public class Constants {
                 "IDP_USER_ID, DOMAIN_NAME, USER_NAME) VALUES (? , (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = " +
                 "?), ? , ?, ?)";
 
-        public static final String RETRIEVE_EXISTING_ASSOCIATIONS = "SELECT USER_NAME, DOMAIN_NAME FROM " +
+        public static final String RETRIEVE_USER_ASSOCIATED = "SELECT DOMAIN_NAME, USER_NAME FROM " +
                 "IDN_ASSOCIATED_ID WHERE TENANT_ID = ? AND IDP_ID = (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID " +
                 "= ?) AND IDP_USER_ID = ?";
+
+        public static final String DELETE_ASSOCIATION = "DELETE FROM IDN_ASSOCIATED_ID WHERE TENANT_ID = ? AND " +
+                "IDP_ID" + " = (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = ? ) AND IDP_USER_ID = ? AND " +
+                "USER_NAME = ? AND " + "DOMAIN_NAME = ?";
+
+        public static final String RETRIEVE_ASSOCIATIONS_FOR_USER = "SELECT IDP.NAME, IDP_USER_ID FROM " +
+                "IDN_ASSOCIATED_ID JOIN IDP ON IDN_ASSOCIATED_ID.IDP_ID = IDP.ID WHERE IDN_ASSOCIATED_ID.TENANT_ID = " +
+                "? AND USER_NAME = ? AND DOMAIN_NAME = ?";
     }
 }
