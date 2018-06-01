@@ -1358,13 +1358,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         .prepareStatement(ApplicationMgtDBQueries.STORE_SP_DIALECTS_BY_APP_ID);
 
                 for (String spClaimDialect : spClaimDialects) {
-                    storeSPDialectsPrepStmt.setInt(1, tenantID);
-                    storeSPDialectsPrepStmt.setString(2, spClaimDialect);
-                    storeSPDialectsPrepStmt.setInt(3, applicationId);
-                    storeSPDialectsPrepStmt.addBatch();
+                    if (spClaimDialect != null && !spClaimDialect.isEmpty()) {
+                        storeSPDialectsPrepStmt.setInt(1, tenantID);
+                        storeSPDialectsPrepStmt.setString(2, spClaimDialect);
+                        storeSPDialectsPrepStmt.setInt(3, applicationId);
+                        storeSPDialectsPrepStmt.addBatch();
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Storing SP Dialect: " + spClaimDialects);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Storing SP Dialect: " + spClaimDialect);
+                        }
                     }
                 }
                 storeSPDialectsPrepStmt.executeBatch();
@@ -2608,8 +2610,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             loadSPDialectsResultSet = loadSPDialectsPrepStmt.executeQuery();
 
             while (loadSPDialectsResultSet.next()) {
-                if(loadSPDialectsResultSet.getString(1) != null) {
-                    spDialectList.add(loadSPDialectsResultSet.getString(1));
+                String spDialect = loadSPDialectsResultSet.getString(1);
+                if (spDialect != null && !spDialect.isEmpty()) {
+                    spDialectList.add(spDialect);
                 }
             }
             claimConfig.setSpClaimDialects(spDialectList.toArray(new String[spDialectList.size()]));
