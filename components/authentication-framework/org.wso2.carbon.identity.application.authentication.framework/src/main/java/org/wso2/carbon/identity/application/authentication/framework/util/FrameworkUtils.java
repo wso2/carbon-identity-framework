@@ -340,18 +340,18 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
+        StepBasedSequenceHandler stepBasedSequenceHandler;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
+        if (obj instanceof StepBasedSequenceHandler) {
+            stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
-            Object obj = ConfigurationFacade.getInstance().getExtensions()
-                    .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
+            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
+        }
 
-            if (obj instanceof StepBasedSequenceHandler) {
-                stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
-            } else {
-                stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
-            }
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepBasedSequenceHandler instanceof GraphBasedSequenceHandler)) {
+            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
         }
         return stepBasedSequenceHandler;
     }
@@ -379,17 +379,18 @@ public class FrameworkUtils {
      */
     public static StepHandler getStepHandler() {
 
-        StepHandler stepHandler = null;
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-            stepHandler = new GraphBasedStepHandler();
+        StepHandler stepHandler;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
+        if (obj instanceof StepHandler) {
+            stepHandler = (StepHandler) obj;
         } else {
-            Object obj = ConfigurationFacade.getInstance().getExtensions()
-                    .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-            if (obj instanceof StepHandler) {
-                stepHandler = (StepHandler) obj;
-            } else {
-                stepHandler = DefaultStepHandler.getInstance();
-            }
+            stepHandler = DefaultStepHandler.getInstance();
+        }
+
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepHandler instanceof GraphBasedStepHandler)) {
+            stepHandler = new GraphBasedStepHandler();
         }
         return stepHandler;
     }
