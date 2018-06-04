@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticator;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -89,8 +88,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
-                    boolean isBasicAuthenticator = this instanceof BasicAuthenticator;
-                    if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                    if (eventFiringEnabled() && context.getProperty(FrameworkConstants.USERNAME) != null) {
                         String eventName = IdentityEventConstants.Event.PRE_AUTHENTICATION;
                         fireEvent(context, eventName, false);
                     }
@@ -197,7 +195,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
-            boolean isBasicAuthenticator = this instanceof BasicAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             if (isFederated) {
@@ -215,7 +212,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
-                if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                if (eventFiringEnabled() && context.getProperty(FrameworkConstants.USERNAME) != null) {
                     eventName = IdentityEventConstants.Event.POST_AUTHENTICATION;
                     fireEvent(context, eventName, true);
                 }
@@ -223,7 +220,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
-                if (!isBasicAuthenticator && context.getProperty(FrameworkConstants.USERNAME) != null) {
+                if (eventFiringEnabled() && context.getProperty(FrameworkConstants.USERNAME) != null) {
                     eventName = IdentityEventConstants.Event.POST_AUTHENTICATION;
                     fireEvent(context, eventName, false);
                 }
@@ -304,6 +301,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return false;
     }
 
+    protected boolean eventFiringEnabled() {
+        return false;
+    }
     /**
      * In case of the authenticator being an option in a multi-option step, decide whether to redirect to
      * multi-options page to retry. By default all authenticators will redirect to the multi-option page on failure.

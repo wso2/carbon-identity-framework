@@ -1464,11 +1464,6 @@
                 <artifactId>siddhi-annotations</artifactId>
                 <version>${siddhi.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.application.auth.basic</groupId>
-                <artifactId>org.wso2.carbon.identity.application.authenticator.basicauth</artifactId>
-                <version>${carbon.identity.package.import.version.range}</version>
-            </dependency>
         </dependencies>
 
     </dependencyManagement>
