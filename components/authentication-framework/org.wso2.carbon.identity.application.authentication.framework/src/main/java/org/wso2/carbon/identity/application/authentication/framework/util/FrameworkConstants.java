@@ -37,6 +37,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
+    public static final String SP_REQUESTED_CLAIMS_IN_REQUEST = "SP_REQUESTED_CLAIMS_IN_REQUEST";
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";
@@ -99,6 +100,11 @@ public abstract class FrameworkConstants {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
+    public static final String REMEMBER_ME_OPT_ON = "on";
+    public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
+
+    public static final String LONG_WAIT_KEY = "longWaitKey";
+
     private FrameworkConstants() {
 
     }
@@ -140,6 +146,8 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
+                "AuthenticationEndpointMissingClaimsURL";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
         public static final String QNAME_MAX_LOGIN_ATTEMPT_COUNT = "MaxLoginAttemptCount";
         public static final String QNAME_EXTENSIONS = "Extensions";
@@ -289,18 +297,18 @@ public abstract class FrameworkConstants {
 
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
+        public static final String JS_FUNC_SHOW_PROMPT = "prompt";
+        public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
+        public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
-        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
-        public static final String JS_PAGE_URI = "pageUri";
+        public static final String JS_RETRY_STEP = "retry";
     }
-
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
         public static final String WORKFLOW_DOMAIN = "Workflow";
-
         private InternalRoleDomains() {
         }
     }

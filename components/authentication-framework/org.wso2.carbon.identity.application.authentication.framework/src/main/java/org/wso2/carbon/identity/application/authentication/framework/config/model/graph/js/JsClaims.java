@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,31 +51,40 @@ import java.util.Map;
 /**
  * Represent the user's claim. Can be either remote or local.
  */
-public class JsClaims extends AbstractJSObject {
+public class JsClaims extends AbstractJSContextMemberObject {
 
     private static final Log LOG = LogFactory.getLog(JsClaims.class);
-    private AuthenticationContext wrappedContext;
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
-    private AuthenticatedUser authenticatedUser;
+    private transient AuthenticatedUser authenticatedUser;
 
     /**
      * Constructor to get the user authenticated in step 'n'
      *
-     * @param wrappedContext       Authentication context
      * @param step                 The authentication step
      * @param idp                  The authenticated IdP
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext wrappedContext, int step, String idp, boolean isRemoteClaimRequest) {
+    public JsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 
-        this.wrappedContext = wrappedContext;
+        this(step, idp, isRemoteClaimRequest);
+        initializeContext(context);
+    }
+
+    public JsClaims(int step, String idp, boolean isRemoteClaimRequest) {
+
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.idp = idp;
         this.step = step;
-        if (StringUtils.isNotBlank(idp) && wrappedContext.getCurrentAuthenticatedIdPs().containsKey(idp)) {
-            this.authenticatedUser = wrappedContext.getCurrentAuthenticatedIdPs().get(idp).getUser();
+    }
+
+    @Override
+    public void initializeContext(AuthenticationContext context) {
+
+        super.initializeContext(context);
+        if (StringUtils.isNotBlank(idp) && getContext().getCurrentAuthenticatedIdPs().containsKey(idp)) {
+            this.authenticatedUser = getContext().getCurrentAuthenticatedIdPs().get(idp).getUser();
         }
     }
 
@@ -91,6 +99,12 @@ public class JsClaims extends AbstractJSObject {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
+    }
+
+    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+
+        this(authenticatedUser, isRemoteClaimRequest);
+        initializeContext(context);
     }
 
     @Override
@@ -135,18 +149,36 @@ public class JsClaims extends AbstractJSObject {
     }
 
     /**
-     * Sets a custom remote claim to the user.
+     * Get the claim by local claim URI.
      *
-     * @param claimUri   Remote claim uri
-     * @param claimValue Claim value
+     * @param claimUri   Local claim URI
+     * @param claimValue Claim Value
      */
-    private void setFederatedClaim(String claimUri, Object claimValue) {
+    private void setLocalClaim(String claimUri, Object claimValue) {
 
-        if (claimValue == null) {
-            claimValue = StringUtils.EMPTY;
+        if (isFederatedIdP()) {
+            setLocalMappedClaim(claimUri, claimValue);
+        } else {
+            // This covers step with a local authenticator, and the scenarios where step/idp is not set
+            // if the step/idp is not set, user is assumed to be a local user
+            setLocalUserClaim(claimUri, claimValue);
         }
-        ClaimMapping newClaimMapping = ClaimMapping.build(claimUri, claimUri, null, false);
-        authenticatedUser.getUserAttributes().put(newClaimMapping, claimValue.toString());
+    }
+
+    /**
+     * Sets the remote claim value that is mapped to the give local claim
+     *
+     * @param localClaimURI Local claim URI
+     * @param claimValue    Value to be set
+     */
+    private void setLocalMappedClaim(String localClaimURI, Object claimValue) {
+
+        Map<ClaimMapping, String> idpAttributesMap = authenticatedUser.getUserAttributes();
+        Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
+        String mappedRemoteClaim = getRemoteClaimMappedToLocalClaim(localClaimURI, remoteMapping);
+        if (mappedRemoteClaim != null) {
+            setFederatedClaim(mappedRemoteClaim, String.valueOf(claimValue));
+        }
     }
 
     /**
@@ -155,7 +187,7 @@ public class JsClaims extends AbstractJSObject {
      * @param claimUri   Local claim URI
      * @param claimValue Claim value
      */
-    private void setLocalClaim(String claimUri, Object claimValue) {
+    private void setLocalUserClaim(String claimUri, Object claimValue) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -164,14 +196,59 @@ public class JsClaims extends AbstractJSObject {
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
             userRealm.getUserStoreManager().setUserClaimValues(authenticatedUser.getUserName(), Collections
-                .singletonMap(claimUri, claimValue.toString()), null);
+                    .singletonMap(claimUri, String.valueOf(claimValue)), null);
             Map<String, String> claimValues = userRealm.getUserStoreManager().getUserClaimValues(usernameWithDomain, new
                 String[]{claimUri}, null);
             claimValues.get(claimUri);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
-                authenticatedUser, claimValue.toString()), e);
+                    authenticatedUser, String.valueOf(claimValue)), e);
         }
+    }
+
+    /**
+     * Gets the remote claim that is mapped to the given local claim
+     *
+     * @param localClaim      local claim URI
+     * @param remoteClaimsMap Remote claim URI - value map
+     * @return Mapped remote claim URI if present. null otherwise
+     */
+    private String getRemoteClaimMappedToLocalClaim(String localClaim, Map<String, String> remoteClaimsMap) {
+
+        String authenticatorDialect = null;
+        Map<String, String> localToIdpClaimMapping = null;
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        try {
+            // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are
+            // prioritized over IdP claim mapping
+            ApplicationAuthenticator authenticator = getContext().getSequenceConfig().getStepMap().get(step)
+                    .getAuthenticatedAutenticator().getApplicationAuthenticator();
+            authenticatorDialect = authenticator.getClaimDialectURI();
+            ExternalIdPConfig idPConfig = ConfigurationFacade.getInstance().getIdPConfigByName(idp, tenantDomain);
+            boolean useDefaultIdpDialect = idPConfig.useDefaultLocalIdpDialect();
+
+            if (authenticatorDialect != null || useDefaultIdpDialect) {
+                if (authenticatorDialect == null) {
+                    authenticatorDialect = ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+                }
+                localToIdpClaimMapping = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon
+                        (authenticatorDialect, remoteClaimsMap.keySet(), tenantDomain, true);
+            } else {
+                localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
+                        (idp, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(), Collections
+                                .singletonList(localClaim));
+
+            }
+            if (localToIdpClaimMapping != null) {
+                return localToIdpClaimMapping.get(localClaim);
+            }
+        } catch (IdentityProviderManagementException e) {
+            LOG.error(String.format("Error when getting claim : %s of user: %s", localClaim, authenticatedUser), e);
+        } catch (ClaimMetadataException e) {
+            LOG.error("Error when getting claim mappings from " + authenticatorDialect + " for tenant domain: " +
+                    tenantDomain);
+        }
+        return null;
     }
 
     /**
@@ -266,6 +343,21 @@ public class JsClaims extends AbstractJSObject {
     }
 
     /**
+     * Sets a custom remote claim to the user.
+     *
+     * @param claimUri   Remote claim uri
+     * @param claimValue Claim value
+     */
+    private void setFederatedClaim(String claimUri, Object claimValue) {
+
+        if (claimValue == null) {
+            claimValue = StringUtils.EMPTY;
+        }
+        ClaimMapping newClaimMapping = ClaimMapping.build(claimUri, claimUri, null, false);
+        authenticatedUser.getUserAttributes().put(newClaimMapping, String.valueOf(claimValue));
+    }
+
+    /**
      * Gets the mapped remote claim value for the given local claim URI
      *
      * @param claimUri Local claim URI
@@ -274,39 +366,11 @@ public class JsClaims extends AbstractJSObject {
     private String getLocalMappedClaim(String claimUri) {
 
         Map<ClaimMapping, String> idpAttributesMap = authenticatedUser.getUserAttributes();
-        String authenticatorDialect = null;
-        Map<String, String> localToIdpClaimMapping = null;
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        try {
-            // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are
-            // prioritized over IdP claim mapping
-            ApplicationAuthenticator authenticator = wrappedContext.getSequenceConfig().getStepMap().get(step)
-                .getAuthenticatedAutenticator().getApplicationAuthenticator();
-            authenticatorDialect = authenticator.getClaimDialectURI();
-            ExternalIdPConfig idPConfig = ConfigurationFacade.getInstance().getIdPConfigByName(idp, tenantDomain);
-            boolean useDefaultIdpDialect = idPConfig.useDefaultLocalIdpDialect();
-            Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
+        Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
 
-            if (authenticatorDialect != null || useDefaultIdpDialect) {
-                if (authenticatorDialect == null) {
-                    authenticatorDialect = ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
-                }
-                localToIdpClaimMapping = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon
-                    (authenticatorDialect, remoteMapping.keySet(), tenantDomain, true);
-            } else {
-                localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
-                    (idp, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(), Collections
-                        .singletonList(claimUri));
-
-            }
-            if (localToIdpClaimMapping != null) {
-                return remoteMapping.get(localToIdpClaimMapping.get(claimUri));
-            }
-        } catch (IdentityProviderManagementException e) {
-            LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
-        } catch (ClaimMetadataException e) {
-            LOG.error("Error when getting claim mappings from " + authenticatorDialect + " for tenant domain: " +
-                tenantDomain);
+        String remoteMappedClaim = getRemoteClaimMappedToLocalClaim(claimUri, remoteMapping);
+        if (remoteMappedClaim != null) {
+            return remoteMapping.get(remoteMappedClaim);
         }
         return null;
     }

@@ -664,6 +664,17 @@ public class IdentityUtil {
         return Long.parseLong(cleanUpTimeout);
     }
 
+    public static long getTempDataCleanUpTimeout() {
+
+        String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT);
+        if (StringUtils.isBlank(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT;
+        }
+        return Long.parseLong(cleanUpTimeout);
+    }
+
     public static long getOperationCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);

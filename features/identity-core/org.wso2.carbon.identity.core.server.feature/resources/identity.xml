@@ -42,6 +42,16 @@
             <OperationDataCleanUp>
                 <Enable>true</Enable>
             </OperationDataCleanUp>
+            <TempDataCleanup>
+                <!-- Enabling separated cleanup for temporary authentication context data -->
+                <Enable>true</Enable>
+                <!-- When PoolZize > 0, temporary data which have no usage after the authentication flow will be deleted immediately
+                 When PoolZise = 0, data will be deleted only by the scheduled cleanup task-->
+                <PoolSize>20</PoolSize>
+                <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
+                and would be deleted during cleanup task -->
+                <CleanUpTimeout>40</CleanUpTimeout>
+            </TempDataCleanup>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -189,6 +199,12 @@
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
         <!-- Process the token before storing it in database, e.g. encrypting -->
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
+        <!-- This should be true if the oauth keys (consumer secret, access token, refresh token and authorization code) need to be hashed,
+             before storing them in the database. If the value is false, the oauth keys will be saved in a plain text format.
+             By default : false.
+             Supported versions: IS 5.6.0 onwards.
+        -->
+        <EnableClientSecretHash>false</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
         <!-- Supported Response Types -->
@@ -634,6 +650,21 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
+
+        <!-- Audit Loggers -->
+
+        <!-- Old Audit Logger -->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger"
+                       orderId="0" enable="false"/>
+
+        <!-- New Audit Loggers-->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger"
+                       orderId="1" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger"
+                       orderId="0" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -837,5 +868,22 @@
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
+
+    <!-- JWT validator configurations -->
+    <JWTValidatorConfigs>
+        <Enable>true</Enable>
+        <JWKSEndpoint>
+            <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>1000</HTTPReadTimeout>
+            <HTTPSizeLimit>51200</HTTPSizeLimit>
+        </JWKSEndpoint>
+    </JWTValidatorConfigs>
+
+    <AdaptiveAuth>
+        <EventPublisher>
+            <receiverURL>http://localhost:8280/</receiverURL>
+        </EventPublisher>
+        <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
+    </AdaptiveAuth>
 
 </Server>

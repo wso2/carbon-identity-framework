@@ -22,13 +22,13 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.concurrent.BlockingDeque;
 
-public class SessionDataDeleteRecordsTask implements Runnable {
+public class TempAuthContextDataDeleteTask implements Runnable {
 
-    private static final Log log = LogFactory.getLog(SessionDataDeleteRecordsTask.class);
+    private static final Log log = LogFactory.getLog(TempAuthContextDataDeleteTask.class);
     private BlockingDeque<SessionContextDO> sessionContextDeleteTempQueue;
     private static volatile boolean running;
 
-    public SessionDataDeleteRecordsTask(BlockingDeque<SessionContextDO> sessionContextDeleteTempQueue) {
+    public TempAuthContextDataDeleteTask(BlockingDeque<SessionContextDO> sessionContextDeleteTempQueue) {
         this.sessionContextDeleteTempQueue = sessionContextDeleteTempQueue;
     }
 
@@ -36,7 +36,7 @@ public class SessionDataDeleteRecordsTask implements Runnable {
     public void run() {
 
         if (log.isDebugEnabled()) {
-            log.debug("Session Context delete temp records consumer is started");
+            log.debug("Starting temporary authentication context data delete task");
         }
 
         running = true;
@@ -45,18 +45,18 @@ public class SessionDataDeleteRecordsTask implements Runnable {
             try {
                 SessionContextDO sessionContextDO = sessionContextDeleteTempQueue.take();
                 if (sessionContextDO != null) {
-                    SessionDataStore.getInstance().removeSessionDataRecords(sessionContextDO.getKey(),
-                                sessionContextDO.getType());
+                    SessionDataStore.getInstance().removeTempAuthnContextData(sessionContextDO.getKey(),
+                            sessionContextDO.getType());
                 }
             } catch (InterruptedException e) {
                 //ignore
-                log.error(e);
+                log.error("Error while running temporary data delete task: ", e);
             }
-
         }
     }
 
     public static void shutdown() {
         running = false;
     }
+
 }

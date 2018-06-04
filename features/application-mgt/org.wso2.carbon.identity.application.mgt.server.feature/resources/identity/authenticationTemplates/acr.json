@@ -1,0 +1,22 @@
+{
+  "category": "Request Based",
+  "name": "ACR",
+  "img": "./images/user.gif",
+  "code": [
+    "function onInitialRequest(context) {",
+    "",
+    "    var acr = selectAcrFrom(context, ['acr1', 'acr2', 'acr3', 'acr4']);",
+    "    Log.info('--------------- ACR selected: ' + acr);",
+    "    context.selectedAcr = acr;",
+    "    switch(acr) {",
+    "        case 'acr1' : executeStep(1);break;",
+    "        case 'acr2' : executeStep(1); executeStep(2);  break;",
+    "        case 'acr3' : executeStep(1); executeStep(3);  break;",
+    "        case 'acr4' : executeStep(1); executeStep(4);  break;",
+    "        default :  executeStep(1);  executeStep(2);  executeStep(3); executeStep(4);",
+    "    }",
+    "}"
+  ],
+  "help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
+  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+}

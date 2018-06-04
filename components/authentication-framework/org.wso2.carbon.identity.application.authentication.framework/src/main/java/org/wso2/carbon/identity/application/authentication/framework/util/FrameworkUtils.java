@@ -114,6 +114,7 @@ import javax.servlet.http.HttpServletResponse;
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
@@ -255,7 +256,14 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) {
 
         AuthenticationContext context = null;
-
+        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
+            String promptId = request.getParameter("promptId");
+            context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
+            if (context != null) {
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                return context;
+            }
+        }
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
@@ -334,16 +342,19 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        StepBasedSequenceHandler stepBasedSequenceHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
-
         if (obj instanceof StepBasedSequenceHandler) {
             stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
-            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
+            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
         }
 
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepBasedSequenceHandler instanceof GraphBasedSequenceHandler)) {
+            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
+        }
         return stepBasedSequenceHandler;
     }
 
@@ -370,16 +381,19 @@ public class FrameworkUtils {
      */
     public static StepHandler getStepHandler() {
 
-        StepHandler stepHandler = null;
+        StepHandler stepHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-
         if (obj instanceof StepHandler) {
             stepHandler = (StepHandler) obj;
         } else {
-            stepHandler = new GraphBasedStepHandler();
+            stepHandler = DefaultStepHandler.getInstance();
         }
 
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepHandler instanceof GraphBasedStepHandler)) {
+            stepHandler = new GraphBasedStepHandler();
+        }
         return stepHandler;
     }
 

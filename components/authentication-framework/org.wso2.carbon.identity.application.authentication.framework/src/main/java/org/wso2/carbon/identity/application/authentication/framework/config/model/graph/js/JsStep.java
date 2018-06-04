@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -29,19 +28,23 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 /**
  * Represents a authentication step.
  */
-public class JsStep extends AbstractJSObject {
+public class JsStep extends AbstractJSContextMemberObject {
 
     private static final Log LOG = LogFactory.getLog(JsSteps.class);
 
     private int step;
-    private AuthenticationContext wrappedContext;
     private String authenticatedIdp;
 
-    public JsStep(AuthenticationContext wrappedContext, int step, String authenticatedIdp) {
+    public JsStep(int step, String authenticatedIdp) {
 
-        this.wrappedContext = wrappedContext;
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
+    }
+
+    public JsStep(AuthenticationContext context, int step, String authenticatedIdp) {
+
+        this(step, authenticatedIdp);
+        initializeContext(context);
     }
 
     @Override
@@ -49,7 +52,7 @@ public class JsStep extends AbstractJSObject {
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return new JsAuthenticatedUser(getSubject(), wrappedContext, step, authenticatedIdp);
+                return new JsAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
             default:
@@ -85,7 +88,7 @@ public class JsStep extends AbstractJSObject {
     private AuthenticatedUser getSubject() {
 
         if (authenticatedIdp != null) {
-            AuthenticatedIdPData idPData = wrappedContext.getCurrentAuthenticatedIdPs().get(authenticatedIdp);
+            AuthenticatedIdPData idPData = getContext().getCurrentAuthenticatedIdPs().get(authenticatedIdp);
             return idPData.getUser();
         }
         return null;

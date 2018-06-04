@@ -35,7 +35,8 @@
 
 
 <script>
-        function submitCredentials () {
+        function submitCredentials (e) {
+            e.preventDefault();
             var userName = document.getElementById("username");
             userName.value = userName.value.trim();
             if(userName.value){
@@ -92,19 +93,19 @@
     String type = request.getParameter("type");
     if ("samlsso".equals(type)) {
 %>
-<form action="../samlsso" method="post" id="loginForm">
+<form action="<%=samlssoURL%>" method="post" id="loginForm">
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
 <%
     } else if ("oauth2".equals(type)){
 %>
-    <form action="../oauth2/authorize" method="post" id="loginForm">
+    <form action="<%=oauth2AuthorizeURL%>" method="post" id="loginForm">
         <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
 
 <%
     } else {
 %>
 
-<form action="../commonauth" method="post" id="loginForm">
+<form action="<%=commonauthURL%>" method="post" id="loginForm">
 
     <%
         }
@@ -173,14 +174,30 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
-                    type="submit" onclick="submitCredentials()">
+                    type="submit" onclick="submitCredentials(event)">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
         <%
+            String recoveryEPAvailable = application.getInitParameter("EnableRecoveryEndpoint");
+            String enableSelfSignUpEndpoint = application.getInitParameter("EnableSelfSignUpEndpoint");
+            Boolean isRecoveryEPAvailable;
+            Boolean isSelfSignUpEPAvailable;
 
-            if (isRecoveryEPAvailable() || isSelfSignUpEPAvailable()) {
+            if (StringUtils.isNotBlank(recoveryEPAvailable)) {
+                isRecoveryEPAvailable = Boolean.valueOf(recoveryEPAvailable);
+            } else {
+                isRecoveryEPAvailable = isRecoveryEPAvailable();
+            }
+
+            if (StringUtils.isNotBlank(enableSelfSignUpEndpoint)) {
+                isSelfSignUpEPAvailable = Boolean.valueOf(enableSelfSignUpEndpoint);
+            } else {
+                isSelfSignUpEPAvailable = isSelfSignUpEPAvailable();
+            }
+
+            if (isRecoveryEPAvailable || isSelfSignUpEPAvailable) {
                 String scheme = request.getScheme();
                 String serverName = request.getServerName();
                 int serverPort = request.getServerPort();
@@ -195,7 +212,7 @@
                     identityMgtEndpointContext = getServerURL("/accountrecoveryendpoint", true, true);
                 }
 
-                if (isRecoveryEPAvailable()) {
+                if (isRecoveryEPAvailable) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">
@@ -212,7 +229,7 @@
         </div>
         <%
                 }
-                if (isSelfSignUpEPAvailable()) {
+                if (isSelfSignUpEPAvailable) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">

@@ -49,23 +49,33 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> {
 
     private static final Log LOG = LogFactory.getLog(JsAuthenticatedUser.class);
-
-    private AuthenticationContext context;
     private int step;
     private String idp;
 
     /**
      * Constructor to be used when required to access step specific user details.
      *
+     * @param context Authentication context
      * @param wrappedUser Authenticated user
-     * @param context     Authentication context
      * @param step        Authentication step
      * @param idp         Authenticated Idp
      */
-    public JsAuthenticatedUser(AuthenticatedUser wrappedUser, AuthenticationContext context, int step, String idp) {
+    public JsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step, String idp) {
+
+        this(wrappedUser, step, idp);
+        initializeContext(context);
+    }
+
+    /**
+     * Constructor to be used when required to access step specific user details.
+     *
+     * @param wrappedUser Authenticated user
+     * @param step        Authentication step
+     * @param idp         Authenticated Idp
+     */
+    public JsAuthenticatedUser(AuthenticatedUser wrappedUser, int step, String idp) {
 
         super(wrappedUser);
-        this.context = context;
         this.step = step;
         this.idp = idp;
     }
@@ -78,6 +88,12 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
     public JsAuthenticatedUser(AuthenticatedUser wrappedUser) {
 
         super(wrappedUser);
+    }
+
+    public JsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser) {
+
+        this(wrappedUser);
+        initializeContext(context);
     }
 
     @Override
@@ -94,17 +110,17 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new JsClaims(context, step, idp, false);
+                    return new JsClaims(getContext(), step, idp, false);
                 } else {
                     // Represent step independent user
-                    return new JsClaims(getWrapped(), false);
+                    return new JsClaims(getContext(), getWrapped(), false);
                 }
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new JsClaims(context, step, idp, true);
+                    return new JsClaims(getContext(), step, idp, true);
                 } else {
                     // Represent step independent user
-                    return new JsClaims(getWrapped(), true);
+                    return new JsClaims(getContext(), getWrapped(), true);
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();

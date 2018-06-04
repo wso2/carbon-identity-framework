@@ -30,6 +30,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String userName = request.getParameter("username");
@@ -55,8 +56,8 @@
         } catch (ApiException e) {
             if (e.getCode() == 204) {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        "No Security Questions Found to recover password. Please contact your system Administrator");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "No.security.questions.found.to.recover.password.contact.system.administrator"));
                 request.setAttribute("errorCode", "18017");
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;

@@ -54,9 +54,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        HashMap stepsToExecute = new HashMap<String, Object>();
-        stepsToExecute.put("id", "2");
-        jsGraphBuilder.executeStep(stepsToExecute);
+        jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
         assertNull(graph.getStartNode());
@@ -70,12 +68,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        HashMap stepsToExecute = new HashMap<String, Object>();
-        stepsToExecute.put("id", "1");
-        jsGraphBuilder.executeStep(stepsToExecute);
-        stepsToExecute = new HashMap<String, Object>();
-        stepsToExecute.put("id", "2");
-        jsGraphBuilder.executeStep(stepsToExecute);
+        jsGraphBuilder.executeStep(1);
+        jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
         assertNotNull(graph.getStartNode());
@@ -87,8 +81,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     public void testCreate_Javascript() throws Exception {
-        String script = "function onInitialRequest(context) { executeStep({id :'1', on : {success : function(context) {"
-                + "executeStep({id :'2'});}}})};";
+        String script = "function onInitialRequest(context) { executeStep(1, { onSuccess : function(context) {"
+                + "executeStep({id :'2'});}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);

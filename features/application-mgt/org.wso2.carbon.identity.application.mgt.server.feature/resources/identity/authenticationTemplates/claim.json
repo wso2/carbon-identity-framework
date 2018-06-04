@@ -1,0 +1,26 @@
+{
+  "category": "User Based",
+  "name": "Claim Manipulation",
+  "img": "./images/user.gif",
+  "code": [
+    "/*",
+    "This template shows how to manipulate user claims/attributes within the authentication flow",
+    "*/",
+    "function onInitialRequest (context) {",
+    "    executeStep(1, {",
+    "        onSuccess : function(context) {",
+    "            var subject = context.steps[1].subject;",
+    "            // Extracting existing claims/attributes from the authenticated subject in the step 1",
+    "            var firstName = subject.localClaims['http://wso2.org/claims/givenname'];",
+    "            var lastName = subject.localClaims['http://wso2.org/claims/lastname'];",
+    "",
+    "            var displayName = firstName + ' ' + lastName;",
+    "            // Setting new claims to the subject",
+    "            subject.localClaims['http://wso2.org/claims/displayName'] = displayName;",
+    "        }",
+    "    });",
+    "}"
+  ],
+  "help": "Manipulating claims/attributes of the authenticated subject.",
+  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+}

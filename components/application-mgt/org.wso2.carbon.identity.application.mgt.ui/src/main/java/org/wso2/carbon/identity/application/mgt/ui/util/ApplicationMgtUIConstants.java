@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,15 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
-
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+package org.wso2.carbon.identity.application.mgt.ui.util;
 
 /**
- * Function definition for checking/matching string from the context.
+ * Holds the application UI related constants.
  */
-@FunctionalInterface
-public interface IsExistsStringFunction {
+public class ApplicationMgtUIConstants {
 
-    Boolean contains(JsAuthenticationContext context, String string);
+    private ApplicationMgtUIConstants() {
+    }
+
+    /**
+     * Holds the application UI param related constants.
+     */
+    public static class Params {
+
+        public static final String SP_CLAIM_DIALECT = "spClaimDialects";
+
+        private Params() {
+        }
+    }
+
 }

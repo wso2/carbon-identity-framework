@@ -44,6 +44,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
@@ -52,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
@@ -63,6 +66,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Au
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -211,11 +215,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.setJsFunctionRegistry(dataHolder.getJsFunctionRegistry());
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
-        uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
-        uiBasedConfigurationLoader.setJsFunctionRegistrar(dataHolder.getJsFunctionRegistry());
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
         dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
@@ -231,6 +232,18 @@ public class FrameworkServiceComponent {
         dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
 
+        bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
+
+        //this is done to load SessionDataStore class and start the cleanup tasks.
+        SessionDataStore.getInstance();
+
+        AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
+        asyncSequenceExecutor.init();
+        dataHolder.setAsyncSequenceExecutor(asyncSequenceExecutor);
+
+        LongWaitStatusStoreService longWaitStatusStoreService = new LongWaitStatusStoreService();
+        dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
+
         // Registering JIT, association and domain handler as post authentication handler
         PostAuthenticationHandler postJITProvisioningHandler = new PostJITProvisioningHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
@@ -239,10 +252,6 @@ public class FrameworkServiceComponent {
         PostAuthenticationHandler postAuthenticatedUserDomainHandler = new PostAuthenticatedSubjectIdentifierHandler();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
-
-        //this is done to load SessionDataStore class and start the cleanup tasks.
-        SessionDataStore.getInstance();
-
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -542,4 +551,26 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
+
+    @Reference(
+            name = "claim.filter.service",
+            service = ClaimFilter.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimFilter"
+    )
+    protected void setClaimFilter(ClaimFilter claimFilter) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("DefaultClaimFilter: " + claimFilter.getClass().getName() + " set in " +
+                    "FrameworkServiceComponent.");
+        }
+        FrameworkServiceDataHolder.getInstance().addClaimFilter(claimFilter);
+    }
+
+    protected void unsetClaimFilter (ClaimFilter claimFilter) {
+
+        FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
+    }
+
 }

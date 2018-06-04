@@ -22,6 +22,7 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:directive.include file="localize.jsp"/>
 <%
     boolean isEmailNotificationEnabled = false;
 
@@ -48,18 +49,22 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Information")%>
+                    </h4>
                 </div>
                 <div class="modal-body">
                     <% if (StringUtils.isNotBlank(confirm) && confirm.equals("true")) {%>
-                    <p>Successfully confirmed</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Successfully.confirmed")%></p>
                     <%
                     } else {
                         if (isEmailNotificationEnabled) {
                     %>
-                    <p>Confirmation link has been sent to your email</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Confirmation.sent.to.mail")%></p>
                     <% } else {%>
-                    <p>User registration completed successfully</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "User.registration.completed.successfully")%>
+                    </p>
                     <%
                             }
                         }
@@ -67,7 +72,9 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>

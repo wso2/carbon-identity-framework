@@ -188,6 +188,19 @@ public class ConfigurationFacade {
     }
 
     /**
+     * Get the missing claims request URL of authentication flow
+     * @return claims request URL
+     */
+    public String getAuthenticationEndpointMissingClaimsURL() {
+
+        String authenticationEndpointMissingClaimsURL = FileBasedConfigurationBuilder.getInstance()
+                .getAuthenticationEndpointMissingClaimsURL();
+        if (StringUtils.isBlank(authenticationEndpointMissingClaimsURL)) {
+            authenticationEndpointMissingClaimsURL = "/authenticationendpoint/claims.do";
+        }
+        return authenticationEndpointMissingClaimsURL;
+    }
+    /**
      * Get the tenant list receiving urls
      *
      * @return Tenant list receiving urls

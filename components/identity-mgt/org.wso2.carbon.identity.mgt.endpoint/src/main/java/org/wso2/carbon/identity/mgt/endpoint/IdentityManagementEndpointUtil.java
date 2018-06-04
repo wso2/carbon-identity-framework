@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint;
 
+import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -27,17 +28,23 @@ import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * This class defines utility methods used within this web application.
  */
 public class IdentityManagementEndpointUtil {
+
+    public static final String PADDING_CHAR = "=";
+    public static final String UNDERSCORE = "_";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
 
@@ -290,5 +297,48 @@ public class IdentityManagementEndpointUtil {
     private static void buildCategory(JSONObject piiCategory, String validity) {
 
         piiCategory.put(IdentityManagementEndpointConstants.Consent.VALIDITY_KEY, validity);
+    }
+
+    /**
+     * To get the property value for the given key from the ResourceBundle
+     * Retrieve the value of property entry for key, return key if a value is not found for key
+     *
+     * @param resourceBundle name of the resourcebundle object
+     * @param key name of the key
+     * @return property value entry of the key or key value itself
+     */
+    public static String i18n(ResourceBundle resourceBundle, String key) {
+
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(key)) ?
+                    resourceBundle.getString(key) : key));
+        } catch (Exception e) {
+            // Intentionally catching Exception and if something goes wrong while finding the value for key, return
+            // default, not to break the UI
+            return Encode.forHtml(key);
+        }
+    }
+
+    /**
+     * To get the property value for the base64 encoded value of the key from the ResourceBundle
+     * Retrieve the value of property entry for where key is obtained after replacing "=" with "_" of base64 encoded
+     * value of the given key,
+     * return key if a value is not found for above calculated
+     *
+     * @param resourceBundle name of the resourcebundle object
+     * @param key name of the key
+     * @return property value entry of the base64 encoded key value or key value itself
+     */
+    public static String i18nBase64(ResourceBundle resourceBundle, String key) {
+
+        String base64Key = Base64.encode(key.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(base64Key)) ?
+                    resourceBundle.getString(base64Key) : key));
+        } catch (Exception e) {
+            // Intentionally catching Exception and if something goes wrong while finding the value for key, return
+            // default, not to break the UI
+            return Encode.forHtml(key);
+        }
     }
 }

@@ -191,7 +191,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
-        if (rememberMe != null && "on".equalsIgnoreCase(rememberMe)) {
+        if (FrameworkConstants.REMEMBER_ME_OPT_ON.equalsIgnoreCase(rememberMe)) {
             context.setRememberMe(true);
         } else {
             context.setRememberMe(false);

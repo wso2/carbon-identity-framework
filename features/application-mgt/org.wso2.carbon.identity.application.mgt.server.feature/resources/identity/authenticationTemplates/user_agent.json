@@ -1,0 +1,32 @@
+{
+  "category": "Environment Based",
+  "name": "User Agent Based",
+  "img": "./images/user.gif",
+  "code": [
+    "/*",
+    "This template shows how to extract User-Agent header from the request and manipulate the authentication flow if",
+    "the user agent is a mobile browser",
+    "*/",
+    "function onInitialRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function(context) {",
+    "            // Extracting user agent from the request headers",
+    "            var userAgent = context.request.headers['user-agent'];",
+    "            Log.info('user-agent: ' + userAgent);",
+    "",
+    "            if (isMobile(userAgent)) {",
+    "                // Enforcing authentication step 2 for the user log in from mobile devices",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "}",
+    "",
+    "// A function to test if the user agent is a mobile agent.",
+    "function isMobile(userAgent) {",
+    "    return (/Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile/).test(userAgent);",
+    "}"
+  ],
+  "help": "Enforcing second authentication step if the user logs from a mobile device",
+  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+}

@@ -19,6 +19,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String[] requestedClaimList = new String[0];
@@ -102,7 +103,7 @@
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
                     <div class="padding-double login-form">
-                        <form action="../commonauth" method="post" id="profile" name=""
+                        <form action="<%=commonauthURL%>" method="post" id="profile" name=""
                               class="form-horizontal">
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">

@@ -39,9 +39,7 @@ public class SessionDataPersistTask implements Runnable {
     @Override
     public void run() {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Session Context persist consumer is started");
-        }
+        log.debug("Session Context persist consumer is started");
 
         running = true;
         while (running) {

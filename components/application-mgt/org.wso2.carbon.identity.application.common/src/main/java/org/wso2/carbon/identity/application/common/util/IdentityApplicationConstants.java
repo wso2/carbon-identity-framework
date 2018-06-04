@@ -83,6 +83,7 @@ public class IdentityApplicationConstants {
         public static final String ATTR_ENABLED = "enabled";
         public static final String PROPERTY_TYPE_STRING = "STRING";
         public static final String PROPERTY_TYPE_BLOB = "BLOB";
+        public static final String PROPERTY_SP_DIALECT = "SPClaimDialects";
 
         private ConfigElements() {
             throw new AssertionError("Must not initiate an object of ConfigElements class");
@@ -140,7 +141,10 @@ public class IdentityApplicationConstants {
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
-
+            public static final String IS_ARTIFACT_BINDING_ENABLED = "ISArtifactBindingEnabled";
+            public static final String ARTIFACT_RESOLVE_URL="ArtifactResolveUrl";
+            public static final String IS_ARTIFACT_RESOLVE_REQ_SIGNED = "ISArtifactResolveReqSigned";
+            public static final String IS_ARTIFACT_RESPONSE_SIGNED = "ISArtifactResponseSigned";
 
             private SAML2SSO() {
                 throw new AssertionError("Must not initiate an object of SAMLSSO class");
@@ -155,6 +159,7 @@ public class IdentityApplicationConstants {
             public static final String OIDC_CHECK_SESSION_URL = "OIDCCheckSessionEPUrl";
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
+            public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
         }
 
         public static class PassiveSTS {

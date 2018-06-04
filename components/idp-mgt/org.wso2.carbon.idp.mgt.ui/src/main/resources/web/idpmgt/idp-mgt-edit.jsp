@@ -48,6 +48,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
 <%@ page
         import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
@@ -67,6 +68,8 @@
     String description = null;
     boolean federationHubIdp = false;
     CertData certData = null;
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
     String userIdClaimURI = null;
     String roleClaimURI = null;
@@ -113,6 +116,7 @@
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
     boolean isOIDCDefault = false;
+    boolean isOIDCBasicAuthEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -194,6 +198,11 @@
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
 
+    boolean isArtifactBindingEnabled = false;
+    String artifactResolveUrl = "";
+    boolean isArtifactResolveReqSigned = false;
+    boolean isArtifactResponseSigned = false;
+
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
 
@@ -249,6 +258,15 @@
         provisioningRole = identityProvider.getProvisioningRole();
         if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
             certData = IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+        }
+        IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+        if (idpProperties != null) {
+            for (IdentityProviderProperty idpProperty : idpProperties) {
+                if (IdPManagementUIUtil.JWKS_URI.equals(idpProperty.getName())) {
+                    hasJWKSUri = true;
+                    jwksUri = idpProperty.getValue();
+                }
+            }
         }
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
@@ -431,6 +449,12 @@
                         oidcQueryParam = queryParamProp.getValue();
                     }
 
+                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+                    if (basicAuthEnabledProp != null) {
+                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                    }
+
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                     isSamlssoAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
@@ -560,6 +584,30 @@
                             IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
                     if (attributeConsumingServiceIndexProp != null) {
                         attributeConsumingServiceIndex = attributeConsumingServiceIndexProp.getValue();
+                    }
+
+                    Property artifactBindingEnableProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+                    if (artifactBindingEnableProp != null) {
+                        isArtifactBindingEnabled = Boolean.parseBoolean(artifactBindingEnableProp.getValue());
+                    }
+
+                    Property artifactResolveUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+                    if (artifactResolveUrlProp != null) {
+                        artifactResolveUrl = artifactResolveUrlProp.getValue();
+                    }
+
+                    Property artifactResolveReqSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+                    if (artifactResolveReqSignedProp != null) {
+                        isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
+                    }
+
+                    Property artifactResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+                    if (artifactResponseSignedProp != null) {
+                        isArtifactResponseSigned = Boolean.parseBoolean(artifactResponseSignedProp.getValue());
                     }
 
                     Property requestMethodProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -831,6 +879,10 @@
         realmId = "";
     }
 
+    if (jwksUri == null) {
+        jwksUri = "";
+    }
+
     if (idpDisplayName == null) {
         idpDisplayName = "";
     }
@@ -997,12 +1049,12 @@
     }
 
     String signAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String digestAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
@@ -1074,6 +1126,11 @@
 
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
+    }
+
+    String oidcBasicAuthEnabledChecked = "";
+    if (isOIDCBasicAuthEnabled) {
+        oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
 
     String passiveSTSEnabledChecked = "";
@@ -1253,6 +1310,31 @@
         }
     }
 
+    if (artifactResolveUrl == null) {
+        artifactResolveUrl = "";
+    }
+
+    String isArtifactBindingEnabledChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactBindingEnabled) {
+            isArtifactBindingEnabledChecked = "checked=\'checked\'";
+        }
+    }
+
+    String isArtifactResolveReqSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResolveReqSigned) {
+            isArtifactResolveReqSignedChecked = "checked=\'checked\'";
+        }
+    }
+
+    String isArtifactResponseSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResponseSigned) {
+            isArtifactResponseSignedChecked = "checked=\'checked\'";
+        }
+    }
+
     // If SCIM Provisioning has not been Configured at all,
     // make password provisioning enable by default.
     // Since scimUserName is a required field,
@@ -1300,6 +1382,17 @@
     advancedClaimMappinRowID = <%=claimMappings.length-1%>;
     <% } %>
 
+    function disableArtifactBinding(chkbx) {
+        if ($(chkbx).is(':checked')) {
+            $("#artifactResolveUrl").prop('disabled', false);
+            $("#artifactResolveReqSigned").prop('disabled', false);
+            $("#artifactResponseSigned").prop('disabled', false);
+        } else {
+            $("#artifactResolveUrl").prop('disabled', true);
+            $("#artifactResolveReqSigned").prop('disabled', true);
+            $("#artifactResponseSigned").prop('disabled', true);
+        }
+    }
 
     var claimURIDropdownPopulator = function () {
         var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
@@ -1601,12 +1694,15 @@
         })
         jQuery('#publicCertDeleteLink').click(function () {
             $(jQuery('#publicCertDiv')).toggle();
-            var input = document.createElement('input');
-            input.type = "hidden";
-            input.name = "deletePublicCert";
-            input.id = "deletePublicCert";
-            input.value = "true";
-            document.forms['idp-mgt-edit-form'].appendChild(input);
+            if (!jQuery('#deletePublicCert').length) {
+
+                var input = document.createElement('input');
+                input.type = "hidden";
+                input.name = "deletePublicCert";
+                input.id = "deletePublicCert";
+                input.value = "true";
+                document.forms['idp-mgt-edit-form'].appendChild(input);
+            }
         })
         jQuery('#claimAddLink').click(function () {
 
@@ -1655,6 +1751,42 @@
         });
     })
 
+    function selectJWKS(certDataNotNull) {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'table-row';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'none';
+
+        // delete certificates if jwks_uri is selected.
+        if (jQuery('#certFile').val() != '') {
+            jQuery('#certFile').val('');
+        } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('true');
+        } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+            $(jQuery('#publicCertDiv')).toggle();
+            var publicCertDiv = document.getElementById('publicCertDiv').style;
+            publicCertDiv.display = 'none';
+            jQuery( '#publicCertDiv').empty();
+
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        }
+    }
+
+    function selectCertificate() {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'none';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'table-row';
+        if (jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('false');
+        }
+        $('#jwksUri').val("");
+    }
 
     function idpMgtUpdate() {
         document.getElementById("meta_data_saml").value = "";
@@ -3116,6 +3248,26 @@
                             </td>
                         </tr>
                         <tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='select_idp_certificate_type'/>:</td>
+                            <td>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && certData == null)) { %>
+                                           checked="checked" <% } %>
+                                           onclick="selectJWKS('<%=(certData != null)%>');" />
+                                    Use IDP JWKS endpoint
+                                </label>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                            <% if (certData != null) { %> checked="checked" <% } %>
+                                           value="choose_upload_certificate"
+                                           onclick="selectCertificate()" />
+                                    Upload IDP certificate
+                                </label>
+                            </td>
+                        </tr>
+                        <tr id="upload_certificate" <% if (certData == null) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3187,7 +3339,17 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr id="use_jwks_uri" <% if (certData != null) { %> style="display:none" <% } %>>
+                            <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
+                            <td>
+                                <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                       autofocus/>
 
+                                <div class="sectionHelp">
+                                    <fmt:message key='jwks.uri.help'/>
+                                </div>
+                            </td>
+                        </tr>
 
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='resident.idp.alias'/>:</td>
@@ -3900,6 +4062,77 @@
                                     </td>
                                 </tr>
 
+                                <!-- Enable Artifact Binding -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableArtifactBinding"><fmt:message
+                                                key='attr.artifact.binding.enable'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="enableArtifactBinding" name="ISArtifactBindingEnabled"
+                                                   onclick="disableArtifactBinding(this);"
+                                                   type="checkbox" <%=isArtifactBindingEnabledChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.binding.enable.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Artifact Resolve Url -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"><fmt:message key='attr.artifact.resolve.url'/>:</td>
+                                    <td>
+                                        <input id="artifactResolveUrl" name="ArtifactResolveUrl" class="text-box-big" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>
+                                        type="text" value=<%=Encode.forHtml(artifactResolveUrl)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='attr.artifact.resolve.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                 <!-- Enable Artifact Resolve Request Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResolveReqSignedLabel"><fmt:message
+                                                key='attr.artifact.resolve.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResolveReqSigned" name="ISArtifactResolveReqSigned"
+                                                   type="checkbox" <%=isArtifactResolveReqSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.resolve.sign.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Enable Artifact Response Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResponseSignedLabel"><fmt:message
+                                                key='attr.artifact.response.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResponseSigned" name="ISArtifactResponseSigned"
+                                                   type="checkbox" <%=isArtifactResponseSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.response.sign.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
                                 <!-- Signature Algorithm -->
 
                                 <tr>
@@ -4452,6 +4685,18 @@
 
                                     <div class="sectionHelp">
                                         <fmt:message key='query.param.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.basicauth'/>:</td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="oidcBasicAuthEnabled" name="oidcBasicAuthEnabled"
+                                               type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.basicauth.help'/>
+                                </span>
                                     </div>
                                 </td>
                             </tr>

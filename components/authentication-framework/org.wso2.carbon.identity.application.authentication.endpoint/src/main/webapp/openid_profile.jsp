@@ -17,6 +17,7 @@
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String[] profiles = request.getParameterValues("profile");
@@ -99,7 +100,7 @@
 
                         <div class="padding-double login-form">
                             <div>
-                                <form action="../openidserver" id="profile" name="profile" class="form-horizontal">
+                                <form action="<%=openidServerURL%>" id="profile" name="profile" class="form-horizontal">
                                     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-group">
                                         <div class="controls" style="margin-left: 0px !important;">
 

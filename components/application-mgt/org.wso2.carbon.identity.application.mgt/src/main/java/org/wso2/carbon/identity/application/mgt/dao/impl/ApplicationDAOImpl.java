@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -83,6 +82,7 @@ import java.util.Map.Entry;
 public class ApplicationDAOImpl implements ApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    private static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -351,7 +351,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
                     connection);
 
-            deteClaimConfiguration(applicationId, connection);
+            deleteClaimConfiguration(applicationId, connection);
             updateClaimConfiguration(serviceProvider.getApplicationID(), serviceProvider.getClaimConfig(),
                     applicationId, connection);
 
@@ -1030,7 +1030,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             return;
         }
 
-        updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+            updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
+        }
 
         PreparedStatement updateAuthTypePrepStmt = null;
 
@@ -1322,6 +1324,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement storeRoleClaimPrepStmt = null;
+        PreparedStatement storeSPDialectsPrepStmt = null;
         PreparedStatement storeClaimDialectPrepStmt = null;
         PreparedStatement storeSendLocalSubIdPrepStmt = null;
 
@@ -1344,6 +1347,32 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeRoleClaimPrepStmt);
+        }
+
+        try {
+            // update the application data with SP dialects
+            String[] spClaimDialects = claimConfiguration.getSpClaimDialects();
+
+            if (ArrayUtils.isNotEmpty(spClaimDialects)) {
+                storeSPDialectsPrepStmt = connection
+                        .prepareStatement(ApplicationMgtDBQueries.STORE_SP_DIALECTS_BY_APP_ID);
+
+                for (String spClaimDialect : spClaimDialects) {
+                    if (spClaimDialect != null && !spClaimDialect.isEmpty()) {
+                        storeSPDialectsPrepStmt.setInt(1, tenantID);
+                        storeSPDialectsPrepStmt.setString(2, spClaimDialect);
+                        storeSPDialectsPrepStmt.setInt(3, applicationId);
+                        storeSPDialectsPrepStmt.addBatch();
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Storing SP Dialect: " + spClaimDialect);
+                        }
+                    }
+                }
+                storeSPDialectsPrepStmt.executeBatch();
+            }
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(storeSPDialectsPrepStmt);
         }
 
         try {
@@ -2475,6 +2504,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         ClaimConfig claimConfig = new ClaimConfig();
         ArrayList<ClaimMapping> claimMappingList = new ArrayList<ClaimMapping>();
+        List<String> spDialectList = new ArrayList<String>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Claim Mappings of Application " + applicationId);
@@ -2562,6 +2592,30 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(loadClaimConfigsResultSet
                                                                                  .getString(3)));
             }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving all application");
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
+        }
+
+        PreparedStatement loadSPDialectsPrepStmt = null;
+        ResultSet loadSPDialectsResultSet = null;
+
+        try {
+            loadSPDialectsPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_SP_DIALECTS_BY_APP_ID);
+            loadSPDialectsPrepStmt.setInt(1, tenantID);
+            loadSPDialectsPrepStmt.setInt(2, applicationId);
+            loadSPDialectsResultSet = loadSPDialectsPrepStmt.executeQuery();
+
+            while (loadSPDialectsResultSet.next()) {
+                String spDialect = loadSPDialectsResultSet.getString(1);
+                if (spDialect != null && !spDialect.isEmpty()) {
+                    spDialectList.add(spDialect);
+                }
+            }
+            claimConfig.setSpClaimDialects(spDialectList.toArray(new String[spDialectList.size()]));
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving all application");
         } finally {
@@ -2930,7 +2984,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
 
-            deleteAuthenticationScript(applicationId, connection);
+            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
+                deleteAuthenticationScript(applicationId, connection);
+            }
 
         } finally {
             IdentityApplicationManagementUtil
@@ -2988,7 +3044,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
      * @param connection
      * @throws IdentityApplicationManagementException
      */
-    private void deteClaimConfiguration(int applicationID, Connection connection)
+    private void deleteClaimConfiguration(int applicationID, Connection connection)
             throws SQLException {
 
         if (log.isDebugEnabled()) {
@@ -2998,6 +3054,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement deleteCliamPrepStmt = null;
+        PreparedStatement deleteSpDialectPrepStmt = null;
         try {
             deleteCliamPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING);
@@ -3007,6 +3064,21 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteCliamPrepStmt);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting Application SP Dialects " + applicationID);
+        }
+
+        try {
+            deleteSpDialectPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.DELETE_SP_DIALECTS_BY_APP_ID);
+            deleteSpDialectPrepStmt.setInt(1, applicationID);
+            deleteSpDialectPrepStmt.setInt(2, tenantID);
+            deleteSpDialectPrepStmt.execute();
+
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteSpDialectPrepStmt);
         }
     }
 

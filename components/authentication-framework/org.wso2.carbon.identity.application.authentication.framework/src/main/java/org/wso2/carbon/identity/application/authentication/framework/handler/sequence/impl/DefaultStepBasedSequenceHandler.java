@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -62,6 +63,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
+    private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+            + ".ReturnOnlyMappedLocalRoles";
+    private static boolean returnOnlyMappedLocalRoles = false;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -74,6 +78,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         return instance;
+    }
+
+    static {
+        if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
+            returnOnlyMappedLocalRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
     }
 
     /**
@@ -280,7 +291,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     // Get the mapped user roles according to the mapping in the IDP configuration.
                     // Include the unmapped roles as it is.
                     List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);

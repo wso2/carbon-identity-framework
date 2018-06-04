@@ -19,6 +19,8 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ public class ClaimConfig implements Serializable {
     private Claim[] idpClaims = new Claim[0];
     private ClaimMapping[] claimMappings = new ClaimMapping[0];
     private boolean alwaysSendMappedLocalSubjectId;
+    private String[] spClaimDialects = null;
 
     /*
      * <ClaimConfig> <RoleClaimURI></RoleClaimURI> <UserClaimURI></UserClaimURI>
@@ -100,6 +103,8 @@ public class ClaimConfig implements Serializable {
                     ClaimMapping[] claimMappingsArr = claimMappingsArrList
                             .toArray(new ClaimMapping[0]);
                     claimConfig.setClaimMappings(claimMappingsArr);
+                } else if (IdentityApplicationConstants.ConfigElements.PROPERTY_SP_DIALECT.equals(elementName)) {
+                    claimConfig.setSpClaimDialects(element.getText().split(","));
                 }
             }
         }
@@ -165,5 +170,26 @@ public class ClaimConfig implements Serializable {
 
     public void setAlwaysSendMappedLocalSubjectId(boolean alwaysSendMappedLocalSubjectId) {
         this.alwaysSendMappedLocalSubjectId = alwaysSendMappedLocalSubjectId;
+    }
+
+    /**
+     * Get service provider claim dialects.
+     *
+     * @return claim dialects of service provider
+     */
+    public String[] getSpClaimDialects() {
+
+        return spClaimDialects;
+    }
+
+    /**
+     * Set service provider claim dialects.
+     *
+     * @param spClaimDialects claim dialects of service provider
+     */
+    public void setSpClaimDialects(String[] spClaimDialects) {
+
+        this.spClaimDialects = this.spClaimDialects == null ? spClaimDialects : (String[]) ArrayUtils.addAll(
+                this.spClaimDialects, spClaimDialects);
     }
 }

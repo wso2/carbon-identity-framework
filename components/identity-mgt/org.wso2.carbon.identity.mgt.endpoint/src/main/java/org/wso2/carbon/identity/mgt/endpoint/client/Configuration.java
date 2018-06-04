@@ -21,15 +21,18 @@
 package org.wso2.carbon.identity.mgt.endpoint.client;
 
 public class Configuration {
-  private static ApiClient defaultApiClient = new ApiClient();
+  private static ApiClient defaultApiClient;
 
   /**
    * Get the default API client, which would be used when creating API
    * instances without providing an API client.
    */
   public static ApiClient getDefaultApiClient() {
+    if (defaultApiClient == null) {
+      defaultApiClient = new ApiClient();
+    }
     return defaultApiClient;
-   }
+  }
 
   /**
    * Set the default API client, which would be used when creating API
