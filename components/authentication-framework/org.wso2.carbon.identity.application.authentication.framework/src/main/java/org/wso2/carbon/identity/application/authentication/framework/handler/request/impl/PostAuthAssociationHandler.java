@@ -47,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+
 /**
  * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
  */
@@ -92,6 +94,11 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+
+        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+        if (authenticatedUser == null) {
+            return UNSUCCESS_COMPLETED;
+        }
         Map<ClaimMapping, String> authenticatedUserAttributes = null;
 
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {

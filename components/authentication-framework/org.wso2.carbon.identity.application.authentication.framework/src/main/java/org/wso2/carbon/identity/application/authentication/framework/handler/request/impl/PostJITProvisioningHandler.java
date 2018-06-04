@@ -342,7 +342,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      * @return relevant external IDP config.
      * @throws PostAuthenticationFailedException Post AuthenticationFailedException.
      */
-    private ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
+    protected ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
             throws PostAuthenticationFailedException {
         ExternalIdPConfig externalIdPConfig = null;
         try {

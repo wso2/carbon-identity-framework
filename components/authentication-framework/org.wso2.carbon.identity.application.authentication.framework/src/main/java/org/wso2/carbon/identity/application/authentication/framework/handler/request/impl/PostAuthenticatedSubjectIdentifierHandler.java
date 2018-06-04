@@ -25,11 +25,14 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
@@ -76,6 +79,10 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
             AuthenticationContext context) {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+        if (authenticatedUser == null) {
+            return UNSUCCESS_COMPLETED;
+        }
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
         String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         if (StringUtils.isNotBlank(subjectClaimURI)) {

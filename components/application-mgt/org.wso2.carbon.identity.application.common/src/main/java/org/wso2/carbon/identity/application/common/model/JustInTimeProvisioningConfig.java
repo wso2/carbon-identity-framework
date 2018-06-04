@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import java.io.Serializable;
@@ -60,12 +61,12 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
                             .parseBoolean(element.getText()));
                 }
             } else if (IdentityApplicationConstants.IS_PASSWORD_PROVISIONING_ENABLED_ELEMENT.equals(elementName)) {
-                if (element.getText() != null && element.getText().trim().length() > 0) {
+                if (StringUtils.isNotEmpty(element.getText())) {
                     justInTimeProvisioningConfig
                             .setPasswordProvisioningEnabled(Boolean.parseBoolean(element.getText()));
                 }
             } else if (IdentityApplicationConstants.ALLOW_MODIFY_USERNAME.equals(elementName)) {
-                if (element.getText() != null && element.getText().trim().length() > 0) {
+                if (StringUtils.isNotEmpty(element.getText())) {
                     justInTimeProvisioningConfig.setModifyUserNameAllowed(Boolean.parseBoolean(element.getText()));
                 }
             }
