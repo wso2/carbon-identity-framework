@@ -130,4 +130,13 @@ public class JDBCPersistenceManager {
         }
     }
 
+    /**
+     * Returns Identity data source.
+     *
+     * @return data source
+     */
+    public DataSource getDataSource(){
+        return dataSource;
+    }
+
 }
