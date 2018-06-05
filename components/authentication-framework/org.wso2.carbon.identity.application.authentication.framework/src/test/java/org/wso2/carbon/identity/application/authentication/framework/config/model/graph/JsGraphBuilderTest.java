@@ -47,7 +47,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         jsGraphBuilderFactory.init();
     }
 
-    public void testCreate_DirectJava_InvalidStepId() throws Exception {
+    public void testCreateDirectJavaInvalidStepId() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -60,7 +60,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         assertNull(graph.getStartNode());
     }
 
-    public void testCreate_DirectJava() throws Exception {
+    public void testCreateDirectJava() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -80,9 +80,9 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         assertTrue(firstStep.getNext() instanceof StepConfigGraphNode);
     }
 
-    public void testCreate_Javascript() throws Exception {
+    public void testCreateJavascript() throws Exception {
         String script = "function onInitialRequest(context) { executeStep(1, { onSuccess : function(context) {"
-                + "executeStep({id :'2'});}})};";
+                + "executeStep(2);}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);

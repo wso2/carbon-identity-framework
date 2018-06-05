@@ -210,10 +210,9 @@ public class JsGraphBuilder {
     /**
      * Adds the step given by step ID tp the authentication graph.
      *
-     * @param parameterMap parameterMap
+     * @param params params
      */
-    @SafeVarargs
-    public final void executeStep(int stepId, Map<String, Object>... parameterMap) {
+    public final void executeStep(int stepId, Object... params) {
 
         StepConfig stepConfig;
         stepConfig = stepNamedMap.get(stepId);
@@ -229,18 +228,23 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
         currentNode = newNode;
-        if (parameterMap.length > 0) {
-            attachEventListeners(parameterMap[0]);
+        if (params.length == 1) {
+            // if there is only one param, it is assumed to be the event listeners
+            if (params[0] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[0]);
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
         }
     }
 
     /**
      * Adds the step given by step ID tp the authentication graph.
      *
-     * @param parameterMap parameterMap
+     * @param params params
      */
     @SafeVarargs
-    public static void executeStepInAsyncEvent(int stepId, Map<String, Object>... parameterMap) {
+    public static void executeStepInAsyncEvent(int stepId, Object... params) {
 
         AuthenticationContext context = contextForJs.get();
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
@@ -268,8 +272,13 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
 
-        if (parameterMap.length > 0) {
-            attachEventListeners(parameterMap[0], newNode);
+        if (params.length == 1) {
+            // if there is only one param, it is assumed to be the event listeners
+            if (params[0] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[0], newNode);
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
         }
     }
 
@@ -425,7 +434,7 @@ public class JsGraphBuilder {
     @FunctionalInterface
     public interface StepExecutor {
 
-        void executeStep(Integer stepId, Map<String, Object>... parameterMap);
+        void executeStep(Integer stepId, Object... parameterMap);
     }
 
     /**
