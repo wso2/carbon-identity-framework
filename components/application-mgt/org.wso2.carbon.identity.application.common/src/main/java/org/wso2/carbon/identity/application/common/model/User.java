@@ -38,13 +38,12 @@ public class User implements Serializable {
     protected String userStoreDomain;
     protected String userName;
     private static boolean ignoreCaseSensitivityBasedHashing = false;
-    private static final String IGNORE_CASE_SENSITIVITY_BASED_HASHING = "ignoreCaseSensitivityBasedHashing";
 
     static {
 
-        String propertyToIgnoreCaseSensitivityBasedHashing = System.getProperty(IGNORE_CASE_SENSITIVITY_BASED_HASHING);
-        if (StringUtils.isNotBlank(propertyToIgnoreCaseSensitivityBasedHashing)) {
-            ignoreCaseSensitivityBasedHashing = Boolean.parseBoolean(propertyToIgnoreCaseSensitivityBasedHashing);
+        if (StringUtils.isNotBlank(System.getProperty("ignoreCaseSensitivityBasedHashing"))) {
+            ignoreCaseSensitivityBasedHashing = Boolean
+                    .parseBoolean(System.getProperty("ignoreCaseSensitivityBasedHashing"));
         }
     }
 
