@@ -41,14 +41,10 @@ import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioning
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,8 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
@@ -280,7 +274,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
                 extAttibutesValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
-
 
                 if (stepConfig.isSubjectAttributeStep()) {
 

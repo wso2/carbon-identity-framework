@@ -278,7 +278,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                         "Error while updating claims for local user. Could not update profile", e);
             }
         }
-
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
     }
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -45,6 +46,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
@@ -94,9 +96,13 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        List<AuthenticatorConfig> reqPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
 
         AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
         if (authenticatedUser == null) {
+            return UNSUCCESS_COMPLETED;
+        }
+        if (sequenceConfig.isCompleted() && CollectionUtils.isNotEmpty(reqPathAuthenticators)) {
             return UNSUCCESS_COMPLETED;
         }
         Map<ClaimMapping, String> authenticatedUserAttributes = null;
@@ -155,7 +161,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                         }
                     }
 
-                    if (associatedID != null && associatedID.trim().length() > 0) {
+                    if (StringUtils.isNotEmpty(associatedID)) {
                         // we found an associated user identifier
                         // build the full qualified user id for the associated user
                         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
@@ -216,15 +222,10 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
                         }
 
-                    } else {
-                        sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
-
                     }
 
                 }
-
             }
-
         }
         if (authenticatedUserAttributes != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);

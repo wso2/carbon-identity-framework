@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -203,6 +204,11 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
     private PostAuthnHandlerFlowStatus handleRequestFlow(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context, SequenceConfig sequenceConfig) throws PostAuthenticationFailedException {
 
+        List<AuthenticatorConfig> reqPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
+
+        if (sequenceConfig.isCompleted() && CollectionUtils.isNotEmpty(reqPathAuthenticators)) {
+            return UNSUCCESS_COMPLETED;
+        }
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -245,7 +251,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                                     + " to the UI to get the consents");
                         }
                         redirectToPasswordProvisioningUI(externalIdPConfig, context, localClaimValues, response,
-                                sequenceConfig.getAuthenticatedUser().getUserName());
+                                sequenceConfig.getAuthenticatedUser().getUserName(), request);
                         // Set the property to make sure the request is a returning one.
                         context.setProperty(PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
@@ -288,8 +294,8 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private void redirectToPasswordProvisioningUI(ExternalIdPConfig externalIdPConfig, AuthenticationContext context,
-            Map<String, String> localClaimValues, HttpServletResponse response, String username)
-            throws PostAuthenticationFailedException {
+            Map<String, String> localClaimValues, HttpServletResponse response, String username,
+            HttpServletRequest request) throws PostAuthenticationFailedException {
 
         try {
             URIBuilder uriBuilder;

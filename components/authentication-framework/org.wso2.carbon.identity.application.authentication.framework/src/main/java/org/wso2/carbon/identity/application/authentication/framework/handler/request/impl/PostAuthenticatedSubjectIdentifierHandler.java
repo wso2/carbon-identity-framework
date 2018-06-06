@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
@@ -31,6 +33,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.List;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 
@@ -79,8 +83,12 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
             AuthenticationContext context) {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        List<AuthenticatorConfig> reqPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
         AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
         if (authenticatedUser == null) {
+            return UNSUCCESS_COMPLETED;
+        }
+        if (sequenceConfig.isCompleted() && CollectionUtils.isNotEmpty(reqPathAuthenticators)) {
             return UNSUCCESS_COMPLETED;
         }
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
