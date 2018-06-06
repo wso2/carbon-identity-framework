@@ -817,7 +817,8 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 					<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
 						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
 							if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-								if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getEnabled()) { %>
+								if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
+								.getAuthenticationScriptConfig().getEnabled() && isConditionalAuthenticationEnabled) { %>
 						   checked="checked"  <% }
 					}
 					}%>/> Enable Script Based Conditional Authentication
@@ -833,7 +834,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 					<a href="#">Script Based Conditional Authentication</a>
 				</h2>
 
-				<div class="toggle_container sectionSub" <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %>
+				<div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
 				id="editorRow">
 					<div style="position: relative;">
 						<div class="sectionSub step_contents" id="codeMirror">
