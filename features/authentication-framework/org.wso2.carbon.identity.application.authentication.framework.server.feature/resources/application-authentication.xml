@@ -152,6 +152,9 @@
         </AuthenticatorConfig>
         <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
             <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
+            <Parameter name="username">CN</Parameter>
+            <!--<Parameter name="setClaimURI">http://wso2.org/claims/identity/userCertificate</Parameter>-->
+            <!--<Parameter name="EnforceSelfRegistration">true</Parameter>-->
         </AuthenticatorConfig>
         <!--AuthenticatorConfig name="totp" enabled="true">
             <Parameter name="encodingMethod">Base32</Parameter>
