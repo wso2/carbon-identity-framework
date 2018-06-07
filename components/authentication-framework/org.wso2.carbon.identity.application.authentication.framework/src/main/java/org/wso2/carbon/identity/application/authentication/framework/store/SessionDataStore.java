@@ -72,7 +72,7 @@ public class SessionDataStore {
             "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
 
     private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE_TEMP WHERE EXPIRY_TIME < ?";
+            "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
             "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
                     "OPERATION = '"+OPERATION_STORE+"' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
@@ -81,7 +81,7 @@ public class SessionDataStore {
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  EXPIRY_TIME < ?";
     private static final String SQL_DELETE_TEMP_RECORDS =
-            "DELETE FROM IDN_AUTH_SESSION_STORE_TEMP WHERE SESSION_ID = ? AND  SESSION_TYPE = ?";
+            "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE SESSION_ID = ? AND  SESSION_TYPE = ?";
 
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
@@ -127,7 +127,7 @@ public class SessionDataStore {
     private static final int DEFAULT_DELETE_LIMIT = 50000;
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
-    public static final String TEMP_SUFFIX = "_TEMP";
+    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
     private static int maxSessionDataPoolSize = 100;
     private static int maxTempDataPoolSize = 50;
     private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
@@ -708,8 +708,7 @@ public class SessionDataStore {
 
     private String replaceTableName(String query) {
 
-        String sessionTableName = DEFAULT_SESSION_STORE_TABLE_NAME;
-        query = query.replace(sessionTableName, sessionTableName + TEMP_SUFFIX);
+        query = query.replace(DEFAULT_SESSION_STORE_TABLE_NAME, DEFAULT_TEMP_SESSION_STORE_TABLE_NAME);
         return query;
     }
 
