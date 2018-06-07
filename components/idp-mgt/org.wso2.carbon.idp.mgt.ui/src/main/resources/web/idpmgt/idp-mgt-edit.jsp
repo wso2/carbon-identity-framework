@@ -5222,7 +5222,7 @@
                                                 && isUserNameModificationAllowed) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        Ask username and password
+                                        <fmt:message key='jit.ask.username.password'/>
                                     </label>
                                 </div>
                                 <div style="padding-left: 40px; !important">
@@ -5232,7 +5232,7 @@
                                                 !isUserNameModificationAllowed) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        Ask password
+                                        <fmt:message key='jit.ask.password'/>
                                     </label>
                                 </div>
                                 <div style="padding-left: 40px; !important">
@@ -5242,7 +5242,7 @@
                                                 !isUserNameModificationAllowed) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        Do not ask username or password
+                                        <fmt:message key='jit.do.not.ask.username.password'/>
                                     </label>
                                 </div>
                             </td>

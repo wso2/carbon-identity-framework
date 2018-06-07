@@ -111,6 +111,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
@@ -1466,6 +1468,27 @@ public class FrameworkUtils {
         }
 
         return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+    }
+
+    /**
+     * To check whether Post handlers related JIT provisioning need to be executed.
+     *
+     * @param context AuthenticationContext.
+     * @return true if the handlers need to be executed, otherwise false.
+     */
+    public static boolean isPostJITHandlerExecutionNeeded(AuthenticationContext context) {
+
+        boolean isNeeded = true;
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+        Object isDefaultStepBasedSequenceHandlerTriggered = context
+                .getProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED);
+        // If authenticated user is null or if step based sequence handler is not trigged, exit the flow.
+        if (authenticatedUser == null || isDefaultStepBasedSequenceHandlerTriggered == null
+                || !(boolean) isDefaultStepBasedSequenceHandlerTriggered) {
+            isNeeded = false;
+        }
+        return isNeeded;
     }
 }
 

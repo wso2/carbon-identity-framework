@@ -1786,6 +1786,9 @@ public class IdPManagementUIUtil {
      */
     private static void buildInboundProvisioningConfiguration(IdentityProvider fedIdp,
                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
+        String modifyUserNamePassword = "modify_username_password";
+        String modifyPassword = "modify_password";
+        String jitTypeGroup = "choose_jit_type_group";
 
         String provisioning = paramMap.get("provisioning");
         JustInTimeProvisioningConfig jitProvisioningConfiguration = new JustInTimeProvisioningConfig();
@@ -1796,10 +1799,10 @@ public class IdPManagementUIUtil {
             jitProvisioningConfiguration.setModifyUserNameAllowed(false);
         } else if ("provision_static".equals(provisioning) || "provision_dynamic".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(true);
-            if (("modify_username_password").equals(paramMap.get("choose_jit_type_group"))) {
+            if (modifyUserNamePassword.equals(paramMap.get(jitTypeGroup))) {
                 jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
                 jitProvisioningConfiguration.setModifyUserNameAllowed(true);
-            } else if (("modify_password").equals(paramMap.get("choose_jit_type_group"))) {
+            } else if (modifyPassword.equals(paramMap.get(jitTypeGroup))) {
                 jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
                 jitProvisioningConfiguration.setModifyUserNameAllowed(false);
             } else {

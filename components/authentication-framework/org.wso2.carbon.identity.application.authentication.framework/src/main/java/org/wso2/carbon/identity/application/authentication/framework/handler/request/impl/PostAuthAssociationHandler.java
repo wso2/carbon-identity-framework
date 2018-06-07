@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -38,6 +37,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -46,7 +47,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
@@ -79,9 +79,14 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     @Override
     public int getPriority() {
-        /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims would
+
+        int priority = super.getPriority();
+        if (priority == -1) {
+            /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims would
          passed to the service provider given the assert local mapped user option is selected */
-        return 21;
+            priority = 21;
+        }
+        return priority;
     }
 
     @Override
@@ -95,135 +100,55 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
+        if (!FrameworkUtils.isPostJITHandlerExecutionNeeded(context)) {
+            return UNSUCCESS_COMPLETED;
+        }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
-        List<AuthenticatorConfig> reqPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
-
-        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-        if (authenticatedUser == null) {
-            return UNSUCCESS_COMPLETED;
-        }
-        if (sequenceConfig.isCompleted() && CollectionUtils.isNotEmpty(reqPathAuthenticators)) {
-            return UNSUCCESS_COMPLETED;
-        }
         Map<ClaimMapping, String> authenticatedUserAttributes = null;
-
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
-                Map<String, String> localClaimValues;
-
-                String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
-                        .getAuthenticatedSubjectIdentifier();
-
                 if (stepConfig.isSubjectIdentifierStep()) {
-                    // there can be only step for subject attributes.
-                    String associatedID = null;
+                    if (log.isDebugEnabled()) {
+                        log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                        ;
+                    }
+                    String associatedLocalUserName = null;
 
-                    // now we know the value of the subject - from the external identity provider.
+                    /*
+                    If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
+                    federated idp.
+                     */
                     if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
-
-                        // okay - now we need to find out the corresponding mapped local subject
-                        // identifier.
-
-                        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                        try {
-                            // start tenant flow
-                            FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                            associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                    originalExternalIdpSubjectValueForThisStep);
-                            if (StringUtils.isNotBlank(associatedID)) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("User " + stepConfig.getAuthenticatedUser()
-                                            + " has an associated account as " + associatedID + ". Hence continuing as "
-                                            + associatedID);
-                                }
-                                stepConfig.getAuthenticatedUser().setUserName(associatedID);
-                                stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
-                                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
-                            } else {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(
-                                            "User " + stepConfig.getAuthenticatedUser() + " doesn't have an associated"
-                                                    + " account. Hence continuing as the same user.");
-                                }
-                            }
-                        } catch (UserProfileException e) {
-                            throw new PostAuthenticationFailedException(
-                                    FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_LOCAL_USER_ID.getCode(),
-                                    String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME
-                                            .getMessage(), originalExternalIdpSubjectValueForThisStep), e);
-                        } finally {
-                            // end tenant flow
-                            FrameworkUtils.endTenantFlow();
-                        }
+                        associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
                     }
 
-                    if (StringUtils.isNotEmpty(associatedID)) {
-                        // we found an associated user identifier
-                        // build the full qualified user id for the associated user
+                    if (StringUtils.isNotEmpty(associatedLocalUserName)) {
                         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                                associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context
+                                        .getTenantDomain());
                         sequenceConfig.setAuthenticatedUser(AuthenticatedUser
                                 .createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
-
                         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
-
-                        // if we found a local mapped user - then we will also take attributes from
-                        // that user - this will load local claim values for the user.
-                        Map<String, String> mappedAttrs;
-                        try {
-                            mappedAttrs = FrameworkUtils.getClaimHandler()
-                                    .handleClaimMappings(stepConfig, context, null, false);
-                        } catch (FrameworkException e) {
-                            throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
-                                    ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getCode(),
-                                    String.format(FrameworkErrorConstants.ErrorMessages.
-                                                    ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
-                                            sequenceConfig.getAuthenticatedUser().getUserName()), e);
-                        }
-
-                        localClaimValues = (Map<String, String>) context
-                                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
-                        Map<String, String> idpClaimValues = (Map<String, String>) context
-                                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
-
-                        // if no requested claims are selected, send all local mapped claim values or idp claim values
-                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null
-                                || context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings()
-                                .isEmpty()) {
-
-                            if (MapUtils.isNotEmpty(localClaimValues)) {
-                                mappedAttrs = localClaimValues;
-                            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
-                                mappedAttrs = idpClaimValues;
-                            }
-                        }
-
-                        if (mappedAttrs != null) {
-                            authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-                        }
-
+                        authenticatedUserAttributes = getClaimMapping(stepConfig, context);
                         // in this case associatedID is a local user name - belongs to a tenant in IS.
-                        String tenantDomain = MultitenantUtils.getTenantDomain(associatedID);
+                        String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
                         Map<String, Object> authProperties = context.getProperties();
 
-                        if (authProperties == null) {
+                        if (MapUtils.isNotEmpty(authProperties)) {
                             authProperties = new HashMap<>();
                             context.setProperties(authProperties);
                         }
                         authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
-
                         if (log.isDebugEnabled()) {
                             log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser()
                                     .getAuthenticatedSubjectIdentifier());
                             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
                         }
-
                     }
-
                 }
             }
         }
@@ -231,5 +156,99 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+    }
+
+    /**
+     * To get the local user name associated with the given federated IDP and the subject identifier.
+     *
+     * @param context    Authentication context.
+     * @param stepConfig Step config.
+     * @return user name associated with.
+     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
+     */
+    private String getUserNameAssociatedWith(AuthenticationContext context, StepConfig stepConfig)
+            throws PostAuthenticationFailedException {
+
+        String associatesUserName;
+        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+        String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
+                .getAuthenticatedSubjectIdentifier();
+        try {
+            FrameworkUtils.startTenantFlow(context.getTenantDomain());
+            associatesUserName = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+                    originalExternalIdpSubjectValueForThisStep);
+            if (StringUtils.isNotBlank(associatesUserName)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User : " + stepConfig.getAuthenticatedUser() + " has an associated account as "
+                            + associatesUserName + ". Hence continuing as " + associatesUserName);
+                }
+                stepConfig.getAuthenticatedUser().setUserName(associatesUserName);
+                stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
+                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("User " + stepConfig.getAuthenticatedUser() + " doesn't have an associated"
+                            + " account. Hence continuing as the same user.");
+                }
+            }
+        } catch (UserProfileException e) {
+            throw new PostAuthenticationFailedException(
+                    FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_LOCAL_USER_ID.getCode(),
+                    String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(),
+                            originalExternalIdpSubjectValueForThisStep), e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
+        }
+        return associatesUserName;
+    }
+
+    /**
+     * To get the claim mapping based on user local.
+     *
+     * @param stepConfig Step Config.
+     * @param context    Authentication Context.
+     * @return claim mapping.
+     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<ClaimMapping, String> getClaimMapping(StepConfig stepConfig, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        Map<String, String> mappedAttrs;
+        Map<ClaimMapping, String> mappedClaims = null;
+
+        try {
+            mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context, null, false);
+        } catch (FrameworkException e) {
+            throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
+                    ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getCode(), String.format(FrameworkErrorConstants.ErrorMessages.
+                            ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
+                    context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
+        }
+        Map<String, String> localClaimValues = (Map<String, String>) context
+                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+        Map<String, String> idpClaimValues = (Map<String, String>) context
+                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+
+        // if no requested claims are selected, send all local mapped claim values or idp claim values
+        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null || context
+                .getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
+            if (MapUtils.isNotEmpty(localClaimValues)) {
+                mappedAttrs = localClaimValues;
+            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
+                mappedAttrs = idpClaimValues;
+            }
+        }
+
+        if (MapUtils.isNotEmpty(mappedAttrs)) {
+            if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Final user claims " + mappedAttrs.toString() + " for the user:" + context
+                            .getSequenceConfig().getAuthenticatedUser());
+                }
+            }
+            mappedClaims = FrameworkUtils.buildClaimMappings(mappedAttrs);
+        }
+        return mappedClaims;
     }
 }

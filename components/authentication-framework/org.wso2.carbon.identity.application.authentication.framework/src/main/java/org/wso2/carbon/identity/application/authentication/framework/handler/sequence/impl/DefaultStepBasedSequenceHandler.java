@@ -93,6 +93,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException {
 
+        // To keep track of whether particular request goes through the step based sequence handler.
+        context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }

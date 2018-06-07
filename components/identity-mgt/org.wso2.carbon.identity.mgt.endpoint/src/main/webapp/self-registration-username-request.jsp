@@ -118,9 +118,8 @@
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%></label>
                                 
                                 <input id="username" name="username" type="text"
-                                       class="form-control required usrName usrNameLength" required>
-                                <% if(skipSignUpEnableCheck) {
-                                %> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
+                                       class="form-control required usrName usrNameLength" required
+                                <% if(skipSignUpEnableCheck) {%> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
                                 <div class="font-small">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
                                             "If.you.specify.tenant.domain.you.registered.under.super.tenant")%></div>

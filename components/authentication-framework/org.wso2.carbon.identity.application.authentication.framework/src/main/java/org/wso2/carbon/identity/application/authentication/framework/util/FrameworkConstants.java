@@ -78,6 +78,8 @@ public abstract class FrameworkConstants {
 
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
+    public static final String STEP_BASED_SEQUENCE_HANDLER_TRIGGERED = "stepBasedSequenceHandlerTriggered";
+    public static final String IS_USER_CREATION_NEEDED = "isUserCreationNeeded";
 
     // This property is to keep track whether the post authentication handler for jit provisioning is executing
     // request flow or response flow.

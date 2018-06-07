@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -294,13 +293,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
 
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
-            Map<ClaimMapping, String> attributes = authenticationResult.getSubject().getUserAttributes();
-
-            for (Map.Entry<ClaimMapping, String> claimMappingStringEntry : attributes.entrySet()) {
-                log.info(claimMappingStringEntry.getKey().getRemoteClaim().getClaimUri() + " " + claimMappingStringEntry.getKey()
-                        .getLocalClaim().getClaimUri() + " " + claimMappingStringEntry.getValue());
-            }
-            log.info(authenticationResult.getSubject().toString());
             ApplicationConfig appConfig = sequenceConfig.getApplicationConfig();
 
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()

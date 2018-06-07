@@ -62,6 +62,7 @@
     if (request.getParameter("missingClaimsDisplayName") != null) {
         missingClaimDisplayName = request.getParameter("missingClaimsDisplayName").split(",");
     }
+    boolean allowchangeusername = Boolean.parseBoolean(request.getParameter("allowchangeusername"));
     boolean skipSignUpEnableCheck = Boolean.parseBoolean(request.getParameter("skipsignupenablecheck"));
     boolean isPasswordProvisionEnabled = Boolean.parseBoolean(request.getParameter("passwordProvisionEnabled"));
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
@@ -73,17 +74,34 @@
         request.getRequestDispatcher("register.do").forward(request, response);
         return;
     }
-    
+
+
     try {
-        userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username, skipSignUpEnableCheck);
+        userNameValidityStatusCode = selfRegistrationMgtClient
+                .checkUsernameValidity(username, skipSignUpEnableCheck);
     } catch (SelfRegistrationMgtClientException e) {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                "Something.went.wrong.while.registering.user") + Encode.forHtmlContent(username) +
-                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Please.contact.administrator"));
-        request.getRequestDispatcher("register.do").forward(request, response);
+        request.setAttribute("errorMsg", IdentityManagementEndpointUtil
+                .i18n(recoveryResourceBundle, "Something.went.wrong.while.registering.user") + Encode
+                .forHtmlContent(username) + IdentityManagementEndpointUtil
+                .i18n(recoveryResourceBundle, "Please.contact.administrator"));
+
+        if (allowchangeusername) {
+            request.getRequestDispatcher("register.do").forward(request, response);
+        } else {
+            Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
+            request.setAttribute("error", true);
+            if (errorD != null) {
+                request.setAttribute("errorMsg", errorD.getDescription());
+                request.setAttribute("errorCode", errorD.getCode());
+            }
+
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
         return;
     }
+
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
@@ -91,11 +109,26 @@
     
     if (userNameValidityStatusCode != null && !SelfRegistrationStatusCodes.CODE_USER_NAME_AVAILABLE.
             equalsIgnoreCase(userNameValidityStatusCode.toString())) {
-        
-        request.setAttribute("error", true);
-        request.setAttribute("errorCode", userNameValidityStatusCode);
-        request.getRequestDispatcher("register.do").forward(request, response);
-        return;
+        if (allowchangeusername ||  !skipSignUpEnableCheck) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorCode", userNameValidityStatusCode);
+            request.getRequestDispatcher("register.do").forward(request, response);
+            return;
+        } else {
+            String errorCode = String.valueOf(userNameValidityStatusCode);
+            if (SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT.equalsIgnoreCase(errorCode)) {
+                errorMsg = "Invalid tenant domain - " + user.getTenantDomain() + ".";
+            } else if (SelfRegistrationStatusCodes.ERROR_CODE_USER_ALREADY_EXISTS.equalsIgnoreCase(errorCode)) {
+                errorMsg = "Username '" + username + "' is already taken.";
+            } else if (SelfRegistrationStatusCodes.CODE_USER_NAME_INVALID.equalsIgnoreCase(errorCode)) {
+                errorMsg = user.getUsername() + " is an invalid user name. Please pick a valid username.";
+            }
+            request.setAttribute("errorMsg", errorMsg + " Please contact the administrator to fix this issue.");
+            request.setAttribute("errorCode", errorCode);
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+
+        }
     }
     String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
@@ -296,7 +329,8 @@
                                         .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label"><%=Encode.forHtmlContent(claimDisplayName)%>
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claimDisplayName)%>
                                 </label>
                                 <input type="text" name="<%=Encode.forHtmlAttribute(claim)%>"
                                        id="<%=Encode.forHtmlAttribute(claim)%>" class="form-control" required="required">
@@ -357,7 +391,8 @@
 
                                     if (StringUtils.isNotEmpty(claimValue)) { %>
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                    <label class="control-label"><%=Encode.forHtmlContent(claim.getDisplayName())%>
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
                                     </label>
                                     <input type="text" class="form-control"
                                            value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled>
