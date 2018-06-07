@@ -643,6 +643,7 @@ public class FrameworkUtils {
      * @param sessionContext
      */
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
@@ -664,6 +665,7 @@ public class FrameworkUtils {
     }
 
     public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 

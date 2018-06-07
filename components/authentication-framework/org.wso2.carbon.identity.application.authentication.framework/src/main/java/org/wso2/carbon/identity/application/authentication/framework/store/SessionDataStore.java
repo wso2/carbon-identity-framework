@@ -247,12 +247,6 @@ public class SessionDataStore {
 
         if (StringUtils.isNotBlank(deleteExpiredDataTaskSQL)) {
             sqlDeleteExpiredDataTask = String.format(deleteExpiredDataTaskSQL, deleteChunkSize);
-        } else {
-            try {
-                sqlDeleteExpiredDataTask = getDBSpecificSessionDataRemovalQuery();
-            } catch (IdentityApplicationManagementException e) {
-                log.error("Error when initializing the db specific cleanup query.", e);
-            }
         }
 
         if (!enablePersist) {
@@ -478,6 +472,13 @@ public class SessionDataStore {
      */
     public void removeExpiredSessionData() {
 
+        if (StringUtils.isBlank(sqlDeleteExpiredDataTask)) {
+            try {
+                sqlDeleteExpiredDataTask = getDBSpecificSessionDataRemovalQuery();
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error when initializing the db specific cleanup query.", e);
+            }
+        }
         if (sessionDataCleanupEnabled) {
             removeExpiredSessionData(sqlDeleteExpiredDataTask);
         }
