@@ -1,7 +1,7 @@
 {
   "category": "Request Based",
   "name": "ACR",
-  "img": "./images/user.gif",
+  "img": "./images/http.png",
   "code": [
     "function onInitialRequest(context) {",
     "",
@@ -18,5 +18,5 @@
     "}"
   ],
   "help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
-  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
 }

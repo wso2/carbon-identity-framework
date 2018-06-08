@@ -1,7 +1,7 @@
 {
   "category": "Environment Based",
   "name": "User Agent Based",
-  "img": "./images/user.gif",
+  "img": "./images/environment.png",
   "code": [
     "/*",
     "This template shows how to extract User-Agent header from the request and manipulate the authentication flow if",
@@ -28,5 +28,5 @@
     "}"
   ],
   "help": "Enforcing second authentication step if the user logs from a mobile device",
-  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
 }
