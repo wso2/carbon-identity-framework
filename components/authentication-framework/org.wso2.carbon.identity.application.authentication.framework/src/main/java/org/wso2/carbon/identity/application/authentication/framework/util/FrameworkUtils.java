@@ -1342,13 +1342,9 @@ public class FrameworkUtils {
             cookieBuilder.setVersion(cookieConfig.getVersion());
         }
 
-        if (cookieConfig.isHttpOnly()) {
-            cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
-        }
+        cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
 
-        if (cookieConfig.isSecure()) {
-            cookieBuilder.setSecure(cookieConfig.isSecure());
-        }
+        cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
     public static String getMultiAttributeSeparator() {
