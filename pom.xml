@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.11.244-SNAPSHOT</version>
+    <version>5.11.255-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -40,7 +40,6 @@
     <modules>
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
-        <module>components/adaptive-authentication</module>
         <module>components/authentication-framework</module>
         <module>components/entitlement</module>
         <module>components/identity-core</module>
@@ -76,7 +75,6 @@
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
         <module>features/consent-mgt</module>
-        <module>features/adaptive-authentication</module>
     </modules>
 
     <repositories>
@@ -1634,8 +1632,8 @@
         <opensaml.version>2.6.4</opensaml.version>
         <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
-        <joda.version>2.8.2</joda.version>
-        <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
+        <joda.version>2.9.4</joda.version>
+        <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
         <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>

@@ -88,6 +88,7 @@ import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -602,6 +603,7 @@ public class FrameworkUtils {
 
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
         AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout()));
         AuthenticationContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -614,6 +616,7 @@ public class FrameworkUtils {
         AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
         AuthenticationResultCacheEntry cacheEntry = new AuthenticationResultCacheEntry();
         cacheEntry.setResult(authenticationResult);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         AuthenticationResultCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -644,6 +647,7 @@ public class FrameworkUtils {
      * @param sessionContext
      */
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
@@ -661,6 +665,39 @@ public class FrameworkUtils {
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
         cacheEntry.setContext(sessionContext);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+
+        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        if (seqData != null) {
+            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
+                if (entry.getValue() != null) {
+                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                }
+            }
+        }
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
+
+        long timeoutPeriod;
+        if (sessionContext.isRememberMe()) {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+        } else {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        }
+
+        cacheEntry.setContext(sessionContext);
+        cacheEntry.setValidityPeriod(timeoutPeriod);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -1309,13 +1346,9 @@ public class FrameworkUtils {
             cookieBuilder.setVersion(cookieConfig.getVersion());
         }
 
-        if (cookieConfig.isHttpOnly()) {
-            cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
-        }
+        cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
 
-        if (cookieConfig.isSecure()) {
-            cookieBuilder.setSecure(cookieConfig.isSecure());
-        }
+        cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
     public static String getMultiAttributeSeparator() {

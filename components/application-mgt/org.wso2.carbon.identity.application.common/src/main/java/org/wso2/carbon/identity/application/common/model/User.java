@@ -37,16 +37,6 @@ public class User implements Serializable {
     protected String tenantDomain;
     protected String userStoreDomain;
     protected String userName;
-    private static boolean ignoreCaseSensitivityBasedHashing = false;
-    private static final String IGNORE_CASE_SENSITIVITY_BASED_HASHING = "ignoreCaseSensitivityBasedHashing";
-
-    static {
-
-        String propertyToIgnoreCaseSensitivityBasedHashing = System.getProperty(IGNORE_CASE_SENSITIVITY_BASED_HASHING);
-        if (StringUtils.isNotBlank(propertyToIgnoreCaseSensitivityBasedHashing)) {
-            ignoreCaseSensitivityBasedHashing = Boolean.parseBoolean(propertyToIgnoreCaseSensitivityBasedHashing);
-        }
-    }
 
     /**
      * Returns a User instance populated from the given OMElement
@@ -221,15 +211,10 @@ public class User implements Serializable {
     public int hashCode() {
         int result = tenantDomain.hashCode();
         result = 31 * result + userStoreDomain.hashCode();
-
-        if (ignoreCaseSensitivityBasedHashing) {
-            result = 31 * result + userName.toLowerCase().hashCode();
+        if(IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
+            result = 31 * result + userName.hashCode();
         } else {
-            if (IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
-                result = 31 * result + userName.hashCode();
-            } else {
-                result = 31 * result + userName.toLowerCase().hashCode();
-            }
+            result = 31 * result + userName.toLowerCase().hashCode();
         }
         return result;
     }

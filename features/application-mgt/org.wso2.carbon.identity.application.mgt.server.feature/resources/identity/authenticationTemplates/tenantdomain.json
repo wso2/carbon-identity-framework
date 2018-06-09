@@ -1,7 +1,7 @@
 {
   "category": "User Based",
   "name": "Tenant Based",
-  "img": "./images/user.gif",
+  "img": "./images/user.png",
   "code": [
     "/*",
     "This template allows to extract the tenant domain of the user and manipulate the authentication flow based on",
@@ -25,5 +25,5 @@
     "}"
   ],
   "help": "Define conditional authentication based on the tenant domain of the user.",
-  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
 }
