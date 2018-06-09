@@ -30,6 +30,10 @@ public class IdPManagementConstants {
     public static final String MULTI_VALUED_PROPERT_IDENTIFIER_PATTERN = ".*\\" + MULTI_VALUED_PROPERTY_CHARACTER +
             "[0-9]+";
     public static final String META_DATA = "meta_data";
+
+    // JIT provisioning properties for password provisioning and username provisioning.
+    public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
+    public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -39,16 +43,14 @@ public class IdPManagementConstants {
         public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, ALIAS, " +
                 "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, PASSWORD_PROV_ENABLED, "
-                + "MODIFY_USERNAME_ENABLED FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '"
-                + SHARED_IDP_PREFIX + "%')) AND NAME = ?";
+                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE (TENANT_ID = ? OR"
+                + " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?";
 
         public static final String GET_IDP_BY_ID_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, ALIAS, " +
                 "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, PASSWORD_PROV_ENABLED, "
-                + "MODIFY_USERNAME_ENABLED FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME "
-                + "LIKE '" + SHARED_IDP_PREFIX + "%')) AND ID = ?";
+                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE "
+                + "(TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND ID = ?";
 
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
@@ -92,8 +94,8 @@ public class IdPManagementConstants {
                 + "HOME_REALM_ID=?, CERTIFICATE=?, ALIAS=?, INBOUND_PROV_ENABLED=?, "
                 + "INBOUND_PROV_USER_STORE_ID=?,USER_CLAIM_URI=?, ROLE_CLAIM_URI=?, " +
                 "DEFAULT_AUTHENTICATOR_NAME=?, DEFAULT_PRO_CONNECTOR_NAME=?, DESCRIPTION=?, " +
-                "IS_FEDERATION_HUB=?, IS_LOCAL_CLAIM_DIALECT=?, PROVISIONING_ROLE=?, IS_ENABLED=?, DISPLAY_NAME=?, "
-                + "PASSWORD_PROV_ENABLED=?, MODIFY_USERNAME_ENABLED=? WHERE TENANT_ID=? AND NAME=?";
+                "IS_FEDERATION_HUB=?, IS_LOCAL_CLAIM_DIALECT=?, PROVISIONING_ROLE=?, IS_ENABLED=?, DISPLAY_NAME=?  " +
+                "WHERE TENANT_ID=? AND NAME=?";
 
         public static final String UPDATE_IDP_AUTH_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=? WHERE IDP_ID=? " +
                 "AND NAME=?";
@@ -149,8 +151,8 @@ public class IdPManagementConstants {
                 + "HOME_REALM_ID, CERTIFICATE, ALIAS, INBOUND_PROV_ENABLED, "
                 + "INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
-                + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, PASSWORD_PROV_ENABLED, "
-                + "MODIFY_USERNAME_ENABLED) VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
+                + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME) " +
+                "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?)";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
@@ -216,30 +218,30 @@ public class IdPManagementConstants {
         public static final String GET_SP_PROVISIONING_CONNECTOR_REFS = "SELECT COUNT(*) FROM SP_PROVISIONING_CONNECTOR "
                 + "WHERE (TENANT_ID=? AND IDP_NAME=?)";
 
-        public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY =
-                "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " + "idp.HOME_REALM_ID, "
-                        + "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.PASSWORD_PROV_ENABLED, "
-                        + "idp.MODIFY_USERNAME_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, idp.USER_CLAIM_URI, "
-                        + "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, "
-                        + "idp.DESCRIPTION, "
-                        + "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, "
-                        + "idp.DISPLAY_NAME "
-                        + "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN "
-                        + "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID "
-                        + "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID =?";
+        public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY = "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " +
+                "idp.HOME_REALM_ID, " +
+                "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, " +
+                "idp.USER_CLAIM_URI, " +
+                "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
+                "idp.DESCRIPTION, " +
+                "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
+                "idp.DISPLAY_NAME " +
+                "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
+                "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
+                "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID =?";
 
-        public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY_SQL =
-                "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " + "idp.HOME_REALM_ID, "
-                        + "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.PASSWORD_PROV_ENABLED, "
-                        + "idp.MODIFY_USERNAME_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, " + "idp.USER_CLAIM_URI, "
-                        + "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, "
-                        + "idp.DESCRIPTION, "
-                        + "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, "
-                        + "idp.DISPLAY_NAME "
-                        + "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN "
-                        + "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID "
-                        + "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID "
-                        + "=? AND idp_auth.name =?";
+        public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY_SQL = "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " +
+                "idp.HOME_REALM_ID, " +
+                "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, " +
+                "idp.USER_CLAIM_URI, " +
+                "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
+                "idp.DESCRIPTION, " +
+                "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
+                "idp.DISPLAY_NAME " +
+                "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
+                "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
+                "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID " +
+                "=? AND idp_auth.name =?";
 
         public static final String GET_SIMILAR_IDP_ENTITIY_IDS =
                 "SELECT COUNT(prop.ID) FROM IDP_AUTHENTICATOR_PROPERTY prop INNER JOIN IDP_AUTHENTICATOR auth " +

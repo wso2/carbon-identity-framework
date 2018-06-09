@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,13 +53,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -1165,13 +1160,6 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
-
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
-                        jitProConfig.setPasswordProvisioningEnabled(true);
-                    }
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
-                        jitProConfig.setModifyUserNameAllowed(true);
-                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1247,7 +1235,8 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection, idpId);
+                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                        getIdentityPropertiesByIdpId(dbConnection, idpId));
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
@@ -1265,6 +1254,27 @@ public class IdPManagementDAO {
             }
         }
     }
+
+    private List<IdentityProviderProperty> filterIdenityProperties(IdentityProvider federatedIdp,
+            List<IdentityProviderProperty> identityProviderProperties) {
+
+        JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
+        Iterator<IdentityProviderProperty> identityProviderIterator = identityProviderProperties.iterator();
+        while (identityProviderIterator.hasNext()) {
+            IdentityProviderProperty identityProviderProperty = identityProviderIterator.next();
+            if (identityProviderProperty.getName().equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED)) {
+                justInTimeProvisioningConfig
+                        .setPasswordProvisioningEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                identityProviderProperties.remove(identityProviderProperty);
+            } else if (identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)) {
+                justInTimeProvisioningConfig
+                        .setModifyUserNameAllowed(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                identityProviderProperties.remove(identityProviderProperty);
+            }
+        }
+        return identityProviderProperties;
+    }
+
 
 
     /**
@@ -1327,12 +1337,6 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if (IdPManagementConstants.IS_TRUE_VALUE.equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
-                        jitProConfig.setPasswordProvisioningEnabled(true);
-                    }
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
-                        jitProConfig.setModifyUserNameAllowed(true);
-                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1408,8 +1412,8 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                        Integer.parseInt(rs.getString("ID")));
+                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
@@ -1487,12 +1491,6 @@ public class IdPManagementDAO {
                 JustInTimeProvisioningConfig jitProConfig = new JustInTimeProvisioningConfig();
                 if (IdPManagementConstants.IS_TRUE_VALUE.equals(rs.getString("INBOUND_PROV_ENABLED"))) {
                     jitProConfig.setProvisioningEnabled(true);
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("PASSWORD_PROV_ENABLED"))) {
-                        jitProConfig.setPasswordProvisioningEnabled(true);
-                    }
-                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("MODIFY_USERNAME_ENABLED"))) {
-                        jitProConfig.setModifyUserNameAllowed(true);
-                    }
                 } else {
                     jitProConfig.setProvisioningEnabled(false);
                 }
@@ -1568,8 +1566,8 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                        Integer.parseInt(rs.getString("ID")));
+                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
@@ -1682,20 +1680,9 @@ public class IdPManagementDAO {
                 prepStmt.setString(7, IdPManagementConstants.IS_TRUE_VALUE);
                 // user will be provisioned to the configured user store.
                 prepStmt.setString(8, identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
-
-                String passWordProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig()
-                        .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
-                        IdPManagementConstants.IS_FALSE_VALUE;
-                prepStmt.setString(19, passWordProvisioningEnabled);
-                String modifyUserNameAllowed = identityProvider.getJustInTimeProvisioningConfig()
-                        .isModifyUserNameAllowed() ? IdPManagementConstants.IS_FALSE_VALUE : IdPManagementConstants
-                        .IS_FALSE_VALUE;
-                prepStmt.setString(20, modifyUserNameAllowed);
             } else {
                 prepStmt.setString(7, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt.setString(8, null);
-                prepStmt.setString(19, IdPManagementConstants.IS_FALSE_VALUE);
-                prepStmt.setString(20, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (identityProvider.getClaimConfig() != null) {
@@ -1802,11 +1789,24 @@ public class IdPManagementDAO {
                 }
 
             }
-            if (identityProvider.getIdpProperties() != null) {
-                addIdentityProviderProperties(dbConnection, idPId, Arrays.asList(identityProvider.getIdpProperties())
-                        , tenantId);
+
+            List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
+            if (ArrayUtils.isNotEmpty(identityProvider.getIdpProperties())) {
+                identityProviderProperties = Arrays.asList(identityProvider.getIdpProperties());
             }
 
+            IdentityProviderProperty passwordProvisioningProperty = new IdentityProviderProperty();
+            passwordProvisioningProperty.setName(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED);
+            passwordProvisioningProperty.setValue(
+                    String.valueOf(identityProvider.getJustInTimeProvisioningConfig().isPasswordProvisioningEnabled()));
+
+            IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
+            modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
+            modifyUserNameProperty.setValue(
+                    String.valueOf(identityProvider.getJustInTimeProvisioningConfig().isModifyUserNameAllowed()));
+            identityProviderProperties.add(passwordProvisioningProperty);
+            identityProviderProperties.add(modifyUserNameProperty);
+            addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             dbConnection.commit();
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
@@ -1876,22 +1876,9 @@ public class IdPManagementDAO {
                     .isProvisioningEnabled()) {
                 prepStmt1.setString(6, IdPManagementConstants.IS_TRUE_VALUE);
                 prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
-
-                String isPasswordProvisionConfigEnabled = newIdentityProvider.getJustInTimeProvisioningConfig()
-                        .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
-                        IdPManagementConstants.IS_FALSE_VALUE;
-                prepStmt1.setString(18, isPasswordProvisionConfigEnabled);
-
-                String isModifyUserNameEnabled = newIdentityProvider.getJustInTimeProvisioningConfig()
-                        .isModifyUserNameAllowed() ? IdPManagementConstants.IS_TRUE_VALUE : IdPManagementConstants
-                        .IS_FALSE_VALUE;
-                prepStmt1.setString(19, isModifyUserNameEnabled);
-
             } else {
                 prepStmt1.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
                 prepStmt1.setString(7, null);
-                prepStmt1.setString(18, IdPManagementConstants.IS_FALSE_VALUE);
-                prepStmt1.setString(19, IdPManagementConstants.IS_FALSE_VALUE);
             }
 
             if (newIdentityProvider.getClaimConfig() != null) {
@@ -1945,8 +1932,8 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(17, newIdentityProvider.getDisplayName());
 
-            prepStmt1.setInt(20, tenantId);
-            prepStmt1.setString(21, currentIdentityProvider.getIdentityProviderName());
+            prepStmt1.setInt(19, tenantId);
+            prepStmt1.setString(20, currentIdentityProvider.getIdentityProviderName());
 
             prepStmt1.executeUpdate();
 
@@ -1982,8 +1969,20 @@ public class IdPManagementDAO {
                         tenantId);
 
                 if (newIdentityProvider.getIdpProperties() != null) {
-                    updateIdentityProviderProperties(dbConnection, idpId,
-                            Arrays.asList(newIdentityProvider.getIdpProperties()), tenantId);
+                    List<IdentityProviderProperty> identityProviderProperties = Arrays
+                            .asList(newIdentityProvider.getIdpProperties());
+                    IdentityProviderProperty passwordProvisioningProperty = new IdentityProviderProperty();
+                    passwordProvisioningProperty.setName(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED);
+                    passwordProvisioningProperty.setValue(String.valueOf(
+                            newIdentityProvider.getJustInTimeProvisioningConfig().isPasswordProvisioningEnabled()));
+
+                    IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
+                    modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
+                    modifyUserNameProperty.setValue(String.valueOf(
+                            newIdentityProvider.getJustInTimeProvisioningConfig().isModifyUserNameAllowed()));
+                    identityProviderProperties.add(passwordProvisioningProperty);
+                    identityProviderProperties.add(modifyUserNameProperty);
+                    updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
                 }
 
             }

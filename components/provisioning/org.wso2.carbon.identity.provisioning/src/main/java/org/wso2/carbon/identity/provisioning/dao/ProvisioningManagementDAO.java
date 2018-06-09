@@ -249,15 +249,9 @@ public class ProvisioningManagementDAO {
                 prepStmt.setString(6, IdentityProvisioningConstants.IS_TRUE_VALUE);
                 prepStmt.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig()
                         .getProvisioningUserStore());
-                String isPasswordProvisionConfigEnabled = newIdentityProvider.getJustInTimeProvisioningConfig()
-                        .isPasswordProvisioningEnabled() ? IdPManagementConstants.IS_TRUE_VALUE :
-                        IdPManagementConstants.IS_FALSE_VALUE;
-                prepStmt.setString(18, isPasswordProvisionConfigEnabled);
-
             } else {
                 prepStmt.setString(6, IdentityProvisioningConstants.IS_FALSE_VALUE);
                 prepStmt.setString(7, null);
-                prepStmt.setString(18, IdentityProvisioningConstants.IS_FALSE_VALUE);
             }
 
             if (newIdentityProvider.getClaimConfig() != null) {
