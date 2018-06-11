@@ -20,13 +20,33 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ApplicationMgtValidationListener extends AbstractApplicationMgtListener {
 
     @Override
     public int getDefaultOrderId() {
+
         return 10;
     }
 
@@ -40,4 +60,165 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
         return true;
     }
 
+    @Override
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                          String userName) throws IdentityApplicationManagementException {
+
+        List<String> validationMsg = new ArrayList<>();
+
+        validateLocalAndOutBoundAuthenticationConfig(serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
+                tenantDomain, validationMsg);
+        validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain, validationMsg);
+        validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain, validationMsg);
+        if (validationMsg.isEmpty()) {
+            return true;
+        } else {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
+    }
+
+    /**
+     * Validate local and outbound authenticator related configurations and append to the validation msg list.
+     *
+     * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
+     * @param tenantDomain                         tenant domain
+     * @param validationMsg                        validation msg
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    private void validateLocalAndOutBoundAuthenticationConfig(
+            LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain, List
+            <String> validationMsg)
+            throws IdentityApplicationManagementException {
+
+        if (localAndOutBoundAuthenticationConfig == null) {
+            return;
+        }
+
+        AuthenticationStep[] authenticationSteps = localAndOutBoundAuthenticationConfig.getAuthenticationSteps();
+        if (authenticationSteps == null) {
+            return;
+        }
+        ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
+        List<String> allLocalAuthenticators = Arrays.stream(applicationMgtService.
+                getAllLocalAuthenticators(tenantDomain)).map(LocalAuthenticatorConfig::getName)
+                .collect(Collectors.toList());
+
+        String errorIdpMsg = "Federated Identity Provider %s is not available in the server";
+        String errorIdpAuthenticatorMsg = "Authenticator %s is not configured for %s identity Provider";
+        String errorAuthenticatorMsg = "Authenticator %s is not available in the server";
+
+        Arrays.stream(authenticationSteps).forEach(authenticationStep -> {
+            Arrays.stream(authenticationStep.getFederatedIdentityProviders()).forEach(idp -> {
+                try {
+                    IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
+                            .getIdentityProviderName(), tenantDomain, false);
+                    if (savedIdp == null) {
+                        validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                    } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
+                        List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
+                                .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
+                                .collect(Collectors.toList());
+                        Arrays.stream(idp.getFederatedAuthenticatorConfigs()).forEach(federatedAuth -> {
+                            if (savedIdpAuthenticators.contains(federatedAuth.getName())) {
+                                validationMsg.add(String.format(errorIdpAuthenticatorMsg, federatedAuth
+                                                .getName(),
+                                        idp.getIdentityProviderName()));
+                            }
+                        });
+                    } else {
+                        Arrays.stream(idp.getFederatedAuthenticatorConfigs()).forEach(federatedAuth ->
+                                validationMsg.add(String.format(errorIdpAuthenticatorMsg, federatedAuth.getName(),
+                                        idp.getIdentityProviderName())));
+                    }
+                } catch (IdentityProviderManagementException e) {
+                    validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                }
+            });
+            Arrays.stream(authenticationStep.getLocalAuthenticatorConfigs()).forEach(localAuth -> {
+                if (!allLocalAuthenticators.contains(localAuth.getName())) {
+                    validationMsg.add(String.format(errorAuthenticatorMsg, localAuth.getName()));
+                }
+            });
+        });
+        return;
+    }
+
+    /**
+     * Validate outbound provisioning related configurations and append to the validation msg list.
+     *
+     * @param outboundProvisioningConfig Outbound provisioning config
+     * @param tenantDomain               tenant domain
+     * @param validationMsg              validation msg
+     */
+    private void validateOutBoundProvisioning(OutboundProvisioningConfig outboundProvisioningConfig, String
+            tenantDomain, List<String> validationMsg) {
+
+        if (outboundProvisioningConfig == null
+                || outboundProvisioningConfig.getProvisioningIdentityProviders() == null) {
+            return;
+        }
+
+        String errorIdpMsg = "Federated Identity Provider %s is not available in the server";
+        Arrays.stream(outboundProvisioningConfig.getProvisioningIdentityProviders()).forEach(idp -> {
+            try {
+                IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(
+                        idp.getIdentityProviderName(), tenantDomain, false);
+                if (savedIdp == null) {
+                    validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null) {
+                    validationMsg.add(String.format("No Provisioning connector configured for %s",
+                            idp.getIdentityProviderName()));
+                }
+            } catch (IdentityProviderManagementException e) {
+                validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+            }
+        });
+        return;
+    }
+
+    /**
+     * Validate claim related configurations and append to the validation msg list.
+     *
+     * @param claimConfig   claim config
+     * @param tenantDomain  tenant domain
+     * @param validationMsg validation msg
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain, List<String> validationMsg) throws
+            IdentityApplicationManagementException {
+
+        if (claimConfig == null) {
+            return;
+        }
+
+        ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
+        String[] allLocalClaimUris = applicationMgtService.getAllLocalClaimUris(tenantDomain);
+
+        String claimErrorMsg = "Local claim %s is not available for tenant %s";
+        ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
+        if (claimMappings != null) {
+            Arrays.stream(claimMappings).forEach(claimMapping -> {
+                String claimUri = claimMapping.getLocalClaim().getClaimUri();
+                if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
+                    validationMsg.add(String.format(claimErrorMsg, claimUri, tenantDomain));
+                }
+            });
+        }
+
+        String errorDialectMsg = "Claim Dialect %s is not available for tenant %s";
+        String[] spClaimDialects = claimConfig.getSpClaimDialects();
+        ClaimManagerHandler claimManagerHandler = ClaimManagerHandler.getInstance();
+        if (spClaimDialects != null) {
+            Arrays.stream(spClaimDialects).forEach(spClaimDialect -> {
+                try {
+                    if (!claimManagerHandler.isKnownClaimDialect(spClaimDialect, tenantDomain)) {
+                        validationMsg.add(String.format(errorDialectMsg, spClaimDialect, tenantDomain));
+                    }
+                } catch (ClaimManagementException e) {
+                    validationMsg.add(String.format(errorDialectMsg, spClaimDialect, tenantDomain));
+                }
+            });
+        }
+        return;
+    }
 }

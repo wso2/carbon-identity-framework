@@ -28,21 +28,26 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.impl.SAMLTokenIssuerConfig;
+import org.w3c.dom.Document;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.directory.server.manager.DirectoryServerManager;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.ImporterResponse;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
@@ -60,17 +65,37 @@ import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
+import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.config.SecurityServiceAdmin;
+import org.wso2.carbon.security.sts.service.STSAdminServiceImpl;
+import org.wso2.carbon.security.sts.service.util.TrustedServiceData;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
@@ -82,6 +107,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
+    private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
+
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -199,9 +226,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
-                return;
+        if (isImportSP.get()) {
+            isImportSP.set(false);
+        } else {
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
+                    return;
+                }
             }
         }
         String applicationName = serviceProvider.getApplicationName();
@@ -852,6 +883,91 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    public ImporterResponse importSPApplication(String content, String fileName, String tenantDomain, String username,
+                                                boolean isUpdate) throws IdentityApplicationManagementException {
+
+        ImporterResponse importerResponse = new ImporterResponse();
+        ServiceProvider serviceProvider = unmarshalSP(content, fileName, tenantDomain);
+        if (serviceProvider == null) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider file %s upload by" +
+                    " tenant: %s", fileName, tenantDomain));
+        }
+
+
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+
+        ServiceProvider savedSP = null;
+        try {
+            if (isUpdate) {
+                savedSP = getApplicationExcludingFileBasedSPs(serviceProvider.getApplicationName(), tenantDomain);
+                if (savedSP == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Service provider %s@%s is not found, so creating new Service provider",
+                                serviceProvider.getApplicationName(), tenantDomain));
+                    }
+                    isUpdate = false;
+                }
+            }
+
+            if (!isUpdate) {
+                ServiceProvider basicApplication = new ServiceProvider();
+                basicApplication.setApplicationName(serviceProvider.getApplicationName());
+                basicApplication.setDescription(serviceProvider.getDescription());
+                savedSP = addApplication(basicApplication, tenantDomain, username);
+            }
+            serviceProvider.setApplicationID(savedSP.getApplicationID());
+            serviceProvider.setOwner(getUser(tenantDomain, username));
+
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.doPreUpdateApplication(serviceProvider, tenantDomain, username);
+                }
+            }
+            isImportSP.set(true);
+
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.doImportServiceProvider(serviceProvider);
+                }
+            }
+
+            updateApplication(serviceProvider, tenantDomain, username);
+            importerResponse.setApplicationName(serviceProvider.getApplicationName());
+            importerResponse.setErrors(new String[0]);
+            return importerResponse;
+        } catch (IdentityApplicationManagementValidationException e) {
+            importerResponse.setApplicationName(null);
+            importerResponse.setErrors(e.getValidationMsg());
+            if (savedSP != null && !isUpdate) {
+                deleteSavedSP(savedSP, tenantDomain, username);
+            }
+            return importerResponse;
+        } catch (IdentityApplicationManagementException e) {
+            if (savedSP != null && !isUpdate) {
+                deleteSavedSP(savedSP, tenantDomain, username);
+            }
+            String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
+                    serviceProvider.getApplicationName(), tenantDomain);
+            log.error(errorMsg, e);
+            throw new IdentityApplicationManagementException(errorMsg, e);
+        }
+    }
+
+    public String exportSPApplication(String applicationName, Boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.doExportServiceProvider(serviceProvider, exportSecrets);
+            }
+        }
+        return marshalSP(serviceProvider, tenantDomain);
+    }
+
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
         List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
@@ -999,5 +1115,109 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         return serviceProvider;
+    }
+
+    /**
+     * Unmarshal service provider.
+     *
+     * @param content      string
+     * @param fileName     file name of the service provider
+     * @param tenantDomain tenant domain name
+     * @return Service Provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    private ServiceProvider unmarshalSP(String content, String fileName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (content == null || StringUtils.isEmpty(content)) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider file %s upload by" +
+                    " tenant: %s", fileName, tenantDomain));
+        }
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            return (ServiceProvider) unmarshaller.unmarshal(new ByteArrayInputStream(
+                    content.getBytes(StandardCharsets.UTF_8)));
+
+        } catch (JAXBException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider file %s" +
+                    " upload by" +
+                    " tenant: %s", fileName, tenantDomain));
+        }
+    }
+
+    /**
+     * Marshal Service provider to string.
+     *
+     * @param serviceProvider service provider to be marshaled
+     * @param tenantDomain    tenant domain
+     * @return string
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    private String marshalSP(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+            Document document = docBuilderFactory.newDocumentBuilder().newDocument();
+            marshaller.marshal(serviceProvider, document);
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(OutputKeys.CDATA_SECTION_ELEMENTS,
+                    "AuthenticationScript inboundConfiguration");
+
+            StringWriter stringBuilder = new StringWriter();
+            StreamResult result = new StreamResult(stringBuilder);
+            transformer.transform(new DOMSource(document), result);
+            return stringBuilder.getBuffer().toString();
+        } catch (JAXBException | ParserConfigurationException | TransformerException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in exporting Service Provider %s@%s",
+                    serviceProvider.getApplicationName(), tenantDomain), e);
+        }
+    }
+
+    /**
+     * Create user object from user name and tenantDomain.
+     *
+     * @param tenantDomain tenantDomain
+     * @param username     username
+     * @return User
+     */
+    private User getUser(String tenantDomain, String username) {
+
+        User user = new User();
+        user.setUserName(UserCoreUtil.removeDomainFromName(username));
+        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(username));
+        user.setTenantDomain(tenantDomain);
+        return user;
+    }
+
+    /**
+     * Delete the newly created application, if there is an error
+     *
+     * @param savedSP      saved SP
+     * @param tenantDomain tenant Domain
+     * @param username     username
+     * @throws IdentityApplicationManagementException
+     */
+    private void deleteSavedSP(ServiceProvider savedSP, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        try {
+            log.warn(String.format("Remove newly imported %s@%s application as error occurred ",
+                    savedSP.getApplicationName(), tenantDomain));
+            deleteApplication(savedSP.getApplicationName(), tenantDomain, username);
+
+        } catch (IdentityApplicationManagementException e1) {
+            String errorMsg = String.format("Error occurred when removing newly imported service provider %s@%s",
+                    savedSP.getApplicationName(), tenantDomain);
+            log.error(errorMsg, e1);
+            throw new IdentityApplicationManagementException(errorMsg, e1);
+        }
     }
 }

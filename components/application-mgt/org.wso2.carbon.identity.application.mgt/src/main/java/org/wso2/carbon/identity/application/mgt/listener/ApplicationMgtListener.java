@@ -259,4 +259,22 @@ public interface ApplicationMgtListener {
      * @return
      */
     boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain);
+
+    /**
+     * Define any additional actions when importing service provider.
+     *
+     * @param serviceProvider service Provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException;
+
+    /**
+     * Define any additional actions when exporting service provider.
+     *
+     * @param serviceProvider service Provider
+     * @param exportSecrets   is export secrets
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets) throws
+            IdentityApplicationManagementException;
 }

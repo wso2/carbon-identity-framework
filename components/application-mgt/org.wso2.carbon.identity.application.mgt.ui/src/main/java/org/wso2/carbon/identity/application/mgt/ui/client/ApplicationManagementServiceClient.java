@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.xsd.ImporterResponse;
 import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
@@ -246,6 +247,31 @@ public class ApplicationManagementServiceClient {
         } catch (RemoteException e) {
             throw new AxisFault("Error occurred while retrieving authentication flow templates", e);
         }
+    }
+
+    public ImporterResponse importApplication(String content, String fileName) throws AxisFault {
+        try {
+            if (debugEnabled) {
+                log.debug("Importing Service Provider from file : " + fileName);
+            }
+            return stub.importApplication(content, fileName);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return null;
+    }
+
+    public String exportApplication(String appid, boolean exportSecrets) throws AxisFault {
+        try {
+            if (debugEnabled) {
+                log.debug("Exporting Service Provider to file" );
+            }
+            String spFile = stub.exportApplication(appid, exportSecrets);
+            return spFile;
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return null;
     }
 
     private void handleException(Exception e) throws AxisFault {
