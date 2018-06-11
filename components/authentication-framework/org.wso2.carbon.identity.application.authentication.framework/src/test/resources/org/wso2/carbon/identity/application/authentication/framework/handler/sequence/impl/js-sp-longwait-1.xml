@@ -82,15 +82,14 @@
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 function onInitialRequest(context) {
     //TODO remove this executeStep and make it to work.
-    executeStep({id :'1'});
-    testLongWaitCall('a', 'b', 'c', {},  function() {},
-    {
-        "on" : {
-            "ok" : function(){Log.info('OK Called')}
+    executeStep(1);
+    testLongWaitCall('a', 'b', 'c', {}, {
+            "onSuccess" : function(){Log.info('OK Called');
         }
     });
 }
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

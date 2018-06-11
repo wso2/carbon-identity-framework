@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.AsyncCallback;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -32,10 +31,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,14 +42,13 @@ import static org.mockito.Mockito.mock;
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
-    public void testHandle_LongWait() throws Exception {
+    public void testHandleLongWait() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(new LongWaitStatusStoreService());
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "testLongWaitCall",
-                                     (Fn1) (new AsyncAnalyticsCbFunctionImpl()::publishEvent));
+                new AsyncAnalyticsCbFunctionImpl());
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-longwait-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -75,22 +71,19 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
     public interface Fn1 {
 
         void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
-                          Map<String, Object> payloadData,
-                          Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers);
+                          Map<String, Object> payloadData, Map<String, Object> eventHandlers);
     }
 
     public static class AsyncAnalyticsCbFunctionImpl implements Fn1 {
 
         public void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
-                                 Map<String, Object> payloadData,
-                                 Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
+                                 Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
                 System.out.println("Calling With : " + ctx);
-                r.accept(ctx, Collections.emptyMap(), "ok");
+                r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
             JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
-            callback.accept(payloadData);
         }
     }
 }

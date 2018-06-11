@@ -1,0 +1,29 @@
+{
+  "category": "User Based",
+  "name": "Tenant Based",
+  "img": "./images/user.png",
+  "code": [
+    "/*",
+    "This template allows to extract the tenant domain of the user and manipulate the authentication flow based on",
+    "pre-defined tenant domains. Note that in order to this template to work, the service provider should be a SAAS",
+    "app",
+    "*/",
+    "function onInitialRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function(context) {",
+    "            // Extracting authenticated subject from the authenticated step 1.",
+    "            var user = context.steps[1].subject;",
+    "            // Extracting tenant domain of the subject.",
+    "            var tenantDomain = user.tenantDomain;",
+    "            Log.info('User: ' + user.username + ' belongs to Tenant: ' + tenantDomain);",
+    "",
+    "            if (tenantDomain === 'example.com') {",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "}"
+  ],
+  "help": "Define conditional authentication based on the tenant domain of the user.",
+  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
+}

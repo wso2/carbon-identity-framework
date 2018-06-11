@@ -81,6 +81,8 @@
     Map<String, String> claimMapping = appBean.getClaimMapping();
     Map<String, String> roleMapping = appBean.getRoleMapping();
     boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
+    List<String> spClaimDialects = appBean.getSPClaimDialects();
+    List<String> claimDialectUris = appBean.getClaimDialectUris();
     String isHashDisabled = request.getParameter("isHashDisabled");
     String idPName = request.getParameter("idPName");
     String action = request.getParameter("action");
@@ -526,6 +528,87 @@
 
     function onAdvanceAuthClick() {
         location.href = 'configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>';
+    }
+
+    function onClickAddSpClaimDialectUri() {
+
+        var spClaimDialect = $("#standard_dialect").val();
+        if (spClaimDialect == null || spClaimDialect.trim().length == 0) {
+            CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.not.valid'/>",
+                null, null);
+            return false;
+        }
+        spClaimDialect = spClaimDialect.trim();
+        if (!$("#spClaimDialectsTblRow").length) {
+            var row = '<tr id="spClaimDialectsTblRow">' +
+                    '    <td></td>' +
+                    '    <td>' +
+                    '        <table id="spClaimDialectsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
+                    '            <tbody id="spClaimDialectsTableBody">' +
+                    '            </tbody>' +
+                    '        </table>' +
+                    '        <input type="hidden" id="spClaimDialects" name="spClaimDialects" value="">' +
+                    '        <input type="hidden" id="currentColumnId" value="0">' +
+                    '    </td>' +
+                    '</tr>';
+            $('#spClaimDialectInputRow').after(row);
+        }
+        var spClaimDialects = $("#spClaimDialects").val();
+        var currentColumnId = $("#currentColumnId").val();
+        if (spClaimDialects == null || spClaimDialects.trim().length == 0) {
+            $("#spClaimDialects").val(spClaimDialect);
+            var row =
+                    '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
+                    '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
+                    '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                    ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
+            $('#spClaimDialectsTable tbody').append(row);
+        } else {
+            var isExist = false;
+            $.each(spClaimDialects.split(","), function (index, value) {
+                if (value === spClaimDialect) {
+                    isExist = true;
+                    CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.already.exists'/>",
+                        null, null);
+                    return false;
+                }
+            });
+            if (isExist) {
+                return false;
+            }
+            $("#spClaimDialects").val(spClaimDialects + "," + spClaimDialect);
+            var row =
+                    '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
+                    '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
+                    '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                    ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
+            $('#spClaimDialectsTable tr:last').after(row);
+        }
+        $("#standard_dialect").val("");
+        $("#currentColumnId").val(parseInt(currentColumnId) + 1);
+    }
+
+    function removeSpClaimDialect(spClaimDialect, columnId) {
+
+        var spClaimDialects = $("#spClaimDialects").val();
+        var newSpClaimDialects = "";
+        if (spClaimDialects != null && spClaimDialects.trim().length > 0) {
+            $.each(spClaimDialects.split(","), function (index, value) {
+                if (value.trim() === spClaimDialect.trim()) {
+                    return true;
+                }
+                if (newSpClaimDialects.length > 0) {
+                    newSpClaimDialects = newSpClaimDialects + "," + value.trim();
+                } else {
+                    newSpClaimDialects = value.trim();
+                }
+            });
+        }
+        $('#' + columnId).remove();
+        $("#spClaimDialects").val(newSpClaimDialects);
+        if (newSpClaimDialects.length == 0) {
+            $('#spClaimDialectsTblRow').remove();
+        }
     }
 
     var openFile = function (event) {
@@ -1226,6 +1309,76 @@
                                 </td>
                             </tr>
                         </table>
+                    </div>
+                    <div id="spClaimDialectSelection">
+                       <table class="carbonFormTable">
+                       <tr id="spClaimDialectInputRow">
+					    <td class="leftCol-med labelField" style="width:15%">
+                            <label id="addSpClaimDialectUrisLbl"><fmt:message key='config.application.claim.dialect.sp'/>:</label>
+                        </td>
+                        <td>
+                            <select class="leftCol-med" id="standard_dialect" name="standard_dialect" style=" margin-left: 5px; ">
+                                <option value="">---Select---</option>
+                                <%
+                                    for(String dialectURI : claimDialectUris) {%>
+                                        <option value="<%=Encode.forHtmlAttribute(dialectURI)%>"> <%=Encode.forHtmlContent(dialectURI)%></option>
+                                 <%
+                                } %>
+                            </select>
+                            <input id="addSpClaimDialectUriBtn" type="button" value="<fmt:message key="config.application.claim.dialect.sp.add"/>"
+                                onclick="onClickAddSpClaimDialectUri()"/>
+                        </td>
+					   </tr>
+
+                       <%if (spClaimDialects != null) {%>
+                                <tr id="spClaimDialectsTblRow">
+                                    <td></td>
+                                    <td>
+                                        <table id="spClaimDialectsTable" style="width: 40%; margin-bottom: 3px;"
+                                               class="styledInner">
+                                            <tbody id="spClaimDialectsTableBody">
+                                            <%
+                                                StringBuilder spClaimDialectsBuilder = new StringBuilder();
+                                                int spClaimDialectColumnId = 0;
+                                                for (String spClaimDialect : spClaimDialects) {
+                                                  if(spClaimDialect != null) {
+                                                    if (spClaimDialectsBuilder.length() > 0) {
+                                                        spClaimDialectsBuilder.append(",").append(spClaimDialect);
+                                                    } else {
+                                                        spClaimDialectsBuilder.append(spClaimDialect);
+                                                    }
+                                            %>
+                                            <tr id="spClaimDialectUri_<%=spClaimDialectColumnId%>">
+                                                <td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">
+                                                    <%=Encode.forHtml(spClaimDialect)%>
+                                                </td>
+                                                <td>
+                                                    <a onclick="removeSpClaimDialect('<%=Encode.forJavaScriptAttribute(spClaimDialect)%>',
+                                                            'spClaimDialectUri_<%=spClaimDialectColumnId%>');return false;"
+                                                       href="#" class="icon-link"
+                                                       style="background-image: url(../admin/images/delete.gif)">
+                                                        Delete
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <%
+                                                    spClaimDialectColumnId++;
+                                                }
+                                               }
+                                            %>
+                                            </tbody>
+                                        </table>
+                                        <input type="hidden" id="spClaimDialects" name="spClaimDialects"
+                                               value="<%=spClaimDialectsBuilder.length() > 0 ?
+         Encode.forHtmlAttribute(spClaimDialectsBuilder.toString()) : ""%>">
+                                        <input type="hidden" id="currentColumnId" value="<%=spClaimDialectColumnId%>">
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                %>
+
+                       </table>
                     </div>
                 </div>
 

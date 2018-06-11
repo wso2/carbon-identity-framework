@@ -86,22 +86,18 @@ var jsFn1 = function(context, a) {
 
 function onInitialRequest(context) {
 Log.info('Test0');
-	executeStep({
-	    id : '1',
-	    on : {
-	        success : function(context){
-	                Log.info('Test1');
-	                executeStep({
-	                    context : context,
-	                    id : 2});
-	            },
-	        fail : fn1
-	    }
+	executeStep(1, {
+        onSuccess : function(context){
+                Log.info('Test1');
+                executeStep(2);
+            },
+        onFail : fn1
 	})
-	executeStep({id : '3'});
+	executeStep(3);
 }
 
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

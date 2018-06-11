@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.11.218-SNAPSHOT</version>
+    <version>5.11.255-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -40,7 +40,6 @@
     <modules>
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
-        <module>components/adaptive-authentication</module>
         <module>components/authentication-framework</module>
         <module>components/entitlement</module>
         <module>components/identity-core</module>
@@ -76,7 +75,6 @@
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
         <module>features/consent-mgt</module>
-        <module>features/adaptive-authentication</module>
     </modules>
 
     <repositories>
@@ -1519,8 +1517,8 @@
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <orbit.version.wsdl4j>1.6.2.wso2v4</orbit.version.wsdl4j>
         <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
-        <axis2-transports.version>1.1.0-wso2v13</axis2-transports.version>
-        <axis2-transports.version.range>[1.1.0-wso2v13,2.0.0)</axis2-transports.version.range>
+        <axis2-transports.version>2.0.0-wso2v21</axis2-transports.version>
+        <axis2-transports.version.range>[2.0.0-wso2v21,3.0.0)</axis2-transports.version.range>
         <org.apache.axis2.transport.mail.version.range>[0.0.0,1.0.0)</org.apache.axis2.transport.mail.version.range>
 
         <!-- Axiom Version -->
@@ -1634,8 +1632,8 @@
         <opensaml.version>2.6.4</opensaml.version>
         <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
-        <joda.version>2.8.2</joda.version>
-        <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
+        <joda.version>2.9.4</joda.version>
+        <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
         <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
@@ -1655,7 +1653,7 @@
         <google.guice.wso2.version>3.0.wso2v1</google.guice.wso2.version>
         <google.guice.imp.pkg.version.range>[1.3.0,2.0.0)</google.guice.imp.pkg.version.range>
         <openid4java.version>1.0.0</openid4java.version>
-        <openid4java.wso2.version>1.0.0.wso2v2</openid4java.wso2.version>
+        <openid4java.wso2.version>1.0.0.wso2v4</openid4java.wso2.version>
         <openid4java.wso2.osgi.version.range>[1.0.0,2.0.0)</openid4java.wso2.osgi.version.range>
         <balana.version>1.1.5</balana.version>
         <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>

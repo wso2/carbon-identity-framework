@@ -62,7 +62,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     public void testHandleDynamicJavascript1() throws Exception {
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
@@ -80,7 +80,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
@@ -92,13 +91,23 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
         String script =
-                "function onInitialRequest(context) {\n" + "    var myBool = getTrueFunction2(context, 'a');\n"
-                        + "    Log.info(\"My Bool Value \"+myBool);\n" + "    if(myBool) {\n"
-                        + "        Log.info(\"My Bool Is Selected \"+myBool);\n" + "        executeStep({id :'1',\n"
-                        + "        on : {\n" + "            success : function(context) {executeStep({id :'3'});}\n"
-                        + "        }});\n" + "        executeStep({id :'2'});\n" + "    }  else {\n"
-                        + "        Log.info(\"My Bool Not Selected \"+myBool);\n" + "        executeStep({id :'1'});\n"
-                        + "        executeStep({id :'3'});\n" + "    }\n" + "}\n";
+                "function onInitialRequest(context) {\n" +
+                "    var myBool = getTrueFunction2(context, 'a');\n" +
+                "    Log.info(\"My Bool Value \"+myBool);\n" +
+                "    if(myBool) {\n" +
+                "        Log.info(\"My Bool Is Selected \"+myBool);\n" +
+                "        executeStep(1, {\n" +
+                "            onSuccess : function(context) {\n" +
+                "                executeStep(3);\n" +
+                "            }\n" +
+                "        });\n" +
+                "        executeStep(2);\n" +
+                "    }  else {\n" +
+                "        Log.info(\"My Bool Not Selected \"+myBool);\n" +
+                "        executeStep(1);\n" +
+                "        executeStep(3);\n" +
+                "    }\n" +
+                "}";
         sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().setContent(script);
 
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
@@ -117,7 +126,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 .add(new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
@@ -146,7 +155,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 .add(new MockFallbackAuthenticator("MockFallbackAuthenticator"));
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
+        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
@@ -174,7 +183,6 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
-        configurationLoader.setJsFunctionRegistrar(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
                 (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
 

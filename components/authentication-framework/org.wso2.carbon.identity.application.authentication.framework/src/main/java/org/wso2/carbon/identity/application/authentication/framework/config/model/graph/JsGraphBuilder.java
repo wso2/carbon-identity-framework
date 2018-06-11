@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
@@ -49,7 +50,7 @@ import javax.script.ScriptException;
 public class JsGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsGraphBuilder.class);
-    private Map<String, StepConfig> stepNamedMap;
+    private Map<Integer, StepConfig> stepNamedMap;
     private AuthenticationGraph result = new AuthenticationGraph();
     private AuthGraphNode currentNode = null;
     private AuthenticationContext authenticationContext;
@@ -63,6 +64,7 @@ public class JsGraphBuilder {
      *
      * @param authenticationContext current authentication context.
      * @param stepConfigMap         The Step map from the service provider configuration.
+     * @param scriptEngine          Script engine.
      */
     public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
                           ScriptEngine scriptEngine) {
@@ -70,7 +72,25 @@ public class JsGraphBuilder {
         this.engine = scriptEngine;
         this.authenticationContext = authenticationContext;
         stepNamedMap = stepConfigMap.entrySet().stream()
-                .collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * Constructs the builder with the given authentication context.
+     *
+     * @param authenticationContext current authentication context.
+     * @param stepConfigMap         The Step map from the service provider configuration.
+     * @param scriptEngine          Script engine.
+     * @param currentNode           Current authentication graph node.
+     */
+    public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
+                          ScriptEngine scriptEngine, AuthGraphNode currentNode) {
+
+        this.engine = scriptEngine;
+        this.authenticationContext = authenticationContext;
+        this.currentNode = currentNode;
+        stepNamedMap = stepConfigMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**
@@ -103,8 +123,9 @@ public class JsGraphBuilder {
         try {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (Consumer<Map>) this::executeStep);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (Consumer<Map>) this::sendError);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
+                this::sendError);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -130,12 +151,12 @@ public class JsGraphBuilder {
                 log.debug("Error in executing the Javascript.", e);
             }
         } finally {
-            currentBuilder.remove();
+            clearCurrentBuilder();
         }
         return this;
     }
 
-    public static void clear() {
+    public static void clearCurrentBuilder() {
 
         currentBuilder.remove();
     }
@@ -150,9 +171,9 @@ public class JsGraphBuilder {
      *
      * @param parameterMap Parameters needed to send the error.
      */
-    public static void sendErrorAsync(Map<String, Object> parameterMap) {
+    public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap);
 
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
         if (currentNode == null) {
@@ -162,19 +183,12 @@ public class JsGraphBuilder {
         }
     }
 
-    private static FailNode createFailNode(Map<String, Object> parameterMap) {
+    private static FailNode createFailNode(String url, Map<String, Object> parameterMap) {
 
         FailNode failNode = new FailNode();
+        failNode.setErrorPageUri(url);
 
-        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
-            if (FrameworkConstants.JSAttributes.JS_SHOW_ERROR_PAGE.equals(entry.getKey())) {
-                failNode.setShowErrorPage(Boolean.TRUE.equals(entry.getValue()));
-            } else if (FrameworkConstants.JSAttributes.JS_PAGE_URI.equals(entry.getKey())) {
-                failNode.setErrorPageUri(String.valueOf(entry.getValue()));
-            } else {
-                failNode.getFailureData().put(entry.getKey(), String.valueOf(entry.getValue()));
-            }
-        }
+        parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
         return failNode;
     }
 
@@ -183,10 +197,9 @@ public class JsGraphBuilder {
      *
      * @param parameterMap Parameters needed to send the error.
      */
-    // TODO: This method works in conditional mode and need to implement separate method for dynamic mode
-    public void sendError(Map<String, Object> parameterMap) {
+    public void sendError(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap);
         if (currentNode == null) {
             result.setStartNode(newNode);
         } else {
@@ -199,16 +212,14 @@ public class JsGraphBuilder {
      *
      * @param parameterMap parameterMap
      */
-    public void executeStep(Map<String, Object> parameterMap) {
-        //TODO: Use Step Name instead of Step ID (integer)
-        StepConfig stepConfig = null;
-        Object stepIdObj = parameterMap.get(JsStepConstants.STEP_ID);
-        if (stepIdObj instanceof String) {
-            String stepId = (String) stepIdObj;
-            stepConfig = stepNamedMap.get(stepId);
-        }
+    @SafeVarargs
+    public final void executeStep(int stepId, Map<String, Object>... parameterMap) {
+
+        StepConfig stepConfig;
+        stepConfig = stepNamedMap.get(stepId);
+
         if (stepConfig == null) {
-            log.error("Given Authentication Step :" + stepIdObj + " is not in Environment");
+            log.error("Given Authentication Step :" + stepId + " is not in Environment");
             return;
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
@@ -218,7 +229,9 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
         currentNode = newNode;
-        attachEventListeners((Map<String, Object>) parameterMap.get(JsStepConstants.STEP_EVENT_ON));
+        if (parameterMap.length > 0) {
+            attachEventListeners(parameterMap[0]);
+        }
     }
 
     /**
@@ -226,26 +239,24 @@ public class JsGraphBuilder {
      *
      * @param parameterMap parameterMap
      */
-    public static void executeStepInAsyncEvent(Map<String, Object> parameterMap) {
-        //TODO: Use Step Name instead of Step ID (integer)
-        //TODO: can get the context from ThreadLocal. so that javascript does not have context as a parameter.
+    @SafeVarargs
+    public static void executeStepInAsyncEvent(int stepId, Map<String, Object>... parameterMap) {
+
         AuthenticationContext context = contextForJs.get();
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
 
-        Object idObj = parameterMap.get(JsStepConstants.STEP_ID);
-        Integer id = idObj instanceof Integer ? (Integer) idObj : Integer.parseInt(String.valueOf(idObj));
         if (log.isDebugEnabled()) {
-            log.debug("Execute Step on async event. Step ID : " + id);
+            log.debug("Execute Step on async event. Step ID : " + stepId);
         }
         AuthenticationGraph graph = context.getSequenceConfig().getAuthenticationGraph();
         if (graph == null) {
-            log.error("The graph happens to be null on the sequence config. Can not execute step : " + id);
+            log.error("The graph happens to be null on the sequence config. Can not execute step : " + stepId);
             return;
         }
 
-        StepConfig stepConfig = graph.getStepMap().get(id);
+        StepConfig stepConfig = graph.getStepMap().get(stepId);
         if (log.isDebugEnabled()) {
-            log.debug("Found step for the Step ID : " + id + ", Step Config " + stepConfig);
+            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + stepConfig);
         }
         StepConfigGraphNode newNode = wrap(stepConfig);
         if (currentNode == null) {
@@ -257,7 +268,9 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
 
-        attachEventListeners((Map<String, Object>) parameterMap.get(JsStepConstants.STEP_EVENT_ON), newNode);
+        if (parameterMap.length > 0) {
+            attachEventListeners(parameterMap[0], newNode);
+        }
     }
 
     /**
@@ -276,9 +289,8 @@ public class JsGraphBuilder {
 
         LongWaitNode newNode = new LongWaitNode(asyncProcess);
 
-        Map<String, Object> eventHandlers = (Map<String, Object>) parameterMap.get(JsStepConstants.STEP_EVENT_ON);
-        if (eventHandlers != null) {
-            addEventListeners(newNode, eventHandlers);
+        if (parameterMap != null) {
+            addEventListeners(newNode, parameterMap);
         }
         if (jsGraphBuilder.currentNode == null) {
             jsGraphBuilder.result.setStartNode(newNode);
@@ -410,13 +422,19 @@ public class JsGraphBuilder {
         return new StepConfigGraphNode(stepConfig);
     }
 
+    @FunctionalInterface
+    public interface StepExecutor {
+
+        void executeStep(Integer stepId, Map<String, Object>... parameterMap);
+    }
+
     /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
      * is happening.
      * The graph is re-organized based on last execution of the decision.
      */
-    public static class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
+    public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
         private SerializableJsFunction jsFunction;
@@ -429,6 +447,7 @@ public class JsGraphBuilder {
         @Override
         public String evaluate(AuthenticationContext authenticationContext, Consumer<JSObject> jsConsumer) {
 
+            JsGraphBuilder graphBuilder = JsGraphBuilder.this;
             String result = null;
             if (jsFunction == null) {
                 return null;
@@ -436,13 +455,14 @@ public class JsGraphBuilder {
             if (jsFunction.isFunction()) {
                 ScriptEngine scriptEngine = getEngine(authenticationContext);
                 try {
+                    currentBuilder.set(graphBuilder);
                     JsGraphBuilderFactory.restoreCurrentContext(authenticationContext, scriptEngine);
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                            (Consumer<Map>) JsGraphBuilder::executeStepInAsyncEvent);
+                            (StepExecutor) JsGraphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                            (Consumer<Map>) JsGraphBuilder::sendErrorAsync);
+                        (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {
@@ -467,12 +487,16 @@ public class JsGraphBuilder {
 
                 } catch (Throwable e) {
                     //We need to catch all the javascript errors here, then log and handle.
-                    //TODO: do proper error handling
                     log.error("Error in executing the javascript for service provider : " + authenticationContext
                             .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
+                    AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
+                            .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
+                    FailNode failNode = new FailNode();
+                    attachToLeaf(executingNode, failNode);
                 } finally {
                     contextForJs.remove();
                     dynamicallyBuiltBaseNode.remove();
+                    clearCurrentBuilder();
                 }
 
             } else {

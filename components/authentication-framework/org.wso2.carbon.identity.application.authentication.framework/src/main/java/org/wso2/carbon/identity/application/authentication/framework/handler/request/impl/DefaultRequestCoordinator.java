@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
@@ -68,6 +69,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
+    private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -326,6 +328,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("Starting an authentication flow");
             }
         }
+
+        List<ClaimMapping> requestedClaimsInRequest = (List<ClaimMapping>) request.getAttribute(REQUESTED_ATTRIBUTES);
+        context.setProperty(FrameworkConstants.SP_REQUESTED_CLAIMS_IN_REQUEST, requestedClaimsInRequest);
 
         associateTransientRequestData(request, response, context);
         findPreviousAuthenticatedSession(request, context);

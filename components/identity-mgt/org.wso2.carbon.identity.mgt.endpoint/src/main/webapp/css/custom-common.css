@@ -306,3 +306,17 @@ span.required {
 	color: red;
 	vertical-align: middle;
 }
+
+.truncate {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 120ch;
+}
+
+.jstree-anchor {
+	width: 95%;
+	white-space : normal !important;
+	height : auto !important;
+	padding-right : 24px;
+}

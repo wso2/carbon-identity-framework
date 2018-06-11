@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
@@ -166,6 +167,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
         String sessionDataKey = UUIDGenerator.generateUUID();
+        authRequest.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);
@@ -215,6 +217,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
         String sessionDataKey = UUIDGenerator.generateUUID();
+        authRequest.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);

@@ -73,5 +73,4 @@ public class IdentityCacheConfig {
     public void setDistributed(boolean isDistributed) {
         this.isDistributed = isDistributed;
     }
-
 }

@@ -63,8 +63,10 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -84,6 +86,7 @@ import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -110,6 +113,7 @@ import javax.servlet.http.HttpServletResponse;
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
@@ -337,16 +341,19 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        StepBasedSequenceHandler stepBasedSequenceHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
-
         if (obj instanceof StepBasedSequenceHandler) {
             stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
-            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
+            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
         }
 
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepBasedSequenceHandler instanceof GraphBasedSequenceHandler)) {
+            stepBasedSequenceHandler = new GraphBasedSequenceHandler();
+        }
         return stepBasedSequenceHandler;
     }
 
@@ -373,16 +380,19 @@ public class FrameworkUtils {
      */
     public static StepHandler getStepHandler() {
 
-        StepHandler stepHandler = null;
+        StepHandler stepHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-
         if (obj instanceof StepHandler) {
             stepHandler = (StepHandler) obj;
         } else {
-            stepHandler = new GraphBasedStepHandler();
+            stepHandler = DefaultStepHandler.getInstance();
         }
 
+        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
+                && !(stepHandler instanceof GraphBasedStepHandler)) {
+            stepHandler = new GraphBasedStepHandler();
+        }
         return stepHandler;
     }
 
@@ -589,6 +599,7 @@ public class FrameworkUtils {
 
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
         AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout()));
         AuthenticationContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -601,6 +612,7 @@ public class FrameworkUtils {
         AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
         AuthenticationResultCacheEntry cacheEntry = new AuthenticationResultCacheEntry();
         cacheEntry.setResult(authenticationResult);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         AuthenticationResultCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -631,6 +643,7 @@ public class FrameworkUtils {
      * @param sessionContext
      */
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
@@ -648,6 +661,39 @@ public class FrameworkUtils {
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
         cacheEntry.setContext(sessionContext);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+
+        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        if (seqData != null) {
+            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
+                if (entry.getValue() != null) {
+                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                }
+            }
+        }
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
+
+        long timeoutPeriod;
+        if (sessionContext.isRememberMe()) {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+        } else {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        }
+
+        cacheEntry.setContext(sessionContext);
+        cacheEntry.setValidityPeriod(timeoutPeriod);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -1296,13 +1342,9 @@ public class FrameworkUtils {
             cookieBuilder.setVersion(cookieConfig.getVersion());
         }
 
-        if (cookieConfig.isHttpOnly()) {
-            cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
-        }
+        cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
 
-        if (cookieConfig.isSecure()) {
-            cookieBuilder.setSecure(cookieConfig.isSecure());
-        }
+        cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
     public static String getMultiAttributeSeparator() {

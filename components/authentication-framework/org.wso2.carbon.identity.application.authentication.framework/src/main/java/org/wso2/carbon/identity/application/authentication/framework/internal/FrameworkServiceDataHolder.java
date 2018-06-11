@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -27,6 +29,8 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -42,6 +46,8 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 public class FrameworkServiceDataHolder {
@@ -67,9 +73,12 @@ public class FrameworkServiceDataHolder {
     private ClaimMetadataManagementService claimMetadataManagementService = null;
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
+    private List<ClaimFilter> claimFilters = new ArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
+
+    private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -282,6 +291,51 @@ public class FrameworkServiceDataHolder {
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
+    /**
+     *
+     * @return The Claim Filter with the highest priority.
+     */
+    public ClaimFilter getHighestPriorityClaimFilter() {
+
+        if (claimFilters.isEmpty()) {
+            log.info("No Registered Claim Filters available. Using the default claim filter.");
+            return new DefaultClaimFilter();
+        }
+        return claimFilters.get(0);
+    }
+
+    /**
+     * Get all the registered claim filters.
+     *
+     * @return list of claim filters
+     */
+    public List<ClaimFilter> getClaimFilters() {
+
+        return claimFilters;
+    }
+
+    /**
+     * Add claim filters.
+     *
+     * @param claimFilter a claim filter
+     */
+    public void addClaimFilter(ClaimFilter claimFilter) {
+
+        claimFilters.add(claimFilter);
+        claimFilters.sort(getClaimFilterComparator());
+
+    }
+
+    public void removeClaimFilter(ClaimFilter claimFilter) {
+
+        Iterator<ClaimFilter> claimFilterIterator = claimFilters.iterator();
+        while (claimFilterIterator.hasNext()) {
+            if (claimFilterIterator.next().getClass().getName().equals(claimFilter.getClass().getName())) {
+                claimFilterIterator.remove();
+            }
+        }
+    }
+
     public AsyncSequenceExecutor getAsyncSequenceExecutor() {
 
         return asyncSequenceExecutor;
@@ -318,5 +372,11 @@ public class FrameworkServiceDataHolder {
     public void setIdentityEventService (IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+  
+    private Comparator<ClaimFilter> getClaimFilterComparator() {
+
+        // Sort based on priority in descending order, ie. highest priority comes to the first element of the list.
+        return Comparator.comparingInt(ClaimFilter::getPriority).reversed();
     }
 }

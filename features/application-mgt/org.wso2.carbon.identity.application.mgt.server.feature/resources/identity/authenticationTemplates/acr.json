@@ -1,7 +1,7 @@
 {
   "category": "Request Based",
   "name": "ACR",
-  "img": "./images/user.gif",
+  "img": "./images/http.png",
   "code": [
     "function onInitialRequest(context) {",
     "",
@@ -9,14 +9,14 @@
     "    Log.info('--------------- ACR selected: ' + acr);",
     "    context.selectedAcr = acr;",
     "    switch(acr) {",
-    "        case 'acr1' : executeStep({id :'1'});break;",
-    "        case 'acr2' : executeStep({id :'1'}); executeStep({id :'2'});  break;",
-    "        case 'acr3' : executeStep({id :'1'}); executeStep({id :'3'});  break;",
-    "        case 'acr4' : executeStep({id :'1'}); executeStep({id :'4'});  break;",
-    "        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'}); executeStep({id :'4'});",
+    "        case 'acr1' : executeStep(1);break;",
+    "        case 'acr2' : executeStep(1); executeStep(2);  break;",
+    "        case 'acr3' : executeStep(1); executeStep(3);  break;",
+    "        case 'acr4' : executeStep(1); executeStep(4);  break;",
+    "        default :  executeStep(1);  executeStep(2);  executeStep(3); executeStep(4);",
     "    }",
     "}"
   ],
   "help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
-  "helpLink": "https://docs.wso2.com/display/IS560/WSO2+Identity+Server+Documentation"
+  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
 }

@@ -33,8 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl
-        .DefaultStepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -46,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
@@ -57,7 +57,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -152,6 +151,14 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticationContext context = spy(new AuthenticationContext());
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         when(sequenceConfig.isCompleted()).thenReturn(true);
+        ServiceProvider serviceProvider = spy(new ServiceProvider());
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = spy(new
+            LocalAndOutboundAuthenticationConfig());
+        when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
+            .AUTH_TYPE_LOCAL);
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        sequenceConfig.setApplicationConfig(applicationConfig);
 
         context.setSequenceConfig(sequenceConfig);
 

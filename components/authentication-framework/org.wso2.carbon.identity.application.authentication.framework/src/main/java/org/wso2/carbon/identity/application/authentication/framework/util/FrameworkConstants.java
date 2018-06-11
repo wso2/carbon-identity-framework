@@ -37,6 +37,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
+    public static final String SP_REQUESTED_CLAIMS_IN_REQUEST = "SP_REQUESTED_CLAIMS_IN_REQUEST";
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";
@@ -291,8 +292,6 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
-        public static final String JS_SHOW_ERROR_PAGE = "showErrorPage";
-        public static final String JS_PAGE_URI = "pageUri";
         public static final String JS_RETRY_STEP = "retry";
     }
     public static class InternalRoleDomains {

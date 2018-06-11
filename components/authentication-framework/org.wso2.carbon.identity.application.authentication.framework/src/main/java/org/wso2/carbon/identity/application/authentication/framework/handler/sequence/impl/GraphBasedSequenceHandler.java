@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.LongW
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -74,8 +76,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
+            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled()) {
+        if (graph == null || !graph.isEnabled() || !ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType)) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "
@@ -134,9 +138,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             nextNode = ((StepConfigGraphNode) currentNode).getNext();
         }
         if (nextNode == null) {
-            log.error(
-                    "No Next node found for the current graph node : " + currentNode.getName() + ", Service Provider: "
-                            + context.getServiceProviderName() + " . Ending the authentication flow.");
+            if (log.isDebugEnabled()) {
+                log.debug("No Next node found for the current graph node : " + currentNode.getName() +
+                        ", Service Provider: " + context.getServiceProviderName() +
+                        " . Ending the authentication flow.");
+            }
             nextNode = new EndStep();
         }
 
@@ -191,10 +197,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         try {
             URIBuilder uriBuilder = new URIBuilder(errorPage);
-
-            for (Map.Entry<String, String> entry : node.getFailureData().entrySet()) {
-                uriBuilder.addParameter(entry.getKey(), entry.getValue());
-            }
+            node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
@@ -312,11 +315,13 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else {
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
+            context.removeProperty(FrameworkConstants.LONG_WAIT_KEY);
+            longWaitStatusStoreService.removeWait(longWaitKey);
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
-            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, null);
-            context.setProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, null);
+            context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
+            context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
             if (outcomeName != null) {
                 executeFunction(outcomeName, longWaitNode, context, data);
             }
@@ -386,16 +391,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (flowStatus != null) {
             switch (flowStatus) {
             case SUCCESS_COMPLETED:
-                executeFunction("success", dynamicDecisionNode, context);
+                executeFunction("onSuccess", dynamicDecisionNode, context);
                 break;
             case FAIL_COMPLETED:
-                executeFunction("fail", dynamicDecisionNode, context);
+                executeFunction("onFail", dynamicDecisionNode, context);
                 if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
                     dynamicDecisionNode.setDefaultEdge(new FailNode());
                 }
                 break;
             case FALLBACK:
-                executeFunction("fallback", dynamicDecisionNode, context);
+                executeFunction("onFallback", dynamicDecisionNode, context);
                 break;
             }
         }
@@ -408,19 +413,34 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                                  AuthenticationContext context) {
 
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
+        jsBasedEvaluator.evaluate(context, (func) -> {
+            func.call(null, new JsAuthenticationContext(context));
+        });
+        if (dynamicDecisionNode.getDefaultEdge() == null) {
+            dynamicDecisionNode.setDefaultEdge(new EndStep());
+        }
     }
 
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context, Map<String, Object> data) {
 
         SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = new JsGraphBuilder.JsBasedEvaluator(fn);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context),
-                    new JsParameters(data));
+            func.call(null, new JsAuthenticationContext(context), new JsParameters(data));
         });
+        if (dynamicDecisionNode.getDefaultEdge() == null) {
+            dynamicDecisionNode.setDefaultEdge(new EndStep());
+        }
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
