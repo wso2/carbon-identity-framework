@@ -20,18 +20,27 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -212,6 +221,7 @@ public class JsGraphBuilder {
      *
      * @param params params
      */
+    @SuppressWarnings("unchecked")
     public final void executeStep(int stepId, Object... params) {
 
         StepConfig stepConfig;
@@ -228,13 +238,140 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
         currentNode = newNode;
-        if (params.length == 1) {
-            // if there is only one param, it is assumed to be the event listeners
-            if (params[0] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[0]);
+        if (params.length > 0) {
+            // if there are any params provided, last one is assumed to be the event listeners
+            if (params[params.length - 1] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[params.length - 1]);
             } else {
                 log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
             }
+        }
+        if (params.length == 2) {
+            // There is an argument with options present
+            if (params[0] instanceof Map) {
+                Map<String, Object> options = (Map<String, Object>) params[0];
+                handleOptions(options, stepConfig);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void handleOptions(Map<String, Object> options, StepConfig stepConfig) {
+
+        Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
+        if (authenticationOptionsObj instanceof Map) {
+            filterOptions((Map<String, Map<String, String>>) authenticationOptionsObj, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator options not provided or invalid, hence proceeding without filtering");
+            }
+        }
+    }
+
+    /**
+     * Filter out options in the step config to retain only the options provided in authentication options
+     * @param authenticationOptions Authentication options to keep
+     * @param stepConfig The step config to be modified
+     */
+    protected void filterOptions(Map<String, Map<String, String>> authenticationOptions, StepConfig stepConfig) {
+
+        Map<String, Set<String>> filteredOptions = new HashMap<>();
+        authenticationOptions.forEach((id, option) -> {
+            String idp = option.get(FrameworkConstants.JSAttributes.IDP);
+            String authenticator = option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
+            if (StringUtils.isNotBlank(authenticator) && StringUtils.isBlank(idp)) {
+                // If Idp is not set, but authenticator is set, idp is assumed as local
+                idp = FrameworkConstants.LOCAL_IDP_NAME;
+            }
+            if (StringUtils.isNotBlank(idp)) {
+                filteredOptions.putIfAbsent(idp, new HashSet<>());
+                if (StringUtils.isNotBlank(authenticator)) {
+                    filteredOptions.get(idp).add(authenticator);
+                }
+            }
+        });
+        if (log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, Set<String>> entry : filteredOptions.entrySet()) {
+                sb.append('\n').append(entry.getKey()).append(" : ");
+                sb.append(StringUtils.join(entry.getValue(), ","));
+            }
+            log.debug("Authenticator options: " + sb.toString());
+        }
+        Set<AuthenticatorConfig> authenticatorsToRemove = new HashSet<>();
+        stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
+            .forEach((idpName, idp) -> {
+                Set<String> authenticators = filteredOptions.get(idpName);
+                boolean removeOption = false;
+                if (authenticators == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Authentication options didn't include idp: %s. Hence excluding from " +
+                            "options list", idpName));
+                    }
+                    removeOption = true;
+                } else if (!authenticators.isEmpty()) {
+                    // Both idp and authenticator present, but authenticator is given by display name due to the fact
+                    // that it is the one available at UI. Should translate the display name to actual name, and
+                    // keep/remove option
+                    removeOption = true;
+
+                    if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
+                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
+                            .getInstance().getLocalAuthenticators();
+                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                removeOption = false;
+                                break;
+                            }
+                        }
+                        if (log.isDebugEnabled()) {
+                            if (removeOption) {
+                                log.debug(String.format("Authenticator options don't match any entry for local" +
+                                    "authenticator: %s. Hence removing the option", authenticatorConfig.getName()));
+                            } else {
+                                log.debug(String.format("Authenticator options contained a match for local " +
+                                    "authenticator: %s. Hence keeping the option", authenticatorConfig.getName()));
+                            }
+                        }
+                    } else {
+                        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                removeOption = false;
+                                break;
+                            }
+                        }
+                        if (log.isDebugEnabled()) {
+                            if (removeOption) {
+                                log.debug(String.format("Authenticator options don't match any entry for idp: %s, " +
+                                    "authenticator: %s. Hence removing the option", idpName, authenticatorConfig
+                                    .getName()));
+                            } else {
+                                log.debug(String.format("Authenticator options contained a match for idp: %s, " +
+                                    "authenticator: %s. Hence keeping the option", idpName, authenticatorConfig
+                                    .getName()));
+                            }
+                        }
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("No authenticator filters for idp %s, hence keeping it as an option",
+                            idpName));
+                    }
+                }
+                if (removeOption) {
+                    authenticatorsToRemove.add(authenticatorConfig);
+                }
+            }));
+        if (stepConfig.getAuthenticatorList().size() > authenticatorsToRemove.size()) {
+            stepConfig.getAuthenticatorList().removeAll(authenticatorsToRemove);
+            if (log.isDebugEnabled()) {
+                log.debug("Removed " + authenticatorsToRemove.size() + " options which doesn't match the " +
+                    "provided authenticator options");
+            }
+        } else {
+            log.warn("The filtered authenticator list is empty, hence proceeding without filtering");
         }
     }
 
@@ -243,8 +380,8 @@ public class JsGraphBuilder {
      *
      * @param params params
      */
-    @SafeVarargs
-    public static void executeStepInAsyncEvent(int stepId, Object... params) {
+    @SuppressWarnings("unchecked")
+    public void executeStepInAsyncEvent(int stepId, Object... params) {
 
         AuthenticationContext context = contextForJs.get();
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
@@ -272,12 +409,20 @@ public class JsGraphBuilder {
             attachToLeaf(currentNode, newNode);
         }
 
-        if (params.length == 1) {
+        if (params.length > 0) {
             // if there is only one param, it is assumed to be the event listeners
-            if (params[0] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[0], newNode);
+            if (params[params.length - 1] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[params.length - 1], newNode);
             } else {
                 log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+        }
+
+        if (params.length == 2) {
+            // There is an argument with options present
+            if (params[0] instanceof Map) {
+                Map<String, Object> options = (Map<String, Object>) params[0];
+                handleOptions(options, stepConfig);
             }
         }
     }
@@ -469,7 +614,7 @@ public class JsGraphBuilder {
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                            (StepExecutor) JsGraphBuilder::executeStepInAsyncEvent);
+                        (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
                         (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()

@@ -276,6 +276,7 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATION_OPTIONS = "options";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
@@ -288,6 +289,10 @@ public abstract class FrameworkConstants {
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+
+        public static final String IDP = "idp";
+        public static final String AUTHENTICATOR = "authenticator";
+        public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
     }
     public static class InternalRoleDomains {
 
