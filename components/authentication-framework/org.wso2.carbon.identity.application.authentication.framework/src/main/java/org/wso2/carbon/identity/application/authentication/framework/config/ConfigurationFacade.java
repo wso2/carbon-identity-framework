@@ -187,6 +187,15 @@ public class ConfigurationFacade {
         return authenticationEndpointRetryURL;
     }
 
+    public String getAuthenticationEndpointWaitURL() {
+        String authenticationEndpointWaitURL = FileBasedConfigurationBuilder.getInstance()
+                .getAuthenticationEndpointWaitURL();
+        if (StringUtils.isBlank(authenticationEndpointWaitURL)) {
+            authenticationEndpointWaitURL = "/authenticationendpoint/wait.do";
+        }
+        return authenticationEndpointWaitURL;
+    }
+
     /**
      * Get the missing claims request URL of authentication flow
      * @return claims request URL

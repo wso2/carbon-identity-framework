@@ -16,26 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.model;
+package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
 
 /**
- * Object holding long wait status.
+ * Request object of a long wait status.
+ * Generally this is communicated over JSON.
  */
-public class LongWaitStatus {
+public class LongWaitStatusRequest {
+    private String waitId;
 
-    public enum Status {
-        WAITING, COMPLETED, UNKNOWN
+    public String getWaitId() {
+
+        return waitId;
     }
 
-    private Status status;
+    public void setWaitId(String waitId) {
 
-    public Status getStatus() {
-
-        return status;
-    }
-
-    public void setStatus(Status status) {
-
-        this.status = status;
+        this.waitId = waitId;
     }
 }

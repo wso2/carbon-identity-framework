@@ -27,11 +27,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -116,16 +114,15 @@ public class AsyncSequenceExecutor {
         public void run() {
             LongWaitStatusStoreService longWaitStatusStoreService =
                     FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
-            String longWaitKey = (String) authenticationContext.getProperty(FrameworkConstants.LONG_WAIT_KEY);
-            LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(longWaitKey);
-            if (longWaitKey == null || longWaitStatus == null) {
-                longWaitStatus = new LongWaitStatus();
-                longWaitKey = UUID.randomUUID().toString();
-                authenticationContext.setProperty(FrameworkConstants.LONG_WAIT_KEY, longWaitKey);
-                longWaitStatusStoreService.addWait(longWaitKey, longWaitStatus);
-            }
-            longWaitStatus.setStatus(LongWaitStatus.Status.COMPLETED);
             try {
+                LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(authenticationContext
+                        .getContextIdentifier());
+                if (longWaitStatus == null) {
+                    log.error("Unknown wait key: " + authenticationContext
+                            .getContextIdentifier() + " found while trying to continue from long wait. ");
+                    return;
+                }
+                longWaitStatus.setStatus(LongWaitStatus.Status.COMPLETED);
                 returnFunction.accept(authenticationContext, data, result);
             } catch (FrameworkException e) {
                 log.error("Error while resuming from the wait. ", e);

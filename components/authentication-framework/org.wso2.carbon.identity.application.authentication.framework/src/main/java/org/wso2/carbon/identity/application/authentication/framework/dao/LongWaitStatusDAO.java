@@ -16,26 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.model;
+package org.wso2.carbon.identity.application.authentication.framework.dao;
 
-/**
- * Object holding long wait status.
- */
-public class LongWaitStatus {
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 
-    public enum Status {
-        WAITING, COMPLETED, UNKNOWN
-    }
+import java.sql.Timestamp;
 
-    private Status status;
+public interface LongWaitStatusDAO {
 
-    public Status getStatus() {
+    void addWaitStatus(int tenantId, String waitKey, LongWaitStatus status, Timestamp createdTime, Timestamp
+            expireTime) throws FrameworkException;
 
-        return status;
-    }
+    void removeWaitStatus(String waitKey) throws FrameworkException;
 
-    public void setStatus(Status status) {
+    LongWaitStatus getWaitStatus(String waitKey) throws FrameworkException;
 
-        this.status = status;
-    }
 }
