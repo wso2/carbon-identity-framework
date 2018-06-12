@@ -16,26 +16,24 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.model;
+package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-/**
- * Object holding long wait status.
- */
-public class LongWaitStatus {
+import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
+import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 
-    public enum Status {
-        WAITING, COMPLETED, UNKNOWN
+public class LongWaitResultCacheEntry extends CacheEntry {
+
+    private static final long serialVersionUID = 6445482590207584994L;
+
+    private LongWaitStatus waitStatus;
+
+    public LongWaitResultCacheEntry(LongWaitStatus waitStatus) {
+
+        this.waitStatus = waitStatus;
     }
 
-    private Status status;
+    public LongWaitStatus getWaitStatus() {
 
-    public Status getStatus() {
-
-        return status;
-    }
-
-    public void setStatus(Status status) {
-
-        this.status = status;
+        return waitStatus;
     }
 }
