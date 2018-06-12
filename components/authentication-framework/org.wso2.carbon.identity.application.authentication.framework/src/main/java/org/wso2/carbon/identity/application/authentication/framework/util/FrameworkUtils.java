@@ -1011,6 +1011,72 @@ public class FrameworkUtils {
         return idpAuthenticatorMap;
     }
 
+    // IDS_2192 - Add a method to retrieve RequestPath Authenticators who have previously authenticated the user
+    public static Map<String, AuthenticatorConfig> getAuthenticatedRequestPathIdPs(SequenceConfig sequenceConfig, Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+        if (log.isDebugEnabled()) {
+            log.debug("Finding already authenticated request path IdPs");
+        }
+
+        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
+        List<AuthenticatorConfig> requestPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
+
+        if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
+
+            for (AuthenticatorConfig authenticatorConfig : requestPathAuthenticators) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Considering the authenticator '%s'", authenticatorConfig.getName()));
+                }
+
+                String authenticatorName = authenticatorConfig.getName();
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("%d IdP(s) found in the step.", authenticatedIdPs.size()));
+                }
+
+                for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+                    String idpName = entry.getKey();
+                    AuthenticatedIdPData authenticatedIdPData = entry.getValue();
+
+                    if (!FrameworkConstants.LOCAL.equals(idpName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("Skipping IDP with name: '%s' since it's not local", idpName));
+                        }
+                        continue;
+                    }
+
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Considering the IDP : '%s'", idpName));
+                    }
+
+                    if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                        idpAuthenticatorMap.put(idpName, authenticatorConfig);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("('%s', '%s') is an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                    authenticatorConfig.getName(), idpName));
+                        }
+
+                        break;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("('%s', '%s') is not an already authenticated " +
+                                            "IDP - authenticator combination.",
+                                    authenticatorConfig.getName(), idpName));
+                        }
+                    }
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticators found.");
+            }
+        }
+
+        return idpAuthenticatorMap;
+    }
+
     public static String getAuthenticatorIdPMappingString(List<AuthenticatorConfig> authConfigList) {
 
         StringBuilder authenticatorIdPStr = new StringBuilder("");

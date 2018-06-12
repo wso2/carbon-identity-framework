@@ -116,6 +116,11 @@ public class DefaultStepHandler implements StepHandler {
         Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
                 .getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 
+        // IDS_2192 - If no authenticated Step Idps, check if there are any authenticated RequestPath Idps.
+        if (authenticatedStepIdps.isEmpty()) {
+            authenticatedStepIdps = FrameworkUtils.getAuthenticatedRequestPathIdPs(context.getSequenceConfig(), authenticatedIdPs);
+        }
+
         // check passive authentication
         if (context.isPassiveAuthenticate()) {
 
