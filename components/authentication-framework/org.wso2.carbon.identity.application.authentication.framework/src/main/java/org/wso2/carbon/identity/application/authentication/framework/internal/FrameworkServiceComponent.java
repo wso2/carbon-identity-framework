@@ -557,7 +557,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setIdentityEventService(null);
     }
   
-@Reference(
+    @Reference(
             name = "claim.filter.service",
             service = ClaimFilter.class,
             cardinality = ReferenceCardinality.MULTIPLE,

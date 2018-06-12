@@ -64,7 +64,8 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
         if (!context.isLogoutRequest()) {
             if (!canHandle(request)
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
-                return processFailedAuthenticationFlow(request, response, context);
+                context.setRetrying(false);
+                return initiateAuthenticationFlow(request, response, context);
             } else {
                 AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                         .getAuthnDataPublisherProxy();
@@ -92,7 +93,9 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     }
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    if (checkUserAccountStatus(response, context)) return AuthenticatorFlowStatus.INCOMPLETE;
+                    if (checkUserAccountStatus(response, context)) {
+                        return AuthenticatorFlowStatus.INCOMPLETE;
+                    }
                     if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
                         unmodifiableParamMap = getStringObjectMap(context, e.getUser());
                         authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
@@ -108,9 +111,7 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setRetrying(true);
-                        context.setCurrentAuthenticator(getName());
-                        initiateAuthenticationRequest(request, response, context);
-                        return AuthenticatorFlowStatus.INCOMPLETE;
+                        return initiateAuthenticationFlow(request, response, context);
                     } else {
                         context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
                         // By throwing this exception step handler will redirect to multi options page if
@@ -151,9 +152,9 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
      * @return authentication flow status
      * @throws AuthenticationFailedException the exception in the authentication flow
      */
-    protected AuthenticatorFlowStatus processFailedAuthenticationFlow(HttpServletRequest request,
-                                                                      HttpServletResponse response,
-                                                                      AuthenticationContext context)
+    protected AuthenticatorFlowStatus initiateAuthenticationFlow(HttpServletRequest request,
+                                                                 HttpServletResponse response,
+                                                                 AuthenticationContext context)
             throws AuthenticationFailedException {
 
         if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
@@ -161,7 +162,6 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
         }
         initiateAuthenticationRequest(request, response, context);
         context.setCurrentAuthenticator(getName());
-        context.setRetrying(false);
         return AuthenticatorFlowStatus.INCOMPLETE;
     }
 
