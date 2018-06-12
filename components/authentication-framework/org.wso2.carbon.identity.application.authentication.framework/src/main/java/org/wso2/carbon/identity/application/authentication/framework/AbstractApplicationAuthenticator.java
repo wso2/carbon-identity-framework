@@ -138,7 +138,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return false;
     }
 
-    private boolean isStepHasMultiOption(AuthenticationContext context) {
+    protected boolean isStepHasMultiOption(AuthenticationContext context) {
         Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
         boolean stepHasMultiOption = false;
 
@@ -152,8 +152,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return stepHasMultiOption;
     }
 
-    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
-                                                  User user, boolean success) {
+    protected void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
+                                                  User user, boolean success)  {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();

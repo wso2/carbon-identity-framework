@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -194,27 +193,6 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
             return true;
         }
         return false;
-    }
-
-    /**
-     * To check the multi-option in the authentication step.
-     *
-     * @param context the authentication context
-     * @return true or false
-     */
-    protected boolean isStepHasMultiOption(AuthenticationContext context) {
-
-        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
-        boolean stepHasMultiOption = false;
-
-        if (stepMap != null && !stepMap.isEmpty()) {
-            StepConfig stepConfig = stepMap.get(context.getCurrentStep());
-
-            if (stepConfig != null) {
-                stepHasMultiOption = stepConfig.isMultiOption();
-            }
-        }
-        return stepHasMultiOption;
     }
 
     /**
