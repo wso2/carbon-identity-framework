@@ -313,8 +313,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
                 }
-
-
                 if (stepConfig.isSubjectAttributeStep()) {
 
                     if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {

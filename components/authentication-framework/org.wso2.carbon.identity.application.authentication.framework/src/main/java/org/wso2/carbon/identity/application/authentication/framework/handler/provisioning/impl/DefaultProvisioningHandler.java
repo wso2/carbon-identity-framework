@@ -142,7 +142,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
-                    userStoreManager.setUserClaimValues(username, userClaims, null);
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
 
                 UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();

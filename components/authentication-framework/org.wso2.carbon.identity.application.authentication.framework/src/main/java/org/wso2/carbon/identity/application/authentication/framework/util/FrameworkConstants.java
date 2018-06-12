@@ -314,4 +314,18 @@ public abstract class FrameworkConstants {
         private InternalRoleDomains() {
         }
     }
+
+    /**
+     * Constants related with Consent management.
+     */
+    public static class Consent {
+
+        public static final String COLLECTION_METHOD_JIT = "Web Form - Just In Time Provisioning";
+        public static final String LANGUAGE_ENGLISH = "en";
+        public static final String SERVICES = "services";
+        public static final String PURPOSES = "purposes";
+        public static final String PII_CATEGORY = "piiCategory";
+        public static final String EXPLICIT_CONSENT_TYPE = "EXPLICIT";
+        public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
+    }
 }

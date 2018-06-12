@@ -29,7 +29,6 @@
                     name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostJITProvisioningHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtilsTest"/>

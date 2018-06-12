@@ -399,8 +399,6 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
-
-
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getRoleMappings()).thenReturn(idpToLocalRoleMappings);
         when(FrameworkUtils.getIdentityProvideMappedUserRoles(externalIdPConfig,

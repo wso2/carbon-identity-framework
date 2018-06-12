@@ -1786,10 +1786,10 @@ public class IdPManagementUIUtil {
      */
     private static void buildInboundProvisioningConfiguration(IdentityProvider fedIdp,
                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
+
         String modifyUserNamePassword = "modify_username_password";
         String modifyPassword = "modify_password";
         String jitTypeGroup = "choose_jit_type_group";
-
         String provisioning = paramMap.get("provisioning");
         JustInTimeProvisioningConfig jitProvisioningConfiguration = new JustInTimeProvisioningConfig();
 

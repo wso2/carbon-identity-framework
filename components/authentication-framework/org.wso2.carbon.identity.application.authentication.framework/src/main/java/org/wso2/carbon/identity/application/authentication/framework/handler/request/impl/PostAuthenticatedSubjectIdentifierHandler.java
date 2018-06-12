@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -92,50 +91,67 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         if (StringUtils.isNotBlank(subjectClaimURI)) {
             if (subjectValue != null) {
-                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
-
-                // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
-                // append it.
-                if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
-                    String tenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
-                    subjectValue = UserCoreUtil.addTenantDomainToEntry(subjectValue, tenantDomain);
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
-                }
-
-                // Check whether the user store domain should be appended to the subject identifier for this SP and
-                // if yes, append it.
-                if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
-                    String userStoreDomain = sequenceConfig.getAuthenticatedUser().getUserStoreDomain();
-                    subjectValue = UserCoreUtil.addDomainToName(subjectValue, userStoreDomain);
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
-                }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser()
-                            .getAuthenticatedSubjectIdentifier());
-                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
-                            .getTenantDomain());
-                }
+                handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
             } else {
                 log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
-                if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
-                            sequenceConfig.getAuthenticatedUser().getUsernameAsSubjectIdentifier(
-                                    sequenceConfig.getApplicationConfig()
-                                            .isUseUserstoreDomainInLocalSubjectIdentifier(),
-                                    sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
-                }
+                setAuthenticatedSujectIdentifierBasedOnUserName(sequenceConfig);
             }
-
         } else {
-            if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
-                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
-                        sequenceConfig.getAuthenticatedUser().getUsernameAsSubjectIdentifier(
-                                sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier(),
-                                sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
-            }
+            setAuthenticatedSujectIdentifierBasedOnUserName(sequenceConfig);
 
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
+
+    /**
+     * Handle userstore domain and tenant domain with subjects identifier.
+     *
+     * @param sequenceConfig Relevant sequence config.
+     * @param subjectValue   Subject value.
+     */
+    private void handleUserStoreAndTenantDomain(SequenceConfig sequenceConfig, String subjectValue) {
+
+        sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+        /* Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
+         append it. */
+        if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
+            String tenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+            subjectValue = UserCoreUtil.addTenantDomainToEntry(subjectValue, tenantDomain);
+            sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+        }
+        /* Check whether the user store domain should be appended to the subject identifier for this SP and
+         if yes, append it. */
+        if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
+            String userStoreDomain = sequenceConfig.getAuthenticatedUser().getUserStoreDomain();
+            subjectValue = UserCoreUtil.addDomainToName(subjectValue, userStoreDomain);
+            sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(
+                    "Authenticated User: " + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+            log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
+        }
+    }
+
+    /**
+     * To set authenticated subject identifier based on user name.
+     *
+     * @param sequenceConfig Relevant sequence config.
+     */
+    private void setAuthenticatedSujectIdentifierBasedOnUserName(SequenceConfig sequenceConfig) {
+
+        String authenticatedUserName = sequenceConfig.getAuthenticatedUser().getUserName();
+        boolean isUserstoreDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
+                .isUseUserstoreDomainInLocalSubjectIdentifier();
+        boolean isUseTenantDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
+                .isUseTenantDomainInLocalSubjectIdentifier();
+
+        if (StringUtils.isNotEmpty(authenticatedUserName)) {
+            sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
+                    sequenceConfig.getAuthenticatedUser()
+                            .getUsernameAsSubjectIdentifier(isUserstoreDomainInLocalSubjectIdentifier,
+                                    isUseTenantDomainInLocalSubjectIdentifier));
+        }
+    }
+
 }

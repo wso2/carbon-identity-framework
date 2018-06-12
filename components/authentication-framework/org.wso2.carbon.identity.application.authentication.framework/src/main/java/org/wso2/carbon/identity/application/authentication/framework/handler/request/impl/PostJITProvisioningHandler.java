@@ -18,11 +18,20 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -36,17 +45,20 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.claim.ClaimManager;
@@ -59,6 +71,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,7 +138,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
         if (isProvisionUIRedirectionTriggered != null && (boolean) isProvisionUIRedirectionTriggered) {
             if (log.isDebugEnabled()) {
                 AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
-                log.debug("The request flow has hit the response flow of JIT provisioning flow for the user: "
+                log.debug("The request  has hit the response flow of JIT provisioning flow for the user: "
                         + authenticatedUser);
             }
             return handleResponseFlow(request, context);
@@ -173,12 +186,12 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                     combinedLocalClaims
                             .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     String username = sequenceConfig.getAuthenticatedUser().getUserName();
-
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
                     callDefaultProvisioniningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
+                   handleConstents(request, stepConfig, context.getTenantDomain());
                 }
             }
         }
@@ -186,7 +199,8 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
     }
 
     /**
-     * To get the final claims that need to be stored against user.
+     * To get the final claims that need to be stored against user by combining the claims from IDP as well as from
+     * User entered claims.
      *
      * @param request          Http servlet request.
      * @param localClaimValues Relevant local claim values from IDP.
@@ -200,6 +214,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
         String externalIdPConfigName = context.getExternalIdP().getIdPName();
         org.wso2.carbon.user.api.ClaimMapping[] claims = getClaimsForTenant(context.getTenantDomain(),
                 externalIdPConfigName);
+        Map<String, String> missingClaims = new HashMap<>();
         if (claims != null) {
             for (org.wso2.carbon.user.api.ClaimMapping claimMapping : claims) {
                 String uri = claimMapping.getClaim().getClaimUri();
@@ -207,8 +222,25 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
 
                 if (StringUtils.isNotBlank(claimValue) && StringUtils.isEmpty(localClaimValues.get(uri))) {
                     localClaimValues.put(uri, claimValue);
+                } else {
+                    /* Claims that are mandatory from service provider level will pre-appended with "missing-" in
+                     there name.
+                     */
+                    claimValue = request.getParameter("missing-" + uri);
+                    if (StringUtils.isNotEmpty(claimValue)) {
+                        localClaimValues.put(uri, claimValue);
+                        missingClaims.put(uri, claimValue);
+                    }
                 }
             }
+        }
+        // Handle the missing claims.
+        if (MapUtils.isNotEmpty(missingClaims)) {
+            AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+            Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+            userAttributes.putAll(FrameworkUtils.buildClaimMappings(missingClaims));
+            authenticatedUser.setUserAttributes(userAttributes);
+            context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
         }
         if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
             if (log.isDebugEnabled()) {
@@ -261,19 +293,9 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
                                     + " to the UI to sign up.");
                         }
-                        String authenticatedUserName =  sequenceConfig.getAuthenticatedUser()
-                                .getUserName();
-
-                        if (!authenticatedUserName.endsWith("@" + context.getTenantDomain())) {
-                            authenticatedUserName = MultitenantUtils.getTenantAwareUsername(authenticatedUserName);
-
-                            if (!context.getTenantDomain()
-                                    .equalsIgnoreCase(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
-                                authenticatedUserName = authenticatedUserName + "@" + context.getTenantDomain();
-                            }
-                        }
-
-                        redirectToPasswordProvisioningUI(externalIdPConfig, context, localClaimValues, response,
+                        String authenticatedUserName = getTenantDomainAppendedUserName(
+                                sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
+                        redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                 authenticatedUserName, request);
                         // Set the property to make sure the request is a returning one.
                         context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
@@ -290,6 +312,107 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             }
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+    }
+
+    /**
+     * Builds consent receipt input according to consent API.
+     *
+     * @param piiPrincipalId P11 Principal ID
+     * @param consent        Consent String which contains services.
+     * @param policyURL      Policy URL.
+     * @return Consent string which contains above facts.
+     */
+    private ReceiptInput buildConsentForResidentIDP(String piiPrincipalId, String consent, String policyURL) {
+
+        ReceiptInput receiptInput = new ReceiptInput();
+        receiptInput.setJurisdiction("USA");
+        receiptInput.setCollectionMethod(FrameworkConstants.Consent.COLLECTION_METHOD_JIT);
+        receiptInput.setLanguage(FrameworkConstants.Consent.LANGUAGE_ENGLISH);
+        receiptInput.setPiiPrincipalId(piiPrincipalId);
+        receiptInput.setPolicyUrl(policyURL);
+        JSONObject receipt = new JSONObject(consent);
+        receiptInput.setServices(getReceiptServiceInputs(receipt));
+        if (log.isDebugEnabled()) {
+            log.debug("Built consent from endpoint util : " + consent);
+        }
+        return receiptInput;
+    }
+
+    /**
+     * To build ReceiptServices from the incoming receipt.
+     *
+     * @param receipt Relevant incoming receipt send from the client side.
+     * @return Set of the receipt services.
+     */
+    private List<ReceiptServiceInput> getReceiptServiceInputs(JSONObject receipt) {
+
+        JSONArray services = receipt.getJSONArray(FrameworkConstants.Consent.SERVICES);
+        List<ReceiptServiceInput> receiptServiceInputs = new ArrayList<>();
+        for (int serviceIndex = 0; serviceIndex < services.length(); serviceIndex++) {
+            JSONObject service = services.getJSONObject(serviceIndex);
+            ReceiptServiceInput receiptServiceInput = new ReceiptServiceInput();
+
+            JSONArray purposes = service.getJSONArray(FrameworkConstants.Consent.PURPOSES);
+            List<ReceiptPurposeInput> receiptPurposeInputs = new ArrayList<>();
+            for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
+                receiptPurposeInputs.add(getReceiptPurposeInputs((JSONObject) purposes.get(purposeIndex)));
+            }
+            receiptServiceInput.setPurposes(receiptPurposeInputs);
+            receiptServiceInputs.add(receiptServiceInput);
+        }
+        return receiptServiceInputs;
+    }
+
+    /**
+     * To get the receive purpose inputs from json object from the client side.
+     *
+     * @param receiptPurpose Relevant receipt purpose.
+     * @return receipt purpose input, based on receipt purpose object.
+     */
+    private ReceiptPurposeInput getReceiptPurposeInputs(JSONObject receiptPurpose) {
+
+        ReceiptPurposeInput receiptPurposeInput = new ReceiptPurposeInput();
+        receiptPurposeInput.setConsentType(FrameworkConstants.Consent.EXPLICIT_CONSENT_TYPE);
+        receiptPurposeInput.setPrimaryPurpose(true);
+        receiptPurposeInput.setThirdPartyDisclosure(false);
+        receiptPurposeInput.setPurposeId(receiptPurpose.getInt("purposeId"));
+        JSONArray purposeCategoryId = receiptPurpose.getJSONArray("purposeCategoryId");
+        List<Integer> purposeCategoryIdArray = new ArrayList<>();
+        for (int index = 0; index < purposeCategoryId.length(); index++) {
+            purposeCategoryIdArray.add(purposeCategoryId.getInt(index));
+        }
+        receiptPurposeInput.setTermination(FrameworkConstants.Consent.INFINITE_TERMINATION);
+        receiptPurposeInput.setPurposeCategoryId(purposeCategoryIdArray);
+        receiptPurposeInput.setTermination(FrameworkConstants.Consent.INFINITE_TERMINATION);
+        List<PIICategoryValidity> piiCategoryValidities = new ArrayList<>();
+        JSONArray piiCategories = (JSONArray) receiptPurpose.get(FrameworkConstants.Consent.PII_CATEGORY);
+        for (int categoryIndex = 0; categoryIndex < piiCategories.length(); categoryIndex++) {
+            JSONObject piiCategory = (JSONObject) piiCategories.get(categoryIndex);
+            PIICategoryValidity piiCategoryValidity = new PIICategoryValidity(piiCategory.getInt("piiCategoryId"),
+                    FrameworkConstants.Consent.INFINITE_TERMINATION);
+            piiCategoryValidities.add(piiCategoryValidity);
+        }
+        receiptPurposeInput.setPiiCategory(piiCategoryValidities);
+        return receiptPurposeInput;
+    }
+
+    /**
+     * To get the user name with tenant domain.
+     * @param userName Name of the user.
+     * @param tenantDomain Relevant tenant domain.
+     * @return tenant domain appeneded username
+     */
+    private String getTenantDomainAppendedUserName(String userName, String tenantDomain) {
+
+        // To handle the scenarios where email comes as username, but EnableEmailUserName is not set true in carbon.xml
+        if (!userName.endsWith("@" + tenantDomain)) {
+            userName = MultitenantUtils.getTenantAwareUsername(userName);
+
+            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+                userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+            }
+        }
+        return userName;
     }
 
     /**
@@ -328,7 +451,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
     }
 
     /**
-     * Call the relevant URL for the password provisioning.
+     * Call the relevant URL to add the new user.
      *
      * @param externalIdPConfig Relevant external IDP.
      * @param context           Authentication context.
@@ -337,7 +460,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      * @param username          Relevant user name
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
-    private void redirectToPasswordProvisioningUI(ExternalIdPConfig externalIdPConfig, AuthenticationContext context,
+    private void redirectToAccountCreateUI(ExternalIdPConfig externalIdPConfig, AuthenticationContext context,
             Map<String, String> localClaimValues, HttpServletResponse response, String username,
             HttpServletRequest request) throws PostAuthenticationFailedException {
 
@@ -385,7 +508,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      */
     private void addMissingClaims(URIBuilder uriBuilder, AuthenticationContext context) {
 
-        String[] missingClaims = PostAuthnMissingClaimHandler.getInstance().getMissingClaims(context);
+        String[] missingClaims = FrameworkUtils.getMissingClaims(context);
         if (StringUtils.isNotEmpty(missingClaims[1])) {
             if (log.isDebugEnabled()) {
                 String username = context.getSequenceConfig().getAuthenticatedUser()
@@ -407,7 +530,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      * @return relevant external IDP config.
      * @throws PostAuthenticationFailedException Post AuthenticationFailedException.
      */
-    protected ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
+    private ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
             throws PostAuthenticationFailedException {
         ExternalIdPConfig externalIdPConfig = null;
         try {
@@ -506,6 +629,103 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
                             username, externalIdPConfig.getName()),
                     ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getCode(), e);
+        }
+    }
+
+    /**
+     * This method is responsible for handling consents.
+     *
+     * @param request      Relevant http servlet request.
+     * @param stepConfig   Step Configuration for the particular configuration step.
+     * @param tenantDomain Specific tenant domain.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    private void handleConstents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        String userName = getFederatedUserName(stepConfig.getAuthenticatedIdP(),
+                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+        String consent = request.getParameter("consent");
+        String policyURL = request.getParameter("policy");
+        if (StringUtils.isNotEmpty(consent)) {
+            ReceiptInput receiptInput = buildConsentForResidentIDP(userName, consent, policyURL);
+            addConsent(receiptInput, tenantDomain);
+        }
+    }
+
+    /**
+     * Persist the consents received from the user, while user creation.
+     *
+     * @param receiptInput Relevant receipt input representing consent data.
+     * @param tenantDomain Relevant tenant domain.
+     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
+     */
+    private void addConsent(ReceiptInput receiptInput, String tenantDomain) throws PostAuthenticationFailedException {
+
+        ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
+        if (receiptInput.getServices().size() == 0) {
+            throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_ADDING_CONSENT.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_ADDING_CONSENT.getMessage(), tenantDomain));
+        }
+        // There should be one receipt
+        ReceiptServiceInput receiptServiceInput = receiptInput.getServices().get(0);
+        receiptServiceInput.setTenantDomain(tenantDomain);
+        try {
+            setIDPData(tenantDomain, receiptServiceInput);
+            receiptInput.setTenantDomain(tenantDomain);
+            consentManager.addConsent(receiptInput);
+        } catch (ConsentManagementException e) {
+            handleExceptions(String.format(ErrorMessages.ERROR_WHILE_ADDING_CONSENT.getMessage(), tenantDomain),
+                    ErrorMessages.ERROR_WHILE_ADDING_CONSENT.getCode(), e);
+        }
+    }
+
+    /**
+     * Set the IDP releated data in the receipt service input.
+     *
+     * @param tenantDomain        Tenant domain.
+     * @param receiptServiceInput Relevant receipt service input which the
+     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
+     */
+    private void setIDPData(String tenantDomain, ReceiptServiceInput receiptServiceInput)
+            throws PostAuthenticationFailedException {
+
+        String resideIdpDescription = "Resident IDP";
+        IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
+        IdentityProvider residentIdP = null;
+        try {
+            residentIdP = idpManager.getResidentIdP(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            handleExceptions(String.format(ErrorMessages.ERROR_WHILE_SETTING_IDP_DATA.getMessage(), tenantDomain),
+                    ErrorMessages.ERROR_WHILE_SETTING_IDP_DATA.getCode(), e);
+        }
+        if (residentIdP == null) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_SETTING_IDP_DATA_IDP_IS_NULL.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_SETTING_IDP_DATA_IDP_IS_NULL.getMessage(), tenantDomain));
+        }
+        if (StringUtils.isEmpty(receiptServiceInput.getService())) {
+            if (log.isDebugEnabled()) {
+                log.debug("No service name found. Hence adding resident IDP home realm ID");
+            }
+            receiptServiceInput.setService(residentIdP.getHomeRealmId());
+        }
+        if (StringUtils.isEmpty(receiptServiceInput.getTenantDomain())) {
+            receiptServiceInput.setTenantDomain(tenantDomain);
+        }
+        if (StringUtils.isEmpty(receiptServiceInput.getSpDescription())) {
+            if (StringUtils.isNotEmpty(residentIdP.getIdentityProviderDescription())) {
+                receiptServiceInput.setSpDescription(residentIdP.getIdentityProviderDescription());
+            } else {
+                receiptServiceInput.setSpDescription(resideIdpDescription);
+            }
+        }
+        if (StringUtils.isEmpty(receiptServiceInput.getSpDisplayName())) {
+            if (StringUtils.isNotEmpty(residentIdP.getDisplayName())) {
+                receiptServiceInput.setSpDisplayName(residentIdP.getDisplayName());
+            } else {
+                receiptServiceInput.setSpDisplayName(resideIdpDescription);
+            }
         }
     }
 }

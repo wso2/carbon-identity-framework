@@ -332,7 +332,7 @@
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claimDisplayName)%>
                                 </label>
-                                <input type="text" name="<%=Encode.forHtmlAttribute(claim)%>"
+                                <input type="text" name="missing-<%=Encode.forHtmlAttribute(claim)%>"
                                        id="<%=Encode.forHtmlAttribute(claim)%>" class="form-control" required="required">
                             </div>
                             <% }}%>
@@ -404,6 +404,11 @@
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                             <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
                                 (request.getParameter("sessionDataKey"))%>'/>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <input type="hidden" name="policy" value='<%=Encode.forHtmlAttribute
+                                (IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                                "/authenticationendpoint/privacy_policy.do"))%>'/>
                         </div>
                         <% } %>
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">

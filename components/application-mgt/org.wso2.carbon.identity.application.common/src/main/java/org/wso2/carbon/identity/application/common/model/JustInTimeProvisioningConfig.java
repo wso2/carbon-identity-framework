@@ -29,9 +29,9 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
 
     private static final long serialVersionUID = 6754801699494009980L;
 
-    private boolean passwordProvisioningEnabled;
+    private boolean passwordProvisioningEnabled = false;
     private String userStoreClaimUri;
-    private boolean modifyUserNameAllowed;
+    private boolean modifyUserNameAllowed = false;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>

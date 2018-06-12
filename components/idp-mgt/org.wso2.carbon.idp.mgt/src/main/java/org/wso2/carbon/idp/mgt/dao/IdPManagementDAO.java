@@ -53,7 +53,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -1255,23 +1261,34 @@ public class IdPManagementDAO {
         }
     }
 
+    /**
+     * To filter out the properties related with just in time provisioning and to send back only the remaning IDP
+     * properties.
+     *
+     * @param federatedIdp               Relevant IDP.
+     * @param identityProviderProperties Identity Provider Properties.
+     * @return identity provider properties after removing the relevant JIT specific properties.
+     */
     private List<IdentityProviderProperty> filterIdenityProperties(IdentityProvider federatedIdp,
             List<IdentityProviderProperty> identityProviderProperties) {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
-        Iterator<IdentityProviderProperty> identityProviderIterator = identityProviderProperties.iterator();
-        while (identityProviderIterator.hasNext()) {
-            IdentityProviderProperty identityProviderProperty = identityProviderIterator.next();
-            if (identityProviderProperty.getName().equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED)) {
-                justInTimeProvisioningConfig
-                        .setPasswordProvisioningEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
-                identityProviderProperties.remove(identityProviderProperty);
-            } else if (identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)) {
-                justInTimeProvisioningConfig
-                        .setModifyUserNameAllowed(Boolean.parseBoolean(identityProviderProperty.getValue()));
-                identityProviderProperties.remove(identityProviderProperty);
-            }
+
+        if (justInTimeProvisioningConfig != null) {
+            identityProviderProperties.forEach(identityProviderProperty -> {
+                if (identityProviderProperty.getName().equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setPasswordProvisioningEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setModifyUserNameAllowed(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                }
+            });
         }
+        identityProviderProperties.removeIf(identityProviderProperty -> (
+                identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
+                        || identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED)));
         return identityProviderProperties;
     }
 
@@ -1789,23 +1806,8 @@ public class IdPManagementDAO {
                 }
 
             }
-
-            List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
-            if (ArrayUtils.isNotEmpty(identityProvider.getIdpProperties())) {
-                identityProviderProperties = Arrays.asList(identityProvider.getIdpProperties());
-            }
-
-            IdentityProviderProperty passwordProvisioningProperty = new IdentityProviderProperty();
-            passwordProvisioningProperty.setName(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED);
-            passwordProvisioningProperty.setValue(
-                    String.valueOf(identityProvider.getJustInTimeProvisioningConfig().isPasswordProvisioningEnabled()));
-
-            IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
-            modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
-            modifyUserNameProperty.setValue(
-                    String.valueOf(identityProvider.getJustInTimeProvisioningConfig().isModifyUserNameAllowed()));
-            identityProviderProperties.add(passwordProvisioningProperty);
-            identityProviderProperties.add(modifyUserNameProperty);
+            List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
+                    .getJustInTimeProvisioningConfig(), identityProvider.getIdpProperties());
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             dbConnection.commit();
         } catch (IOException e) {
@@ -1816,6 +1818,37 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
+    }
+
+    /**
+     * To get the combined list of identity properties with IDP meta data properties as well as Just in time configs.
+     *
+     * @param justInTimeProvisioningConfig JustInTimeProvisioningConfig.
+     * @param idpProperties                IDP Properties.
+     * @return combined list of identity properties.
+     */
+    private List<IdentityProviderProperty> getCombinedProperties(JustInTimeProvisioningConfig
+            justInTimeProvisioningConfig, IdentityProviderProperty[] idpProperties) {
+
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(idpProperties)) {
+            identityProviderProperties = new ArrayList<>(Arrays.asList(idpProperties));
+        }
+        IdentityProviderProperty passwordProvisioningProperty = new IdentityProviderProperty();
+        passwordProvisioningProperty.setName(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED);
+        passwordProvisioningProperty.setValue("false");
+
+        IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
+        modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
+        modifyUserNameProperty.setValue("false");
+        if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
+            passwordProvisioningProperty
+                    .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
+            modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
+        }
+        identityProviderProperties.add(passwordProvisioningProperty);
+        identityProviderProperties.add(modifyUserNameProperty);
+        return identityProviderProperties;
     }
 
     /**
@@ -1932,8 +1965,8 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(17, newIdentityProvider.getDisplayName());
 
-            prepStmt1.setInt(19, tenantId);
-            prepStmt1.setString(20, currentIdentityProvider.getIdentityProviderName());
+            prepStmt1.setInt(18, tenantId);
+            prepStmt1.setString(19, currentIdentityProvider.getIdentityProviderName());
 
             prepStmt1.executeUpdate();
 
@@ -1967,24 +2000,10 @@ public class IdPManagementDAO {
                 updateProvisioningConnectorConfigs(
                         newIdentityProvider.getProvisioningConnectorConfigs(), dbConnection, idpId,
                         tenantId);
-
-                if (newIdentityProvider.getIdpProperties() != null) {
-                    List<IdentityProviderProperty> identityProviderProperties = Arrays
-                            .asList(newIdentityProvider.getIdpProperties());
-                    IdentityProviderProperty passwordProvisioningProperty = new IdentityProviderProperty();
-                    passwordProvisioningProperty.setName(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED);
-                    passwordProvisioningProperty.setValue(String.valueOf(
-                            newIdentityProvider.getJustInTimeProvisioningConfig().isPasswordProvisioningEnabled()));
-
-                    IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
-                    modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
-                    modifyUserNameProperty.setValue(String.valueOf(
-                            newIdentityProvider.getJustInTimeProvisioningConfig().isModifyUserNameAllowed()));
-                    identityProviderProperties.add(passwordProvisioningProperty);
-                    identityProviderProperties.add(modifyUserNameProperty);
-                    updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
-                }
-
+                List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties
+                        (newIdentityProvider.getJustInTimeProvisioningConfig(),newIdentityProvider
+                                .getIdpProperties());
+                updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
             }
 
             dbConnection.commit();

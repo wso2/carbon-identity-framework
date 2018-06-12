@@ -1400,12 +1400,10 @@ public class FrameworkUtils {
             }
             return new ArrayList<>();
         }
-
         String idpRoleAttrValue = null;
         if (extAttributesValueMap != null) {
             idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
         }
-
         String[] idpRoles;
         if (idpRoleAttrValue != null) {
             idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
@@ -1418,9 +1416,7 @@ public class FrameworkUtils {
             }
             return new ArrayList<>();
         }
-
         Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
-
         List<String> idpMappedUserRoles = new ArrayList<>();
         // If no role mapping is configured in the identity provider.
         if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
@@ -1428,15 +1424,12 @@ public class FrameworkUtils {
                 log.debug("No role mapping is configured in the external IDP: " + externalIdPConfig.getIdPName()
                         + ", in Domain: " + externalIdPConfig.getDomain() + ".");
             }
-
             if (excludeUnmapped) {
                 return new ArrayList<>();
             }
-
             idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
             return idpMappedUserRoles;
         }
-
         for (String idpRole : idpRoles) {
             if (idpToLocalRoleMapping.containsKey(idpRole)) {
                 idpMappedUserRoles.add(idpToLocalRoleMapping.get(idpRole));
@@ -1456,15 +1449,12 @@ public class FrameworkUtils {
     public static String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) {
         // get external identity provider role claim uri.
         String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
-
         if (idpRoleClaimUri == null || idpRoleClaimUri.isEmpty()) {
             // no role claim uri defined
             // we can still try to find it out - lets have a look at the claim
             // mapping.
             ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
-
             if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
-
                 for (ClaimMapping mapping : idpToLocalClaimMapping) {
                     if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
                             && mapping.getRemoteClaim() != null) {
@@ -1499,7 +1489,6 @@ public class FrameworkUtils {
                 }
             }
         }
-
         return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
     }
 
@@ -1523,5 +1512,50 @@ public class FrameworkUtils {
         }
         return isNeeded;
     }
+
+    /**
+     * To get the missing mandatory claims from SP side.
+     *
+     * @param context Authentication Context.
+     * @return set of missing claims
+     */
+    @SuppressWarnings("unchecked")
+    public static String[] getMissingClaims(AuthenticationContext context) {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+        if (userAttributes != null) {
+            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
+            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+
+            if (object instanceof Map) {
+                spToCarbonClaimMapping = (Map<String, String>) object;
+            }
+            for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+                String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
+
+                //getting the carbon claim uri mapping for other claim dialects
+                if (MapUtils.isNotEmpty(spToCarbonClaimMapping) && spToCarbonClaimMapping.get(localClaimUri) != null) {
+                    localClaimUri = spToCarbonClaimMapping.get(localClaimUri);
+                }
+                mappedAttrs.put(localClaimUri, entry.getValue());
+            }
+        }
+        Map<String, String> mandatoryClaims = context.getSequenceConfig().getApplicationConfig()
+                .getMandatoryClaimMappings();
+        StringBuilder missingClaimsString = new StringBuilder();
+        StringBuilder missingClaimValuesString = new StringBuilder();
+        for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
+            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
+                missingClaimsString.append(entry.getKey());
+                missingClaimValuesString.append(entry.getValue());
+                missingClaimsString.append(",");
+                missingClaimValuesString.append(",");
+            }
+        }
+        return new String[] { missingClaimsString.toString(), missingClaimValuesString.toString() };
+    }
+
 }
 

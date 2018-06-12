@@ -104,7 +104,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             return UNSUCCESS_COMPLETED;
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
-        Map<ClaimMapping, String> authenticatedUserAttributes = null;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -114,50 +113,68 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 if (stepConfig.isSubjectIdentifierStep()) {
                     if (log.isDebugEnabled()) {
                         log.debug(authenticator.getName() + " has been set up for subject identifier step.");
-                        ;
                     }
-                    String associatedLocalUserName = null;
-
-                    /*
+                     /*
                     If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
                     federated idp.
                      */
+                    String associatedLocalUserName = null;
                     if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
                         associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
                     }
-
                     if (StringUtils.isNotEmpty(associatedLocalUserName)) {
-                        String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context
-                                        .getTenantDomain());
-                        sequenceConfig.setAuthenticatedUser(AuthenticatedUser
-                                .createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
-                        sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
-                        authenticatedUserAttributes = getClaimMapping(stepConfig, context);
-                        // in this case associatedID is a local user name - belongs to a tenant in IS.
-                        String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
-                        Map<String, Object> authProperties = context.getProperties();
-
-                        if (MapUtils.isNotEmpty(authProperties)) {
-                            authProperties = new HashMap<>();
-                            context.setProperties(authProperties);
-                        }
-                        authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
                         if (log.isDebugEnabled()) {
-                            log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser()
-                                    .getAuthenticatedSubjectIdentifier());
-                            log.debug("Authenticated User Tenant Domain: " + tenantDomain);
+                            log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
+                                    + "equavlent local user : " + associatedLocalUserName);
                         }
+                        setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
                     }
                 }
             }
         }
-        if (authenticatedUserAttributes != null) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
+    /**
+     * To set the associated local user in automation context and to add the relevant claims.
+     *
+     * @param associatedLocalUserName Associated Local username.
+     * @param context                 Authentication context.
+     * @param stepConfig              Configuration related with current authentication step.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    private void setAssociatedLocalUserToContext(String associatedLocalUserName, AuthenticationContext context,
+            StepConfig stepConfig) throws PostAuthenticationFailedException {
+
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+        sequenceConfig.setAuthenticatedUser(
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
+        sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
+        Map<ClaimMapping, String> authenticatedUserAttributes = getClaimMapping(stepConfig, context);
+        if (MapUtils.isNotEmpty(authenticatedUserAttributes)) {
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            if (log.isDebugEnabled()) {
+                log.debug("Local claims from the local user: " + associatedLocalUserName + ", set as "
+                        + "user attributed for the federated scenario");
+            }
+        }
+        // in this case associatedID is a local user name - belongs to a tenant in IS.
+        String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
+        Map<String, Object> authProperties = context.getProperties();
+
+        if (MapUtils.isNotEmpty(authProperties)) {
+            authProperties = new HashMap<>();
+            context.setProperties(authProperties);
+        }
+        authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(
+                    "Authenticated User: " + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+            log.debug("Authenticated User Tenant Domain: " + tenantDomain);
+        }
+    }
     /**
      * To get the local user name associated with the given federated IDP and the subject identifier.
      *
@@ -216,7 +233,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
         Map<String, String> mappedAttrs;
         Map<ClaimMapping, String> mappedClaims = null;
-
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context, null, false);
         } catch (FrameworkException e) {
@@ -229,7 +245,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
         Map<String, String> idpClaimValues = (Map<String, String>) context
                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
-
         // if no requested claims are selected, send all local mapped claim values or idp claim values
         if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null || context
                 .getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
@@ -239,7 +254,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 mappedAttrs = idpClaimValues;
             }
         }
-
         if (MapUtils.isNotEmpty(mappedAttrs)) {
             if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
                 if (log.isDebugEnabled()) {
