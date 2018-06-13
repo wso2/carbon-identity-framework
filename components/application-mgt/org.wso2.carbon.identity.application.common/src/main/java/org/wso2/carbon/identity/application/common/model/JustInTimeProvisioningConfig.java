@@ -26,12 +26,12 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 public class JustInTimeProvisioningConfig extends InboundProvisioningConfig implements Serializable {
-
     private static final long serialVersionUID = 6754801699494009980L;
 
     private boolean passwordProvisioningEnabled = false;
     private String userStoreClaimUri;
     private boolean modifyUserNameAllowed = false;
+    private boolean promptConsent = false;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -65,9 +65,13 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
                     justInTimeProvisioningConfig
                             .setPasswordProvisioningEnabled(Boolean.parseBoolean(element.getText()));
                 }
-            } else if (IdentityApplicationConstants.ALLOW_MODIFY_USERNAME.equals(elementName)) {
+            } else if (IdentityApplicationConstants.ALLOW_MODIFY_USERNAME_ELEMENT.equals(elementName)) {
                 if (StringUtils.isNotEmpty(element.getText())) {
                     justInTimeProvisioningConfig.setModifyUserNameAllowed(Boolean.parseBoolean(element.getText()));
+                }
+            } else if (IdentityApplicationConstants.PROMPT_CONSENT_ELEMENT.equals(elementName)) {
+                if (StringUtils.isNotEmpty(element.getText())) {
+                    justInTimeProvisioningConfig.setPromptConsent(Boolean.parseBoolean(element.getText()));
                 }
             }
         }
@@ -123,5 +127,22 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      */
     public void setModifyUserNameAllowed(boolean isModifyUserNameAllowed) {
         this.modifyUserNameAllowed = isModifyUserNameAllowed;
+    }
+
+    /**
+     * To check whether prompt consent is set to true.
+     * @return true if prompt consent is selected otherwise, false.
+     */
+    public boolean isPromptConsent() {
+        return promptConsent;
+    }
+
+    /**
+     * To set the prompt consent parameter.
+     *
+     * @param promptConsent parameter to specify whether to prompt consent or not.
+     */
+    public void setPromptConsent(boolean promptConsent) {
+        this.promptConsent = promptConsent;
     }
 }

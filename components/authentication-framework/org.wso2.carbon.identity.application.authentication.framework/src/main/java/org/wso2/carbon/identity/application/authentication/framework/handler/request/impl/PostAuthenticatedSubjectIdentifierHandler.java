@@ -32,7 +32,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
@@ -40,7 +40,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthenticatedSubjectIdentifierHandler.class);
-    private static PostAuthenticatedSubjectIdentifierHandler instance;
+    private static PostAuthenticatedSubjectIdentifierHandler instance = new PostAuthenticatedSubjectIdentifierHandler();
 
     /**
      * To get the singleton instance of post authentication handler.
@@ -49,13 +49,6 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
      */
     public static PostAuthenticatedSubjectIdentifierHandler getInstance() {
 
-        if (instance == null) {
-            synchronized (PostAuthenticatedSubjectIdentifierHandler.class) {
-                if (instance == null) {
-                    instance = new PostAuthenticatedSubjectIdentifierHandler();
-                }
-            }
-        }
         return instance;
     }
 
@@ -68,7 +61,7 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         The priority of this authentication handler should be greater than JIT and association post authentication
         handler as subject identifier need to be set after all these handling.
          */
-            priority = 22;
+            priority = 30;
         }
         return priority;
     }
@@ -83,8 +76,8 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) {
 
-        if (!FrameworkUtils.isPostJITHandlerExecutionNeeded(context)) {
-            return UNSUCCESS_COMPLETED;
+        if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
+            return SUCCESS_COMPLETED;
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
@@ -100,7 +93,7 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
             setAuthenticatedSujectIdentifierBasedOnUserName(sequenceConfig);
 
         }
-        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        return SUCCESS_COMPLETED;
     }
 
     /**

@@ -50,7 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostJITProvisioningHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -245,7 +245,7 @@ public class FrameworkServiceComponent {
         dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
 
         // Registering JIT, association and domain handler as post authentication handler
-        PostAuthenticationHandler postJITProvisioningHandler = new PostJITProvisioningHandler();
+        PostAuthenticationHandler postJITProvisioningHandler = new JITProvisioningPostAuthenticationHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
         PostAuthenticationHandler postAuthAssociationHandler = new PostAuthAssociationHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);

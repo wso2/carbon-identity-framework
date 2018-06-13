@@ -229,6 +229,18 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
+     * To check whether silent provisioning is enabled, while JIT provisioning.
+     *
+     * @return true if modification of user name is allowed.
+     */
+    public boolean isPromptConsentEnabled() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isPromptConsent();
+        }
+        return false;
+    }
+
+    /**
      * @return
      */
     public String getRoleClaimUri() {

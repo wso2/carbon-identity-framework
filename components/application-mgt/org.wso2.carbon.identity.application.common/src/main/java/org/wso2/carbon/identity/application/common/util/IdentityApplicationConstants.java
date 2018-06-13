@@ -74,7 +74,8 @@ public class IdentityApplicationConstants {
 
     // JustInTimeProviderConfigElements
     public static final String IS_PASSWORD_PROVISIONING_ENABLED_ELEMENT = "IsPasswordProvisioningEnabled";
-    public static final String ALLOW_MODIFY_USERNAME = "AllowModifyUserName";
+    public static final String ALLOW_MODIFY_USERNAME_ELEMENT = "AllowModifyUserName";
+    public static final String PROMPT_CONSENT_ELEMENT = "PromptConsent";
 
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";

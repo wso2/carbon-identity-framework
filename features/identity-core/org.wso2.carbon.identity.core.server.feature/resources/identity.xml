@@ -612,6 +612,11 @@
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <JITProvisioning>
+        <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
+        <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+    </JITProvisioning>
+
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
@@ -650,6 +655,17 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
+
+        <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler"
+                       orderId="20" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler"
+                       orderId="25" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
+                       orderId="30" enable="true"/>
 
         <!-- Audit Loggers -->
 

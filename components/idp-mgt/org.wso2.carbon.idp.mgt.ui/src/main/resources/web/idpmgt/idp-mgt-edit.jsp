@@ -40,18 +40,11 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="java.util.Comparator" %>
-<%@page import="java.util.HashMap" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.UUID" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
 <%@ page
         import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
+<%@ page import="java.util.*" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -81,6 +74,7 @@
     boolean isCustomClaimEnabled = false;
     boolean isPasswordProvisioningEnabled = false;
     boolean isUserNameModificationAllowed = false;
+    boolean isPromptConsent = false;
 
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
@@ -131,7 +125,7 @@
     boolean isPassiveSTSUserIdInClaims = false;
     boolean isEnablePassiveSTSAssertionSignatureValidation = true;
     boolean isEnablePassiveSTSAssertionAudienceValidation = true;
-    String[] userStoreDomains = null;
+    List<String> userStoreDomains = new ArrayList<String>();
     boolean isFBAuthEnabled = false;
     boolean isFBAuthDefault = false;
     String fbClientId = null;
@@ -668,6 +662,7 @@
         isPasswordProvisioningEnabled =
                 identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
         isUserNameModificationAllowed = identityProvider.getJustInTimeProvisioningConfig().getModifyUserNameAllowed();
+        isPromptConsent = identityProvider.getJustInTimeProvisioningConfig().getPromptConsent();
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
@@ -906,7 +901,6 @@
     }
     String provisionStaticDropdownDisabled = "";
     String provisionDynamicDropdownDisabled = "";
-
     if (!isProvisioningEnabled) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
         provisionDynamicDropdownDisabled = "disabled=\'disabled\'";
@@ -915,8 +909,8 @@
     } else if (isProvisioningEnabled && provisioningUserStoreId == null) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
     }
-
-    userStoreDomains = client.getUserStoreDomains();
+    userStoreDomains.addAll(Arrays.asList(client.getUserStoreDomains()));
+    userStoreDomains.add("As in username");
 
     claimUris = client.getAllLocalClaimUris();
 
@@ -5192,7 +5186,7 @@
                                     <select id="provision_static_dropdown"
                                             name="provision_static_dropdown" <%=provisionStaticDropdownDisabled%>>
                                         <%
-                                            if (userStoreDomains != null && userStoreDomains.length > 0) {
+                                            if (userStoreDomains != null && userStoreDomains.size() > 0) {
                                                 for (String userStoreDomain : userStoreDomains) {
                                                     if (provisioningUserStoreId != null && userStoreDomain.equals(provisioningUserStoreId)) {
                                         %>
@@ -5208,6 +5202,7 @@
                                                 }
                                             }
                                         %>
+
                                     </select>
 
                                 </div>
@@ -5217,32 +5212,42 @@
                                 </div>
                                 <div style="padding-left: 40px; !important">
                                     <label style="display:block">
-                                        <input type="radio" id="modify_username_password" name="choose_jit_type_group"
-                                               value="modify_username_password" <% if (isPasswordProvisioningEnabled
-                                                && isUserNameModificationAllowed) { %>
+                                        <input type="radio" id="prompt_username_password_consent"
+                                               name="choose_jit_type_group"
+                                               value="prompt_username_password_consent" <% if (isPasswordProvisioningEnabled
+                                                && isUserNameModificationAllowed && isPromptConsent) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        <fmt:message key='jit.ask.username.password'/>
+                                        <fmt:message key='jit.prompt.username.password.consent'/>
                                     </label>
                                 </div>
                                 <div style="padding-left: 40px; !important">
                                     <label style="display:block">
-                                        <input type="radio" id=modify_password" name="choose_jit_type_group"
-                                               value="modify_password"  <% if (isPasswordProvisioningEnabled &&
-                                                !isUserNameModificationAllowed) { %>
+                                        <input type="radio" id=prompt_password_consent" name="choose_jit_type_group"
+                                               value="prompt_password_consent"  <% if (isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        <fmt:message key='jit.ask.password'/>
+                                        <fmt:message key='jit.prompt.password.consent'/>
                                     </label>
                                 </div>
                                 <div style="padding-left: 40px; !important">
                                     <label style="display:block">
-                                        <input type="radio" id="do_not_modify" name="choose_jit_type_group"
-                                               value="don_not_modify"  <% if (!isPasswordProvisioningEnabled &&
-                                                !isUserNameModificationAllowed) { %>
+                                        <input type="radio" id="prompt_consent" name="choose_jit_type_group"
+                                               value="prompt_consent"  <% if (!isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
                                                checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
-                                        <fmt:message key='jit.do.not.ask.username.password'/>
+                                        <fmt:message key='jit.prompt.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="do_not_prompt" name="choose_jit_type_group"
+                                               value="do_not_prompt"  <% if (!isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.provision.silently'/>
                                     </label>
                                 </div>
                             </td>

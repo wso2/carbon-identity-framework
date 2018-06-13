@@ -52,9 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -76,32 +74,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.*;
 
 /**
  * This is post authentication handler responsible for JIT provisioning.
  */
-public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
+public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnHandler {
 
-    private static final Log log = LogFactory.getLog(PostJITProvisioningHandler.class);
-    private static volatile PostJITProvisioningHandler instance;
+    private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);
+    private static volatile JITProvisioningPostAuthenticationHandler instance = new JITProvisioningPostAuthenticationHandler();
 
     /**
-     * To get an instance of {@link PostJITProvisioningHandler}.
+     * To get an instance of {@link JITProvisioningPostAuthenticationHandler}.
      *
      * @return an instance of PostJITProvisioningHandler.
      */
-    public static PostJITProvisioningHandler getInstance() {
+    public static JITProvisioningPostAuthenticationHandler getInstance() {
 
-        if (instance == null) {
-            synchronized (PostJITProvisioningHandler.class) {
-                if (instance == null) {
-                    instance = new PostJITProvisioningHandler();
-                }
-            }
-        }
         return instance;
     }
 
@@ -125,8 +116,8 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
-        if (!FrameworkUtils.isPostJITHandlerExecutionNeeded(context)) {
-            return UNSUCCESS_COMPLETED;
+        if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
+            return SUCCESS_COMPLETED;
         }
 
         if (log.isDebugEnabled()) {
@@ -183,8 +174,10 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                             new HashMap<>() :
                             (Map<String, String>) unfilteredLocalClaimValues;
                     Map<String, String> combinedLocalClaims = getCombinedClaims(request, localClaimValues, context);
-                    combinedLocalClaims
-                            .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
+                    if (externalIdPConfig.isPasswordProvisioningEnabled()) {
+                        combinedLocalClaims
+                                .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
+                    }
                     String username = sequenceConfig.getAuthenticatedUser().getUserName();
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
@@ -195,7 +188,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                 }
             }
         }
-        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        return SUCCESS_COMPLETED;
     }
 
     /**
@@ -242,13 +235,6 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             authenticatedUser.setUserAttributes(userAttributes);
             context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
         }
-        if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
-            if (log.isDebugEnabled()) {
-                log.debug("User : " + context.getSequenceConfig().getAuthenticatedUser() + " coming from "
-                        + externalIdPConfigName + " claims at the end of response flow, " + localClaimValues
-                        .toString());
-            }
-        }
         return localClaimValues;
     }
 
@@ -265,6 +251,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        boolean isUserCreated = false;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -283,11 +270,11 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                     if (localClaimValues == null) {
                         localClaimValues = new HashMap<>();
                     }
-                    String username = getFederatedUserName(stepConfig.getAuthenticatedIdP(),
+                    String username = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                             stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
 
                     // If username is null, that means relevant assication not exist already.
-                    if (StringUtils.isEmpty(username)) {
+                    if (StringUtils.isEmpty(username) && !isUserCreated) {
                         if (log.isDebugEnabled()) {
                             log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
@@ -295,11 +282,18 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                         }
                         String authenticatedUserName = getTenantDomainAppendedUserName(
                                 sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
-                        redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
-                                authenticatedUserName, request);
-                        // Set the property to make sure the request is a returning one.
-                        context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
-                        return PostAuthnHandlerFlowStatus.INCOMPLETE;
+
+                        if (externalIdPConfig.isPromptConsentEnabled()) {
+                            redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
+                                    authenticatedUserName, request);
+                            // Set the property to make sure the request is a returning one.
+                            context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
+                            return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                        }
+                    }
+                    if (StringUtils.isEmpty(username)) {
+                        username = sequenceConfig.getAuthenticatedUser().getUserName();
+                        isUserCreated = true;
                     }
                     if (log.isDebugEnabled()) {
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
@@ -311,7 +305,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
                 }
             }
         }
-        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        return SUCCESS_COMPLETED;
     }
 
     /**
@@ -422,7 +416,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
      * @param authenticatedSubjectIdentifier Authenticated subject identifier.
      * @return username associated locally.
      */
-    private String getFederatedUserName(String idpName, String authenticatedSubjectIdentifier)
+    private String getLocalUserAssociatedForFederatedIdentifier(String idpName, String authenticatedSubjectIdentifier)
             throws PostAuthenticationFailedException {
 
         String username = null;
@@ -468,14 +462,14 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             URIBuilder uriBuilder;
             if (externalIdPConfig.isModifyUserNameAllowed()) {
                 context.setProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED, true);
-                uriBuilder = new URIBuilder(FrameworkConstants.REGISTRATION_ENDPOINT);
+                uriBuilder = new URIBuilder(FrameworkUtils.getUserNameProvisioningUIUrl());
                 uriBuilder.addParameter(FrameworkConstants.ALLOW_CHANGE_USER_NAME, String.valueOf(true));
                 if (log.isDebugEnabled()) {
                     log.debug(externalIdPConfig.getName() + " allow to change the username, redirecting to "
                             + "registration endpoint to provision the user: " + username);
                 }
             } else {
-                uriBuilder = new URIBuilder(FrameworkConstants.SIGN_UP_ENDPOINT);
+                uriBuilder = new URIBuilder(FrameworkUtils.getPasswordProvisioningUIUrl());
                 if (log.isDebugEnabled()) {
                     if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                         log.debug(externalIdPConfig.getName() + " supports password provisioning, redirecting to "
@@ -486,6 +480,9 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
             if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                 uriBuilder.addParameter(FrameworkConstants.PASSWORD_PROVISION_ENABLED, String.valueOf(true));
             }
+            uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+            uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
+                    .getApplicationConfig().getApplicationName());
             uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
             uriBuilder.addParameter(FrameworkConstants.SKIP_SIGN_UP_ENABLE_CHECK, String.valueOf(true));
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
@@ -643,7 +640,7 @@ public class PostJITProvisioningHandler extends AbstractPostAuthnHandler {
     private void handleConstents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
             throws PostAuthenticationFailedException {
 
-        String userName = getFederatedUserName(stepConfig.getAuthenticatedIdP(),
+        String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         String consent = request.getParameter("consent");
         String policyURL = request.getParameter("policy");

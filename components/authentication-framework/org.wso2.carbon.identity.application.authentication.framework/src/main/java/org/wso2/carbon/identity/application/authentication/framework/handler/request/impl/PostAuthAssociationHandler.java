@@ -37,8 +37,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -49,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 
 /**
  * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
@@ -57,7 +55,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);
-    private static PostAuthAssociationHandler instance;
+    private static PostAuthAssociationHandler instance = new PostAuthAssociationHandler();
     private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
     /**
@@ -66,14 +64,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @return instance of PostAuthAssociationHandler
      */
     public static PostAuthAssociationHandler getInstance() {
-
-        if (instance == null) {
-            synchronized (PostAuthAssociationHandler.class) {
-                if (instance == null) {
-                    instance = new PostAuthAssociationHandler();
-                }
-            }
-        }
         return instance;
     }
 
@@ -84,7 +74,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         if (priority == -1) {
             /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims would
          passed to the service provider given the assert local mapped user option is selected */
-            priority = 21;
+            priority = 25;
         }
         return priority;
     }
@@ -100,8 +90,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
-        if (!FrameworkUtils.isPostJITHandlerExecutionNeeded(context)) {
-            return UNSUCCESS_COMPLETED;
+        if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
+            return SUCCESS_COMPLETED;
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
@@ -132,7 +122,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 }
             }
         }
-        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        return SUCCESS_COMPLETED;
     }
 
     /**
@@ -255,12 +245,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
         }
         if (MapUtils.isNotEmpty(mappedAttrs)) {
-            if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Final user claims " + mappedAttrs.toString() + " for the user:" + context
-                            .getSequenceConfig().getAuthenticatedUser());
-                }
-            }
             mappedClaims = FrameworkUtils.buildClaimMappings(mappedAttrs);
         }
         return mappedClaims;

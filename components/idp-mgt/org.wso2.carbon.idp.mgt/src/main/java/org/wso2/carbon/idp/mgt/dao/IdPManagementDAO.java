@@ -1282,13 +1282,17 @@ public class IdPManagementDAO {
                 } else if (identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setModifyUserNameAllowed(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setPromptConsent(Boolean.parseBoolean(identityProviderProperty.getValue()));
                 }
             });
         }
         identityProviderProperties.removeIf(identityProviderProperty -> (
                 identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
                         || identityProviderProperty.getName()
-                        .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED)));
+                        .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
+                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)));
         return identityProviderProperties;
     }
 
@@ -1841,13 +1845,20 @@ public class IdPManagementDAO {
         IdentityProviderProperty modifyUserNameProperty = new IdentityProviderProperty();
         modifyUserNameProperty.setName(IdPManagementConstants.MODIFY_USERNAME_ENABLED);
         modifyUserNameProperty.setValue("false");
+
+        IdentityProviderProperty promptConsentProperty = new IdentityProviderProperty();
+        promptConsentProperty.setName(IdPManagementConstants.PROMPT_CONSENT_ENABLED);
+        promptConsentProperty.setValue("false");
+
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
+            promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
+        identityProviderProperties.add(promptConsentProperty);
         return identityProviderProperties;
     }
 

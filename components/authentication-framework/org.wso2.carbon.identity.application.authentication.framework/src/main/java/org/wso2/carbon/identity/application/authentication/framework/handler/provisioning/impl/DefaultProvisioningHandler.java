@@ -42,6 +42,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.SecureRandom;
@@ -88,20 +89,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                                                           realmService, tenantDomain);
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
-            String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
-            String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
-            UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
-            if (!userStoreDomainFromSubject.equalsIgnoreCase(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+            String userStoreDomain;
+            UserStoreManager userStoreManager;
+            if (FrameworkConstants.AS_IN_USERNAME.equalsIgnoreCase(provisioningUserStoreId)) {
+                String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
                 try {
                     userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
                     userStoreDomain = userStoreDomainFromSubject;
                 } catch (FrameworkException e) {
                     log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
-                            + tenantDomain);
-                    username = UserCoreUtil.removeDomainFromName(username);
+                            + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                    userStoreManager = getUserStoreManager(realm, userStoreDomain);
                 }
+            } else {
+                userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+                userStoreManager = getUserStoreManager(realm, userStoreDomain);
             }
-           if (log.isDebugEnabled()) {
+            username = UserCoreUtil.removeDomainFromName(username);
+
+            if (log.isDebugEnabled()) {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
             }
 
@@ -153,12 +161,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             } else {
                 String password = generatePassword();
-                if (userClaims.get(FrameworkConstants.PASSWORD) != null) {
-                    password = userClaims.get(FrameworkConstants.PASSWORD);
+                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
+                if (StringUtils.isNotEmpty(passwordFromUser)) {
+                    password = passwordFromUser;
                 }
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                userStoreManager.addUser(username, password, addingRoles.toArray(
-                        new String[addingRoles.size()]), userClaims, null);
+                userStoreManager
+                        .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
+                                null);
 
                 // Associate User
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);

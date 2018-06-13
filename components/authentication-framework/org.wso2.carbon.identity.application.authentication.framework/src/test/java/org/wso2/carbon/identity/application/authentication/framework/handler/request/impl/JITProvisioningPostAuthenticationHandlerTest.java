@@ -59,16 +59,16 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
- * This is a test class for {@link PostJITProvisioningHandler}.
+ * This is a test class for {@link JITProvisioningPostAuthenticationHandler}.
  */
 @PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, UserProfileAdmin.class})
 @PowerMockIgnore({"javax.xml.*"})
-public class PostJITProvisioningHandlerTest extends AbstractFrameworkTest {
+public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFrameworkTest {
 
     private UIBasedConfigurationLoader configurationLoader;
     private HttpServletRequest request;
     private HttpServletResponse response;
-    private PostJITProvisioningHandler postJITProvisioningHandler;
+    private JITProvisioningPostAuthenticationHandler postJITProvisioningHandler;
     private ServiceProvider sp;
 
     @BeforeClass
@@ -84,11 +84,11 @@ public class PostJITProvisioningHandlerTest extends AbstractFrameworkTest {
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
         Mockito.doReturn(externalIdPConfig).when(configurationFacade).getIdPConfigByName(Mockito.anyString(), Mockito
                 .anyString());
-        when(FrameworkUtils.isPostJITHandlerExecutionNeeded(Mockito.any(AuthenticationContext.class)))
+        when(FrameworkUtils.isStepBasedSequenceHandlerExecuted(Mockito.any(AuthenticationContext.class)))
                 .thenCallRealMethod();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
-        postJITProvisioningHandler = PostJITProvisioningHandler.getInstance();
+        postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
         sp = getTestServiceProvider("default-sp-1.xml");
     }
 
@@ -97,7 +97,7 @@ public class PostJITProvisioningHandlerTest extends AbstractFrameworkTest {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, false, false);
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler.handle(request, response, context);
-        Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED,
+        Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
                 "Post JIT provisioning handler executed without having a authenticated user");
     }
 

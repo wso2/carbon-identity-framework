@@ -1498,7 +1498,7 @@ public class FrameworkUtils {
      * @param context AuthenticationContext.
      * @return true if the handlers need to be executed, otherwise false.
      */
-    public static boolean isPostJITHandlerExecutionNeeded(AuthenticationContext context) {
+    public static boolean isStepBasedSequenceHandlerExecuted(AuthenticationContext context) {
 
         boolean isNeeded = true;
         SequenceConfig sequenceConfig = context.getSequenceConfig();
@@ -1555,6 +1555,34 @@ public class FrameworkUtils {
             }
         }
         return new String[] { missingClaimsString.toString(), missingClaimValuesString.toString() };
+    }
+
+    /**
+     * To get the password provisioning url from the configuration file.
+     *
+     * @return relevant password provisioning url.
+     */
+    public static String getPasswordProvisioningUIUrl() {
+
+        String passwordProvisioningUrl = IdentityUtil.getProperty("JITProvisioning.PasswordProvisioningUI");
+        if (StringUtils.isEmpty(passwordProvisioningUrl)) {
+            passwordProvisioningUrl = FrameworkConstants.SIGN_UP_ENDPOINT;
+        }
+        return passwordProvisioningUrl;
+    }
+
+    /**
+     * To get the username provisioning url from the configuration file.
+     *
+     * @return relevant username provisioning url.
+     */
+    public static String getUserNameProvisioningUIUrl() {
+
+        String userNamePrvisioningUrl = IdentityUtil.getProperty("JITProvisioning.UserNameProvisioningUI");
+        if (StringUtils.isEmpty(userNamePrvisioningUrl)) {
+            userNamePrvisioningUrl = FrameworkConstants.REGISTRATION_ENDPOINT;
+        }
+        return userNamePrvisioningUrl;
     }
 
 }
