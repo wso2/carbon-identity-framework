@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingChallengeQuestionsHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -223,6 +224,10 @@ public class FrameworkServiceComponent {
         // Registering missing mandatory claim handler as a post authn handler
         PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
+
+        // Registering missing challenge question handler as a post authn handler
+        PostAuthenticationHandler postAuthnMissingChallengeQuestions = new PostAuthnMissingChallengeQuestionsHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingChallengeQuestions, null);
 
         SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
