@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -75,6 +76,7 @@ public class FrameworkServiceDataHolder {
     private List<ClaimFilter> claimFilters = new ArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
+    private IdentityEventService identityEventService;
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
@@ -354,6 +356,24 @@ public class FrameworkServiceDataHolder {
         this.longWaitStatusStoreService = longWaitStatusStoreService;
     }
 
+    /**
+     * Get {@link IdentityEventService}.
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set {@link IdentityEventService}.
+     * @param identityEventService Instance of {@link IdentityEventService}.
+     */
+    public void setIdentityEventService (IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
+    }
+  
     private Comparator<ClaimFilter> getClaimFilterComparator() {
 
         // Sort based on priority in descending order, ie. highest priority comes to the first element of the list.
