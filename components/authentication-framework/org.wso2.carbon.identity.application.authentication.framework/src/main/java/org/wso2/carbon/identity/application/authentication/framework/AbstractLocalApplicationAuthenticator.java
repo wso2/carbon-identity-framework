@@ -105,23 +105,42 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
-                    boolean sendToMultiOptionPage =
-                            isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
-                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
-                        // The Authenticator will re-initiate the authentication and retry.
-                        context.setRetrying(true);
-                        return initiateAuthenticationFlow(request, response, context);
-                    } else {
-                        context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
-                        // By throwing this exception step handler will redirect to multi options page if
-                        // multi-option are available in the step.
-                        throw e;
-                    }
+                    return redirectToRetryAuthentication(request, response, context, e);
                 }
             }
             // if a logout flow
         } else {
             return processLogoutFlow(request, response, context);
+        }
+    }
+
+    /**
+     * To decide whether need to redirect the user to login page to retry authentication.
+     *
+     * @param request  the httpServletRequest
+     * @param response the httpServletResponse
+     * @param context  the authentication context
+     * @param e        the authentication failed exception
+     * @return authentication flow status
+     * @throws AuthenticationFailedException the exception in the authentication flow
+     */
+    protected AuthenticatorFlowStatus redirectToRetryAuthentication(HttpServletRequest request,
+                                                                    HttpServletResponse response,
+                                                                    AuthenticationContext context,
+                                                                    AuthenticationFailedException e)
+            throws AuthenticationFailedException {
+
+        boolean sendToMultiOptionPage =
+                isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
+        if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+            // The Authenticator will re-initiate the authentication and retry.
+            context.setRetrying(true);
+            return initiateAuthenticationFlow(request, response, context);
+        } else {
+            context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
+            // By throwing this exception step handler will redirect to multi options page if
+            // multi-option are available in the step.
+            throw e;
         }
     }
 
