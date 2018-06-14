@@ -160,6 +160,7 @@
 
             $("#passwordResetForm").submit(function (e) {
 
+                $("#server-error-msg").remove();
                 var password = $("#reset-password").val();
                 var password2 = $("#reset-password2").val();
                 var error_msg = $("#error-msg");
