@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.io.Serializable;
@@ -451,4 +454,52 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         currentPostAuthHandlerIndex++;
     }
 
+    /**
+     * Add authentication params to the message context parameters Map.
+     *
+     * @param authenticatorParams Map of authenticator and params.
+     */
+    public void addAuthenticatorParams(Map<String, Map<String, String>> authenticatorParams) {
+
+        if (MapUtils.isEmpty(authenticatorParams)) {
+            return;
+        }
+        Object runtimeParamsObj = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (runtimeParamsObj == null) {
+            addParameter(FrameworkConstants.RUNTIME_PARAMS, authenticatorParams);
+            return;
+        }
+        if (runtimeParamsObj instanceof Map) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) runtimeParamsObj;
+            for (Map.Entry<String, Map<String, String>> params : authenticatorParams.entrySet()) {
+                if (runtimeParams.get(params.getKey()) != null) {
+                    runtimeParams.get(params.getKey()).putAll(params.getValue());
+                } else {
+                    runtimeParams.put(params.getKey(), params.getValue());
+                }
+            }
+        } else {
+            throw IdentityRuntimeException.error("There is already a object set with RUNTIME_PARAMS key in the " +
+                    "message context.");
+        }
+    }
+
+    /**
+     * Get parameter map for a specific authenticator
+     *
+     * @param authenticatorName Authenticator name
+     * @return Parameter map
+     */
+    public Map<String, String> getAuthenticatorParams(String authenticatorName) {
+
+        Object parameter = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (parameters != null && (parameter instanceof Map)) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) parameter;
+            Map<String, String> authenticatorParams = runtimeParams.get(authenticatorName);
+            if (MapUtils.isNotEmpty(authenticatorParams)) {
+                return authenticatorParams;
+            }
+        }
+        return Collections.emptyMap();
+    }
 }
