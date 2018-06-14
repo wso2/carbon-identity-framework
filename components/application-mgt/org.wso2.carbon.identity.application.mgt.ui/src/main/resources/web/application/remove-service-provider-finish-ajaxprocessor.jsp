@@ -16,48 +16,47 @@
 ~ under the License.
 -->
 
-<%@page import="org.apache.axis2.context.ConfigurationContext"%>
-<%@ page import="org.wso2.carbon.CarbonConstants"%>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient"%>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
-<%@ page import="org.wso2.carbon.utils.ServerConstants"%>
-<%@ page 	import="java.util.ResourceBundle"%>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
 
-	<%
-		String httpMethod = request.getMethod();
-		if (!"post".equalsIgnoreCase(httpMethod)) {
-			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			return;
-		}
-
-		String appid = request.getParameter("appid");
-		String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
-    	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+<%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
     
-		if (appid != null && !"".equals(appid)) {
-			try {
+    String appid = request.getParameter("appid");
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    
+    if (appid != null && !"".equals(appid)) {
+        try {
+            
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+            ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
+                .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            
+            ApplicationManagementServiceClient serviceClient =
+                new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
+            serviceClient.deleteApplication(appid);
+            ApplicationMgtUIUtil.removeApplicationBeanFromSession(session, appid);
+            
+        } catch (Exception e) {
+            String message = resourceBundle.getString("application.list.error.while.removing.app") + " : " + e.getMessage();
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+        }
+    }
 
-				String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-				String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-				ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
-								.getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-				
-				ApplicationManagementServiceClient serviceClient =
-						new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-				serviceClient.deleteApplication(appid);
-				ApplicationMgtUIUtil.removeApplicationBeanFromSession(session, appid);
+%>
 
-			} catch (Exception e) {
-				String message = resourceBundle.getString("application.list.error.while.removing.app") + " : " + e.getMessage();
-				CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-			}
-		} 
-				
-	%>
-
-	<script>
-		location.href = 'list-service-providers.jsp';
-	</script>
+<script>
+    location.href = 'list-service-providers.jsp';
+</script>

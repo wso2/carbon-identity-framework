@@ -85,22 +85,22 @@
 
 <%
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
-	String spName = appBean.getServiceProvider().getApplicationName();
-	Map<String, String> claimMapping = appBean.getClaimMapping();
-	boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
-
-	LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
-	IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
+    String spName = appBean.getServiceProvider().getApplicationName();
+    Map<String, String> claimMapping = appBean.getClaimMapping();
+    boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
+    
+    LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
+    IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
     String templatesJson = null;
     String availableJsFunctionsJson = null;
     
     StringBuilder localAuthTypes = new StringBuilder();
-	String startOption = "<option value=\"";
-	String middleOption = "\">";
-	String endOption = "</option>";
-
-	if (localAuthenticatorConfigs!=null && localAuthenticatorConfigs.length>0) {
-		for(LocalAuthenticatorConfig auth : localAuthenticatorConfigs) {
+    String startOption = "<option value=\"";
+    String middleOption = "\">";
+    String endOption = "</option>";
+    
+    if (localAuthenticatorConfigs != null && localAuthenticatorConfigs.length > 0) {
+        for (LocalAuthenticatorConfig auth : localAuthenticatorConfigs) {
             localAuthTypes.append(startOption).append(Encode.forHtmlAttribute(auth.getName())).append(middleOption)
                 .append(Encode.forHtmlContent(auth.getDisplayName())).append(endOption);
         }
@@ -139,21 +139,21 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
     StringBuilder idpType = new StringBuilder();
     StringBuilder enabledIdpType = new StringBuilder();
-	Map<String, String> idpAuthenticators = new HashMap<String, String>();
-	Map<String, String> enabledIdpAuthenticators = new HashMap<String, String>();
-	Map<String, Boolean> idpEnableStatus = new HashMap<String, Boolean>();
-	Map<String, Boolean> idpAuthenticatorsStatus = new HashMap<String, Boolean>();
-
-	if (federatedIdPs!=null && federatedIdPs.length>0) {
-		for(IdentityProvider idp : federatedIdPs) {
-			idpEnableStatus.put(idp.getIdentityProviderName(), idp.getEnable());
-			if (idp.getFederatedAuthenticatorConfigs()!=null && idp.getFederatedAuthenticatorConfigs().length>0){
-				StringBuffer fedAuthenticatorDisplayType = new StringBuffer();
-				StringBuffer fedAuthenticatorType = new StringBuffer();
-				StringBuffer fedAuthType = new StringBuffer();
-				StringBuffer enabledfedAuthType = new StringBuffer();
-
-				int i = 1;
+    Map<String, String> idpAuthenticators = new HashMap<String, String>();
+    Map<String, String> enabledIdpAuthenticators = new HashMap<String, String>();
+    Map<String, Boolean> idpEnableStatus = new HashMap<String, Boolean>();
+    Map<String, Boolean> idpAuthenticatorsStatus = new HashMap<String, Boolean>();
+    
+    if (federatedIdPs != null && federatedIdPs.length > 0) {
+        for (IdentityProvider idp : federatedIdPs) {
+            idpEnableStatus.put(idp.getIdentityProviderName(), idp.getEnable());
+            if (idp.getFederatedAuthenticatorConfigs() != null && idp.getFederatedAuthenticatorConfigs().length > 0) {
+                StringBuffer fedAuthenticatorDisplayType = new StringBuffer();
+                StringBuffer fedAuthenticatorType = new StringBuffer();
+                StringBuffer fedAuthType = new StringBuffer();
+                StringBuffer enabledfedAuthType = new StringBuffer();
+                
+                int i = 1;
                 for (FederatedAuthenticatorConfig fedAuth : idp.getFederatedAuthenticatorConfigs()) {
                     if (i == idp.getFederatedAuthenticatorConfigs().length) {
                         fedAuthenticatorDisplayType.append(fedAuth.getDisplayName());
@@ -169,14 +169,14 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         enabledfedAuthType.append(startOption).append(Encode.forHtmlAttribute(fedAuth.getName()))
                             .append(middleOption).append(Encode.forHtmlContent(fedAuth.getDisplayName()))
                             .append(endOption);
-					}
+                    }
                     idpAuthenticatorsStatus.put(idp.getIdentityProviderName() + "_" + fedAuth.getName(),
                         fedAuth.getEnabled());
                     i++;
-				}
-
-				idpAuthenticators.put(idp.getIdentityProviderName(), fedAuthType.toString());
-				enabledIdpAuthenticators.put(idp.getIdentityProviderName(), enabledfedAuthType.toString());
+                }
+    
+                idpAuthenticators.put(idp.getIdentityProviderName(), fedAuthType.toString());
+                enabledIdpAuthenticators.put(idp.getIdentityProviderName(), enabledfedAuthType.toString());
 
                 idpType.append(startOption).append(Encode.forHtmlAttribute(idp.getIdentityProviderName()))
                     .append("\" data=\"").append(Encode.forHtmlAttribute(fedAuthenticatorDisplayType.toString()))
@@ -189,41 +189,41 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         .append("\"").append(" data-values=\"")
                         .append(Encode.forHtmlAttribute(fedAuthenticatorType.toString())).append("\" >")
                         .append(Encode.forHtmlContent(idp.getIdentityProviderName())).append(endOption);
-				}
+                }
             }
-		}
-	}
+        }
+    }
 
     AuthenticationStep[] steps =
         appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
-	Map<String,String> stepIdpAuthenticators = new HashMap<String,String>();
-
-	if (steps!=null && steps.length>0){
-		for (AuthenticationStep step : steps) {
+    Map<String, String> stepIdpAuthenticators = new HashMap<String, String>();
+    
+    if (steps != null && steps.length > 0) {
+        for (AuthenticationStep step : steps) {
             IdentityProvider[] stepFedIdps = step.getFederatedIdentityProviders();
-			if(stepFedIdps != null && stepFedIdps.length>0){
-				for (IdentityProvider idp : stepFedIdps){
-					if (idp == null) continue;
-					FederatedAuthenticatorConfig fedAuth = idp.getDefaultAuthenticatorConfig();
-					String options = idpAuthenticators.get(idp.getIdentityProviderName());
-					if (fedAuth != null && options != null) {
-						String oldOption = startOption + Encode.forHtmlAttribute(fedAuth.getName()) + middleOption + Encode.forHtmlContent(fedAuth.getDisplayName()) + endOption;
-						String newOption = startOption + Encode.forHtmlAttribute(fedAuth.getName()) + "\" selected=\"selected" + middleOption + Encode.forHtmlContent(fedAuth.getDisplayName()) + endOption;
-						if(options.contains(oldOption)){
-							options = options.replace(oldOption, newOption);
-						} else {
-							options = options + newOption;
-						}
-						stepIdpAuthenticators.put(step.getStepOrder()+"_"+idp.getIdentityProviderName(), options);
-					} else {
-						// No saved Federated Authenticators
-						options = enabledIdpAuthenticators.get(idp.getIdentityProviderName());
-						stepIdpAuthenticators.put(step.getStepOrder()+"_"+idp.getIdentityProviderName(), options);
-					}
-				}
-			}
-		}
-	}
+            if (stepFedIdps != null && stepFedIdps.length > 0) {
+                for (IdentityProvider idp : stepFedIdps) {
+                    if (idp == null) continue;
+                    FederatedAuthenticatorConfig fedAuth = idp.getDefaultAuthenticatorConfig();
+                    String options = idpAuthenticators.get(idp.getIdentityProviderName());
+                    if (fedAuth != null && options != null) {
+                        String oldOption = startOption + Encode.forHtmlAttribute(fedAuth.getName()) + middleOption + Encode.forHtmlContent(fedAuth.getDisplayName()) + endOption;
+                        String newOption = startOption + Encode.forHtmlAttribute(fedAuth.getName()) + "\" selected=\"selected" + middleOption + Encode.forHtmlContent(fedAuth.getDisplayName()) + endOption;
+                        if (options.contains(oldOption)) {
+                            options = options.replace(oldOption, newOption);
+                        } else {
+                            options = options + newOption;
+                        }
+                        stepIdpAuthenticators.put(step.getStepOrder() + "_" + idp.getIdentityProviderName(), options);
+                    } else {
+                        // No saved Federated Authenticators
+                        options = enabledIdpAuthenticators.get(idp.getIdentityProviderName());
+                        stepIdpAuthenticators.put(step.getStepOrder() + "_" + idp.getIdentityProviderName(), options);
+                    }
+                }
+            }
+        }
+    }
 
 %>
 
@@ -694,169 +694,203 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     key='button.add.step'/></a></td>
             </tr>
             </table>
-			<div class="steps">
-
-                <%
-								if(steps != null && steps.length>0) {
-										for (AuthenticationStep step : steps) {
-							%>
-
-							<h2 id="step_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active step_heads" style="background-color: beige; clear: both;">
-								<input type="hidden" value="<%=step.getStepOrder()%>" name="auth_step" id="auth_step" />
-							    <a class="step_order_header" href="#">Step <%=step.getStepOrder()%></a>
-                                <a onclick="deleteStep(this);return false;" href="#" class="icon-link"
-                                   style="background-image: url(images/delete.gif);float:right;width: 9px;"></a>
-							</h2>
-							<div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;display: none;" id="step_dev_<%=step.getStepOrder()%>">
-								<div style="padding-bottom: 5px">
-									<table class="carbonFormTable">
-										<tr>
-											<td><input type="checkbox" style="vertical-align: middle;" id="subject_step_<%=step.getStepOrder()%>" name="subject_step_<%=step.getStepOrder()%>" class="subject_steps" onclick="setSubjectStep(this)" <%=step.getSubjectStep() ? "checked" : "" %>><label for="subject_step_<%=step.getStepOrder()%>" style="cursor: pointer;">Use subject identifier from this step</label></td>
-										</tr>
-										<tr>
-											<td><input type="checkbox" style="vertical-align: middle;" id="attribute_step_<%=step.getStepOrder()%>" name="attribute_step_<%=step.getStepOrder()%>" class="attribute_steps" onclick="setAttributeStep(this)" <%=step.getAttributeStep() ? "checked" : "" %>><label for="attribute_step_<%=step.getStepOrder()%>" style="cursor: pointer;">Use attributes from this step</label></td>
-										</tr>
-									</table>
-								</div>
-							           <h2 id="local_auth_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active" style="background-color: floralwhite;">
-							                <a href="#">Local Authenticators</a>
-							           </h2>
-							      <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_<%=step.getStepOrder()%>">
-							                <table class="styledLeft" width="100%" id="local_auth_table_<%=step.getStepOrder()%>">
-							                <thead>
-							             	<tr>
-							             		<td>
-							             			<select name="step_<%=step.getStepOrder()%>_local_oauth_select"  style="float: left; min-width: 150px;font-size:13px;">
-							             				<%=localAuthTypes.toString()%>
-							             			</select>
-							             			<a id="claimMappingAddLinkss" onclick="addLocalRow(this,'<%=step.getStepOrder()%>');return false;" class="icon-link claimMappingAddLinkssLocal" style="background-image:url(images/add.gif);">Add Authenticator
-							             			</a>
-							             		</td>
-							             	</tr>
-							             	</thead>
-							             	<%LocalAuthenticatorConfig[] lclAuthenticators = step.getLocalAuthenticatorConfigs();
-
-							             	if (lclAuthenticators!=null && lclAuthenticators.length>0 ) {
-							             		int i = 0;
-							             		for(LocalAuthenticatorConfig lclAuthenticator : lclAuthenticators) {
-							             			if (lclAuthenticator!=null) {
-							             		%>
-
-							             		<tr>
-							             	        <td>
-							             	        	<input name="step_<%=step.getStepOrder()%>_local_auth" id="" type="hidden" value="<%=Encode.forHtmlAttribute(lclAuthenticator.getName())%>" />
-							             	        		<%=Encode.forHtmlContent(lclAuthenticator.getDisplayName())%>
-							             	        </td>
-							             	        <td class="leftCol-small" >
-							             	            <a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
-							             	        </td>
-                                                </tr>
-                                                <%
-							             			}
-							                     }
-							             	}
-                                                %>
-							             </table>
-							      </div>
-
-                                <%if (federatedIdPs != null && federatedIdPs.length > 0 && (enabledIdpType.length() > 0 || (step.getFederatedIdentityProviders() != null && step.getFederatedIdentityProviders().length > 0))) { %>
-							      <h2 id="fed_auth_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active" style="background-color: floralwhite;">
-							             <a href="#">Federated Authenticators</a>
-							      </h2>
-
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;"
-                                     id="fed_auth_head_dev_<%=step.getStepOrder()%>">
-							             <table class="styledLeft" width="100%" id="fed_auth_table_<%=step.getStepOrder()%>">
-                                             <thead>
-							             	 <tr style="<%=enabledIdpType.length() > 0 ? "" : "display:none"%>" >
-                                                 <td>
-							             		<select name="idpAuthType_<%=step.getStepOrder()%>" style="float: left; min-width: 150px;font-size:13px;">
-							             			<%=enabledIdpType.toString()%>
-							             		</select>
-							             		<a id="claimMappingAddLinkss" onclick="addIDPRow(this,'<%=step.getStepOrder()%>');return false;" class="icon-link claimMappingAddLinkssIdp" style="background-image:url(images/add.gif);">Add Authenticator</a>
-							             	  </td>
-							                 </tr>
-							                </thead>
-							              <%
-
-							      	        IdentityProvider[] fedIdps = step.getFederatedIdentityProviders();
-							      			if (fedIdps!=null && fedIdps.length>0){
-							      			int j = 0;
-							      			for(IdentityProvider idp:fedIdps) {
-							      				if (idp != null) {
-							              %>
-
-							      	       <tr>
-							      	      	   <td>
-							      	      		<input name="step_<%=step.getStepOrder()%>_fed_auth" id="" type="hidden" value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" />
-							      	      			<%=Encode.forHtmlContent(idp.getIdentityProviderName()) %>
-							      	      		</td>
-							      	      		<td>
-                                                    <select name="step_<%=step.getStepOrder()%>_idp_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;"><%=stepIdpAuthenticators.get(step.getStepOrder() +"_"+ idp.getIdentityProviderName())%></select>
-							      	      		</td>
-							      	      		<td class="leftCol-small" >
-							      	      		<a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
-							      	      		</td>
-                                           </tr>
-							              <%
-                                                      }
-                                                  }
-							      	         }
-							              %>
-							             </table>
-							       </div>
-							       <% } %>
+                <div class="steps">
+        
+                    <%
+                        if (steps != null && steps.length > 0) {
+                            for (AuthenticationStep step : steps) {
+                    %>
+        
+                    <h2 id="step_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active step_heads"
+                        style="background-color: beige; clear: both;">
+                        <input type="hidden" value="<%=step.getStepOrder()%>" name="auth_step" id="auth_step"/>
+                        <a class="step_order_header" href="#">Step <%=step.getStepOrder()%>
+                        </a>
+                        <a onclick="deleteStep(this);return false;" href="#" class="icon-link"
+                           style="background-image: url(images/delete.gif);float:right;width: 9px;"></a>
+                    </h2>
+                    <div class="toggle_container sectionSub step_contents" style="margin-bottom:10px;display: none;"
+                         id="step_dev_<%=step.getStepOrder()%>">
+                        <div style="padding-bottom: 5px">
+                            <table class="carbonFormTable">
+                                <tr>
+                                    <td><input type="checkbox" style="vertical-align: middle;"
+                                               id="subject_step_<%=step.getStepOrder()%>"
+                                               name="subject_step_<%=step.getStepOrder()%>" class="subject_steps"
+                                               onclick="setSubjectStep(this)" <%=step.getSubjectStep() ? "checked" : "" %>><label
+                                        for="subject_step_<%=step.getStepOrder()%>" style="cursor: pointer;">Use subject
+                                        identifier from this step</label></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" style="vertical-align: middle;"
+                                               id="attribute_step_<%=step.getStepOrder()%>"
+                                               name="attribute_step_<%=step.getStepOrder()%>" class="attribute_steps"
+                                               onclick="setAttributeStep(this)" <%=step.getAttributeStep() ? "checked" : "" %>><label
+                                        for="attribute_step_<%=step.getStepOrder()%>" style="cursor: pointer;">Use
+                                        attributes from this step</label></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <h2 id="local_auth_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active"
+                            style="background-color: floralwhite;">
+                            <a href="#">Local Authenticators</a>
+                        </h2>
+                        <div class="toggle_container sectionSub" style="margin-bottom:10px;"
+                             id="local_auth_head_dev_<%=step.getStepOrder()%>">
+                            <table class="styledLeft" width="100%" id="local_auth_table_<%=step.getStepOrder()%>">
+                                <thead>
+                                <tr>
+                                    <td>
+                                        <select name="step_<%=step.getStepOrder()%>_local_oauth_select"
+                                                style="float: left; min-width: 150px;font-size:13px;">
+                                            <%=localAuthTypes.toString()%>
+                                        </select>
+                                        <a id="claimMappingAddLinkss"
+                                           onclick="addLocalRow(this,'<%=step.getStepOrder()%>');return false;"
+                                           class="icon-link claimMappingAddLinkssLocal"
+                                           style="background-image:url(images/add.gif);">Add Authenticator
+                                        </a>
+                                    </td>
+                                </tr>
+                                </thead>
+                                <%
+                                    LocalAuthenticatorConfig[] lclAuthenticators = step.getLocalAuthenticatorConfigs();
+                        
+                                    if (lclAuthenticators != null && lclAuthenticators.length > 0) {
+                                        int i = 0;
+                                        for (LocalAuthenticatorConfig lclAuthenticator : lclAuthenticators) {
+                                            if (lclAuthenticator != null) {
+                                %>
+                    
+                                <tr>
+                                    <td>
+                                        <input name="step_<%=step.getStepOrder()%>_local_auth" id="" type="hidden"
+                                               value="<%=Encode.forHtmlAttribute(lclAuthenticator.getName())%>"/>
+                                        <%=Encode.forHtmlContent(lclAuthenticator.getDisplayName())%>
+                                    </td>
+                                    <td class="leftCol-small">
+                                        <a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link"
+                                           style="background-image: url(images/delete.gif)"> Delete </a>
+                                    </td>
+                                </tr>
+                                <%
+                                            }
+                                        }
+                                    }
+                                %>
+                            </table>
+                        </div>
+            
+                        <%if (federatedIdPs != null && federatedIdPs.length > 0 && (enabledIdpType.length() > 0 || (step.getFederatedIdentityProviders() != null && step.getFederatedIdentityProviders().length > 0))) { %>
+                        <h2 id="fed_auth_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active"
+                            style="background-color: floralwhite;">
+                            <a href="#">Federated Authenticators</a>
+                        </h2>
+            
+                        <div class="toggle_container sectionSub" style="margin-bottom:10px;"
+                             id="fed_auth_head_dev_<%=step.getStepOrder()%>">
+                            <table class="styledLeft" width="100%" id="fed_auth_table_<%=step.getStepOrder()%>">
+                                <thead>
+                                <tr style="<%=enabledIdpType.length() > 0 ? "" : "display:none"%>">
+                                    <td>
+                                        <select name="idpAuthType_<%=step.getStepOrder()%>"
+                                                style="float: left; min-width: 150px;font-size:13px;">
+                                            <%=enabledIdpType.toString()%>
+                                        </select>
+                                        <a id="claimMappingAddLinkss"
+                                           onclick="addIDPRow(this,'<%=step.getStepOrder()%>');return false;"
+                                           class="icon-link claimMappingAddLinkssIdp"
+                                           style="background-image:url(images/add.gif);">Add Authenticator</a>
+                                    </td>
+                                </tr>
+                                </thead>
+                                <%
+                        
+                                    IdentityProvider[] fedIdps = step.getFederatedIdentityProviders();
+                                    if (fedIdps != null && fedIdps.length > 0) {
+                                        int j = 0;
+                                        for (IdentityProvider idp : fedIdps) {
+                                            if (idp != null) {
+                                %>
+                    
+                                <tr>
+                                    <td>
+                                        <input name="step_<%=step.getStepOrder()%>_fed_auth" id="" type="hidden"
+                                               value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"/>
+                                        <%=Encode.forHtmlContent(idp.getIdentityProviderName()) %>
+                                    </td>
+                                    <td>
+                                        <select
+                                            name="step_<%=step.getStepOrder()%>_idp_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>_fed_authenticator"
+                                            style="float: left; min-width: 150px;font-size:13px;"><%=stepIdpAuthenticators.get(step.getStepOrder() + "_" + idp.getIdentityProviderName())%>
+                                        </select>
+                                    </td>
+                                    <td class="leftCol-small">
+                                        <a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link"
+                                           style="background-image: url(images/delete.gif)"> Delete </a>
+                                    </td>
+                                </tr>
+                                <%
+                                            }
+                                        }
+                                    }
+                                %>
+                            </table>
+                        </div>
+                        <% } %>
 
                             </div>
 
                 <% }
                 } %>
-			</div>
-			<div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
-				<label class="noselect">
-					<input id="enableScript" name="enableScript" type="checkbox" value="true" <%
-						if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-							if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-								if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
-								.getAuthenticationScriptConfig().getEnabled() && isConditionalAuthenticationEnabled) { %>
-						   checked="checked"  <% }
-					}
-					}%>/> Enable Script Based Conditional Authentication
-				</label>
-			</div>
+                </div>
+                <div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                    <label class="noselect">
+                        <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
+                            if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+                                if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+                                    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
+                                        .getAuthenticationScriptConfig().getEnabled() && isConditionalAuthenticationEnabled) { %>
+                               checked="checked"  <% }
+                        }
+                        }%>/> Enable Script Based Conditional Authentication
+                    </label>
+                </div>
             </div>
-
-			<div style="clear:both"></div>
-            <!-- sectionSub Div -->
-			<br/>
-				<h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
-				<%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
-					<a href="#">Script Based Conditional Authentication</a>
-				</h2>
-
-				<div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
-				id="editorRow">
-					<div style="position: relative;">
-						<div class="sectionSub step_contents" id="codeMirror">
-<textarea id="scriptTextArea" name="scriptTextArea" placeholder="Write custom JavaScript or select from templates that match a scenario..." style="height: 500px;width: 100%; display: none;"><%
-	if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
-		if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
-			out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
-		}
-	}
+    
+                <div style="clear:both"></div>
+                <!-- sectionSub Div -->
+                <br/>
+                <h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
+                    <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                    <a href="#">Script Based Conditional Authentication</a>
+                </h2>
+    
+                <div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
+                     id="editorRow">
+                    <div style="position: relative;">
+                        <div class="sectionSub step_contents" id="codeMirror">
+<textarea id="scriptTextArea" name="scriptTextArea"
+          placeholder="Write custom JavaScript or select from templates that match a scenario..."
+          style="height: 500px;width: 100%; display: none;"><%
+    if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+        if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
+            out.print(appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().getContent());
+        }
+    }
 %></textarea>
-						</div>
-						<div id="codeMirrorTemplate" class="step_contents">
-							<div class="add-template-container vertical-text">
-								<a id="addTemplate" class="icon-link noselect">Templates</a>
-							</div>
-							<div class="template-list-container">
-								<ul id="template_list"></ul>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div style="clear:both"></div>
+                        </div>
+                        <div id="codeMirrorTemplate" class="step_contents">
+                            <div class="add-template-container vertical-text">
+                                <a id="addTemplate" class="icon-link noselect">Templates</a>
+                            </div>
+                            <div class="template-list-container">
+                                <ul id="template_list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input type="button" value="<fmt:message key='button.update.service.provider'/>"
                            onclick="createAppOnclick();"/>
