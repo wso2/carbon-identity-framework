@@ -51,6 +51,7 @@
 <%@ page
         import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
+<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -3502,9 +3503,22 @@
                                                    value="<%=Encode.forHtmlAttribute(roleMappings[i].getRemoteRole())%>"
                                                    id="rolerowname_<%=i%>"
                                                    name="rolerowname_<%=i%>"/></td>
-                                        <td><input type="text"
-                                                   value="<%=UserCoreUtil.addDomainToName(roleMappings[i].getLocalRole().getLocalRoleName(), roleMappings[i].getLocalRole().getUserStoreId())%>"
-                                                   id="localrowname_<%=i%>" name="localrowname_<%=i%>"/></td>
+                                        <td>
+                                            <%
+                                                String userStore = roleMappings[i].getLocalRole().getUserStoreId();
+                                                String q = roleMappings[i].getLocalRole().getLocalRoleName();
+                                                if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStore) ||
+                                                        "Application".equalsIgnoreCase(userStore) ||
+                                                        "Workflow".equalsIgnoreCase(userStore)) {
+                                                    roleName = userStore + CarbonConstants.DOMAIN_SEPARATOR + roleName;
+                                                } else {
+                                                    roleName = UserCoreUtil.addDomainToName(roleName, userStore);
+                                                }
+                                            %>
+                                            <input type="text"
+                                                   value="<%=roleName%>"
+                                                   id="localrowname_<%=i%>" name="localrowname_<%=i%>"/>
+                                        </td>
                                         <td>
                                             <a title="<fmt:message key='delete.role'/>"
                                                onclick="deleteRoleRow(this);return false;"
