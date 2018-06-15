@@ -96,6 +96,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return instance;
     }
 
+    /**
+     * To avoid creation of multiple instances of this handler.
+     */
+    protected JITProvisioningPostAuthenticationHandler() { }
+
     @Override
     public int getPriority() {
 

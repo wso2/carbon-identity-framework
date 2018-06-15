@@ -245,11 +245,12 @@ public class FrameworkServiceComponent {
         dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
 
         // Registering JIT, association and domain handler as post authentication handler
-        PostAuthenticationHandler postJITProvisioningHandler = new JITProvisioningPostAuthenticationHandler();
+        PostAuthenticationHandler postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
-        PostAuthenticationHandler postAuthAssociationHandler = new PostAuthAssociationHandler();
+        PostAuthenticationHandler postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
-        PostAuthenticationHandler postAuthenticatedUserDomainHandler = new PostAuthenticatedSubjectIdentifierHandler();
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = PostAuthenticatedSubjectIdentifierHandler
+                .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
         if (log.isDebugEnabled()) {

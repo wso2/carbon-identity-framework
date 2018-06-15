@@ -67,6 +67,11 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         return instance;
     }
 
+    /**
+     * To avoid creation of multiple instances of this handler.
+     */
+    protected PostAuthAssociationHandler() { }
+
     @Override
     public int getPriority() {
 

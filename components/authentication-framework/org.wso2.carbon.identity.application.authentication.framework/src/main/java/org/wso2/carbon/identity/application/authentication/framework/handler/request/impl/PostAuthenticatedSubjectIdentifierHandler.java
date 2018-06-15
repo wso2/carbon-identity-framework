@@ -43,6 +43,12 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
     private static PostAuthenticatedSubjectIdentifierHandler instance = new PostAuthenticatedSubjectIdentifierHandler();
 
     /**
+     * To avoid creation of multiple instances of this handler.
+     */
+    protected PostAuthenticatedSubjectIdentifierHandler() { }
+
+
+    /**
      * To get the singleton instance of post authentication handler.
      *
      * @return instance of {@link PostAuthenticatedSubjectIdentifierHandler}.
