@@ -241,12 +241,11 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
     var reqPathAuth = 0;
     var localAuthNumber = 0;
 
-    function createAppOnclick() {
-
-        document.getElementById("configure-auth-flow-form").submit();
-    }
-
     jQuery(document).ready(function () {
+
+        $("#createApp").click(function(){
+            showAllErrors();
+		});
 
         var addTemplate = $("#addTemplate");
         var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
@@ -279,6 +278,32 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             showCursorWhenSelecting: true,
             styleActiveLine: true,
         });
+
+        function showAllErrors() {
+            myCodeMirror.operation(function () {
+                var errorCount = 0;
+                JSHINT(myCodeMirror.getValue());
+                for (var i = 0; i < JSHINT.errors.length; ++i) {
+                    var err = JSHINT.errors[i];
+                    if ((!err) || (err.code.lastIndexOf("W", 0) === 0)) {
+                        continue;
+                    } else {
+                        errorCount++;
+                    }
+                }
+
+                if (errorCount > 0) {
+                    CARBON.showConfirmationDialog('Warning..! The script you are about to update has Errors, ' +
+                        'Do you still want to continue ?', submitForm, null);
+                } else {
+                    submitForm();
+                }
+            });
+        }
+
+        function submitForm() {
+            $("#configure-auth-flow-form").submit();
+        }
 
         $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
 
@@ -869,16 +894,10 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 				</div>
 				<div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
-                    <input type="button" value="<fmt:message key='button.update.service.provider'/>"
-                           onclick="createAppOnclick();"/>
+                    <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>" />
                     <input type="button" value="<fmt:message key='button.cancel'/>"
                            onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
                 </div>
             </form>
         </div>
-<div style="display: none;">
-	<div id="messagebox-confirm" title="WSO2 Carbon" style="display: block!important;">
-		New template code will replace the existing. Are you sure you want to continue?
-	</div>
-</div>
 </fmt:bundle>
