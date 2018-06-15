@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 /**
- * This class is holds the constants related with UserCore Error Management.
+ * This class holds the constants related with authentication framework.
  */
 public class FrameworkErrorConstants {
 

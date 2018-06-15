@@ -910,7 +910,7 @@
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
     }
     userStoreDomains.addAll(Arrays.asList(client.getUserStoreDomains()));
-    userStoreDomains.add("As in username");
+    userStoreDomains.add(IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT);
 
     claimUris = client.getAllLocalClaimUris();
 

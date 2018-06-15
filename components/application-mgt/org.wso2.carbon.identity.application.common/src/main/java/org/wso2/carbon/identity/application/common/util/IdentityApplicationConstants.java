@@ -69,6 +69,7 @@ public class IdentityApplicationConstants {
     public static final String UNIQUE_ID_CONSTANT = "UniqueID";
     public static final String PASSWORD = "password";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
+    public static final String AS_IN_USERNAME_USERSTORE_FOR_JIT = "As in username";
 
     public static final String REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE = "redirectToMultiOptionPageOnFailure";
 

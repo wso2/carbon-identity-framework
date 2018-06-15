@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -91,7 +92,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             String userStoreDomain;
             UserStoreManager userStoreManager;
-            if (FrameworkConstants.AS_IN_USERNAME.equalsIgnoreCase(provisioningUserStoreId)) {
+            if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                    .equalsIgnoreCase(provisioningUserStoreId)) {
                 String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
                 try {
                     userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
