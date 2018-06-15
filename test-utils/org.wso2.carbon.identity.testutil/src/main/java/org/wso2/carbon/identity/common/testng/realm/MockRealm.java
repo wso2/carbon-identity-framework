@@ -39,13 +39,15 @@ public class MockRealm implements UserRealm {
     private AuthorizationManager authorizationManager = new MockAuthorizationManager();
     private UserStoreManager userStoreManager = new MockUserStoreManager();
     private int tenantId;
+    private MockClaimManager claimManager;
 
     @Override
-    public void init(RealmConfiguration realmConfiguration, Map<String, ClaimMapping> map,
+    public void init(RealmConfiguration realmConfiguration, Map<String, ClaimMapping> claimMappingMap,
             Map<String, ProfileConfiguration> map1, int tenantId) throws UserStoreException {
         this.realmConfiguration = realmConfiguration;
         this.tenantId = tenantId;
         ((MockUserStoreManager)this.userStoreManager).setRealmConfiguration(this.realmConfiguration);
+        claimManager = new MockClaimManager(claimMappingMap);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class MockRealm implements UserRealm {
 
     @Override
     public ClaimManager getClaimManager() throws UserStoreException {
-        return null;
+        return claimManager;
     }
 
     @Override
