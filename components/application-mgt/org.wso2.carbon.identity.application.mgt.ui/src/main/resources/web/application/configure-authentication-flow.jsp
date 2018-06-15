@@ -388,21 +388,32 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     line: cursor.line,
                     ch: line.length - 1
                 };
-                doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
 
+                var editorContent = doc.getValue();
+                if (editorContent.length != 0) {
+                    CARBON.showConfirmationDialog('This will replace the existing code, Are you sure you want to continue ?', doReplaceRange,
+                        null);
+                } else {
+                    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+                    highlightNewCode();
+                }
+
+                function doReplaceRange() {
+                    myCodeMirror.setValue("");
+                    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+                }
+
+            });
+
+            function highlightNewCode() {
                 var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
                 var coordinatesLTB = myCodeMirror.cursorCoords();
-                if (startLine === cursorCoordsBeforeChange.ch) {
-                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
-                } else {
-                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
-                }
+                mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
                 $('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
                 setTimeout(function () {
                     mark.clear();
                 }, 2000);
-
-            });
+            }
         }
 
         var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
@@ -865,5 +876,9 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 </div>
             </form>
         </div>
-
+<div style="display: none;">
+	<div id="messagebox-confirm" title="WSO2 Carbon" style="display: block!important;">
+		New template code will replace the existing. Are you sure you want to continue?
+	</div>
+</div>
 </fmt:bundle>
