@@ -315,7 +315,6 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
-        public static final String PARAMS = "params";
     }
     public static class InternalRoleDomains {
 

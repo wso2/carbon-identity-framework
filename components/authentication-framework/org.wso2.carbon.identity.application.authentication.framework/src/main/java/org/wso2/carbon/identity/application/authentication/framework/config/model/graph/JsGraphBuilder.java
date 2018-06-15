@@ -274,7 +274,7 @@ public class JsGraphBuilder {
 
         Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
         if (authenticatorParams instanceof Map) {
-            paramsOptions((Map<String, Map<String, Object>>) authenticatorParams, stepConfig);
+            paramsOptions((Map<String, Object>) authenticatorParams, stepConfig);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
@@ -392,36 +392,39 @@ public class JsGraphBuilder {
     /**
      * Add authenticator params in the message context.
      *
-     * @param options    Authentication options
-     * @param stepConfig The step config
+     * @param options Authentication options
      */
-    protected void paramsOptions(Map<String, Map<String, Object>> options, StepConfig stepConfig) {
+    protected void paramsOptions(Map<String, Object> options, StepConfig stepConfig) {
 
         Map<String, Map<String, String>> authenticatorParams = new HashMap<>();
-        options.forEach((id, value) -> {
-            String authenticator = (String) value.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
-            String idp = (String) value.get(FrameworkConstants.JSAttributes.IDP);
-            Object paramsObj = value.get(FrameworkConstants.JSAttributes.PARAMS);
-            if (paramsObj instanceof Map) {
-                Map<String, String> params = (Map<String, String>) paramsObj;
-                if (authenticator != null && !authenticator.isEmpty()) {
-                    authenticatorParams.put(authenticator, params);
-                } else if (idp != null && !idp.isEmpty()) {
-                    authenticatorParams.put(idp, params);
-                }
-            }
-        });
-        if (!authenticatorParams.isEmpty()) {
-            Map<String, Map<String, String>> newAuthenticatorParams = new HashMap<>();
-            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
-                Map<String, String> params = authenticatorParams.get(authenticatorConfig
-                        .getApplicationAuthenticator().getFriendlyName());
-                if (params != null && !params.isEmpty()) {
-                    newAuthenticatorParams.put(authenticatorConfig.getApplicationAuthenticator().getName(), new
-                            HashMap<>(params));
+            Object localOptions = options.get("local");
+        if (localOptions instanceof Map) {
+            ((Map<String, Object>) localOptions).forEach((authenticatorName, params) -> {
+                if (params instanceof Map) {
+                    authenticatorParams.put(authenticatorName, new HashMap<>((Map<String, String>) params));
                 }
             });
-            authenticationContext.addAuthenticatorParams(newAuthenticatorParams);
+        }
+        Object federatedOptionsObj = options.get("federated");
+        if (federatedOptionsObj instanceof Map) {
+            Map<String, Map<String, String>> federatedOptions = (Map<String, Map<String, String>>) federatedOptionsObj;
+            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
+                    .forEach((idpName, idp) -> {
+                        if (!FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)
+                                && federatedOptions.containsKey(idpName)) {
+                            for (FederatedAuthenticatorConfig federatedAuthConfig
+                                    : idp.getFederatedAuthenticatorConfigs()) {
+                                String authenticatorName = authenticatorConfig.getApplicationAuthenticator().getName();
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName())) {
+                                    authenticatorParams.put(authenticatorName,
+                                            new HashMap<>(federatedOptions.get(idpName)));
+                                }
+                            }
+                        }
+                    }));
+        }
+        if (!authenticatorParams.isEmpty()) {
+            authenticationContext.addAuthenticatorParams(authenticatorParams);
         }
     }
 

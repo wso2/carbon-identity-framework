@@ -269,9 +269,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     @Test(dataProvider = "filterParamsDataProvider", alwaysRun = true)
-    public void testParamsOptions(Map<String, Map<String, Object>> options, StepConfig stepConfig,
-                                  String authenticatorName, String key, String value,
-                                  Map<String, Map<String, String>> multiOptionConfig) throws Exception {
+    public void testParamsOptions(Map<String, Object> options, StepConfig stepConfig,
+                                  String authenticatorName, String key, String value) throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -280,9 +279,6 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, stepConfig);
 
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        if (multiOptionConfig != null) {
-            jsGraphBuilder.filterOptions(multiOptionConfig, stepConfig);
-        }
         jsGraphBuilder.paramsOptions(options, stepConfig);
         assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value,
                 "Params are not set expected");
@@ -343,50 +339,33 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         StepConfig stepWithSingleOption = new StepConfig();
         stepWithSingleOption.setAuthenticatorList(Collections.singletonList(basicAuthConfig));
 
-        Map<String, Map<String, Object>> singleParamConfig = new HashMap<>();
+        Map<String, Object> singleParamConfig = new HashMap<>();
         Map<String, Object> params = new HashMap<>();
-        params.put("authenticator", "basic");
-        params.put("params", Collections.singletonMap("foo", "xyz"));
-        singleParamConfig.put("0", params);
+        params.put("BasicAuthenticator", Collections.singletonMap("foo", "xyz"));
+        singleParamConfig.put("local", params);
 
         StepConfig stepWithMultipleOptions = new StepConfig();
         stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
                 twitterAuthConfig)));
 
-        Map<String, Map<String, Object>> multiParamConfig = new HashMap<>();
-        Map<String, Object> multiparams = new HashMap<>();
-        multiparams.put("authenticator", "basic");
-        multiparams.put("params", Collections.singletonMap("foo", "xyz"));
-        multiParamConfig.put("0", multiparams);
-        multiparams = new HashMap<>();
-        multiparams.put("authenticator", "totp");
-        multiparams.put("params", Collections.singletonMap("domain", "localhost"));
-        multiParamConfig.put("1", multiparams);
+        Map<String, Object> localParams = new HashMap<>();
+        localParams.put("BasicAuthenticator", Collections.singletonMap("foo", "xyz"));
+        localParams.put("TOTPAuthenticator", Collections.singletonMap("domain", "localhost"));
 
-        multiparams = new HashMap<>();
-        multiparams.put("authenticator", "twitter");
-        multiparams.put("params", Collections.singletonMap("foo", "user"));
-        Map<String, Map<String, Object>> multiParamConfigWithTwitter = new HashMap<>(multiParamConfig);
-        multiParamConfigWithTwitter.put("2", multiparams);
+        Map<String, Object>  federatedParams = new HashMap<>();
+        federatedParams.put("customIdp2", Collections.singletonMap("foo", "user"));
 
-        Map<String, Object> twitterOption = new HashMap<>();
-        twitterOption.put("idp", "customIdp2");
-        twitterOption.put("authenticator", "twitter");
-
-        Map<String, Map<String, Object>> multiOptionConfig = new HashMap<>();
-        multiOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
-        multiOptionConfig.put("1", twitterOption);
+        Map<String, Object> multiParamConfig = new HashMap<>();
+        multiParamConfig.put("local", localParams);
+        multiParamConfig.put("federated", federatedParams);
 
         return new Object[][]{
-                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foo", "xyz", null},
-                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foos", null, null},
-                {singleParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz", null},
-                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null, null},
-                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "userName", null, null},
-                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator","domain", "localhost", null},
-                {multiParamConfigWithTwitter, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz", null},
-                {multiParamConfigWithTwitter, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user", null},
-                {multiParamConfigWithTwitter, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz", multiOptionConfig}
+                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foo", "xyz"},
+                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foos", null},
+                {singleParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz"},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user"},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator","domain", "localhost"}
         };
     }
 }
