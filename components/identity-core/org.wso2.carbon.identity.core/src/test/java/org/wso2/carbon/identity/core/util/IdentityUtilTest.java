@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.core.util;
 
-import org.apache.axiom.om.impl.dom.factory.OMDOMFactory;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -58,7 +57,6 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.SocketException;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -67,6 +65,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -319,8 +320,9 @@ public class IdentityUtilTest {
     public void testNodeToString() throws Exception {
         String xmlText = "<TestNode attr=\"attrValue\">Test value</TestNode>";
 
-        OMDOMFactory fac = new OMDOMFactory();
-        Document document = (Document) fac.createOMDocument();
+        DocumentBuilderFactory fac = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = fac.newDocumentBuilder();
+        Document document = documentBuilder.newDocument();
         Element testNode = document.createElement("TestNode");
         testNode.setTextContent("Test value");
         testNode.setAttribute("attr", "attrValue");
