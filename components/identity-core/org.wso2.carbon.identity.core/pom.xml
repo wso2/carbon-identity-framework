@@ -34,10 +34,6 @@
     <url>http://www.wso2.com</url>
     <dependencies>
         <dependency>
-            <groupId>xerces.wso2</groupId>
-            <artifactId>xercesImpl</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
             <scope>provided</scope>
