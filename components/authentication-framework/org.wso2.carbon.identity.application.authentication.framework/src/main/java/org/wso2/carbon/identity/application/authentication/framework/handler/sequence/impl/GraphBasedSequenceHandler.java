@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
@@ -46,6 +49,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -53,9 +57,17 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
+import java.util.zip.Deflater;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -113,7 +125,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
-        if (currentNode instanceof LongWaitNode) {
+        if (currentNode instanceof ShowPromptNode) {
+            isInterrupt = handlePrompt(request, response, context, sequenceConfig, (ShowPromptNode) currentNode);
+        } else if (currentNode instanceof LongWaitNode) {
             isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
@@ -141,6 +155,90 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
         } catch (IOException e) {
             throw new FrameworkException("Error while redirecting to wait.do", e);
+        }
+    }
+
+    /**
+     * Handles the prompt.
+     *
+     * @param request
+     * @param response
+     * @param context
+     * @param sequenceConfig
+     * @param promptNode
+     * @return true if the execution needs to be stopped and show somethin to the user.
+     */
+    private boolean handlePrompt(HttpServletRequest request, HttpServletResponse response,
+                                 AuthenticationContext context, SequenceConfig sequenceConfig,
+                                 ShowPromptNode promptNode) throws FrameworkException {
+
+        boolean isPromptToBeDisplayed = false;
+        if (context.isReturning()) {
+            String action = "Success";
+            for (String s : request.getParameterMap().keySet()) {
+                if (s.startsWith("action.")) {
+                    action = s.substring("action.".length(), s.length());
+                    break;
+                }
+            }
+            action = "on" + action;
+            executeFunction(action, promptNode, context);
+            AuthGraphNode nextNode = promptNode.getDefaultEdge();
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+            context.setReturning(false);
+        } else {
+            displayPrompt(context, request, response, promptNode.getTemplateId(), promptNode.getData());
+            isPromptToBeDisplayed = true;
+        }
+        return isPromptToBeDisplayed;
+    }
+
+    private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
+                               String templateId, String data) throws FrameworkException {
+
+        String promptId = UUID.randomUUID().toString();
+
+        try {
+            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
+            String redirectUrl = promptPage + "?templateId=" + templateId + "&promptId=" + promptId;
+            if (data != null) {
+                //TODO encrypt data based on a config.
+                String encodedDataString = deflateJson(data);
+                redirectUrl += "&data=" + encodedDataString;
+            }
+
+            response.sendRedirect(redirectUrl);
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+            request.setAttribute("hasResponseHandledByFramework", Boolean.TRUE);
+            FrameworkUtils.addAuthenticationContextToCache(promptId, context);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (UnsupportedEncodingException e) {
+            throw new FrameworkException("Error while encoding the data to send to prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting the user for prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        }
+    }
+
+    private String deflateJson(String data) throws IOException {
+
+        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        Deflater deflater = new Deflater();
+        deflater.setInput(dataBytes);
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(dataBytes.length)) {
+            deflater.finish();
+            byte[] buffer = new byte[1024];
+            while (!deflater.finished()) {
+                int count = deflater.deflate(buffer); // returns the generated code... index
+                outputStream.write(buffer, 0, count);
+            }
+            byte[] deflatedBytes = outputStream.toByteArray();
+
+            byte[] base64EncodedBytes = Base64.getEncoder().encode(deflatedBytes);
+            String base64EncodedString = new String(base64EncodedBytes);
+            return URLEncoder.encode(base64EncodedString, StandardCharsets.UTF_8.name());
         }
     }
 

@@ -71,6 +71,7 @@ public class FileBasedConfigurationBuilder {
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
     private String authenticationEndpointWaitURL;
+    private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
 
     /**
@@ -167,6 +168,7 @@ public class FileBasedConfigurationBuilder {
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
             readAuthenticationEndpointWaitURL(rootElement);
+            readAuthenticationEndpointPromptURL(rootElement);
             readAuthenticationEndpointMissingClaimsURL(rootElement);
 
             //########### Read tenant data listener URLs ###########
@@ -510,6 +512,15 @@ public class FileBasedConfigurationBuilder {
 
         if (authEndpointWaitURLElem != null) {
             authenticationEndpointWaitURL = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointPromptURL(OMElement documentElement) {
+        OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL));
+
+        if (authEndpointPromptURLElem != null) {
+            authenticationEndpointPromptURL = IdentityUtil.fillURLPlaceholders(authEndpointPromptURLElem.getText());
         }
     }
 
@@ -869,6 +880,14 @@ public class FileBasedConfigurationBuilder {
 
     public void setAuthenticationEndpointWaitURL(String authenticationEndpointWaitURL) {
         this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
+    }
+
+    public String getAuthenticationEndpointPromptURL() {
+        return authenticationEndpointPromptURL;
+    }
+
+    public void setAuthenticationEndpointPromptURL(String authenticationEndpointPromptURL) {
+        this.authenticationEndpointPromptURL = authenticationEndpointPromptURL;
     }
 
     /**
