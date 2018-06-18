@@ -113,8 +113,9 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
         String domainName = userStoreManager.getRealmConfiguration().
                 getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         if (log.isDebugEnabled()) {
+            String tenantDomain = (String) eventProperties.get(IdentityEventConstants.EventProperty.TENANT_DOMAIN);
             log.debug(String.format("Deleting consents for user: %s , in tenant domain :%s",
-                    UserCoreUtil.addDomainToName(userName, domainName)));
+                    UserCoreUtil.addDomainToName(userName, domainName), tenantDomain));
         }
         ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
         try {
