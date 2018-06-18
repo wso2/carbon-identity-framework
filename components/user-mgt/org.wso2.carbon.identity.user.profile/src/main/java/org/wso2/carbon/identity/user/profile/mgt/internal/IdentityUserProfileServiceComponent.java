@@ -123,7 +123,11 @@ public class IdentityUserProfileServiceComponent {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             // Try to find whether there is IDN_ASSOCIATED_ID table.
             DatabaseMetaData metaData = connection.getMetaData();
-            try (ResultSet resultSet = metaData.getTables(null, null, "IDN_ASSOCIATED_ID", new String[] { "TABLE" })) {
+            String tableName = "IDN_ASSOCIATED_ID";
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
                 if (resultSet.next()) {
                     return true;
                 }
