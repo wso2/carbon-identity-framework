@@ -141,21 +141,38 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
+    /**
+     * Returns the authenticated user form the authentication context.
+     *
+     * @param authenticationContext Authentication Context.
+     * @return AuthenticatedUser Authenticated User.
+     */
     private AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
 
         return authenticationContext.getSequenceConfig().getAuthenticatedUser();
     }
 
-    @SuppressWarnings("unchecked")
-    private void setChallengeQuestionRequestedState(AuthenticationContext authenticationContext) {
-
-        authenticationContext.addParameter(CHALLENGE_QUESTIONS_REQUESTED, true);
-    }
-
+    /**
+     * Checks for the Challenge Question Requested Parameter in the authentication context
+     *
+     * @param authenticationContext Authentication Context.
+     * @return Boolean value for the Challenge Question requested parameter of authenticationContext.
+     */
     @SuppressWarnings("unchecked")
     private boolean isChallengeQuestionRequested(AuthenticationContext authenticationContext) {
 
         return authenticationContext.getParameter(CHALLENGE_QUESTIONS_REQUESTED) != null;
+    }
+
+    /**
+     * Set the Challenge Question Requested parameter in the authenticated context.
+     *
+     * @param authenticationContext Authentication Context.
+     */
+    @SuppressWarnings("unchecked")
+    private void setChallengeQuestionRequestedState(AuthenticationContext authenticationContext) {
+
+        authenticationContext.addParameter(CHALLENGE_QUESTIONS_REQUESTED, true);
     }
 
     @Override
@@ -163,6 +180,13 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         return "PostAuthnMissingChallengeQuestionsHandler";
     }
 
+    /**
+     * Returns the property related to the key from the Resident IDP properties.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param key          Name of the resident IDP property to find in the Resident IDP
+     * @return String value of the requested property.
+     */
     private String getResidentIdpProperty(String tenantDomain, String key) {
         IdentityProvider residentIdp;
 
@@ -183,6 +207,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         }
     }
 
+    /**
+     * Returns whether the user has already provided the challenge questions.
+     *
+     * @param user Authenticated User.
+     * @return boolean value indicating whether the user has already provided challenge questions.
+     */
     private boolean isChallengeQuestionsProvided(AuthenticatedUser user) {
 
         try {
@@ -210,6 +240,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         return false;
     }
 
+    /**
+     * Returns a list of challenge questions for a given user.
+     *
+     * @param user Authenticated User.
+     * @return List of ChallengeQuestions.
+     */
     private List<ChallengeQuestion> getChallengeQuestions(AuthenticatedUser user) {
         String tenantDomain = MultitenantUtils.getTenantDomain(user.getUserName());
 
@@ -222,6 +258,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         }
     }
 
+    /**
+     * Set the challenge questions for the user by calling ChallengeQuestionManger.
+     *
+     * @param user                 Authenticated User.
+     * @param userChallengeAnswers Array of UserChallengeAnswer
+     */
     private void setChallengeQuestionAnswers(User user, UserChallengeAnswer[] userChallengeAnswers) {
 
         try {
@@ -231,6 +273,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         }
     }
 
+    /**
+     * Returns array of UserChallengeAnswer from the servlet request parameters from the front-end
+     *
+     * @param servletRequest HTTP Servlet Request.
+     * @return Array of UserChallengeAnswer.
+     */
     private UserChallengeAnswer[] retrieveChallengeQuestionAnswers(HttpServletRequest servletRequest,
                                                                    List<ChallengeQuestion> list) {
         Map<String, String> questionsMap = new HashMap<>();
@@ -244,12 +292,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         }
 
         for (String requestParam : paramNamesList) {
-            if (requestParam.contains("Q-")) {
+            if (requestParam.contains(SELECTED_CHALLENGE_QUESTION_PREFIX)) {
                 String question = servletRequest.getParameter(requestParam);
                 String questionSetID = requestParam.replace(SELECTED_CHALLENGE_QUESTION_PREFIX, "");
                 questionsMap.put(questionSetID, question);
 
-            } else if (requestParam.contains("A-")) {
+            } else if (requestParam.contains(CHALLENGE_QUESTION_ANSWER_PREFIX)) {
                 String answer = servletRequest.getParameter(requestParam);
                 String answerSetID = requestParam.replace(CHALLENGE_QUESTION_ANSWER_PREFIX, "");
                 answersMap.put(answerSetID, answer);
@@ -269,6 +317,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         return questionsAndAnswers.toArray(new UserChallengeAnswer[questionsAndAnswers.size()]);
     }
 
+    /**
+     * Returns URL encoded String with challenge questions of the given user
+     *
+     * @param user Authenticated User.
+     * @return UTF-8 encoded URL with challenge questions.
+     */
     private String getUrlEncodedChallengeQuestionsString(AuthenticatedUser user) {
         StringBuilder challengeQuestionData = new StringBuilder();
         List<ChallengeQuestion> challengeQuestionList = getChallengeQuestions(user);
@@ -297,6 +351,14 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         return encodedData;
     }
 
+    /**
+     * This handles the PostAuthentication Requests for PostAuthnMissingChallengeQuestionHandler
+     *
+     * @param httpServletResponse   HTTP Servlet Response.
+     * @param authenticationContext Authentication Context
+     * @param user                  Authenticated User
+     * @return PostAuthnHandlerFlowStatus Flow status of the PostAuthentication Handler
+     */
     private PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingChallengeQuestionRequest(
             HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext,
             AuthenticatedUser user) {
@@ -327,6 +389,13 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         }
     }
 
+    /**
+     * This handles the PostAuthentication Response for PostAuthnMissingChallengeQuestionHandler
+     *
+     * @param httpServletRequest HTTP Servlet Request.
+     * @param user               Authenticated User
+     * @return PostAuthnHandlerFlowStatus Flow status of the PostAuthentication Handler
+     */
     private PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingChallengeQuestionResponse(
             HttpServletRequest httpServletRequest, AuthenticatedUser user) {
 
