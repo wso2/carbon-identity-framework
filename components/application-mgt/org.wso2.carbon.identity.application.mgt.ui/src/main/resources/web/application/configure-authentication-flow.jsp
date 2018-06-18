@@ -416,8 +416,9 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
                 var editorContent = doc.getValue();
                 if (editorContent.length != 0) {
-                    CARBON.showConfirmationDialog('This will replace the existing code, Are you sure you want to continue ?', doReplaceRange,
-                        null);
+                    showPopupDialog($('#messagebox-warning')[0].outerHTML,
+						'Role Based Authentication Template', 350,
+						true, doReplaceRange, null);
                 } else {
                     doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
                     highlightNewCode();
@@ -706,6 +707,62 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
     }
 
 
+    function showPopupDialog(message, title, windowHight, okButton, callback, windowWidth) {
+        var strDialog = "<div id='dialog' title='" + title + "'><div id='popupDialog'></div>" + message + "</div>";
+        var requiredWidth = 550;
+        if (windowWidth) {
+            requiredWidth = windowWidth;
+        }
+		jQuery("#dcontainer").html(strDialog);
+		if (okButton) {
+			jQuery("#dialog").dialog({
+				close:function() {
+					jQuery(this).dialog('destroy').remove();
+					jQuery("#dcontainer").empty();
+					return false;
+				},
+				buttons:{
+					"Proceed":function() {
+						if (callback && typeof callback == "function")
+							callback();
+						jQuery(this).dialog("destroy").remove();
+						jQuery("#dcontainer").empty();
+						return false;
+					},
+                    "Cancel":function() {
+                        jQuery(this).dialog('destroy').remove();
+                        jQuery("#dcontainer").empty();
+                        return false;
+                    },
+				},
+				height:windowHight,
+				width:requiredWidth,
+				minHeight:windowHight,
+				minWidth:requiredWidth,
+				modal:true
+			});
+		} else {
+			jQuery("#dialog").dialog({
+				close:function() {
+					jQuery(this).dialog('destroy').remove();
+					jQuery("#dcontainer").empty();
+					return false;
+				},
+				height:windowHight,
+				width:requiredWidth,
+				minHeight:windowHight,
+				minWidth:requiredWidth,
+				modal:true
+			});
+		}
+
+		jQuery('.ui-dialog-titlebar-close').click(function(){
+			jQuery('#dialog').dialog("destroy").remove();
+			jQuery("#dcontainer").empty();
+			jQuery("#dcontainer").html('');
+		});
+    };
+
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -900,4 +957,36 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 </div>
             </form>
         </div>
+
+<div style="display: none;">
+	<div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
+		<h3>Prerequisits</h3>
+		<p>Please change the parameters and default steps as required. For more information, refer
+			<a href="https://docs.wso2.com/display/IS560/Conditional+Authentication">Conditional Authentication Docs</a>
+		</p>
+		<br/>
+		<h3>Parameters</h3>
+		<table>
+			<tbody>
+			<tr>
+				<td><i>Roles :</i></td>
+				<td>The list of roles of which the users </td>
+			</tr>
+			</tbody>
+		</table>
+		<br/>
+		<h3>Default Steps</h3>
+		<ul>
+			<li>Step 1: Basic Authenticator</li>
+			<li>Step 2: TOTP or FIDO</li>
+		</ul>
+		<br/>
+		<h3>Help</h3>
+		<a href="https://docs.wso2.com/display/IS560/Conditional+Authentication">https://docs.wso2.com/display/IS560/Conditional+Authentication</a>
+		<div class="error-msg">
+			<p>Clicking "Proceed" will replace the existing code in the editor</p>
+		</div>
+	</div>
+</div>
+
 </fmt:bundle>
