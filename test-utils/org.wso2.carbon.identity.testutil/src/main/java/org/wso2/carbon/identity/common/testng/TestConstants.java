@@ -42,6 +42,7 @@ public class TestConstants {
     public static final String CARBON_PROTOCOL_HTTPS = "https";
     public static final String CARBON_HOST_LOCALHOST = "localhost";
     public static final String CARBON_DEFAULT_HTTPS_PORT = "9443";
+    public static final String CARBON_CONFIG_DIR_PATH = "carbon.config.dir.path";
 
     public static final String AUTHORIZATION_HANDLER_RESPONSE_TYPE_ID_TOKEN_TOKEN = "id_token token";
     public static final String AUTHORIZATION_HANDLER_RESPONSE_TYPE_TOKEN = "token";
