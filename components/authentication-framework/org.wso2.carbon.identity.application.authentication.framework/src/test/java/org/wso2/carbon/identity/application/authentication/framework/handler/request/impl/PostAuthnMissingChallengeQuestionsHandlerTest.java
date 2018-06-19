@@ -111,7 +111,7 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
         mockStatic(ConfigurationFacade.class);
     }
 
-    @Test
+    @Test(description = "Test get instance method")
     public void testGetInstance() {
         CommonTestUtils.testSingleton(
                 PostAuthnMissingChallengeQuestionsHandler.getInstance(),
@@ -130,7 +130,8 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
         };
     }
 
-    @Test(dataProvider = "forceChallengeQuestionSettings")
+    @Test(dataProvider = "forceChallengeQuestionSettings", description = "Test the functionality of the setting to " +
+            "force challenge questions")
     public void testSettingTheOptionToForceChallengeQuestions(String setting) throws Exception {
         AuthenticationContext context = spy(new AuthenticationContext());
         when(context.getTenantDomain()).thenReturn("carbon.super");
@@ -176,7 +177,7 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
 
     }
 
-    @Test
+    @Test(description = "Test the behaviour of the handler if the user is null")
     public void testForNullUser() throws Exception {
         AuthenticationContext context = spy(new AuthenticationContext());
         when(context.getTenantDomain()).thenReturn("carbon.super");
@@ -204,7 +205,7 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
         assertEquals(flowStatus.name(), expectedResult);
     }
 
-    @Test
+    @Test(description = "Test the flow for the user who has already given the challenge questions")
     public void testAlreadyChallengeQuestionProvidedUserFlow() throws Exception {
         AuthenticationContext context = spy(new AuthenticationContext());
         when(context.getTenantDomain()).thenReturn("carbon.super");
@@ -255,7 +256,8 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
         assertEquals(flowStatus.name(), expectedResult);
     }
 
-    @Test
+    @Test(description = "Test the flow of challenge question post authentication handler before requesting challenge " +
+            "questions from the user")
     public void testBeforeRequestingChallengeQuestionFlow() throws Exception {
         AuthenticationContext context = spy(new AuthenticationContext());
         when(context.getTenantDomain()).thenReturn("carbon.super");
@@ -319,7 +321,8 @@ public class PostAuthnMissingChallengeQuestionsHandlerTest {
         assertEquals(flowStatus.name(), expectedResult);
     }
 
-    @Test
+    @Test(description = "Test the flow of challenge question post authentication handler after requesting challenge " +
+            "questions from the user")
     public void testAfterRequestingChallengeQuestionFlow() throws Exception {
 
         AuthenticationContext context = spy(new AuthenticationContext());
