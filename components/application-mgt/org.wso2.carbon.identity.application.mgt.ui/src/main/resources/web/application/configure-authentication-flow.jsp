@@ -281,26 +281,38 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
         function showAllErrors() {
             myCodeMirror.operation(function () {
+                var warnCount = 0;
                 var errorCount = 0;
                 JSHINT(myCodeMirror.getValue());
                 for (var i = 0; i < JSHINT.errors.length; ++i) {
                     var err = JSHINT.errors[i];
-                    if ((!err) || (err.code.lastIndexOf("W", 0) === 0)) {
+                    if (!err) {
                         continue;
+                    } else if(err.code.lastIndexOf("W", 0) === 0) {
+                        warnCount++;
                     } else {
                         errorCount++;
-                    }
+					}
                 }
 
                 if (errorCount > 0) {
-                    CARBON.showConfirmationDialog('Warning..! The script you are about to update has Errors, ' +
-                        'Do you still want to continue ?', submitForm, null);
-                } else {
+                    CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
+                        'Do you want to continue? ',
+                        submitFormWithoutCheck, null);
+                } else if(warnCount > 0){
+                    CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
+                        'Do you want to continue? ',
+                        submitFormWithoutCheck, null);
+                } else{
                     submitForm();
-                }
+				}
             });
         }
 
+        function submitFormWithoutCheck() {
+            $("#enableScript").prop( "checked", false );
+            $("#configure-auth-flow-form").submit();
+        }
         function submitForm() {
             $("#configure-auth-flow-form").submit();
         }
