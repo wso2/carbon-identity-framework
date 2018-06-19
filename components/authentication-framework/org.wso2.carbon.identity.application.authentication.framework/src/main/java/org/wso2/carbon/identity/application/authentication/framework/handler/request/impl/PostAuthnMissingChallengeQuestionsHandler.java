@@ -366,7 +366,7 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
         // If challenge questions are not requested redirect user to add challenge questions jsp page
         String encodedData = getUrlEncodedChallengeQuestionsString(user);
 
-        if (encodedData == null || encodedData.equals("")) {
+        if (encodedData == null || "".equals(encodedData)) {
             if (log.isDebugEnabled()) {
                 log.debug("Unable to get challenge questions for user : " + user.getUserName() + " for " +
                         "tenant domain :" + authenticationContext.getTenantDomain());
