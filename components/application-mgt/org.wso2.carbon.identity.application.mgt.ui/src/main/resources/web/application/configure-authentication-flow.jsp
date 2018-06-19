@@ -288,29 +288,29 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     var err = JSHINT.errors[i];
                     if (!err) {
                         continue;
-                    } else if(err.code.lastIndexOf("W", 0) === 0) {
+                    } else if (err.code.lastIndexOf("W", 0) === 0) {
                         warnCount++;
                     } else {
                         errorCount++;
-					}
+                    }
                 }
 
                 if (errorCount > 0) {
                     CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
                         'Do you want to continue? ',
                         submitFormWithoutCheck, null);
-                } else if(warnCount > 0){
+                } else if (warnCount > 0) {
                     CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
                         'Do you want to continue? ',
                         submitFormWithoutCheck, null);
-                } else{
+                } else {
                     submitForm();
-				}
+                }
             });
         }
 
         function submitFormWithoutCheck() {
-            $("#enableScript").prop( "checked", false );
+            $("#enableScript").prop("checked", false);
             $("#configure-auth-flow-form").submit();
         }
         function submitForm() {
