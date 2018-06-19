@@ -166,12 +166,16 @@ public class AuthenticatedIdPData implements Serializable {
             }
         }
 
-        if(log.isDebugEnabled()){
-            log.debug(String.format("User '%s' was not authenticated using the " +
-                            "IDP : '%s'and the authenticator : '%s' before.",
-                    user.getUserName(), idpName, authenticatorName));
-        }
+        if (log.isDebugEnabled()) {
+            if (user != null) {
+                log.debug(String.format("User '%s' was not authenticated using the IDP : '%s'and the authenticator : " +
+                    "'%s' before.", user.getUserName(), idpName, authenticatorName));
+            } else {
+                log.debug(String.format("User was not authenticated using the " +
+                    "IDP : '%s'and the authenticator : '%s' before.", idpName, authenticatorName));
+            }
 
+        }
         return false;
     }
 }

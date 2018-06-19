@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractFra
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -201,40 +202,36 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         StepConfig stepWithSingleOption = new StepConfig();
         stepWithSingleOption.setAuthenticatorList(Collections.singletonList(basicAuthConfig));
         Map<String, Map<String, String>> singleOptionConfig = new HashMap<>();
-        singleOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
+        singleOptionConfig.put(FrameworkConstants.JSAttributes.LOCAL, Collections.singletonMap("0",
+            "BasicAuthenticator"));
 
         StepConfig stepWithMultipleOptions = new StepConfig();
         stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
             oidcAuthConfig, twitterAuthConfig)));
 
-        Map<String, String> oidcOption = new HashMap<>();
-        oidcOption.put("idp", "customIdp1");
-        oidcOption.put("authenticator", "oidc");
-
-        Map<String, String> twitterOption = new HashMap<>();
-        twitterOption.put("idp", "customIdp2");
-        twitterOption.put("authenticator", "twitter");
-
-        Map<String, String> invalidOption = new HashMap<>();
-        invalidOption.put("idp", "customIdp1");
-        invalidOption.put("authenticator", "twitter");
-
         Map<String, Map<String, String>> multipleOptionConfig = new HashMap<>();
-        multipleOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
-        multipleOptionConfig.put("1", oidcOption);
-        multipleOptionConfig.put("2", twitterOption);
+        multipleOptionConfig.put(FrameworkConstants.JSAttributes.LOCAL, Collections.singletonMap("0",
+            "BasicAuthenticator"));
+        Map<String,String> federatedOptionsMap = new HashMap<>();
+        federatedOptionsMap.put("0","customIdp1");
+        federatedOptionsMap.put("1","customIdp2");
+        multipleOptionConfig.put(FrameworkConstants.JSAttributes.FEDERATED, federatedOptionsMap);
 
         Map<String, Map<String, String>> multipleAndInvalidOptionConfig = new HashMap<>();
-        multipleAndInvalidOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
-        multipleAndInvalidOptionConfig.put("1", oidcOption);
-        multipleAndInvalidOptionConfig.put("2", invalidOption);
+        multipleAndInvalidOptionConfig.put(FrameworkConstants.JSAttributes.LOCAL, Collections.singletonMap("0",
+            "BasicAuthenticator"));
+        Map<String,String> invalidFederatedOptionsMap = new HashMap<>();
+        invalidFederatedOptionsMap.put("0","customIdp1");
+        invalidFederatedOptionsMap.put("1","invalidIdp");
+        multipleAndInvalidOptionConfig.put(FrameworkConstants.JSAttributes.FEDERATED, invalidFederatedOptionsMap);
 
         Map<String, Map<String, String>> idpOnlyOptionConfig = new HashMap<>();
-        idpOnlyOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
-        idpOnlyOptionConfig.put("1", Collections.singletonMap("idp", "customIdp1"));
+        idpOnlyOptionConfig.put(FrameworkConstants.JSAttributes.LOCAL, Collections.singletonMap("0",
+            "BasicAuthenticator"));
+        idpOnlyOptionConfig.put(FrameworkConstants.JSAttributes.FEDERATED, Collections.singletonMap("0", "customIdp1"));
 
         Map<String, Map<String, String>> singleInvalidOptionConfig = new HashMap<>();
-        singleInvalidOptionConfig.put("0", invalidOption);
+        singleInvalidOptionConfig.put(FrameworkConstants.JSAttributes.LOCAL, Collections.singletonMap("0", "invalid"));
 
         return new Object[][]{
             {singleOptionConfig, duplicateStepConfig(stepWithSingleOption), 1},

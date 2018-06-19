@@ -26,10 +26,10 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a authentication step.
@@ -102,17 +102,25 @@ public class JsStep extends AbstractJSContextMemberObject {
         return null;
     }
 
-    private List<Map<String, String>> getOptions() {
+    private Map<String, Set<String>> getOptions() {
 
-        List<Map<String, String>> optionsList = new ArrayList<>();
+        Map<String, Set<String>> optionsList = new HashMap<>();
         StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
+        Set<String> localAuthenticators = new HashSet<>();
+        Set<String> federatedIdps = new HashSet<>();
         stepConfig.getAuthenticatorList().forEach(authConfig -> authConfig.getIdpNames().forEach(name -> {
-            Map<String, String> option = new HashMap<>();
-            option.put(FrameworkConstants.JSAttributes.IDP, name);
-            option.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authConfig.getApplicationAuthenticator()
-                .getName());
-            optionsList.add(option);
+            if (FrameworkConstants.LOCAL_IDP_NAME.equals(name)) {
+                localAuthenticators.add(authConfig.getApplicationAuthenticator().getName());
+            } else {
+                federatedIdps.add(name);
+            }
         }));
+        if (!localAuthenticators.isEmpty()) {
+            optionsList.put(FrameworkConstants.JSAttributes.LOCAL, localAuthenticators);
+        }
+        if (!federatedIdps.isEmpty()) {
+            optionsList.put(FrameworkConstants.JSAttributes.FEDERATED, federatedIdps);
+        }
         return optionsList;
     }
 }

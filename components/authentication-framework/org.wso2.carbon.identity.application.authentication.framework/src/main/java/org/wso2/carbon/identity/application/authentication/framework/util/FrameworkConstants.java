@@ -290,9 +290,10 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
 
-        public static final String IDP = "idp";
-        public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String LOCAL = "local";
+        public static final String FEDERATED = "federated";
+
     }
     public static class InternalRoleDomains {
 
