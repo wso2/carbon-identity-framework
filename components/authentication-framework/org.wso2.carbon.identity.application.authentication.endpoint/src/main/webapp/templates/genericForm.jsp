@@ -19,6 +19,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
+<jsp:directive.include file="../init-url.jsp"/>
 
 <div>
     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
@@ -30,7 +31,7 @@
     <div class="clearfix"></div>
     <div class="padding-double login-form">
         
-        <form action="/commonauth?promptResp=true&promptId=${requestScope.promptId}" method="POST">
+        <form action="<%=commonauthURL%>" method="POST">
     
             <c:forEach var="input" items='${requestScope.data["inputs"]}'>
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
@@ -38,6 +39,8 @@
                     <input type="text" id="<e:forHtmlAttribute value="${input.id}" />" name="<e:forHtmlAttribute value="${input.id}" />" class="form-control">
                 </div>
             </c:forEach>
+            <input type="hidden" id="promptResp" name="promptResp" value="true">
+            <input type="hidden" id="promptId" name="promptId" value="${requestScope.promptId}">
             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                 <input type="submit" class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large" value="Submit">
             </div>

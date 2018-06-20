@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,7 +57,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -79,6 +76,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
+    private static final String PROMPT_DEFAULT_ACTION = "Success";
+    private static final String PROMPT_ACTION_PREFIX = "action.";
+    private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
@@ -159,13 +159,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     }
 
     /**
-     * Handles the prompt.
+     * Handles the prompt. Make redirect to prompt handler (authentication endpoint) URL when this is initial prompt
+     * state. Executes the respective event handler function when prompt is returning with user input.
      *
-     * @param request
-     * @param response
-     * @param context
-     * @param sequenceConfig
-     * @param promptNode
+     * @param request Http servlet request
+     * @param response Http servlet response
+     * @param context Authentication context
+     * @param sequenceConfig Authentication sequence config
+     * @param promptNode Show prompt node
      * @return true if the execution needs to be stopped and show somethin to the user.
      */
     private boolean handlePrompt(HttpServletRequest request, HttpServletResponse response,
@@ -174,10 +175,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         boolean isPromptToBeDisplayed = false;
         if (context.isReturning()) {
-            String action = "Success";
+            String action = PROMPT_DEFAULT_ACTION;
             for (String s : request.getParameterMap().keySet()) {
-                if (s.startsWith("action.")) {
-                    action = s.substring("action.".length(), s.length());
+                if (s.startsWith(PROMPT_ACTION_PREFIX)) {
+                    action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
                     break;
                 }
             }
@@ -200,7 +201,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         try {
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
-            String redirectUrl = promptPage + "?templateId=" + templateId + "&promptId=" + promptId;
+            String redirectUrl = promptPage + "?templateId=" +
+                    URLEncoder.encode(templateId, StandardCharsets.UTF_8.name()) + "&promptId=" + promptId;
             if (data != null) {
                 //TODO encrypt data based on a config.
                 String encodedDataString = deflateJson(data);
@@ -210,7 +212,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             response.sendRedirect(redirectUrl);
             AuthenticationResult authenticationResult = new AuthenticationResult();
             request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
-            request.setAttribute("hasResponseHandledByFramework", Boolean.TRUE);
+            request.setAttribute(RESPONSE_HANDLED_BY_FRAMEWORK, Boolean.TRUE);
             FrameworkUtils.addAuthenticationContextToCache(promptId, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
         } catch (UnsupportedEncodingException e) {

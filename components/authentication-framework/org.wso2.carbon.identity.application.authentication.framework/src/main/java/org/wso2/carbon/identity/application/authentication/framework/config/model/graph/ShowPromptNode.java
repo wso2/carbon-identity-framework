@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import java.util.Map;
-
+/**
+ * Waiting node while showing a prompt to the user to get user input. Child nodes of this node is build after
+ * executing the asynchronous events.
+ */
 public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode {
 
     private static final long serialVersionUID = -5644595996095910601L;

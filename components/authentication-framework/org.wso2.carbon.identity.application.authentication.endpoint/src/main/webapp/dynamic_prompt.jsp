@@ -16,13 +16,10 @@
   ~ under the License.
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="java.io.ByteArrayOutputStream" %>
-<%@ page import="java.util.Base64" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.zip.DataFormatException" %>
-<%@ page import="java.util.zip.Inflater" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.DynamicPromptUtil" %>
+<%@ page import="java.util.zip.DataFormatException" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
@@ -35,33 +32,12 @@
     String promptId = request.getParameter("promptId");
     String dataStr = request.getParameter("data");
     Map data = null;
-    String templatePath = null;
-    if (dataStr != null) {
-        byte[] base64DecodedBytes = Base64.getDecoder().decode(dataStr);
-    
-        Inflater inflater = new Inflater();
-        inflater.setInput(base64DecodedBytes);
-    
-        String original = "";
-    
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(base64DecodedBytes.length)) {
-            byte[] buffer = new byte[1024];
-            while (!inflater.finished()) {
-                int count = inflater.inflate(buffer);
-                outputStream.write(buffer, 0, count);
-            }
-            outputStream.close();
-            byte[] output1 = outputStream.toByteArray();
-            original = new String(output1);
-        } catch (DataFormatException e) {
-            response.sendRedirect("retry.do");
-        }
-    
-        Gson gson = new Gson();
-        data = gson.fromJson(original, Map.class);
-    
-        templatePath = templateMap.get(templateId);
+    try {
+        data = DynamicPromptUtil.inflateJson(dataStr);
+    } catch (DataFormatException e) {
+        response.sendRedirect("retry.do");
     }
+    String templatePath = templateMap.get(templateId);
 %>
 
 <html>
@@ -109,8 +85,8 @@
             %>
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                 <c:set var="data" value="<%=data%>" scope="request"/>
-                <c:set var="promptId" value="<%=promptId%>" scope="request"/>
-                <jsp:include page="<%="templates/" + templateId + ".jsp"%>"/>
+                <c:set var="promptId" value="<%=URLEncoder.encode(promptId, StandardCharsets.UTF_8.name())%>" scope="request"/>
+                <jsp:include page="<%=templatePath%>"/>
             </div>
     
             <%
@@ -128,7 +104,7 @@
                         </strong>
                     </div>
                     <div class="padding-bottom-double">
-                        No template found with the given templateId. Please contact the system administrator
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.template.found")%>
                     </div>
                 </div>
             </div>
