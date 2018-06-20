@@ -1,24 +1,40 @@
 {
   "category": "User Based",
   "name": "Role Based",
-  "img": "./images/user.png",
+  "title": "Role Based 2FA Template",
+  "summary": "Prompts 2FA to the users who belongs to any of the given set of roles.",
+  "preRequisites": [
+    "Change the rolesList parameter to an array of roles of which users need to enforce 2FA.",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "rolesList": "An array of roles of which users need to enforce 2FA."
+  },
+  "defaultStepsDescription": {
+    "1": "Basic (Password) authenticator.",
+    "2": "Either of TOTP or FIDO"
+  },
   "code": [
+    "// This script will step up authentication for any user belonging ",
+    "// to a given role",
+    "// If the user has the below role, authentication will be stepped up",
+    "var role = 'admin';",
+    "",
     "function onInitialRequest(context) {",
-    "   executeStep(1, {",
-    "       onSuccess: function (context) {",
-    "           // Extracting authenticated subject from the first step",
-    "           var user = context.steps[1].subject;",
-    "           // Checking if the user is assigned for the given role",
-    "           var isAdmin = hasRole(user, 'admin');",
-    "           Log.info(user.username + ' Has Admin Role: ' + isAdmin);",
-    "           if (isAdmin) {",
-    "               executeStep(2);",
-    "               executeStep(3);",
-    "           }",
-    "       }",
-    "   });",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting authenticated subject from the first step",
+    "            var user = context.steps[1].subject;",
+    "            // Checking if the user is assigned for the given role",
+    "            var isAdmin = hasRole(user, role);",
+    "            Log.info(user.username + ' Has Role: ' + role);",
+    "            if (isAdmin) {",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
     "}"
   ],
-  "help": "Define conditional authentication based on user role.",
+  "img": "./images/user.png",
   "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
 }
