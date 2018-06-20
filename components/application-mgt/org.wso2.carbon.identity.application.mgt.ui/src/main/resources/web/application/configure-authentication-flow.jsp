@@ -241,12 +241,11 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
     var reqPathAuth = 0;
     var localAuthNumber = 0;
 
-    function createAppOnclick() {
-
-        document.getElementById("configure-auth-flow-form").submit();
-    }
-
     jQuery(document).ready(function () {
+
+        $("#createApp").click(function(){
+            showAllErrors();
+		});
 
         var addTemplate = $("#addTemplate");
         var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
@@ -279,6 +278,44 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             showCursorWhenSelecting: true,
             styleActiveLine: true,
         });
+
+        function showAllErrors() {
+            myCodeMirror.operation(function () {
+                var warnCount = 0;
+                var errorCount = 0;
+                JSHINT(myCodeMirror.getValue());
+                for (var i = 0; i < JSHINT.errors.length; ++i) {
+                    var err = JSHINT.errors[i];
+                    if (!err) {
+                        continue;
+                    } else if (err.code.lastIndexOf("W", 0) === 0) {
+                        warnCount++;
+                    } else {
+                        errorCount++;
+                    }
+                }
+
+                if (errorCount > 0) {
+                    CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
+                        'Do you want to continue? ',
+                        submitFormWithoutCheck, null);
+                } else if (warnCount > 0) {
+                    CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
+                        'Do you want to continue? ',
+                        submitFormWithoutCheck, null);
+                } else {
+                    submitForm();
+                }
+            });
+        }
+
+        function submitFormWithoutCheck() {
+            $("#enableScript").prop("checked", false);
+            $("#configure-auth-flow-form").submit();
+        }
+        function submitForm() {
+            $("#configure-auth-flow-form").submit();
+        }
 
         $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
 
@@ -388,21 +425,124 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     line: cursor.line,
                     ch: line.length - 1
                 };
-                doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
 
+                var editorContent = doc.getValue();
+                if (editorContent.length != 0) {
+                    showPopupConfirm($('#messagebox-warning')[0].outerHTML, 'Role Based Authentication Template', 350,
+						"OK","Cancel", doReplaceRange, null);
+                } else {
+                    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+                    highlightNewCode();
+                }
+
+                function doReplaceRange() {
+                    myCodeMirror.setValue("");
+                    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+                }
+
+            });
+
+            function highlightNewCode() {
                 var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
                 var coordinatesLTB = myCodeMirror.cursorCoords();
-                if (startLine === cursorCoordsBeforeChange.ch) {
-                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
-                } else {
-                    mark = myCodeMirror.markText(cursorCoordsBeforeChange, cursorCoordsAfterChange, {className: "highlight2"});
-                }
+                mark = myCodeMirror.markText(cursorCoordsBeforeChange, coordinates, {className: "highlight1"});
                 $('.CodeMirror-scroll').animate({scrollTop: coordinatesLTB.bottom}, 500, 'linear');
                 setTimeout(function () {
                     mark.clear();
                 }, 2000);
+            }
+        }
 
-            });
+        /**
+         * Temporary function that serves as the local popup customization till carbon-kernel release
+         * This has also been moved to proper codebase in carbon.ui as this is reusable.
+         */
+        function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButton, callback, windowWidth) {
+            if (!isHTML(htmlMessage)) {
+                htmlMessage = htmlEncode(htmlMessage);
+            }
+            var strDialog = "<div id='dialog' title='" + title + "'><div id='popupDialog'></div>" + htmlMessage + "</div>";
+            var requiredWidth = 750;
+            if (windowWidth) {
+                requiredWidth = windowWidth;
+            }
+            var func = function () {
+                jQuery("#dcontainer").html(strDialog);
+                if (okButton) {
+                    jQuery("#dialog").dialog({
+                        close: function () {
+                            jQuery(this).dialog('destroy').remove();
+                            jQuery("#dcontainer").empty();
+                            return false;
+                        },
+                        buttons: {
+                            "OK": function () {
+                                if (callback && typeof callback == "function")
+                                    callback();
+                                jQuery(this).dialog("destroy").remove();
+                                jQuery("#dcontainer").empty();
+                                return false;
+                            },
+                            "Cancel": function () {
+                                jQuery(this).dialog('destroy').remove();
+                                jQuery("#dcontainer").empty();
+                                return false;
+                            },
+                        },
+                        height: windowHeight,
+                        width: requiredWidth,
+                        minHeight: windowHeight,
+                        minWidth: requiredWidth,
+                        modal: true
+                    });
+                } else {
+                    jQuery("#dialog").dialog({
+                        close: function () {
+                            jQuery(this).dialog('destroy').remove();
+                            jQuery("#dcontainer").empty();
+                            return false;
+                        },
+                        height: windowHeight,
+                        width: requiredWidth,
+                        minHeight: windowHeight,
+                        minWidth: requiredWidth,
+                        modal: true
+                    });
+                }
+
+                if (okButton) {
+                    $('.ui-dialog-buttonpane button:contains(OK)').attr("id", "dialog-confirm_ok-button");
+                    $('#dialog-confirm_ok-button').html(okButton);
+                }
+                if (cancelButton) {
+                    $('.ui-dialog-buttonpane button:contains(Cancel)').attr("id", "dialog-confirm_cancel-button");
+                    $('#dialog-confirm_cancel-button').html(cancelButton);
+                }
+
+
+                jQuery('.ui-dialog-titlebar-close').click(function () {
+                    jQuery('#dialog').dialog("destroy").remove();
+                    jQuery("#dcontainer").empty();
+                    jQuery("#dcontainer").html('');
+                });
+
+            };
+            if (!pageLoaded) {
+                jQuery(document).ready(func);
+            } else {
+                func();
+            }
+
+            function isHTML(str) {
+                var a = document.createElement('div');
+                a.innerHTML = str;
+
+                for (var c = a.childNodes, i = c.length; i--;) {
+                    if (c[i].nodeType == 1) return true;
+                }
+
+                return false;
+            }
         }
 
         var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
@@ -669,7 +809,6 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
         $(element).attr('checked', true);
     }
 
-
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -892,12 +1031,43 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 </div>
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
-                    <input type="button" value="<fmt:message key='button.update.service.provider'/>"
-                           onclick="createAppOnclick();"/>
+                    <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>" />
                     <input type="button" value="<fmt:message key='button.cancel'/>"
                            onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
                 </div>
             </form>
         </div>
+
+<div style="display: none;">
+	<div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
+		<h3>Prerequisits</h3>
+		<p>Please change the parameters and default steps as required. For more information, refer
+			<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">Conditional Authentication Docs</a>
+		</p>
+		<br/>
+		<h3>Parameters</h3>
+		<table>
+			<tbody>
+			<tr>
+				<td><i>Roles :</i></td>
+				<td>The list of roles of which the users </td>
+			</tr>
+			</tbody>
+		</table>
+		<br/>
+		<h3>Default Steps</h3>
+		<ul>
+			<li>Step 1: Basic Authenticator</li>
+			<li>Step 2: TOTP or FIDO</li>
+		</ul>
+		<br/>
+		<h3>Help</h3>
+		<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">https://docs.wso2
+            .com/display/IS570/Conditional+Authentication</a>
+		<div class="error-msg">
+			<p>The template code will replace the existing scripts in the editor, Click "OK" to continue.</p>
+		</div>
+	</div>
+</div>
 
 </fmt:bundle>

@@ -288,4 +288,22 @@
     margin: 10px;
     margin-left: 35px;
 }
+.messagebox-warning-custom{
+    height: auto!important;
+    width: auto!important;
+}
+.messagebox-warning-custom p{
+    text-align: justify;
+}
+.messagebox-warning-custom ul li,.messagebox-warning-custom table td, .messagebox-warning-custom a {
+    font-size: 12.65px;
+    margin: 0px;
+}
 
+.messagebox-warning-custom .error-msg{
+    margin: 10px 0px;
+    margin-top: 20px;
+    padding:12px;
+    color: #D8000C;
+    background-color: #FFD2D2;
+  }
