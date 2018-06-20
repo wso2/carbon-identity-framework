@@ -17,26 +17,25 @@
 -->
 
 
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-	prefix="carbon"%>
-<%@ page import="org.owasp.encoder.Encode"%>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 
 
 <%
-	String httpMethod = request.getMethod();
-	if (!"post".equalsIgnoreCase(httpMethod)) {
-		response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-		return;
-	}
-
-	String spName = request.getParameter("spName");
-	ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, spName);
-	appBean.updateOutBoundAuthenticationConfig(request);
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+    
+    String spName = request.getParameter("spName");
+    ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, spName);
+    appBean.updateOutBoundAuthenticationConfig(request);
 %>
 
-	<script>
-		location.href = 'configure-service-provider.jsp?authType=graph&display=auth_config&action=update&spName=<%=Encode.forUriComponent(spName)%>';
-	</script>
+<script>
+    location.href = 'configure-service-provider.jsp?authType=graph&display=auth_config&action=update&spName=<%=Encode.forUriComponent(spName)%>';
+</script>
