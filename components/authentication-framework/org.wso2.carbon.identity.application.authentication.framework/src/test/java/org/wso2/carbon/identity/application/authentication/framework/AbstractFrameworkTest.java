@@ -21,11 +21,10 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 import javax.xml.stream.XMLStreamException;
 
@@ -45,4 +44,18 @@ public class AbstractFrameworkTest {
         authenticationContext.setContextIdentifier(UUID.randomUUID().toString());
         return authenticationContext;
     }
+
+    /**
+     * To get the identity provider based on the file configurations.
+     * @param idpFileName Relevant file of IDP configuration.
+     * @return Related Identity Provider.
+     * @throws XMLStreamException XML Stream Exception.
+     */
+    protected IdentityProvider getTestIdentityProvider(String idpFileName) throws XMLStreamException {
+
+        InputStream inputStream = this.getClass().getResourceAsStream(idpFileName);
+        OMElement documentElement = new StAXOMBuilder(inputStream).getDocumentElement();
+        return IdentityProvider.build(documentElement);
+    }
+
 }
