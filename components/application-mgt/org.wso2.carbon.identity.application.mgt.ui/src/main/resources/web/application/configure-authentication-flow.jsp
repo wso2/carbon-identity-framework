@@ -916,7 +916,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 	<div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
 		<h3>Prerequisits</h3>
 		<p>Please change the parameters and default steps as required. For more information, refer
-			<a href="https://docs.wso2.com/display/IS560/Conditional+Authentication">Conditional Authentication Docs</a>
+			<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">Conditional Authentication Docs</a>
 		</p>
 		<br/>
 		<h3>Parameters</h3>
