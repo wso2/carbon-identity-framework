@@ -428,8 +428,8 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
                 var editorContent = doc.getValue();
                 if (editorContent.length != 0) {
-                    CARBON.showPopupConfirm($('#messagebox-warning')[0].outerHTML, 'Role Based Authentication Template', 350,
-						true, doReplaceRange, null);
+                    showPopupConfirm($('#messagebox-warning')[0].outerHTML, 'Role Based Authentication Template', 350,
+						"OK","Cancel", doReplaceRange, null);
                 } else {
                     doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
                     highlightNewCode();
@@ -450,6 +450,98 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 setTimeout(function () {
                     mark.clear();
                 }, 2000);
+            }
+        }
+
+        /**
+         * Temporary function that serves as the local popup customization till carbon-kernel release
+         * This has also been moved to proper codebase in carbon.ui as this is reusable.
+         */
+        function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButton, callback, windowWidth) {
+            if (!isHTML(htmlMessage)) {
+                htmlMessage = htmlEncode(htmlMessage);
+            }
+            var strDialog = "<div id='dialog' title='" + title + "'><div id='popupDialog'></div>" + htmlMessage + "</div>";
+            var requiredWidth = 750;
+            if (windowWidth) {
+                requiredWidth = windowWidth;
+            }
+            var func = function () {
+                jQuery("#dcontainer").html(strDialog);
+                if (okButton) {
+                    jQuery("#dialog").dialog({
+                        close: function () {
+                            jQuery(this).dialog('destroy').remove();
+                            jQuery("#dcontainer").empty();
+                            return false;
+                        },
+                        buttons: {
+                            "OK": function () {
+                                if (callback && typeof callback == "function")
+                                    callback();
+                                jQuery(this).dialog("destroy").remove();
+                                jQuery("#dcontainer").empty();
+                                return false;
+                            },
+                            "Cancel": function () {
+                                jQuery(this).dialog('destroy').remove();
+                                jQuery("#dcontainer").empty();
+                                return false;
+                            },
+                        },
+                        height: windowHeight,
+                        width: requiredWidth,
+                        minHeight: windowHeight,
+                        minWidth: requiredWidth,
+                        modal: true
+                    });
+                } else {
+                    jQuery("#dialog").dialog({
+                        close: function () {
+                            jQuery(this).dialog('destroy').remove();
+                            jQuery("#dcontainer").empty();
+                            return false;
+                        },
+                        height: windowHeight,
+                        width: requiredWidth,
+                        minHeight: windowHeight,
+                        minWidth: requiredWidth,
+                        modal: true
+                    });
+                }
+
+                if (okButton) {
+                    $('.ui-dialog-buttonpane button:contains(OK)').attr("id", "dialog-confirm_ok-button");
+                    $('#dialog-confirm_ok-button').html(okButton);
+                }
+                if (cancelButton) {
+                    $('.ui-dialog-buttonpane button:contains(Cancel)').attr("id", "dialog-confirm_cancel-button");
+                    $('#dialog-confirm_cancel-button').html(cancelButton);
+                }
+
+
+                jQuery('.ui-dialog-titlebar-close').click(function () {
+                    jQuery('#dialog').dialog("destroy").remove();
+                    jQuery("#dcontainer").empty();
+                    jQuery("#dcontainer").html('');
+                });
+
+            };
+            if (!pageLoaded) {
+                jQuery(document).ready(func);
+            } else {
+                func();
+            }
+
+            function isHTML(str) {
+                var a = document.createElement('div');
+                a.innerHTML = str;
+
+                for (var c = a.childNodes, i = c.length; i--;) {
+                    if (c[i].nodeType == 1) return true;
+                }
+
+                return false;
             }
         }
 
@@ -936,7 +1028,8 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 		</ul>
 		<br/>
 		<h3>Help</h3>
-		<a href="https://docs.wso2.com/display/IS560/Conditional+Authentication">https://docs.wso2.com/display/IS560/Conditional+Authentication</a>
+		<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">https://docs.wso2
+            .com/display/IS570/Conditional+Authentication</a>
 		<div class="error-msg">
 			<p>The template code will replace the existing scripts in the editor, Click "OK" to continue.</p>
 		</div>
