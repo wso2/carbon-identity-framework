@@ -6,12 +6,12 @@
 ~ in compliance with the License.
 ~ You may obtain a copy of the License at
 ~
-~    http://www.apache.org/licenses/LICENSE-2.0
+~ http://www.apache.org/licenses/LICENSE-2.0
 ~
 ~ Unless required by applicable law or agreed to in writing,
 ~ software distributed under the License is distributed on an
 ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-~ KIND, either express or implied.  See the License for the
+~ KIND, either express or implied. See the License for the
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
@@ -58,7 +58,7 @@
 
 <%@ page import="com.google.gson.JsonPrimitive" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -66,7 +66,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
+    import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
@@ -78,7 +78,8 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
 
-<carbon:breadcrumb label="breadcrumb.advanced.auth.step.config" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
+<carbon:breadcrumb label="breadcrumb.advanced.auth.step.config"
+                   resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
@@ -105,7 +106,7 @@
                 .append(Encode.forHtmlContent(auth.getDisplayName())).append(endOption);
         }
     }
-
+    
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -113,7 +114,7 @@
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         templatesJson = serviceClient.getAuthenticationTemplatesJson();
         ConditionalAuthMgtClient conditionalAuthMgtClient = new
-                ConditionalAuthMgtClient(cookie, backendServerURL, configContext);
+            ConditionalAuthMgtClient(cookie, backendServerURL, configContext);
         String[] functionList = conditionalAuthMgtClient.listAvailableFunctions();
         JsonArray jsonArray = new JsonArray();
         for (String function : functionList) {
@@ -130,13 +131,13 @@
     templatesJson = StringEscapeUtils.escapeJavaScript(templatesJson);
 
 %>
-<script type="text/javascript" >
-var authMap = {};
-var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
+<script type="text/javascript">
+    var authMap = {};
+    var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 </script>
 
 <%
-
+    
     StringBuilder idpType = new StringBuilder();
     StringBuilder enabledIdpType = new StringBuilder();
     Map<String, String> idpAuthenticators = new HashMap<String, String>();
@@ -162,7 +163,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         fedAuthenticatorDisplayType.append(fedAuth.getDisplayName()).append("%fed_auth_sep_%");
                         fedAuthenticatorType.append(fedAuth.getName()).append("%fed_auth_sep_%");
                     }
-
+                    
                     fedAuthType.append(startOption).append(Encode.forHtmlAttribute(fedAuth.getName()))
                         .append(middleOption).append(Encode.forHtmlContent(fedAuth.getDisplayName())).append(endOption);
                     if (fedAuth.getEnabled()) {
@@ -174,10 +175,10 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         fedAuth.getEnabled());
                     i++;
                 }
-    
+                
                 idpAuthenticators.put(idp.getIdentityProviderName(), fedAuthType.toString());
                 enabledIdpAuthenticators.put(idp.getIdentityProviderName(), enabledfedAuthType.toString());
-
+                
                 idpType.append(startOption).append(Encode.forHtmlAttribute(idp.getIdentityProviderName()))
                     .append("\" data=\"").append(Encode.forHtmlAttribute(fedAuthenticatorDisplayType.toString()))
                     .append("\"").append(" data-values=\"")
@@ -193,7 +194,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             }
         }
     }
-
+    
     AuthenticationStep[] steps =
         appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
     Map<String, String> stepIdpAuthenticators = new HashMap<String, String>();
@@ -235,18 +236,18 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
     var stepOrder = 0;
     var img = "";
     <%}%>
-
-
+    
+    
     var idpNumber = 0;
     var reqPathAuth = 0;
     var localAuthNumber = 0;
-
+    
     jQuery(document).ready(function () {
-
-        $("#createApp").click(function(){
+        
+        $("#createApp").click(function () {
             showAllErrors();
-		});
-
+        });
+        
         var addTemplate = $("#addTemplate");
         var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
             theme: "mdn-like",
@@ -278,7 +279,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             showCursorWhenSelecting: true,
             styleActiveLine: true,
         });
-
+        
         function showAllErrors() {
             myCodeMirror.operation(function () {
                 var warnCount = 0;
@@ -294,7 +295,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         errorCount++;
                     }
                 }
-
+                
                 if (errorCount > 0) {
                     CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
                         'Do you want to continue? ',
@@ -308,17 +309,18 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 }
             });
         }
-
+        
         function submitFormWithoutCheck() {
             $("#enableScript").prop("checked", false);
             $("#configure-auth-flow-form").submit();
         }
+        
         function submitForm() {
             $("#configure-auth-flow-form").submit();
         }
-
+        
         $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
-
+        
         $("#toggleEditorSize").click(function () {
             if (myCodeMirror.getOption("fullScreen")) {
                 $(this).addClass("maximizeIcon");
@@ -332,23 +334,23 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 $("#codeMirrorTemplate").hide();
             }
         });
-
+        
         function getSelectedRange() {
             return {from: myCodeMirror.getCursor(true), to: myCodeMirror.getCursor(false)};
         }
-
+        
         function autoFormatSelection(cm) {
             var range = getSelectedRange();
             cm.autoFormatRange(range.from, range.to);
         }
-
+        
         jQuery('#ReqPathAuth').hide();
         jQuery('#authenticationConfRow').hide();
         jQuery('#advanceAuthnConfRow').hide();
         jQuery('#permissionConfRow').hide();
         jQuery('#conditional_script_dropdown').hide();
         jQuery('body').delegate("h2.trigger", 'click', bindHeadingCollapse);
-
+        
         function bindHeadingCollapse() {
             if (jQuery(this).next().is(":visible")) {
                 this.className = "active trigger step_heads";
@@ -356,7 +358,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 this.className = "trigger step_heads";
             }
             jQuery(this).next().slideToggle("fast");
-
+            
             var $el = $(this);
             var $container = $el.siblings('ul');
             if ($el === $("#template_list .type > h2")) {
@@ -371,7 +373,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             }
             return false; //Prevent the browser jump to the link anchor
         }
-
+        
         jQuery('#stepsAddLink').click(function () {
             stepOrder++;
             jQuery('#stepsConfRow .steps').append(jQuery('<h2 id="step_head_' + stepOrder +
@@ -384,16 +386,17 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 $('#attribute_step_' + stepOrder).attr('checked', true);
             }
         });
-
+        
         populateTemplates();
+        
         function populateTemplates() {
             var templates = $.parseJSON('<%=templatesJson%>');
             $.each(templates, function (category, categoryTemplates) {
-
+                
                 var tempType = '<li class="type"><h2  class = "sectionSeperator trigger step_heads">' +
                     '<a href="#" title="' + category + '">' + category + '</a></h2></li>';
                 var details = '<ul class="normal details">';
-
+                
                 $.each(categoryTemplates, function (i, template) {
                     details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
                         'data-type-name="' + template.name + '" title="' + template.name + '"><img src="' + template.img + '"/>' +
@@ -403,13 +406,13 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 details += '</ul>';
                 $(tempType).appendTo('#template_list').append(details);
             });
-
+            
             $('[data-toggle=template-link]').click(function (e) {
                 e.preventDefault();
                 var typeName = $(this).data('type-name');
                 var data;
                 var tempName;
-
+                
                 $.each(templates, function (category, categoryTemplates) {
                     $.each(categoryTemplates, function (i, template) {
                         if (template.name === typeName) {
@@ -418,30 +421,30 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         }
                     });
                 });
-
+                
                 var cursor = doc.getCursor();
                 var line = doc.getLine(cursor.line); // get the line contents
                 var pos = {
                     line: cursor.line,
                     ch: line.length - 1
                 };
-
+                
                 var editorContent = doc.getValue();
                 if (editorContent.length != 0) {
                     showPopupConfirm($('#messagebox-warning')[0].outerHTML, 'Role Based Authentication Template', 350,
-						"OK","Cancel", doReplaceRange, null);
+                        "OK", "Cancel", doReplaceRange, null);
                 } else {
                     doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
                     highlightNewCode();
                 }
-
+                
                 function doReplaceRange() {
                     myCodeMirror.setValue("");
                     doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
                 }
-
+                
             });
-
+            
             function highlightNewCode() {
                 var coordinates = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
                 var coordinatesLTB = myCodeMirror.cursorCoords();
@@ -452,7 +455,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 }, 2000);
             }
         }
-
+        
         /**
          * Temporary function that serves as the local popup customization till carbon-kernel release
          * This has also been moved to proper codebase in carbon.ui as this is reusable.
@@ -509,7 +512,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         modal: true
                     });
                 }
-
+                
                 if (okButton) {
                     $('.ui-dialog-buttonpane button:contains(OK)').attr("id", "dialog-confirm_ok-button");
                     $('#dialog-confirm_ok-button').html(okButton);
@@ -518,40 +521,40 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     $('.ui-dialog-buttonpane button:contains(Cancel)').attr("id", "dialog-confirm_cancel-button");
                     $('#dialog-confirm_cancel-button').html(cancelButton);
                 }
-
-
+                
+                
                 jQuery('.ui-dialog-titlebar-close').click(function () {
                     jQuery('#dialog').dialog("destroy").remove();
                     jQuery("#dcontainer").empty();
                     jQuery("#dcontainer").html('');
                 });
-
+                
             };
             if (!pageLoaded) {
                 jQuery(document).ready(func);
             } else {
                 func();
             }
-
+            
             function isHTML(str) {
                 var a = document.createElement('div');
                 a.innerHTML = str;
-
+                
                 for (var c = a.childNodes, i = c.length; i--;) {
                     if (c[i].nodeType == 1) return true;
                 }
-
+                
                 return false;
             }
         }
-
+        
         var cursorCoordsBeforeChange, cursorCoordsAfterChange, mark, startLine;
         var doc = myCodeMirror.getDoc();
         var editorContent = doc.getValue();
-
+        
         myCodeMirror.on("change", function (instance, ch) {
             cursorCoordsAfterChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
-
+            
         });
         myCodeMirror.on("beforeChange", function (instance, changeObj) {
             cursorCoordsBeforeChange = myCodeMirror.coordsChar(myCodeMirror.cursorCoords());
@@ -563,26 +566,26 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             }
             CodeMirror.commands.autocomplete(myCodeMirror, null, {completeSingle: false})
         });
-
+        
         var contentToggle = 0;
-
+        
         $("#enableScript").click(function () {
             checkScriptEnabled();
         });
-
+        
         $("#editorRow").hide();
         checkScriptEnabled();
-
+        
         function checkScriptEnabled() {
             var scriptEnabled = $("#enableScript").is(":checked");
             var stepConfigTrigger = $(".authentication_step_config_head");
             var editorRow = $("#editorRow");
-
+            
             if (scriptEnabled) {
                 stepConfigTrigger.addClass('active');
                 editorRow.slideDown('fast');
             }
-
+            
             if (editorContent.length == 0) {
                 contentToggle = 1;
             } else {
@@ -590,16 +593,16 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             }
             showHideTemplateList();
         }
-
+        
         addTemplate.click(function (e) {
             showHideTemplateList();
             e.preventDefault();
         });
-
+        
         function showHideTemplateList() {
             var codeMirror = $("#codeMirror");
             var templates = $('#codeMirrorTemplate');
-
+            
             if (contentToggle == 0) {
                 addTemplate.css("background-image", "url(images/templates.png)");
                 templates.animate({width: 25}, {duration: 50, queue: false});
@@ -613,10 +616,11 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                 contentToggle = 0;
             }
         }
-
+        
     });
-
+    
     var deletePermissionRows = [];
+    
     function deletePermissionRow(obj) {
         if (jQuery(obj).parent().prev().children()[0].value != '') {
             deletePermissionRows.push(jQuery(obj).parent().prev().children()[0].value);
@@ -626,7 +630,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function deleteStepRow(obj) {
         stepOrder--;
         jQuery(obj).parent().parent().remove();
@@ -634,7 +638,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function deleteIDPRow(obj) {
         idpNumber--;
         jQuery(obj).parent().parent().remove();
@@ -642,9 +646,9 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function deleteStep(obj) {
-
+        
         var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
         var subjectStep = $('#step_dev_' + currentStep).find('#subject_step_' + currentStep).prop("checked");
         var attributeStep = $('#step_dev_' + currentStep).find('#attribute_step_' + currentStep).prop("checked");
@@ -652,7 +656,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             CARBON.showWarningDialog("You can't delete a step which is configured for Attribute selection or Subject identifier.");
             return false;
         }
-
+        
         stepOrder--;
         jQuery(obj).parent().next().remove();
         jQuery(obj).parent().remove();
@@ -660,27 +664,27 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             var newStepOrderVal = 1;
             $.each($('.step_heads'), function () {
                 var oldStepOrderVal = parseInt($(this).find('input[name="auth_step"]').val());
-
+                
                 //Changes in header
                 $(this).attr('id', 'step_head_' + newStepOrderVal)
                 $(this).find('input[name="auth_step"]').val(newStepOrderVal);
                 $(this).find('.step_order_header').text('Step ' + newStepOrderVal);
-
+                
                 //Changes in content
                 var contentDiv = $('#step_dev_' + oldStepOrderVal);
                 if (contentDiv.length > 0) {
                     contentDiv.attr('id', 'step_dev_' + newStepOrderVal);
-
+                    
                     var subjectStepInput = contentDiv.find('#subject_step_' + oldStepOrderVal);
                     subjectStepInput.attr('id', 'subject_step_' + newStepOrderVal);
                     subjectStepInput.attr('name', 'subject_step_' + newStepOrderVal);
                     contentDiv.find('label[for="subject_step_' + oldStepOrderVal + '"]').attr('for', 'subject_step_' + newStepOrderVal);
-
+                    
                     var attributeStepInput = contentDiv.find('#attribute_step_' + oldStepOrderVal);
                     attributeStepInput.attr('id', 'attribute_step_' + newStepOrderVal);
                     attributeStepInput.attr('name', 'attribute_step_' + newStepOrderVal);
                     contentDiv.find('label[for="attribute_step_' + oldStepOrderVal + '"]').attr('for', 'attribute_step_' + newStepOrderVal);
-
+                    
                     contentDiv.find('#local_auth_head_' + oldStepOrderVal).attr('id', 'local_auth_head_' + newStepOrderVal);
                     contentDiv.find('#local_auth_head_dev_' + oldStepOrderVal).attr('id', 'local_auth_head_dev_' + newStepOrderVal);
                     contentDiv.find('#local_auth_table_' + oldStepOrderVal).attr('id', 'local_auth_table_' + newStepOrderVal);
@@ -697,8 +701,8 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         addLocalRow(this, tempStepOrderVal);
                         return false;
                     });
-
-
+                    
+                    
                     if (contentDiv.find('#fed_auth_head_' + oldStepOrderVal).length > 0) {
                         contentDiv.find('#fed_auth_head_' + oldStepOrderVal).attr('id', 'fed_auth_head_' + newStepOrderVal);
                         contentDiv.find('#fed_auth_head_dev_' + oldStepOrderVal).attr('id', 'fed_auth_head_dev_' + newStepOrderVal);
@@ -722,12 +726,12 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                         }
                     }
                 }
-
+                
                 newStepOrderVal++;
             });
         }
     }
-
+    
     function deleteLocalAuthRow(obj) {
         localAuthNumber--;
         jQuery(obj).parent().parent().remove();
@@ -735,7 +739,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function addLocalRow(obj, stepId) {
         //var stepId = jQuery(obj).parent().children()[0].value;
         var selectedObj = jQuery(obj).prev().find(":selected");
@@ -744,7 +748,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
         if (!validateAuthenticators('step_' + stepId + '_local_auth', selectedAuthenticatorName)) {
             return false;
         }
-
+        
         jQuery(obj)
             .parent()
             .parent()
@@ -753,14 +757,14 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             .append(
                 jQuery('<tr><td><input name="step_' + stepId + '_local_auth" id="" type="hidden" value="' + selectedAuthenticatorName + '" />' + selectedAuthenticatorDisplayName + '</td><td class="leftCol-small" ><a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>'));
     }
-
+    
     function addIDPRow(obj, stepID) {
         var selectedObj = jQuery(obj).prev().find(":selected");
         var selectedIDPName = selectedObj.val();
         if (!validateAuthenticators('step_' + stepID + '_fed_auth', selectedIDPName)) {
             return false;
         }
-
+        
         //var stepID = jQuery(obj).parent().children()[1].value;
         var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
         var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
@@ -777,7 +781,7 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
             .append(
                 jQuery(newRow));
     }
-
+    
     function validateAuthenticators(itemName, authenticatorName) {
         if ($('[name=' + itemName + ']').length > 0) {
             var isNew = true;
@@ -794,14 +798,14 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
         }
         return true;
     }
-
+    
     function setSubjectStep(element) {
         $.each($('.subject_steps'), function () {
             $(this).attr('checked', false);
         });
         $(element).attr('checked', true);
     }
-
+    
     function setAttributeStep(element) {
         $.each($('.attribute_steps'), function () {
             $(this).attr('checked', false);
@@ -813,33 +817,34 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <div id="middle">
-        <h2>
-            <fmt:message key='breadcrumb.advanced.auth.step.config.for'/><%=Encode.forHtmlContent(spName)%>
-        </h2>
-        <div id="workArea">
-            <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post" action="configure-authentication-flow-finish-ajaxprocessor.jsp" >
+    <h2>
+        <fmt:message key='breadcrumb.advanced.auth.step.config.for'/><%=Encode.forHtmlContent(spName)%>
+    </h2>
+    <div id="workArea">
+        <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post"
+              action="configure-authentication-flow-finish-ajaxprocessor.jsp">
             <input type=hidden name=spName value='<%=Encode.forHtmlAttribute(spName)%>'/>
-
-
+            
+            
             <h2 id="authentication_step_config_head" class="sectionSeperator trigger">
                 <a href="#"><fmt:message key="title.config.authentication.steps"/></a>
             </h2>
-
+            
             <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="stepsConfRow">
-            <table>
-            <tr>
-                <td><a id="stepsAddLink" class="icon-link"
-                       style="background-image:url(images/add.gif);margin-left:0"><fmt:message
-                    key='button.add.step'/></a></td>
-            </tr>
-            </table>
+                <table>
+                    <tr>
+                        <td><a id="stepsAddLink" class="icon-link"
+                               style="background-image:url(images/add.gif);margin-left:0"><fmt:message
+                            key='button.add.step'/></a></td>
+                    </tr>
+                </table>
                 <div class="steps">
-        
+                    
                     <%
                         if (steps != null && steps.length > 0) {
                             for (AuthenticationStep step : steps) {
                     %>
-        
+                    
                     <h2 id="step_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active step_heads"
                         style="background-color: beige; clear: both;">
                         <input type="hidden" value="<%=step.getStepOrder()%>" name="auth_step" id="auth_step"/>
@@ -894,13 +899,12 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                                 </thead>
                                 <%
                                     LocalAuthenticatorConfig[] lclAuthenticators = step.getLocalAuthenticatorConfigs();
-                        
+                                    
                                     if (lclAuthenticators != null && lclAuthenticators.length > 0) {
                                         int i = 0;
                                         for (LocalAuthenticatorConfig lclAuthenticator : lclAuthenticators) {
                                             if (lclAuthenticator != null) {
                                 %>
-                    
                                 <tr>
                                     <td>
                                         <input name="step_<%=step.getStepOrder()%>_local_auth" id="" type="hidden"
@@ -919,13 +923,13 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                                 %>
                             </table>
                         </div>
-            
+                        
                         <%if (federatedIdPs != null && federatedIdPs.length > 0 && (enabledIdpType.length() > 0 || (step.getFederatedIdentityProviders() != null && step.getFederatedIdentityProviders().length > 0))) { %>
                         <h2 id="fed_auth_head_<%=step.getStepOrder()%>" class="sectionSeperator trigger active"
                             style="background-color: floralwhite;">
                             <a href="#">Federated Authenticators</a>
                         </h2>
-            
+                        
                         <div class="toggle_container sectionSub" style="margin-bottom:10px;"
                              id="fed_auth_head_dev_<%=step.getStepOrder()%>">
                             <table class="styledLeft" width="100%" id="fed_auth_table_<%=step.getStepOrder()%>">
@@ -944,14 +948,14 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                                 </tr>
                                 </thead>
                                 <%
-                        
+                                    
                                     IdentityProvider[] fedIdps = step.getFederatedIdentityProviders();
                                     if (fedIdps != null && fedIdps.length > 0) {
                                         int j = 0;
                                         for (IdentityProvider idp : fedIdps) {
                                             if (idp != null) {
                                 %>
-                    
+                                
                                 <tr>
                                     <td>
                                         <input name="step_<%=step.getStepOrder()%>_fed_auth" id="" type="hidden"
@@ -977,11 +981,11 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                             </table>
                         </div>
                         <% } %>
-
-                            </div>
-
-                <% }
-                } %>
+                    
+                    </div>
+                    
+                    <% }
+                    } %>
                 </div>
                 <div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
                     <label class="noselect">
@@ -996,19 +1000,19 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
                     </label>
                 </div>
             </div>
-    
-                <div style="clear:both"></div>
-                <!-- sectionSub Div -->
-                <br/>
-                <h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
-                    <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
-                    <a href="#">Script Based Conditional Authentication</a>
-                </h2>
-    
-                <div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
-                     id="editorRow">
-                    <div style="position: relative;">
-                        <div class="sectionSub step_contents" id="codeMirror">
+            
+            <div style="clear:both"></div>
+            <!-- sectionSub Div -->
+            <br/>
+            <h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
+                <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                <a href="#">Script Based Conditional Authentication</a>
+            </h2>
+            
+            <div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
+                 id="editorRow">
+                <div style="position: relative;">
+                    <div class="sectionSub step_contents" id="codeMirror">
 <textarea id="scriptTextArea" name="scriptTextArea"
           placeholder="Write custom JavaScript or select from templates that match a scenario..."
           style="height: 500px;width: 100%; display: none;"><%
@@ -1018,56 +1022,57 @@ var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
         }
     }
 %></textarea>
+                    </div>
+                    <div id="codeMirrorTemplate" class="step_contents">
+                        <div class="add-template-container vertical-text">
+                            <a id="addTemplate" class="icon-link noselect">Templates</a>
                         </div>
-                        <div id="codeMirrorTemplate" class="step_contents">
-                            <div class="add-template-container vertical-text">
-                                <a id="addTemplate" class="icon-link noselect">Templates</a>
-                            </div>
-                            <div class="template-list-container">
-                                <ul id="template_list"></ul>
-                            </div>
+                        <div class="template-list-container">
+                            <ul id="template_list"></ul>
                         </div>
                     </div>
                 </div>
-                <div style="clear:both"></div>
-                <div class="buttonRow" style=" margin-top: 10px;">
-                    <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>" />
-                    <input type="button" value="<fmt:message key='button.cancel'/>"
-                           onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
-                </div>
-            </form>
+            </div>
+            <div style="clear:both"></div>
+            <div class="buttonRow" style=" margin-top: 10px;">
+                <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>"/>
+                <input type="button" value="<fmt:message key='button.cancel'/>"
+                       onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
+            </div>
+        </form>
+    </div>
+    
+    <div style="display: none;">
+        <div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
+            <h3>Prerequisits</h3>
+            <p>Please change the parameters and default steps as required. For more information, refer
+                <a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">Conditional Authentication
+                    Docs</a>
+            </p>
+            <br/>
+            <h3>Parameters</h3>
+            <table>
+                <tbody>
+                <tr>
+                    <td><i>Roles :</i></td>
+                    <td>The list of roles of which the users</td>
+                </tr>
+                </tbody>
+            </table>
+            <br/>
+            <h3>Default Steps</h3>
+            <ul>
+                <li>Step 1: Basic Authenticator</li>
+                <li>Step 2: TOTP or FIDO</li>
+            </ul>
+            <br/>
+            <h3>Help</h3>
+            <a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">https://docs.wso2
+                .com/display/IS570/Conditional+Authentication</a>
+            <div class="error-msg">
+                <p>The template code will replace the existing scripts in the editor, Click "OK" to continue.</p>
+            </div>
         </div>
-
-<div style="display: none;">
-	<div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
-		<h3>Prerequisits</h3>
-		<p>Please change the parameters and default steps as required. For more information, refer
-			<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">Conditional Authentication Docs</a>
-		</p>
-		<br/>
-		<h3>Parameters</h3>
-		<table>
-			<tbody>
-			<tr>
-				<td><i>Roles :</i></td>
-				<td>The list of roles of which the users </td>
-			</tr>
-			</tbody>
-		</table>
-		<br/>
-		<h3>Default Steps</h3>
-		<ul>
-			<li>Step 1: Basic Authenticator</li>
-			<li>Step 2: TOTP or FIDO</li>
-		</ul>
-		<br/>
-		<h3>Help</h3>
-		<a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">https://docs.wso2
-            .com/display/IS570/Conditional+Authentication</a>
-		<div class="error-msg">
-			<p>The template code will replace the existing scripts in the editor, Click "OK" to continue.</p>
-		</div>
-	</div>
-</div>
+    </div>
 
 </fmt:bundle>
