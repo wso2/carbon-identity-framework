@@ -22,16 +22,15 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="java.net.HttpURLConnection" %>
-<%@ page import="java.net.URL" %>
-<%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
+
+<jsp:directive.include file="init-loginform-action-url.jsp"/>
 
 
 <script>
@@ -88,25 +87,12 @@
     }
 %>
 
+<form action="<%=loginFormActionURL%>" method="post" id="loginForm">
 
-<%
-    String type = request.getParameter("type");
-    if ("samlsso".equals(type)) {
-%>
-<form action="<%=samlssoURL%>" method="post" id="loginForm">
+    <%
+        if (loginFormActionURL.equals(samlssoURL) || loginFormActionURL.equals(oauth2AuthorizeURL)) {
+    %>
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-<%
-    } else if ("oauth2".equals(type)){
-%>
-    <form action="<%=oauth2AuthorizeURL%>" method="post" id="loginForm">
-        <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-
-<%
-    } else {
-%>
-
-<form action="<%=commonauthURL%>" method="post" id="loginForm">
-
     <%
         }
     %>
