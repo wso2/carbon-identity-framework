@@ -111,7 +111,7 @@ public class UserProfileMgtDAO {
             prepStmt.setString(2, idpId);
             prepStmt.setInt(3, tenantId);
             prepStmt.setString(4, federatedUserId);
-            prepStmt.setString(5, userStoreDomain);
+            prepStmt.setString(5, userStoreDomain.toUpperCase());
             prepStmt.setString(6, domainFreeUsername);
             prepStmt.execute();
             if (!connection.getAutoCommit()) {

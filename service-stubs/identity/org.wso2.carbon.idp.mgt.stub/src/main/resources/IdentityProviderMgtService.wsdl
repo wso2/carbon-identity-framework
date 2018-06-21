@@ -103,6 +103,9 @@
                 <xs:complexContent>
                     <xs:extension base="ax2468:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean" nillable="true"/>
+                            <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean" nillable="true"/>
+                            <xs:element minOccurs="0" name="promptConsent" type="xs:boolean" nillable="true"/>
                             <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"/>
                         </xs:sequence>
                     </xs:extension>

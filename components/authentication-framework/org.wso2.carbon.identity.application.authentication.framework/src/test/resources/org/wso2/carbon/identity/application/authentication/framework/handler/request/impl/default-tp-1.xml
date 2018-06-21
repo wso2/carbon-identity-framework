@@ -1,0 +1,97 @@
+<!--
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<IdentityProvider>
+    <IdentityProviderName>identityProviderIDP_IS</IdentityProviderName>
+    <DisplayName>identityProviderIDP_IS</DisplayName>
+    <IdentityProviderDescription/>
+    <Alias>https://localhost:9444/oauth2/token/</Alias>
+    <IsPrimary/>
+    <IsEnabled>true</IsEnabled>
+    <IsFederationHub/>
+    <HomeRealmId/>
+    <ProvisioningRole/>
+    <FederatedAuthenticatorConfigs>
+        <saml2>
+            <Name>SAMLSSOAuthenticator</Name>
+            <DisplayName>samlsso</DisplayName>
+            <IsEnabled>true</IsEnabled>
+            <Properties>
+                <property>
+                    <Name>IdpEntityId</Name>
+                    <Value>identiryProviderIDP</Value>
+                </property>
+                <property>
+                    <Name>IsLogoutEnabled</Name>
+                    <Value>true</Value>
+                </property>
+                <property>
+                    <Name>SPEntityId</Name>
+                    <Value>travelocitySP</Value>
+                </property>
+                <property>
+                    <Name>SSOUrl</Name>
+                    <Value>https://localhost:9444/samlsso/</Value>
+                </property>
+                <property>
+                    <Name>isAssertionSigned</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>commonAuthQueryParams</Name>
+                    <Value/>
+                </property>
+                <property>
+                    <Name>IsUserIdInClaims</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>IsLogoutReqSigned</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>IsAssertionEncrypted</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>IsAuthReqSigned</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>IsAuthnRespSigned</Name>
+                    <Value>false</Value>
+                </property>
+                <property>
+                    <Name>LogoutReqUrl</Name>
+                    <Value>false</Value>
+                </property>
+            </Properties>
+        </saml2>
+    </FederatedAuthenticatorConfigs>
+    <DefaultAuthenticatorConfig>SAMLSSOAuthenticator</DefaultAuthenticatorConfig>
+    <ProvisioningConnectorConfigs>
+    </ProvisioningConnectorConfigs>
+    <DefaultProvisioningConnectorConfig/>
+    <ClaimConfig/>
+    <Certificate/>
+    <PermissionAndRoleConfig/>
+    <JustInTimeProvisioningConfig>
+        <ProvisioningUserStore>PRIMARY</ProvisioningUserStore>
+        <IsProvisioningEnabled>true</IsProvisioningEnabled>
+        <IsPasswordProvisioningEnabled>true</IsPasswordProvisioningEnabled>
+    </JustInTimeProvisioningConfig>
+</IdentityProvider>

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,9 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -134,47 +131,19 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                                                                                        AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        AuthenticatedUser user = getAuthenticatedUser(context);
-        Map<String, String> mappedAttrs = new HashMap<>();
-        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+        String[] missingClaims = FrameworkUtils.getMissingClaims(context);
 
-        if (userAttributes != null) {
-
-            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
-            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
-
-            if (object != null && object instanceof Map) {
-                spToCarbonClaimMapping = (Map<String, String>) object;
-            }
-
-            for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
-                String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
-
-                //getting the carbon claim uri mapping for other claim dialects
-                if (MapUtils.isNotEmpty(spToCarbonClaimMapping) &&
-                        spToCarbonClaimMapping.get(localClaimUri) != null) {
-                    localClaimUri = spToCarbonClaimMapping.get(localClaimUri);
-                }
-                mappedAttrs.put(localClaimUri, entry.getValue());
-            }
-        }
-
-        Map<String, String> mandatoryClaims =
-                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
-
-        String missingClaims = getMissingClaims(mappedAttrs, mandatoryClaims);
-
-        if (StringUtils.isNotBlank(missingClaims)) {
+        if (StringUtils.isNotBlank(missingClaims[0])) {
 
             if (log.isDebugEnabled()) {
-                log.debug("Mandatory claims missing for the application : " + missingClaims);
+                log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
 
             try {
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
-                        missingClaims);
+                        missingClaims[0]);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
@@ -306,21 +275,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                         "Error while updating claims for local user. Could not update profile", e);
             }
         }
-
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
     }
 
-    private String getMissingClaims(Map<String, String> mappedAttrs, Map<String, String> mandatoryClaims) {
-
-        StringBuilder missingClaimsString = new StringBuilder();
-        for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
-            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
-                missingClaimsString.append(entry.getKey());
-                missingClaimsString.append(",");
-            }
-        }
-        return missingClaimsString.toString();
-    }
 
     private UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
 
