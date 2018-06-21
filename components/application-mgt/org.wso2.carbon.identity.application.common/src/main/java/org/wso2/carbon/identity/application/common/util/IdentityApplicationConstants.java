@@ -78,6 +78,9 @@ public class IdentityApplicationConstants {
     public static final String ALLOW_MODIFY_USERNAME_ELEMENT = "AllowModifyUserName";
     public static final String PROMPT_CONSENT_ELEMENT = "PromptConsent";
 
+    public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";

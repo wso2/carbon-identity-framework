@@ -53,6 +53,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.CertificateInfo" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -68,7 +70,7 @@
     String idpDisplayName = null;
     String description = null;
     boolean federationHubIdp = false;
-    CertData certData = null;
+    CertData[] certDataArr = null;
     String jwksUri = null;
     boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
@@ -258,8 +260,19 @@
         idpDisplayName = identityProvider.getDisplayName();
         description = identityProvider.getIdentityProviderDescription();
         provisioningRole = identityProvider.getProvisioningRole();
-        if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
-            certData = IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+        if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray()) && !("[]").equals(identityProvider
+        .getCertificateInfoArray())) {
+            CertificateInfo[] certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
+            int i = 0;
+            for (org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo certificateInfo :
+            identityProvider.getCertificateInfoArray()) {
+                CertificateInfo certificateInfo1 = new CertificateInfo();
+                certificateInfo1.setCertValue(certificateInfo.getCertValue());
+                certificateInfo1.setThumbPrint(certificateInfo.getThumbPrint());
+                certInfoArr[i] = certificateInfo1;
+                i++;
+            }
+        certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr);
         }
         IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
         if (idpProperties != null) {
@@ -3255,21 +3268,22 @@
                             <td>
                                 <label style="display:block">
                                     <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
-                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && certData == null)) { %>
+                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && ArrayUtils
+                                           .isEmpty(certDataArr))) { %>
                                            checked="checked" <% } %>
-                                           onclick="selectJWKS('<%=(certData != null)%>');" />
+                                           onclick="selectJWKS('<%=(ArrayUtils.isNotEmpty(certDataArr))%>');" />
                                     Use IDP JWKS endpoint
                                 </label>
                                 <label style="display:block">
                                     <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
-                                            <% if (certData != null) { %> checked="checked" <% } %>
+                                            <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> checked="checked" <% } %>
                                            value="choose_upload_certificate"
                                            onclick="selectCertificate()" />
                                     Upload IDP certificate
                                 </label>
                             </td>
                         </tr>
-                        <tr id="upload_certificate" <% if (certData == null) { %> style="display:none" <% } %>>
+                        <tr id="upload_certificate" <% if (ArrayUtils.isEmpty(certDataArr)) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3278,7 +3292,7 @@
                                     <fmt:message key='certificate.help'/>
                                 </div>
                                 <div id="publicCertDiv">
-                                    <% if (certData != null) { %>
+                                    <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
                                     <a id="publicCertDeleteLink" class="icon-link"
                                        style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
                                             key='public.cert.delete'/></a>
@@ -3296,52 +3310,54 @@
                                         </tr>
                                         </thead>
                                         <tbody>
+                                        <%for(CertData certData1:certDataArr) { %>
                                         <tr>
                                             <td><%
                                                 String issuerDN = "";
-                                                if (certData.getIssuerDN() != null) {
-                                                    issuerDN = certData.getIssuerDN();
+                                                if (certData1.getIssuerDN() != null) {
+                                                    issuerDN = certData1.getIssuerDN();
                                                 }
                                             %><%=Encode.forHtmlContent(issuerDN)%>
                                             </td>
                                             <td><%
                                                 String subjectDN = "";
-                                                if (certData.getSubjectDN() != null) {
-                                                    subjectDN = certData.getSubjectDN();
+                                                if (certData1.getSubjectDN() != null) {
+                                                    subjectDN = certData1.getSubjectDN();
                                                 }
                                             %><%=Encode.forHtmlContent(subjectDN)%>
                                             </td>
                                             <td><%
                                                 String notAfter = "";
-                                                if (certData.getNotAfter() != null) {
-                                                    notAfter = certData.getNotAfter();
+                                                if (certData1.getNotAfter() != null) {
+                                                    notAfter = certData1.getNotAfter();
                                                 }
                                             %><%=Encode.forHtmlContent(notAfter)%>
                                             </td>
                                             <td><%
                                                 String notBefore = "";
-                                                if (certData.getNotBefore() != null) {
-                                                    notBefore = certData.getNotBefore();
+                                                if (certData1.getNotBefore() != null) {
+                                                    notBefore = certData1.getNotBefore();
                                                 }
                                             %><%=Encode.forHtmlContent(notBefore)%>
                                             </td>
                                             <td><%
                                                 String serialNo = "";
-                                                if (certData.getSerialNumber() != null) {
-                                                    serialNo = certData.getSerialNumber().toString();
+                                                if (certData1.getSerialNumber() != null) {
+                                                    serialNo = certData1.getSerialNumber().toString();
                                                 }
                                             %><%=Encode.forHtmlContent(serialNo)%>
                                             </td>
-                                            <td><%=certData.getVersion()%>
+                                            <td><%=certData1.getVersion()%>
                                             </td>
                                         </tr>
+                                        <%}%>
                                         </tbody>
                                     </table>
                                     <% } %>
                                 </div>
                             </td>
                         </tr>
-                        <tr id="use_jwks_uri" <% if (certData != null) { %> style="display:none" <% } %>>
+                        <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
                             <td>
                                 <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"

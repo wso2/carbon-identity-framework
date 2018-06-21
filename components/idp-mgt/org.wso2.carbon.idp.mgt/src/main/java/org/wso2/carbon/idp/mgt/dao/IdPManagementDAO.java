@@ -62,6 +62,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.json.JSONArray;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
  */
@@ -1681,15 +1685,18 @@ public class IdPManagementDAO {
 
             prepStmt.setString(4, identityProvider.getHomeRealmId());
 
-            if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
+            if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray())) {
                 try {
-                    IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+                    IdentityApplicationManagementUtil.getCertDataArray(identityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided."
                             , ex);
                 }
             }
-            setBlobValue(identityProvider.getCertificate(), prepStmt, 5);
+            Gson gson = new GsonBuilder().create();
+            String certificateInfoJson = gson.toJson(identityProvider.getCertificateInfoArray());
+            JSONArray certificateInfoJsonArray = new JSONArray(certificateInfoJson);
+            setBlobValue(certificateInfoJsonArray.toString(), prepStmt, 5);
 
             prepStmt.setString(6, identityProvider.getAlias());
 
@@ -1904,14 +1911,17 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(3, newIdentityProvider.getHomeRealmId());
 
-            if (StringUtils.isNotBlank(newIdentityProvider.getCertificate())) {
+            if (ArrayUtils.isNotEmpty(newIdentityProvider.getCertificateInfoArray())) {
                 try {
-                    IdentityApplicationManagementUtil.getCertData(newIdentityProvider.getCertificate());
+                    IdentityApplicationManagementUtil.getCertDataArray(newIdentityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided.", ex);
                 }
             }
-            setBlobValue(newIdentityProvider.getCertificate(), prepStmt1, 4);
+            Gson gson = new GsonBuilder().create();
+            String certificateInfoJson = gson.toJson(newIdentityProvider.getCertificateInfoArray());
+            JSONArray certificateInfoJsonArray = new JSONArray(certificateInfoJson);
+            setBlobValue(certificateInfoJsonArray.toString(), prepStmt1, 4);
 
             prepStmt1.setString(5, newIdentityProvider.getAlias());
 

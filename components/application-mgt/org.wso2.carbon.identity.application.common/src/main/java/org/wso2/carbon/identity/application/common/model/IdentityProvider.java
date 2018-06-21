@@ -23,9 +23,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.opensaml.xml.util.Base64;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -56,6 +62,13 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
+    private final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+    private final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+    private final String CHARSET_NAME = "UTF-8";
+    private final String THUMB_PRINT = "thumbPrint";
+    private final String CERT_VALUE = "certValue";
+    private final String JSON_ARRAY_FORMAT = "[";
+    private final String EMPTY_JSON_ARRAY = "[]";
 
     private String id;
     private String identityProviderName;
@@ -76,6 +89,7 @@ public class IdentityProvider implements Serializable {
     private PermissionsAndRoleConfig permissionAndRoleConfig;
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
     private IdentityProviderProperty []idpProperties = new IdentityProviderProperty[0];
+    private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
 
     public static IdentityProvider build(OMElement identityProviderOM) {
         IdentityProvider identityProvider = new IdentityProvider();
@@ -365,9 +379,21 @@ public class IdentityProvider implements Serializable {
     }
 
     /**
-     * @return
+     * Get certificate
+     * @return if certificate is in JSON array then return only first element.
      */
     public String getCertificate() {
+
+        // Check whether certificate is in json format.
+        if (StringUtils.isNotBlank(certificate) && certificate.startsWith(JSON_ARRAY_FORMAT)) {
+            if (!certificate.equals(EMPTY_JSON_ARRAY)) {
+                certificate = ((JSONObject) (new JSONArray(certificate).get(0))).getString(CERT_VALUE);
+            }
+            // If certificate is an empty json array, then return empty value.
+            else {
+                certificate = "";
+            }
+        }
         return certificate;
     }
 
@@ -375,7 +401,154 @@ public class IdentityProvider implements Serializable {
      * @param certificate
      */
     public void setCertificate(String certificate) {
+
+        setCertificateInfoArray(certificate);
         this.certificate = certificate;
+    }
+
+    /**
+     * Get certificate info array
+     * @return CertificateInfo array
+     */
+    public CertificateInfo[] getCertificateInfoArray() {
+
+        return certificateInfoArray;
+    }
+
+    /**
+     * Set certificateInfoArray
+     *
+     * @param certificateInfoArray array which contains certificate info. Here Certificate info contains thumbPrint
+     *                             and certificate value as attributes.
+     */
+    private void setCertificateInfoArray(String certificateInfoArray) {
+
+        try {
+            if (StringUtils.isNotBlank(certificateInfoArray) && !certificateInfoArray.
+                    equals(EMPTY_JSON_ARRAY)) {
+                // Trim certificateInfoArray in order to remove extra spaces.
+                certificateInfoArray = certificateInfoArray.trim();
+                // If certificateInfoArray is in JSON format then get thumbPrint and cert value of each certificate
+                // from json and assign to certificateInfoArray
+                if (certificateInfoArray.startsWith(JSON_ARRAY_FORMAT)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("JSON array format certificate has been found");
+                    }
+                    JSONArray jsonCertificateInfoArray = new JSONArray(certificateInfoArray);
+                    if (jsonCertificateInfoArray.length() > 1) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("More than one certificate has been found");
+                        }
+                        CertificateInfo[] certificateInfo = new CertificateInfo[jsonCertificateInfoArray.length()];
+                        for (int i = 0; i < jsonCertificateInfoArray.length(); i++) {
+                            certificateInfo[i] = new CertificateInfo();
+                            JSONObject jsonCertificateInfoObject = (JSONObject) jsonCertificateInfoArray.get(i);
+                            certificateInfo[i].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint
+                                    (jsonCertificateInfoObject.getString(THUMB_PRINT)));
+                            certificateInfo[i].setCertValue(jsonCertificateInfoObject.getString(CERT_VALUE));
+                        }
+                        this.certificateInfoArray = certificateInfo;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Only one certificate has been found");
+                        }
+                        JSONObject obj1 = (JSONObject) jsonCertificateInfoArray.get(0);
+                        CertificateInfo[] certificateInfo = {new CertificateInfo()};
+                        certificateInfo[0].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(
+                                obj1.getString(THUMB_PRINT)));
+                        certificateInfo[0].setCertValue(obj1.getString(CERT_VALUE));
+                        this.certificateInfoArray = certificateInfo;
+                    }
+                }
+                // handle the certificates which are not in json format.
+                else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Handling file based certificate configuration.");
+                    }
+                    // Handle file based certificate configuration. File based configurations are in plain text.
+                    if (certificateInfoArray.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("More than one plain text certificate has been found");
+                        }
+                        int numberOfCertificates = StringUtils.countMatches(certificateInfoArray, END_CERTIFICATE
+                                + "\n" + BEGIN_CERTIFICATE) + 1;
+                        CertificateInfo[] certificateInfo = new CertificateInfo[numberOfCertificates];
+
+                        for (int i = 0; i < numberOfCertificates; i++) {
+                            certificateInfo[i] = new CertificateInfo();
+                            String certificateVal;
+                            if (i == 0) {
+                                certificateVal = certificateInfoArray.substring(0,
+                                        StringUtils.ordinalIndexOf(certificateInfoArray, BEGIN_CERTIFICATE, 2));
+
+                            } else {
+                                // Get the i+2'th occurrence of BEGIN_CERTIFICATE.
+                                certificateVal = certificateInfoArray.substring(StringUtils.ordinalIndexOf(
+                                        certificateInfoArray, BEGIN_CERTIFICATE, i + 2));
+
+                            }
+                            certificateInfo[i].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint
+                                    (Base64.encodeBytes(certificateVal.getBytes(Charset.forName(CHARSET_NAME)))));
+                            certificateInfo[i].setCertValue(certificateVal);
+                        }
+                        this.certificateInfoArray = certificateInfo;
+                    } else if (certificateInfoArray.startsWith(BEGIN_CERTIFICATE)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Only one plain text certificate has been found");
+                        }
+                        CertificateInfo[] certificateInfo = {new CertificateInfo()};
+                        certificateInfo[0].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(
+                                (Base64.encodeBytes(certificateInfoArray.getBytes(Charset.forName(CHARSET_NAME))))));
+                        certificateInfo[0].setCertValue(certificateInfoArray);
+                        this.certificateInfoArray = certificateInfo;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Handling encoded certicates.");
+                        }
+                        // Handle encoded certificate values. While uploading through UI.
+                        String decodedCertificate = new String(Base64.decode(certificateInfoArray));
+                        // If the certificate contains two certificates in it, handle it according to that.
+                        if (decodedCertificate.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("More than one encoded certificate has been found");
+                            }
+                            int numberOfCertificates = StringUtils.countMatches(decodedCertificate, END_CERTIFICATE
+                                    + "\n" + BEGIN_CERTIFICATE) + 1;
+                            CertificateInfo[] certificateInfo = new CertificateInfo[numberOfCertificates];
+                            for (int i = 0; i < numberOfCertificates; i++) {
+                                certificateInfo[i] = new CertificateInfo();
+                                String certificateVal;
+                                if (i == 0) {
+                                    certificateVal = Base64.encodeBytes(decodedCertificate.substring(0,
+                                            StringUtils.ordinalIndexOf(decodedCertificate, BEGIN_CERTIFICATE, 2)).getBytes(Charset
+                                            .forName(CHARSET_NAME)));
+                                } else {
+                                    certificateVal = Base64.encodeBytes(decodedCertificate.substring(StringUtils.ordinalIndexOf(
+                                            decodedCertificate, BEGIN_CERTIFICATE, 2)).getBytes(Charset.forName
+                                            (CHARSET_NAME)));
+                                }
+
+                                certificateInfo[i].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(
+                                        certificateVal));
+                                certificateInfo[i].setCertValue(certificateVal);
+                            }
+
+                            this.certificateInfoArray = certificateInfo;
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Only one encoded certificate has been found");
+                            }
+                            CertificateInfo[] certificateInfo = {new CertificateInfo()};
+                            certificateInfo[0].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(certificateInfoArray));
+                            certificateInfo[0].setCertValue(certificateInfoArray);
+                            this.certificateInfoArray = certificateInfo;
+                        }
+                    }
+                }
+            }
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error while generating thumbPrint. Unsupported hash algorithm " + e);
+        }
     }
 
     /**

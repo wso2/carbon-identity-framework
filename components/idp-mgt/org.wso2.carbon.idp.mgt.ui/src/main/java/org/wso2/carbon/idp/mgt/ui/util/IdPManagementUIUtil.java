@@ -25,12 +25,12 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -217,7 +216,23 @@ public class IdPManagementUIUtil {
             }
 
             if (oldIdentityProvider != null && oldIdentityProvider.getCertificate() != null) {
-                paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                if (oldIdentityProvider.getCertificateInfoArray() != null && oldIdentityProvider.
+                        getCertificateInfoArray().length > 1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("More than one certificate has been found as old certificate.");
+                    }
+
+                    StringBuilder multipleCertificate = new StringBuilder();
+                    for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
+                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
+                    }
+                    paramMap.put("oldCertFile", Base64.encode(multipleCertificate.toString().getBytes("UTF-8")));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Only one certificate has been found as old certificate.");
+                    }
+                    paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                }
             }
 
             if (oldIdentityProvider != null
