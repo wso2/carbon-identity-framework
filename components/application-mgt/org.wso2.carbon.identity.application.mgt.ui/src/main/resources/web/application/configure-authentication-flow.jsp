@@ -50,6 +50,7 @@
 <script src="codemirror/addon/dialog/dialog.js"></script>
 <script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
+<script src="js/handlebars.min-v4.0.11.js"></script>
 
 <script src="../admin/js/main.js" type="text/javascript"></script>
 
@@ -412,15 +413,21 @@
                 var typeName = $(this).data('type-name');
                 var data;
                 var tempName;
+                var templateObj = null;
                 
                 $.each(templates, function (category, categoryTemplates) {
                     $.each(categoryTemplates, function (i, template) {
                         if (template.name === typeName) {
                             data = template.code.join("\n");
                             tempName = template.name;
+                            templateObj = template;
                         }
                     });
                 });
+    
+                if (templateObj === null) {
+                    return;
+                }
                 
                 var cursor = doc.getCursor();
                 var line = doc.getLine(cursor.line); // get the line contents
@@ -430,19 +437,19 @@
                 };
                 
                 var editorContent = doc.getValue();
-                if (editorContent.length != 0) {
-                    showPopupConfirm($('#messagebox-warning')[0].outerHTML, 'Role Based Authentication Template', 350,
-                        "OK", "Cancel", doReplaceRange, null);
-                } else {
-                    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
-                    highlightNewCode();
-                }
+                var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
+                var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
+                var renderedTemplateInfo = compiledTemplate(templateObj);
+                showPopupConfirm(renderedTemplateInfo, templateObj.title, 350, "OK", "Cancel", doReplaceRange, null);
                 
                 function doReplaceRange() {
                     myCodeMirror.setValue("");
                     doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+                    highlightNewCode();
                 }
-                
+                if (editorContent.length === 0) {
+                    $('#template-replace-warn').hide();
+                }
             });
             
             function highlightNewCode() {
@@ -666,7 +673,7 @@
                 var oldStepOrderVal = parseInt($(this).find('input[name="auth_step"]').val());
                 
                 //Changes in header
-                $(this).attr('id', 'step_head_' + newStepOrderVal)
+                $(this).attr('id', 'step_head_' + newStepOrderVal);
                 $(this).find('input[name="auth_step"]').val(newStepOrderVal);
                 $(this).find('.step_order_header').text('Step ' + newStepOrderVal);
                 
@@ -1042,37 +1049,56 @@
         </form>
     </div>
     
-    <div style="display: none;">
-        <div id='messagebox-warning' class="messagebox-warning-custom" style="height: auto;">
-            <h3>Prerequisits</h3>
-            <p>Please change the parameters and default steps as required. For more information, refer
-                <a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">Conditional Authentication
-                    Docs</a>
-            </p>
+    <script id="template-info" type="text/x-handlebars-template">
+        <div id='messagebox-template-summary' class="messagebox-warning-custom" style="height: auto;">
+            <h2>{{title}}</h2>
             <br/>
+            {{#if summary}}
+            <p>{{summary}}</p>
+            <br/>
+            {{/if}}
+            {{#if preRequisites}}
+            <h3>Prerequisites</h3>
+            <ul>
+                {{#each preRequisites}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+            <br/>
+            {{/if}}
+            {{#if parametersDescription}}
             <h3>Parameters</h3>
             <table>
                 <tbody>
+                {{#each parametersDescription}}
                 <tr>
-                    <td><i>Roles :</i></td>
-                    <td>The list of roles of which the users</td>
+                    <td><i>{{@key}}</i></td>
+                    <td>{{this}}</td>
                 </tr>
+                {{/each}}
                 </tbody>
             </table>
             <br/>
+            {{/if}}
+            {{#if defaultStepsDescription}}
             <h3>Default Steps</h3>
             <ul>
-                <li>Step 1: Basic Authenticator</li>
-                <li>Step 2: TOTP or FIDO</li>
+                {{#each defaultStepsDescription}}
+                <li>{{@key}} : {{this}}</li>
+                {{/each}}
             </ul>
             <br/>
-            <h3>Help</h3>
-            <a href="https://docs.wso2.com/display/IS570/Conditional+Authentication">https://docs.wso2
-                .com/display/IS570/Conditional+Authentication</a>
-            <div class="error-msg">
-                <p>The template code will replace the existing scripts in the editor, Click "OK" to continue.</p>
+            {{/if}}
+            {{#if helpLink}}
+            <h3>Help/Reference</h3>
+            <a href="{{helpLink}}">{{helpLink}}</a>
+            {{/if}}
+            <div id="template-replace-warn" class="error-msg">
+                <p>The template code will replace the existing scripts in the editor. Any of your current
+                    changes will be lost. Click "OK" to continue.</p>
             </div>
         </div>
-    </div>
+    </script>
+
 
 </fmt:bundle>
