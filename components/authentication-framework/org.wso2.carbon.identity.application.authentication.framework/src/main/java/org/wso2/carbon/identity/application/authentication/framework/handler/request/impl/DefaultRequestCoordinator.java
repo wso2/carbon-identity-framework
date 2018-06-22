@@ -61,6 +61,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams
+        .TENANT_DOMAIN;
+
 /**
  * Request Coordinator
  */
@@ -148,6 +152,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+                setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
                 // if this is the flow start, store the original request in the context
@@ -193,7 +198,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 uriBuilder.addParameter("status", "Authentication attempt failed.");
                 uriBuilder.addParameter("statusMsg", e.getErrorCode());
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-                response.sendRedirect(uriBuilder.build().toString());
+                response.sendRedirect(FrameworkUtils.getRedirectURL(uriBuilder.build().toString(), request));
             } catch (URISyntaxException e1) {
                 log.error("Error building redirect url for authz failure", e);
                 FrameworkUtils.sendToRetryPage(request, response);
@@ -593,4 +598,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             authnDataPublisherProxy.publishAuthenticationFailure(request, context, unmodifiableParamMap);
         }
     }
+
+    private void setSPAttributeToRequest(HttpServletRequest req, AuthenticationContext context) {
+
+        req.setAttribute(REQUEST_PARAM_SP, context.getServiceProviderName());
+        req.setAttribute(TENANT_DOMAIN, context.getTenantDomain());
+    }
+
 }
