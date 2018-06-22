@@ -18,6 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+
+import java.util.List;
+import java.util.Map;
+
 public interface StepBasedSequenceHandler extends SequenceHandler {
 
+    /**
+     * Method to call JIT Provisioning.
+     *
+     * @param subjectIdentifier     Relevant Subject Identifier
+     * @param context               Authentication Context
+     * @param mappedRoles           Mapped Roles
+     * @param extAttributesValueMap Attributes Value Map.
+     * @throws FrameworkException Framework Exception.
+     */
+    default void callJitProvisioning(String subjectIdentifier, AuthenticationContext context, List<String> mappedRoles,
+            Map<String, String> extAttributesValueMap) throws FrameworkException { }
 }

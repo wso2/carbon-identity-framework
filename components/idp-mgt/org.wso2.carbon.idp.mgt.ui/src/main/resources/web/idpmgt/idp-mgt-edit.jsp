@@ -40,18 +40,19 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
+<%@ page
+        import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.Comparator" %>
 <%@page import="java.util.HashMap" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
-<%@ page
-        import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -79,6 +80,9 @@
     String idPAlias = null;
     boolean isProvisioningEnabled = false;
     boolean isCustomClaimEnabled = false;
+    boolean isPasswordProvisioningEnabled = false;
+    boolean isUserNameModificationAllowed = false;
+    boolean isPromptConsent = false;
 
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
@@ -129,7 +133,7 @@
     boolean isPassiveSTSUserIdInClaims = false;
     boolean isEnablePassiveSTSAssertionSignatureValidation = true;
     boolean isEnablePassiveSTSAssertionAudienceValidation = true;
-    String[] userStoreDomains = null;
+    List<String> userStoreDomains = new ArrayList<String>();
     boolean isFBAuthEnabled = false;
     boolean isFBAuthDefault = false;
     String fbClientId = null;
@@ -663,6 +667,10 @@
         idPAlias = identityProvider.getAlias();
         isProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig().getProvisioningEnabled();
         provisioningUserStoreId = identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore();
+        isPasswordProvisioningEnabled =
+                identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
+        isUserNameModificationAllowed = identityProvider.getJustInTimeProvisioningConfig().getModifyUserNameAllowed();
+        isPromptConsent = identityProvider.getJustInTimeProvisioningConfig().getPromptConsent();
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
@@ -909,8 +917,8 @@
     } else if (isProvisioningEnabled && provisioningUserStoreId == null) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
     }
-
-    userStoreDomains = client.getUserStoreDomains();
+    userStoreDomains.addAll(Arrays.asList(client.getUserStoreDomains()));
+    userStoreDomains.add(IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT);
 
     claimUris = client.getAllLocalClaimUris();
 
@@ -5186,7 +5194,7 @@
                                     <select id="provision_static_dropdown"
                                             name="provision_static_dropdown" <%=provisionStaticDropdownDisabled%>>
                                         <%
-                                            if (userStoreDomains != null && userStoreDomains.length > 0) {
+                                            if (userStoreDomains != null && userStoreDomains.size() > 0) {
                                                 for (String userStoreDomain : userStoreDomains) {
                                                     if (provisioningUserStoreId != null && userStoreDomain.equals(provisioningUserStoreId)) {
                                         %>
@@ -5202,12 +5210,53 @@
                                                 }
                                             }
                                         %>
+
                                     </select>
 
                                 </div>
 
                                 <div class="sectionHelp">
                                     <fmt:message key='provisioning.enabled.help'/>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="prompt_username_password_consent"
+                                               name="choose_jit_type_group"
+                                               value="prompt_username_password_consent" <% if (isPasswordProvisioningEnabled
+                                                && isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.username.password.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id=prompt_password_consent" name="choose_jit_type_group"
+                                               value="prompt_password_consent"  <% if (isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.password.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="prompt_consent" name="choose_jit_type_group"
+                                               value="prompt_consent"  <% if (!isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="do_not_prompt" name="choose_jit_type_group"
+                                               value="do_not_prompt"  <% if (!isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.provision.silently'/>
+                                    </label>
                                 </div>
                             </td>
                         </tr>

@@ -249,7 +249,6 @@ public class ProvisioningManagementDAO {
                 prepStmt.setString(6, IdentityProvisioningConstants.IS_TRUE_VALUE);
                 prepStmt.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig()
                         .getProvisioningUserStore());
-
             } else {
                 prepStmt.setString(6, IdentityProvisioningConstants.IS_FALSE_VALUE);
                 prepStmt.setString(7, null);

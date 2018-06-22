@@ -47,7 +47,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -241,6 +244,15 @@ public class FrameworkServiceComponent {
         LongWaitStatusStoreService longWaitStatusStoreService = new LongWaitStatusStoreService();
         dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
 
+        // Registering JIT, association and domain handler as post authentication handler
+        PostAuthenticationHandler postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
+        PostAuthenticationHandler postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = PostAuthenticatedSubjectIdentifierHandler
+                .getInstance();
+        bundleContext
+                .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
