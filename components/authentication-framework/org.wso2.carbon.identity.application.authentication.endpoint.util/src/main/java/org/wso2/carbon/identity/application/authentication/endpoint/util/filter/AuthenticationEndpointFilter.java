@@ -24,6 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -33,9 +36,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.REQUEST_PARAM_SP;
 
 /**
  * AuthenticationEndpointFilter acts as a front controller for all incoming requests to the authenticationendpoint
@@ -51,6 +53,9 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String REQUEST_PARAM_AUTHENTICATORS = "authenticators";
     private static final String REQUEST_PARAM_HRD = "hrd";
     private static final String REQUEST_PARAM_TYPE = "type";
+    private static final String REQUEST_PARAM_REFERRER = "referer";
+    private static final String QUERY_SEPARATOR = "&";
+    private static final String EQUAL = "=";
 
     private static final String SAMLSSO = "samlsso";
     private static final String OPENID = "openid";
@@ -78,11 +83,22 @@ public class AuthenticationEndpointFilter implements Filter {
 
         String redirectUrl = null;
         String appSpecificCustomPageConfigKey = null;
+        String refererHeader = ((HttpServletRequest) servletRequest).getHeader(REQUEST_PARAM_REFERRER);
+
         String serviceProviderName = null;
         if (servletRequest.getParameter(Constants.REQUEST_PARAM_SP) != null) {
             serviceProviderName = servletRequest.getParameter(Constants.REQUEST_PARAM_SP);
         } else if (servletRequest.getParameter(REQUEST_PARAM_APPLICATION) != null) {
             serviceProviderName = servletRequest.getParameter(REQUEST_PARAM_APPLICATION);
+        } else if (refererHeader != null) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(REQUEST_PARAM_SP + EQUAL) || queryParam.contains(REQUEST_PARAM_APPLICATION +
+                        EQUAL)) {
+                    serviceProviderName = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
         }
 
         String relativePath = ((HttpServletRequest) servletRequest).getRequestURI().substring(

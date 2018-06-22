@@ -199,7 +199,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             URIBuilder uriBuilder = new URIBuilder(errorPage);
             node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
-            response.sendRedirect(redirectURL);
+            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
         } catch (IOException e) {
             throw new FrameworkException("Error when redirecting user to " + errorPage, e);
         } catch (URISyntaxException e) {

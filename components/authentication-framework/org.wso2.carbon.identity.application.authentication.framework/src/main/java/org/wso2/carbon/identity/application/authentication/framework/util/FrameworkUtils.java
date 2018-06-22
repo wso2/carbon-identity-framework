@@ -112,7 +112,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams
+        .TENANT_DOMAIN;
 
 public class FrameworkUtils {
 
@@ -124,6 +126,11 @@ public class FrameworkUtils {
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(new String[] { FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2 });
+
+    private static final String QUERY_SEPARATOR = "&";
+    private static final String EQUAL = "=";
+    private static final String REQUEST_PARAM_APPLICATION = "application";
+
 
     private FrameworkUtils() {
     }
@@ -463,7 +470,91 @@ public class FrameworkUtils {
             throws IOException {
         // TODO read the URL from framework config file rather than carbon.xml
         request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        response.sendRedirect(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+        response.sendRedirect(getRedirectURL(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(),
+                request));
+    }
+
+    /**
+     * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
+     * be fetched from request parameters or referer.
+     *
+     * @param redirectURL Redirect URL.
+     * @param request     HttpServlet Request.
+     * @return sp information appended redirect URL.
+     */
+    public static String getRedirectURL(String redirectURL, HttpServletRequest request) {
+
+        String spName = (String) request.getAttribute(REQUEST_PARAM_SP);
+        String tenantDomain = (String) request.getAttribute(TENANT_DOMAIN);
+        if (StringUtils.isBlank(spName)) {
+            spName = getServiceProviderNameByReferer(request);
+        }
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = getTenantDomainByReferer(request);
+        }
+
+        try {
+            if (StringUtils.isNotBlank(spName)) {
+                redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                redirectURL = appendUri(redirectURL, TENANT_DOMAIN, tenantDomain);
+            }
+        } catch (UnsupportedEncodingException e) {
+            log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            return redirectURL;
+        }
+
+        return redirectURL;
+    }
+
+    private static String getServiceProviderNameByReferer(HttpServletRequest request) {
+
+        String serviceProviderName = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(REQUEST_PARAM_SP + EQUAL) || queryParam.contains(REQUEST_PARAM_APPLICATION +
+                        EQUAL)) {
+                    serviceProviderName = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+
+        return serviceProviderName;
+    }
+
+    private static String getTenantDomainByReferer(HttpServletRequest request) {
+
+        String tenantDomain = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(TENANT_DOMAIN + EQUAL)) {
+                    tenantDomain = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+        return tenantDomain;
+    }
+
+    private static String appendUri(String uri, String key, String value) throws UnsupportedEncodingException {
+
+        if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+
+            if (uri.contains("?")) {
+                uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
+            } else {
+                uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
+            }
+        }
+        return uri;
     }
 
     /**
