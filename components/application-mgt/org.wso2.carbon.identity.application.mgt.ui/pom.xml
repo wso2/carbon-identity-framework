@@ -19,9 +19,10 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.11.262-SNAPSHOT</version>
+        <version>5.12.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
     <name>WSO2 Carbon - Application Management UI</name>
     <description>Application Management UI component for WSO2 Carbon</description>
     <url>http://wso2.org</url>

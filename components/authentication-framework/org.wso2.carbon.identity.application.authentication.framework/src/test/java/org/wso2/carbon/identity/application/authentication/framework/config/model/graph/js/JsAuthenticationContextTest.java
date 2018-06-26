@@ -22,6 +22,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -90,6 +91,9 @@ public class JsAuthenticationContextTest {
         stepConfig.setAuthenticatedIdP(TEST_IDP);
         stepConfigMap.put(1, stepConfig);
         sequenceConfig.setStepMap(stepConfigMap);
+        AuthenticationGraph authenticationGraph = new AuthenticationGraph();
+        authenticationGraph.setStepMap(stepConfigMap);
+        sequenceConfig.setAuthenticationGraph(authenticationGraph);
         context.setSequenceConfig(sequenceConfig);
         Map<String, AuthenticatedIdPData> idPDataMap = new HashMap<>();
         AuthenticatedIdPData idPData = new AuthenticatedIdPData();

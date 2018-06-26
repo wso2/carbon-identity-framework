@@ -51,17 +51,18 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.FAIL_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
@@ -128,6 +129,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
+    }
+
+    private void displayLongWait(AuthenticationContext context, HttpServletRequest request, HttpServletResponse
+            response) throws FrameworkException {
+
+        try {
+            String longWaitUrl = ConfigurationFacade.getInstance().getAuthenticationEndpointWaitURL();
+            response.sendRedirect(longWaitUrl + "?" + FrameworkConstants.SESSION_DATA_KEY + "=" + context
+                    .getContextIdentifier());
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting to wait.do", e);
+        }
     }
 
     private void gotoToNextNode(AuthenticationContext context, SequenceConfig sequenceConfig,
@@ -199,7 +213,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             URIBuilder uriBuilder = new URIBuilder(errorPage);
             node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
-            response.sendRedirect(redirectURL);
+            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
         } catch (IOException e) {
             throw new FrameworkException("Error when redirecting user to " + errorPage, e);
         } catch (URISyntaxException e) {
@@ -302,21 +316,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isWaiting;
         LongWaitStatusStoreService longWaitStatusStoreService =
                 FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
-        // TODO: Check why context.getSessionIdentifier() is null.
-        String longWaitKey = (String) context.getProperty(FrameworkConstants.LONG_WAIT_KEY);
-        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(longWaitKey);
-        if (longWaitKey == null || longWaitStatus == null) {
+        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(context.getContextIdentifier());
+        if (longWaitStatus == null || longWaitStatus.getStatus() == LongWaitStatus.Status.UNKNOWN) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
-            longWaitKey = UUID.randomUUID().toString();
-            context.setProperty(FrameworkConstants.LONG_WAIT_KEY, longWaitKey);
-            longWaitStatusStoreService.addWait(longWaitKey, longWaitStatus);
+            int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+            longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
+            if (promptOnLongWait()) {
+                if (isWaiting) {
+                    displayLongWait(context, request, response);
+                }
+            }
         } else {
+            context.setReturning(false);
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
-            context.removeProperty(FrameworkConstants.LONG_WAIT_KEY);
-            longWaitStatusStoreService.removeWait(longWaitKey);
+            longWaitStatusStoreService.removeWait(context.getContextIdentifier());
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
@@ -348,30 +364,32 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         AsyncCaller caller = asyncProcess.getAsyncCaller();
 
-        //Need to lock the thread since the response should be continued in the same thread.
-        //TODO: As the thread is blocked, this can degrade performance. We have to add a mechanism to continue the
-        // response from out side in a new thread.
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
-            synchronized (context) {
-                context.notify();
+
+            if (!promptOnLongWait()) {
+                synchronized (context) {
+                    context.notify();
+                }
             }
         });
 
         if (caller != null) {
             FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
-            synchronized (context) {
-                try {
-                    context.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    log.error("Error while waiting for the external call the complete. ", e);
+            if (!promptOnLongWait()) {
+                synchronized (context) {
+                    try {
+                        context.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("Error while waiting for the external call the complete. ", e);
+                    }
                 }
+                resumeLongWait(request, response, context);
             }
-            resumeLongWait(request, response, context);
             return true;
         }
         return false;

@@ -141,6 +141,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>wait.do</servlet-name>
+        <jsp-file>/long-wait.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>claims.do</servlet-name>
         <jsp-file>/requested-claims.jsp</jsp-file>
     </servlet>
@@ -238,6 +243,11 @@
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>wait.do</servlet-name>
+        <url-pattern>/wait.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

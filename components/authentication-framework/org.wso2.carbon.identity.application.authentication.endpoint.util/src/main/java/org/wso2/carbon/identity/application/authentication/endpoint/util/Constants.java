@@ -90,6 +90,7 @@ public class Constants {
         public static final String RELATIVE_PATH_START_CHAR = ".";
         public static final String CHARACTER_ENCODING = "UTF-8";
         public static final String CONFIG_RELATIVE_PATH = "./repository/conf/identity/EndpointConfig.properties";
+        public static final String IDENTITY_XML_RELATIVE_PATH = "./repository/conf/identity/identity.xml";
         public static final String CONFIG_FILE_NAME = "EndpointConfig.properties";
 
         private TenantConstants() {
