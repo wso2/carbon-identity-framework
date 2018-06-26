@@ -19,16 +19,38 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 /**
- * Constants used in step execution with Javascripts
+ * Waiting node while showing a prompt to the user to get user input. Child nodes of this node is build after
+ * executing the asynchronous events.
  */
-public class JsStepConstants {
+public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode {
 
-    public static final String PROMPT_TEMPLATE = "template";
+    private static final long serialVersionUID = -5644595996095910601L;
+    private String templateId;
+    private String data;
 
-    /**
-     * Prevents instantiation as this is constant file.
-     */
-    private JsStepConstants() {
+    public String getTemplateId() {
 
+        return templateId;
+    }
+
+    public void setTemplateId(String templateId) {
+
+        this.templateId = templateId;
+    }
+
+    public String getData() {
+
+        return data;
+    }
+
+    public void setData(String data) {
+
+        this.data = data;
+    }
+
+    @Override
+    public String getName() {
+
+        return "ShowPromptNode";
     }
 }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

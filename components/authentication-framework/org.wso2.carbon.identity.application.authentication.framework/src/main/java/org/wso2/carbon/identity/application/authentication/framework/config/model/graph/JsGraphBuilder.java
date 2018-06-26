@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
@@ -135,6 +137,8 @@ public class JsGraphBuilder {
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                 this::sendError);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
+                    (PromptExecutor) this::addShowPrompt);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -219,6 +223,7 @@ public class JsGraphBuilder {
     /**
      * Adds the step given by step ID tp the authentication graph.
      *
+     * @param stepId Step Id
      * @param params params
      */
     @SuppressWarnings("unchecked")
@@ -430,6 +435,40 @@ public class JsGraphBuilder {
     /**
      * Adds a function to show a prompt in Javascript code.
      *
+     * @param templateId Identifier of the template
+     * @param parameters parameters
+     */
+    @SuppressWarnings("unchecked")
+    public void addShowPrompt(String templateId, Object... parameters) {
+
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+
+        if (parameters.length == 2) {
+            Gson gson = new GsonBuilder().create();
+            String json = gson.toJson(ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
+            newNode.setData(json);
+        }
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+
+        currentNode = newNode;
+        if (parameters.length > 0) {
+            if (parameters[parameters.length - 1] instanceof Map) {
+                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1]);
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+
+        }
+    }
+
+    /**
+     * Adds a function to show a prompt in Javascript code.
+     *
      * @param parameterMap parameterMap
      */
     public static void addLongWaitProcess(AsyncProcess asyncProcess,
@@ -549,6 +588,9 @@ public class JsGraphBuilder {
         } else if (baseNode instanceof LongWaitNode) {
             LongWaitNode longWaitNode = (LongWaitNode) baseNode;
             longWaitNode.setDefaultEdge(nodeToAttach);
+        } else if (baseNode instanceof ShowPromptNode) {
+            ShowPromptNode showPromptNode = (ShowPromptNode) baseNode;
+            showPromptNode.setDefaultEdge(nodeToAttach);
         } else if (baseNode instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
             dynamicDecisionNode.setDefaultEdge(nodeToAttach);
@@ -580,6 +622,12 @@ public class JsGraphBuilder {
     public interface StepExecutor {
 
         void executeStep(Integer stepId, Object... parameterMap);
+    }
+
+    @FunctionalInterface
+    public interface PromptExecutor {
+
+        void prompt(String template, Object... parameterMap);
     }
 
     /**
@@ -617,6 +665,8 @@ public class JsGraphBuilder {
                         (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
                         (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
+                            graphBuilder::addShowPrompt);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {
