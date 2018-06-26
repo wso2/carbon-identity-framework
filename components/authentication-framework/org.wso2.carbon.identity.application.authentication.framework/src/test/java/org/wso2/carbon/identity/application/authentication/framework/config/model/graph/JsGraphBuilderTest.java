@@ -19,15 +19,25 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -47,7 +57,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         jsGraphBuilderFactory.init();
     }
 
-    public void testCreate_DirectJava_InvalidStepId() throws Exception {
+    @Test
+    public void testCreateDirectJavaInvalidStepId() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -60,7 +71,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         assertNull(graph.getStartNode());
     }
 
-    public void testCreate_DirectJava() throws Exception {
+    @Test
+    public void testCreateDirectJava() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -80,9 +92,11 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         assertTrue(firstStep.getNext() instanceof StepConfigGraphNode);
     }
 
-    public void testCreate_Javascript() throws Exception {
+    @Test
+    public void testCreateJavascript() throws Exception {
+
         String script = "function onInitialRequest(context) { executeStep(1, { onSuccess : function(context) {"
-                + "executeStep({id :'2'});}})};";
+            + "executeStep(2);}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -103,4 +117,139 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         assertTrue(firstStep.getNext() instanceof DynamicDecisionNode);
     }
 
+    @Test(dataProvider = "filterOptionsDataProvider")
+    public void testFilterOptions(Map<String, Map<String, String>> options, StepConfig stepConfig, int
+        expectedStepsAfterFilter)
+        throws Exception {
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
+        stepConfigMap.put(1, stepConfig);
+
+        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        jsGraphBuilder.filterOptions(options, stepConfig);
+        assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter, "Authentication options after " +
+            "filtering mismatches expected. " + options.toString());
+    }
+
+    @DataProvider
+    public Object[][] filterOptionsDataProvider() {
+
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().clear();
+        LocalAuthenticatorConfig basic = new LocalAuthenticatorConfig();
+        basic.setName("BasicAuthenticator");
+        basic.setDisplayName("basic");
+        LocalAuthenticatorConfig totp = new LocalAuthenticatorConfig();
+        totp.setName("TOTPAuthenticator");
+        totp.setDisplayName("totp");
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(basic);
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(totp);
+
+        IdentityProvider localIdp = new IdentityProvider();
+        localIdp.setId("LOCAL");
+        localIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[0]);
+
+        FederatedAuthenticatorConfig samlFederated = new FederatedAuthenticatorConfig();
+        samlFederated.setDisplayName("samlsso");
+        samlFederated.setName("SAMLAuthenticator");
+
+        FederatedAuthenticatorConfig oidcFederated = new FederatedAuthenticatorConfig();
+        oidcFederated.setDisplayName("oidc");
+        oidcFederated.setName("OIDCAuthenticator");
+
+        FederatedAuthenticatorConfig twitterFederated = new FederatedAuthenticatorConfig();
+        twitterFederated.setDisplayName("twitter");
+        twitterFederated.setName("TwitterAuthenticator");
+
+        IdentityProvider customIdp1 = new IdentityProvider();
+        customIdp1.setId("customIdp1");
+        customIdp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{samlFederated, oidcFederated});
+        customIdp1.setDefaultAuthenticatorConfig(samlFederated);
+
+        IdentityProvider customIdp2 = new IdentityProvider();
+        customIdp2.setId("customIdp2");
+        customIdp2.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{twitterFederated});
+        customIdp2.setDefaultAuthenticatorConfig(twitterFederated);
+
+        AuthenticatorConfig basicAuthConfig = new AuthenticatorConfig();
+        basicAuthConfig.setName("BasicAuthenticator");
+        basicAuthConfig.setEnabled(true);
+        basicAuthConfig.getIdps().put("LOCAL", localIdp);
+
+        AuthenticatorConfig totpAuthConfig = new AuthenticatorConfig();
+        totpAuthConfig.setName("TOTPAuthenticator");
+        totpAuthConfig.setEnabled(true);
+        totpAuthConfig.getIdps().put("LOCAL", localIdp);
+
+        AuthenticatorConfig samlAuthConfig = new AuthenticatorConfig();
+        samlAuthConfig.setName("SAMLAuthenticator");
+        samlAuthConfig.setEnabled(true);
+        samlAuthConfig.getIdps().put("customIdp1", customIdp1);
+
+        AuthenticatorConfig oidcAuthConfig = new AuthenticatorConfig();
+        oidcAuthConfig.setName("OIDCAuthenticator");
+        oidcAuthConfig.setEnabled(true);
+        oidcAuthConfig.getIdps().put("customIdp1", customIdp1);
+
+        AuthenticatorConfig twitterAuthConfig = new AuthenticatorConfig();
+        twitterAuthConfig.setName("TwitterAuthenticator");
+        twitterAuthConfig.setEnabled(true);
+        twitterAuthConfig.getIdps().put("customIdp2", customIdp2);
+
+        StepConfig stepWithSingleOption = new StepConfig();
+        stepWithSingleOption.setAuthenticatorList(Collections.singletonList(basicAuthConfig));
+        Map<String, Map<String, String>> singleOptionConfig = new HashMap<>();
+        singleOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
+
+        StepConfig stepWithMultipleOptions = new StepConfig();
+        stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
+            oidcAuthConfig, twitterAuthConfig)));
+
+        Map<String, String> oidcOption = new HashMap<>();
+        oidcOption.put("idp", "customIdp1");
+        oidcOption.put("authenticator", "oidc");
+
+        Map<String, String> twitterOption = new HashMap<>();
+        twitterOption.put("idp", "customIdp2");
+        twitterOption.put("authenticator", "twitter");
+
+        Map<String, String> invalidOption = new HashMap<>();
+        invalidOption.put("idp", "customIdp1");
+        invalidOption.put("authenticator", "twitter");
+
+        Map<String, Map<String, String>> multipleOptionConfig = new HashMap<>();
+        multipleOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
+        multipleOptionConfig.put("1", oidcOption);
+        multipleOptionConfig.put("2", twitterOption);
+
+        Map<String, Map<String, String>> multipleAndInvalidOptionConfig = new HashMap<>();
+        multipleAndInvalidOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
+        multipleAndInvalidOptionConfig.put("1", oidcOption);
+        multipleAndInvalidOptionConfig.put("2", invalidOption);
+
+        Map<String, Map<String, String>> idpOnlyOptionConfig = new HashMap<>();
+        idpOnlyOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
+        idpOnlyOptionConfig.put("1", Collections.singletonMap("idp", "customIdp1"));
+
+        Map<String, Map<String, String>> singleInvalidOptionConfig = new HashMap<>();
+        singleInvalidOptionConfig.put("0", invalidOption);
+
+        return new Object[][]{
+            {singleOptionConfig, duplicateStepConfig(stepWithSingleOption), 1},
+            {singleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 1},
+            {multipleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 3},
+            {multipleAndInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
+            {singleInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 4},
+            {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
+        };
+    }
+
+    private StepConfig duplicateStepConfig(StepConfig stepConfig) {
+
+        StepConfig newStepConfig = new StepConfig();
+        newStepConfig.setAuthenticatorList(new ArrayList<>(stepConfig.getAuthenticatorList()));
+        return newStepConfig;
+    }
 }

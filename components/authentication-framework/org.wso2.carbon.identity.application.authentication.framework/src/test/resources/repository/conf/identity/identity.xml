@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-~ Copyright (c) 2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-~
-~ Licensed under the Apache License, Version 2.0 (the "License");
-~ you may not use this file except in compliance with the License.
-~ You may obtain a copy of the License at
-~
-~ http://www.apache.org/licenses/LICENSE-2.0
-~
-~ Unless required by applicable law or agreed to in writing, software
-~ distributed under the License is distributed on an "AS IS" BASIS,
-~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-~ See the License for the specific language governing permissions and
-~ limitations under the License.
- -->
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
 
 <Server xmlns="http://wso2.org/projects/carbon/carbon.xml">
 
@@ -104,7 +106,7 @@
         -->
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
-        <!-- 
+        <!--
 		<OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
 	-->
 
@@ -612,11 +614,6 @@
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
 
-    <JITProvisioning>
-        <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
-        <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
-    </JITProvisioning>
-
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
@@ -624,14 +621,13 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>
-        <!-- Enable the following SCIM 1.1 event listener and disable the SCIM2 event listener if SCIM 1.1 is
-        used. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
-                       orderId="90" enable="false"/>
+                       orderId="90" enable="true"/>
+        <!-- Enable the following SCIM2 event listener and disable the above SCIM event listener if SCIM2 is used. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMUserOperationListener"
-                       orderId="93" enable="true"/>
+                       orderId="93" enable="false"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
                        orderId="95" enable="true"/>
@@ -656,17 +652,6 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
-
-        <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
-        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler"
-                       orderId="20" enable="true"/>
-        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler"
-                       orderId="25" enable="true"/>
-        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
-                       orderId="30" enable="true"/>
 
         <!-- Audit Loggers -->
 
@@ -704,7 +689,7 @@
          -->
         <CacheManager name="IdentityApplicationManagementCacheManager">
             <Cache name="AppAuthFrameworkSessionContextCache"
-                                                     enable="true" timeout="300" capacity="5000" isDistributed="false"/>
+                   enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="AuthenticationContextCache" enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="AuthenticationRequestCache" enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="AuthenticationResultCache"  enable="true" timeout="300" capacity="5000" isDistributed="false"/>
@@ -907,7 +892,6 @@
         <!--<HTTPReadTimeout>5000</HTTPReadTimeout>-->
         <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
         <!--<RefreshInterval>500</RefreshInterval>-->
-
         <!--<PromptOnLongWait>false</PromptOnLongWait>-->
     </AdaptiveAuth>
 

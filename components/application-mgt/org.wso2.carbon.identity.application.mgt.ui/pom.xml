@@ -22,6 +22,7 @@
         <version>5.11.264-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
     <name>WSO2 Carbon - Application Management UI</name>
     <description>Application Management UI component for WSO2 Carbon</description>
     <url>http://wso2.org</url>
