@@ -70,6 +70,8 @@ public class FileBasedConfigurationBuilder {
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
+    private String authenticationEndpointWaitURL;
+    private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
 
     /**
@@ -165,6 +167,8 @@ public class FileBasedConfigurationBuilder {
             //########### Read Authentication Endpoint URL ###########
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
+            readAuthenticationEndpointWaitURL(rootElement);
+            readAuthenticationEndpointPromptURL(rootElement);
             readAuthenticationEndpointMissingClaimsURL(rootElement);
 
             //########### Read tenant data listener URLs ###########
@@ -499,6 +503,24 @@ public class FileBasedConfigurationBuilder {
 
         if (authEndpointRetryURLElem != null) {
             authenticationEndpointRetryURL = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointWaitURL(OMElement documentElement) {
+        OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL));
+
+        if (authEndpointWaitURLElem != null) {
+            authenticationEndpointWaitURL = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointPromptURL(OMElement documentElement) {
+        OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL));
+
+        if (authEndpointPromptURLElem != null) {
+            authenticationEndpointPromptURL = IdentityUtil.fillURLPlaceholders(authEndpointPromptURLElem.getText());
         }
     }
 
@@ -850,6 +872,22 @@ public class FileBasedConfigurationBuilder {
 
     public void setAuthenticationEndpointRetryURL(String authenticationEndpointRetryURL) {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
+    }
+
+    public String getAuthenticationEndpointWaitURL() {
+        return authenticationEndpointWaitURL;
+    }
+
+    public void setAuthenticationEndpointWaitURL(String authenticationEndpointWaitURL) {
+        this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
+    }
+
+    public String getAuthenticationEndpointPromptURL() {
+        return authenticationEndpointPromptURL;
+    }
+
+    public void setAuthenticationEndpointPromptURL(String authenticationEndpointPromptURL) {
+        this.authenticationEndpointPromptURL = authenticationEndpointPromptURL;
     }
 
     /**

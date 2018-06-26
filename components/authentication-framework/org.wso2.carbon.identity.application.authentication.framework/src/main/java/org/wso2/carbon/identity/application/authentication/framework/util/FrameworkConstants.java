@@ -106,8 +106,6 @@ public abstract class FrameworkConstants {
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
 
-    public static final String LONG_WAIT_KEY = "longWaitKey";
-
     private FrameworkConstants() {
 
     }
@@ -149,6 +147,8 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
@@ -295,24 +295,38 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATION_OPTIONS = "options";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
         public static final String JS_FUNC_SHOW_PROMPT = "prompt";
+        public static final String JS_FUNC_CALL_AND_WAIT = "callAndWait";
         public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
         public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+
+        public static final String IDP = "idp";
+        public static final String AUTHENTICATOR = "authenticator";
+        public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
     }
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
         public static final String WORKFLOW_DOMAIN = "Workflow";
         private InternalRoleDomains() {
+        }
+    }
+
+    public static class ContentTypes {
+
+        public static final String TYPE_APPLICATION_JSON = "application/json";
+
+        private ContentTypes() {
         }
     }
 
