@@ -46,6 +46,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -195,11 +196,9 @@ public class JsClaims extends AbstractJSContextMemberObject {
             .getUserStoreDomain());
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-            userRealm.getUserStoreManager().setUserClaimValues(authenticatedUser.getUserName(), Collections
-                    .singletonMap(claimUri, String.valueOf(claimValue)), null);
-            Map<String, String> claimValues = userRealm.getUserStoreManager().getUserClaimValues(usernameWithDomain, new
-                String[]{claimUri}, null);
-            claimValues.get(claimUri);
+            Map<String, String> claimUriMap = new HashMap<>();
+            claimUriMap.put(claimUri, String.valueOf(claimValue));
+            userRealm.getUserStoreManager().setUserClaimValues(usernameWithDomain, claimUriMap, null);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
                     authenticatedUser, String.valueOf(claimValue)), e);

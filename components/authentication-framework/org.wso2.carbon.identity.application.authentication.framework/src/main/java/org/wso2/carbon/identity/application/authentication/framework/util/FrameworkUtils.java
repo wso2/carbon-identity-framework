@@ -1676,5 +1676,14 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    public static boolean promptOnLongWait() {
+
+        boolean promptOnLongWait = false;
+        String promptOnLongWaitString = IdentityUtil.getProperty("AdaptiveAuth.PromptOnLongWait");
+        if (promptOnLongWaitString != null) {
+            promptOnLongWait = Boolean.parseBoolean(promptOnLongWaitString);
+        }
+        return promptOnLongWait;
+    }
 }
 

@@ -901,6 +901,14 @@
             <receiverURL>http://localhost:8280/</receiverURL>
         </EventPublisher>
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
+
+        <!--Timeouts in milliseconds-->
+        <!--<HTTPConnectionTimeout>5000</HTTPConnectionTimeout>-->
+        <!--<HTTPReadTimeout>5000</HTTPReadTimeout>-->
+        <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
+        <!--<RefreshInterval>500</RefreshInterval>-->
+
+        <!--<PromptOnLongWait>false</PromptOnLongWait>-->
     </AdaptiveAuth>
 
 </Server>
