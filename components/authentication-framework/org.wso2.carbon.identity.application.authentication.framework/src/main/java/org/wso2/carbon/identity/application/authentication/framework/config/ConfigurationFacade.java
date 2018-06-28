@@ -196,6 +196,15 @@ public class ConfigurationFacade {
         return authenticationEndpointWaitURL;
     }
 
+    public String getAuthenticationEndpointPromptURL() {
+        String authenticationEndpointPromptURL = FileBasedConfigurationBuilder.getInstance()
+                .getAuthenticationEndpointPromptURL();
+        if (StringUtils.isBlank(authenticationEndpointPromptURL)) {
+            authenticationEndpointPromptURL = "/authenticationendpoint/dynamic_prompt.do";
+        }
+        return authenticationEndpointPromptURL;
+    }
+
     /**
      * Get the missing claims request URL of authentication flow
      * @return claims request URL

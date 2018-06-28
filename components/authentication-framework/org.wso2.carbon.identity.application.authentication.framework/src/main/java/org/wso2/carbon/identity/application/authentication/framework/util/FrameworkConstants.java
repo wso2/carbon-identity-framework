@@ -148,6 +148,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
@@ -301,6 +302,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
         public static final String JS_FUNC_SHOW_PROMPT = "prompt";
+        public static final String JS_FUNC_CALL_AND_WAIT = "callAndWait";
         public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
         public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
         public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
