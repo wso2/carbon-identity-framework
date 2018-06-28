@@ -71,6 +71,17 @@
         <param-value>https://localhost:9443</param-value>
     </context-param-->
     <!-- *************** End of Identity Server Endpoint URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>EnableAuthenticationWithAuthenticationRESTAPI</param-name>
+        <param-value>true</param-value>
+    </context-param-->
+    <!-- *************** Authentication REST API URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>AuthenticationRESTEndpointURL</param-name>
+        <param-value>https://localhost:9443/api/identity/auth/v1.0/</param-value>
+    </context-param-->
+    <!-- *************** End of Authentication REST API URL Configuration ********************** -->
+
     <!--Display scopes in the consent page.-->
     <context-param>
         <param-name>displayScopes</param-name>
@@ -245,6 +256,16 @@
         <jsp-file>/privacy_policy.jsp</jsp-file>
     </servlet>
 
+    <servlet>
+        <servlet-name>authenticate.do</servlet-name>
+        <jsp-file>/authenticate.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>error.do</servlet-name>
+        <jsp-file>/generic-exception-response.jsp</jsp-file>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
@@ -353,6 +374,16 @@
     <servlet-mapping>
         <servlet-name>privacy_policy.do</servlet-name>
         <url-pattern>/privacy_policy.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>authenticate.do</servlet-name>
+        <url-pattern>/authenticate.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>error.do</servlet-name>
+        <url-pattern>/error.do</url-pattern>
     </servlet-mapping>
 
     <error-page>
