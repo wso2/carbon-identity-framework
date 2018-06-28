@@ -11,8 +11,24 @@
     "rolesList": "An array of roles of which users need to enforce 2FA."
   },
   "defaultStepsDescription": {
-    "1": "Basic (Password) authenticator.",
-    "2": "Either of TOTP or FIDO"
+    "Step 1": "Basic (Password) authenticator.",
+    "Step 2": "Either of TOTP or FIDO"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "TOTPAuthenticator",
+        "FidoAuthenticator"
+      ],
+      "federated": []
+    }
   },
   "code": [
     "// This script will step up authentication for any user belonging ",
@@ -36,5 +52,5 @@
     "}"
   ],
   "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
+  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication"
 }

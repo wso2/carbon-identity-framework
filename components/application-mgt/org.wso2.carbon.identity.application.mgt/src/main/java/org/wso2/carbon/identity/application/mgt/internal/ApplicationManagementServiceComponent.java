@@ -236,6 +236,9 @@ public class ApplicationManagementServiceComponent {
                                 }
                                 JSONArray categoryTemplateArray = templatesJsonObject.getJSONArray(category);
                                 categoryTemplateArray.put(templateObject);
+                            } else {
+                                log.warn(String.format("Script template in file %s is missing category information. " +
+                                    "Hence it will be ignored.", jsonFile.getName()));
                             }
                             if (log.isDebugEnabled()) {
                                 log.debug("Authentication template file loaded from: " + jsonFile.getName());
