@@ -23,8 +23,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
  */
 public class JsStepConstants {
 
-    public static final String STEP_ID = "id";
-    public static final String STEP_EVENT_ON = "on";
+    public static final String PROMPT_TEMPLATE = "template";
 
     /**
      * Prevents instantiation as this is constant file.

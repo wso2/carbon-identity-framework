@@ -28,6 +28,7 @@ import java.util.Map;
  */
 public class DynamicDecisionNode implements AuthGraphNode {
 
+    private static final long serialVersionUID = -2151385170280964420L;
     private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
 

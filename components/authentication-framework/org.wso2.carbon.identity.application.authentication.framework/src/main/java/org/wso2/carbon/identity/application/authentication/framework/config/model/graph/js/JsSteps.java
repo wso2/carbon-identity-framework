@@ -62,7 +62,12 @@ public class JsSteps extends AbstractJSContextMemberObject {
 
     private String getAuthenticatedIdPOfStep(int step) {
 
-        StepConfig stepConfig = getContext().getSequenceConfig().getStepMap().get(step);
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
         if (stepConfig != null) {
             return stepConfig.getAuthenticatedIdP();
         }
