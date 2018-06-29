@@ -274,7 +274,7 @@ public class JsGraphBuilder {
 
         Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
         if (authenticatorParams instanceof Map) {
-            paramsOptions((Map<String, Object>) authenticatorParams, stepConfig);
+            authenticatorParamsOptions((Map<String, Object>) authenticatorParams, stepConfig);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
@@ -394,10 +394,10 @@ public class JsGraphBuilder {
      *
      * @param options Authentication options
      */
-    protected void paramsOptions(Map<String, Object> options, StepConfig stepConfig) {
+    protected void authenticatorParamsOptions(Map<String, Object> options, StepConfig stepConfig) {
 
         Map<String, Map<String, String>> authenticatorParams = new HashMap<>();
-            Object localOptions = options.get("local");
+            Object localOptions = options.get(FrameworkConstants.JSAttributes.JS_LOCAL_IDP);
         if (localOptions instanceof Map) {
             ((Map<String, Object>) localOptions).forEach((authenticatorName, params) -> {
                 if (params instanceof Map) {
@@ -405,7 +405,7 @@ public class JsGraphBuilder {
                 }
             });
         }
-        Object federatedOptionsObj = options.get("federated");
+        Object federatedOptionsObj = options.get(FrameworkConstants.JSAttributes.JS_FEDERATED_IDP);
         if (federatedOptionsObj instanceof Map) {
             Map<String, Map<String, String>> federatedOptions = (Map<String, Map<String, String>>) federatedOptionsObj;
             stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()

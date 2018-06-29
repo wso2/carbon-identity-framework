@@ -279,7 +279,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, stepConfig);
 
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        jsGraphBuilder.paramsOptions(options, stepConfig);
+        jsGraphBuilder.authenticatorParamsOptions(options, stepConfig);
         assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value,
                 "Params are not set expected");
     }
@@ -304,7 +304,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         twitterFederated.setName("TwitterAuthenticator");
 
         IdentityProvider localIdp = new IdentityProvider();
-        localIdp.setId("LOCAL");
+        localIdp.setId("local");
         localIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[0]);
 
         IdentityProvider customIdp2 = new IdentityProvider();
@@ -318,7 +318,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         when(localApplicationAuthenticator.getName()).thenReturn("BasicAuthenticator");
         when(localApplicationAuthenticator.getFriendlyName()).thenReturn("basic");
         basicAuthConfig.setApplicationAuthenticator(localApplicationAuthenticator);
-        basicAuthConfig.getIdps().put("LOCAL", localIdp);
+        basicAuthConfig.getIdps().put("local", localIdp);
 
         AuthenticatorConfig totpAuthConfig = new AuthenticatorConfig();
         totpAuthConfig.setName("TOTPAuthenticator");
@@ -326,7 +326,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         when(totpApplicationAuthenticator.getName()).thenReturn("TOTPAuthenticator");
         when(totpApplicationAuthenticator.getFriendlyName()).thenReturn("totp");
         totpAuthConfig.setApplicationAuthenticator(totpApplicationAuthenticator);
-        totpAuthConfig.getIdps().put("LOCAL", localIdp);
+        totpAuthConfig.getIdps().put("local", localIdp);
 
         AuthenticatorConfig twitterAuthConfig = new AuthenticatorConfig();
         twitterAuthConfig.setName("TwitterAuthenticator");

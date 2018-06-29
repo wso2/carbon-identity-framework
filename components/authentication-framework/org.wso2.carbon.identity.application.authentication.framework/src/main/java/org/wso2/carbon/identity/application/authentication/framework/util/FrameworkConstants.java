@@ -297,6 +297,8 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_AUTHENTICATED_IDP = "idp";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
+        public static final String JS_LOCAL_IDP = "local";
+        public static final String JS_FEDERATED_IDP = "federated";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
