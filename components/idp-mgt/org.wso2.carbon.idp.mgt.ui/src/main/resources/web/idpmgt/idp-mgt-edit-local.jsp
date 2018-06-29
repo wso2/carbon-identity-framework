@@ -702,7 +702,12 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input
+                                    <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password"
+                                    <% } else {%>
+                                    type="text" <%
+                                    } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -767,7 +772,12 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password"
+                                    <% } else {%>
+                                    type="text" <%
+                                } %>
+                                                   name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -830,7 +840,11 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password"
+                                    <% } else {%>
+                                    type="text" <%
+                                } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
