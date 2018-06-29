@@ -52,16 +52,14 @@
             <scope>provided</scope>
         </dependency>
         
-        <!-- MSF4J currently used only on tests, and dependency is added at this project only, not at root pom -->
+        <!-- MSF4J currently used only on tests as of now -->
         <dependency>
             <groupId>org.wso2.msf4j</groupId>
             <artifactId>msf4j-core</artifactId>
-            <version>${msf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.msf4j</groupId>
             <artifactId>msf4j-microservice</artifactId>
-            <version>${msf4j.version}</version>
         </dependency>
     </dependencies>
     <name>WSO2 Carbon - Identity Common Test Util</name>
