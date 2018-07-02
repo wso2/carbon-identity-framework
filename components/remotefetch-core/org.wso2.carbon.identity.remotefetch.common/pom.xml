@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
@@ -16,27 +16,19 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <artifactId>remotefetch-core</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <artifactId>identity-framework</artifactId>
         <version>5.12.10-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>remotefetch-core</artifactId>
-    <packaging>pom</packaging>
-    <name>WSO2 Identity Server - Remote Repository Configuration Deployer</name>
-    <description>
-        This is a Carbon bundle that represent the Remote Repository Configuration Deployer Module.
-    </description>
-    <url>http://wso2.org</url>
 
-    <modules>
-        <module>org.wso2.carbon.identity.remotefetch.core</module>
-        <module>org.wso2.carbon.identity.remotefetch.common</module>
-    </modules>
+
+    <artifactId>org.wso2.carbon.identity.remotefetch.common</artifactId>
+
 
 </project>
