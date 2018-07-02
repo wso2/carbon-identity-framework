@@ -45,6 +45,9 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningCon
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -133,6 +136,11 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
+                    } else if ("deleteTableId".equals(key)) {
+                        System.out.println("deleteTableId printing " + new String(value));
+                        paramMap.put(key, new String(value));
+                    } else if ("certificateWithRawIdMap".equals(key)) {
+                        System.out.println("certificateWithRawIdMap printing " + toObject(value));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -299,6 +307,29 @@ public class IdPManagementUIUtil {
         }
 
         return fedIdp;
+    }
+
+    private static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj = null;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
+    }
+
+    public static String toString(byte[] bytes) {
+        return new String(bytes);
     }
 
     /**

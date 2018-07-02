@@ -71,6 +71,8 @@
     String description = null;
     boolean federationHubIdp = false;
     CertData[] certDataArr = null;
+    CertificateInfo[] certInfoArr = new CertificateInfo[0];
+    HashMap<String, String> certificateWithRawIdMap = new HashMap<String, String>();
     String jwksUri = null;
     boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
@@ -262,7 +264,7 @@
         provisioningRole = identityProvider.getProvisioningRole();
         if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray()) && !("[]").equals(identityProvider
         .getCertificateInfoArray())) {
-            CertificateInfo[] certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
+            certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
             int i = 0;
             for (org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo certificateInfo :
             identityProvider.getCertificateInfoArray()) {
@@ -1707,16 +1709,30 @@
             jQuery(this).next().slideToggle("fast");
             return false; //Prevent the browser jump to the link anchor
         })
-        jQuery('#publicCertDeleteLink').click(function () {
-            $(jQuery('#publicCertDiv')).toggle();
+        jQuery('.publicCertDeleteLinkClass').click(function () {
+            $(this).parent().toggle();
+            console.log($(this).attr('id'));
             if (!jQuery('#deletePublicCert').length) {
+                var dataNum = $(this).attr('data-certno')
 
                 var input = document.createElement('input');
                 input.type = "hidden";
                 input.name = "deletePublicCert";
                 input.id = "deletePublicCert";
                 input.value = "true";
+                var input1 = document.createElement('input');
+                input1.type = "hidden";
+                input1.name = "deleteTableId";
+                input1.id = "deleteTableId";
+                input1.value = $(this).attr('id');
+                var input2 = document.createElement('input');
+                input2.type = "hidden";
+                input2.name = "certificateWithRawIdMap";
+                input2.id = "certificateWithRawIdMap";
+                input2.value = <%=certificateWithRawIdMap%>;
                 document.forms['idp-mgt-edit-form'].appendChild(input);
+                document.forms['idp-mgt-edit-form'].appendChild(input1);
+                document.forms['idp-mgt-edit-form'].appendChild(input2);
             }
         })
         jQuery('#claimAddLink').click(function () {
@@ -3291,9 +3307,17 @@
                                 <div class="sectionHelp">
                                     <fmt:message key='certificate.help'/>
                                 </div>
-                                <div id="publicCertDiv">
+
                                     <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
-                                    <a id="publicCertDeleteLink" class="icon-link"
+                                    <%
+                                        int i = 0;
+                                        for(CertData certData1:certDataArr) {
+                                            certificateWithRawIdMap.put("publicCertDeleteLink_" + i,certInfoArr[i].
+                                                    getCertValue());
+
+                                    %>
+                                <div class="publicCertDiv">
+                                    <a id="publicCertDeleteLink_<%=i%>" data-certno="<%=i%>" class="icon-link publicCertDeleteLinkClass"
                                        style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
                                             key='public.cert.delete'/></a>
 
@@ -3310,7 +3334,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <%for(CertData certData1:certDataArr) { %>
+
                                         <tr>
                                             <td><%
                                                 String issuerDN = "";
@@ -3350,11 +3374,12 @@
                                             <td><%=certData1.getVersion()%>
                                             </td>
                                         </tr>
-                                        <%}%>
                                         </tbody>
                                     </table>
-                                    <% } %>
                                 </div>
+                                <% i++;
+                                        }
+                                    } %>
                             </td>
                         </tr>
                         <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> style="display:none" <% } %>>
