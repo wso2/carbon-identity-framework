@@ -514,7 +514,9 @@ public class IdentityApplicationManagementUtil {
                 i++;
             } else {
                 String errorMsg = "Invalid encoded certificate: \'NULL\'";
-                log.debug(errorMsg);
+                if (log.isDebugEnabled()) {
+                    log.debug(errorMsg);
+                }
                 throw new IllegalArgumentException(errorMsg);
             }
         }

@@ -39,6 +39,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.BEGIN_CERTIFICATE;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.END_CERTIFICATE;
+
 public class IdentityProvider implements Serializable {
 
     private static final long serialVersionUID = 2199048941051702943L;
@@ -62,8 +65,6 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
-    private final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
-    private final String END_CERTIFICATE = "-----END CERTIFICATE-----";
     private final String CHARSET_NAME = "UTF-8";
     private final String THUMB_PRINT = "thumbPrint";
     private final String CERT_VALUE = "certValue";

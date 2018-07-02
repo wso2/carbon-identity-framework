@@ -3306,11 +3306,8 @@
                                     <%
                                         int i = 0;
                                         HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.getCertDataMap();
-                                        for(CertData certData1:certDataArr) {
-                                            String certificate = certDataHashMap.get(certData1);
-//                                            certificateWithRawIdMap.put("publicCertDeleteLink_" + i,certInfoArr[i].
-//                                                    getCertValue());
-
+                                        for(CertData certData:certDataArr) {
+                                            String certificate = certDataHashMap.get(certData);
                                     %>
                                 <div class="publicCertDiv">
                                     <a id="publicCertDeleteLink_<%=i%>" data-certno="<%=certificate%>" class="icon-link publicCertDeleteLinkClass"
@@ -3334,40 +3331,40 @@
                                         <tr>
                                             <td><%
                                                 String issuerDN = "";
-                                                if (certData1.getIssuerDN() != null) {
-                                                    issuerDN = certData1.getIssuerDN();
+                                                if (certData.getIssuerDN() != null) {
+                                                    issuerDN = certData.getIssuerDN();
                                                 }
                                             %><%=Encode.forHtmlContent(issuerDN)%>
                                             </td>
                                             <td><%
                                                 String subjectDN = "";
-                                                if (certData1.getSubjectDN() != null) {
-                                                    subjectDN = certData1.getSubjectDN();
+                                                if (certData.getSubjectDN() != null) {
+                                                    subjectDN = certData.getSubjectDN();
                                                 }
                                             %><%=Encode.forHtmlContent(subjectDN)%>
                                             </td>
                                             <td><%
                                                 String notAfter = "";
-                                                if (certData1.getNotAfter() != null) {
-                                                    notAfter = certData1.getNotAfter();
+                                                if (certData.getNotAfter() != null) {
+                                                    notAfter = certData.getNotAfter();
                                                 }
                                             %><%=Encode.forHtmlContent(notAfter)%>
                                             </td>
                                             <td><%
                                                 String notBefore = "";
-                                                if (certData1.getNotBefore() != null) {
-                                                    notBefore = certData1.getNotBefore();
+                                                if (certData.getNotBefore() != null) {
+                                                    notBefore = certData.getNotBefore();
                                                 }
                                             %><%=Encode.forHtmlContent(notBefore)%>
                                             </td>
                                             <td><%
                                                 String serialNo = "";
-                                                if (certData1.getSerialNumber() != null) {
-                                                    serialNo = certData1.getSerialNumber().toString();
+                                                if (certData.getSerialNumber() != null) {
+                                                    serialNo = certData.getSerialNumber().toString();
                                                 }
                                             %><%=Encode.forHtmlContent(serialNo)%>
                                             </td>
-                                            <td><%=certData1.getVersion()%>
+                                            <td><%=certData.getVersion()%>
                                             </td>
                                         </tr>
                                         </tbody>
