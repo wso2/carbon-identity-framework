@@ -39,7 +39,7 @@
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
-    private static final String BACK_CHANNEL_BASIC_AUTHENTICATOR = "BackchannelBasicAuthenticator";
+    private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
 %>
 
     <%
@@ -181,11 +181,11 @@
 
                             <%@ include file="openid.jsp" %>
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(BACK_CHANNEL_BASIC_AUTHENTICATOR) ||
+                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
                                     localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
                                 boolean includeBasicAuth = true;
-                                if (localAuthenticatorNames.contains(BACK_CHANNEL_BASIC_AUTHENTICATOR)) {
+                                if (localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR)) {
                                     if (Boolean.parseBoolean(application.getInitParameter(ENABLE_AUTHENTICATION_WITH_REST_API))) {
                                         isBackChannelBasicAuth = true;
                                     } else {
