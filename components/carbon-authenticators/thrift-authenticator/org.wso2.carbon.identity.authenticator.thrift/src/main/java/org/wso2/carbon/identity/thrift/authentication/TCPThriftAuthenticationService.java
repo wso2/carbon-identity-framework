@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.thrift.authentication;
 
+import org.apache.axiom.om.OMElement;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.server.TServer;
@@ -29,9 +31,11 @@ import org.wso2.carbon.identity.thrift.authentication.exception.ThriftAuthentica
 import org.wso2.carbon.identity.thrift.authentication.internal.AuthenticatorServiceImpl;
 import org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticatorServiceImpl;
 import org.wso2.carbon.identity.thrift.authentication.internal.generatedCode.AuthenticatorService;
+import org.wso2.carbon.identity.thrift.authentication.internal.util.ThriftAuthenticationConfigParser;
 import org.wso2.carbon.identity.thrift.authentication.internal.util.ThriftAuthenticationConstants;
 import org.wso2.carbon.utils.ThriftSession;
 
+import javax.net.ssl.SSLServerSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -88,7 +92,27 @@ public class TCPThriftAuthenticationService {
         TServerSocket serverTransport;
 
         serverTransport = TSSLTransportFactory.getServerSocket(port, clientTimeout, inetAddress, params);
+        SSLServerSocket sslServerSocket = (javax.net.ssl.SSLServerSocket) serverTransport.getServerSocket();
 
+        OMElement sslEnabledProtocolsElement = ThriftAuthenticationConfigParser.getInstance()
+                .getConfigElement(ThriftAuthenticationConstants.CONFIG_SSL_ENABLED_PROTOCOLS);
+        if (sslEnabledProtocolsElement != null) {
+            String sslEnabledProtocols = sslEnabledProtocolsElement.getText();
+            if (StringUtils.isNotBlank(sslEnabledProtocols)) {
+                String[] sslProtocolsArray = sslEnabledProtocols.split(",");
+                sslServerSocket.setEnabledProtocols(sslProtocolsArray);
+            }
+        }
+
+        OMElement ciphersElement = ThriftAuthenticationConfigParser.getInstance()
+                .getConfigElement(ThriftAuthenticationConstants.CONFIG_CIPHERS);
+        if (ciphersElement != null) {
+            String ciphers = ciphersElement.getText();
+            if (StringUtils.isNotBlank(ciphers)) {
+                String[] ciphersArray = ciphers.split(",");
+                sslServerSocket.setEnabledCipherSuites(ciphersArray);
+            }
+        }
 
         AuthenticatorService.Processor<AuthenticatorServiceImpl> processor =
                 new AuthenticatorService.Processor<AuthenticatorServiceImpl>(
