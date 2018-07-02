@@ -303,13 +303,13 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
                 answersMap.put(answerSetID, answer);
             }
         }
-        for (String s : questionsMap.keySet()) {
-            String challengeQuestion = questionsMap.get(s);
+        for (String questionKey : questionsMap.keySet()) {
+            String challengeQuestion = questionsMap.get(questionKey);
             for (ChallengeQuestion question : list) {
                 if (question.getQuestion().equals(challengeQuestion)) {
                     UserChallengeAnswer questionAndAnswer = new UserChallengeAnswer();
                     questionAndAnswer.setQuestion(question);
-                    questionAndAnswer.setAnswer(answersMap.get(s));
+                    questionAndAnswer.setAnswer(answersMap.get(questionKey));
                     questionsAndAnswers.add(questionAndAnswer);
                 }
             }
@@ -323,7 +323,7 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
      * @param user Authenticated User.
      * @return UTF-8 encoded URL with challenge questions.
      */
-    private String getUrlEncodedChallengeQuestionsString(AuthenticatedUser user) {
+    private String getUrlEncodedChallengeQuestionsString(AuthenticatedUser user) throws UnsupportedEncodingException {
         StringBuilder challengeQuestionData = new StringBuilder();
         List<ChallengeQuestion> challengeQuestionList = getChallengeQuestions(user);
 
@@ -342,13 +342,7 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
                         (questionString).append("|").append(questionLocale).append("&");
             }
         }
-        String encodedData = null;
-        try {
-            encodedData = java.net.URLEncoder.encode(challengeQuestionData.toString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            log.error("Error occurred while encoding Challenge question data as URL", e);
-        }
-        return encodedData;
+        return java.net.URLEncoder.encode(challengeQuestionData.toString(), "UTF-8");
     }
 
     /**
@@ -364,7 +358,12 @@ public class PostAuthnMissingChallengeQuestionsHandler extends AbstractPostAuthn
             AuthenticatedUser user) {
 
         // If challenge questions are not requested redirect user to add challenge questions jsp page
-        String encodedData = getUrlEncodedChallengeQuestionsString(user);
+        String encodedData = null;
+        try {
+            encodedData = getUrlEncodedChallengeQuestionsString(user);
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error occurred while encoding Challenge question data as URL", e);
+        }
 
         if (encodedData == null || "".equals(encodedData)) {
             if (log.isDebugEnabled()) {
