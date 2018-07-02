@@ -51,6 +51,16 @@
             <artifactId>powermock-module-testng-common</artifactId>
             <scope>provided</scope>
         </dependency>
+        
+        <!-- MSF4J currently used only on tests as of now -->
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-microservice</artifactId>
+        </dependency>
     </dependencies>
     <name>WSO2 Carbon - Identity Common Test Util</name>
 </project>
