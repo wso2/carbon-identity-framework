@@ -8,7 +8,7 @@
     "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
   ],
   "parametersDescription": {
-    "rolesList": "An array of roles of which users need to enforce 2FA."
+    "rolesToStepUp": "An array of roles of which users need to enforce 2FA."
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator.",
@@ -24,33 +24,33 @@
     },
     "2": {
       "local": [
-        "TOTPAuthenticator",
-        "FidoAuthenticator"
+        "totp",
+        "FIDOAuthenticator"
       ],
       "federated": []
     }
   },
+  "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
   "code": [
-    "// This script will step up authentication for any user belonging ",
-    "// to a given role",
-    "// If the user has the below role, authentication will be stepped up",
-    "var role = 'admin';",
+    "// This script will step up authentication for any user belonging",
+    "// to one of the given roles",
+    "// If the user has any of the below roles, authentication will be stepped up",
+    "var rolesToStepUp = ['admin', 'manager'];",
     "",
     "function onInitialRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting authenticated subject from the first step",
     "            var user = context.steps[1].subject;",
-    "            // Checking if the user is assigned for the given role",
-    "            var isAdmin = hasRole(user, role);",
-    "            Log.info(user.username + ' Has Role: ' + role);",
-    "            if (isAdmin) {",
+    "            // Checking if the user is assigned to one of the given roles",
+    "            var hasRole = hasAnyOfTheRoles(user, rolesToStepUp);",
+    "            if (hasRole) {",
+    "                Log.info(user.username + ' Has one of Roles: ' + rolesToStepUp.toString());",
     "                executeStep(2);",
     "            }",
     "        }",
     "    });",
     "}"
-  ],
-  "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication"
+  ]
 }

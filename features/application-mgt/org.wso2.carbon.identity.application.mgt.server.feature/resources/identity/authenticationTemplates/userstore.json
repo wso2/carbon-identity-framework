@@ -1,15 +1,14 @@
 {
   "category": "User Based",
-  "name": "Tenant Based",
-  "title": "Tenant Based Authentication Template",
-  "summary": "Prompts 2FA to the users who are from one of the given tenants.",
+  "name": "Userstore Based",
+  "title": "Userstore Based Authentication Template",
+  "summary": "Prompts 2FA to the users who are from one of the given user store domains.",
   "preRequisites": [
-    "Service provider should be registered as a SAAS Application.",
-    "Change the tenantsToStepUp parameter to an array of tenant domains that should require 2FA.",
+    "Change the userStoresToStepUp parameter to an array of user store domains that should require 2FA.",
     "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
   ],
   "parametersDescription": {
-    "tenantsToStepUp": "An array of tenants of which users are required to use 2FA"
+    "userStoresToStepUp": "An array of user store domains of which users are required to use 2FA"
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
@@ -33,21 +32,19 @@
   "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
   "img": "./images/user.png",
   "code": [
-    "// This script will prompt 2FA to the app only for a selected",
-    "// set of tenants.",
-    "// The app is assumed to be a SAAS app here which can be accessed by any tenant",
+    "// This script will prompt 2FA to the app only for a selected set of user stores.",
     "",
-    "// If the user is in one of the following tenants, user will be prompted 2FA",
-    "var tenantsToStepUp = ['abc.com', 'xyz.com'];",
+    "// If the user is in one of the following user stores, user will be prompted 2FA",
+    "var userStoresToStepUp = ['EMPLOYEES', 'CONTRACTORS'];",
     "",
     "function onInitialRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: {",
     "            function (context) {",
-    "                // Extracting tenant domain of authenticated subject from the first step",
-    "                var userTenantDomain = context.steps[1].subject.tenantDomain;",
+    "                // Extracting user store domain of authenticated subject from the first step",
+    "                var userStoreDomain = context.steps[1].subject.userStoreDomain;",
     "                // Checking if the user is from whitelisted tenant domain",
-    "                if (tenantsToStepUp.indexOf(userTenantDomain) >= 0) {",
+    "                if (userStoresToStepUp.indexOf(userStoreDomain) >= 0) {",
     "                    executeStep(2);",
     "                }",
     "            }",
