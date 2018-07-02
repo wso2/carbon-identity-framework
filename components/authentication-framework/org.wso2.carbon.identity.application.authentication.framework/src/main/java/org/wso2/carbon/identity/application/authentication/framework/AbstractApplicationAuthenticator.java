@@ -256,4 +256,19 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         return userName;
     }
+
+    /**
+     * Get map of runtime params set through the script.
+     *
+     * @param context context
+     * @return Map of params
+     */
+    public Map<String, String> getRuntimeParams(AuthenticationContext context) {
+
+        Map<String, String> runtimeParams = context.getAuthenticatorParams(getName());
+        if (runtimeParams != null) {
+            return runtimeParams;
+        }
+        return Collections.emptyMap();
+    }
 }

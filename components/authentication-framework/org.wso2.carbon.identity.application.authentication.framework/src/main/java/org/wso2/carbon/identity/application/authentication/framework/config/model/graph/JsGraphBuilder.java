@@ -271,6 +271,15 @@ public class JsGraphBuilder {
                 log.debug("Authenticator options not provided or invalid, hence proceeding without filtering");
             }
         }
+
+        Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
+        if (authenticatorParams instanceof Map) {
+            authenticatorParamsOptions((Map<String, Object>) authenticatorParams, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
+            }
+        }
     }
 
     /**
@@ -377,6 +386,45 @@ public class JsGraphBuilder {
             }
         } else {
             log.warn("The filtered authenticator list is empty, hence proceeding without filtering");
+        }
+    }
+
+    /**
+     * Add authenticator params in the message context.
+     *
+     * @param options Authentication options
+     */
+    protected void authenticatorParamsOptions(Map<String, Object> options, StepConfig stepConfig) {
+
+        Map<String, Map<String, String>> authenticatorParams = new HashMap<>();
+            Object localOptions = options.get(FrameworkConstants.JSAttributes.JS_LOCAL_IDP);
+        if (localOptions instanceof Map) {
+            ((Map<String, Object>) localOptions).forEach((authenticatorName, params) -> {
+                if (params instanceof Map) {
+                    authenticatorParams.put(authenticatorName, new HashMap<>((Map<String, String>) params));
+                }
+            });
+        }
+        Object federatedOptionsObj = options.get(FrameworkConstants.JSAttributes.JS_FEDERATED_IDP);
+        if (federatedOptionsObj instanceof Map) {
+            Map<String, Map<String, String>> federatedOptions = (Map<String, Map<String, String>>) federatedOptionsObj;
+            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
+                    .forEach((idpName, idp) -> {
+                        if (!FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)
+                                && federatedOptions.containsKey(idpName)) {
+                            for (FederatedAuthenticatorConfig federatedAuthConfig
+                                    : idp.getFederatedAuthenticatorConfigs()) {
+                                String authenticatorName = authenticatorConfig.getApplicationAuthenticator().getName();
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName())) {
+                                    authenticatorParams.put(authenticatorName,
+                                            new HashMap<>(federatedOptions.get(idpName)));
+                                }
+                            }
+                        }
+                    }));
+        }
+        if (!authenticatorParams.isEmpty()) {
+            authenticationContext.addAuthenticatorParams(authenticatorParams);
         }
     }
 

@@ -105,6 +105,7 @@ public abstract class FrameworkConstants {
 
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
+    public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
 
     private FrameworkConstants() {
 
@@ -296,6 +297,8 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_AUTHENTICATED_IDP = "idp";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
+        public static final String JS_LOCAL_IDP = "local";
+        public static final String JS_FEDERATED_IDP = "federated";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
@@ -313,6 +316,7 @@ public abstract class FrameworkConstants {
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
     }
     public static class InternalRoleDomains {
 

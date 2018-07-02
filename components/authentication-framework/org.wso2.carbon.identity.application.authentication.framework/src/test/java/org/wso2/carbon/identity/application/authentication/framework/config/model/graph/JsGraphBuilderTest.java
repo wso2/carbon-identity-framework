@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.mockito.Mock;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
+import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -37,6 +40,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -51,8 +56,18 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 
+    @Mock
+    private LocalApplicationAuthenticator localApplicationAuthenticator;
+
+    @Mock
+    private LocalApplicationAuthenticator totpApplicationAuthenticator;
+
+    @Mock
+    private FederatedApplicationAuthenticator federatedApplicationAuthenticator;
+
     @BeforeTest
     public void setUp() {
+        initMocks(this);
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.init();
     }
@@ -251,5 +266,106 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         StepConfig newStepConfig = new StepConfig();
         newStepConfig.setAuthenticatorList(new ArrayList<>(stepConfig.getAuthenticatorList()));
         return newStepConfig;
+    }
+
+    @Test(dataProvider = "filterParamsDataProvider", alwaysRun = true)
+    public void testParamsOptions(Map<String, Object> options, StepConfig stepConfig,
+                                  String authenticatorName, String key, String value) throws Exception {
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
+        stepConfigMap.put(1, stepConfig);
+
+        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        jsGraphBuilder.authenticatorParamsOptions(options, stepConfig);
+        assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value,
+                "Params are not set expected");
+    }
+
+    @DataProvider
+    public Object[][] filterParamsDataProvider() {
+
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().clear();
+        LocalAuthenticatorConfig basic = new LocalAuthenticatorConfig();
+        basic.setName("BasicAuthenticator");
+        basic.setDisplayName("basic");
+
+        LocalAuthenticatorConfig totp = new LocalAuthenticatorConfig();
+        totp.setName("TOTPAuthenticator");
+        totp.setDisplayName("totp");
+
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(basic);
+        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(totp);
+
+        FederatedAuthenticatorConfig twitterFederated = new FederatedAuthenticatorConfig();
+        twitterFederated.setDisplayName("twitter");
+        twitterFederated.setName("TwitterAuthenticator");
+
+        IdentityProvider localIdp = new IdentityProvider();
+        localIdp.setId("local");
+        localIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[0]);
+
+        IdentityProvider customIdp2 = new IdentityProvider();
+        customIdp2.setId("customIdp2");
+        customIdp2.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{twitterFederated});
+        customIdp2.setDefaultAuthenticatorConfig(twitterFederated);
+
+        AuthenticatorConfig basicAuthConfig = new AuthenticatorConfig();
+        basicAuthConfig.setName("BasicAuthenticator");
+        basicAuthConfig.setEnabled(true);
+        when(localApplicationAuthenticator.getName()).thenReturn("BasicAuthenticator");
+        when(localApplicationAuthenticator.getFriendlyName()).thenReturn("basic");
+        basicAuthConfig.setApplicationAuthenticator(localApplicationAuthenticator);
+        basicAuthConfig.getIdps().put("local", localIdp);
+
+        AuthenticatorConfig totpAuthConfig = new AuthenticatorConfig();
+        totpAuthConfig.setName("TOTPAuthenticator");
+        totpAuthConfig.setEnabled(true);
+        when(totpApplicationAuthenticator.getName()).thenReturn("TOTPAuthenticator");
+        when(totpApplicationAuthenticator.getFriendlyName()).thenReturn("totp");
+        totpAuthConfig.setApplicationAuthenticator(totpApplicationAuthenticator);
+        totpAuthConfig.getIdps().put("local", localIdp);
+
+        AuthenticatorConfig twitterAuthConfig = new AuthenticatorConfig();
+        twitterAuthConfig.setName("TwitterAuthenticator");
+        twitterAuthConfig.setEnabled(true);
+        when(federatedApplicationAuthenticator.getName()).thenReturn("TwitterAuthenticator");
+        when(federatedApplicationAuthenticator.getFriendlyName()).thenReturn("twitter");
+        twitterAuthConfig.setApplicationAuthenticator(federatedApplicationAuthenticator);
+        twitterAuthConfig.getIdps().put("customIdp2", customIdp2);
+
+        StepConfig stepWithSingleOption = new StepConfig();
+        stepWithSingleOption.setAuthenticatorList(Collections.singletonList(basicAuthConfig));
+
+        Map<String, Object> singleParamConfig = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
+        params.put("BasicAuthenticator", Collections.singletonMap("foo", "xyz"));
+        singleParamConfig.put("local", params);
+
+        StepConfig stepWithMultipleOptions = new StepConfig();
+        stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
+                twitterAuthConfig)));
+
+        Map<String, Object> localParams = new HashMap<>();
+        localParams.put("BasicAuthenticator", Collections.singletonMap("foo", "xyz"));
+        localParams.put("TOTPAuthenticator", Collections.singletonMap("domain", "localhost"));
+
+        Map<String, Object>  federatedParams = new HashMap<>();
+        federatedParams.put("customIdp2", Collections.singletonMap("foo", "user"));
+
+        Map<String, Object> multiParamConfig = new HashMap<>();
+        multiParamConfig.put("local", localParams);
+        multiParamConfig.put("federated", federatedParams);
+
+        return new Object[][]{
+                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foo", "xyz"},
+                {singleParamConfig, duplicateStepConfig(stepWithSingleOption), "BasicAuthenticator", "foos", null},
+                {singleParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz"},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user"},
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator","domain", "localhost"}
+        };
     }
 }
