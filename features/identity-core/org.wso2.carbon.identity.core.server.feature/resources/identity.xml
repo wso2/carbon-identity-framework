@@ -898,14 +898,22 @@
 
     <AdaptiveAuth>
         <EventPublisher>
-            <receiverURL>http://localhost:8280/</receiverURL>
+            <!--Default configs for event publisher-->
+            <ReceiverURL>https://localhost:8280/</ReceiverURL>
+            <BasicAuthentication>
+                <Enable>true</Enable>
+                <Username>admin</Username>
+                <Password>admin</Password>
+            </BasicAuthentication>
         </EventPublisher>
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
 
         <!--Timeouts in milliseconds-->
+        <!--Default configs for timeouts-->
         <!--<HTTPConnectionTimeout>5000</HTTPConnectionTimeout>-->
         <!--<HTTPReadTimeout>5000</HTTPReadTimeout>-->
         <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
+
         <!--<RefreshInterval>500</RefreshInterval>-->
 
         <!--<PromptOnLongWait>false</PromptOnLongWait>-->
