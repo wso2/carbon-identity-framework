@@ -1711,9 +1711,8 @@
         })
         jQuery('.publicCertDeleteLinkClass').click(function () {
             $(this).parent().toggle();
-            console.log($(this).attr('id'));
+            console.log($(this).attr('data-certno'));
             if (!jQuery('#deletePublicCert').length) {
-                var dataNum = $(this).attr('data-certno')
 
                 var input = document.createElement('input');
                 input.type = "hidden";
@@ -1722,17 +1721,12 @@
                 input.value = "true";
                 var input1 = document.createElement('input');
                 input1.type = "hidden";
-                input1.name = "deleteTableId";
-                input1.id = "deleteTableId";
-                input1.value = $(this).attr('id');
-                var input2 = document.createElement('input');
-                input2.type = "hidden";
-                input2.name = "certificateWithRawIdMap";
-                input2.id = "certificateWithRawIdMap";
-                input2.value = <%=certificateWithRawIdMap%>;
+                input1.name = "certificateVal";
+                input1.id = "certificateVal";
+                input1.value = $(this).attr('data-certno');
+
                 document.forms['idp-mgt-edit-form'].appendChild(input);
                 document.forms['idp-mgt-edit-form'].appendChild(input1);
-                document.forms['idp-mgt-edit-form'].appendChild(input2);
             }
         })
         jQuery('#claimAddLink').click(function () {
@@ -3311,13 +3305,15 @@
                                     <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
                                     <%
                                         int i = 0;
+                                        HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.getCertDataMap();
                                         for(CertData certData1:certDataArr) {
-                                            certificateWithRawIdMap.put("publicCertDeleteLink_" + i,certInfoArr[i].
-                                                    getCertValue());
+                                            String certificate = certDataHashMap.get(certData1);
+//                                            certificateWithRawIdMap.put("publicCertDeleteLink_" + i,certInfoArr[i].
+//                                                    getCertValue());
 
                                     %>
                                 <div class="publicCertDiv">
-                                    <a id="publicCertDeleteLink_<%=i%>" data-certno="<%=i%>" class="icon-link publicCertDeleteLinkClass"
+                                    <a id="publicCertDeleteLink_<%=i%>" data-certno="<%=certificate%>" class="icon-link publicCertDeleteLinkClass"
                                        style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
                                             key='public.cert.delete'/></a>
 

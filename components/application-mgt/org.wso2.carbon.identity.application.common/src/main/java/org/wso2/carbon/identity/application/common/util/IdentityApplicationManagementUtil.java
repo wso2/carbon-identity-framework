@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -83,6 +84,7 @@ public class IdentityApplicationManagementUtil {
     private static final Map<String, String> xmlKeyEncryptionAlgorithms;
     private static final Map<String, String> samlAuthnContextClasses;
     private static final List<String> samlAuthnContextComparisonLevels;
+    private static HashMap<CertData, String> certificalteValMap = new HashMap<>();
     
     static {
         //initialize xmlSignatureAlgorithms
@@ -483,6 +485,7 @@ public class IdentityApplicationManagementUtil {
     public static CertData[] getCertDataArray(CertificateInfo[] certificateInfo) throws CertificateException {
 
         CertData[] certData = new CertData[certificateInfo.length];
+        HashMap<CertData, String> certDataMap = new HashMap<>();
         int i = 0;
         for (CertificateInfo certificateInfo1 : certificateInfo) {
             if (certificateInfo1.getCertValue() != null) {
@@ -507,6 +510,7 @@ public class IdentityApplicationManagementUtil {
                 Format formatter = new SimpleDateFormat("dd/MM/yyyy");
                 certData[i] = new CertData();
                 certData[i] = fillCertData(cert, formatter);
+                certDataMap.put(certData[i], certVal);
                 i++;
             } else {
                 String errorMsg = "Invalid encoded certificate: \'NULL\'";
@@ -514,7 +518,18 @@ public class IdentityApplicationManagementUtil {
                 throw new IllegalArgumentException(errorMsg);
             }
         }
+        setCertDataMap(certDataMap);
         return certData;
+    }
+
+    private static void setCertDataMap(HashMap<CertData, String> certDataMap) {
+
+        certificalteValMap = certDataMap;
+    }
+
+    public static HashMap<CertData, String> getCertDataMap() {
+
+        return certificalteValMap;
     }
 
     /**
