@@ -23,13 +23,14 @@ import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 import javax.xml.stream.XMLStreamException;
 
-public class AbstractFrameworkTest {
+public class AbstractFrameworkTest extends IdentityBaseTest {
 
     protected ServiceProvider getTestServiceProvider(String spFileName) throws XMLStreamException {
         InputStream inputStream = this.getClass().getResourceAsStream(spFileName);
