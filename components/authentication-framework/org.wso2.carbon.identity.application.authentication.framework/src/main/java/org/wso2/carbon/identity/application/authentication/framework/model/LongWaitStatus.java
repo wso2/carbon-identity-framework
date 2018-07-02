@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 public class LongWaitStatus {
 
     public enum Status {
-        WAITING, COMPLETED
+        WAITING, COMPLETED, UNKNOWN
     }
 
     private Status status;

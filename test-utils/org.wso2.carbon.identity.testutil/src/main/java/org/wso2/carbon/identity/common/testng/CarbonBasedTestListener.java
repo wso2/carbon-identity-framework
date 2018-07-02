@@ -22,7 +22,7 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.powermock.reflect.Whitebox;
 import org.testng.IClassListener;
 import org.testng.IMethodInstance;
 import org.testng.ITestClass;
@@ -36,6 +36,7 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.common.testng.ms.MicroserviceServer;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
@@ -61,6 +62,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -73,6 +75,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 
@@ -89,6 +93,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     private static final String REG_DB_SQL_FILE = "dbScripts/registry.sql";
 
     private RealmService testSessionRealmService;
+    private Map<Object, MicroserviceServer> microserviceServerMap = new HashMap<>();
 
     @Override
     public void onTestStart(ITestResult iTestResult) {
@@ -220,8 +225,22 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
             createKeyStore(withKeyStore);
         }
+        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(
+                iMethodInstance.getInstance())) {
+            MicroserviceServer microserviceServer = initMicroserviceServer(iMethodInstance.getInstance());
+            scanAndLoadClasses(microserviceServer, realClass, iMethodInstance.getInstance());
+        }
         Field[] fields = realClass.getDeclaredFields();
         processFields(fields, iMethodInstance.getInstance());
+    }
+
+    private boolean microserviceServerInitialized(Object instance) {
+
+        MicroserviceServer microserviceServer = microserviceServerMap.get(instance);
+        if (microserviceServer != null) {
+            return microserviceServer.isActive();
+        }
+        return false;
     }
 
     private void copyDefaultConfigsIfNotExists(Class callerClass) {
@@ -256,7 +275,8 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             }
         } else {
             try {
-                System.setProperty(TestConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonXmlUrl.toURI()).getParent().toString());
+                System.setProperty(TestConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonXmlUrl.toURI()).getParent()
+                        .toString());
             } catch (URISyntaxException e) {
                 log.error("Failed to copy path for carbon.xml", e);
             }
@@ -402,6 +422,12 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     public void onAfterClass(ITestClass iTestClass, IMethodInstance iMethodInstance) {
 
         MockInitialContextFactory.destroy();
+        MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance.getInstance());
+        if (microserviceServer != null) {
+            microserviceServer.stop();
+            microserviceServer.destroy();
+            microserviceServerMap.remove(iMethodInstance.getInstance());
+        }
     }
 
     private void processFields(Field[] fields, Object realInstance) {
@@ -424,6 +450,55 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                 }
 
             }
+            if (annotationPresent(field, InjectMicroservicePort.class)) {
+                MicroserviceServer microserviceServer = microserviceServerMap.get(realInstance);
+                if (microserviceServer != null) {
+                    field.setAccessible(true);
+                    try {
+                        field.set(realInstance, microserviceServer.getPort());
+                    } catch (IllegalAccessException e) {
+                        log.error("Error in setting micro-service port: " + field.getName() + ", Class: " + field
+                                .getDeclaringClass(), e);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Scans for the real class under test and loads all the microservices on that class into microservice server.
+     *
+     * @param realClass
+     * @param instance
+     */
+    private void scanAndLoadClasses(MicroserviceServer microserviceServer, Class realClass, Object instance) {
+
+        if (microserviceServer != null) {
+            microserviceServer.addService(instance);
+            microserviceServer.start();
+        }
+
+    }
+
+    /**
+     * Initializes the micro-service server.
+     * Detects an available port from the system and use that for the microservice server.
+     */
+    private MicroserviceServer initMicroserviceServer(Object realInstance) throws TestCreationException {
+
+        try {
+
+            ServerSocket s = new ServerSocket(0);
+            int port = s.getLocalPort();
+            s.close();
+
+            MicroserviceServer microserviceServer = new MicroserviceServer(port);
+            microserviceServer.init();
+            microserviceServerMap.put(realInstance, microserviceServer);
+            return microserviceServer;
+
+        } catch (IOException e) {
+            throw new TestCreationException("Could not get an aviailable port for micro-service", e);
         }
     }
 }

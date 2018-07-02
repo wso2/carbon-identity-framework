@@ -897,10 +897,32 @@
     </JWTValidatorConfigs>
 
     <AdaptiveAuth>
+        <!--Default configs for event publisher-->
         <EventPublisher>
-            <receiverURL>http://localhost:8280/</receiverURL>
+            <ReceiverURL>https://localhost:8280/</ReceiverURL>
+            <BasicAuthentication>
+                <Enable>true</Enable>
+                <Username>admin</Username>
+                <Password>admin</Password>
+            </BasicAuthentication>
         </EventPublisher>
+        <!--End of default configs for event publisher-->
+
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
+        <MaxTotalConnections>20</MaxTotalConnections>
+        <MaxTotalConnectionsPerRoute>20</MaxTotalConnectionsPerRoute>
+
+        <!--Timeouts in milliseconds-->
+        <!--Default configs for timeouts-->
+        <!--<HTTPConnectionTimeout>5000</HTTPConnectionTimeout>-->
+        <!--<HTTPReadTimeout>5000</HTTPReadTimeout>-->
+        <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
+        <!--End of default configs for timeouts-->
+
+        <!--<RefreshInterval>500</RefreshInterval>-->
+        <!--End of timeouts in milliseconds-->
+
+        <!--<PromptOnLongWait>false</PromptOnLongWait>-->
     </AdaptiveAuth>
 
 </Server>

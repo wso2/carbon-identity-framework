@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
@@ -46,26 +47,38 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.Deflater;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.FAIL_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
+    private static final String PROMPT_DEFAULT_ACTION = "Success";
+    private static final String PROMPT_ACTION_PREFIX = "action.";
+    private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
@@ -112,7 +125,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
-        if (currentNode instanceof LongWaitNode) {
+        if (currentNode instanceof ShowPromptNode) {
+            isInterrupt = handlePrompt(request, response, context, sequenceConfig, (ShowPromptNode) currentNode);
+        } else if (currentNode instanceof LongWaitNode) {
             isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
@@ -128,6 +143,105 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
+    }
+
+    private void displayLongWait(AuthenticationContext context, HttpServletRequest request, HttpServletResponse
+            response) throws FrameworkException {
+
+        try {
+            String longWaitUrl = ConfigurationFacade.getInstance().getAuthenticationEndpointWaitURL();
+            response.sendRedirect(longWaitUrl + "?" + FrameworkConstants.SESSION_DATA_KEY + "=" + context
+                    .getContextIdentifier());
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting to wait.do", e);
+        }
+    }
+
+    /**
+     * Handles the prompt. Make redirect to prompt handler (authentication endpoint) URL when this is initial prompt
+     * state. Executes the respective event handler function when prompt is returning with user input.
+     *
+     * @param request Http servlet request
+     * @param response Http servlet response
+     * @param context Authentication context
+     * @param sequenceConfig Authentication sequence config
+     * @param promptNode Show prompt node
+     * @return true if the execution needs to be stopped and show somethin to the user.
+     */
+    private boolean handlePrompt(HttpServletRequest request, HttpServletResponse response,
+                                 AuthenticationContext context, SequenceConfig sequenceConfig,
+                                 ShowPromptNode promptNode) throws FrameworkException {
+
+        boolean isPromptToBeDisplayed = false;
+        if (context.isReturning()) {
+            String action = PROMPT_DEFAULT_ACTION;
+            for (String s : request.getParameterMap().keySet()) {
+                if (s.startsWith(PROMPT_ACTION_PREFIX)) {
+                    action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
+                    break;
+                }
+            }
+            action = "on" + action;
+            executeFunction(action, promptNode, context);
+            AuthGraphNode nextNode = promptNode.getDefaultEdge();
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+            context.setReturning(false);
+        } else {
+            displayPrompt(context, request, response, promptNode.getTemplateId(), promptNode.getData());
+            isPromptToBeDisplayed = true;
+        }
+        return isPromptToBeDisplayed;
+    }
+
+    private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
+                               String templateId, String data) throws FrameworkException {
+
+        String promptId = UUID.randomUUID().toString();
+
+        try {
+            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
+            String redirectUrl = promptPage + "?templateId=" +
+                    URLEncoder.encode(templateId, StandardCharsets.UTF_8.name()) + "&promptId=" + promptId;
+            if (data != null) {
+                //TODO encrypt data based on a config.
+                String encodedDataString = deflateJson(data);
+                redirectUrl += "&data=" + encodedDataString;
+            }
+
+            response.sendRedirect(redirectUrl);
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+            request.setAttribute(RESPONSE_HANDLED_BY_FRAMEWORK, Boolean.TRUE);
+            FrameworkUtils.addAuthenticationContextToCache(promptId, context);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (UnsupportedEncodingException e) {
+            throw new FrameworkException("Error while encoding the data to send to prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting the user for prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        }
+    }
+
+    private String deflateJson(String data) throws IOException {
+
+        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        Deflater deflater = new Deflater();
+        deflater.setInput(dataBytes);
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(dataBytes.length)) {
+            deflater.finish();
+            byte[] buffer = new byte[1024];
+            while (!deflater.finished()) {
+                int count = deflater.deflate(buffer); // returns the generated code... index
+                outputStream.write(buffer, 0, count);
+            }
+            byte[] deflatedBytes = outputStream.toByteArray();
+
+            byte[] base64EncodedBytes = Base64.getEncoder().encode(deflatedBytes);
+            String base64EncodedString = new String(base64EncodedBytes);
+            return URLEncoder.encode(base64EncodedString, StandardCharsets.UTF_8.name());
+        }
     }
 
     private void gotoToNextNode(AuthenticationContext context, SequenceConfig sequenceConfig,
@@ -199,7 +313,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             URIBuilder uriBuilder = new URIBuilder(errorPage);
             node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
-            response.sendRedirect(redirectURL);
+            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
         } catch (IOException e) {
             throw new FrameworkException("Error when redirecting user to " + errorPage, e);
         } catch (URISyntaxException e) {
@@ -302,21 +416,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isWaiting;
         LongWaitStatusStoreService longWaitStatusStoreService =
                 FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
-        // TODO: Check why context.getSessionIdentifier() is null.
-        String longWaitKey = (String) context.getProperty(FrameworkConstants.LONG_WAIT_KEY);
-        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(longWaitKey);
-        if (longWaitKey == null || longWaitStatus == null) {
+        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(context.getContextIdentifier());
+        if (longWaitStatus == null || longWaitStatus.getStatus() == LongWaitStatus.Status.UNKNOWN) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
-            longWaitKey = UUID.randomUUID().toString();
-            context.setProperty(FrameworkConstants.LONG_WAIT_KEY, longWaitKey);
-            longWaitStatusStoreService.addWait(longWaitKey, longWaitStatus);
+            int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+            longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
+            if (promptOnLongWait()) {
+                if (isWaiting) {
+                    displayLongWait(context, request, response);
+                }
+            }
         } else {
+            context.setReturning(false);
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
-            context.removeProperty(FrameworkConstants.LONG_WAIT_KEY);
-            longWaitStatusStoreService.removeWait(longWaitKey);
+            longWaitStatusStoreService.removeWait(context.getContextIdentifier());
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
@@ -348,30 +464,32 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         AsyncCaller caller = asyncProcess.getAsyncCaller();
 
-        //Need to lock the thread since the response should be continued in the same thread.
-        //TODO: As the thread is blocked, this can degrade performance. We have to add a mechanism to continue the
-        // response from out side in a new thread.
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
-            synchronized (context) {
-                context.notify();
+
+            if (!promptOnLongWait()) {
+                synchronized (context) {
+                    context.notify();
+                }
             }
         });
 
         if (caller != null) {
             FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
-            synchronized (context) {
-                try {
-                    context.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    log.error("Error while waiting for the external call the complete. ", e);
+            if (!promptOnLongWait()) {
+                synchronized (context) {
+                    try {
+                        context.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("Error while waiting for the external call the complete. ", e);
+                    }
                 }
+                resumeLongWait(request, response, context);
             }
-            resumeLongWait(request, response, context);
             return true;
         }
         return false;

@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.11.262-SNAPSHOT</version>
+        <version>5.12.15-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -50,6 +50,16 @@
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng-common</artifactId>
             <scope>provided</scope>
+        </dependency>
+        
+        <!-- MSF4J currently used only on tests as of now -->
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-microservice</artifactId>
         </dependency>
     </dependencies>
     <name>WSO2 Carbon - Identity Common Test Util</name>
