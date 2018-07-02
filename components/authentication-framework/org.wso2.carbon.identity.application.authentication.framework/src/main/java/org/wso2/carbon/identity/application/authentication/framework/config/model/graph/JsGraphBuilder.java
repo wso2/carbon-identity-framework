@@ -582,7 +582,7 @@ public class JsGraphBuilder {
         eventsMap.forEach((key, value) -> {
             if (value instanceof ScriptObjectMirror) {
                 SerializableJsFunction jsFunction = SerializableJsFunction
-                        .toSerializableForm(key, (ScriptObjectMirror) value);
+                        .toSerializableForm((ScriptObjectMirror) value);
                 if (jsFunction != null) {
                     decisionNode.addFunction(key, jsFunction);
                 } else {
