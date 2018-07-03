@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -144,6 +145,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+        UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
         sequenceConfig.setAuthenticatedUser(
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
