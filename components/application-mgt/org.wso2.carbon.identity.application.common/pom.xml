@@ -46,10 +46,6 @@
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
-        </dependency>
     </dependencies>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Application Common Bundle</name>
@@ -85,7 +81,6 @@
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
 
-                            org.opensaml.xml.util; version="${opensaml2.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",

@@ -56,7 +56,6 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.CertificateInfo" %>
 <%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
-<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -265,18 +264,18 @@
         description = identityProvider.getIdentityProviderDescription();
         provisioningRole = identityProvider.getProvisioningRole();
         if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray()) && !("[]").equals(identityProvider
-        .getCertificateInfoArray())) {
+                .getCertificateInfoArray())) {
             certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
             int i = 0;
             for (org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo certificateInfo :
-            identityProvider.getCertificateInfoArray()) {
-                CertificateInfo certificateInfo1 = new CertificateInfo();
-                certificateInfo1.setCertValue(certificateInfo.getCertValue());
-                certificateInfo1.setThumbPrint(certificateInfo.getThumbPrint());
-                certInfoArr[i] = certificateInfo1;
+                    identityProvider.getCertificateInfoArray()) {
+                CertificateInfo certificateInformation = new CertificateInfo();
+                certificateInformation.setCertValue(certificateInfo.getCertValue());
+                certificateInformation.setThumbPrint(certificateInfo.getThumbPrint());
+                certInfoArr[i] = certificateInformation;
                 i++;
             }
-        certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr);
+            certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr);
         }
         IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
         if (idpProperties != null) {
@@ -1718,19 +1717,19 @@
             }
             if (!jQuery('#deletePublicCert').length) {
 
-                var input1 = document.createElement('input');
-                input1.type = "hidden";
-                input1.name = "deletePublicCert";
-                input1.id = "deletePublicCert";
-                input1.value = "true";
-                document.forms['idp-mgt-edit-form'].appendChild(input1);
+                var inputForDelete = document.createElement('input');
+                inputForDelete.type = "hidden";
+                inputForDelete.name = "deletePublicCert";
+                inputForDelete.id = "deletePublicCert";
+                inputForDelete.value = "true";
+                document.forms['idp-mgt-edit-form'].appendChild(inputForDelete);
             }
-            var input2 = document.createElement('input');
-            input2.type = "hidden";
-            input2.name = "certificateVal" + $(this).closest('tr').attr('incrementor');
-            input2.id = "certificateVal" + $(this).closest('tr').attr('incrementor');
-            input2.value = $(this).attr('data-certno');
-            document.forms['idp-mgt-edit-form'].appendChild(input2);
+            var inputForCertificateVal = document.createElement('input');
+            inputForCertificateVal.type = "hidden";
+            inputForCertificateVal.name = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.id = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.value = $(this).attr('data-certno');
+            document.forms['idp-mgt-edit-form'].appendChild(inputForCertificateVal);
         })
         jQuery('#claimAddLink').click(function () {
 

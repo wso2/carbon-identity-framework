@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -61,10 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.json.JSONArray;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -1693,9 +1690,7 @@ public class IdPManagementDAO {
                             , ex);
                 }
             }
-            Gson gson = new GsonBuilder().create();
-            String certificateInfoJson = gson.toJson(identityProvider.getCertificateInfoArray());
-            JSONArray certificateInfoJsonArray = new JSONArray(certificateInfoJson);
+            JSONArray certificateInfoJsonArray = new JSONArray(identityProvider.getCertificateInfoArray());
             setBlobValue(certificateInfoJsonArray.toString(), prepStmt, 5);
 
             prepStmt.setString(6, identityProvider.getAlias());
@@ -1918,9 +1913,7 @@ public class IdPManagementDAO {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided.", ex);
                 }
             }
-            Gson gson = new GsonBuilder().create();
-            String certificateInfoJson = gson.toJson(newIdentityProvider.getCertificateInfoArray());
-            JSONArray certificateInfoJsonArray = new JSONArray(certificateInfoJson);
+            JSONArray certificateInfoJsonArray = new JSONArray(newIdentityProvider.getCertificateInfoArray());
             setBlobValue(certificateInfoJsonArray.toString(), prepStmt1, 4);
 
             prepStmt1.setString(5, newIdentityProvider.getAlias());

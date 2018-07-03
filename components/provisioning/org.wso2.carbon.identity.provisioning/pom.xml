@@ -115,10 +115,6 @@
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
 
     </dependencies>
 
@@ -173,7 +169,6 @@
                             org.wso2.carbon.identity.claim.metadata.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.json;version="${json.wso2.version.range}",
-                            com.google.gson;version="${com.google.code.gson.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.internal,

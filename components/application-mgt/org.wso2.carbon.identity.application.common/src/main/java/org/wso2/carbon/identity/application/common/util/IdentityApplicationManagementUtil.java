@@ -41,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -420,7 +421,7 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             byte[] bytes = Base64.decode(encodedCert);
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
             X509Certificate cert = (X509Certificate) factory
                     .generateCertificate(new ByteArrayInputStream(bytes));
             return cert;
@@ -429,6 +430,29 @@ public class IdentityApplicationManagementUtil {
             log.debug(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }
+    }
+
+    /**
+     * extract one certificate from series of certificates.
+     * @param decodedCertificate                series of certificate value in readable format
+     * @param ordinal                           relating to the order of the certificate in a series of certificate values
+     * @return
+     */
+    public static String extractCertificate(String decodedCertificate, int ordinal) {
+
+        String certificateVal;
+        int numberOfCertificatesInCertificate = StringUtils.countMatches(decodedCertificate,
+                IdentityUtil.PEM_BEGIN_CERTFICATE);
+        if (ordinal == numberOfCertificatesInCertificate) {
+            certificateVal = decodedCertificate.substring(StringUtils.ordinalIndexOf(decodedCertificate
+                    , IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal));
+        } else {
+            certificateVal = decodedCertificate.substring(StringUtils.ordinalIndexOf(
+                    decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal),
+                    StringUtils.ordinalIndexOf(decodedCertificate,
+                            IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal + 1));
+        }
+        return certificateVal;
     }
 
     /**
@@ -463,12 +487,7 @@ public class IdentityApplicationManagementUtil {
     public static CertData getCertData(String encodedCert) throws CertificateException {
 
         if (encodedCert != null) {
-            byte[] bytes = Base64.decode(encodedCert);
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) factory
-                    .generateCertificate(new ByteArrayInputStream(bytes));
-            Format formatter = new SimpleDateFormat("dd/MM/yyyy");
-            return fillCertData(cert, formatter);
+            return createCertData(encodedCert);
         } else {
             String errorMsg = "Invalid encoded certificate: \'NULL\'";
             log.debug(errorMsg);
@@ -478,50 +497,42 @@ public class IdentityApplicationManagementUtil {
 
     /**
      * Generate CertData array
+     *
      * @param certificateInfo array of certificate info
      * @return CertData array
      * @throws CertificateException
      */
     public static CertData[] getCertDataArray(CertificateInfo[] certificateInfo) throws CertificateException {
 
-        CertData[] certData = new CertData[certificateInfo.length];
-        HashMap<CertData, String> certDataMap = new HashMap<>();
-        int i = 0;
-        for (CertificateInfo certificateInfo1 : certificateInfo) {
-            if (certificateInfo1.getCertValue() != null) {
-                String certVal = certificateInfo1.getCertValue();
-                if (certVal.contains(IdentityApplicationConstants.BEGIN_CERTIFICATE)) {
-                    // Remove begin and end statement from the plain text certificate. The reason is with begin and end
-                    // statement, some certificates can't
-                    // be handle by X509CredentialImpl due to some issues in java.
-                    certVal = certVal.replace(IdentityApplicationConstants.BEGIN_CERTIFICATE, "").replace
-                            (IdentityApplicationConstants.END_CERTIFICATE, "").
-                            replace("\n", "");
-                    if (log.isDebugEnabled()) {
-                        log.debug("Begin and end statement has been removed from the plain text certificate.");
-                    }
-                }
-
-
-                byte[] bytes = Base64.decode(certVal);
-                CertificateFactory factory = CertificateFactory.getInstance("X.509");
-                X509Certificate cert = (X509Certificate) factory
-                        .generateCertificate(new ByteArrayInputStream(bytes));
-                Format formatter = new SimpleDateFormat("dd/MM/yyyy");
-                certData[i] = new CertData();
-                certData[i] = fillCertData(cert, formatter);
+        if (ArrayUtils.isNotEmpty(certificateInfo)) {
+            CertData[] certData = new CertData[certificateInfo.length];
+            HashMap<CertData, String> certDataMap = new HashMap<>();
+            int i = 0;
+            for (CertificateInfo certificateInfoVal : certificateInfo) {
+                String certVal = certificateInfoVal.getCertValue();
+                certData[i] = createCertData(certVal);
                 certDataMap.put(certData[i], certVal);
                 i++;
-            } else {
-                String errorMsg = "Invalid encoded certificate: \'NULL\'";
-                if (log.isDebugEnabled()) {
-                    log.debug(errorMsg);
-                }
-                throw new IllegalArgumentException(errorMsg);
             }
+            setCertDataMap(certDataMap);
+            return certData;
+        } else {
+            String errorMsg = "Certificate info array is empty";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMsg);
+            }
+            throw new IllegalArgumentException(errorMsg);
         }
-        setCertDataMap(certDataMap);
-        return certData;
+    }
+
+    private static CertData createCertData(String encodedCert) throws CertificateException {
+
+        byte[] bytes = Base64.decode(encodedCert);
+        CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
+        X509Certificate cert = (X509Certificate) factory
+                .generateCertificate(new ByteArrayInputStream(bytes));
+        Format formatter = new SimpleDateFormat(IdentityApplicationConstants.DATE_FORMAT);
+        return fillCertData(cert, formatter);
     }
 
     private static void setCertDataMap(HashMap<CertData, String> certDataMap) {
