@@ -25,12 +25,12 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
@@ -45,10 +45,13 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningCon
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,6 +64,9 @@ public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
     public static final String JWKS_URI = "jwksUri";
+    private static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+    private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+    private static final String CHARSET_NAME = "UTF-8";
 
     private static final String META_DATA_SAML = "meta_data_saml";
 
@@ -134,6 +140,8 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
+                    } else if ("certificateVal".equals(key)) {
+                        paramMap.put(key, new String(value));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -217,7 +225,23 @@ public class IdPManagementUIUtil {
             }
 
             if (oldIdentityProvider != null && oldIdentityProvider.getCertificate() != null) {
-                paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                if (oldIdentityProvider.getCertificateInfoArray() != null && oldIdentityProvider.
+                        getCertificateInfoArray().length > 1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("More than one certificate has been found as old certificate.");
+                    }
+
+                    StringBuilder multipleCertificate = new StringBuilder();
+                    for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
+                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
+                    }
+                    paramMap.put("oldCertFile", Base64.encode(multipleCertificate.toString().getBytes("UTF-8")));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Only one certificate has been found as old certificate.");
+                    }
+                    paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                }
             }
 
             if (oldIdentityProvider != null
@@ -284,6 +308,29 @@ public class IdPManagementUIUtil {
         }
 
         return fedIdp;
+    }
+
+    private static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj = null;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
+    }
+
+    public static String toString(byte[] bytes) {
+        return new String(bytes);
     }
 
     /**
@@ -963,8 +1010,40 @@ public class IdPManagementUIUtil {
         if (oldCertFile != null && certFile == null
                 && (deletePublicCert == null || ("false").equals(deletePublicCert))) {
             certFile = oldCertFile;
-        }
+        } else if (oldCertFile != null && certFile == null
+                && (("true").equals(deletePublicCert))) {
 
+            String decodedOldCertificate = new String(Base64.decode(oldCertFile));
+            String decodedDeletedCertificate = new String(Base64.decode(paramMap.get
+                    ("certificateVal")));
+            if (decodedOldCertificate.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("More than one encoded certificate has been found");
+                }
+                int numberOfCertificates = StringUtils.countMatches(decodedOldCertificate, END_CERTIFICATE
+                        + "\n" + BEGIN_CERTIFICATE) + 1;
+                StringBuilder certificateInfo = new StringBuilder();
+
+                for (int i = 0; i < numberOfCertificates; i++) {
+                    String certificateVal;
+                    if (i == 0) {
+                        certificateVal = decodedOldCertificate.substring(0,
+                                StringUtils.ordinalIndexOf(decodedOldCertificate, BEGIN_CERTIFICATE, 2));
+
+                    } else {
+                        // Get the i+2'th occurrence of BEGIN_CERTIFICATE.
+                        certificateVal = decodedOldCertificate.substring(StringUtils.ordinalIndexOf(
+                                decodedOldCertificate, BEGIN_CERTIFICATE, i + 1));
+
+                    }
+                    if (!decodedDeletedCertificate.trim().equals(certificateVal.trim())) {
+                        certificateInfo.append(Base64.encode(certificateVal.getBytes
+                                (Charset.forName(CHARSET_NAME))));
+                    }
+                }
+                certFile = certificateInfo.toString();
+            }
+        }
         // set public certificate of the identity provider.
         fedIdp.setCertificate(certFile);
 

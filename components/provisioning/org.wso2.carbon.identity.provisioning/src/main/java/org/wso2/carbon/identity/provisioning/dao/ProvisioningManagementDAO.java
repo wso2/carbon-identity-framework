@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.provisioning.dao;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -241,7 +244,16 @@ public class ProvisioningManagementDAO {
             }
 
             prepStmt.setString(3, newIdentityProvider.getHomeRealmId());
-            prepStmt.setBinaryStream(4, setBlobValue(newIdentityProvider.getCertificate()));
+
+            Gson gson = new GsonBuilder().create();
+            String certificateInfoJson = gson.toJson(newIdentityProvider.getCertificateInfoArray());
+            JSONArray certificateInfoJsonArray = new JSONArray(certificateInfoJson);
+            prepStmt.setBinaryStream(4, setBlobValue(certificateInfoJsonArray.toString()));
+
+            if (log.isDebugEnabled()) {
+                log.debug("Certificate has been saved in the database as a JSON array");
+            }
+
             prepStmt.setString(5, newIdentityProvider.getAlias());
 
             if (newIdentityProvider.getJustInTimeProvisioningConfig() != null &&
