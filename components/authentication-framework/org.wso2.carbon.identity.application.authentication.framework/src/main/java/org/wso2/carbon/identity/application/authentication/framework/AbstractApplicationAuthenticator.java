@@ -139,7 +139,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return false;
     }
 
-    private boolean isStepHasMultiOption(AuthenticationContext context) {
+    protected boolean isStepHasMultiOption(AuthenticationContext context) {
         Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
         boolean stepHasMultiOption = false;
 
