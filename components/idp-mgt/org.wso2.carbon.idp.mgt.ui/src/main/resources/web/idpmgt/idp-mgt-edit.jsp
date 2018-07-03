@@ -56,6 +56,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.CertificateInfo" %>
 <%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
+<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -3328,7 +3329,6 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-
                                         <tr>
                                             <td><%
                                                 String issuerDN = "";

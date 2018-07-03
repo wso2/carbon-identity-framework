@@ -15,7 +15,7 @@
     "Step 2": "TOTP authenticator",
     "Step 3": "FIDO authenticator"
   },
-  "authenticationSteps":2,
+  "authenticationSteps":3,
   "defaultAuthenticators": {
     "1": {
       "local": [
