@@ -1,26 +1,79 @@
 {
   "category": "User Based",
-  "name": "Claim Manipulation",
+  "name": "User Attribute Based",
+  "title": "User Attribute Based Authentication Template",
+  "summary": "Allow login to application if the user's age is over configured value. User's age is calculated using the user's date of birth attribute.",
+  "preRequisites": [
+    "Change the parameters at the top of the script as needed to match the requirements.",
+    "Modify the authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "ageLimit" : "Minimum age required for the user to login to the application",
+    "errorPage" : "Error page to redirect user, if the age limit is below ageLimit",
+    "errorPageParameters" : "Parameters to be passed to the error page"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator"
+  },
+  "authenticationSteps": 1,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    }
+  },
   "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
   "code": [
-    "/*",
-    "This template shows how to manipulate user claims/attributes within the authentication flow",
-    "*/",
-    "function onInitialRequest (context) {",
-    "    executeStep(1, {",
-    "        onSuccess : function(context) {",
-    "            var subject = context.steps[1].subject;",
-    "            // Extracting existing claims/attributes from the authenticated subject in the step 1",
-    "            var firstName = subject.localClaims['http://wso2.org/claims/givenname'];",
-    "            var lastName = subject.localClaims['http://wso2.org/claims/lastname'];",
+    "// This script will only allow login to application if the user's age is over configured value.",
+    "// The user will be redirected to an error page if the date of birth is not present or user is below configured value.",
     "",
-    "            var displayName = firstName + ' ' + lastName;",
-    "            // Setting new claims to the subject",
-    "            subject.localClaims['http://wso2.org/claims/displayName'] = displayName;",
+    "var ageLimit = 18;",
+    "",
+    "// Error page to redirect unauthorized users,",
+    "// can be either an absolute url or relative url to server root, or empty/null",
+    "// null/empty value will redirect to the default error page.",
+    "var errorPage = '';",
+    "",
+    "// Additional query params to be added to the above url.",
+    "// Hint: Use i18n keys for error messages.",
+    "var errorPageParameters = {",
+    "    'status': 'Unauthorized',",
+    "    'statusMsg': 'You need to be over ' + ageLimit + ' years to login to this application.'",
+    "};",
+    "",
+    "// Date of birth attribute at the client side",
+    "var dateOfBirthClaim = 'http://wso2.org/claims/dob';",
+    "",
+    "function onInitialRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            var underAge = true;",
+    "            // Extracting user store domain of authenticated subject from the first step",
+    "            var dob = context.steps[1].subject.localClaims[dateOfBirthClaim];",
+    "            if (dob && dob.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/)) {",
+    "                var birthDate = new Date(dob);",
+    "                if (getAge(birthDate) >= ageLimit) {",
+    "                    underAge = false;",
+    "                }",
+    "            }",
+    "            if (underAge === true) {",
+    "                sendError(errorPage, errorPageParameters);",
+    "            }",
     "        }",
     "    });",
+    "}",
+    "",
+    "function getAge(birthDate) {",
+    "    var today = new Date();",
+    "    var age = today.getFullYear() - birthDate.getFullYear();",
+    "    var m = today.getMonth() - birthDate.getMonth();",
+    "    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {",
+    "        age--;",
+    "    }",
+    "    return age;",
     "}"
-  ],
-  "help": "Manipulating claims/attributes of the authenticated subject.",
-  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
+  ]
 }
