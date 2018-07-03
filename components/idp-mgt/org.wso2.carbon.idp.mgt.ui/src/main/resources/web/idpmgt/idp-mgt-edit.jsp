@@ -1712,24 +1712,25 @@
             return false; //Prevent the browser jump to the link anchor
         })
         jQuery('.publicCertDeleteLinkClass').click(function () {
-            $(this).parent().toggle();
-            console.log($(this).attr('data-certno'));
+            $(this).closest('tr').remove();
+            if ($('#certTableData tbody tr').length == 0) {
+                jQuery('#certTableData').hide();
+            }
             if (!jQuery('#deletePublicCert').length) {
 
-                var input = document.createElement('input');
-                input.type = "hidden";
-                input.name = "deletePublicCert";
-                input.id = "deletePublicCert";
-                input.value = "true";
                 var input1 = document.createElement('input');
                 input1.type = "hidden";
-                input1.name = "certificateVal";
-                input1.id = "certificateVal";
-                input1.value = $(this).attr('data-certno');
-
-                document.forms['idp-mgt-edit-form'].appendChild(input);
+                input1.name = "deletePublicCert";
+                input1.id = "deletePublicCert";
+                input1.value = "true";
                 document.forms['idp-mgt-edit-form'].appendChild(input1);
             }
+            var input2 = document.createElement('input');
+            input2.type = "hidden";
+            input2.name = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            input2.id = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            input2.value = $(this).attr('data-certno');
+            document.forms['idp-mgt-edit-form'].appendChild(input2);
         })
         jQuery('#claimAddLink').click(function () {
 
@@ -3305,19 +3306,10 @@
                                 </div>
 
                                     <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
-                                    <%
-                                        int i = 0;
-                                        HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.getCertDataMap();
-                                        for(CertData certData:certDataArr) {
-                                            String certificate = certDataHashMap.get(certData);
-                                    %>
+                                
                                 <div class="publicCertDiv">
-                                    <a id="publicCertDeleteLink_<%=i%>" data-certno="<%=certificate%>" class="icon-link publicCertDeleteLinkClass"
-                                       style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
-                                            key='public.cert.delete'/></a>
-
                                     <div style="clear:both"></div>
-                                    <table class="styledLeft">
+                                    <table class="styledLeft" id="certTableData">
                                         <thead>
                                         <tr>
                                             <th><fmt:message key='issuerdn'/></th>
@@ -3326,10 +3318,18 @@
                                             <th><fmt:message key='notbefore'/></th>
                                             <th><fmt:message key='serialno'/></th>
                                             <th><fmt:message key='version'/></th>
+                                            <th><fmt:message key='actions'/></th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
+                                        <%
+                                            HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.
+                                                    getCertDataMap();
+                                            int i = 0;
+                                            for (CertData certData : certDataArr) {
+                                                String certificate = certDataHashMap.get(certData);
+                                        %>
+                                        <tr class="publicCertRowClass<%=i%>" incrementor="<%=i%>">
                                             <td><%
                                                 String issuerDN = "";
                                                 if (certData.getIssuerDN() != null) {
@@ -3367,12 +3367,20 @@
                                             </td>
                                             <td><%=certData.getVersion()%>
                                             </td>
+                                            <td>
+                                                <a id="publicCertDeleteLink" data-certno="<%=certificate%>"
+                                                   class="icon-link publicCertDeleteLinkClass"
+                                                   style="margin-left:0;background-image:url(images/delete.gif);">Delete</a>
+                                            </td>
+                                            <%
+                                                    i++;
+                                                }
+                                            %>
                                         </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <% i++;
-                                        }
+                                <%
                                     } %>
                             </td>
                         </tr>

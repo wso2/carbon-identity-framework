@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import org.opensaml.xml.util.Base64;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -38,9 +39,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.BEGIN_CERTIFICATE;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.END_CERTIFICATE;
 
 public class IdentityProvider implements Serializable {
 
@@ -467,33 +465,36 @@ public class IdentityProvider implements Serializable {
                         log.debug("Handling file based certificate configuration.");
                     }
                     // Handle file based certificate configuration. File based configurations are in plain text.
-                    if (certificateInfoArray.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                    if (certificateInfoArray.contains(IdentityApplicationConstants.END_CERTIFICATE + "\n" +
+                            IdentityApplicationConstants.BEGIN_CERTIFICATE)) {
                         if (log.isDebugEnabled()) {
                             log.debug("More than one plain text certificate has been found");
                         }
-                        int numberOfCertificates = StringUtils.countMatches(certificateInfoArray, END_CERTIFICATE
-                                + "\n" + BEGIN_CERTIFICATE) + 1;
+                        int numberOfCertificates = StringUtils.countMatches(certificateInfoArray,
+                                IdentityApplicationConstants.END_CERTIFICATE
+                                + "\n" + IdentityApplicationConstants.BEGIN_CERTIFICATE) + 1;
                         CertificateInfo[] certificateInfo = new CertificateInfo[numberOfCertificates];
 
-                        for (int i = 0; i < numberOfCertificates; i++) {
-                            certificateInfo[i] = new CertificateInfo();
+                        for (int i = 1; i <= numberOfCertificates; i++) {
+                            certificateInfo[i-1] = new CertificateInfo();
                             String certificateVal;
-                            if (i == 0) {
-                                certificateVal = certificateInfoArray.substring(0,
-                                        StringUtils.ordinalIndexOf(certificateInfoArray, BEGIN_CERTIFICATE, 2));
-
+                            if (i == numberOfCertificates) {
+                                certificateVal = certificateInfoArray.substring(StringUtils.ordinalIndexOf(
+                                        certificateInfoArray, IdentityApplicationConstants.BEGIN_CERTIFICATE, i));
                             } else {
                                 // Get the i+2'th occurrence of BEGIN_CERTIFICATE.
                                 certificateVal = certificateInfoArray.substring(StringUtils.ordinalIndexOf(
-                                        certificateInfoArray, BEGIN_CERTIFICATE, i + 2));
+                                        certificateInfoArray, IdentityApplicationConstants.BEGIN_CERTIFICATE, i),
+                                        StringUtils.ordinalIndexOf(
+                                        certificateInfoArray, IdentityApplicationConstants.BEGIN_CERTIFICATE, i + 1));
 
                             }
-                            certificateInfo[i].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint
+                            certificateInfo[i-1].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint
                                     (Base64.encodeBytes(certificateVal.getBytes(Charset.forName(CHARSET_NAME)))));
-                            certificateInfo[i].setCertValue(certificateVal);
+                            certificateInfo[i-1].setCertValue(certificateVal);
                         }
                         this.certificateInfoArray = certificateInfo;
-                    } else if (certificateInfoArray.startsWith(BEGIN_CERTIFICATE)) {
+                    } else if (certificateInfoArray.startsWith(IdentityApplicationConstants.BEGIN_CERTIFICATE)) {
                         if (log.isDebugEnabled()) {
                             log.debug("Only one plain text certificate has been found");
                         }
@@ -508,30 +509,35 @@ public class IdentityProvider implements Serializable {
                         }
                         // Handle encoded certificate values. While uploading through UI.
                         String decodedCertificate = new String(Base64.decode(certificateInfoArray));
-                        // If the certificate contains two certificates in it, handle it according to that.
-                        if (decodedCertificate.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                        // If the certificate contains more than one certificates in it, handle it according to that.
+                        if (decodedCertificate.contains(IdentityApplicationConstants.END_CERTIFICATE + "\n" +
+                                IdentityApplicationConstants.BEGIN_CERTIFICATE)) {
                             if (log.isDebugEnabled()) {
                                 log.debug("More than one encoded certificate has been found");
                             }
-                            int numberOfCertificates = StringUtils.countMatches(decodedCertificate, END_CERTIFICATE
-                                    + "\n" + BEGIN_CERTIFICATE) + 1;
+                            int numberOfCertificates = StringUtils.countMatches(decodedCertificate,
+                                    IdentityApplicationConstants.END_CERTIFICATE
+                                    + "\n" + IdentityApplicationConstants.BEGIN_CERTIFICATE) + 1;
                             CertificateInfo[] certificateInfo = new CertificateInfo[numberOfCertificates];
-                            for (int i = 0; i < numberOfCertificates; i++) {
-                                certificateInfo[i] = new CertificateInfo();
+                            for (int i = 1; i <= numberOfCertificates; i++) {
+                                certificateInfo[i-1] = new CertificateInfo();
                                 String certificateVal;
-                                if (i == 0) {
-                                    certificateVal = Base64.encodeBytes(decodedCertificate.substring(0,
-                                            StringUtils.ordinalIndexOf(decodedCertificate, BEGIN_CERTIFICATE, 2)).getBytes(Charset
-                                            .forName(CHARSET_NAME)));
+                                if (i == numberOfCertificates) {
+                                    certificateVal = Base64.encodeBytes(decodedCertificate.substring(StringUtils.
+                                            ordinalIndexOf(decodedCertificate, IdentityApplicationConstants
+                                                    .BEGIN_CERTIFICATE, i)).getBytes(Charset.
+                                            forName(CHARSET_NAME)));
                                 } else {
                                     certificateVal = Base64.encodeBytes(decodedCertificate.substring(StringUtils.ordinalIndexOf(
-                                            decodedCertificate, BEGIN_CERTIFICATE, 2)).getBytes(Charset.forName
+                                            decodedCertificate, IdentityApplicationConstants.BEGIN_CERTIFICATE, i),
+                                            StringUtils.ordinalIndexOf(
+                                            decodedCertificate, IdentityApplicationConstants.BEGIN_CERTIFICATE, i +
+                                                            1)).getBytes(Charset.forName
                                             (CHARSET_NAME)));
                                 }
-
-                                certificateInfo[i].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(
+                                certificateInfo[i-1].setThumbPrint(IdentityApplicationManagementUtil.generateThumbPrint(
                                         certificateVal));
-                                certificateInfo[i].setCertValue(certificateVal);
+                                certificateInfo[i-1].setCertValue(certificateVal);
                             }
 
                             this.certificateInfoArray = certificateInfo;

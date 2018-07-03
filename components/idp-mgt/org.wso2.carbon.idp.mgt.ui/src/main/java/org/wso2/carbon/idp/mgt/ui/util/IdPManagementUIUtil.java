@@ -120,6 +120,7 @@ public class IdPManagementUIUtil {
             Map<String, List<Property>> customAuthenticatorProperties = new HashMap<String, List<Property>>();
             Map<String, List<Property>> customProProperties = new HashMap<String, List<Property>>();
             String idpUUID = StringUtils.EMPTY;
+            StringBuilder deletedCertificateValue = new StringBuilder();
 
             for (Object item : items) {
                 DiskFileItem diskFileItem = (DiskFileItem) item;
@@ -140,8 +141,8 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
-                    } else if ("certificateVal".equals(key)) {
-                        paramMap.put(key, new String(value));
+                    } else if (key.startsWith("certificateVal")) {
+                        deletedCertificateValue.append(new String(value));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -214,6 +215,8 @@ public class IdPManagementUIUtil {
                     }
                 }
             }
+
+            paramMap.put("certificateVal", deletedCertificateValue.toString());
 
             IdentityProvider oldIdentityProvider = (IdentityProvider) request.getSession().getAttribute(idpUUID);
 
@@ -1010,38 +1013,117 @@ public class IdPManagementUIUtil {
         if (oldCertFile != null && certFile == null
                 && (deletePublicCert == null || ("false").equals(deletePublicCert))) {
             certFile = oldCertFile;
-        } else if (oldCertFile != null && certFile == null
-                && (("true").equals(deletePublicCert))) {
-
+        }
+        // If there is a new certificate and not a delete - get the distinct union of the new certificate and old
+        // certificate and update it.
+        else if (StringUtils.isNotBlank(oldCertFile) && StringUtils.isNotBlank(certFile)
+                && (deletePublicCert == null || ("false").equals(deletePublicCert))) {
             String decodedOldCertificate = new String(Base64.decode(oldCertFile));
-            String decodedDeletedCertificate = new String(Base64.decode(paramMap.get
-                    ("certificateVal")));
+            String decodedNewCertificate = new String(Base64.decode(certFile));
+            int numberOfOldCertificates = StringUtils.countMatches(decodedOldCertificate,
+                    IdentityApplicationConstants.END_CERTIFICATE
+                            + "\n" + IdentityApplicationConstants.BEGIN_CERTIFICATE) + 1;
+            int numberOfNewCertificates = StringUtils.countMatches(decodedNewCertificate,
+                    IdentityApplicationConstants.END_CERTIFICATE
+                            + "\n" + IdentityApplicationConstants.BEGIN_CERTIFICATE) + 1;
+            String oldCertificateVal;
+            String newCertificateVal;
+            // Create the StringBuilder with the old certificates values.
+            StringBuilder finalUpdatedCertificate = new StringBuilder(decodedOldCertificate);
+            boolean isAlreadyExist;
+            for (int i = 1; i <= numberOfNewCertificates; i++) {
+                isAlreadyExist = false;
+                if (i == numberOfNewCertificates) {
+                    newCertificateVal = decodedNewCertificate.substring(StringUtils.ordinalIndexOf(decodedNewCertificate
+                            , IdentityApplicationConstants.BEGIN_CERTIFICATE, i));
+                } else {
+                    newCertificateVal = decodedNewCertificate.substring(StringUtils.ordinalIndexOf(
+                            decodedNewCertificate, IdentityApplicationConstants.BEGIN_CERTIFICATE, i),
+                            StringUtils.ordinalIndexOf(decodedNewCertificate,
+                                    IdentityApplicationConstants.BEGIN_CERTIFICATE, i + 1));
+                }
+                for (int x = 1; x <= numberOfOldCertificates; x++) {
+                    if (x == numberOfOldCertificates) {
+                        oldCertificateVal = decodedOldCertificate.substring(StringUtils.
+                                ordinalIndexOf(decodedOldCertificate, IdentityApplicationConstants
+                                        .BEGIN_CERTIFICATE, x));
+                    } else {
+                        oldCertificateVal = decodedOldCertificate.substring(StringUtils.ordinalIndexOf(
+                                decodedOldCertificate, IdentityApplicationConstants.BEGIN_CERTIFICATE, x),
+                                StringUtils.ordinalIndexOf(decodedOldCertificate, IdentityApplicationConstants.
+                                        BEGIN_CERTIFICATE, x + 1));
+                    }
+                    if (oldCertificateVal.trim().replaceAll("\n","").replaceAll("\r","").
+                            equals(newCertificateVal.trim().replaceAll("\n","").replaceAll("\r",""))) {
+                        isAlreadyExist = true;
+                        break;
+                    }
+                }
+                // Check whether the new certificate already exist. If not append the new certificate with the old
+                // certificates.
+                if (!isAlreadyExist) {
+                    finalUpdatedCertificate.append(newCertificateVal);
+                }
+            }
+            certFile = Base64.encode(finalUpdatedCertificate.toString().getBytes(Charset.forName(CHARSET_NAME)));
+        }
+        // if there is no new certificate and there is atleast one deletion then update the new value by removing the
+        // deleted values.
+        else if (oldCertFile != null && certFile == null
+                && (("true").equals(deletePublicCert))) {
+            String decodedOldCertificate = new String(Base64.decode(oldCertFile));
+            String decodedDeletedCertificate = new String(Base64.decode(paramMap.get("certificateVal")));
+            boolean isDeleted;
             if (decodedOldCertificate.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
                 if (log.isDebugEnabled()) {
                     log.debug("More than one encoded certificate has been found");
                 }
-                int numberOfCertificates = StringUtils.countMatches(decodedOldCertificate, END_CERTIFICATE
+                int numberOfOldCertificates = StringUtils.countMatches(decodedOldCertificate, END_CERTIFICATE
                         + "\n" + BEGIN_CERTIFICATE) + 1;
-                StringBuilder certificateInfo = new StringBuilder();
+                StringBuilder latestCertificateValue = new StringBuilder();
 
-                for (int i = 0; i < numberOfCertificates; i++) {
-                    String certificateVal;
-                    if (i == 0) {
-                        certificateVal = decodedOldCertificate.substring(0,
-                                StringUtils.ordinalIndexOf(decodedOldCertificate, BEGIN_CERTIFICATE, 2));
+                for (int i = 1; i <= numberOfOldCertificates; i++) {
+                    isDeleted = false;
+                    String certificateOldVal;
+                    if (i == numberOfOldCertificates) {
+                        certificateOldVal = decodedOldCertificate.substring(StringUtils.ordinalIndexOf(decodedOldCertificate,
+                                BEGIN_CERTIFICATE, i));
 
                     } else {
-                        // Get the i+2'th occurrence of BEGIN_CERTIFICATE.
-                        certificateVal = decodedOldCertificate.substring(StringUtils.ordinalIndexOf(
+                        certificateOldVal = decodedOldCertificate.substring(StringUtils.ordinalIndexOf(
+                                decodedOldCertificate, BEGIN_CERTIFICATE, i), StringUtils.ordinalIndexOf(
                                 decodedOldCertificate, BEGIN_CERTIFICATE, i + 1));
 
                     }
-                    if (!decodedDeletedCertificate.trim().equals(certificateVal.trim())) {
-                        certificateInfo.append(Base64.encode(certificateVal.getBytes
-                                (Charset.forName(CHARSET_NAME))));
+                    if (decodedDeletedCertificate.contains(END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE)) {
+                        int numberOfDeletedCertificates = StringUtils.countMatches(decodedDeletedCertificate,
+                                END_CERTIFICATE + "\n" + BEGIN_CERTIFICATE) + 1;
+                        for (int x = 1; x <= numberOfDeletedCertificates; x++) {
+                            String deletedCertificateVal;
+                            if (x == numberOfDeletedCertificates) {
+                                deletedCertificateVal = decodedDeletedCertificate.substring(StringUtils.
+                                        ordinalIndexOf(decodedDeletedCertificate, BEGIN_CERTIFICATE, x));
+                            } else {
+                                deletedCertificateVal = decodedDeletedCertificate.substring(StringUtils.ordinalIndexOf(
+                                        decodedDeletedCertificate, BEGIN_CERTIFICATE, x), StringUtils
+                                        .ordinalIndexOf(decodedDeletedCertificate, BEGIN_CERTIFICATE, x + 1));
+                            }
+                            if (deletedCertificateVal.trim().equals(certificateOldVal.trim())) {
+                                isDeleted = true;
+                                break;
+                            }
+                        }
+                        if (!isDeleted) {
+                            latestCertificateValue.append(certificateOldVal);
+                        }
+                    } else if (!certificateOldVal.trim().replaceAll("\n","").replaceAll("\r",
+                            "").equals(decodedDeletedCertificate.trim().replaceAll("\n","").
+                            replaceAll("\r",""))) {
+                        latestCertificateValue.append(certificateOldVal);
                     }
                 }
-                certFile = certificateInfo.toString();
+                certFile = Base64.encode(latestCertificateValue.toString().getBytes
+                        (Charset.forName(CHARSET_NAME)));
             }
         }
         // set public certificate of the identity provider.
