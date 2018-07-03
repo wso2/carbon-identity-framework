@@ -24,6 +24,7 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
 
 @Component(
         name = "identity.application.remotefetch.component",
@@ -31,11 +32,14 @@ import org.osgi.service.component.annotations.Deactivate;
 )
 public class RemoteFetchServiceComponent {
     private static Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
+    RemoteFetchCore core = new RemoteFetchCore();
+    Thread remoteFetchCoreThread;
 
     @Activate
     protected void activate(ComponentContext context) {
         try {
-            log.info("*******COMPONENT STARTED*********");
+            this.remoteFetchCoreThread = new Thread(this.core);
+            remoteFetchCoreThread.start();
             if (log.isDebugEnabled()) {
                 log.debug("Identity RemoteFetchServiceComponent bundle is activated");
             }
@@ -46,6 +50,12 @@ public class RemoteFetchServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
+        try {
+            this.remoteFetchCoreThread.join();
+        } catch (InterruptedException e) {
+            log.error("Error stopping main RemoteFetchCore thread",e);
+        }
         if (log.isDebugEnabled()) {
             log.debug("Identity RemoteFetchServiceComponent bundle is deactivated");
         }

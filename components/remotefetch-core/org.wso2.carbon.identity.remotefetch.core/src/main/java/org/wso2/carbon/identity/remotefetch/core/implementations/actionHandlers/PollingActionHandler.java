@@ -27,19 +27,21 @@ import org.wso2.carbon.identity.remotefetch.common.RepositoryConnector;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnector;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PollingActionHandler implements ActionHandler, Runnable {
+public class PollingActionHandler implements ActionHandler {
 
     private static Log log = LogFactory.getLog(GitRepositoryConnector.class);
 
     private RepositoryConnector repo;
     private Map<File, ConfigDeployer> directoryMap;
     private Integer frequency =  60;
+    private Date lastIteration;
 
     // Keeps last deployed revision date of each file
     private Map<File,Date> revisionDates = new HashMap<>();
@@ -49,14 +51,11 @@ public class PollingActionHandler implements ActionHandler, Runnable {
         this.directoryMap = directoryMap;
     }
 
-    public void main(){
-        Thread t = new Thread(new PollingActionHandler(this.repo,this.directoryMap));
-        t.start();
-    }
-
     @Override
-    public void run() {
-        while (true) {
+    public void iteration() {
+        Calendar nextIteration = Calendar.getInstance();
+        nextIteration.add(Calendar.SECOND,this.frequency);
+        if ((lastIteration == null) || (lastIteration.after(nextIteration.getTime()))){
             try {
                 this.repo.fetchRepository();
             } catch (Exception e){
@@ -65,17 +64,7 @@ public class PollingActionHandler implements ActionHandler, Runnable {
 
             if(this.revisionDates.size() == 0) this.seedExistingFiles(directoryMap.keySet());
             this.directoryMap.forEach(this::pollDirectory);
-
-            try{
-                Integer seconds = this.frequency;
-                log.info("Sleeping for " + seconds +" seconds");
-                Thread.sleep(1000 * (long) seconds);
-            }catch (InterruptedException e){
-                log.info("Polling loop interrupted");
-                Thread.currentThread().interrupt();
-            }
-
-            if (Thread.currentThread().isInterrupted()) break;
+            this.lastIteration = new Date();
         }
     }
 
@@ -89,9 +78,7 @@ public class PollingActionHandler implements ActionHandler, Runnable {
                 log.info("Error listing files in path for seeding");
             }
             if (configFiles != null){
-                configFiles.forEach((File configFile) -> {
-                    this.revisionDates.put(configFile,null);
-                });
+                configFiles.forEach((File configFile) -> this.revisionDates.put(configFile,null));
             }
         });
     }
@@ -104,40 +91,39 @@ public class PollingActionHandler implements ActionHandler, Runnable {
             configFiles = this.repo.listFiles(path);
         }catch (Exception e){
             log.info("Error listing files in root");
+            return;
         }
 
-        if (configFiles != null){
-            for (File file: configFiles) {
-                Date currentRevision = null;
-                try {
-                    currentRevision = this.repo.getLastModified(file);
-                }catch (Exception e){
-                    log.info("Unable to read modify date of " + path.getPath());
-                }
+        for (File file: configFiles) {
+            Date currentRevision = null;
+            try {
+                currentRevision = this.repo.getLastModified(file);
+            }catch (Exception e){
+                log.info("Unable to read modify date of " + path.getPath());
+            }
 
-                // Is this file a new addition, if so deploy now or else check revisions
-                if (this.revisionDates.containsKey(file)){
-                    Date previousRevision = this.revisionDates.get(file);
-                    if (currentRevision != null && previousRevision != null
-                            && previousRevision.before(currentRevision)){
-                        log.info("Deploying " + file.getPath());
-                        try {
-                            deployer.deploy(repo.getFile(file));
-                        } catch (Exception e){
-                            log.info("Error Deploying "+ file.getName());
-                        }
-                    }
-                }else{
-                    log.info("Deploying new file " + file.getPath());
+            // Is this file a new addition, if so deploy now or else check revisions
+            if (this.revisionDates.containsKey(file)){
+                Date previousRevision = this.revisionDates.get(file);
+                if (currentRevision != null && previousRevision != null
+                        && previousRevision.before(currentRevision)){
+                    log.info("Deploying " + file.getPath());
                     try {
                         deployer.deploy(repo.getFile(file));
                     } catch (Exception e){
                         log.info("Error Deploying "+ file.getName());
                     }
                 }
-
-                this.revisionDates.put(file,currentRevision);
+            }else{
+                log.info("Deploying new file " + file.getPath());
+                try {
+                    deployer.deploy(repo.getFile(file));
+                } catch (Exception e){
+                    log.info("Error Deploying "+ file.getName());
+                }
             }
+
+            this.revisionDates.put(file,currentRevision);
         }
     }
 }

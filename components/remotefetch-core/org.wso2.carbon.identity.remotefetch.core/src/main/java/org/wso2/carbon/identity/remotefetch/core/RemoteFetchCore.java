@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.remotefetch.core;
 
-public class RemoteFetchCore {
+public class RemoteFetchCore implements Runnable{
 
+    @Override
+    public void run() {
+
+    }
 }

@@ -19,5 +19,5 @@
 package org.wso2.carbon.identity.remotefetch.common;
 
 public interface ActionHandler {
-    void main();
+    void iteration();
 }
