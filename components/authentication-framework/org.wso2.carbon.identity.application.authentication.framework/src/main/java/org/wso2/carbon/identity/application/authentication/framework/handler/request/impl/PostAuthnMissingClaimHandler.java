@@ -42,6 +42,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -231,6 +232,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                         if (StringUtils.isNotBlank(associatedID)) {
                             String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
                                     associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                            UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedID));
                             user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
                                     fullQualifiedAssociatedUserId);
                             persistClaims = true;
