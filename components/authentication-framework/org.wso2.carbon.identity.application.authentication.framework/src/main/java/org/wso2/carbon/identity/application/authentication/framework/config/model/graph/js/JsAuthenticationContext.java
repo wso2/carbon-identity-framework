@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -65,6 +66,10 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
             case FrameworkConstants.JSAttributes.JS_STEPS:
                 return new JsSteps(getWrapped());
+            case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
+                return new JsStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
+            case FrameworkConstants.JSAttributes.JS_CURRENT_SUBJECT:
+                return new JsAuthenticatedUser(getContext().getLastAuthenticatedUser());
             default:
                 return super.getMember(name);
         }
@@ -131,5 +136,22 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         } else {
             return null;
         }
+    }
+
+
+    private String getAuthenticatedIdPOfCurrentStep() {
+
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap()
+                .get(getContext().getCurrentStep());
+        if (stepConfig != null) {
+            return stepConfig.getAuthenticatedIdP();
+        }
+        return null;
+
     }
 }
