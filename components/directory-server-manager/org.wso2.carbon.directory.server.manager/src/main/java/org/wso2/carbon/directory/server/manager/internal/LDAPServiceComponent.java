@@ -41,18 +41,15 @@ public class LDAPServiceComponent {
     @Activate
     protected static void activate(ComponentContext ctxt) {
 
-        log.info("-----------------------------------------------------------------------------------------");
         ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(
                 ApplicationMgtListener.class.getName(), new DirectoryServerApplicationMgtListener(), null);
         if (serviceRegistration != null) {
-            log.info(" LDAP directory  - ApplicationMgtListener registered.");
             if (log.isDebugEnabled()) {
                 log.debug(" LDAP directory  - ApplicationMgtListener registered.");
             }
         } else {
             log.error(" LDAP directory  - ApplicationMgtListener could not be registered.");
         }
-        log.info("Identity LDAP directory mgt bundle is activated");
         if (log.isDebugEnabled()) {
             log.debug("Identity LDAP directory mgt bundle is activated");
         }

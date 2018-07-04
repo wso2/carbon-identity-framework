@@ -18,22 +18,15 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.description.AxisService;
-import org.apache.axis2.description.Parameter;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.rahas.impl.SAMLTokenIssuerConfig;
 import org.w3c.dom.Document;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
-import org.wso2.carbon.core.RegistryResources;
-import org.wso2.carbon.directory.server.manager.DirectoryServerManager;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -41,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImporterResponse;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -64,15 +56,9 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
-import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.security.SecurityConfigException;
-import org.wso2.carbon.security.config.SecurityServiceAdmin;
-import org.wso2.carbon.security.sts.service.STSAdminServiceImpl;
-import org.wso2.carbon.security.sts.service.util.TrustedServiceData;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.ByteArrayInputStream;
@@ -83,7 +69,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -390,36 +375,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         OAuthApplicationDAO oathDAO = ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
                         oathDAO.removeOAuthApplication(config.getInboundAuthKey());
 
-                    } else if ("kerberos".equalsIgnoreCase(config.getInboundAuthType()) && config.getInboundAuthKey()
-                            != null) {
-
-                        DirectoryServerManager directoryServerManager = new DirectoryServerManager();
-                        directoryServerManager.removeServer(config.getInboundAuthKey());
-
-                    } else if(IdentityApplicationConstants.Authenticator.WSTrust.NAME.equalsIgnoreCase(
-                            config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
-                        try {
-                            AxisService stsService = getAxisConfig().getService(ServerConstants.STS_NAME);
-                            Parameter origParam =
-                                    stsService.getParameter(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
-
-                            if (origParam != null) {
-                                OMElement samlConfigElem = origParam.getParameterElement()
-                                        .getFirstChildWithName(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG);
-
-                                SAMLTokenIssuerConfig samlConfig = new SAMLTokenIssuerConfig(samlConfigElem);
-                                samlConfig.getTrustedServices().remove(config.getInboundAuthKey());
-                                setSTSParameter(samlConfig);
-                                removeTrustedService(ServerConstants.STS_NAME, ServerConstants.STS_NAME,
-                                        config.getInboundAuthKey());
-                            } else {
-                                throw new IdentityApplicationManagementException(
-                                        "missing parameter : " + SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
-                            }
-                        } catch (Exception e) {
-                            String error = "Error while removing a trusted service: " + config.getInboundAuthKey();
-                            throw new IdentityApplicationManagementException(error, e);
-                        }
                     }
                 }
             }
@@ -982,43 +937,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             permissionAndRoleConfig.setPermissions(permissionList.toArray(
                     new ApplicationPermission[permissionList.size()]));
             serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
-        }
-    }
-
-    /**
-     * Set STS parameters
-     *
-     * @param samlConfig SAML config
-     * @throws org.apache.axis2.AxisFault
-     * @throws org.wso2.carbon.registry.api.RegistryException
-     */
-    private void setSTSParameter(SAMLTokenIssuerConfig samlConfig) throws AxisFault, RegistryException {
-        new SecurityServiceAdmin(getAxisConfig(), getConfigSystemRegistry()).
-                setServiceParameterElement(ServerConstants.STS_NAME, samlConfig.getParameter());
-    }
-
-    /**
-     * Remove trusted service
-     *
-     * @param groupName      Group name
-     * @param serviceName    Service name
-     * @param trustedService Trusted service name
-     * @throws org.wso2.carbon.registry.api.RegistryException
-     */
-    private void removeTrustedService(String groupName, String serviceName,
-                                      String trustedService) throws RegistryException {
-
-        String resourcePath = RegistryResources.SERVICE_GROUPS + groupName +
-                    RegistryResources.SERVICES + serviceName + "/trustedServices";
-        Registry registry = getConfigSystemRegistry();
-        if (registry != null) {
-            if (registry.resourceExists(resourcePath)) {
-                Resource resource = registry.get(resourcePath);
-                if (resource.getProperty(trustedService) != null) {
-                    resource.removeProperty(trustedService);
-                }
-                registry.put(resourcePath, resource);
-            }
         }
     }
 

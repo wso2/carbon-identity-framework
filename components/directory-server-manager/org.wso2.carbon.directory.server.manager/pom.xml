@@ -65,17 +65,12 @@
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi.services</artifactId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -93,6 +88,10 @@
                         <exclude>**/LDAPServerStoreManagerTest.java</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -119,7 +118,11 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.wso2.carbon.identity.application.mgt.listener
+                            org.wso2.carbon.identity.application.mgt; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.dao; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.model; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.directory.server.manager.internal,

@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.directory.server.manager;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,9 +27,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
-import org.wso2.carbon.security.SecurityConfigException;
-import org.wso2.carbon.security.sts.service.util.TrustedServiceData;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -47,7 +48,34 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
     @Override
     public int getDefaultOrderId() {
 
-        return 17;
+        return 999;
+    }
+
+    @Override
+    public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+        if (serviceProvider != null &&
+                serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+            InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs();
+            for (InboundAuthenticationRequestConfig config : configs) {
+                if ("kerberos".equalsIgnoreCase(config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
+                    DirectoryServerManager directoryServerManager = new DirectoryServerManager();
+                    try {
+                        directoryServerManager.removeServer(config.getInboundAuthKey());
+                    } catch (DirectoryServerManagerException e) {
+                        String error = "Error while removing a kerberos: " + config.getInboundAuthKey();
+                        throw new IdentityApplicationManagementException(error, e);
+                    }
+                    break;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
@@ -83,7 +111,6 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
                                             .getInboundAuthKey(),
                                     serverPrinciple.getServerName()));
                         }
-
                     }
                     break;
                 }
@@ -125,6 +152,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
                         throw new IdentityApplicationManagementException(String.format("Error in adding kerberos " +
                                 "server for %s", serviceProvider.getApplicationName()), e);
                     }
+                    return;
                 }
             }
         }
@@ -137,25 +165,32 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
         InboundAuthenticationConfig inboundAuthenticationConfig = serviceProvider.getInboundAuthenticationConfig();
         if (inboundAuthenticationConfig != null &&
                 inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs() != null) {
-
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
                 if (StringUtils.equals(authConfig.getInboundAuthType(), "kerberos")) {
                     String inboundAuthKey = authConfig.getInboundAuthKey();
-
                     if (exportSecrets) {
                         try {
                             DirectoryServerManager directoryServerManager = new DirectoryServerManager();
-                            directoryServerManager.getServiceNameConformanceRegularExpression();
-                            ServerPrinciple serverPrinciple = new ServerPrinciple("test/wso2", "test", "2134242");
-                            authConfig.setInboundConfiguration( marshalServerPrinciple(serverPrinciple));
+                            ServerPrinciple serverPrinciple =
+                                    directoryServerManager.getServicePrinciple(inboundAuthKey);
+                            if (serverPrinciple != null) {
+                                authConfig.setInboundConfiguration(marshalServerPrinciple(serverPrinciple));
+                            } else {
+                                throw new IdentityApplicationManagementException(String.format(
+                                        "There is no kerberos server with  %s", inboundAuthKey));
+                            }
                         } catch (DirectoryServerManagerException e) {
                             throw new IdentityApplicationManagementException(String.format("Error in adding kerberos " +
                                     "server for %s", serviceProvider.getApplicationName()), e);
                         }
                     } else {
-                        authConfig = null;
+                        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                                (InboundAuthenticationRequestConfig[]) ArrayUtils.removeElement
+                                        (inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs(),
+                                                authConfig));
                     }
+                    return;
                 }
             }
         }
@@ -197,7 +232,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
             throws IdentityApplicationManagementException {
 
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(TrustedServiceData.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServerPrinciple.class);
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             StringWriter sw = new StringWriter();
