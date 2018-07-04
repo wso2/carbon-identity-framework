@@ -470,7 +470,7 @@ function deleteIDPRow(obj) {
     }
 }
 
-$('body').delegate("a.delete_step", 'click', function(e){
+$('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
     buildScriptString("delete");
     e.stopImmediatePropagation();
