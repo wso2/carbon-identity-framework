@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Tra
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * Javascript wrapper for Java level AuthenticationContext.
  * This provides controlled access to AuthenticationContext object via provided javascript native syntax.
@@ -69,7 +72,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
                 return new JsStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
             case FrameworkConstants.JSAttributes.JS_CURRENT_SUBJECT:
-                return new JsAuthenticatedUser(getContext().getLastAuthenticatedUser());
+                return new JsAuthenticatedUser(getCurrentSubject());
             default:
                 return super.getMember(name);
         }
@@ -153,5 +156,19 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         }
         return null;
 
+    }
+
+    private AuthenticatedUser getCurrentSubject() {
+
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap();
+        Optional<StepConfig> subjectIdentifierStep = stepConfigs.values().stream()
+                .filter(stepConfig -> (stepConfig.isCompleted() && stepConfig.isSubjectIdentifierStep())).findFirst();
+
+        return subjectIdentifierStep.map(StepConfig::getAuthenticatedUser).orElse(getWrapped().getLastAuthenticatedUser());
     }
 }
