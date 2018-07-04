@@ -42,26 +42,26 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale(), new
             EncodedControl(StandardCharsets.UTF_8.toString()));
     String urlData = request.getParameter("data");
-    // Extract the challege questions from the request and add them into an array
+    // Extract the challenge questions from the request and add them into an array
     String[] questionSets = urlData.split("&");
-    // Hashmap to hold user's challenge questions
+    // Hash-map to hold user's challenge questions
     Map<String, List<ChallengeQuestion>> challengeQuestionMap = new HashMap<>();
 
     for (String question : questionSets) {
         String[] questionProperties = question.split("\\|");
         // Construct a new ChallengeQuestion for each challenge question received from the request
-        ChallengeQuestion tempChallengeQuesion = new ChallengeQuestion();
-        tempChallengeQuesion.setQuestionSetId(questionProperties[0]);
-        tempChallengeQuesion.setQuestionId(questionProperties[1]);
-        tempChallengeQuesion.setQuestion(questionProperties[2]);
-        // Add the challenge question to the Hashmap
+        ChallengeQuestion tempChallengeQuestions = new ChallengeQuestion();
+        tempChallengeQuestions.setQuestionSetId(questionProperties[0]);
+        tempChallengeQuestions.setQuestionId(questionProperties[1]);
+        tempChallengeQuestions.setQuestion(questionProperties[2]);
+        // Add the challenge question to the Hash-map
         List<ChallengeQuestion> challengeQuestionList = challengeQuestionMap.get(questionProperties[0]);
         if (challengeQuestionList == null) {
             List<ChallengeQuestion> tempList = new ArrayList<>();
-            tempList.add(tempChallengeQuesion);
+            tempList.add(tempChallengeQuestions);
             challengeQuestionMap.put(questionProperties[0], tempList);
         } else {
-            challengeQuestionList.add(tempChallengeQuesion);
+            challengeQuestionList.add(tempChallengeQuestions);
         }
     }
 %>
@@ -101,7 +101,7 @@
     <h1><%=AuthenticationEndpointUtil.i18n(resourceBundle, "answer.following.questions")%>
     </h1>
     <%
-        for (String list1 : challengeQuestionMap.keySet()) {
+        for (String challengeQuestionSet : challengeQuestionMap.keySet()) {
     %>
     <br><br>
     <form action="../commonauth" method="post" id="profile" name="">
@@ -113,13 +113,13 @@
                  "select.challenge.question")%>
                 </label>
                 <div class="col-sm-8">
-                    <select class="form-control" id="qchallengeQuestion1"
-                            name=<%="Q-" + Encode.forHtmlAttribute(list1)%>>
+                    <select class="form-control" id="challengeQuestion1"
+                            name=<%="Q-" + Encode.forHtmlAttribute(challengeQuestionSet)%>>
                         <%
-                            for (ChallengeQuestion q1 : challengeQuestionMap.get(list1)) {
+                            for (ChallengeQuestion challengeQuestion : challengeQuestionMap.get(challengeQuestionSet)) {
                         %>
-                        <option name="q" selected="selected" value="<%=Encode.forHtmlAttribute(q1.getQuestion())%>">
-                            <%=Encode.forHtmlContent(q1.getQuestion())%>
+                        <option name="q" selected="selected" value="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestion())%>">
+                            <%=Encode.forHtmlContent(challengeQuestion.getQuestion())%>
                         </option>
                         <%
                             }
@@ -134,7 +134,7 @@
                 <div class="col-sm-8">
                     <input type="text" class="form-control" id="answer_to_questions"
                            placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "type.your.security.answer")%>"
-                           name=<%="A-" + Encode.forHtmlAttribute(list1)%>>
+                           name=<%="A-" + Encode.forHtmlAttribute(challengeQuestionSet)%>>
                 </div>
             </div>
         </dev>
