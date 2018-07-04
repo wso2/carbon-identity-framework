@@ -213,7 +213,6 @@ $('[data-toggle=template-link]').click(function (e) {
     showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, "OK", "Cancel", doReplaceRange, null);
 
     function doReplaceRange() {
-        debugger;
         myCodeMirror.setValue("");
         doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
         highlightNewCode();
