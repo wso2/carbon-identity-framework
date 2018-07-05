@@ -601,7 +601,6 @@ public class LDAPServerStoreManager {
             }
             return null;
         } catch (NamingException e) {
-            log.error("Unable to get Server name - " + serverName);
             throw new DirectoryServerManagerException("Can not access the directory service", e);
         } finally {
             try {

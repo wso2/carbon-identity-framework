@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
@@ -211,12 +212,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
-        if (isImportSP.get()) {
-            isImportSP.set(false);
-        } else {
+        if (!isImportSP.get()) {
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
-                    return;
+                    throw new IdentityApplicationManagementException("Pre Update application failed");
                 }
             }
         }
@@ -237,13 +236,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
-            if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
-                    !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
+            if (                    !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
                             serviceProvider.getApplicationID())) {
-                log.warn("Illegal Access! User " +
-                        CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " does not have access to the application " +
-                        applicationName);
+                log.warn("Illegal Access! User " + username + " does not have access to the application " + applicationName);
                 throw new IdentityApplicationManagementException("User not authorized");
             }
 
@@ -874,12 +869,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setApplicationID(savedSP.getApplicationID());
             serviceProvider.setOwner(getUser(tenantDomain, username));
 
-            for (ApplicationMgtListener listener : listeners) {
-                if (listener.isEnable()) {
-                    listener.doPreUpdateApplication(serviceProvider, tenantDomain, username);
-                }
-            }
             isImportSP.set(true);
+            try {
+                updateApplication(serviceProvider, tenantDomain, username);
+            } catch (IdentityApplicationManagementValidationException e) {
+                importerResponse.setApplicationName(null);
+                importerResponse.setErrors(e.getValidationMsg());
+                if (!isUpdate) {
+                    deleteSavedSP(savedSP, tenantDomain, username);
+                }
+                return importerResponse;
+            } finally {
+                isImportSP.set(false);
+            }
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
@@ -905,11 +907,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
                     serviceProvider.getApplicationName(), tenantDomain);
             log.error(errorMsg, e);
-            throw new IdentityApplicationManagementException(errorMsg, e);
+            throw new IdentityApplicationManagementException(errorMsg);
         }
     }
 
-    public String exportSPApplication(String applicationName, Boolean exportSecrets, String tenantDomain)
+    public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
@@ -1036,10 +1038,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * Unmarshal service provider.
+     * Convert xml file of service provider to object.
      *
-     * @param content      string
-     * @param fileName     file name of the service provider
+     * @param content      xml formatted string of the service provider
+     * @param fileName     file name of xml file
      * @param tenantDomain tenant domain name
      * @return Service Provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
@@ -1047,7 +1049,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ServiceProvider unmarshalSP(String content, String fileName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (content == null || StringUtils.isEmpty(content)) {
+        if (StringUtils.isEmpty(content)) {
             throw new IdentityApplicationManagementException(String.format("Empty Service Provider file %s upload by" +
                     " tenant: %s", fileName, tenantDomain));
         }
@@ -1059,17 +1061,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider file %s" +
-                    " upload by" +
-                    " tenant: %s", fileName, tenantDomain));
+                    " upload by tenant: %s", fileName, tenantDomain));
         }
     }
 
     /**
-     * Marshal Service provider to string.
+     * Convert service provider object of service provider to xml formatted string
      *
      * @param serviceProvider service provider to be marshaled
      * @param tenantDomain    tenant domain
-     * @return string
+     * @return xml formatted string of the service provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     private String marshalSP(ServiceProvider serviceProvider, String tenantDomain)
@@ -1078,7 +1079,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory docBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(serviceProvider, document);
 
@@ -1131,11 +1132,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     savedSP.getApplicationName(), tenantDomain));
             deleteApplication(savedSP.getApplicationName(), tenantDomain, username);
 
-        } catch (IdentityApplicationManagementException e1) {
+        } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format("Error occurred when removing newly imported service provider %s@%s",
                     savedSP.getApplicationName(), tenantDomain);
-            log.error(errorMsg, e1);
-            throw new IdentityApplicationManagementException(errorMsg, e1);
+            log.error(errorMsg, e);
+            throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }
 }

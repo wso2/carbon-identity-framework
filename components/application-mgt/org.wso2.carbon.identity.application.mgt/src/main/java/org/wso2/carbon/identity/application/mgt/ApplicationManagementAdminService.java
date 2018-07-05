@@ -298,12 +298,15 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return XML content of the service provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    public String exportApplication(String applicationName, Boolean exportSecrets) throws
+    public String exportApplication(String applicationName, boolean exportSecrets) throws
             IdentityApplicationManagementException {
 
         try {
-            if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
-                    !ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
+            if (!ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+                log.warn("Illegal access! Local service provider can't be exported");
+                throw new IdentityApplicationManagementException("Local service provider can't be exported");
+            }
+            if (ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
                         " does not have export the application " + applicationName);
                 throw new IdentityApplicationManagementException("User not authorized");

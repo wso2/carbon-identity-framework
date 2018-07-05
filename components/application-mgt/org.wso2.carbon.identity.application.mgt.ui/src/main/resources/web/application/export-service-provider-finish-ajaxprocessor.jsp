@@ -23,7 +23,18 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@ page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="java.util.ResourceBundle"%>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
+<%! public static final String BYTES = "bytes";
+    private static final String CONTENT_LENGTH = "Content-Length";
+    private static final String ACCEPT_RANGES = "Accept-Ranges";
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream;";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String XML = ".xml";
+    private static final String ATTACHMENT_FILENAME = "attachment;filename=\"";
+    private static final String CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+%>
 <%
     String httpMethod = request.getMethod();
     if (!"post".equalsIgnoreCase(httpMethod)) {
@@ -32,13 +43,11 @@
     }
     
     String spName = request.getParameter("spName");
-    boolean exportSecrets = "true".equals(request.getParameter("exportSecrets"));
-    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    boolean exportSecrets = Boolean.parseBoolean(request.getParameter("exportSecrets"));
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     
-    if (spName != null && !"".equals(spName)) {
+    if (StringUtils.isNotEmpty(spName)) {
         try {
-            
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
@@ -48,15 +57,11 @@
                     new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
             String appData = serviceClient.exportApplication(spName, exportSecrets);
             out.clearBuffer();
-            byte metaBytes[] = appData.getBytes();
-            response.setHeader("Content-Disposition", "attachment;filename=\"" + spName + ".xml" + "\"");
-            response.setHeader("Content-Type", "application/octet-stream;");
-            response.setHeader("Accept-Ranges", "bytes");
-            response.setHeader("Content-Length", String.valueOf(metaBytes.length));
-    
-            for(int i = 0; i < metaBytes.length; i++){
-                out.write(metaBytes[i]);
-            }
+            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + spName + XML + "\"");
+            response.setHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM);
+            response.setHeader(ACCEPT_RANGES, BYTES);
+            response.setHeader(CONTENT_LENGTH, String.valueOf(appData.length()));
+            out.write(appData);
         } catch (Exception e) {
             String message = resourceBundle.getString("application.list.error.while.exporting.app") + " : " + e.getMessage();
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);

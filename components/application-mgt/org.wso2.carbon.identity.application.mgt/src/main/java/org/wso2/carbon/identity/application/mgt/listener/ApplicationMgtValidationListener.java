@@ -20,8 +20,8 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -34,6 +34,9 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -43,6 +46,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ApplicationMgtValidationListener extends AbstractApplicationMgtListener {
+
+    private static Log log = LogFactory.getLog(ApplicationMgtValidationListener.class);
+
+    private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server";
+    private static final String AUTHENTICATOR_NOT_CONFIGURED =
+            "Authenticator %s is not configured for %s identity Provider";
+    private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s";
+    private static final String FEDERATED_IDP_NOT_AVAILABLE =
+            "Federated Identity Provider %s is not available in the server";
+    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s";
+    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s";
 
     @Override
     public int getDefaultOrderId() {
@@ -83,7 +97,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
      * @param validationMsg                        validation msg
-     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
+     * authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(
             LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain, List
@@ -103,40 +118,38 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 getAllLocalAuthenticators(tenantDomain)).map(LocalAuthenticatorConfig::getName)
                 .collect(Collectors.toList());
 
-        String errorIdpMsg = "Federated Identity Provider %s is not available in the server";
-        String errorIdpAuthenticatorMsg = "Authenticator %s is not configured for %s identity Provider";
-        String errorAuthenticatorMsg = "Authenticator %s is not available in the server";
-
         Arrays.stream(authenticationSteps).forEach(authenticationStep -> {
             Arrays.stream(authenticationStep.getFederatedIdentityProviders()).forEach(idp -> {
                 try {
                     IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
                             .getIdentityProviderName(), tenantDomain, false);
                     if (savedIdp == null) {
-                        validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                        validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                                idp.getIdentityProviderName()));
                     } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
                         List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
                                 .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
                                 .collect(Collectors.toList());
                         Arrays.stream(idp.getFederatedAuthenticatorConfigs()).forEach(federatedAuth -> {
                             if (savedIdpAuthenticators.contains(federatedAuth.getName())) {
-                                validationMsg.add(String.format(errorIdpAuthenticatorMsg, federatedAuth
-                                                .getName(),
-                                        idp.getIdentityProviderName()));
+                                validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                                        federatedAuth.getName(), idp.getIdentityProviderName()));
                             }
                         });
                     } else {
                         Arrays.stream(idp.getFederatedAuthenticatorConfigs()).forEach(federatedAuth ->
-                                validationMsg.add(String.format(errorIdpAuthenticatorMsg, federatedAuth.getName(),
-                                        idp.getIdentityProviderName())));
+                                validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
+                                        federatedAuth.getName(), idp.getIdentityProviderName())));
                     }
                 } catch (IdentityProviderManagementException e) {
-                    validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                    String errorMsg = String.format(FEDERATED_IDP_NOT_AVAILABLE, idp.getIdentityProviderName());
+                    log.error(errorMsg, e);
+                    validationMsg.add(errorMsg);
                 }
             });
             Arrays.stream(authenticationStep.getLocalAuthenticatorConfigs()).forEach(localAuth -> {
                 if (!allLocalAuthenticators.contains(localAuth.getName())) {
-                    validationMsg.add(String.format(errorAuthenticatorMsg, localAuth.getName()));
+                    validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
                 }
             });
         });
@@ -158,19 +171,20 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             return;
         }
 
-        String errorIdpMsg = "Federated Identity Provider %s is not available in the server";
         Arrays.stream(outboundProvisioningConfig.getProvisioningIdentityProviders()).forEach(idp -> {
             try {
                 IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(
                         idp.getIdentityProviderName(), tenantDomain, false);
                 if (savedIdp == null) {
-                    validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                    validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                            idp.getIdentityProviderName()));
                 } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null) {
-                    validationMsg.add(String.format("No Provisioning connector configured for %s",
+                    validationMsg.add(String.format(PROVISIONING_CONNECTOR_NOT_CONFIGURED,
                             idp.getIdentityProviderName()));
                 }
             } catch (IdentityProviderManagementException e) {
-                validationMsg.add(String.format(errorIdpMsg, idp.getIdentityProviderName()));
+                validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                        idp.getIdentityProviderName()));
             }
         });
         return;
@@ -194,30 +208,31 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
         String[] allLocalClaimUris = applicationMgtService.getAllLocalClaimUris(tenantDomain);
 
-        String claimErrorMsg = "Local claim %s is not available for tenant %s";
         ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
         if (claimMappings != null) {
             Arrays.stream(claimMappings).forEach(claimMapping -> {
                 String claimUri = claimMapping.getLocalClaim().getClaimUri();
                 if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
-                    validationMsg.add(String.format(claimErrorMsg, claimUri, tenantDomain));
+                    validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, claimUri, tenantDomain));
                 }
             });
         }
 
-        String errorDialectMsg = "Claim Dialect %s is not available for tenant %s";
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
-        ClaimManagerHandler claimManagerHandler = ClaimManagerHandler.getInstance();
-        if (spClaimDialects != null) {
-            Arrays.stream(spClaimDialects).forEach(spClaimDialect -> {
-                try {
-                    if (!claimManagerHandler.isKnownClaimDialect(spClaimDialect, tenantDomain)) {
-                        validationMsg.add(String.format(errorDialectMsg, spClaimDialect, tenantDomain));
+        if (spClaimDialects != null) try {
+            ClaimMetadataManagementServiceImpl claimAdminService = new ClaimMetadataManagementServiceImpl();
+            List<ClaimDialect> serverClaimMapping = claimAdminService.getClaimDialects(tenantDomain);
+            if (serverClaimMapping != null) {
+                List<String> serverDialectURIS = serverClaimMapping.stream()
+                        .map(ClaimDialect::getClaimDialectURI).collect(Collectors.toList());
+                Arrays.stream(spClaimDialects).forEach(spClaimDialect -> {
+                    if (!serverDialectURIS.contains(spClaimDialect)) {
+                        validationMsg.add(String.format(CLAIM_DIALECT_NOT_AVAILABLE, spClaimDialect, tenantDomain));
                     }
-                } catch (ClaimManagementException e) {
-                    validationMsg.add(String.format(errorDialectMsg, spClaimDialect, tenantDomain));
-                }
-            });
+                });
+            }
+        } catch (ClaimMetadataException e) {
+            validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
         return;
     }

@@ -212,7 +212,7 @@ public abstract class ApplicationManagementService {
      * @return xml string of the SP
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    public abstract String exportSPApplication(String applicationName, Boolean exportSecrets, String tenantDomain)
+    public abstract String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

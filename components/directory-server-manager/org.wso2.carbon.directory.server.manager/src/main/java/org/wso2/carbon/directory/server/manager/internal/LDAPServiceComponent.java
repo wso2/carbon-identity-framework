@@ -20,6 +20,7 @@ package org.wso2.carbon.directory.server.manager.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -37,11 +38,12 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 public class LDAPServiceComponent {
 
     private static Log log = LogFactory.getLog(LDAPServiceComponent.class);
+    private static ServiceRegistration<?> serviceRegistration;
 
     @Activate
     protected static void activate(ComponentContext ctxt) {
 
-        ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(
+        serviceRegistration = ctxt.getBundleContext().registerService(
                 ApplicationMgtListener.class.getName(), new DirectoryServerApplicationMgtListener(), null);
         if (serviceRegistration != null) {
             if (log.isDebugEnabled()) {
@@ -58,6 +60,7 @@ public class LDAPServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
+        ctxt.getBundleContext().ungetService(serviceRegistration.getReference());
         if (log.isDebugEnabled()) {
             log.info("Identity  LDAP directory mgt bundle is deactivated");
         }

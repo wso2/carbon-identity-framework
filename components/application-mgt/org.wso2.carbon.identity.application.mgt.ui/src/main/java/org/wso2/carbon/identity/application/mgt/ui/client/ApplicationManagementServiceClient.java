@@ -258,7 +258,7 @@ public class ApplicationManagementServiceClient {
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
-        return null;
+        return new ImporterResponse();
     }
 
     public String exportApplication(String appid, boolean exportSecrets) throws AxisFault {
@@ -266,8 +266,7 @@ public class ApplicationManagementServiceClient {
             if (debugEnabled) {
                 log.debug("Exporting Service Provider to file" );
             }
-            String spFile = stub.exportApplication(appid, exportSecrets);
-            return spFile;
+            return stub.exportApplication(appid, exportSecrets);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }

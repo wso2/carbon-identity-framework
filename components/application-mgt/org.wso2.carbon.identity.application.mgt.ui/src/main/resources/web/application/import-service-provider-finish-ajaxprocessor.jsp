@@ -16,7 +16,7 @@
   ~  under the License.
   --%>
 
-<%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
 <%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient"%>
@@ -24,17 +24,20 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ImporterResponse" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
-<%
+<%!
+    private static final String HTTP_POST = "post";
+%><%
     String httpMethod = request.getMethod();
-    if (!"post".equalsIgnoreCase(httpMethod)) {
+    if (!HTTP_POST.equalsIgnoreCase(httpMethod)) {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
     String spFileContent = request.getParameter("sp-file-content");
     String spFileName = request.getParameter("sp-file-name");
     
-    if (spFileContent != null && !"".equals(spFileContent)) {
+    if (StringUtils.isNotEmpty(spFileContent)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -60,12 +63,12 @@
             <%
             }
         } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
-    %>
-        <script>
-            location.href = 'add-service-provider.jsp';
-        </script>
-        <%
+            CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
+             %>
+            <script>
+                location.href = 'add-service-provider.jsp';
+            </script>
+    <%
         }
     }  else {
     %>

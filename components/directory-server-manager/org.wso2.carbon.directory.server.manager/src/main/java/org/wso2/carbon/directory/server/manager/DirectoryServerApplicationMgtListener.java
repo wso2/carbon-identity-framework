@@ -41,6 +41,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SAML2.AuthnContextClass
+        .KERBEROS;
+
 public class DirectoryServerApplicationMgtListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(DirectoryServerApplicationMgtListener.class);
@@ -48,6 +51,8 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
     @Override
     public int getDefaultOrderId() {
 
+        //Force this listener to be executed last as we are deleting the kerberos configurations in th pre-delete
+        // method.
         return 999;
     }
 
@@ -63,7 +68,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
             InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs();
             for (InboundAuthenticationRequestConfig config : configs) {
-                if ("kerberos".equalsIgnoreCase(config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
+                if (KERBEROS.equalsIgnoreCase(config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
                     DirectoryServerManager directoryServerManager = new DirectoryServerManager();
                     try {
                         directoryServerManager.removeServer(config.getInboundAuthKey());
@@ -131,7 +136,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
 
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authConfig.getInboundAuthType(), "kerberos")) {
+                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
 
                     String inboundConfiguration = authConfig.getInboundConfiguration();
                     if (inboundConfiguration == null || "".equals(inboundConfiguration)) {
@@ -167,7 +172,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
                 inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs() != null) {
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authConfig.getInboundAuthType(), "kerberos")) {
+                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
                     String inboundAuthKey = authConfig.getInboundAuthKey();
                     if (exportSecrets) {
                         try {
