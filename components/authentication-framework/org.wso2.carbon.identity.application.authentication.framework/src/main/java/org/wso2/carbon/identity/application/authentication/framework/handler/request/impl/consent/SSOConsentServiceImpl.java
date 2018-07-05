@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
         .SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -110,6 +109,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private static final Log log = LogFactory.getLog(SSOConsentServiceImpl.class);
     private static final String DEFAULT_PURPOSE = "DEFAULT";
     private static final String DEFAULT_PURPOSE_CATEGORY = "DEFAULT";
+    private static final String DEFAULT_PUPRPOSE_GROUP = "DEFAULT";
+    private static final String DEFAULT_PURPOSE_GROUP_TYPE = "SYSTEM";
     private boolean ssoConsentEnabled = true;
 
     public SSOConsentServiceImpl() {
@@ -616,7 +617,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private Purpose addDefaultPurpose() throws SSOConsentServiceException {
 
         Purpose purpose;
-        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product");
+        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product",
+                                             DEFAULT_PUPRPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE, false);
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {

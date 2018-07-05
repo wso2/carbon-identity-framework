@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.Map;
 public class DefaultSequenceHandlerUtils {
 
     private static Log log = LogFactory.getLog(DefaultSequenceHandlerUtils.class);
-
+    private static final String SEND_ONLY_SP_MAPPED_ROLES = "SPRoleManagement.ReturnOnlyMappedLocalRoles";
     private DefaultSequenceHandlerUtils() {
     }
 
@@ -47,7 +48,9 @@ public class DefaultSequenceHandlerUtils {
                     " of user: " + authenticatedUser);
         }
 
-        // SP role mapped role values joined by Multi Attribute Separatorg
+        // SP role mapped role values joined by Multi Attribute Separator.
+        boolean returnOnlyMappedLocalRoles = Boolean.parseBoolean(IdentityUtil.getProperty(SEND_ONLY_SP_MAPPED_ROLES));
+
         String spMappedRoles = null;
         if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
             // Get SP Role mappings
@@ -65,8 +68,10 @@ public class DefaultSequenceHandlerUtils {
                                     + spMappedRole);
                         }
                     } else {
-                        // Add local role to the list since there are no SP mapped roles for this one
-                        spMappedRoleList.add(locallyMappedRole);
+                        //  If ReturnOnlyMappedLocalRoles is false, add local role to the list.
+                        if (!returnOnlyMappedLocalRoles) {
+                            spMappedRoleList.add(locallyMappedRole);
+                        }
                     }
                 }
             } else {

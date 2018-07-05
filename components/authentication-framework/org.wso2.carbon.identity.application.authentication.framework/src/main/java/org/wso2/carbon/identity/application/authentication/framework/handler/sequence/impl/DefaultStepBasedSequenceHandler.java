@@ -36,10 +36,13 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
@@ -351,23 +354,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     subjectAttributesFoundInStep = true;
                     // local authentications
                     mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
-
-                    String spRoleUri = getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
-
-                    String roleAttr = mappedAttrs.get(spRoleUri);
-
-                    if (StringUtils.isNotBlank(roleAttr)) {
-                        //Need to convert multiAttributeSeparator value into a regex literal before calling
-                        // split function. Otherwise split can produce misleading results in case
-                        // multiAttributeSeparator contains regex special meaning characters like .*
-                        String[] roles = roleAttr.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
-                        mappedAttrs.put(
-                                spRoleUri,
-                                getServiceProviderMappedUserRoles(sequenceConfig,
-                                        Arrays.asList(roles))
-                        );
-                    }
-
+                    handleRoleMapping(context, sequenceConfig, mappedAttrs);
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
                 }
             }
@@ -386,6 +373,98 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
+    }
+
+    private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
+            mappedAttrs) throws FrameworkException {
+
+        String spRoleUri = getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
+        String roleAttr = null;
+        String spStandardDialect = getSPStandardDialect(context);
+        if (spStandardDialect != null && isLocalClaimDialect(context)) {
+            spRoleUri = getStandardRoleClaimURI(spStandardDialect, context.getTenantDomain());
+            roleAttr = mappedAttrs.get(spRoleUri);
+        } else if (spStandardDialect != null && !isLocalClaimDialect(context)) {
+            String localClaim = getSPMappedLocalRoleClaimURI(sequenceConfig.getApplicationConfig());
+            spRoleUri = getStandardClaimURIFromLocal(spStandardDialect, context.getTenantDomain(),
+                    localClaim);
+            roleAttr = mappedAttrs.get(spRoleUri);
+        } else if (spStandardDialect == null && isLocalClaimDialect(context)) {
+            roleAttr = mappedAttrs.get(spRoleUri);
+        } else if (spStandardDialect == null && !isLocalClaimDialect(context)) {
+            roleAttr = mappedAttrs.get(spRoleUri);
+        }
+
+        if (StringUtils.isNotBlank(roleAttr)) {
+            //Need to convert multiAttributeSeparator value into a regex literal before calling
+            // split function. Otherwise split can produce misleading results in case
+            // multiAttributeSeparator contains regex special meaning characters like .*
+            String[] roles = roleAttr.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+            mappedAttrs.put(spRoleUri, getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
+        }
+    }
+
+    private String getSPStandardDialect(AuthenticationContext context) {
+
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        String spStandardDialect;
+        if (context.getProperties().containsKey(FrameworkConstants.SP_STANDARD_DIALECT)) {
+            spStandardDialect = (String) context.getProperty(FrameworkConstants.SP_STANDARD_DIALECT);
+        } else {
+            spStandardDialect = FrameworkUtils.getStandardDialect(context.getRequestType(), appConfig);
+        }
+        return spStandardDialect;
+    }
+
+    private boolean isLocalClaimDialect(AuthenticationContext context) {
+
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        ClaimConfig claimConfig = appConfig.getServiceProvider().getClaimConfig();
+        return claimConfig.isLocalClaimDialect();
+    }
+
+    private String getStandardRoleClaimURI(String standardDialect, String tenantDomain)
+            throws FrameworkException {
+
+        String roleClaim = getStandardClaimURIFromLocal(standardDialect, tenantDomain, FrameworkConstants
+                .LOCAL_ROLE_CLAIM_URI);
+        if (StringUtils.isBlank(roleClaim)) {
+            return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+        }
+        return roleClaim;
+    }
+
+    private String getStandardClaimURIFromLocal(String standardDialect, String tenantDomain, String claimURI)
+            throws FrameworkException {
+
+        try {
+            Map<String, String> claimMapping = ClaimMetadataHandler.getInstance()
+                    .getMappingsMapFromOtherDialectToCarbon(standardDialect, null, tenantDomain, true);
+            if (claimMapping.containsKey(claimURI)) {
+                return claimMapping.get(claimURI);
+            }
+        } catch (ClaimMetadataException e) {
+            throw new FrameworkException("Error while loading mappings.", e);
+        }
+        return null;
+    }
+
+    private String getSPMappedLocalRoleClaimURI(ApplicationConfig appConfig) {
+
+        String spRoleClaimUri = appConfig.getRoleClaim();
+        if (StringUtils.isNotBlank(spRoleClaimUri)) {
+
+            Map<String, String> spToLocalClaimMapping = appConfig.getClaimMappings();
+            if (spToLocalClaimMapping != null && !spToLocalClaimMapping.isEmpty()) {
+
+                for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
+                    if (spRoleClaimUri.equals(entry.getKey())) {
+                        return entry.getValue();
+                    }
+                }
+            }
+        }
+        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
     }
 
     /**
