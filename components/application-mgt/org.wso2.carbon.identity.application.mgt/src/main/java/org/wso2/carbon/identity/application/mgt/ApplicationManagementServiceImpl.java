@@ -869,6 +869,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setApplicationID(savedSP.getApplicationID());
             serviceProvider.setOwner(getUser(tenantDomain, username));
 
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.doPreUpdateApplication(serviceProvider, tenantDomain, username);
+                }
+            }
+
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.doImportServiceProvider(serviceProvider);
+                }
+            }
+
             isImportSP.set(true);
             try {
                 updateApplication(serviceProvider, tenantDomain, username);
@@ -882,14 +894,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             } finally {
                 isImportSP.set(false);
             }
-
-            for (ApplicationMgtListener listener : listeners) {
-                if (listener.isEnable()) {
-                    listener.doImportServiceProvider(serviceProvider);
-                }
-            }
-
-            updateApplication(serviceProvider, tenantDomain, username);
             importerResponse.setApplicationName(serviceProvider.getApplicationName());
             importerResponse.setErrors(new String[0]);
             return importerResponse;
