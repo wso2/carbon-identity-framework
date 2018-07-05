@@ -603,6 +603,22 @@
 	</VerificationCode>
     </SelfRegistration-->
 
+    <!--
+         This configuration is used to filter the SP configured role mappings. If the property value is,
+
+         true : If SP role mappings are configured, returns only the mapped SP roles. If SP role mappings are not
+         configured returns all the mapped local roles.
+
+         false : If SP role mappings are configured, returns mapped SP roles for the mapped roles and the local mapped
+         roles for others. If SP role mappings are not configured returns all the mapped local roles.
+
+         Default - false.
+     -->
+
+    <!--SPRoleManagement>
+        <ReturnOnlyMappedLocalRoles>false</ReturnOnlyMappedLocalRoles>
+    </SPRoleManagement-->
+
     <EnableAskPasswordAdminUI>false</EnableAskPasswordAdminUI>
 
     <EnableRecoveryEndpoint>true</EnableRecoveryEndpoint>

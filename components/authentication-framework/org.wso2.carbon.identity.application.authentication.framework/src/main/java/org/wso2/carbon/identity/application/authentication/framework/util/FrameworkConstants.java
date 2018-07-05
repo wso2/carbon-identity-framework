@@ -106,6 +106,7 @@ public abstract class FrameworkConstants {
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
     public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
+    public static final String SP_STANDARD_DIALECT = "SP_STANDARD_DIALECT";
 
     private FrameworkConstants() {
 

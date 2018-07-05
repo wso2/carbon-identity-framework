@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -82,6 +83,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -113,8 +115,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams
-        .TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
 public class FrameworkUtils {
 
@@ -1684,6 +1685,43 @@ public class FrameworkUtils {
             promptOnLongWait = Boolean.parseBoolean(promptOnLongWaitString);
         }
         return promptOnLongWait;
+    }
+
+    /**
+     * This util is used to get the standard claim dialect of an Application based on the SP configuration.
+     *
+     * @param clientType Client Type.
+     * @param appConfig  Application config.
+     * @return standard dialect if exists.
+     */
+    public static String getStandardDialect(String clientType, ApplicationConfig appConfig) {
+
+        Map<String, String> claimMappings = appConfig.getClaimMappings();
+        if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType)) {
+            return "http://wso2.org/oidc/claim";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType)) {
+            return "http://schemas.xmlsoap.org/ws/2005/05/identity";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType)) {
+            return "http://axschema.org";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
+            return "urn:scim:schemas:core:1.0";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else if (claimMappings == null || claimMappings.isEmpty()) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else {
+            boolean isAtLeastOneNotEqual = false;
+            for (Map.Entry<String, String> entry : claimMappings.entrySet()) {
+                if (!entry.getKey().equals(entry.getValue())) {
+                    isAtLeastOneNotEqual = true;
+                    break;
+                }
+            }
+            if (!isAtLeastOneNotEqual) {
+                return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            }
+        }
+        return null;
     }
 }
 
