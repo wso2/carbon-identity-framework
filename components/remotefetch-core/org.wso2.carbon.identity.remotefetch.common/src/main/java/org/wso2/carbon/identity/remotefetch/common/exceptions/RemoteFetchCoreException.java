@@ -16,8 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common;
+package org.wso2.carbon.identity.remotefetch.common.exceptions;
 
-public interface ActionHandler {
-    void iteration();
+public class RemoteFetchCoreException extends Exception {
+
+    public RemoteFetchCoreException(String message) {
+        super(message);
+    }
+
+    public RemoteFetchCoreException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

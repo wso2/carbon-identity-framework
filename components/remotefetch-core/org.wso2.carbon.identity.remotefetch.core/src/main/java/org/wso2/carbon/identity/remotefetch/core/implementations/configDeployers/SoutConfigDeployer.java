@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployer
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.remotefetch.common.ConfigDeployer;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnector;
 
 import java.io.BufferedReader;

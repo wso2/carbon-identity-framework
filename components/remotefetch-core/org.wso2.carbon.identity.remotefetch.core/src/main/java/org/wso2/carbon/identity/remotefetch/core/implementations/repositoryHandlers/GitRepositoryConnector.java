@@ -36,7 +36,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;
-import org.wso2.carbon.identity.remotefetch.common.RepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
 
 import java.io.File;
 import java.io.IOException;

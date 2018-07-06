@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.remotefetch.common.ActionHandler;
-import org.wso2.carbon.identity.remotefetch.common.ConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.common.RepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
+import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnector;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PollingActionHandler implements ActionHandler {
+public class PollingActionListener implements ActionListener {
 
     private static Log log = LogFactory.getLog(GitRepositoryConnector.class);
 
@@ -46,7 +46,7 @@ public class PollingActionHandler implements ActionHandler {
     // Keeps last deployed revision date of each file
     private Map<File,Date> revisionDates = new HashMap<>();
 
-    public PollingActionHandler(RepositoryConnector repo, Map<File, ConfigDeployer> directoryMap) {
+    public PollingActionListener(RepositoryConnector repo, Map<File, ConfigDeployer> directoryMap) {
         this.repo = repo;
         this.directoryMap = directoryMap;
     }

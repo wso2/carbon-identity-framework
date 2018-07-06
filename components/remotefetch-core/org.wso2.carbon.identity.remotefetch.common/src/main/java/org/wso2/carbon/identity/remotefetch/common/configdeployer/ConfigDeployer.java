@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common;
+package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
 import java.io.InputStream;
 
