@@ -41,17 +41,18 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SAML2.AuthnContextClass
-        .KERBEROS;
 
 public class DirectoryServerApplicationMgtListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(DirectoryServerApplicationMgtListener.class);
 
+    private static final String KERBEROS = "kerberos";
+
+
     @Override
     public int getDefaultOrderId() {
 
-        //Force this listener to be executed last as we are deleting the kerberos configurations in th pre-delete
+        // Force this listener to be executed last as we are deleting the kerberos configurations in th pre-delete
         // method.
         return 999;
     }
@@ -95,7 +96,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
 
-                if (StringUtils.equals(authConfig.getInboundAuthType(), "kerberos")) {
+                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
                     if (authConfig.getInboundConfiguration() != null) {
                         String inboundAuthKey = authConfig.getInboundAuthKey();
                         if (authConfig.getInboundConfiguration() == null) {
@@ -113,8 +114,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
                         if (!inboundAuthKey.equals(serverPrinciple.getServerName())) {
                             validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
                                             "is not match with Service Principal Name %s.", authConfig
-                                            .getInboundAuthKey(),
-                                    serverPrinciple.getServerName()));
+                                            .getInboundAuthKey(), serverPrinciple.getServerName()));
                         }
                     }
                     break;

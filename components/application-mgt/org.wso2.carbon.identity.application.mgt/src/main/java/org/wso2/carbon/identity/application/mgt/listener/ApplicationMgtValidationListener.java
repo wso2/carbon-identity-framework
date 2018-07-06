@@ -123,7 +123,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 try {
                     IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
                             .getIdentityProviderName(), tenantDomain, false);
-                    if (savedIdp == null) {
+                    if (savedIdp.getId() == null) {
                         validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                                 idp.getIdentityProviderName()));
                     } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
@@ -131,8 +131,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                                 .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
                                 .collect(Collectors.toList());
                         Arrays.stream(idp.getFederatedAuthenticatorConfigs()).forEach(federatedAuth -> {
-                            if (savedIdpAuthenticators.contains(federatedAuth.getName())) {
-                                validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                            if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
+                                validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
                                         federatedAuth.getName(), idp.getIdentityProviderName()));
                             }
                         });
