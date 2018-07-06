@@ -95,6 +95,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         standardInboundAuthTypes.add("samlsso");
         standardInboundAuthTypes.add("openid");
         standardInboundAuthTypes.add("passivests");
+        standardInboundAuthTypes.add("kerberos");
     }
 
     private boolean isCustomInboundAuthType(String authType) {
