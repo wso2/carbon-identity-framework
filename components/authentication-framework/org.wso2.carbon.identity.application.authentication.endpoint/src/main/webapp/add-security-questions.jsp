@@ -28,9 +28,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 
-<%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
-
+<%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.HashMap" %>
@@ -44,24 +43,28 @@
     String urlData = request.getParameter("data");
     // Extract the challenge questions from the request and add them into an array
     String[] questionSets = urlData.split("&");
-    // Hash-map to hold user's challenge questions
+    // Hash-map to hold available challenge questions in the system
     Map<String, List<ChallengeQuestion>> challengeQuestionMap = new HashMap<>();
 
     for (String question : questionSets) {
         String[] questionProperties = question.split("\\|");
         // Construct a new ChallengeQuestion for each challenge question received from the request
-        ChallengeQuestion tempChallengeQuestions = new ChallengeQuestion();
-        tempChallengeQuestions.setQuestionSetId(questionProperties[0]);
-        tempChallengeQuestions.setQuestionId(questionProperties[1]);
-        tempChallengeQuestions.setQuestion(questionProperties[2]);
+        ChallengeQuestion tempChallengeQuestion = new ChallengeQuestion();
+        // Extract the challenge question properties
+        String questionSetId = questionProperties[0];
+        String questionId = questionProperties[1];
+        String questionBody = questionProperties[2];
+        tempChallengeQuestion.setQuestionSetId(questionSetId);
+        tempChallengeQuestion.setQuestionId(questionId);
+        tempChallengeQuestion.setQuestion(questionBody);
         // Add the challenge question to the Hash-map
         List<ChallengeQuestion> challengeQuestionList = challengeQuestionMap.get(questionProperties[0]);
         if (challengeQuestionList == null) {
-            List<ChallengeQuestion> tempList = new ArrayList<>();
-            tempList.add(tempChallengeQuestions);
-            challengeQuestionMap.put(questionProperties[0], tempList);
+            List<ChallengeQuestion> tempChallengeQuestionList = new ArrayList<>();
+            tempChallengeQuestionList.add(tempChallengeQuestion);
+            challengeQuestionMap.put(questionProperties[0], tempChallengeQuestionList);
         } else {
-            challengeQuestionList.add(tempChallengeQuestions);
+            challengeQuestionList.add(tempChallengeQuestion);
         }
     }
 %>
@@ -78,7 +81,8 @@
             document.getElementById("profile").submit();
         }
         else {
-            alert("Please enter the answers for challenge questions");
+            var errorMsg = "<%=AuthenticationEndpointUtil.i18n(resourceBundle, "enter.valid.answers.for.challenge.questions")%>";
+            document.write(errorMsg);
         }
     }
 </script>
