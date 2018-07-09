@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
@@ -29,7 +31,11 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -42,8 +48,10 @@ import javax.script.ScriptException;
  */
 public class JsGraphBuilderFactory {
 
+    private static final Log LOG = LogFactory.getLog(JsGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
     private NashornScriptEngineFactory factory;
+
 
     public void init() {
 
@@ -70,18 +78,50 @@ public class JsGraphBuilderFactory {
 
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, Object> persistableMap = new HashMap<>();
-        engineBindings.forEach((key, value) -> persistableMap.put(key, toJsSerializable(key, value)));
+        engineBindings.forEach((key, value) -> persistableMap.put(key, toJsSerializable(value)));
         context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
-    private static Object toJsSerializable(String name, Object value) {
+    private static Object toJsSerializable(Object value) {
 
-        if (value instanceof ScriptObjectMirror) {
+        if (value instanceof Serializable) {
+            return value;
+        } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {
-                return SerializableJsFunction.toSerializableForm(name, scriptObjectMirror);
+                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+            } else if (scriptObjectMirror.isArray()) {
+                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
+                scriptObjectMirror.values().forEach(v -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        arrayItems.add((Serializable) serializedObj);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Serialized the value of array item as : " + serializedObj);
+                        }
+                    } else {
+                        LOG.warn(String.format("Non serializable array item: %s. and will not be persisted.",
+                                serializedObj));
+                    }
+                });
+                return arrayItems;
+            } else if (!scriptObjectMirror.isEmpty()) {
+                Map<String, Serializable> serializedMap = new HashMap<>();
+                scriptObjectMirror.forEach((k, v) -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        serializedMap.put(k, (Serializable) serializedObj);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Serialized the value for key : " + k);
+                        }
+                    } else {
+                        LOG.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
+                    }
+
+                });
+                return serializedMap;
             } else {
-                return scriptObjectMirror;
+                return Collections.EMPTY_MAP;
             }
         }
         return value;
@@ -97,6 +137,13 @@ public class JsGraphBuilderFactory {
                 throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
             }
 
+        } else if (value instanceof Map) {
+            Map<String, Object> deserializedMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
+                deserializedMap.put(entry.getKey(), deserializedObj);
+            }
+            return deserializedMap;
         }
         return value;
     }

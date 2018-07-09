@@ -2,7 +2,8 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %><%--
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="java.util.Map" %><%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
@@ -46,6 +47,7 @@
     } else if (errorMsgObj != null) {
         errorMsg = errorMsgObj.toString();
     }
+    boolean skipSignUpEnableCheck = Boolean.parseBoolean(request.getParameter("skipsignupenablecheck"));
 %>
 
 
@@ -116,13 +118,23 @@
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%></label>
                                 
                                 <input id="username" name="username" type="text"
-                                       class="form-control required usrName usrNameLength" required>
+                                       class="form-control required usrName usrNameLength" required
+                                <% if(skipSignUpEnableCheck) {%> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
                                 <div class="font-small">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
                                             "If.you.specify.tenant.domain.you.registered.under.super.tenant")%></div>
                                 <input id="callback" name="callback" type="hidden" value="<%=callback%>"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
+                            <%  Map<String, String[]> requestMap = request.getParameterMap();
+                                for (Map.Entry<String, String[]> entry : requestMap.entrySet()) {
+                                    String key = entry.getKey();
+                                    String value = entry.getValue()[0]; %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group ">
+                                    <input id="<%= key%>" name="<%= key%>" type="hidden"
+                                           value="<%=Encode.forHtmlAttribute(value)%>" class="form-control">
+                                </div>
+                            <% } %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <br/>
                                 <button id="registrationSubmit"

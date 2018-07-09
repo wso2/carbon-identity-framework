@@ -51,4 +51,7 @@ public class ThriftAuthenticationConstants {
     public static final String GET_THRIFT_SESSION_SQL =
             "SELECT SESSION_ID, USER_NAME, CREATED_TIME, LAST_MODIFIED_TIME FROM IDN_THRIFT_SESSION WHERE SESSION_ID=?";
     public static final String IP_ADDRESS = "127.0.0.1";
+
+    public static final String CONFIG_SSL_ENABLED_PROTOCOLS = "SSLEnabledProtocols";
+    public static final String CONFIG_CIPHERS = "Ciphers";
 }

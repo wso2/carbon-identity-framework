@@ -1,22 +1,71 @@
 {
   "category": "Request Based",
   "name": "ACR",
+  "title": "ACR Based 2FA Template",
+  "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
+  "preRequisites": [
+    "Change the acrList parameter to an array of ACR Levels.",
+    "Modify the default authentication steps and option(s) as required."
+  ],
+  "parametersDescription": {
+    "acrList": "An array of ACRs ordered by the level"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator",
+    "Step 3": "FIDO authenticator"
+  },
+  "authenticationSteps":3,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    },
+    "3": {
+      "local": [
+        "FIDOAuthenticator"
+      ],
+      "federated": []
+    }
+  },
   "img": "./images/http.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
   "code": [
-    "function onInitialRequest(context) {",
+    "// Define conditional authentication by passing one or many Authentication Context Class References ",
+    "// as comma separated values.",
     "",
-    "    var acr = selectAcrFrom(context, ['acr1', 'acr2', 'acr3', 'acr4']);",
+    "// Specify the ordered list of ACR here.",
+    "var acrList = ['acr1', 'acr2', 'acr3'];",
+    "",
+    "function onInitialRequest(context) {",
+    "    var acr = selectAcrFrom(context, acrList);",
     "    Log.info('--------------- ACR selected: ' + acr);",
     "    context.selectedAcr = acr;",
-    "    switch(acr) {",
-    "        case 'acr1' : executeStep(1);break;",
-    "        case 'acr2' : executeStep(1); executeStep(2);  break;",
-    "        case 'acr3' : executeStep(1); executeStep(3);  break;",
-    "        case 'acr4' : executeStep(1); executeStep(4);  break;",
-    "        default :  executeStep(1);  executeStep(2);  executeStep(3); executeStep(4);",
+    "    switch (acr) {",
+    "        case acrList[0] :",
+    "            executeStep(1);",
+    "            break;",
+    "        case acrList[1] :",
+    "            executeStep(1);",
+    "            executeStep(2);",
+    "            break;",
+    "        case acrList[2] :",
+    "            executeStep(1);",
+    "            executeStep(3);",
+    "            break;",
+    "        default :",
+    "            executeStep(1);",
+    "            executeStep(2);",
+    "            executeStep(3);",
     "    }",
     "}"
-  ],
-  "help": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
-  "helpLink": "https://docs.wso2.com/display/IS560/Conditional+Authentication"
+  ]
 }

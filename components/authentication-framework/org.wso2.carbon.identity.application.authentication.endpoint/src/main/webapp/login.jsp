@@ -17,16 +17,19 @@
   --%>
 
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 <%@page import="java.util.ArrayList" %>
-<%@page import="java.util.Arrays" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.util.Arrays" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
-<%@ page import="java.net.URL" %>
+<%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS" %>
+<%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS_MSG" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.CONFIGURATION_ERROR" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.AUTHENTICATION_MECHANISM_NOT_CONFIGURED" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.ENABLE_AUTHENTICATION_WITH_REST_API" %>
 <%@include file="localize.jsp" %>
 <jsp:directive.include file="init-url.jsp"/>
 
@@ -36,6 +39,7 @@
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
+    private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
 %>
 
     <%
@@ -64,6 +68,7 @@
     <%
 
         boolean hasLocalLoginOptions = false;
+        boolean isBackChannelBasicAuth = false;
         List<String> localAuthenticatorNames = new ArrayList<String>();
 
         if (idpAuthenticatorMapping != null && idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) {
@@ -175,24 +180,31 @@
                             %>
 
                             <%@ include file="openid.jsp" %>
-
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
+                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
+                                    localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
+                                boolean includeBasicAuth = true;
+                                if (localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR)) {
+                                    if (Boolean.parseBoolean(application.getInitParameter(ENABLE_AUTHENTICATION_WITH_REST_API))) {
+                                        isBackChannelBasicAuth = true;
+                                    } else {
+                                        String redirectURL = "error.do?" + STATUS + "=" + CONFIGURATION_ERROR + "&" +
+                                                STATUS_MSG + "=" + AUTHENTICATION_MECHANISM_NOT_CONFIGURED;
+                                        response.sendRedirect(redirectURL);
+                                    }
+                                } else if (localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
+                                    isBackChannelBasicAuth = false;
+                                    if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
+                                        includeBasicAuth = false;
                             %>
-
-                            <%
-                                if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
-                            %>
-
                             <%@ include file="tenantauth.jsp" %>
-
-                            <script>
-                                //set the selected tenant domain in dropdown from the cookie value
-                                window.onload = selectTenantFromCookie;
-                            </script>
                             <%
-                            } else {
+                                    }
+                                }
+
+                                if (includeBasicAuth) {
+
                             %>
                             <%@ include file="basicauth.jsp" %>
                             <%

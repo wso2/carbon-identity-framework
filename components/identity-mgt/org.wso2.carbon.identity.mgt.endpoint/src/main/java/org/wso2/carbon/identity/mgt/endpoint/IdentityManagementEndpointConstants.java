@@ -93,6 +93,9 @@ public class IdentityManagementEndpointConstants {
 
     public static final String SECRET_ALIAS = "secretAlias:";
     public static final String SECRET_ALIAS_SEPARATOR = ":";
+    public static final String SKIP_SIGN_UP_ENABLE_CHECK = "skipsignupenablecheck";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
 
     public static class Consent {
 

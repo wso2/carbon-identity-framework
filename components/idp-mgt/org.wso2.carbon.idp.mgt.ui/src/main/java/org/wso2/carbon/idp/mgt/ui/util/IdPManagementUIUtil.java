@@ -1787,14 +1787,38 @@ public class IdPManagementUIUtil {
     private static void buildInboundProvisioningConfiguration(IdentityProvider fedIdp,
                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
 
+        String modifyUserNamePassword = "prompt_username_password_consent";
+        String modifyPassword = "prompt_password_consent";
+        String doNotPrompt = "do_not_prompt";
+        String jitTypeGroup = "choose_jit_type_group";
         String provisioning = paramMap.get("provisioning");
         JustInTimeProvisioningConfig jitProvisioningConfiguration = new JustInTimeProvisioningConfig();
 
         if ("provision_disabled".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(false);
-        } else if ("provision_static".equals(provisioning)
-                || "provision_dynamic".equals(provisioning)) {
+            jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+            jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+            jitProvisioningConfiguration.setPromptConsent(false);
+        } else if ("provision_static".equals(provisioning) || "provision_dynamic".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(true);
+            if (modifyUserNamePassword.equals(paramMap.get(jitTypeGroup))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(true);
+                jitProvisioningConfiguration.setPromptConsent(true);
+            } else if (modifyPassword.equals(paramMap.get(jitTypeGroup))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+                jitProvisioningConfiguration.setPromptConsent(true);
+            } else {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+
+                if (doNotPrompt.equals(paramMap.get(jitTypeGroup))) {
+                    jitProvisioningConfiguration.setPromptConsent(false);
+                } else {
+                    jitProvisioningConfiguration.setPromptConsent(true);
+                }
+            }
         }
 
         jitProvisioningConfiguration.setProvisioningUserStore(paramMap
@@ -1808,7 +1832,6 @@ public class IdPManagementUIUtil {
         }
 
         fedIdp.setJustInTimeProvisioningConfig(jitProvisioningConfiguration);
-
     }
 
     /**

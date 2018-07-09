@@ -29,6 +29,7 @@ import java.util.function.Function;
  */
 public class LongWaitNode extends DynamicDecisionNode implements AuthGraphNode {
 
+    private static final long serialVersionUID = -6709928014403661699L;
     private transient AsyncProcess asyncProcess;
 
     public LongWaitNode(AsyncProcess asyncProcess) {

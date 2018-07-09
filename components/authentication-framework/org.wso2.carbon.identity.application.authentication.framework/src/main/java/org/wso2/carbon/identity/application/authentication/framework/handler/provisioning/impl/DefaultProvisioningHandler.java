@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -42,6 +43,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.SecureRandom;
@@ -86,17 +88,28 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                                                                           realmService, tenantDomain);
-
-            String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
-
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
-            UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
-
-            // Remove userStoreManager domain from username if the userStoreDomain is not primary
-            if (realm.getUserStoreManager().getRealmConfiguration().isPrimary()) {
-                username = UserCoreUtil.removeDomainFromName(username);
+            String userStoreDomain;
+            UserStoreManager userStoreManager;
+            if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                    .equalsIgnoreCase(provisioningUserStoreId)) {
+                String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
+                try {
+                    userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
+                    userStoreDomain = userStoreDomainFromSubject;
+                } catch (FrameworkException e) {
+                    log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
+                            + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                    userStoreManager = getUserStoreManager(realm, userStoreDomain);
+                }
+            } else {
+                userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+                userStoreManager = getUserStoreManager(realm, userStoreDomain);
             }
+            username = UserCoreUtil.removeDomainFromName(username);
 
             if (log.isDebugEnabled()) {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
@@ -138,13 +151,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 if (!userClaims.isEmpty()) {
-                    userStoreManager.setUserClaimValues(username, userClaims, null);
+                    userClaims.remove(FrameworkConstants.PASSWORD);
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
 
-            } else {
+                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
 
-                userStoreManager.addUser(username, generatePassword(), addingRoles.toArray(
-                        new String[addingRoles.size()]), userClaims, null);
+                if (StringUtils.isEmpty(userProfileAdmin.getNameAssociatedWith(idp, subjectVal))) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                }
+            } else {
+                String password = generatePassword();
+                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
+                if (StringUtils.isNotEmpty(passwordFromUser)) {
+                    password = passwordFromUser;
+                }
+                userClaims.remove(FrameworkConstants.PASSWORD);
+                userStoreManager
+                        .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
+                                null);
 
                 // Associate User
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
@@ -158,7 +184,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException | UserProfileException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();

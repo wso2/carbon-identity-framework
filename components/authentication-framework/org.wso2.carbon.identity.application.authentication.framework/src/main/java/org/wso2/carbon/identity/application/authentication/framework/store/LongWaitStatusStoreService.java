@@ -18,30 +18,42 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.wso2.carbon.identity.application.authentication.framework.dao.LongWaitStatusDAO;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * The service holds long wait status.
  */
 public class LongWaitStatusStoreService {
 
-    private Map<String, LongWaitStatus> longWaitStatusMap = new HashMap<>();
+    private LongWaitStatusDAO statusDAO;
+    private int connectionTimeout;
 
-    public void addWait(String sessionId, LongWaitStatus longWaitStatus) {
+    public LongWaitStatusStoreService(LongWaitStatusDAO statusDAO, int connectionTimeout) {
 
-        if (sessionId != null) {
-            longWaitStatusMap.put(sessionId, longWaitStatus);
-        }
+        this.statusDAO = statusDAO;
+        this.connectionTimeout = connectionTimeout;
     }
 
-    public LongWaitStatus getWait(String sessionId) {
-        return longWaitStatusMap.get(sessionId);
+    public void addWait(int tenantId, String sessionId, LongWaitStatus longWaitStatus) throws FrameworkException {
+
+        Date now = new Date();
+        Timestamp createdTime = new Timestamp(now.getTime());
+        Timestamp expireTime = new Timestamp(now.getTime() + connectionTimeout);
+        statusDAO.addWaitStatus(tenantId, sessionId, longWaitStatus, createdTime, expireTime);
     }
 
-    public LongWaitStatus removeWait(String sessionId) {
-        return longWaitStatusMap.remove(sessionId);
+    public LongWaitStatus getWait(String sessionId) throws FrameworkException {
+
+        return statusDAO.getWaitStatus(sessionId);
+    }
+
+    public void removeWait(String sessionId) throws FrameworkException {
+
+        statusDAO.removeWaitStatus(sessionId);
     }
 }

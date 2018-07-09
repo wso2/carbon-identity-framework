@@ -32,6 +32,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.SelfRegistrationMgtClientException" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.apache.commons.collections.CollectionUtils" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.apache.commons.collections.MapUtils" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -47,6 +54,17 @@
     Integer defaultPurposeCatId = null;
     Integer userNameValidityStatusCode = null;
     String username = request.getParameter("username");
+    String[] missingClaimList = new String[0];
+    String[] missingClaimDisplayName = new String[0];
+    if (request.getParameter(Constants.MISSING_CLAIMS) != null) {
+        missingClaimList = request.getParameter(Constants.MISSING_CLAIMS).split(",");
+    }
+    if (request.getParameter("missingClaimsDisplayName") != null) {
+        missingClaimDisplayName = request.getParameter("missingClaimsDisplayName").split(",");
+    }
+    boolean allowchangeusername = Boolean.parseBoolean(request.getParameter("allowchangeusername"));
+    boolean skipSignUpEnableCheck = Boolean.parseBoolean(request.getParameter("skipsignupenablecheck"));
+    boolean isPasswordProvisionEnabled = Boolean.parseBoolean(request.getParameter("passwordProvisionEnabled"));
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
     User user = IdentityManagementServiceUtil.getInstance().getUser(username);
     
@@ -56,19 +74,34 @@
         request.getRequestDispatcher("register.do").forward(request, response);
         return;
     }
-    
+
+
     try {
-        userNameValidityStatusCode = selfRegistrationMgtClient.checkUsernameValidity(username);
+        userNameValidityStatusCode = selfRegistrationMgtClient
+                .checkUsernameValidity(username, skipSignUpEnableCheck);
     } catch (SelfRegistrationMgtClientException e) {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                "Something.went.wrong.while.registering.user") + Encode.forHtmlContent(username) +
-                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Please.contact.administrator"));
-        request.getRequestDispatcher("register.do").forward(request, response);
+        request.setAttribute("errorMsg", IdentityManagementEndpointUtil
+                .i18n(recoveryResourceBundle, "Something.went.wrong.while.registering.user") + Encode
+                .forHtmlContent(username) + IdentityManagementEndpointUtil
+                .i18n(recoveryResourceBundle, "Please.contact.administrator"));
+
+        if (allowchangeusername) {
+            request.getRequestDispatcher("register.do").forward(request, response);
+        } else {
+            Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
+            request.setAttribute("error", true);
+            if (errorD != null) {
+                request.setAttribute("errorMsg", errorD.getDescription());
+                request.setAttribute("errorCode", errorD.getCode());
+            }
+
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
         return;
     }
-    
-    
+
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
@@ -76,13 +109,27 @@
     
     if (userNameValidityStatusCode != null && !SelfRegistrationStatusCodes.CODE_USER_NAME_AVAILABLE.
             equalsIgnoreCase(userNameValidityStatusCode.toString())) {
-        
-        request.setAttribute("error", true);
-        request.setAttribute("errorCode", userNameValidityStatusCode);
-        request.getRequestDispatcher("register.do").forward(request, response);
-        return;
+        if (allowchangeusername ||  !skipSignUpEnableCheck) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorCode", userNameValidityStatusCode);
+            request.getRequestDispatcher("register.do").forward(request, response);
+            return;
+        } else {
+            String errorCode = String.valueOf(userNameValidityStatusCode);
+            if (SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT.equalsIgnoreCase(errorCode)) {
+                errorMsg = "Invalid tenant domain - " + user.getTenantDomain() + ".";
+            } else if (SelfRegistrationStatusCodes.ERROR_CODE_USER_ALREADY_EXISTS.equalsIgnoreCase(errorCode)) {
+                errorMsg = "Username '" + username + "' is already taken.";
+            } else if (SelfRegistrationStatusCodes.CODE_USER_NAME_INVALID.equalsIgnoreCase(errorCode)) {
+                errorMsg = user.getUsername() + " is an invalid user name. Please pick a valid username.";
+            }
+            request.setAttribute("errorMsg", errorMsg + " Please contact the administrator to fix this issue.");
+            request.setAttribute("errorCode", errorCode);
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+
+        }
     }
-    
     String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
     
@@ -168,7 +215,11 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <form action="processregistration.do" method="post" id="register">
+                <% if(skipSignUpEnableCheck) { %>
+                    <form action="../commonauth" method="post" id="register">
+                <% } else { %>
+                    <form action="processregistration.do" method="post" id="register">
+                <% } %>
                     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                         <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Create.account")%></h2>
 
@@ -184,6 +235,7 @@
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
+                        <% if (isPasswordProvisionEnabled || !skipSignUpEnableCheck) { %>
                         <div class="padding-double font-large">
                             <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.fields.to.cmplete.reg")%>
                             <b><%=Encode.forHtmlAttribute(username)%></b></div>
@@ -192,26 +244,36 @@
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
                             <div id="regFormSuc" class="alert alert-success" style="display:none"></div>
 
-                            <% if (isFirstNameInClaims) { %>
+                            <% if (isFirstNameInClaims) {
+                                String firstNameClaimURI = "http://wso2.org/claims/givenname";
+                                String firstNameValue = request.getParameter(firstNameClaimURI);
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "First.name")%>
                                 </label>
                                 <input type="text" name="http://wso2.org/claims/givenname" class="form-control"
-                                    <% if (isFirstNameRequired) {%> required <%}%>>
+                                    <% if (isFirstNameRequired) {%> required <%}%>
+                                <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(firstNameValue)) { %>
+                                value="<%= Encode.forHtmlAttribute(firstNameValue)%>" disabled <% } %>>
                             </div>
                             <%}%>
 
-                            <% if (isLastNameInClaims) { %>
+                            <% if (isLastNameInClaims) {
+                                String lastNameClaimURI = "http://wso2.org/claims/lastname";
+                                String lastNameValue = request.getParameter(lastNameClaimURI);
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Last.name")%>
                                 </label>
                                 <input type="text" name="http://wso2.org/claims/lastname" class="form-control"
-                                    <% if (isLastNameRequired) {%> required <%}%>>
+                                    <% if (isLastNameRequired) {%> required <%}%>
+                                    <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(lastNameValue)) { %>
+                                       value="<%= Encode.forHtmlAttribute(lastNameValue)%>" disabled <% } %>>
+
                             </div>
                             <%}%>
-
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input id="username" name="username" type="hidden" value="<%=Encode.forHtmlAttribute(username)%>"
                                        class="form-control required usrName usrNameLength">
@@ -233,14 +295,20 @@
                                        data-match="reg-password" required>
                             </div>
 
-                            <% if (isEmailInClaims) { %>
+                            <% if (isEmailInClaims) {
+                                String claimURI = "http://wso2.org/claims/emailaddress";
+                                String emailValue = request.getParameter(claimURI);
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Email")%>
                                 </label>
                                 <input type="email" name="http://wso2.org/claims/emailaddress" class="form-control"
                                        data-validate="email"
-                                    <% if (isEmailRequired) {%> required <%}%>>
+                                    <% if (isEmailRequired) {%> required <%}%><% if
+                                    (skipSignUpEnableCheck && StringUtils.isNotEmpty(emailValue)) {%>
+                                       value="<%= Encode.forHtmlAttribute(emailValue)%>"
+                                       disabled<%}%>>
                             </div>
                             <%
                                 }
@@ -250,30 +318,57 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input type="hidden" name="callback" value="<%=callback %>"/>
                             </div>
+                            <% for (int index = 0; index < missingClaimList.length; index++) {
+                                String claim = missingClaimList[index];
+                                String claimDisplayName = missingClaimDisplayName[index];
+                                if (!StringUtils
+                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)
+                                        && !StringUtils
+                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)
+                                        && !StringUtils
+                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claimDisplayName)%>
+                                </label>
+                                <input type="text" name="missing-<%=Encode.forHtmlAttribute(claim)%>"
+                                       id="<%=Encode.forHtmlAttribute(claim)%>" class="form-control" required="required">
+                            </div>
+                            <% }}%>
                             <%
                                 }
-
+                                List<String> missingClaims = null;
+                                if (ArrayUtils.isNotEmpty(missingClaimList)) {
+                                    missingClaims = Arrays.asList(missingClaimList);
+                                }
                                 for (Claim claim : claims) {
-                                if (!StringUtils.equals(claim.getUri(),
-                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+
+                                if ((CollectionUtils.isEmpty(missingClaims) || !missingClaims.contains(claim.getUri())) &&
+                                            !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
                                     !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
                                     !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
                                     !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
                                     !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                    !StringUtils.equals(claim.getUri(),
+                                            IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                    String claimURI = claim.getUri();
+                                    String claimValue = request.getParameter(claimURI);
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
                                     <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
                                 </label>
-                                <input type="text" name="<%= Encode.forHtmlAttribute(claim.getUri()) %>"
+                                <input type="text" name="<%= Encode.forHtmlAttribute(claimURI) %>"
                                        class="form-control"
                                         <% if (claim.getValidationRegex() != null) { %>
                                                 pattern="<%= Encode.forHtmlContent(claim.getValidationRegex()) %>"
                                         <% } %>
                                         <% if (claim.getRequired()) { %>
                                             required
-                                        <% } %>>
+                                        <% } %>
+                                    <% if(skipSignUpEnableCheck && StringUtils.isNotEmpty(claimValue)) {%>
+                                       value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled<%}%>>
                             </div>
                             <%
                                     }
@@ -281,6 +376,41 @@
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group"></div>
                         </div>
+                        <% } else { %>
+                        <div class="padding-double">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <label class="control-label">User Name
+                                </label>
+                                <input type="text" class="form-control"
+                                       value="<%=Encode.forHtmlAttribute(username)%>" disabled>
+                            </div>
+                            <%
+                                for (Claim claim : claims) {
+                                    String claimUri = claim.getUri();
+                                    String claimValue = request.getParameter(claimUri);
+
+                                    if (StringUtils.isNotEmpty(claimValue)) { %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
+                                    </label>
+                                    <input type="text" class="form-control"
+                                           value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled>
+                                </div>
+                            <% } }%>
+                        </div>
+                        <% } %>
+                        <% if (skipSignUpEnableCheck) { %>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+                                (request.getParameter("sessionDataKey"))%>'/>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <input type="hidden" name="policy" value='<%=Encode.forHtmlAttribute
+                                (IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                                "/authenticationendpoint/privacy_policy.do"))%>'/>
+                        </div>
+                        <% } %>
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
                             <%
                                 if (hasPurposes) {
@@ -368,6 +498,7 @@
                                        value="true"/>
                                 <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
                             </div>
+                            <% if (!skipSignUpEnableCheck) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <span class="margin-top padding-top-double font-large">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Already.have.account")%></span>
@@ -377,6 +508,7 @@
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Sign.in")%>
                                 </a>
                             </div>
+                            <% } %>
                             <div class="clearfix"></div>
                         </div>
                         <div class="clearfix"></div>
@@ -450,13 +582,14 @@
                 }
 
                 if (ALL_ATTRIBUTES_MANDATORY) {
+                    if (container) {
+                        var selectedAttributes = container.jstree(true).get_selected();
+                        var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
 
-                    var selectedAttributes = container.jstree(true).get_selected();
-                    var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
-
-                    if (!allSelected) {
-                        $("#attribute_selection_validation").modal();
-                        return false;
+                        if (!allSelected) {
+                            $("#attribute_selection_validation").modal();
+                            return false;
+                        }
                     }
 
                 }

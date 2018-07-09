@@ -603,6 +603,22 @@
 	</VerificationCode>
     </SelfRegistration-->
 
+    <!--
+         This configuration is used to filter the SP configured role mappings. If the property value is,
+
+         true : If SP role mappings are configured, returns only the mapped SP roles. If SP role mappings are not
+         configured returns all the mapped local roles.
+
+         false : If SP role mappings are configured, returns mapped SP roles for the mapped roles and the local mapped
+         roles for others. If SP role mappings are not configured returns all the mapped local roles.
+
+         Default - false.
+     -->
+
+    <!--SPRoleManagement>
+        <ReturnOnlyMappedLocalRoles>false</ReturnOnlyMappedLocalRoles>
+    </SPRoleManagement-->
+
     <EnableAskPasswordAdminUI>false</EnableAskPasswordAdminUI>
 
     <EnableRecoveryEndpoint>true</EnableRecoveryEndpoint>
@@ -611,6 +627,11 @@
     <AuthenticationPolicy>
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
+
+    <JITProvisioning>
+        <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
+        <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+    </JITProvisioning>
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -651,6 +672,17 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
+
+        <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler"
+                       orderId="20" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler"
+                       orderId="25" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
+                       orderId="30" enable="true"/>
 
         <!-- Audit Loggers -->
 
@@ -881,10 +913,32 @@
     </JWTValidatorConfigs>
 
     <AdaptiveAuth>
+        <!--Default configs for event publisher-->
         <EventPublisher>
-            <receiverURL>http://localhost:8280/</receiverURL>
+            <ReceiverURL>https://localhost:8280/</ReceiverURL>
+            <BasicAuthentication>
+                <Enable>true</Enable>
+                <Username>admin</Username>
+                <Password>admin</Password>
+            </BasicAuthentication>
         </EventPublisher>
+        <!--End of default configs for event publisher-->
+
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
+        <MaxTotalConnections>20</MaxTotalConnections>
+        <MaxTotalConnectionsPerRoute>20</MaxTotalConnectionsPerRoute>
+
+        <!--Timeouts in milliseconds-->
+        <!--Default configs for timeouts-->
+        <!--<HTTPConnectionTimeout>5000</HTTPConnectionTimeout>-->
+        <!--<HTTPReadTimeout>5000</HTTPReadTimeout>-->
+        <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
+        <!--End of default configs for timeouts-->
+
+        <!--<RefreshInterval>500</RefreshInterval>-->
+        <!--End of timeouts in milliseconds-->
+
+        <!--<PromptOnLongWait>false</PromptOnLongWait>-->
     </AdaptiveAuth>
 
 </Server>

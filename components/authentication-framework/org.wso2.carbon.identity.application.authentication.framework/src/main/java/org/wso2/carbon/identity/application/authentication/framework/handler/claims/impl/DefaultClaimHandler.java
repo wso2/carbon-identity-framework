@@ -52,7 +52,6 @@ import org.wso2.carbon.user.core.UserRealm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -90,7 +89,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
         String spStandardDialect = getStandardDialect(context.getRequestType(), appConfig);
-
+        context.setProperty(FrameworkConstants.SP_STANDARD_DIALECT, spStandardDialect);
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
         setMandatoryAndRequestedClaims(appConfig, selectedRequestedClaims);
@@ -596,23 +595,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             allLocalClaims = userStore.getUserClaimValues(tenantAwareUserName,
                     localClaimURIs.toArray(new String[localClaimURIs.size()]), null);
 
-            if (allLocalClaims != null) {
-                for (Map.Entry<String, String> entry : allLocalClaims.entrySet()) {
-                    //set local2sp role mappings
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey())) {
-                        RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
-                        String claimSeparator = realmConfiguration
-                                .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-                        if (StringUtils.isBlank(claimSeparator)) {
-                            claimSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
-                        }
-                        String roleClaim = entry.getValue();
-                        List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(claimSeparator)));
-                        roleClaim = getServiceProviderMappedUserRoles(appConfig, rolesList, claimSeparator);
-                        entry.setValue(roleClaim);
-                    }
-                }
-            } else {
+            if (allLocalClaims == null) {
                 return new HashMap<>();
             }
         } catch (UserStoreException e) {
