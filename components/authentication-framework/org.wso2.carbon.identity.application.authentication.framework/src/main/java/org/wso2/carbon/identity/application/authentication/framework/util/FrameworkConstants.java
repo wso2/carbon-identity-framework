@@ -107,6 +107,8 @@ public abstract class FrameworkConstants {
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
     public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
 
+    public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
+
     private FrameworkConstants() {
 
     }
@@ -203,11 +205,13 @@ public abstract class FrameworkConstants {
         public static final String LOGOUT = "commonAuthLogout";
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
+        public static final String USER_ABORT = "userAbort";
         public static final String FLOW_STATUS = "authenticatorFlowStatus";
         public static final String TO_COMMONAUTH = "tocommonauth";
         public static final String MAX_AGE = "max_age";
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
         public static final String REMEMBER_ME = "chkRemember";
+        public static final String INPUT_TYPE = "inputType";
 
         private RequestParams() {
         }
@@ -299,6 +303,7 @@ public abstract class FrameworkConstants {
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
         public static final String JS_FEDERATED_IDP = "federated";
+        public static final String JS_COMMON_OPTIONS = "common";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 

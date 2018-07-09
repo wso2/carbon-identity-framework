@@ -63,7 +63,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
-import java.util.UUID;
 import java.util.zip.Deflater;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,6 +78,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private static final String PROMPT_DEFAULT_ACTION = "Success";
     private static final String PROMPT_ACTION_PREFIX = "action.";
     private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
+    public static final String SKIPPED_CALLBACK_NAME = "onSkip";
+    public static final String STEP_IDENTIFIER_PARAM = "step";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
@@ -188,21 +189,33 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
             context.setReturning(false);
         } else {
-            displayPrompt(context, request, response, promptNode.getTemplateId(), promptNode.getData());
+            if (promptNode.getHandlerMap().get(ShowPromptNode.preHandler) != null) {
+                Object result = evaluateHandler(ShowPromptNode.preHandler, promptNode, context, promptNode
+                        .getParameters().get(STEP_IDENTIFIER_PARAM));
+                if ((result instanceof Boolean) && (Boolean) result) {
+                    executeFunction(SKIPPED_CALLBACK_NAME, promptNode, context);
+                    AuthGraphNode nextNode = promptNode.getDefaultEdge();
+                    context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+                } else {
+                    displayPrompt(context, request, response, promptNode, promptNode.getData());
+                    isPromptToBeDisplayed = true;
+                }
+                return isPromptToBeDisplayed;
+            }
+            displayPrompt(context, request, response, promptNode, promptNode.getData());
             isPromptToBeDisplayed = true;
         }
         return isPromptToBeDisplayed;
     }
 
     private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
-                               String templateId, String data) throws FrameworkException {
-
-        String promptId = UUID.randomUUID().toString();
+                               ShowPromptNode promptNode, String data) throws FrameworkException {
 
         try {
+
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
             String redirectUrl = promptPage + "?templateId=" +
-                    URLEncoder.encode(templateId, StandardCharsets.UTF_8.name()) + "&promptId=" + promptId;
+                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" + context.getContextIdentifier();
             if (data != null) {
                 //TODO encrypt data based on a config.
                 String encodedDataString = deflateJson(data);
@@ -213,7 +226,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             AuthenticationResult authenticationResult = new AuthenticationResult();
             request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
             request.setAttribute(RESPONSE_HANDLED_BY_FRAMEWORK, Boolean.TRUE);
-            FrameworkUtils.addAuthenticationContextToCache(promptId, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
         } catch (UnsupportedEncodingException e) {
             throw new FrameworkException("Error while encoding the data to send to prompt page with session data key"
@@ -520,6 +532,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             case FALLBACK:
                 executeFunction("onFallback", dynamicDecisionNode, context);
                 break;
+            case USER_ABORT:
+                executeFunction("onUserAbort", dynamicDecisionNode, context);
+                break;
             }
         }
 
@@ -536,9 +551,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context));
-        });
+        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context)));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -553,12 +566,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context), new JsParameters(data));
-        });
+        jsBasedEvaluator.evaluate(context,
+                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context), new JsParameters(data)));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
+    }
+
+    private Object evaluateHandler(String outcomeName, ShowPromptNode dynamicDecisionNode,
+                                   AuthenticationContext context, Object stepId) {
+
+        SerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
+        return jsBasedEvaluator.evaluate(context,
+                (jsFunction) -> jsFunction.call(null, stepId, new JsAuthenticationContext(context)));
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

@@ -150,6 +150,14 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
+        if (request.getParameter(FrameworkConstants.RequestParams.USER_ABORT) != null
+                && Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT))) {
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                    .USER_ABORT);
+            stepConfig.setCompleted(true);
+            return;
+        }
+
         // if Request has fidp param and if this is the first step
         if (fidp != null && stepConfig.getOrder() == 1) {
             handleHomeRealmDiscovery(request, response, context);
@@ -634,6 +642,8 @@ public class DefaultStepHandler implements StepHandler {
         IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
         IdentityUtil.clearIdentityErrorMsg();
 
+        retryParam = handleIdentifierFirstLogin(context, retryParam);
+
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
@@ -729,6 +739,27 @@ public class DefaultStepHandler implements StepHandler {
                         "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
             }
         }
+    }
+
+    private String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
+
+        Map<String, String> runtimeParams = context
+                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+        String promptType = null;
+        String usernameFromContext = null;
+        if (runtimeParams != null) {
+            usernameFromContext = runtimeParams.get("username");
+            if (usernameFromContext != null) {
+                promptType = FrameworkConstants.INPUT_TYPE_IDENTIFIER_FIRST;
+            }
+        }
+
+        if (promptType != null) {
+            retryParam += "&" + FrameworkConstants.RequestParams.INPUT_TYPE + "=" + promptType;
+            //TODO remove this from url and add to the new endpoint.
+            retryParam += "&username=" + usernameFromContext;
+        }
+        return retryParam;
     }
 
     private AuthenticatorConfig getAuthenticatorConfig() {
