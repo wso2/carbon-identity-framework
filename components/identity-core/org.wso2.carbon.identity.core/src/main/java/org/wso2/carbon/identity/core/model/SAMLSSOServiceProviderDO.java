@@ -70,6 +70,15 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private X509Certificate x509Certificate;
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
+    private boolean enableSAML2ArtifactBinding;
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isEnableSAML2ArtifactBinding() {
+        return enableSAML2ArtifactBinding;
+    }
 
 
     public SAMLSSOServiceProviderDO() {

@@ -156,6 +156,7 @@ public class IdentityRegistryResources {
             "AssertionQueryRequestProfileEnabled";
     public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
             "SupportedAssertionQueryRequestTypes";
+    public static final String PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";
