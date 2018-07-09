@@ -32,6 +32,12 @@ public class IdentityApplicationConstants {
     public static final String DEFAULT_SP_CONFIG = "default";
     public static final String DEFAULT_IDP_CONFIG = "default";
 
+    public static final String CERTIFICATE_TYPE = "X.509";
+    public static final String DATE_FORMAT = "dd/MM/yyyy";
+
+    public static final String CERTIFICATE_VAL = "certificateVal";
+    public static final String OLD_CERT_FILE = "oldCertFile";
+
     public static final String WSO2CARBON_CLAIM_DIALECT = "http://wso2.org/claims";
     public static final String SF_OAUTH2_TOKEN_ENDPOINT = "https://login.salesforce.com/services/oauth2/token";
 
