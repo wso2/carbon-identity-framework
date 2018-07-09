@@ -43,7 +43,7 @@
     String urlData = request.getParameter("data");
     // Extract the challenge questions from the request and add them into an array
     String[] questionSets = null;
-    if(urlData != null){
+    if (urlData != null) {
         questionSets = urlData.split("&");
     }
     // Hash-map to hold available challenge questions in the system
