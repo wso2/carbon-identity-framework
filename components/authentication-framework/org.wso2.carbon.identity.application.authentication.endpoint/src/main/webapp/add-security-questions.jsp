@@ -42,7 +42,10 @@
             EncodedControl(StandardCharsets.UTF_8.toString()));
     String urlData = request.getParameter("data");
     // Extract the challenge questions from the request and add them into an array
-    String[] questionSets = urlData.split("&");
+    String[] questionSets = null;
+    if(urlData != null){
+        questionSets = urlData.split("&");
+    }
     // Hash-map to hold available challenge questions in the system
     Map<String, List<ChallengeQuestion>> challengeQuestionMap = new HashMap<>();
 
@@ -60,9 +63,9 @@
         // Add the challenge question to the Hash-map
         List<ChallengeQuestion> challengeQuestionList = challengeQuestionMap.get(questionProperties[0]);
         if (challengeQuestionList == null) {
-            List<ChallengeQuestion> tempChallengeQuestionList = new ArrayList<>();
-            tempChallengeQuestionList.add(tempChallengeQuestion);
-            challengeQuestionMap.put(questionProperties[0], tempChallengeQuestionList);
+            challengeQuestionList = new ArrayList<>();
+            challengeQuestionList.add(tempChallengeQuestion);
+            challengeQuestionMap.put(questionProperties[0], challengeQuestionList);
         } else {
             challengeQuestionList.add(tempChallengeQuestion);
         }
