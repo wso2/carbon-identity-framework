@@ -72,24 +72,6 @@
     }
 %>
 
-<script type="text/javascript">
-    function validate() {
-        var isValid = new Boolean(true);
-        $("#profile input").each(function () {
-            if ($(this).val() == "") {
-                isValid = false;
-            }
-        })
-        if (isValid) {
-            document.getElementById("profile").submit();
-        }
-        else {
-            var errorMsg = "<%=AuthenticationEndpointUtil.i18n(resourceBundle, "enter.valid.answers.for.challenge.questions")%>";
-            document.write(errorMsg);
-        }
-    }
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <html>
@@ -139,7 +121,7 @@
                  "answers.security.question")%>
                 </label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="answer_to_questions"
+                    <input required type="text" class="form-control" id="answer_to_questions"
                            placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "type.your.security.answer")%>"
                            name=<%="A-" + Encode.forHtmlAttribute(challengeQuestionSet)%>>
                 </div>
@@ -151,9 +133,8 @@
         <br>
         <label class="control-label col-sm-4"></label>
         <div class="col-sm-8">
-            <input type="button" class="btn btn-primary"
-                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "update")%>"
-                   onclick="javascript: validate(); return false;">
+            <input type="submit" class="btn btn-primary"
+                   value="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "update")%>">
         </div>
         <input type="hidden" name="<%="sessionDataKey"%>"
                value="<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>"/>
