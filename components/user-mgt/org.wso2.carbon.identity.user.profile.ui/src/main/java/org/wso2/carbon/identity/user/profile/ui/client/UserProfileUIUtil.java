@@ -39,6 +39,7 @@ public class UserProfileUIUtil {
 
     private static final String ENCRYPT_USERNAME_IN_URL = "encryptUsernameInUrl";
 
+    private static final String bypassRoleName = "Internal/bypassaccountlock";
     /**
      * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
      * set to true in user-mgt.xml, else return the username without encrypting.
@@ -119,7 +120,7 @@ public class UserProfileUIUtil {
         String[] roleList = AdminServicesUtil.getUserRealm().getUserStoreManager().getRoleListOfUser(userName);
         if (roleList != null) {
             for (String roleName : roleList) {
-                if (roleName.equals("Internal/bypassaccountlock")) {
+                if (roleName.equals(bypassRoleName)) {
                     isLockable = false;
                     break;
                 }
