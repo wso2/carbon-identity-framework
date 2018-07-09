@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.core;
+package org.wso2.carbon.identity.remotefetch.common;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -34,7 +34,6 @@ public class RemoteFetchConfiguration implements Serializable {
     private Map<String,String> repositoryConnectorAttributes = new HashMap<>();
     private Map<String,String> actionListenerAttributes = new HashMap<>();
     private Map<String,String> confgiurationDeployerAttributes = new HashMap<>();
-    private Map<String,String> deploymentDetails = new HashMap<>();
 
     public RemoteFetchConfiguration() { // default implementation ignored
     }
@@ -42,8 +41,7 @@ public class RemoteFetchConfiguration implements Serializable {
     public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String repositoryConnectorType,
                                     String actionListenerType, String confgiurationDeployerType,
                                     Map<String, String> repositoryConnectorAttributes, Map<String,
-            String> actionListenerAttributes, Map<String, String> confgiurationDeployerAttributes,
-                                    Map<String, String> deploymentDetails) {
+            String> actionListenerAttributes, Map<String, String> confgiurationDeployerAttributes) {
 
         this.remoteFetchConfigurationId = remoteFetchConfigurationId;
         this.tenantId = tenantId;
@@ -53,7 +51,6 @@ public class RemoteFetchConfiguration implements Serializable {
         this.repositoryConnectorAttributes = repositoryConnectorAttributes;
         this.actionListenerAttributes = actionListenerAttributes;
         this.confgiurationDeployerAttributes = confgiurationDeployerAttributes;
-        this.deploymentDetails = deploymentDetails;
     }
 
     /**
@@ -72,24 +69,6 @@ public class RemoteFetchConfiguration implements Serializable {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Map<String, String> getDeploymentDetails() {
-
-        return deploymentDetails;
-    }
-
-    /**
-     *
-     * @param deploymentDetails
-     */
-    public void setDeploymentDetails(Map<String, String> deploymentDetails) {
-
-        this.deploymentDetails = deploymentDetails;
     }
 
     /**
@@ -214,13 +193,13 @@ public class RemoteFetchConfiguration implements Serializable {
 
         return "RemoteFetchConfiguration{" +
                 "remoteFetchConfigurationId=" + remoteFetchConfigurationId +
+                ", tenantId=" + tenantId +
                 ", repositoryConnectorType='" + repositoryConnectorType + '\'' +
                 ", actionListenerType='" + actionListenerType + '\'' +
                 ", confgiurationDeployerType='" + confgiurationDeployerType + '\'' +
                 ", repositoryConnectorAttributes=" + repositoryConnectorAttributes +
                 ", actionListenerAttributes=" + actionListenerAttributes +
                 ", confgiurationDeployerAttributes=" + confgiurationDeployerAttributes +
-                ", deploymentDetails=" + deploymentDetails +
                 '}';
     }
 }

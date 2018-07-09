@@ -90,10 +90,12 @@
                             org.json,
 
                             org.eclipse.jgit.api; version="${org.jgit.version}",
+                            org.eclipse.jgit.api.errors; version="${org.jgit.version}",
                             org.eclipse.jgit.lib; version="${org.jgit.version}",
                             org.eclipse.jgit.revwalk; version="${org.jgit.version}",
                             org.eclipse.jgit.storage.file; version="${org.jgit.version}",
                             org.eclipse.jgit.treewalk; version="${org.jgit.version}",
+                            org.eclipse.jgit.treewalk.filter; version="${org.jgit.version}",
 
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

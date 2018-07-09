@@ -46,16 +46,17 @@ public class PollingActionListener implements ActionListener {
     // Keeps last deployed revision date of each file
     private Map<File,Date> revisionDates = new HashMap<>();
 
-    public PollingActionListener(RepositoryConnector repo, Map<File, ConfigDeployer> directoryMap) {
+    public PollingActionListener(RepositoryConnector repo, Map<File, ConfigDeployer> directoryMap, Integer frequency) {
         this.repo = repo;
         this.directoryMap = directoryMap;
+        this.frequency = frequency;
     }
 
     @Override
     public void iteration() {
         Calendar nextIteration = Calendar.getInstance();
         nextIteration.add(Calendar.SECOND,this.frequency);
-        if ((lastIteration == null) || (lastIteration.after(nextIteration.getTime()))){
+        if ((lastIteration == null) || (lastIteration.before(nextIteration.getTime()))){
             try {
                 this.repo.fetchRepository();
             } catch (Exception e){

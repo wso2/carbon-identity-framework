@@ -21,43 +21,116 @@ package org.wso2.carbon.identity.remotefetch.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilderException;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
+import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilder;
+import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilderException;
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
+import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerBuilder;
+import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerBuilder;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnectorBuilder;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RemoteFetchCore implements Runnable{
 
     private Log log = LogFactory.getLog(RemoteFetchCore.class);
+    private RemoteFetchConfigurationDAO remoteFetchConfigDAO;
+    private List<ActionListener> listenersList = new ArrayList<>();
+
+    public RemoteFetchCore(){
+        this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
+    }
+
+    private RepositoryConnectorBuilder getRepositoryConnectorBuilder(RemoteFetchConfiguration fetchConfig)
+            throws RemoteFetchCoreException{
+        switch (fetchConfig.getRepositoryConnectorType()){
+            case "git":
+                return new GitRepositoryConnectorBuilder();
+            default:
+                throw new RemoteFetchCoreException("No such registered RepositoryConnector");
+        }
+    }
+    private PollingActionListenerBuilder getPollingActionListenerBuilder(RemoteFetchConfiguration fetchConfig)
+            throws RemoteFetchCoreException{
+        switch (fetchConfig.getActionListenerType()){
+            case "polling":
+                return new PollingActionListenerBuilder();
+            default:
+                throw new RemoteFetchCoreException("No such registered ActionListener");
+        }
+    }
+
+    private ConfigDeployerBuilder getConfigDeployerBuilder(RemoteFetchConfiguration fetchConfig)
+            throws RemoteFetchCoreException{
+        switch (fetchConfig.getConfgiurationDeployerType()){
+            case "Sout":
+                return new SoutConfigDeployerBuilder();
+            default:
+                throw new RemoteFetchCoreException("No such registered ConfigDeployer");
+        }
+    }
+
+    private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws Exception{
+
+        RepositoryConnector repoConnector;
+        ActionListener actionListener;
+        ConfigDeployer configDeployer;
+
+        try {
+            repoConnector = getRepositoryConnectorBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
+        } catch (RemoteFetchCoreException e) {
+            throw e;
+        } catch (RepositoryConnectorBuilderException e){
+            throw e;
+        }
+
+        try {
+            configDeployer = getConfigDeployerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
+        } catch (RemoteFetchCoreException e) {
+            throw e;
+        } catch (ConfigDeployerBuilderException e){
+            throw e;
+        }
+
+        try {
+            actionListener = getPollingActionListenerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig)
+                    .addConfigDeployer(configDeployer).addRepositoryConnector(repoConnector).build();
+        } catch (RemoteFetchCoreException e) {
+            throw e;
+        } catch (ActionListenerBuilderException e){
+            throw e;
+        }
+        return actionListener;
+
+    }
+
+    private void seedListeners(){
+        try {
+            this.remoteFetchConfigDAO.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) ->{
+                try {
+                    this.listenersList.add(this.buildListener(config));
+                } catch (Exception e){
+                    log.info("Exception when building config",e);
+                }
+            });
+        } catch (RemoteFetchCoreException e) {
+            log.info("Unable to read configurations", e);
+        }
+    }
 
     @Override
     public void run() {
-        RemoteFetchConfiguration rfc = new RemoteFetchConfiguration();
-
-        HashMap<String,String> example = new HashMap<>();
-        example.put("foo","bar");
-
-        rfc.setRepositoryConnectorType("git");
-        rfc.setActionListenerType("polling");
-        rfc.setConfgiurationDeployerType("SP");
-        rfc.setRepositoryConnectorAttributes(example);
-        rfc.setActionListenerAttributes(example);
-        rfc.setTenantId(0);
-
-        RemoteFetchConfigurationDAO rfd = new RemoteFetchConfigurationDAOImpl();
-        try {
-//            int id = rfd.createRemoteFetchConfiguration(rfc);
-            rfd.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) ->{
-                System.out.println(config.toString());
-            });
-//            RemoteFetchConfiguration rfc = rfd.getRemoteFetchConfiguration(2);
-//            rfc.setActionListenerType("LKTEST");
-//            rfd.updateRemoteFetchConfiguration(rfc,0);
-//            System.out.println(rfd.getRemoteFetchConfiguration(2));
-//            rfd.deleteRemoteFetchConfiguration(id);
-        } catch (RemoteFetchCoreException e) {
-            e.printStackTrace();
-        }
+        if (listenersList.isEmpty()) seedListeners();
+        this.listenersList.forEach((ActionListener actionListener) -> {
+            actionListener.iteration();
+        });
     }
 }

@@ -26,20 +26,23 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 @Component(
         name = "identity.application.remotefetch.component",
         immediate = true
 )
 public class RemoteFetchServiceComponent {
     private static Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
-    RemoteFetchCore core = new RemoteFetchCore();
-    Thread remoteFetchCoreThread;
+    private RemoteFetchCore core = new RemoteFetchCore();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Activate
     protected void activate(ComponentContext context) {
         try {
-            this.remoteFetchCoreThread = new Thread(this.core);
-            remoteFetchCoreThread.start();
+            scheduler.scheduleAtFixedRate(core,0,60,TimeUnit.SECONDS);
             if (log.isDebugEnabled()) {
                 log.debug("Identity RemoteFetchServiceComponent bundle is activated");
             }
@@ -51,11 +54,8 @@ public class RemoteFetchServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        try {
-            this.remoteFetchCoreThread.join();
-        } catch (InterruptedException e) {
-            log.error("Error stopping main RemoteFetchCore thread",e);
-        }
+        scheduler.shutdownNow();
+
         if (log.isDebugEnabled()) {
             log.debug("Identity RemoteFetchServiceComponent bundle is deactivated");
         }
