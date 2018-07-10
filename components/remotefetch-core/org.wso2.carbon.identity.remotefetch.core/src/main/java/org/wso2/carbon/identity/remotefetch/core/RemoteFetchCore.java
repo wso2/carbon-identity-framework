@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.remotefetch.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilderException;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
@@ -33,48 +35,59 @@ import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerBuilder;
+import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerBuilder;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerBuilder;
+import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class RemoteFetchCore implements Runnable{
 
     private Log log = LogFactory.getLog(RemoteFetchCore.class);
     private RemoteFetchConfigurationDAO remoteFetchConfigDAO;
     private List<ActionListener> listenersList = new ArrayList<>();
+    private RemoteFetchComponentRegistery componentRegistery = RemoteFetchServiceComponentHolder.getInstance().
+            getRemoteFetchComponentRegistery();
 
     public RemoteFetchCore(){
         this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
     }
 
-    private RepositoryManagerBuilder getRepositoryConnectorBuilder(RemoteFetchConfiguration fetchConfig)
+    private RepositoryManagerBuilder getRepositoryManagerBuilder(RemoteFetchConfiguration fetchConfig)
             throws RemoteFetchCoreException{
-        switch (fetchConfig.getRepositoryConnectorType()){
-            case "git":
-                return new GitRepositoryManagerBuilder();
-            default:
-                throw new RemoteFetchCoreException("No such registered RepositoryManager");
+        if (this.componentRegistery.getRepositoryManagerConnectorMap()
+                .containsKey(fetchConfig.getRepositoryConnectorType())){
+            return this.componentRegistery.getRepositoryManagerConnectorMap()
+                    .get(fetchConfig.getRepositoryConnectorType()).getRepositoryManagerBuilder();
+        }else {
+            throw new RemoteFetchCoreException("No such registered Repository Manager - " +
+                    fetchConfig.getRepositoryConnectorType());
         }
     }
-    private PollingActionListenerBuilder getPollingActionListenerBuilder(RemoteFetchConfiguration fetchConfig)
+    private ActionListenerBuilder getPollingActionListenerBuilder(RemoteFetchConfiguration fetchConfig)
             throws RemoteFetchCoreException{
-        switch (fetchConfig.getActionListenerType()){
-            case "polling":
-                return new PollingActionListenerBuilder();
-            default:
-                throw new RemoteFetchCoreException("No such registered ActionListener");
+        if (this.componentRegistery.getActionListenerConnectorMap()
+                .containsKey(fetchConfig.getActionListenerType())){
+            return this.componentRegistery.getActionListenerConnectorMap()
+                    .get(fetchConfig.getActionListenerType()).getActionListenerBuilder();
+        }else {
+            throw new RemoteFetchCoreException("No such registered Action Listener - " +
+                    fetchConfig.getRepositoryConnectorType());
         }
     }
 
     private ConfigDeployerBuilder getConfigDeployerBuilder(RemoteFetchConfiguration fetchConfig)
             throws RemoteFetchCoreException{
-        switch (fetchConfig.getConfgiurationDeployerType()){
-            case "Sout":
-                return new SoutConfigDeployerBuilder();
-            default:
-                throw new RemoteFetchCoreException("No such registered ConfigDeployer");
+        if (this.componentRegistery.getConfigDeployerConnectorMap()
+                .containsKey(fetchConfig.getConfgiurationDeployerType())){
+            return this.componentRegistery.getConfigDeployerConnectorMap()
+                    .get(fetchConfig.getConfgiurationDeployerType()).getConfigDeployerBuilder();
+        }else {
+            throw new RemoteFetchCoreException("No such registered Config Builder - " +
+                    fetchConfig.getRepositoryConnectorType());
         }
     }
 
@@ -85,7 +98,7 @@ public class RemoteFetchCore implements Runnable{
         ConfigDeployer configDeployer;
 
         try {
-            repoConnector = getRepositoryConnectorBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
+            repoConnector = getRepositoryManagerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
         } catch (RemoteFetchCoreException e) {
             throw e;
         } catch (RepositoryManagerBuilderException e){

@@ -20,11 +20,17 @@ package org.wso2.carbon.identity.remotefetch.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
+import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegisteryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
+import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerConnector;
+import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerConnector;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerConnector;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,11 +42,24 @@ import java.util.concurrent.TimeUnit;
 )
 public class RemoteFetchServiceComponent {
     private static Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
-    private RemoteFetchCore core = new RemoteFetchCore();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Activate
     protected void activate(ComponentContext context) {
+
+        RemoteFetchComponentRegistery remoteFetchComponentRegistery = new RemoteFetchComponentRegisteryImpl();
+
+        remoteFetchComponentRegistery.registerRepositoryManager(new GitRepositoryManagerConnector());
+        remoteFetchComponentRegistery.registerConfigDeployer(new SoutConfigDeployerConnector());
+        remoteFetchComponentRegistery.registerActionListener(new PollingActionListenerConnector());
+
+        RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistery(remoteFetchComponentRegistery);
+
+        BundleContext bundleContext = context.getBundleContext();
+        bundleContext.registerService(RemoteFetchComponentRegistery.class.getName(),
+                RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistery(),null);
+
+        RemoteFetchCore core  = new RemoteFetchCore();
         try {
             scheduler.scheduleAtFixedRate(core,0,60,TimeUnit.SECONDS);
             if (log.isDebugEnabled()) {
