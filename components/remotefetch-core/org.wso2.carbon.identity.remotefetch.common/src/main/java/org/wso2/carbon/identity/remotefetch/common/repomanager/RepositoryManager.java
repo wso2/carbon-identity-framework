@@ -16,19 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common.repoconnector;
+package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
 
-public abstract class RepositoryConnectorBuilder {
-    protected RemoteFetchConfiguration fetchConfig;
-
-    public RepositoryConnectorBuilder() {}
-
-    public RepositoryConnectorBuilder  addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig){
-        this.fetchConfig = fetchConfig;
-        return this;
-    }
-
-    public abstract RepositoryConnector build() throws RepositoryConnectorBuilderException;
+public interface RepositoryManager {
+    void fetchRepository() throws Exception;
+    InputStream getFile(File location) throws Exception;
+    Date getLastModified(File location) throws Exception;
+    String getRevisionHash(File location) throws Exception;
+    List<File> listFiles(File location) throws Exception;
 }

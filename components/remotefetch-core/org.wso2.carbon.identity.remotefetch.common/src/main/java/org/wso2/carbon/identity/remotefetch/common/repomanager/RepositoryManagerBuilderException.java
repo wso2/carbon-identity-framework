@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common.repoconnector;
+package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
-public class RepositoryConnectorBuilderException extends Exception {
+public class RepositoryManagerBuilderException extends Exception {
 
-    public RepositoryConnectorBuilderException(String message) {
+    public RepositoryManagerBuilderException(String message) {
         super(message);
     }
 
-    public RepositoryConnectorBuilderException(String message, Throwable cause) {
+    public RepositoryManagerBuilderException(String message, Throwable cause) {
         super(message, cause);
     }
 

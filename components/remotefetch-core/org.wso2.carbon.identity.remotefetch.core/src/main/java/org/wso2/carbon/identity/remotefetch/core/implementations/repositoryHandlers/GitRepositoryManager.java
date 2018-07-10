@@ -36,7 +36,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class GitRepositoryConnector implements RepositoryConnector {
+public class GitRepositoryManager implements RepositoryManager {
 
     private String uri = "";
     private String branch = "";
@@ -55,9 +55,9 @@ public class GitRepositoryConnector implements RepositoryConnector {
     private Repository repo;
     private Git git;
 
-    private static Log log = LogFactory.getLog(GitRepositoryConnector.class);
+    private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
-    public GitRepositoryConnector(String name, String uri,String branch){
+    public GitRepositoryManager(String name, String uri, String branch){
         this.name = name;
         this.branch = branch;
         this.uri = uri;

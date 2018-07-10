@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployer
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class SoutConfigDeployer implements ConfigDeployer {
-    private static Log log = LogFactory.getLog(GitRepositoryConnector.class);
+    private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     @Override
     public void deploy(InputStream reader) throws Exception{

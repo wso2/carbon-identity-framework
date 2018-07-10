@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.remotefetch.common.actionlistener;
 
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
 
 public abstract class ActionListenerBuilder {
     protected RemoteFetchConfiguration fetchConfig;
-    protected RepositoryConnector repoConnector;
+    protected RepositoryManager repoConnector;
     protected ConfigDeployer configDeployer;
 
     public ActionListenerBuilder(){}
@@ -34,7 +34,7 @@ public abstract class ActionListenerBuilder {
         return this;
     }
 
-    public ActionListenerBuilder addRepositoryConnector(RepositoryConnector repoConnector){
+    public ActionListenerBuilder addRepositoryConnector(RepositoryManager repoConnector){
         this.repoConnector = repoConnector;
         return this;
     }

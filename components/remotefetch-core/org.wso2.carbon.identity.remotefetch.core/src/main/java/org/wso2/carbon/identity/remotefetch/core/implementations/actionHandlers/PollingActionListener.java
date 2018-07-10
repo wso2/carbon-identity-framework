@@ -23,8 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
-import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnector;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManager;
 
 import java.io.File;
 import java.util.Calendar;
@@ -36,9 +36,9 @@ import java.util.Set;
 
 public class PollingActionListener implements ActionListener {
 
-    private static Log log = LogFactory.getLog(GitRepositoryConnector.class);
+    private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
-    private RepositoryConnector repo;
+    private RepositoryManager repo;
     private Map<File, ConfigDeployer> directoryMap;
     private Integer frequency =  60;
     private Date lastIteration;
@@ -46,7 +46,7 @@ public class PollingActionListener implements ActionListener {
     // Keeps last deployed revision date of each file
     private Map<File,Date> revisionDates = new HashMap<>();
 
-    public PollingActionListener(RepositoryConnector repo, Map<File, ConfigDeployer> directoryMap, Integer frequency) {
+    public PollingActionListener(RepositoryManager repo, Map<File, ConfigDeployer> directoryMap, Integer frequency) {
         this.repo = repo;
         this.directoryMap = directoryMap;
         this.frequency = frequency;

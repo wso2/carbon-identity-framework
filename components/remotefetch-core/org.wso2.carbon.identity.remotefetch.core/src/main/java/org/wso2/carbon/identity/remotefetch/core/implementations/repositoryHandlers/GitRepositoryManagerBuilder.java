@@ -18,37 +18,36 @@
 
 package org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers;
 
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilder;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilderException;
 
 import java.util.Map;
 
-public class GitRepositoryConnectorBuilder extends RepositoryConnectorBuilder {
+public class GitRepositoryManagerBuilder extends RepositoryManagerBuilder {
 
     Map<String,String> repoAttributes;
 
     @Override
-    public RepositoryConnector build() throws RepositoryConnectorBuilderException {
+    public RepositoryManager build() throws RepositoryManagerBuilderException {
         repoAttributes = this.fetchConfig.getRepositoryConnectorAttributes();
         String branch, uri;
 
         if(repoAttributes.containsKey("uri")){
             uri = repoAttributes.get("uri");
         }else{
-            throw new RepositoryConnectorBuilderException("No URI specified in RemoteFetchConfiguration Repository");
+            throw new RepositoryManagerBuilderException("No URI specified in RemoteFetchConfiguration Repository");
         }
 
         if(repoAttributes.containsKey("branch")){
             branch = repoAttributes.get("branch");
         }else{
-            throw new RepositoryConnectorBuilderException("No branch specified in RemoteFetchConfiguration Repository");
+            throw new RepositoryManagerBuilderException("No branch specified in RemoteFetchConfiguration Repository");
         }
 
 
-        GitRepositoryConnector gitRepoConnector =
-                new GitRepositoryConnector("repo-" + this.fetchConfig.getRemoteFetchConfigurationId() ,
+        GitRepositoryManager gitRepoConnector =
+                new GitRepositoryManager("repo-" + this.fetchConfig.getRemoteFetchConfigurationId() ,
                         uri, branch);
         return gitRepoConnector;
     }

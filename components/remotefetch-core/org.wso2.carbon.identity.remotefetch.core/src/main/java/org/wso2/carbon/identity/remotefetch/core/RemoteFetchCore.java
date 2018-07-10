@@ -27,14 +27,14 @@ import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilderException;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilder;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnectorBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilderException;
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerBuilder;
 import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerBuilder;
-import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryConnectorBuilder;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +49,13 @@ public class RemoteFetchCore implements Runnable{
         this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
     }
 
-    private RepositoryConnectorBuilder getRepositoryConnectorBuilder(RemoteFetchConfiguration fetchConfig)
+    private RepositoryManagerBuilder getRepositoryConnectorBuilder(RemoteFetchConfiguration fetchConfig)
             throws RemoteFetchCoreException{
         switch (fetchConfig.getRepositoryConnectorType()){
             case "git":
-                return new GitRepositoryConnectorBuilder();
+                return new GitRepositoryManagerBuilder();
             default:
-                throw new RemoteFetchCoreException("No such registered RepositoryConnector");
+                throw new RemoteFetchCoreException("No such registered RepositoryManager");
         }
     }
     private PollingActionListenerBuilder getPollingActionListenerBuilder(RemoteFetchConfiguration fetchConfig)
@@ -80,7 +80,7 @@ public class RemoteFetchCore implements Runnable{
 
     private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws Exception{
 
-        RepositoryConnector repoConnector;
+        RepositoryManager repoConnector;
         ActionListener actionListener;
         ConfigDeployer configDeployer;
 
@@ -88,7 +88,7 @@ public class RemoteFetchCore implements Runnable{
             repoConnector = getRepositoryConnectorBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
         } catch (RemoteFetchCoreException e) {
             throw e;
-        } catch (RepositoryConnectorBuilderException e){
+        } catch (RepositoryManagerBuilderException e){
             throw e;
         }
 

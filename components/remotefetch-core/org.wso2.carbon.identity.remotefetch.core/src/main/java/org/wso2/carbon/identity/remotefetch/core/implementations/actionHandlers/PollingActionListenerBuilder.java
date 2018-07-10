@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers;
 
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilderException;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.common.repoconnector.RepositoryConnector;
 
 import java.io.File;
 import java.util.HashMap;
