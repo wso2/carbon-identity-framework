@@ -702,6 +702,26 @@
                 <version>${httpcore.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${cxf-bundle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-service-description</artifactId>
+                <version>${cxf-bundle.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
                 <version>${project.version}</version>
@@ -1727,6 +1747,9 @@
         <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
         <io.swagger.version>1.5.8</io.swagger.version>
         <carbon.consent.mgt.version>2.0.0</carbon.consent.mgt.version>
+        <spring-web.version>4.1.6.RELEASE</spring-web.version>
+        <cxf-bundle.version>3.1.13</cxf-bundle.version>
+
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
@@ -1735,6 +1758,7 @@
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
+        <maven.war.plugin.version>2.2</maven.war.plugin.version>
 
         <project.scm.id>my-scm-server</project.scm.id>
 
@@ -1804,6 +1828,11 @@
                         <doCheck>false</doCheck>
                         <doUpdate>false</doUpdate>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven.war.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

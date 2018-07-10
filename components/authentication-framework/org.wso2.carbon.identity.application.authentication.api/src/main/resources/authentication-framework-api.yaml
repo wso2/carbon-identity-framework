@@ -1,0 +1,157 @@
+swagger: '2.0'
+######################################################
+# Prolog
+######################################################
+info:
+  version: "1.0.0"
+  title: "WSO2 Identity Server Authentication Framework Rest API "
+  description: |
+    This document specifies **Authentication Framework  RESTfulAPI** for WSO2 **Identity Server** .
+
+    It is written with [swagger 2](http://swagger.io/).
+
+  contact:
+    name: "WSO2"
+    url: "http://wso2.com/products/identity-server/"
+    email: "architecture@wso2.org"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
+schemes:
+  - https
+
+# The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+# host: apis.is.com
+
+# The base path of the API.
+# Will be prefixed to all paths.
+# if the tenant domain is carbon.super basepath can be /api/identity/authentication/v1.0 like this too.
+
+basePath: /t/{tenant-domain}/api/identity/authentication/v1.0
+
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
+consumes:
+  - application/json
+
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requester is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specified in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
+produces:
+  - application/json
+paths:
+  # Endpoint used get the properties for the authentication context
+  "/context/{sessionKey}":
+
+    get:
+      description: |
+        This API is used to retrieve parameters set by authentication framework to be accessed by authentication endpoint
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/authentication/v1.0/context/<sessionKey>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/authentication/v1.0/context/7a6886ab-b02f-424f-9cd4-adf5e92f0798" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
+      x-wso2-response: |
+        {
+          "parameters": [
+            {
+              "key": "paramKey",
+              "value": "paramValue"
+            }
+          ]
+        }
+
+      summary: |
+        Retrieve a authentication context parameter.
+      operationId: getContextParameters
+
+      parameters:
+      -
+        name: sessionKey
+        in: path
+        description:  This represents the Revoke Receipt ID.
+        required: true
+        type: 'string'
+
+      -
+        name: parameters
+        in: query
+        description:  Comma separated list of parameters to filter. If none provided all available parameters will be sent.
+        required: false
+        type: 'string'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Parameters'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Authentication
+
+
+
+definitions:
+#-----------------------------------------------------
+# The Error Response  object
+#-----------------------------------------------------
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      description:
+        type: string
+
+#-----------------------------------------------------
+# Properties object
+#-----------------------------------------------------
+  Parameters:
+    type: object
+    properties:
+      parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Parameter'
+
+#-----------------------------------------------------
+# Property object
+#-----------------------------------------------------
+  Parameter:
+    type: object
+    required:
+      - purpose
+    properties:
+      key:
+        type: 'string'
+      value:
+        type: 'string'
