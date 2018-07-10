@@ -38,6 +38,7 @@
         <module>org.wso2.carbon.identity.application.authentication.endpoint.util</module>
         <module>org.wso2.carbon.identity.application.authentication.endpoint</module>
         <module>org.wso2.carbon.identity.application.authentication.framework</module>
+        <module>org.wso2.carbon.identity.application.authentication.api</module>
     </modules>
 
 </project>
