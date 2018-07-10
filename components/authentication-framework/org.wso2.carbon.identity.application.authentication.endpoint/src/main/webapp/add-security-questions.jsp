@@ -118,11 +118,11 @@
             </div>
             <div class="form-group">
                 <label class="control-label col-sm-4"><%=AuthenticationEndpointUtil.i18n(resourceBundle,
-                 "answers.security.question")%>
+                 "answers.challenge.question")%>
                 </label>
                 <div class="col-sm-8">
                     <input required type="text" class="form-control" id="answer_to_questions"
-                           placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "type.your.security.answer")%>"
+                           placeholder="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "type.your.challenge.answer")%>"
                            name=<%="A-" + Encode.forHtmlAttribute(challengeQuestionSet)%>>
                 </div>
             </div>
