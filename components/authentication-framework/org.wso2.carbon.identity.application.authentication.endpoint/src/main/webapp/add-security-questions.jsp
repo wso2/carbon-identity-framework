@@ -61,11 +61,11 @@
         tempChallengeQuestion.setQuestionId(questionId);
         tempChallengeQuestion.setQuestion(questionBody);
         // Add the challenge question to the Hash-map
-        List<ChallengeQuestion> challengeQuestionList = challengeQuestionMap.get(questionProperties[0]);
+        List<ChallengeQuestion> challengeQuestionList = challengeQuestionMap.get(questionSetId);
         if (challengeQuestionList == null) {
             challengeQuestionList = new ArrayList<>();
             challengeQuestionList.add(tempChallengeQuestion);
-            challengeQuestionMap.put(questionProperties[0], challengeQuestionList);
+            challengeQuestionMap.put(questionSetId, challengeQuestionList);
         } else {
             challengeQuestionList.add(tempChallengeQuestion);
         }
