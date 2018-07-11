@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
 
     public Map<String, SerializableJsFunction> getHandlerMap() {
 
-        return handlerMap;
+        return Collections.unmodifiableMap(handlerMap);
     }
 
     public void setHandlerMap(Map<String, SerializableJsFunction> handlerMap) {

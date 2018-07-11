@@ -192,7 +192,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             if (promptNode.getHandlerMap().get(ShowPromptNode.preHandler) != null) {
                 Object result = evaluateHandler(ShowPromptNode.preHandler, promptNode, context, promptNode
                         .getParameters().get(STEP_IDENTIFIER_PARAM));
-                if ((result instanceof Boolean) && (Boolean) result) {
+                if (Boolean.TRUE.equals(result)) {
                     executeFunction(SKIPPED_CALLBACK_NAME, promptNode, context);
                     AuthGraphNode nextNode = promptNode.getDefaultEdge();
                     context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
