@@ -266,7 +266,14 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public Map<String, String> getRuntimeParams(AuthenticationContext context) {
 
         Map<String, String> runtimeParams = context.getAuthenticatorParams(getName());
-        if (runtimeParams != null) {
+        Map<String, String> commonParams = context
+                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+        if (commonParams != null) {
+            if (runtimeParams != null) {
+                commonParams.putAll(runtimeParams);
+            }
+            return commonParams;
+        } else if (runtimeParams != null) {
             return runtimeParams;
         }
         return Collections.emptyMap();
