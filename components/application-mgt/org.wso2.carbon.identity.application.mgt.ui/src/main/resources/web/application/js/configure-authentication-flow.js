@@ -16,6 +16,9 @@
  * under the License.
  */
 
+var scriptIsDirty = false;
+var fromTemplateLink = false;
+var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
@@ -77,13 +80,16 @@ function showAllErrors() {
             }
         }
 
-        if (errorCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
-                'Do you want to continue? ',
+        if(scriptIsDirty){
+            CARBON.showConfirmationDialog('This script has been modified, Save script at your own risk?',
+                submitFormWithoutCheck, null);
+        } else if (errorCount > 0) {
+            CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
+                ' saved)',
                 submitFormWithoutCheck, null);
         } else if (warnCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
-                'Do you want to continue? ',
+            CARBON.showConfirmationDialog('Save script with warnings? (Script will not be evaluated and will only be' +
+                ' saved)',
                 submitFormWithoutCheck, null);
         } else {
             submitForm();
@@ -206,7 +212,6 @@ $('[data-toggle=template-link]').click(function (e) {
         ch: line.length - 1
     };
 
-    var editorContent = doc.getValue();
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
@@ -223,6 +228,7 @@ $('[data-toggle=template-link]').click(function (e) {
     if (editorContent.length === 0) {
         $('#template-replace-warn').hide();
     }
+    fromTemplateLink = true;
 });
 
 function addNewSteps(templateObj) {
@@ -246,7 +252,6 @@ function removeExistingSteps() {
     for (var i = $('.step_heads').length; i > 0; i--) {
         $('#subject_step_' + stepOrder).removeAttr('checked');
         $('#attribute_step_' + stepOrder).removeAttr('checked');
-        //$('#step_head_' + stepOrder).children('.icon-link').click();
         deleteStep($('#step_head_' + stepOrder).children('.icon-link'));
     }
     stepOrder = 0;
@@ -421,21 +426,14 @@ function showHideTemplateList() {
     }
 }
 
-buildScriptString("init");
-function buildScriptString(action) {
+buildScriptString();
+function buildScriptString() {
     var str = "";
-    if (action == "add") {
-        scriptStringContent.push("executeStep(" + stepOrder + ");");
-        scriptStringContent.forEach(function (element) {
-            str += element;
-        });
-    } else {
-        scriptStringContent = [];
-        $(".steps > h2").each(function (index, element) {
-            scriptStringContent.push("executeStep(" + (index + 1) + ");");
-            str += scriptStringContent[index];
-        });
-    }
+    scriptStringContent = [];
+    $(".steps > h2").each(function (index, element) {
+        scriptStringContent.push("executeStep(" + (index + 1) + ");");
+        str += scriptStringContent[index];
+    });
     var scriptComposed = scriptStringHeader + str + scriptStringFooter;
     doc.setValue(scriptComposed);
     CodeMirror.commands["selectAll"](myCodeMirror);
@@ -472,15 +470,17 @@ function deleteIDPRow(obj) {
 
 $('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
-    buildScriptString("delete");
+    buildScriptString();
     e.stopImmediatePropagation();
 });
 
 $('#stepsAddLink').click(function (e) {
     e.preventDefault();
+    fromStepsAddLink = true;
     addNewUIStep();
-    buildScriptString("add");
+    buildScriptString();
 });
+
 function deleteStep(obj) {
 
     var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
@@ -575,7 +575,6 @@ function deleteLocalAuthRow(obj) {
 }
 
 function addLocalRow(obj, stepId) {
-    //var stepId = jQuery(obj).parent().children()[0].value;
     var selectedObj = jQuery(obj).prev().find(":selected");
     var selectedAuthenticatorName = selectedObj.val();
     var selectedAuthenticatorDisplayName = selectedObj.text();
@@ -599,7 +598,6 @@ function addIDPRow(obj, stepID) {
         return false;
     }
 
-    //var stepID = jQuery(obj).parent().children()[1].value;
     var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
     var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
     var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
@@ -646,3 +644,51 @@ function setAttributeStep(element) {
     });
     $(element).attr('checked', true);
 }
+
+var documentBeforeChange;
+
+doc.on("beforeChange", function (document, changeObj) {
+    documentBeforeChange = editorContent;
+    documentBeforeChange = documentBeforeChange.replace(/\n|\t/g, '');
+});
+
+doc.on("change", function (document, changeObj) {
+    var documentAfterChange = document.getValue();
+    documentAfterChange = documentAfterChange.replace(/\n|\t/g, '');
+    if (documentAfterChange === documentBeforeChange) {
+        scriptIsDirty = false;
+    } else {
+        scriptIsDirty = true;
+        if(fromTemplateLink || fromStepsAddLink){
+            scriptIsDirty = false;
+        }
+    }
+});
+
+$('#editorRow').bind('beforeShow', function() {
+    myCodeMirror.refresh();
+});
+
+
+jQuery(function($) {
+
+    var _oldShow = $.fn.show;
+
+    $.fn.show = function(speed, oldCallback) {
+        return $(this).each(function() {
+            var obj         = $(this),
+                newCallback = function() {
+                    if ($.isFunction(oldCallback)) {
+                        oldCallback.apply(obj);
+                    }
+                    obj.trigger('afterShow');
+                };
+
+            // you can trigger a before show if you want
+            obj.trigger('beforeShow');
+
+            // now use the old function to show the element passing the new callback
+            _oldShow.apply(obj, [speed, newCallback]);
+        });
+    }
+});

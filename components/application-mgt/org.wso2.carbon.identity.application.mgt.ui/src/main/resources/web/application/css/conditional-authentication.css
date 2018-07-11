@@ -257,7 +257,7 @@
     background-color: rgba(204, 204, 204, 0.9);
 }
 #addTemplate{
-    background:url('images/templates.png') 5px 50% no-repeat;
+    background:url('../images/templates.png') 5px 50% no-repeat;
     background-color: rgba(204, 204, 204, 0.4);
     height: auto;
     width: 260px;
