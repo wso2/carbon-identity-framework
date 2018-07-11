@@ -426,7 +426,9 @@ function showHideTemplateList() {
     }
 }
 
-buildScriptString();
+if(localStorage.getItem("scriptIsDirtyKey") != "true"){
+    buildScriptString();
+}
 function buildScriptString() {
     var str = "";
     scriptStringContent = [];
@@ -649,16 +651,17 @@ var documentBeforeChange;
 
 doc.on("beforeChange", function (document, changeObj) {
     documentBeforeChange = editorContent;
-    documentBeforeChange = documentBeforeChange.replace(/\n|\t/g, '');
+    documentBeforeChange = documentBeforeChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
 });
 
 doc.on("change", function (document, changeObj) {
     var documentAfterChange = document.getValue();
-    documentAfterChange = documentAfterChange.replace(/\n|\t/g, '');
+    documentAfterChange = documentAfterChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
     if (documentAfterChange === documentBeforeChange) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
+        localStorage.setItem('scriptIsDirtyKey', scriptIsDirty);
         if (fromTemplateLink || fromStepsAddLink) {
             scriptIsDirty = false;
         }
@@ -668,7 +671,6 @@ doc.on("change", function (document, changeObj) {
 $('#editorRow').bind('beforeShow', function () {
     myCodeMirror.refresh();
 });
-
 
 jQuery(function ($) {
 
