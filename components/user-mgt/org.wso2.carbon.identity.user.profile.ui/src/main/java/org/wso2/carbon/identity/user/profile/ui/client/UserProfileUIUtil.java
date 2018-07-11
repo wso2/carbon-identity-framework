@@ -39,7 +39,7 @@ public class UserProfileUIUtil {
 
     private static final String ENCRYPT_USERNAME_IN_URL = "encryptUsernameInUrl";
 
-    private static final String bypassRoleName = "Internal/bypassaccountlock";
+    private static final String bypassRoleName = "Internal/system";
     /**
      * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
      * set to true in user-mgt.xml, else return the username without encrypting.
