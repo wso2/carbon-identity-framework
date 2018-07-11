@@ -80,7 +80,7 @@ function showAllErrors() {
             }
         }
 
-        if(scriptIsDirty){
+        if (scriptIsDirty) {
             CARBON.showConfirmationDialog('This script has been modified, Save script at your own risk?',
                 submitFormWithoutCheck, null);
         } else if (errorCount > 0) {
@@ -659,25 +659,25 @@ doc.on("change", function (document, changeObj) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
-        if(fromTemplateLink || fromStepsAddLink){
+        if (fromTemplateLink || fromStepsAddLink) {
             scriptIsDirty = false;
         }
     }
 });
 
-$('#editorRow').bind('beforeShow', function() {
+$('#editorRow').bind('beforeShow', function () {
     myCodeMirror.refresh();
 });
 
 
-jQuery(function($) {
+jQuery(function ($) {
 
     var _oldShow = $.fn.show;
 
-    $.fn.show = function(speed, oldCallback) {
-        return $(this).each(function() {
-            var obj         = $(this),
-                newCallback = function() {
+    $.fn.show = function (speed, oldCallback) {
+        return $(this).each(function () {
+            var obj = $(this),
+                newCallback = function () {
                     if ($.isFunction(oldCallback)) {
                         oldCallback.apply(obj);
                     }
