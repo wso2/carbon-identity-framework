@@ -106,10 +106,14 @@
     </div>
     <%}%>
 
+    <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
         <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
     </div>
+    <% } else {%>
+        <input id="username" name="username" type="hidden" value="<%=username%>">
+    <% }%>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="password"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%></label>
         <input id="password" name="password" type="password" class="form-control" placeholder="" autocomplete="off">
@@ -203,10 +207,12 @@
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password")%>
-                <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
-                </a>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <% if (!isIdentifierFirstLogin(inputType)) { %>
+                    <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
+                    </a>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <% } %>
                 <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
                 </a>
@@ -215,7 +221,7 @@
         </div>
         <%
                 }
-                if (isSelfSignUpEPAvailable) {
+                if (isSelfSignUpEPAvailable && !isIdentifierFirstLogin(inputType)) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">

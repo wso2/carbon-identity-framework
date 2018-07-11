@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -397,7 +397,8 @@ public class JsGraphBuilder {
     protected void authenticatorParamsOptions(Map<String, Object> options, StepConfig stepConfig) {
 
         Map<String, Map<String, String>> authenticatorParams = new HashMap<>();
-            Object localOptions = options.get(FrameworkConstants.JSAttributes.JS_LOCAL_IDP);
+
+        Object localOptions = options.get(FrameworkConstants.JSAttributes.JS_LOCAL_IDP);
         if (localOptions instanceof Map) {
             ((Map<String, Object>) localOptions).forEach((authenticatorName, params) -> {
                 if (params instanceof Map) {
@@ -405,6 +406,7 @@ public class JsGraphBuilder {
                 }
             });
         }
+
         Object federatedOptionsObj = options.get(FrameworkConstants.JSAttributes.JS_FEDERATED_IDP);
         if (federatedOptionsObj instanceof Map) {
             Map<String, Map<String, String>> federatedOptions = (Map<String, Map<String, String>>) federatedOptionsObj;
@@ -423,6 +425,14 @@ public class JsGraphBuilder {
                         }
                     }));
         }
+
+        Object commonOptions = options.get(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+        if (commonOptions instanceof Map) {
+            authenticatorParams.put(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS,
+                    new HashMap<>((Map<String, String>) commonOptions));
+
+        }
+
         if (!authenticatorParams.isEmpty()) {
             authenticationContext.addAuthenticatorParams(authenticatorParams);
         }
@@ -515,6 +525,33 @@ public class JsGraphBuilder {
     }
 
     /**
+     *
+     * @param templateId Identifier of the template.
+     * @param parameters Parameters.
+     * @param handlers Handlers to run before and after the prompt.
+     * @param callbacks Callbacks to run after the prompt.
+     */
+    @SuppressWarnings("unchecked")
+    public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
+                                 Map<String, Object> callbacks) {
+
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+        newNode.setParameters(parameters);
+
+        JsGraphBuilder currentBuilder = getCurrentBuilder();
+        if (currentBuilder.currentNode == null) {
+            currentBuilder.result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentBuilder.currentNode, newNode);
+        }
+
+        currentBuilder.currentNode = newNode;
+        addEventListeners(newNode, callbacks);
+        addHandlers(newNode, handlers);
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap
@@ -588,6 +625,28 @@ public class JsGraphBuilder {
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
+            } else if (value instanceof SerializableJsFunction) {
+                decisionNode.addFunction(key, (SerializableJsFunction) value);
+            }
+        });
+    }
+
+    private static void addHandlers(ShowPromptNode showPromptNode, Map<String, Object> handlersMap) {
+
+        if (handlersMap == null) {
+            return;
+        }
+        handlersMap.forEach((key, value) -> {
+            if (value instanceof ScriptObjectMirror) {
+                SerializableJsFunction jsFunction = SerializableJsFunction
+                        .toSerializableForm((ScriptObjectMirror) value);
+                if (jsFunction != null) {
+                    showPromptNode.addHandler(key, jsFunction);
+                } else {
+                    log.error("Event handler : " + key + " is not a function : " + value);
+                }
+            } else if (value instanceof SerializableJsFunction) {
+                showPromptNode.addHandler(key, (SerializableJsFunction) value);
             }
         });
     }
@@ -695,10 +754,10 @@ public class JsGraphBuilder {
         }
 
         @Override
-        public String evaluate(AuthenticationContext authenticationContext, Consumer<JSObject> jsConsumer) {
+        public Object evaluate(AuthenticationContext authenticationContext, Function<JSObject, Object> jsConsumer) {
 
             JsGraphBuilder graphBuilder = JsGraphBuilder.this;
-            String result = null;
+            Object result = null;
             if (jsFunction == null) {
                 return null;
             }
@@ -727,10 +786,10 @@ public class JsGraphBuilder {
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
                     JSObject builderFunction = (JSObject) compiledScript.eval();
-                    jsConsumer.accept(builderFunction);
+                    result = jsConsumer.apply(builderFunction);
 
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
-                    //TODO: New method ...
+
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
                             .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
                     if (canInfuse(executingNode)) {
@@ -758,12 +817,10 @@ public class JsGraphBuilder {
         }
 
         @Deprecated
-        public String evaluate(AuthenticationContext authenticationContext) {
+        public Object evaluate(AuthenticationContext authenticationContext) {
 
-            return this.evaluate(authenticationContext, (fn) -> {
-                fn.call(null, new JsAuthenticationContext
-                        (authenticationContext));
-            });
+            return this.evaluate(authenticationContext, (fn) -> fn.call(null, new JsAuthenticationContext
+                    (authenticationContext)));
         }
 
         private boolean canInfuse(AuthGraphNode executingNode) {

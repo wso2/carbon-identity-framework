@@ -18,15 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Waiting node while showing a prompt to the user to get user input. Child nodes of this node is build after
  * executing the asynchronous events.
  */
 public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode {
 
+    public static final String preHandler = "preHandler";
+
     private static final long serialVersionUID = -5644595996095910601L;
     private String templateId;
     private String data;
+    private Map<String, Object> parameters;
+    private Map<String, SerializableJsFunction> handlerMap = new HashMap<>();
 
     public String getTemplateId() {
 
@@ -46,6 +54,30 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
     public void setData(String data) {
 
         this.data = data;
+    }
+
+    public Map<String, Object> getParameters() {
+
+        return parameters;
+    }
+
+    public void setParameters(Map<String, Object> parameters) {
+
+        this.parameters = parameters;
+    }
+
+    public Map<String, SerializableJsFunction> getHandlerMap() {
+
+        return Collections.unmodifiableMap(handlerMap);
+    }
+
+    public void setHandlerMap(Map<String, SerializableJsFunction> handlerMap) {
+
+        this.handlerMap = handlerMap;
+    }
+
+    public void addHandler(String outcome, SerializableJsFunction function) {
+        handlerMap.put(outcome, function);
     }
 
     @Override

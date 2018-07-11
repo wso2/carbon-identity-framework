@@ -86,6 +86,12 @@
             reCaptchaEnabled = true;
         }
     %>
+    <%
+        String inputType = request.getParameter("inputType");
+        
+        // TODO get the username from backend api
+        String username = request.getParameter("username");
+    %>
     <html>
     <head>
         <meta charset="utf-8">
@@ -166,7 +172,19 @@
                 <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                     <div>
                         <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                            <%
+                                if (isIdentifierFirstLogin(inputType)) {
+                            %>
+                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "welcome") + " " + username%>
+    
+                            <%
+                                } else {
+                            %>
                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
+                            <%
+                                }
+                            %>
+                            
                         </h2>
                     </div>
                     <div class="boarder-all ">
@@ -338,7 +356,30 @@
 
 
                             <% } %>
+    
+                            <% if (isIdentifierFirstLogin(inputType)) { %>
+                            <div class="padding-double login-form">
+                                <form action="<%=commonauthURL%>" method="post" id="changeUserForm">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>'/>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <input type="hidden" name="userAbort" value='true'/>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                        <div class="form-actions">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "not.me") + " " + username
+                                                    + "? "%>
+                                            <a id="changeUser" href="#" onclick="changeUsername(event)">
+                                                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login.as.different.user")%>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <% } %>
                             <div class="clearfix"></div>
+
                         </div>
                     </div>
                     <!-- /content -->
@@ -437,6 +478,18 @@
         });
         window.onunload = function(){};
     </script>
+
+    <script>
+        function changeUsername (e) {
+            document.getElementById("changeUserForm").submit();
+        }
+    </script>
+
+    <%!
+        private boolean isIdentifierFirstLogin(String inputType) {
+            return "idf".equalsIgnoreCase(inputType);
+        }
+    %>
 
     </body>
     </html>
