@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -63,6 +64,7 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
+    public static final String PERMISSION_APPLICATION_MGT = "/permission/admin/manage/identity/applicationmgt";
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
     // Regex for validating application name
@@ -560,5 +562,48 @@ public class ApplicationMgtUtil {
         }
 
         return propKeyValueMap;
+    }
+
+    /**
+     * To check whether the application owner is valid by validating user existence and permissions.
+     *
+     * @param serviceProvider service provider
+     * @return true if the application owner is valid.
+     * @throws IdentityApplicationManagementException when an error occurs while validating the user.
+     */
+    public static boolean isValidAppicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        try {
+            String userName = null;
+            String userNameWithDomain = null;
+            if (serviceProvider.getOwner() != null) {
+                userName = serviceProvider.getOwner().getUserName();
+                if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
+                    return false;
+                }
+                String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
+                userNameWithDomain = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+            }
+            org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            if (realm == null) {
+                return false;
+            }
+            boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
+            if (!isUserExist) {
+                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+                        serviceProvider.getApplicationName() + " as user is not existing.");
+            }
+
+            boolean isPermitted = realm.getAuthorizationManager().isUserAuthorized(userName, PERMISSION_APPLICATION_MGT,
+                    UserMgtConstants.EXECUTE_ACTION);
+            if (!isPermitted) {
+                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+                        serviceProvider.getApplicationName() + " as the user does not have required permissions.");
+            }
+        } catch (UserStoreException | IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+                    serviceProvider.getApplicationName(), e);
+        }
+        return true;
     }
 }
