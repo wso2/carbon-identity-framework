@@ -18,8 +18,32 @@
 
 package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
+import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
+
 import java.io.InputStream;
 
+/**
+ * Interface to define configuration deployer types
+ */
 public interface ConfigDeployer {
-    void deploy(InputStream reader) throws Exception;
+
+    /**
+     * Deploy the configuration read from stream
+     * @param reader
+     * @throws RemoteFetchCoreException
+     */
+    void deploy(InputStream reader) throws RemoteFetchCoreException;
+
+    /**
+     * resolve the unique identifier for the configuration
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    String resolveConfigName(InputStream reader) throws RemoteFetchCoreException;
+
+    /**
+     * returns an identifier for the configuration type being deployed
+     * @return
+     */
+    String getConfigType();
 }

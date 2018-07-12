@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployer
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
+import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManager;
 
 import java.io.BufferedReader;
@@ -28,11 +29,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * The code contained in this file is fore demo purposes for showing the deployment of
+ * a XML configuration in the core.
+ */
 public class SoutConfigDeployer implements ConfigDeployer {
     private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
+    /**
+     * Deploy the configuration read from stream
+     *
+     * @param reader
+     * @throws RemoteFetchCoreException
+     */
     @Override
-    public void deploy(InputStream reader) throws Exception{
+    public void deploy(InputStream reader) throws RemoteFetchCoreException {
         BufferedReader buffer = null;
         try {
             buffer = new BufferedReader(new InputStreamReader(reader,"UTF-8"));
@@ -43,7 +54,43 @@ public class SoutConfigDeployer implements ConfigDeployer {
                 System.out.println(line);
             }
         }catch (IOException e){
-            throw new IOException("Unable to read configuration file");
+            throw new RemoteFetchCoreException("Unable to read configuration file");
         }
+    }
+
+    /**
+     * resolve the unique identifier for the configuration
+     *
+     * @param reader
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    @Override
+    public String resolveConfigName(InputStream reader) throws RemoteFetchCoreException {
+
+        BufferedReader buffer = null;
+        try {
+            buffer = new BufferedReader(new InputStreamReader(reader,"UTF-8"));
+
+            String line;
+            if ((line = buffer.readLine()) != null) {
+                line =  line.replace(" ","");
+                line = buffer.readLine();
+            }
+            return line;
+        }catch (IOException e){
+            throw new RemoteFetchCoreException("Unable to read configuration file");
+        }
+    }
+
+    /**
+     * returns an identifier for the configuration type being deployed
+     *
+     * @return
+     */
+    @Override
+    public String getConfigType() {
+
+        return null;
     }
 }
