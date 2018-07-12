@@ -103,6 +103,7 @@ function submitFormWithoutCheck() {
 }
 
 function submitForm() {
+    $("#enableScript").prop("checked", true);
     $("#configure-auth-flow-form").submit();
 }
 
@@ -426,7 +427,7 @@ function showHideTemplateList() {
     }
 }
 
-if(localStorage.getItem("scriptIsDirtyKey") != "true"){
+if (localStorage.getItem("scriptIsDirtyKey") != "true") {
     buildScriptString();
 }
 function buildScriptString() {
