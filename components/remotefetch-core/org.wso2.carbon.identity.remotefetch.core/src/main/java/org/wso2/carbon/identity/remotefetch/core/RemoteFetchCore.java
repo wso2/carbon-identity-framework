@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.remotefetch.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
+import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
@@ -34,93 +34,68 @@ import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilderException;
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
-import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerBuilder;
-import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployer;
-import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerBuilder;
-import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerBuilder;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class RemoteFetchCore implements Runnable{
 
     private Log log = LogFactory.getLog(RemoteFetchCore.class);
     private RemoteFetchConfigurationDAO remoteFetchConfigDAO;
     private List<ActionListener> listenersList = new ArrayList<>();
-    private RemoteFetchComponentRegistery componentRegistery = RemoteFetchServiceComponentHolder.getInstance().
-            getRemoteFetchComponentRegistery();
+    private RemoteFetchComponentRegistry componentRegistry;
 
     public RemoteFetchCore(){
         this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
+        this.componentRegistry = RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry();
     }
 
-    private RepositoryManagerBuilder getRepositoryManagerBuilder(RemoteFetchConfiguration fetchConfig)
-            throws RemoteFetchCoreException{
-        if (this.componentRegistery.getRepositoryManagerConnectorMap()
-                .containsKey(fetchConfig.getRepositoryConnectorType())){
-            return this.componentRegistery.getRepositoryManagerConnectorMap()
-                    .get(fetchConfig.getRepositoryConnectorType()).getRepositoryManagerBuilder();
-        }else {
-            throw new RemoteFetchCoreException("No such registered Repository Manager - " +
-                    fetchConfig.getRepositoryConnectorType());
-        }
-    }
-    private ActionListenerBuilder getPollingActionListenerBuilder(RemoteFetchConfiguration fetchConfig)
-            throws RemoteFetchCoreException{
-        if (this.componentRegistery.getActionListenerConnectorMap()
-                .containsKey(fetchConfig.getActionListenerType())){
-            return this.componentRegistery.getActionListenerConnectorMap()
-                    .get(fetchConfig.getActionListenerType()).getActionListenerBuilder();
-        }else {
-            throw new RemoteFetchCoreException("No such registered Action Listener - " +
-                    fetchConfig.getRepositoryConnectorType());
-        }
-    }
-
-    private ConfigDeployerBuilder getConfigDeployerBuilder(RemoteFetchConfiguration fetchConfig)
-            throws RemoteFetchCoreException{
-        if (this.componentRegistery.getConfigDeployerConnectorMap()
-                .containsKey(fetchConfig.getConfgiurationDeployerType())){
-            return this.componentRegistery.getConfigDeployerConnectorMap()
-                    .get(fetchConfig.getConfgiurationDeployerType()).getConfigDeployerBuilder();
-        }else {
-            throw new RemoteFetchCoreException("No such registered Config Builder - " +
-                    fetchConfig.getRepositoryConnectorType());
-        }
-    }
-
-    private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws Exception{
+    private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws RemoteFetchCoreException{
 
         RepositoryManager repoConnector;
         ActionListener actionListener;
         ConfigDeployer configDeployer;
 
         try {
-            repoConnector = getRepositoryManagerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
-        } catch (RemoteFetchCoreException e) {
-            throw e;
+            RepositoryManagerBuilder repositoryManagerBuilder = this.componentRegistry
+                    .getRepositoryManagerComponent(fetchConfig.getRepositoryConnectorType())
+                    .getRepositoryManagerBuilder();
+
+            repoConnector = repositoryManagerBuilder.addRemoteFetchConfig(fetchConfig).build();
+        } catch (NullPointerException e) {
+            throw new RemoteFetchCoreException("Unable to retrieve specified RepositoryManager", e);
         } catch (RepositoryManagerBuilderException e){
-            throw e;
+            throw new RemoteFetchCoreException("Unable to build RepositoryManager object", e);
         }
 
         try {
-            configDeployer = getConfigDeployerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig).build();
-        } catch (RemoteFetchCoreException e) {
-            throw e;
+            ConfigDeployerBuilder configDeployerBuilder = this.componentRegistry
+                    .getConfigDeployerComponent(fetchConfig.getConfgiurationDeployerType())
+                    .getConfigDeployerBuilder();
+
+            configDeployer = configDeployerBuilder.addRemoteFetchConfig(fetchConfig).build();
+
+        } catch (NullPointerException e) {
+            throw new RemoteFetchCoreException("Unable to retrieve specified ConfigDeployer", e);
         } catch (ConfigDeployerBuilderException e){
-            throw e;
+            throw new RemoteFetchCoreException("Unable to build ConfigDeployer object", e);
         }
 
         try {
-            actionListener = getPollingActionListenerBuilder(fetchConfig).addRemoteFetchConfig(fetchConfig)
+            ActionListenerBuilder actionListenerBuilder = this.componentRegistry
+                    .getActionListenerComponent(fetchConfig.getActionListenerType())
+                    .getActionListenerBuilder();
+
+            actionListener = actionListenerBuilder.addRemoteFetchConfig(fetchConfig)
                     .addConfigDeployer(configDeployer).addRepositoryConnector(repoConnector).build();
-        } catch (RemoteFetchCoreException e) {
-            throw e;
+
+        } catch (NullPointerException e) {
+            throw new RemoteFetchCoreException("Unable to retrieve specified ActionListener", e);
         } catch (ActionListenerBuilderException e){
-            throw e;
+            throw new RemoteFetchCoreException("Unable to build ActionListener object", e);
         }
+
         return actionListener;
 
     }
@@ -130,20 +105,20 @@ public class RemoteFetchCore implements Runnable{
             this.remoteFetchConfigDAO.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) ->{
                 try {
                     this.listenersList.add(this.buildListener(config));
-                } catch (Exception e){
-                    log.info("Exception when building config",e);
+                } catch (RemoteFetchCoreException e){
+                    log.error("Exception building ActionListener",e);
                 }
             });
         } catch (RemoteFetchCoreException e) {
-            log.info("Unable to read configurations", e);
+            log.error("Unable to list RemoteFetchConfigurations", e);
         }
     }
 
     @Override
     public void run() {
         if (listenersList.isEmpty()) seedListeners();
-        this.listenersList.forEach((ActionListener actionListener) -> {
+        for (ActionListener actionListener: listenersList) {
             actionListener.iteration();
-        });
+        }
     }
 }

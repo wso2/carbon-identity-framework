@@ -25,8 +25,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
-import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegisteryImpl;
+import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
+import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegistryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
 import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerComponent;
 import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerComponent;
@@ -47,17 +47,17 @@ public class RemoteFetchServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        RemoteFetchComponentRegistery remoteFetchComponentRegistery = new RemoteFetchComponentRegisteryImpl();
+        RemoteFetchComponentRegistry remoteFetchComponentRegistry = new RemoteFetchComponentRegistryImpl();
 
-        remoteFetchComponentRegistery.registerRepositoryManager(new GitRepositoryManagerComponent());
-        remoteFetchComponentRegistery.registerConfigDeployer(new SoutConfigDeployerComponent());
-        remoteFetchComponentRegistery.registerActionListener(new PollingActionListenerComponent());
+        remoteFetchComponentRegistry.registerRepositoryManager(new GitRepositoryManagerComponent());
+        remoteFetchComponentRegistry.registerConfigDeployer(new SoutConfigDeployerComponent());
+        remoteFetchComponentRegistry.registerActionListener(new PollingActionListenerComponent());
 
-        RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistery(remoteFetchComponentRegistery);
+        RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistry(remoteFetchComponentRegistry);
 
         BundleContext bundleContext = context.getBundleContext();
-        bundleContext.registerService(RemoteFetchComponentRegistery.class.getName(),
-                RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistery(),null);
+        bundleContext.registerService(RemoteFetchComponentRegistry.class.getName(),
+                RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry(),null);
 
         RemoteFetchCore core  = new RemoteFetchCore();
         try {

@@ -18,24 +18,24 @@
 
 package org.wso2.carbon.identity.remotefetch.core.internal;
 
-import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
+import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
 
 public class RemoteFetchServiceComponentHolder {
     private static RemoteFetchServiceComponentHolder instance = new RemoteFetchServiceComponentHolder();
-    private RemoteFetchComponentRegistery remoteFetchComponentRegistery;
+    private RemoteFetchComponentRegistry remoteFetchComponentRegistry;
 
     public static RemoteFetchServiceComponentHolder getInstance() {
 
         return instance;
     }
 
-    public RemoteFetchComponentRegistery getRemoteFetchComponentRegistery() {
+    public RemoteFetchComponentRegistry getRemoteFetchComponentRegistry() {
 
-        return remoteFetchComponentRegistery;
+        return remoteFetchComponentRegistry;
     }
 
-    public void setRemoteFetchComponentRegistery(RemoteFetchComponentRegistery remoteFetchComponentRegistery) {
+    public void setRemoteFetchComponentRegistry(RemoteFetchComponentRegistry remoteFetchComponentRegistry) {
 
-        this.remoteFetchComponentRegistery = remoteFetchComponentRegistery;
+        this.remoteFetchComponentRegistry = remoteFetchComponentRegistry;
     }
 }

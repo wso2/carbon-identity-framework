@@ -22,19 +22,65 @@ import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerComponent;
 
-import java.util.Map;
+/**
+ * Interface for registry that allows to register different components
+ */
+public interface RemoteFetchComponentRegistry {
 
-public interface RemoteFetchComponentRegistery {
-
+    /**
+     *
+     * @param repositoryManagerComponent
+     */
     void registerRepositoryManager(RepositoryManagerComponent repositoryManagerComponent);
+
+    /**
+     *
+     * @param configDeployerComponent
+     */
     void registerConfigDeployer(ConfigDeployerComponent configDeployerComponent);
+
+    /**
+     *
+     * @param actionListenerComponent
+     */
     void registerActionListener(ActionListenerComponent actionListenerComponent);
 
+    /**
+     *
+     * @param identifier
+     */
     void deRegisterRepositoryManager(String identifier);
+
+    /**
+     *
+     * @param identifier
+     */
     void deRegisterConfigDeployer(String identifier);
+
+    /**
+     *
+     * @param identifier
+     */
     void deRegisterActionListener(String identifier);
 
-    Map<String,RepositoryManagerComponent> getRepositoryManagerConnectorMap();
-    Map<String,ConfigDeployerComponent> getConfigDeployerConnectorMap();
-    Map<String,ActionListenerComponent> getActionListenerConnectorMap();
+    /**
+     *
+     * @param identifier
+     * @return
+     */
+    RepositoryManagerComponent getRepositoryManagerComponent(String identifier);
+
+    /**
+     *
+     * @param identifier
+     * @return
+     */
+    ConfigDeployerComponent getConfigDeployerComponent(String identifier);
+
+    /**
+     *
+     * @param identifier
+     * @return
+     */
+    ActionListenerComponent getActionListenerComponent(String identifier);
 }
