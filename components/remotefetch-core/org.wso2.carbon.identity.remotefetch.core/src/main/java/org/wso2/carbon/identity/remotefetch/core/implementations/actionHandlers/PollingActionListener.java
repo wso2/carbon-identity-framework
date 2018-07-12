@@ -74,7 +74,7 @@ public class PollingActionListener implements ActionListener {
         }
     }
 
-    private void addRevisions(List<File> configPaths){
+    private void manageRevisions(List<File> configPaths){
         configPaths.forEach((File path) -> {
             String resolvedName = "";
             try {
@@ -82,16 +82,29 @@ public class PollingActionListener implements ActionListener {
             }catch (Exception e){
                 log.info("Unable to resolve configuration",e);
             }
-            if (!(resolvedName.isEmpty()) && !this.deploymentRevisionMap.containsKey(resolvedName)){
-                DeploymentRevision deploymentRevision = new DeploymentRevision(this.remoteFetchConfigurationId,path);
-                deploymentRevision.setFileHash("");
-                deploymentRevision.setItemName(resolvedName);
-                try {
-                    int id = this.deploymentRevisionDAO.createDeploymentRevision(deploymentRevision);
-                    deploymentRevision.setDeploymentRevisionId(id);
-                    this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
-                } catch (RemoteFetchCoreException e){
-                    log.info("Unable to add a new DeploymentRevision for configuration",e);
+            if (!(resolvedName.isEmpty())){
+                if (!this.deploymentRevisionMap.containsKey(resolvedName)){
+                    DeploymentRevision deploymentRevision = new DeploymentRevision(this.remoteFetchConfigurationId,path);
+                    deploymentRevision.setFileHash("");
+                    deploymentRevision.setItemName(resolvedName);
+                    try {
+                        int id = this.deploymentRevisionDAO.createDeploymentRevision(deploymentRevision);
+                        deploymentRevision.setDeploymentRevisionId(id);
+                        this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
+                    } catch (RemoteFetchCoreException e){
+                        log.info("Unable to add a new DeploymentRevision for configuration",e);
+                    }
+                }else {
+                    // Update DeploymentRevision if file was moved/renamed
+                    DeploymentRevision currentdDeploymentRevision = this.deploymentRevisionMap.get(resolvedName);
+                    if(!currentdDeploymentRevision.getFile().equals(path)){
+                        try {
+                            currentdDeploymentRevision.setFile(path);
+                            this.deploymentRevisionDAO.updateDeploymentRevision(currentdDeploymentRevision);
+                        } catch (RemoteFetchCoreException e){
+                            log.info("Unable to update DeploymentRevision for configuration",e);
+                        }
+                    }
                 }
             }
         });
@@ -124,7 +137,7 @@ public class PollingActionListener implements ActionListener {
             return;
         }
 
-        this.addRevisions(configFiles);
+        this.manageRevisions(configFiles);
 
         for(DeploymentRevision deploymentRevision : this.deploymentRevisionMap.values()){
             String newHash = "";
