@@ -30,8 +30,10 @@ public class GitRepositoryManagerBuilder extends RepositoryManagerBuilder {
 
     @Override
     public RepositoryManager build() throws RepositoryManagerBuilderException {
-        repoAttributes = this.fetchConfig.getRepositoryConnectorAttributes();
-        String branch, uri;
+        repoAttributes = this.fetchConfig.getRepositoryManagerAttributes();
+
+        String branch;
+        String uri;
 
         if(repoAttributes.containsKey("uri")){
             uri = repoAttributes.get("uri");
@@ -46,9 +48,6 @@ public class GitRepositoryManagerBuilder extends RepositoryManagerBuilder {
         }
 
 
-        GitRepositoryManager gitRepoConnector =
-                new GitRepositoryManager("repo-" + this.fetchConfig.getRemoteFetchConfigurationId() ,
-                        uri, branch);
-        return gitRepoConnector;
+        return new GitRepositoryManager("repo-" + this.fetchConfig.getRemoteFetchConfigurationId(), uri, branch);
     }
 }

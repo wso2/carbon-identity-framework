@@ -59,7 +59,7 @@ public class RemoteFetchCore implements Runnable{
 
         try {
             RepositoryManagerBuilder repositoryManagerBuilder = this.componentRegistry
-                    .getRepositoryManagerComponent(fetchConfig.getRepositoryConnectorType())
+                    .getRepositoryManagerComponent(fetchConfig.getRepositoryManagerType())
                     .getRepositoryManagerBuilder();
 
             repoConnector = repositoryManagerBuilder.addRemoteFetchConfig(fetchConfig).build();

@@ -28,29 +28,24 @@ import java.util.Map;
 public class RemoteFetchConfiguration implements Serializable {
     private int remoteFetchConfigurationId = -1;
     private int tenantId = 0;
-    private String repositoryConnectorType = "";
+    private String repositoryManagerType = "";
     private String actionListenerType = "";
     private String confgiurationDeployerType = "";
-    private Map<String,String> repositoryConnectorAttributes = new HashMap<>();
+    private Map<String,String> repositoryManagerAttributes = new HashMap<>();
     private Map<String,String> actionListenerAttributes = new HashMap<>();
     private Map<String,String> confgiurationDeployerAttributes = new HashMap<>();
 
     public RemoteFetchConfiguration() { // default implementation ignored
     }
 
-    public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String repositoryConnectorType,
-                                    String actionListenerType, String confgiurationDeployerType,
-                                    Map<String, String> repositoryConnectorAttributes, Map<String,
-            String> actionListenerAttributes, Map<String, String> confgiurationDeployerAttributes) {
+    public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String repositoryManagerType,
+                                    String actionListenerType, String confgiurationDeployerType) {
 
         this.remoteFetchConfigurationId = remoteFetchConfigurationId;
         this.tenantId = tenantId;
-        this.repositoryConnectorType = repositoryConnectorType;
+        this.repositoryManagerType = repositoryManagerType;
         this.actionListenerType = actionListenerType;
         this.confgiurationDeployerType = confgiurationDeployerType;
-        this.repositoryConnectorAttributes = repositoryConnectorAttributes;
-        this.actionListenerAttributes = actionListenerAttributes;
-        this.confgiurationDeployerAttributes = confgiurationDeployerAttributes;
     }
 
     /**
@@ -84,18 +79,18 @@ public class RemoteFetchConfiguration implements Serializable {
      *
      * @return
      */
-    public String getRepositoryConnectorType() {
+    public String getRepositoryManagerType() {
 
-        return repositoryConnectorType;
+        return repositoryManagerType;
     }
 
     /**
      *
-     * @param repositoryConnectorType
+     * @param repositoryManagerType
      */
-    public void setRepositoryConnectorType(String repositoryConnectorType) {
+    public void setRepositoryManagerType(String repositoryManagerType) {
 
-        this.repositoryConnectorType = repositoryConnectorType;
+        this.repositoryManagerType = repositoryManagerType;
     }
 
     /**
@@ -138,18 +133,18 @@ public class RemoteFetchConfiguration implements Serializable {
      *
      * @return
      */
-    public Map<String, String> getRepositoryConnectorAttributes() {
+    public Map<String, String> getRepositoryManagerAttributes() {
 
-        return repositoryConnectorAttributes;
+        return repositoryManagerAttributes;
     }
 
     /**
      *
-     * @param repositoryConnectorAttributes
+     * @param repositoryManagerAttributes
      */
-    public void setRepositoryConnectorAttributes(Map<String, String> repositoryConnectorAttributes) {
+    public void setRepositoryManagerAttributes(Map<String, String> repositoryManagerAttributes) {
 
-        this.repositoryConnectorAttributes = repositoryConnectorAttributes;
+        this.repositoryManagerAttributes = repositoryManagerAttributes;
     }
 
     /**
@@ -194,12 +189,13 @@ public class RemoteFetchConfiguration implements Serializable {
         return "RemoteFetchConfiguration{" +
                 "remoteFetchConfigurationId=" + remoteFetchConfigurationId +
                 ", tenantId=" + tenantId +
-                ", repositoryConnectorType='" + repositoryConnectorType + '\'' +
+                ", repositoryManagerType='" + repositoryManagerType + '\'' +
                 ", actionListenerType='" + actionListenerType + '\'' +
                 ", confgiurationDeployerType='" + confgiurationDeployerType + '\'' +
-                ", repositoryConnectorAttributes=" + repositoryConnectorAttributes +
+                ", repositoryManagerAttributes=" + repositoryManagerAttributes +
                 ", actionListenerAttributes=" + actionListenerAttributes +
                 ", confgiurationDeployerAttributes=" + confgiurationDeployerAttributes +
                 '}';
     }
+
 }

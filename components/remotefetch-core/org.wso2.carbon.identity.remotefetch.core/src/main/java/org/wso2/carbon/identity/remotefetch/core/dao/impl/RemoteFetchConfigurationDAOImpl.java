@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.remotefetch.core.dao.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
@@ -56,12 +54,6 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
 
     private static final String DELETE_CONFIG = "DELETE FROM IDN_RF_CONFIG WHERE ID = ?";
 
-    private Log log = LogFactory.getLog(RemoteFetchConfigurationDAOImpl.class);
-
-    public RemoteFetchConfigurationDAOImpl() {
-
-    }
-
     /**
      *
      * @param configuration
@@ -76,13 +68,13 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
         try {
             addStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.CREATE_CONFIG, Statement.RETURN_GENERATED_KEYS);
             addStmnt.setInt(1,configuration.getTenantId());
-            addStmnt.setString(2,configuration.getRepositoryConnectorType());
+            addStmnt.setString(2,configuration.getRepositoryManagerType());
             addStmnt.setString(3,configuration.getActionListenerType());
             addStmnt.setString(4,configuration.getConfgiurationDeployerType());
 
             //Encode object attributes to JSON
             JSONObject attributesBundle = new JSONObject();
-            attributesBundle.put("repositoryConnectorAttributes",configuration.getRepositoryConnectorAttributes());
+            attributesBundle.put("repositoryManagerAttributes",configuration.getRepositoryManagerAttributes());
             attributesBundle.put("actionListenerAttributes",configuration.getActionListenerAttributes());
             attributesBundle.put("confgiurationDeployerAttributes",configuration.getConfgiurationDeployerAttributes());
 
@@ -128,16 +120,27 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
 
             if(result.next()){
                 JSONObject attributesBundle = new JSONObject(result.getString(6));
-                return new RemoteFetchConfiguration(
+
+                RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
                         result.getInt(1),
                         result.getInt(2),
                         result.getString(3),
                         result.getString(4),
-                        result.getString(5),
-                        this.attributeToMap(attributesBundle.getJSONObject("repositoryConnectorAttributes")),
-                        this.attributeToMap(attributesBundle.getJSONObject("actionListenerAttributes")),
+                        result.getString(5)
+                );
+
+                remoteFetchConfiguration.setRepositoryManagerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("repositoryManagerAttributes"))
+                );
+                remoteFetchConfiguration.setActionListenerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("actionListenerAttributes"))
+                );
+                remoteFetchConfiguration.setConfgiurationDeployerAttributes(
                         this.attributeToMap(attributesBundle.getJSONObject("confgiurationDeployerAttributes"))
                 );
+
+                return remoteFetchConfiguration;
+
             }else {
                 return null;
             }
@@ -165,13 +168,13 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
         try {
             updateStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.UPDATE_CONFIG);
             updateStmnt.setInt(1,configuration.getTenantId());
-            updateStmnt.setString(2,configuration.getRepositoryConnectorType());
+            updateStmnt.setString(2,configuration.getRepositoryManagerType());
             updateStmnt.setString(3,configuration.getActionListenerType());
             updateStmnt.setString(4,configuration.getConfgiurationDeployerType());
 
             //Encode object attributes to JSON
             JSONObject attributesBundle = new JSONObject();
-            attributesBundle.put("repositoryConnectorAttributes",configuration.getRepositoryConnectorAttributes());
+            attributesBundle.put("repositoryManagerAttributes",configuration.getRepositoryManagerAttributes());
             attributesBundle.put("actionListenerAttributes",configuration.getActionListenerAttributes());
             attributesBundle.put("confgiurationDeployerAttributes",configuration.getConfgiurationDeployerAttributes());
 
@@ -239,17 +242,25 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             while (result.next()){
 
                 JSONObject attributesBundle = new JSONObject(result.getString(6));
-                RemoteFetchConfiguration rfc = new RemoteFetchConfiguration(
+                RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
                         result.getInt(1),
                         result.getInt(2),
                         result.getString(3),
                         result.getString(4),
-                        result.getString(5),
-                        this.attributeToMap(attributesBundle.getJSONObject("repositoryConnectorAttributes")),
-                        this.attributeToMap(attributesBundle.getJSONObject("actionListenerAttributes")),
+                        result.getString(5)
+                );
+
+                remoteFetchConfiguration.setRepositoryManagerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("repositoryManagerAttributes"))
+                );
+                remoteFetchConfiguration.setActionListenerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("actionListenerAttributes"))
+                );
+                remoteFetchConfiguration.setConfgiurationDeployerAttributes(
                         this.attributeToMap(attributesBundle.getJSONObject("confgiurationDeployerAttributes"))
                 );
-                rfcList.add(rfc);
+
+                rfcList.add(remoteFetchConfiguration);
             }
 
             return rfcList;
