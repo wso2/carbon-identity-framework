@@ -28,9 +28,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegisteryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
-import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerConnector;
-import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerConnector;
-import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerConnector;
+import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerComponent;
+import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerComponent;
+import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerComponent;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,9 +49,9 @@ public class RemoteFetchServiceComponent {
 
         RemoteFetchComponentRegistery remoteFetchComponentRegistery = new RemoteFetchComponentRegisteryImpl();
 
-        remoteFetchComponentRegistery.registerRepositoryManager(new GitRepositoryManagerConnector());
-        remoteFetchComponentRegistery.registerConfigDeployer(new SoutConfigDeployerConnector());
-        remoteFetchComponentRegistery.registerActionListener(new PollingActionListenerConnector());
+        remoteFetchComponentRegistery.registerRepositoryManager(new GitRepositoryManagerComponent());
+        remoteFetchComponentRegistery.registerConfigDeployer(new SoutConfigDeployerComponent());
+        remoteFetchComponentRegistery.registerActionListener(new PollingActionListenerComponent());
 
         RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistery(remoteFetchComponentRegistery);
 

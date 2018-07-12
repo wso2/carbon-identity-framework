@@ -16,22 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers;
+package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
-import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
-import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerConnector;
-
-public class GitRepositoryManagerConnector implements RepositoryManagerConnector {
-
-    @Override
-    public RepositoryManagerBuilder getRepositoryManagerBuilder() {
-
-        return new GitRepositoryManagerBuilder();
-    }
-
-    @Override
-    public String getType() {
-
-        return "GIT";
-    }
+public interface RepositoryManagerComponent {
+    RepositoryManagerBuilder getRepositoryManagerBuilder();
+    String getType();
 }

@@ -16,22 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers;
+package org.wso2.carbon.identity.remotefetch.common.actionlistener;
 
-import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
-import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerConnector;
-
-public class PollingActionListenerConnector implements ActionListenerConnector {
-
-    @Override
-    public ActionListenerBuilder getActionListenerBuilder() {
-
-        return new PollingActionListenerBuilder();
-    }
-
-    @Override
-    public String getType() {
-
-        return "POLLING";
-    }
+public interface ActionListenerComponent {
+    ActionListenerBuilder getActionListenerBuilder();
+    String getType();
 }

@@ -16,22 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers;
+package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers;
 
-import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
-import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerConnector;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerComponent;
 
-public class SoutConfigDeployerConnector implements ConfigDeployerConnector {
+public class PollingActionListenerComponent implements ActionListenerComponent {
 
     @Override
-    public ConfigDeployerBuilder getConfigDeployerBuilder() {
+    public ActionListenerBuilder getActionListenerBuilder() {
 
-        return new SoutConfigDeployerBuilder();
+        return new PollingActionListenerBuilder();
     }
 
     @Override
     public String getType() {
 
-        return "SOUT";
+        return "POLLING";
     }
 }

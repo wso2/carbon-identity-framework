@@ -19,32 +19,32 @@
 package org.wso2.carbon.identity.remotefetch.core;
 
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistery;
-import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerConnector;
-import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerConnector;
-import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerConnector;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerComponent;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerComponent;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class RemoteFetchComponentRegisteryImpl implements RemoteFetchComponentRegistery {
 
-    private HashMap<String,RepositoryManagerConnector> repositoryManagerConnectorMap = new HashMap<>();
-    private HashMap<String,ConfigDeployerConnector> configDeployerConnectorMap = new HashMap<>();
-    private HashMap<String,ActionListenerConnector> actionListenerConnectorMap = new HashMap<>();
+    private HashMap<String,RepositoryManagerComponent> repositoryManagerConnectorMap = new HashMap<>();
+    private HashMap<String,ConfigDeployerComponent> configDeployerConnectorMap = new HashMap<>();
+    private HashMap<String,ActionListenerComponent> actionListenerConnectorMap = new HashMap<>();
 
     @Override
-    public void registerRepositoryManager(RepositoryManagerConnector repositoryManagerConnector) {
-        this.repositoryManagerConnectorMap.put(repositoryManagerConnector.getType(),repositoryManagerConnector);
+    public void registerRepositoryManager(RepositoryManagerComponent repositoryManagerComponent) {
+        this.repositoryManagerConnectorMap.put(repositoryManagerComponent.getType(), repositoryManagerComponent);
     }
 
     @Override
-    public void registerConfigDeployer(ConfigDeployerConnector configDeployerConnector) {
-        this.configDeployerConnectorMap.put(configDeployerConnector.getType(),configDeployerConnector);
+    public void registerConfigDeployer(ConfigDeployerComponent configDeployerComponent) {
+        this.configDeployerConnectorMap.put(configDeployerComponent.getType(), configDeployerComponent);
     }
 
     @Override
-    public void registerActionListener(ActionListenerConnector actionListenerConnector) {
-        this.actionListenerConnectorMap.put(actionListenerConnector.getType(),actionListenerConnector);
+    public void registerActionListener(ActionListenerComponent actionListenerComponent) {
+        this.actionListenerConnectorMap.put(actionListenerComponent.getType(), actionListenerComponent);
     }
 
     @Override
@@ -63,19 +63,19 @@ public class RemoteFetchComponentRegisteryImpl implements RemoteFetchComponentRe
     }
 
     @Override
-    public Map<String, RepositoryManagerConnector> getRepositoryManagerConnectorMap() {
+    public Map<String, RepositoryManagerComponent> getRepositoryManagerConnectorMap() {
 
         return this.repositoryManagerConnectorMap;
     }
 
     @Override
-    public Map<String, ConfigDeployerConnector> getConfigDeployerConnectorMap() {
+    public Map<String, ConfigDeployerComponent> getConfigDeployerConnectorMap() {
 
         return this.configDeployerConnectorMap;
     }
 
     @Override
-    public Map<String, ActionListenerConnector> getActionListenerConnectorMap() {
+    public Map<String, ActionListenerComponent> getActionListenerConnectorMap() {
 
         return this.actionListenerConnectorMap;
     }

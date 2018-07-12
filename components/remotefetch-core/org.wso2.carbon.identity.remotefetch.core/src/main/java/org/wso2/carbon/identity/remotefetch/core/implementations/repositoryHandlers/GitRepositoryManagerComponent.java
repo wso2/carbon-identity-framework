@@ -16,9 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common.configdeployer;
+package org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers;
 
-public interface ConfigDeployerConnector {
-    ConfigDeployerBuilder getConfigDeployerBuilder();
-    String getType();
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerComponent;
+
+public class GitRepositoryManagerComponent implements RepositoryManagerComponent {
+
+    @Override
+    public RepositoryManagerBuilder getRepositoryManagerBuilder() {
+
+        return new GitRepositoryManagerBuilder();
+    }
+
+    @Override
+    public String getType() {
+
+        return "GIT";
+    }
 }

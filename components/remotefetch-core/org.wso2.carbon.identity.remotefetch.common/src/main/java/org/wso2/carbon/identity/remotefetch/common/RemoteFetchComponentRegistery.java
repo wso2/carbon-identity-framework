@@ -18,23 +18,23 @@
 
 package org.wso2.carbon.identity.remotefetch.common;
 
-import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerConnector;
-import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerConnector;
-import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerConnector;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerComponent;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerComponent;
 
 import java.util.Map;
 
 public interface RemoteFetchComponentRegistery {
 
-    void registerRepositoryManager(RepositoryManagerConnector repositoryManagerConnector);
-    void registerConfigDeployer(ConfigDeployerConnector configDeployerConnector);
-    void registerActionListener(ActionListenerConnector actionListenerConnector);
+    void registerRepositoryManager(RepositoryManagerComponent repositoryManagerComponent);
+    void registerConfigDeployer(ConfigDeployerComponent configDeployerComponent);
+    void registerActionListener(ActionListenerComponent actionListenerComponent);
 
     void deRegisterRepositoryManager(String identifier);
     void deRegisterConfigDeployer(String identifier);
     void deRegisterActionListener(String identifier);
 
-    Map<String,RepositoryManagerConnector> getRepositoryManagerConnectorMap();
-    Map<String,ConfigDeployerConnector> getConfigDeployerConnectorMap();
-    Map<String,ActionListenerConnector> getActionListenerConnectorMap();
+    Map<String,RepositoryManagerComponent> getRepositoryManagerConnectorMap();
+    Map<String,ConfigDeployerComponent> getConfigDeployerConnectorMap();
+    Map<String,ActionListenerComponent> getActionListenerConnectorMap();
 }

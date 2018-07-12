@@ -16,9 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common.repomanager;
+package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers;
 
-public interface RepositoryManagerConnector {
-    RepositoryManagerBuilder getRepositoryManagerBuilder();
-    String getType();
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
+
+public class SoutConfigDeployerComponent implements ConfigDeployerComponent {
+
+    @Override
+    public ConfigDeployerBuilder getConfigDeployerBuilder() {
+
+        return new SoutConfigDeployerBuilder();
+    }
+
+    @Override
+    public String getType() {
+
+        return "SOUT";
+    }
 }

@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.remotefetch.common.actionlistener;
+package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
-public interface ActionListenerConnector {
-    ActionListenerBuilder getActionListenerBuilder();
+public interface ConfigDeployerComponent {
+    ConfigDeployerBuilder getConfigDeployerBuilder();
     String getType();
 }
