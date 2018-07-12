@@ -38,15 +38,15 @@ import java.util.List;
 public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
     private static final String CREATE_REVISION = "INSERT IDN_RF_REVISIONS (CONFIG_ID, FILE_PATH, FILE_HASH," +
-            " ITEM_TYPE, ITEM_NAME) VALUES(?,?,?,?.?)";
+            " ITEM_NAME) VALUES(?,?,?,?);";
 
     private static final String UPDATE_REVISION = "UPDATE IDN_RF_REVISIONS SET CONFIG_ID = ?, FILE_PATH = ?," +
-            " FILE_HASH = ?, DEPLOYED_DATE = ?, DEPLOYMENT_STATUS = ?, ITEM_TYPE = ?, ITEM_NAME = ? WHERE ID = ?";
+            " FILE_HASH = ?, DEPLOYED_DATE = ?, DEPLOYMENT_STATUS = ?, ITEM_NAME = ? WHERE ID = ?";
 
     private static final String DELETE_REVISION = "DELETE FROM IDN_RF_REVISIONS WHERE ID = ?";
 
     private static final String GET_REVISIONS_BY_CONFIG = "SELECT CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
-            " DEPLOYMENT_STATUS, ITEM_TYPE, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ?";
+            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ?";
 
     /**
      * @param deploymentRevision
@@ -65,8 +65,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             addStmnt.setInt(1,deploymentRevision.getConfigId());
             addStmnt.setString(2,deploymentRevision.getFile().getPath());
             addStmnt.setString(3,deploymentRevision.getFileHash());
-            addStmnt.setString(4,deploymentRevision.getItemType());
-            addStmnt.setString(5,deploymentRevision.getItemName());
+            addStmnt.setString(4,deploymentRevision.getItemName());
             addStmnt.execute();
 
             int configId = -1;
@@ -108,8 +107,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             updateStmnt.setString(3,deploymentRevision.getFileHash());
             updateStmnt.setTimestamp(4, new Timestamp(deploymentRevision.getDeployedDate().getTime()));
             updateStmnt.setString(5,deploymentRevision.getDeploymentStatus());
-            updateStmnt.setString(4,deploymentRevision.getItemType());
-            updateStmnt.setString(5,deploymentRevision.getItemName());
+            updateStmnt.setString(4,deploymentRevision.getItemName());
             updateStmnt.execute();
 
             if (!connection.getAutoCommit()) {
@@ -182,8 +180,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
                 deploymentRevision.setFileHash(result.getString(3));
                 deploymentRevision.setDeployedDate(new Date(result.getTimestamp(4).getTime()));
                 deploymentRevision.setDeploymentStatus(result.getString(5));
-                deploymentRevision.setItemType(result.getString(6));
-                deploymentRevision.setItemName(result.getString(7));
+                deploymentRevision.setItemName(result.getString(6));
 
                 deploymentRevisions.add(deploymentRevision);
             }

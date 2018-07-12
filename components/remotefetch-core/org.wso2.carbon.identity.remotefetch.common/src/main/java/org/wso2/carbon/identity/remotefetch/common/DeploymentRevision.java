@@ -31,7 +31,6 @@ public class DeploymentRevision {
     private String fileHash;
     private Date deployedDate;
     private String deploymentStatus;
-    private String itemType;
     private String itemName;
 
     /**
@@ -151,24 +150,6 @@ public class DeploymentRevision {
     public void setDeploymentStatus(String deploymentStatus) {
 
         this.deploymentStatus = deploymentStatus;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getItemType() {
-
-        return itemType;
-    }
-
-    /**
-     *
-     * @param itemType
-     */
-    public void setItemType(String itemType) {
-
-        this.itemType = itemType;
     }
 
     /**
