@@ -49,7 +49,7 @@
     </dependencies>
 
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Application Common Bundle</name>
+    <name>WSO2 Carbon - Identity Application RemoteFetch Common Bundle</name>
 
     <build>
         <plugins>
