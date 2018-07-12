@@ -56,7 +56,7 @@ public interface DeploymentRevisionDAO {
      * @return
      * @throws RemoteFetchCoreException
      */
-    List<DeploymentRevision>  getDeploymentRevisionsByDeploymentFetchConfigurationId(int remoteFetchConfigurationId)
+    List<DeploymentRevision>  getDeploymentRevisionsByConfigurationId(int remoteFetchConfigurationId)
             throws RemoteFetchCoreException;
 
 }

@@ -45,7 +45,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
     private static final String DELETE_REVISION = "DELETE FROM IDN_RF_REVISIONS WHERE ID = ?";
 
-    private static final String GET_REVISIONS_BY_CONFIG = "SELECT CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
+    private static final String GET_REVISIONS_BY_CONFIG = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
             " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ?";
 
     /**
@@ -70,6 +70,10 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
             int configId = -1;
             result = addStmnt.getGeneratedKeys();
+
+            if(result.next()){
+                configId = result.getInt(1);
+            }
 
             // TODO if no ID SELECT and return id
 
@@ -105,9 +109,14 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             updateStmnt.setInt(1,deploymentRevision.getConfigId());
             updateStmnt.setString(2,deploymentRevision.getFile().getPath());
             updateStmnt.setString(3,deploymentRevision.getFileHash());
-            updateStmnt.setTimestamp(4, new Timestamp(deploymentRevision.getDeployedDate().getTime()));
+            if(deploymentRevision.getDeployedDate() != null){
+                updateStmnt.setTimestamp(4, new Timestamp(deploymentRevision.getDeployedDate().getTime()));
+            }else {
+                updateStmnt.setTimestamp(4,null);
+            }
             updateStmnt.setString(5,deploymentRevision.getDeploymentStatus());
-            updateStmnt.setString(4,deploymentRevision.getItemName());
+            updateStmnt.setString(6,deploymentRevision.getItemName());
+            updateStmnt.setInt(7,deploymentRevision.getFileRevisionId());
             updateStmnt.execute();
 
             if (!connection.getAutoCommit()) {
@@ -160,7 +169,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
      * @throws RemoteFetchCoreException
      */
     @Override
-    public List<DeploymentRevision> getDeploymentRevisionsByDeploymentFetchConfigurationId(
+    public List<DeploymentRevision> getDeploymentRevisionsByConfigurationId(
             int remoteFetchConfigurationId) throws RemoteFetchCoreException {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement selectStmnt = null;
@@ -173,14 +182,14 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
             while (result.next()) {
                 DeploymentRevision deploymentRevision = new DeploymentRevision(
-                        result.getInt(1),
-                        new File(result.getString(2))
+                        result.getInt(2),
+                        new File(result.getString(3))
                 );
-
-                deploymentRevision.setFileHash(result.getString(3));
-                deploymentRevision.setDeployedDate(new Date(result.getTimestamp(4).getTime()));
-                deploymentRevision.setDeploymentStatus(result.getString(5));
-                deploymentRevision.setItemName(result.getString(6));
+                deploymentRevision.setFileRevisionId(result.getInt(1));
+                deploymentRevision.setFileHash(result.getString(4));
+                deploymentRevision.setDeployedDate(new Date(result.getTimestamp(5).getTime()));
+                deploymentRevision.setDeploymentStatus(result.getString(6));
+                deploymentRevision.setItemName(result.getString(7));
 
                 deploymentRevisions.add(deploymentRevision);
             }
