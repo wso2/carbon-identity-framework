@@ -116,7 +116,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             }
             updateStmnt.setString(5,deploymentRevision.getDeploymentStatus());
             updateStmnt.setString(6,deploymentRevision.getItemName());
-            updateStmnt.setInt(7,deploymentRevision.getFileRevisionId());
+            updateStmnt.setInt(7,deploymentRevision.getDeploymentRevisionId());
             updateStmnt.execute();
 
             if (!connection.getAutoCommit()) {
@@ -185,7 +185,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
                         result.getInt(2),
                         new File(result.getString(3))
                 );
-                deploymentRevision.setFileRevisionId(result.getInt(1));
+                deploymentRevision.setDeploymentRevisionId(result.getInt(1));
                 deploymentRevision.setFileHash(result.getString(4));
                 deploymentRevision.setDeployedDate(new Date(result.getTimestamp(5).getTime()));
                 deploymentRevision.setDeploymentStatus(result.getString(6));

@@ -48,7 +48,7 @@ public class DeploymentRevision {
      *
      * @return
      */
-    public int getFileRevisionId() {
+    public int getDeploymentRevisionId() {
 
         return fileRevisionId;
     }
@@ -57,7 +57,7 @@ public class DeploymentRevision {
      *
      * @param fileRevisionId
      */
-    public void setFileRevisionId(int fileRevisionId) {
+    public void setDeploymentRevisionId(int fileRevisionId) {
 
         this.fileRevisionId = fileRevisionId;
     }
