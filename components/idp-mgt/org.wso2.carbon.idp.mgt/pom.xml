@@ -58,10 +58,6 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.json.wso2</groupId>
-            <artifactId>json</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -110,7 +106,6 @@
                             org.wso2.carbon.identity.core.persistence;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
-                            org.json;version="${json.wso2.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,

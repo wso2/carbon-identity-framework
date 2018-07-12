@@ -111,10 +111,6 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.json.wso2</groupId>
-            <artifactId>json</artifactId>
-        </dependency>
 
     </dependencies>
 
@@ -168,7 +164,6 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.json;version="${json.wso2.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.internal,
