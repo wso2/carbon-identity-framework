@@ -21,15 +21,21 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.remotefetch.common.DeploymentRevision;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
+import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
+import org.wso2.carbon.identity.remotefetch.core.dao.DeploymentRevisionDAO;
+import org.wso2.carbon.identity.remotefetch.core.dao.impl.DeploymentRevisionDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,17 +45,59 @@ public class PollingActionListener implements ActionListener {
     private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     private RepositoryManager repo;
-    private Map<File, ConfigDeployer> directoryMap;
     private Integer frequency =  60;
     private Date lastIteration;
+    private File path;
+    private ConfigDeployer configDeployer;
+    private DeploymentRevisionDAO deploymentRevisionDAO;
+    private Map<String, DeploymentRevision> deploymentRevisionMap = new HashMap<>();
+    private int remoteFetchConfigurationId;
 
-    // Keeps last deployed revision date of each file
-    private Map<File,Date> revisionDates = new HashMap<>();
-
-    public PollingActionListener(RepositoryManager repo, Map<File, ConfigDeployer> directoryMap, Integer frequency) {
+    public PollingActionListener(RepositoryManager repo, File path, ConfigDeployer configDeployer,
+                                 int frequency, int remoteFetchConfigurationId) {
         this.repo = repo;
-        this.directoryMap = directoryMap;
+        this.path = path;
+        this.configDeployer = configDeployer;
         this.frequency = frequency;
+        this.remoteFetchConfigurationId = remoteFetchConfigurationId;
+        this.deploymentRevisionDAO = new DeploymentRevisionDAOImpl();
+        this.seedRevisions();
+    }
+
+    private void seedRevisions() {
+        try {
+            List<DeploymentRevision> deploymentRevisions = this.deploymentRevisionDAO
+                    .getDeploymentRevisionsByConfigurationId(this.remoteFetchConfigurationId);
+
+            deploymentRevisions.forEach((DeploymentRevision deploymentRevision) -> {
+                this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
+            });
+        } catch (RemoteFetchCoreException e){
+            log.info("Unable to seed DeploymentRevisions",e);
+        }
+    }
+
+    private void addRevisions(List<File> configPaths){
+        configPaths.forEach((File path) -> {
+            String resolvedName = "";
+            try {
+                resolvedName =  this.configDeployer.resolveConfigName(this.repo.getFile(path));
+            }catch (Exception e){
+                log.info("Unable to resolve configuration",e);
+            }
+            if (!(resolvedName.isEmpty()) && !this.deploymentRevisionMap.containsKey(resolvedName)){
+                DeploymentRevision deploymentRevision = new DeploymentRevision(this.remoteFetchConfigurationId,path);
+                deploymentRevision.setFileHash("");
+                deploymentRevision.setItemName(resolvedName);
+                try {
+                    int id = this.deploymentRevisionDAO.createDeploymentRevision(deploymentRevision);
+                    deploymentRevision.setFileRevisionId(id);
+                    this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
+                } catch (RemoteFetchCoreException e){
+                    log.info("Unable to add a new DeploymentRevision for configuration",e);
+                }
+            }
+        });
     }
 
     @Override
@@ -63,25 +111,9 @@ public class PollingActionListener implements ActionListener {
                 log.info("Error pulling repository");
             }
 
-            if(this.revisionDates.size() == 0) this.seedExistingFiles(directoryMap.keySet());
-            this.directoryMap.forEach(this::pollDirectory);
+            this.pollDirectory(this.path,this.configDeployer);
             this.lastIteration = new Date();
         }
-    }
-
-    private void seedExistingFiles(Set<File> paths){
-        log.info("Seeding Existing file revisions");
-        paths.forEach((File path) -> {
-            List<File> configFiles = null;
-            try {
-                configFiles = this.repo.listFiles(path);
-            }catch (Exception e){
-                log.info("Error listing files in path for seeding");
-            }
-            if (configFiles != null){
-                configFiles.forEach((File configFile) -> this.revisionDates.put(configFile,null));
-            }
-        });
     }
 
     private void pollDirectory(File path, ConfigDeployer deployer){
@@ -95,36 +127,34 @@ public class PollingActionListener implements ActionListener {
             return;
         }
 
-        for (File file: configFiles) {
-            Date currentRevision = null;
+        this.addRevisions(configFiles);
+
+        for(DeploymentRevision deploymentRevision : this.deploymentRevisionMap.values()){
+            String newHash = "";
             try {
-                currentRevision = this.repo.getLastModified(file);
-            }catch (Exception e){
-                log.info("Unable to read modify date of " + path.getPath());
+                newHash = this.repo.getRevisionHash(deploymentRevision.getFile());
+            } catch (Exception e){
+                log.info("Unable to get new hash",e);
             }
 
-            // Is this file a new addition, if so deploy now or else check revisions
-            if (this.revisionDates.containsKey(file)){
-                Date previousRevision = this.revisionDates.get(file);
-                if (currentRevision != null && previousRevision != null
-                        && previousRevision.before(currentRevision)){
-                    log.info("Deploying " + file.getPath());
+            if (!newHash.isEmpty()){
+                if (deploymentRevision.getFileHash().isEmpty() || !(deploymentRevision.getFileHash().equals(newHash))){
+                    log.info("Deploying " + deploymentRevision.getFile().getPath());
                     try {
-                        deployer.deploy(repo.getFile(file));
+                        deployer.deploy(repo.getFile(deploymentRevision.getFile()));
                     } catch (Exception e){
-                        log.info("Error Deploying "+ file.getName());
+                        log.info("Error Deploying "+ deploymentRevision.getFile().getName());
+                    }
+                    deploymentRevision.setFileHash(newHash);
+                    deploymentRevision.setDeploymentStatus("DEPLOYED");
+                    deploymentRevision.setDeployedDate(new Date());
+                    try {
+                        this.deploymentRevisionDAO.updateDeploymentRevision(deploymentRevision);
+                    }catch (Exception e){
+                        log.info("Error updating DeploymentRevision",e);
                     }
                 }
-            }else{
-                log.info("Deploying new file " + file.getPath());
-                try {
-                    deployer.deploy(repo.getFile(file));
-                } catch (Exception e){
-                    log.info("Error Deploying "+ file.getName());
-                }
             }
-
-            this.revisionDates.put(file,currentRevision);
         }
     }
 }

@@ -53,10 +53,8 @@ public class PollingActionListenerBuilder extends ActionListenerBuilder {
             throw new ActionListenerBuilderException("Directory not available in configuration");
         }
 
-        Map<File,ConfigDeployer> directoryMap = new HashMap<>();
-        directoryMap.put(directory ,this.configDeployer);
-
-        PollingActionListener actionListener = new PollingActionListener(this.repoConnector, directoryMap, frequency);
+        PollingActionListener actionListener = new PollingActionListener(this.repoConnector,directory ,
+                this.configDeployer, frequency, this.fetchConfig.getRemoteFetchConfigurationId());
         return actionListener;
     }
 }
