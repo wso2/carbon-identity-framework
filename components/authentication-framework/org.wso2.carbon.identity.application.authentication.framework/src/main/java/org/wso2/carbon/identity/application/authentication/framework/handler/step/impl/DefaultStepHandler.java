@@ -748,7 +748,7 @@ public class DefaultStepHandler implements StepHandler {
         String promptType = null;
         String usernameFromContext = null;
         if (runtimeParams != null) {
-            usernameFromContext = runtimeParams.get("username");
+            usernameFromContext = runtimeParams.get(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME);
             if (usernameFromContext != null) {
                 promptType = FrameworkConstants.INPUT_TYPE_IDENTIFIER_FIRST;
             }
