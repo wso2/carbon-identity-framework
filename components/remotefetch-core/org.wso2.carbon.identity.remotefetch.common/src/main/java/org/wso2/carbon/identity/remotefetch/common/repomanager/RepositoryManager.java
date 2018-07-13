@@ -18,15 +18,61 @@
 
 package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
+import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Interface to define a repository manager
+ * that communicates with a remote repository and handles it locally
+ */
 public interface RepositoryManager {
-    void fetchRepository() throws Exception;
-    InputStream getFile(File location) throws Exception;
-    Date getLastModified(File location) throws Exception;
-    String getRevisionHash(File location) throws Exception;
-    List<File> listFiles(File location) throws Exception;
+
+    /**
+     * Change for updates on the remote repository
+     * and fetches to local
+     *
+     * @throws Exception
+     */
+    void fetchRepository() throws RemoteFetchCoreException;
+
+    /**
+     * Returns an InputStream for the specified path
+     * from local repository
+     *
+     * @param location
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    InputStream getFile(File location) throws RemoteFetchCoreException;
+
+    /**
+     * Returns the last modified date of the local file
+     *
+     * @param location
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    Date getLastModified(File location) throws RemoteFetchCoreException;
+
+    /**
+     * Gets an unique identifier for file state
+     *
+     * @param location
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    String getRevisionHash(File location) throws RemoteFetchCoreException;
+
+    /**
+     * list files from local repository for given path
+     *
+     * @param location
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    List<File> listFiles(File location) throws RemoteFetchCoreException;
 }
