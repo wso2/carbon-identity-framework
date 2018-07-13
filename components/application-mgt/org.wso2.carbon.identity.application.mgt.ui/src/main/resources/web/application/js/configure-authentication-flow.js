@@ -85,6 +85,19 @@ function validateAppCreation() {
     if (!scriptIsDirty) {
         submitFormWithDIsabledScript();
     } else {
+        var stepsInUI = getExecuteStepsInUI();
+        var stepsInScript = getExecuteStepsInScript();
+
+        if (stepsInUI.length < stepsInScript.length){
+            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
+                submitFormWithDIsabledScript, null);
+        } else if (stepsInUI.length > stepsInScript.length){
+            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
+                submitFormWithEnabledScript, null);
+        } else{
+            console.log("missed validation");
+        }
+
         if (errorCount > 0) {
             CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
                 ' saved)',
@@ -658,7 +671,7 @@ function getExecuteStepsInUI() {
 function getExecuteStepsInScript() {
     var stepsIntArray = [];
     var currentScriptMinified = myCodeMirror.getValue().replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
-    var result = currentScriptMinified.match(/executeStep\([0-9]+\)/g);
+    var result = currentScriptMinified.match(/executeStep\([0-9]+/g);
     if (typeof result !== 'undefined' && result !== null) {
         var uniqueStepsInScript = result.filter(onlyUnique);
 
