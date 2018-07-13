@@ -21,19 +21,21 @@ package org.wso2.carbon.identity.remotefetch.common;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Holds configuration data to instantiate a RemoteFetch
  */
 public class RemoteFetchConfiguration implements Serializable {
+
     private int remoteFetchConfigurationId = -1;
     private int tenantId = 0;
     private String repositoryManagerType = "";
     private String actionListenerType = "";
     private String confgiurationDeployerType = "";
-    private Map<String,String> repositoryManagerAttributes = new HashMap<>();
-    private Map<String,String> actionListenerAttributes = new HashMap<>();
-    private Map<String,String> confgiurationDeployerAttributes = new HashMap<>();
+    private Map<String, String> repositoryManagerAttributes = new HashMap<>();
+    private Map<String, String> actionListenerAttributes = new HashMap<>();
+    private Map<String, String> confgiurationDeployerAttributes = new HashMap<>();
 
     public RemoteFetchConfiguration() { // default implementation ignored
     }
@@ -49,7 +51,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public int getTenantId() {
@@ -58,7 +59,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param tenantId
      */
     public void setTenantId(int tenantId) {
@@ -67,7 +67,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public int getRemoteFetchConfigurationId() {
@@ -76,7 +75,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public String getRepositoryManagerType() {
@@ -85,7 +83,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param repositoryManagerType
      */
     public void setRepositoryManagerType(String repositoryManagerType) {
@@ -94,7 +91,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public String getActionListenerType() {
@@ -103,7 +99,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param actionListenerType
      */
     public void setActionListenerType(String actionListenerType) {
@@ -112,7 +107,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public String getConfgiurationDeployerType() {
@@ -121,7 +115,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param confgiurationDeployerType
      */
     public void setConfgiurationDeployerType(String confgiurationDeployerType) {
@@ -130,7 +123,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public Map<String, String> getRepositoryManagerAttributes() {
@@ -139,7 +131,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param repositoryManagerAttributes
      */
     public void setRepositoryManagerAttributes(Map<String, String> repositoryManagerAttributes) {
@@ -148,7 +139,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public Map<String, String> getActionListenerAttributes() {
@@ -157,7 +147,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param actionListenerAttributes
      */
     public void setActionListenerAttributes(Map<String, String> actionListenerAttributes) {
@@ -166,7 +155,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @return
      */
     public Map<String, String> getConfgiurationDeployerAttributes() {
@@ -175,7 +163,6 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
-     *
      * @param confgiurationDeployerAttributes
      */
     public void setConfgiurationDeployerAttributes(Map<String, String> confgiurationDeployerAttributes) {
@@ -198,4 +185,25 @@ public class RemoteFetchConfiguration implements Serializable {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+        if (!(o instanceof RemoteFetchConfiguration)) return false;
+        RemoteFetchConfiguration that = (RemoteFetchConfiguration) o;
+        return remoteFetchConfigurationId == that.remoteFetchConfigurationId &&
+                tenantId == that.tenantId &&
+                Objects.equals(repositoryManagerType, that.repositoryManagerType) &&
+                Objects.equals(actionListenerType, that.actionListenerType) &&
+                Objects.equals(confgiurationDeployerType, that.confgiurationDeployerType) &&
+                Objects.equals(repositoryManagerAttributes, that.repositoryManagerAttributes) &&
+                Objects.equals(actionListenerAttributes, that.actionListenerAttributes) &&
+                Objects.equals(confgiurationDeployerAttributes, that.confgiurationDeployerAttributes);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(remoteFetchConfigurationId, tenantId, repositoryManagerType, actionListenerType, confgiurationDeployerType, repositoryManagerAttributes, actionListenerAttributes, confgiurationDeployerAttributes);
+    }
 }

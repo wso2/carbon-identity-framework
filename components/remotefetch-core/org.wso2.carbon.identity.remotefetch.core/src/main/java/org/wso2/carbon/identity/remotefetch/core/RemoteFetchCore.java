@@ -36,22 +36,34 @@ import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RemoteFetchCore implements Runnable{
+/**
+ * Retrieves RemoteFetchConfigurations and builds ActionListeners to be executed
+ */
+public class RemoteFetchCore implements Runnable {
 
     private Log log = LogFactory.getLog(RemoteFetchCore.class);
     private RemoteFetchConfigurationDAO remoteFetchConfigDAO;
-    private List<ActionListener> listenersList = new ArrayList<>();
+    private Map<Integer, RemoteFetchConfiguration> remoteFetchConfigurationMap = new HashMap<>();
+    private Map<Integer, ActionListener> actionListenerMap = new HashMap<>();
     private RemoteFetchComponentRegistry componentRegistry;
 
-    public RemoteFetchCore(){
+    public RemoteFetchCore() {
+
         this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
         this.componentRegistry = RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry();
     }
 
-    private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws RemoteFetchCoreException{
+    /**
+     * Builds ActionListener object from RemoteFetchConfiguration
+     *
+     * @param fetchConfig
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws RemoteFetchCoreException {
 
         RepositoryManager repoConnector;
         ActionListener actionListener;
@@ -65,7 +77,7 @@ public class RemoteFetchCore implements Runnable{
             repoConnector = repositoryManagerBuilder.addRemoteFetchConfig(fetchConfig).build();
         } catch (NullPointerException e) {
             throw new RemoteFetchCoreException("Unable to retrieve specified RepositoryManager", e);
-        } catch (RepositoryManagerBuilderException e){
+        } catch (RepositoryManagerBuilderException e) {
             throw new RemoteFetchCoreException("Unable to build RepositoryManager object", e);
         }
 
@@ -78,7 +90,7 @@ public class RemoteFetchCore implements Runnable{
 
         } catch (NullPointerException e) {
             throw new RemoteFetchCoreException("Unable to retrieve specified ConfigDeployer", e);
-        } catch (ConfigDeployerBuilderException e){
+        } catch (ConfigDeployerBuilderException e) {
             throw new RemoteFetchCoreException("Unable to build ConfigDeployer object", e);
         }
 
@@ -92,7 +104,7 @@ public class RemoteFetchCore implements Runnable{
 
         } catch (NullPointerException e) {
             throw new RemoteFetchCoreException("Unable to retrieve specified ActionListener", e);
-        } catch (ActionListenerBuilderException e){
+        } catch (ActionListenerBuilderException e) {
             throw new RemoteFetchCoreException("Unable to build ActionListener object", e);
         }
 
@@ -100,13 +112,29 @@ public class RemoteFetchCore implements Runnable{
 
     }
 
-    private void seedListeners(){
+    /**
+     * Load RemoteFetch Configurations from database and builds ActionListeners or re-builds if updated.
+     */
+    private void loadListeners() {
+
         try {
-            this.remoteFetchConfigDAO.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) ->{
-                try {
-                    this.listenersList.add(this.buildListener(config));
-                } catch (RemoteFetchCoreException e){
-                    log.error("Exception building ActionListener",e);
+            this.remoteFetchConfigDAO.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) -> {
+                int configurationId = config.getRemoteFetchConfigurationId();
+                if (this.remoteFetchConfigurationMap.containsKey(configurationId)) {
+                    if (!remoteFetchConfigurationMap.get(configurationId).equals(config)) {
+                        try {
+                            this.actionListenerMap.put(configurationId, this.buildListener(config));
+                        } catch (RemoteFetchCoreException e) {
+                            log.error("Exception re-building ActionListener", e);
+                        }
+                    }
+                } else {
+                    this.remoteFetchConfigurationMap.put(configurationId, config);
+                    try {
+                        this.actionListenerMap.put(configurationId, this.buildListener(config));
+                    } catch (RemoteFetchCoreException e) {
+                        log.error("Exception building ActionListener", e);
+                    }
                 }
             });
         } catch (RemoteFetchCoreException e) {
@@ -116,8 +144,9 @@ public class RemoteFetchCore implements Runnable{
 
     @Override
     public void run() {
-        if (listenersList.isEmpty()) seedListeners();
-        for (ActionListener actionListener: listenersList) {
+
+        loadListeners();
+        for (ActionListener actionListener : this.actionListenerMap.values()) {
             actionListener.iteration();
         }
     }
