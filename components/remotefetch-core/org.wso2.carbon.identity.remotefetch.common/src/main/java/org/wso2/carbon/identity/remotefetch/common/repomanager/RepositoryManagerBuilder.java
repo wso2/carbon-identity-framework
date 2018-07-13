@@ -20,15 +20,34 @@ package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 
+/**
+ * Builds a RepositoryManager from a RemoteFetchConfiguration file
+ */
 public abstract class RepositoryManagerBuilder {
+
     protected RemoteFetchConfiguration fetchConfig;
 
-    public RepositoryManagerBuilder() {}
+    public RepositoryManagerBuilder() {
 
-    public RepositoryManagerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig){
+    }
+
+    /**
+     * Set RemoteFetchConfiguration attribute
+     *
+     * @param fetchConfig
+     * @return
+     */
+    public RepositoryManagerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig) {
+
         this.fetchConfig = fetchConfig;
         return this;
     }
 
+    /**
+     * Build and return a new RepositoryManager with the set configuration
+     *
+     * @return
+     * @throws RepositoryManagerBuilderException
+     */
     public abstract RepositoryManager build() throws RepositoryManagerBuilderException;
 }

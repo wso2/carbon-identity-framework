@@ -30,7 +30,7 @@ public class GitRepositoryManagerComponent implements RepositoryManagerComponent
     }
 
     @Override
-    public String getType() {
+    public String getIdentifier() {
 
         return "GIT";
     }

@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
         immediate = true
 )
 public class RemoteFetchServiceComponent {
+
     private static Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -57,11 +58,11 @@ public class RemoteFetchServiceComponent {
 
         BundleContext bundleContext = context.getBundleContext();
         bundleContext.registerService(RemoteFetchComponentRegistry.class.getName(),
-                RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry(),null);
+                RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry(), null);
 
-        RemoteFetchCore core  = new RemoteFetchCore();
+        RemoteFetchCore core = new RemoteFetchCore();
         try {
-            scheduler.scheduleAtFixedRate(core,0,60,TimeUnit.SECONDS);
+            scheduler.scheduleAtFixedRate(core, 0, 60, TimeUnit.SECONDS);
             if (log.isDebugEnabled()) {
                 log.debug("Identity RemoteFetchServiceComponent bundle is activated");
             }

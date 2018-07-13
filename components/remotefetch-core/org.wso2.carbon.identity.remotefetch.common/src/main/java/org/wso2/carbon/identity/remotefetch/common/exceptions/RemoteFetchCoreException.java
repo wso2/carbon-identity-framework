@@ -18,13 +18,18 @@
 
 package org.wso2.carbon.identity.remotefetch.common.exceptions;
 
+/**
+ * Root Exception to be used for reporting anomalies in the RemoteFetchCore
+ */
 public class RemoteFetchCoreException extends Exception {
 
     public RemoteFetchCoreException(String message) {
+
         super(message);
     }
 
     public RemoteFetchCoreException(String message, Throwable cause) {
+
         super(message, cause);
     }
 

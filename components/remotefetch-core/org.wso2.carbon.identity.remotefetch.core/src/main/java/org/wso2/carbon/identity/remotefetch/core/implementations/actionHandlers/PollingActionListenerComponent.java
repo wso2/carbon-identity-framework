@@ -30,7 +30,7 @@ public class PollingActionListenerComponent implements ActionListenerComponent {
     }
 
     @Override
-    public String getType() {
+    public String getIdentifier() {
 
         return "POLLING";
     }

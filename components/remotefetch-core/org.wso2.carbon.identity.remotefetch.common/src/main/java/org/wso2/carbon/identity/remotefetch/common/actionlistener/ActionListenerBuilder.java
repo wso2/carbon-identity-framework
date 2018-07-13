@@ -22,27 +22,56 @@ import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
 
+/**
+ * Builds a ActionListener from a RemoteFetchConfiguration file
+ */
 public abstract class ActionListenerBuilder {
+
     protected RemoteFetchConfiguration fetchConfig;
     protected RepositoryManager repoConnector;
     protected ConfigDeployer configDeployer;
 
-    public ActionListenerBuilder(){}
+    public ActionListenerBuilder() {
 
-    public ActionListenerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig){
+    }
+
+    /**
+     * Set RemoteFetchConfiguration attribute
+     *
+     * @param fetchConfig
+     * @return
+     */
+    public ActionListenerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig) {
+
         this.fetchConfig = fetchConfig;
         return this;
     }
 
-    public ActionListenerBuilder addRepositoryConnector(RepositoryManager repoConnector){
+    /**
+     * @param repoConnector
+     * @return
+     */
+    public ActionListenerBuilder addRepositoryConnector(RepositoryManager repoConnector) {
+
         this.repoConnector = repoConnector;
         return this;
     }
 
-    public ActionListenerBuilder addConfigDeployer(ConfigDeployer configDeployer){
+    /**
+     * @param configDeployer
+     * @return
+     */
+    public ActionListenerBuilder addConfigDeployer(ConfigDeployer configDeployer) {
+
         this.configDeployer = configDeployer;
         return this;
     }
 
+    /**
+     * Build and return a new ActionListener with the set configuration
+     *
+     * @return
+     * @throws ActionListenerBuilderException
+     */
     public abstract ActionListener build() throws ActionListenerBuilderException;
 }

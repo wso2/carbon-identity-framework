@@ -62,16 +62,16 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
         try {
             addStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.CREATE_REVISION,
                     Statement.RETURN_GENERATED_KEYS);
-            addStmnt.setInt(1,deploymentRevision.getConfigId());
-            addStmnt.setString(2,deploymentRevision.getFile().getPath());
-            addStmnt.setString(3,deploymentRevision.getFileHash());
-            addStmnt.setString(4,deploymentRevision.getItemName());
+            addStmnt.setInt(1, deploymentRevision.getConfigId());
+            addStmnt.setString(2, deploymentRevision.getFile().getPath());
+            addStmnt.setString(3, deploymentRevision.getFileHash());
+            addStmnt.setString(4, deploymentRevision.getItemName());
             addStmnt.execute();
 
             int configId = -1;
             result = addStmnt.getGeneratedKeys();
 
-            if(result.next()){
+            if (result.next()) {
                 configId = result.getInt(1);
             }
 
@@ -83,10 +83,10 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
             return configId;
 
-        } catch (SQLIntegrityConstraintViolationException e){
-            throw new RemoteFetchCoreException("Constraint violation, duplicated entry",e);
-        } catch(SQLException e){
-            throw new RemoteFetchCoreException("Error creating new object",e);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new RemoteFetchCoreException("Constraint violation, duplicated entry", e);
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error creating new object", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(result);
             IdentityDatabaseUtil.closeStatement(addStmnt);
@@ -106,28 +106,27 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
         try {
             updateStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.UPDATE_REVISION);
 
-            updateStmnt.setInt(1,deploymentRevision.getConfigId());
-            updateStmnt.setString(2,deploymentRevision.getFile().getPath());
-            updateStmnt.setString(3,deploymentRevision.getFileHash());
-            if(deploymentRevision.getDeployedDate() != null){
+            updateStmnt.setInt(1, deploymentRevision.getConfigId());
+            updateStmnt.setString(2, deploymentRevision.getFile().getPath());
+            updateStmnt.setString(3, deploymentRevision.getFileHash());
+            if (deploymentRevision.getDeployedDate() != null) {
                 updateStmnt.setTimestamp(4, new Timestamp(deploymentRevision.getDeployedDate().getTime()));
-            }else {
-                updateStmnt.setTimestamp(4,null);
+            } else {
+                updateStmnt.setTimestamp(4, null);
             }
-            updateStmnt.setString(5,deploymentRevision.getDeploymentStatus());
-            updateStmnt.setString(6,deploymentRevision.getItemName());
-            updateStmnt.setInt(7,deploymentRevision.getDeploymentRevisionId());
+            updateStmnt.setString(5, deploymentRevision.getDeploymentStatus());
+            updateStmnt.setString(6, deploymentRevision.getItemName());
+            updateStmnt.setInt(7, deploymentRevision.getDeploymentRevisionId());
             updateStmnt.execute();
 
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
 
-
-        } catch (SQLIntegrityConstraintViolationException e){
-            throw new RemoteFetchCoreException("Constraint violation, duplicated entry",e);
-        } catch (SQLException e){
-            throw new RemoteFetchCoreException("Error updating object",e);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new RemoteFetchCoreException("Constraint violation, duplicated entry", e);
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error updating object", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(updateStmnt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -141,20 +140,21 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
      */
     @Override
     public void deleteDeploymentRevision(int deploymentRevisionId) throws RemoteFetchCoreException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement deleteStmnt = null;
         ResultSet result = null;
         try {
             deleteStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.DELETE_REVISION);
-            deleteStmnt.setInt(1,deploymentRevisionId);
+            deleteStmnt.setInt(1, deploymentRevisionId);
             deleteStmnt.execute();
 
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
 
-        } catch (SQLException e){
-            throw new RemoteFetchCoreException("Error Deleting object",e);
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error Deleting object", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(result);
             IdentityDatabaseUtil.closeStatement(deleteStmnt);
@@ -171,6 +171,7 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     @Override
     public List<DeploymentRevision> getDeploymentRevisionsByConfigurationId(
             int remoteFetchConfigurationId) throws RemoteFetchCoreException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement selectStmnt = null;
         ResultSet result = null;
@@ -195,8 +196,8 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             }
 
             return deploymentRevisions;
-        } catch (SQLException e){
-            throw new RemoteFetchCoreException("Error reading objects from database",e);
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error reading objects from database", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(result);
             IdentityDatabaseUtil.closeStatement(selectStmnt);

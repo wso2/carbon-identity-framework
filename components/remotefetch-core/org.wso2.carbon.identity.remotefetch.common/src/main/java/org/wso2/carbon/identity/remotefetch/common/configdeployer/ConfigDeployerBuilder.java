@@ -20,15 +20,34 @@ package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 
+/**
+ * Builds a ConfigDeployer from a RemoteFetchConfiguration file
+ */
 public abstract class ConfigDeployerBuilder {
+
     protected RemoteFetchConfiguration fetchConfig;
 
-    public ConfigDeployerBuilder() {}
+    public ConfigDeployerBuilder() {
 
-    public ConfigDeployerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig){
+    }
+
+    /**
+     * Set RemoteFetchConfiguration attribute
+     *
+     * @param fetchConfig
+     * @return
+     */
+    public ConfigDeployerBuilder addRemoteFetchConfig(RemoteFetchConfiguration fetchConfig) {
+
         this.fetchConfig = fetchConfig;
         return this;
     }
 
+    /**
+     * Build and return a new ConfigDeployer with the set configuration
+     *
+     * @return
+     * @throws ConfigDeployerBuilderException
+     */
     public abstract ConfigDeployer build() throws ConfigDeployerBuilderException;
 }

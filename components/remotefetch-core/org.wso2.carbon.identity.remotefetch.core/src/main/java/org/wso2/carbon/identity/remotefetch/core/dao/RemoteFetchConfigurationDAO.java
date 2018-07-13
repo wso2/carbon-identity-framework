@@ -29,7 +29,6 @@ import java.util.List;
 public interface RemoteFetchConfigurationDAO {
 
     /**
-     *
      * @param configuration
      * @return
      * @throws RemoteFetchCoreException
@@ -37,7 +36,6 @@ public interface RemoteFetchConfigurationDAO {
     int createRemoteFetchConfiguration(RemoteFetchConfiguration configuration) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param configurationId
      * @return
      * @throws RemoteFetchCoreException
@@ -45,21 +43,18 @@ public interface RemoteFetchConfigurationDAO {
     RemoteFetchConfiguration getRemoteFetchConfiguration(int configurationId) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param configuration
      * @throws RemoteFetchCoreException
      */
     void updateRemoteFetchConfiguration(RemoteFetchConfiguration configuration) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param configurationId
      * @throws RemoteFetchCoreException
      */
-    void deleteRemoteFetchConfiguration(int configurationId) throws  RemoteFetchCoreException;
+    void deleteRemoteFetchConfiguration(int configurationId) throws RemoteFetchCoreException;
 
     /**
-     *
      * @return
      * @throws RemoteFetchCoreException
      */

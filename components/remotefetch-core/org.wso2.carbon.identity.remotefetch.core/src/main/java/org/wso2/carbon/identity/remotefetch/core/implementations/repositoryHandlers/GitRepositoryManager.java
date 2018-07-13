@@ -57,7 +57,8 @@ public class GitRepositoryManager implements RepositoryManager {
 
     private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
-    public GitRepositoryManager(String name, String uri, String branch){
+    public GitRepositoryManager(String name, String uri, String branch) {
+
         this.name = name;
         this.branch = branch;
         this.uri = uri;
@@ -67,7 +68,7 @@ public class GitRepositoryManager implements RepositoryManager {
 
         // Check if repo path exists, if so load as local repo
         try {
-            if (this.repoPath.exists() && this.repoPath.isDirectory()){
+            if (this.repoPath.exists() && this.repoPath.isDirectory()) {
                 log.info("Found local repository");
                 this.repo = this.getLocalRepository();
                 this.git = new Git(this.repo);
@@ -78,6 +79,7 @@ public class GitRepositoryManager implements RepositoryManager {
     }
 
     private Repository cloneRepository() throws IllegalArgumentException, IOException {
+
         CloneCommand cloneRequest = Git.cloneRepository()
                 .setURI(this.uri)
                 .setDirectory(this.repoPath)
@@ -85,30 +87,33 @@ public class GitRepositoryManager implements RepositoryManager {
                 .setBranch(this.branch);
         try {
             return cloneRequest.call().getRepository();
-        } catch (InvalidRemoteException e){
-            throw new IllegalArgumentException("Supplied Remote is invalid",e);
-        } catch (GitAPIException e){
-            throw new IOException("Error Cloning repository",e);
+        } catch (InvalidRemoteException e) {
+            throw new IllegalArgumentException("Supplied Remote is invalid", e);
+        } catch (GitAPIException e) {
+            throw new IOException("Error Cloning repository", e);
         }
     }
 
     private Repository getLocalRepository() throws IOException {
+
         FileRepositoryBuilder localBuilder = new FileRepositoryBuilder();
         return localBuilder.findGitDir(this.repoPath)
                 .build();
     }
 
-    private void pullRepository() throws Exception{
+    private void pullRepository() throws Exception {
+
         PullCommand pullRequest = this.git.pull();
         try {
             pullRequest.call();
             log.info("Pulling changes from remote");
-        } catch (GitAPIException e){
+        } catch (GitAPIException e) {
             throw new Exception("Local Repository pull failed");
         }
     }
 
-    private RevCommit getLastCommit(File path) throws Exception{
+    private RevCommit getLastCommit(File path) throws Exception {
+
         List<RevCommit> log = new ArrayList<>();
         Iterable<RevCommit> logIterater = git.log().addPath(path.getPath()).call();
         logIterater.forEach(log::add);
@@ -116,56 +121,60 @@ public class GitRepositoryManager implements RepositoryManager {
     }
 
     public void fetchRepository() throws Exception {
-        if (this.git != null){
+
+        if (this.git != null) {
             this.pullRepository();
-        }else {
+        } else {
             log.info("Cloning repository from remote");
             this.repo = this.cloneRepository();
             this.git = new Git(this.repo);
         }
     }
 
-    public InputStream getFile(File location) throws Exception{
+    public InputStream getFile(File location) throws Exception {
 
-        try (ObjectReader reader = this.repo.newObjectReader()){
+        try (ObjectReader reader = this.repo.newObjectReader()) {
             RevCommit commit = this.getLastCommit(location);
             try {
-                TreeWalk treewalk = TreeWalk.forPath(this.repo,location.getPath(),commit.getTree());
+                TreeWalk treewalk = TreeWalk.forPath(this.repo, location.getPath(), commit.getTree());
 
                 if (treewalk != null) {
                     return reader.open(treewalk.getObjectId(0)).openStream();
                 }
-            } catch (Exception e ){
+            } catch (Exception e) {
                 throw new Exception("File checkout exception");
             }
 
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new Exception("I/O Exception");
         }
         return null;
     }
 
-    public Date getLastModified(File location) throws Exception{
+    public Date getLastModified(File location) throws Exception {
+
         try {
             RevCommit commit = getLastCommit(location);
             return new Date((long) commit.getCommitTime() * 1000); //UNIX timestamp to seconds
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new Exception("Repository I/O exception");
         }
     }
 
     @Override
     public String getRevisionHash(File location) throws Exception {
+
         try {
             RevCommit rc = this.getLastCommit(location);
             return rc.getName();
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new Exception("Repository I/O exception");
         }
     }
 
-    public List<File> listFiles(File root) throws Exception{
-        List<File> availableFiles =  new ArrayList<>();
+    public List<File> listFiles(File root) throws Exception {
+
+        List<File> availableFiles = new ArrayList<>();
 
         TreeWalk treeWalk = new TreeWalk(this.repo);
         TreeFilter pathFilter = PathFilter.create(root.getPath());
@@ -186,7 +195,7 @@ public class GitRepositoryManager implements RepositoryManager {
                 }
             }
             return availableFiles;
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new Exception("Exception on traversing for give path");
         }
     }

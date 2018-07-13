@@ -74,23 +74,11 @@ public class SoutConfigDeployer implements ConfigDeployer {
 
             String line;
             if ((line = buffer.readLine()) != null) {
-                line =  line.replace(" ","");
                 line = buffer.readLine();
             }
             return line;
         }catch (IOException e){
             throw new RemoteFetchCoreException("Unable to read configuration file");
         }
-    }
-
-    /**
-     * returns an identifier for the configuration type being deployed
-     *
-     * @return
-     */
-    @Override
-    public String getConfigType() {
-
-        return null;
     }
 }

@@ -25,6 +25,7 @@ import java.util.Date;
  * Deployment Revision bean
  */
 public class DeploymentRevision {
+
     private int fileRevisionId;
     private int configId;
     private File file;
@@ -34,7 +35,6 @@ public class DeploymentRevision {
     private String itemName;
 
     /**
-     *
      * @param configId
      * @param file
      */
@@ -45,7 +45,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public int getDeploymentRevisionId() {
@@ -54,7 +53,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param fileRevisionId
      */
     public void setDeploymentRevisionId(int fileRevisionId) {
@@ -63,7 +61,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public int getConfigId() {
@@ -72,7 +69,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param configId
      */
     public void setConfigId(int configId) {
@@ -81,7 +77,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public File getFile() {
@@ -90,7 +85,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param file
      */
     public void setFile(File file) {
@@ -99,7 +93,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public String getFileHash() {
@@ -108,7 +101,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param fileHash
      */
     public void setFileHash(String fileHash) {
@@ -117,7 +109,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public Date getDeployedDate() {
@@ -126,7 +117,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param deployedDate
      */
     public void setDeployedDate(Date deployedDate) {
@@ -135,7 +125,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public String getDeploymentStatus() {
@@ -144,7 +133,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param deploymentStatus
      */
     public void setDeploymentStatus(String deploymentStatus) {
@@ -153,7 +141,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @return
      */
     public String getItemName() {
@@ -162,7 +149,6 @@ public class DeploymentRevision {
     }
 
     /**
-     *
      * @param itemName
      */
     public void setItemName(String itemName) {

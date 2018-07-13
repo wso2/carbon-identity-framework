@@ -29,31 +29,30 @@ import java.util.Map;
 
 public class PollingActionListenerBuilder extends ActionListenerBuilder {
 
-
     @Override
     public ActionListener build() throws ActionListenerBuilderException {
 
-        Map<String,String> actionListenerAttributes = this.fetchConfig.getActionListenerAttributes();
+        Map<String, String> actionListenerAttributes = this.fetchConfig.getActionListenerAttributes();
         int frequency;
 
         File directory;
-        if (actionListenerAttributes.containsKey("frequency")){
+        if (actionListenerAttributes.containsKey("frequency")) {
             try {
                 frequency = Integer.parseInt(actionListenerAttributes.get("frequency"));
-            } catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 throw new ActionListenerBuilderException("Frequency not valid in configuration", e);
             }
-        }else {
+        } else {
             throw new ActionListenerBuilderException("Frequency not available in configuration");
         }
 
-        if (actionListenerAttributes.containsKey("directory")){
+        if (actionListenerAttributes.containsKey("directory")) {
             directory = new File(actionListenerAttributes.get("directory"));
-        }else {
+        } else {
             throw new ActionListenerBuilderException("Directory not available in configuration");
         }
 
-        PollingActionListener actionListener = new PollingActionListener(this.repoConnector,directory ,
+        PollingActionListener actionListener = new PollingActionListener(this.repoConnector, directory,
                 this.configDeployer, frequency, this.fetchConfig.getRemoteFetchConfigurationId());
         return actionListener;
     }

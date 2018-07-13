@@ -29,7 +29,6 @@ import java.util.List;
 public interface DeploymentRevisionDAO {
 
     /**
-     *
      * @param deploymentRevision
      * @return
      * @throws RemoteFetchCoreException
@@ -37,26 +36,23 @@ public interface DeploymentRevisionDAO {
     int createDeploymentRevision(DeploymentRevision deploymentRevision) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param deploymentRevision
      * @throws RemoteFetchCoreException
      */
     void updateDeploymentRevision(DeploymentRevision deploymentRevision) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param deploymentRevisionId
      * @throws RemoteFetchCoreException
      */
     void deleteDeploymentRevision(int deploymentRevisionId) throws RemoteFetchCoreException;
 
     /**
-     *
      * @param remoteFetchConfigurationId
      * @return
      * @throws RemoteFetchCoreException
      */
-    List<DeploymentRevision>  getDeploymentRevisionsByConfigurationId(int remoteFetchConfigurationId)
+    List<DeploymentRevision> getDeploymentRevisionsByConfigurationId(int remoteFetchConfigurationId)
             throws RemoteFetchCoreException;
 
 }

@@ -30,7 +30,7 @@ public class SoutConfigDeployerComponent implements ConfigDeployerComponent {
     }
 
     @Override
-    public String getType() {
+    public String getIdentifier() {
 
         return "SOUT";
     }

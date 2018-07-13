@@ -18,13 +18,18 @@
 
 package org.wso2.carbon.identity.remotefetch.common.actionlistener;
 
+/**
+ * Exception to be thrown when builder fails to initialize a ActionListener
+ */
 public class ActionListenerBuilderException extends Exception {
 
     public ActionListenerBuilderException(String message) {
+
         super(message);
     }
 
     public ActionListenerBuilderException(String message, Throwable cause) {
+
         super(message, cause);
     }
 

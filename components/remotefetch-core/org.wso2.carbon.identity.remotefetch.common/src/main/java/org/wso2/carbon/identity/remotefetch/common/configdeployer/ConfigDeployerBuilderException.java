@@ -18,13 +18,18 @@
 
 package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
+/**
+ * Exception to be thrown when builder fails to initialize a ConfigDeployer
+ */
 public class ConfigDeployerBuilderException extends Exception {
 
     public ConfigDeployerBuilderException(String message) {
+
         super(message);
     }
 
     public ConfigDeployerBuilderException(String message, Throwable cause) {
+
         super(message, cause);
     }
 

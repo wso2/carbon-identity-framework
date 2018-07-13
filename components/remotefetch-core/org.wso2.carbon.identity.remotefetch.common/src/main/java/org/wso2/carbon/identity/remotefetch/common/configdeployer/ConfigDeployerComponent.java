@@ -18,7 +18,22 @@
 
 package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
+/**
+ * Interface to implement a reference to the builder of the component
+ */
 public interface ConfigDeployerComponent {
+
+    /**
+     * Returns a new builder object for the component
+     *
+     * @return
+     */
     ConfigDeployerBuilder getConfigDeployerBuilder();
-    String getType();
+
+    /**
+     * Returns a string of the unique identifier of the component
+     *
+     * @return
+     */
+    String getIdentifier();
 }

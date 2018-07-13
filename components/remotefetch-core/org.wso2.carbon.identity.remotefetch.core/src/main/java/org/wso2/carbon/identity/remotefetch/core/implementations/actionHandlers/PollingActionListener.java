@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.remotefetch.common.DeploymentRevision;
@@ -42,7 +41,7 @@ public class PollingActionListener implements ActionListener {
     private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     private RepositoryManager repo;
-    private Integer frequency =  60;
+    private Integer frequency = 60;
     private Date lastIteration;
     private File path;
     private ConfigDeployer configDeployer;
@@ -52,6 +51,7 @@ public class PollingActionListener implements ActionListener {
 
     public PollingActionListener(RepositoryManager repo, File path, ConfigDeployer configDeployer,
                                  int frequency, int remoteFetchConfigurationId) {
+
         this.repo = repo;
         this.path = path;
         this.configDeployer = configDeployer;
@@ -62,47 +62,49 @@ public class PollingActionListener implements ActionListener {
     }
 
     private void seedRevisions() {
+
         try {
             List<DeploymentRevision> deploymentRevisions = this.deploymentRevisionDAO
                     .getDeploymentRevisionsByConfigurationId(this.remoteFetchConfigurationId);
 
             deploymentRevisions.forEach((DeploymentRevision deploymentRevision) -> {
-                this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
+                this.deploymentRevisionMap.put(deploymentRevision.getItemName(), deploymentRevision);
             });
-        } catch (RemoteFetchCoreException e){
-            log.info("Unable to seed DeploymentRevisions",e);
+        } catch (RemoteFetchCoreException e) {
+            log.info("Unable to seed DeploymentRevisions", e);
         }
     }
 
-    private void manageRevisions(List<File> configPaths){
+    private void manageRevisions(List<File> configPaths) {
+
         configPaths.forEach((File path) -> {
             String resolvedName = "";
             try {
-                resolvedName =  this.configDeployer.resolveConfigName(this.repo.getFile(path));
-            }catch (Exception e){
-                log.info("Unable to resolve configuration",e);
+                resolvedName = this.configDeployer.resolveConfigName(this.repo.getFile(path));
+            } catch (Exception e) {
+                log.info("Unable to resolve configuration", e);
             }
-            if (!(resolvedName.isEmpty())){
-                if (!this.deploymentRevisionMap.containsKey(resolvedName)){
-                    DeploymentRevision deploymentRevision = new DeploymentRevision(this.remoteFetchConfigurationId,path);
+            if (!(resolvedName.isEmpty())) {
+                if (!this.deploymentRevisionMap.containsKey(resolvedName)) {
+                    DeploymentRevision deploymentRevision = new DeploymentRevision(this.remoteFetchConfigurationId, path);
                     deploymentRevision.setFileHash("");
                     deploymentRevision.setItemName(resolvedName);
                     try {
                         int id = this.deploymentRevisionDAO.createDeploymentRevision(deploymentRevision);
                         deploymentRevision.setDeploymentRevisionId(id);
-                        this.deploymentRevisionMap.put(deploymentRevision.getItemName(),deploymentRevision);
-                    } catch (RemoteFetchCoreException e){
-                        log.info("Unable to add a new DeploymentRevision for configuration",e);
+                        this.deploymentRevisionMap.put(deploymentRevision.getItemName(), deploymentRevision);
+                    } catch (RemoteFetchCoreException e) {
+                        log.info("Unable to add a new DeploymentRevision for configuration", e);
                     }
-                }else {
+                } else {
                     // Update DeploymentRevision if file was moved/renamed
                     DeploymentRevision currentdDeploymentRevision = this.deploymentRevisionMap.get(resolvedName);
-                    if(!currentdDeploymentRevision.getFile().equals(path)){
+                    if (!currentdDeploymentRevision.getFile().equals(path)) {
                         try {
                             currentdDeploymentRevision.setFile(path);
                             this.deploymentRevisionDAO.updateDeploymentRevision(currentdDeploymentRevision);
-                        } catch (RemoteFetchCoreException e){
-                            log.info("Unable to update DeploymentRevision for configuration",e);
+                        } catch (RemoteFetchCoreException e) {
+                            log.info("Unable to update DeploymentRevision for configuration", e);
                         }
                     }
                 }
@@ -112,56 +114,58 @@ public class PollingActionListener implements ActionListener {
 
     @Override
     public void iteration() {
+
         Calendar nextIteration = Calendar.getInstance();
-        nextIteration.add(Calendar.SECOND,this.frequency);
-        if ((lastIteration == null) || (lastIteration.before(nextIteration.getTime()))){
+        nextIteration.add(Calendar.SECOND, this.frequency);
+        if ((lastIteration == null) || (lastIteration.before(nextIteration.getTime()))) {
             try {
                 this.repo.fetchRepository();
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.info("Error pulling repository");
             }
 
-            this.pollDirectory(this.path,this.configDeployer);
+            this.pollDirectory(this.path, this.configDeployer);
             this.lastIteration = new Date();
         }
     }
 
-    private void pollDirectory(File path, ConfigDeployer deployer){
+    private void pollDirectory(File path, ConfigDeployer deployer) {
+
         log.info("Polling Directory " + path.getPath() + " for changes");
         List<File> configFiles = null;
 
         try {
             configFiles = this.repo.listFiles(path);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("Error listing files in root");
             return;
         }
 
         this.manageRevisions(configFiles);
 
-        for(DeploymentRevision deploymentRevision : this.deploymentRevisionMap.values()){
+        for (DeploymentRevision deploymentRevision : this.deploymentRevisionMap.values()) {
             String newHash = "";
             try {
                 newHash = this.repo.getRevisionHash(deploymentRevision.getFile());
-            } catch (Exception e){
-                log.info("Unable to get new hash",e);
+            } catch (Exception e) {
+                log.info("Unable to get new hash", e);
             }
 
-            if (!newHash.isEmpty()){
-                if (deploymentRevision.getFileHash().isEmpty() || !(deploymentRevision.getFileHash().equals(newHash))){
+            if (!newHash.isEmpty()) {
+                if (deploymentRevision.getFileHash().isEmpty() || !(deploymentRevision.getFileHash().equals(newHash))) {
                     log.info("Deploying " + deploymentRevision.getFile().getPath());
                     try {
                         deployer.deploy(repo.getFile(deploymentRevision.getFile()));
-                    } catch (Exception e){
-                        log.info("Error Deploying "+ deploymentRevision.getFile().getName());
+                    } catch (Exception e) {
+                        log.info("Error Deploying " + deploymentRevision.getFile().getName());
                     }
                     deploymentRevision.setFileHash(newHash);
                     deploymentRevision.setDeploymentStatus("DEPLOYED");
                     deploymentRevision.setDeployedDate(new Date());
                     try {
                         this.deploymentRevisionDAO.updateDeploymentRevision(deploymentRevision);
-                    }catch (Exception e){
-                        log.info("Error updating DeploymentRevision",e);
+                    } catch (Exception e) {
+                        log.info("Error updating DeploymentRevision", e);
                     }
                 }
             }

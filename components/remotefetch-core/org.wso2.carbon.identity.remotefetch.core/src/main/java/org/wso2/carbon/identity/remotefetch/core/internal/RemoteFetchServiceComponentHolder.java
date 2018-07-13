@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.remotefetch.core.internal;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
 
 public class RemoteFetchServiceComponentHolder {
+
     private static RemoteFetchServiceComponentHolder instance = new RemoteFetchServiceComponentHolder();
     private RemoteFetchComponentRegistry remoteFetchComponentRegistry;
 

@@ -18,7 +18,22 @@
 
 package org.wso2.carbon.identity.remotefetch.common.actionlistener;
 
+/**
+ * Interface to implement a reference to the builder of the component
+ */
 public interface ActionListenerComponent {
+
+    /**
+     * Returns a new builder object for the component
+     *
+     * @return
+     */
     ActionListenerBuilder getActionListenerBuilder();
-    String getType();
+
+    /**
+     * Returns a string of the unique identifier of the component
+     *
+     * @return
+     */
+    String getIdentifier();
 }

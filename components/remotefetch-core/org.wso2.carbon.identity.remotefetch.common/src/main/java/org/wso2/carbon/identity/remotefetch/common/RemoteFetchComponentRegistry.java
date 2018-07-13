@@ -28,57 +28,48 @@ import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager
 public interface RemoteFetchComponentRegistry {
 
     /**
-     *
      * @param repositoryManagerComponent
      */
     void registerRepositoryManager(RepositoryManagerComponent repositoryManagerComponent);
 
     /**
-     *
      * @param configDeployerComponent
      */
     void registerConfigDeployer(ConfigDeployerComponent configDeployerComponent);
 
     /**
-     *
      * @param actionListenerComponent
      */
     void registerActionListener(ActionListenerComponent actionListenerComponent);
 
     /**
-     *
      * @param identifier
      */
     void deRegisterRepositoryManager(String identifier);
 
     /**
-     *
      * @param identifier
      */
     void deRegisterConfigDeployer(String identifier);
 
     /**
-     *
      * @param identifier
      */
     void deRegisterActionListener(String identifier);
 
     /**
-     *
      * @param identifier
      * @return
      */
     RepositoryManagerComponent getRepositoryManagerComponent(String identifier);
 
     /**
-     *
      * @param identifier
      * @return
      */
     ConfigDeployerComponent getConfigDeployerComponent(String identifier);
 
     /**
-     *
      * @param identifier
      * @return
      */

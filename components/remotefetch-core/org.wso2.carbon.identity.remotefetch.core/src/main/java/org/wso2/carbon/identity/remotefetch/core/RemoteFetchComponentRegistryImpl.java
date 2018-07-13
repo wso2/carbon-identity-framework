@@ -27,16 +27,17 @@ import java.util.HashMap;
 
 public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentRegistry {
 
-    private HashMap<String,RepositoryManagerComponent> repositoryManagerComponentMap = new HashMap<>();
-    private HashMap<String,ConfigDeployerComponent> configDeployerComponentMap = new HashMap<>();
-    private HashMap<String,ActionListenerComponent> actionListenerComponentMap = new HashMap<>();
+    private HashMap<String, RepositoryManagerComponent> repositoryManagerComponentMap = new HashMap<>();
+    private HashMap<String, ConfigDeployerComponent> configDeployerComponentMap = new HashMap<>();
+    private HashMap<String, ActionListenerComponent> actionListenerComponentMap = new HashMap<>();
 
     /**
      * @param repositoryManagerComponent
      */
     @Override
     public void registerRepositoryManager(RepositoryManagerComponent repositoryManagerComponent) {
-        this.repositoryManagerComponentMap.put(repositoryManagerComponent.getType(),repositoryManagerComponent);
+
+        this.repositoryManagerComponentMap.put(repositoryManagerComponent.getIdentifier(), repositoryManagerComponent);
     }
 
     /**
@@ -44,7 +45,8 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
      */
     @Override
     public void registerConfigDeployer(ConfigDeployerComponent configDeployerComponent) {
-        this.configDeployerComponentMap.put(configDeployerComponent.getType(),configDeployerComponent);
+
+        this.configDeployerComponentMap.put(configDeployerComponent.getIdentifier(), configDeployerComponent);
     }
 
     /**
@@ -52,7 +54,8 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
      */
     @Override
     public void registerActionListener(ActionListenerComponent actionListenerComponent) {
-        this.actionListenerComponentMap.put(actionListenerComponent.getType(),actionListenerComponent);
+
+        this.actionListenerComponentMap.put(actionListenerComponent.getIdentifier(), actionListenerComponent);
     }
 
     /**
@@ -60,6 +63,7 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
      */
     @Override
     public void deRegisterRepositoryManager(String identifier) {
+
         this.repositoryManagerComponentMap.remove(identifier);
     }
 
@@ -68,6 +72,7 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
      */
     @Override
     public void deRegisterConfigDeployer(String identifier) {
+
         this.configDeployerComponentMap.remove(identifier);
     }
 
@@ -76,6 +81,7 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
      */
     @Override
     public void deRegisterActionListener(String identifier) {
+
         this.actionListenerComponentMap.remove(identifier);
     }
 
@@ -86,7 +92,7 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
     @Override
     public RepositoryManagerComponent getRepositoryManagerComponent(String identifier) {
 
-        return this.repositoryManagerComponentMap.getOrDefault(identifier,null);
+        return this.repositoryManagerComponentMap.getOrDefault(identifier, null);
     }
 
     /**
@@ -96,7 +102,7 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
     @Override
     public ConfigDeployerComponent getConfigDeployerComponent(String identifier) {
 
-        return this.configDeployerComponentMap.getOrDefault(identifier,null);
+        return this.configDeployerComponentMap.getOrDefault(identifier, null);
     }
 
     /**
@@ -106,6 +112,6 @@ public class RemoteFetchComponentRegistryImpl implements RemoteFetchComponentReg
     @Override
     public ActionListenerComponent getActionListenerComponent(String identifier) {
 
-        return this.actionListenerComponentMap.getOrDefault(identifier,null);
+        return this.actionListenerComponentMap.getOrDefault(identifier, null);
     }
 }

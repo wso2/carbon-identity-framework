@@ -18,13 +18,18 @@
 
 package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
+/**
+ * Exception to be thrown when builder fails to initialize a RepositoryManager
+ */
 public class RepositoryManagerBuilderException extends Exception {
 
     public RepositoryManagerBuilderException(String message) {
+
         super(message);
     }
 
     public RepositoryManagerBuilderException(String message, Throwable cause) {
+
         super(message, cause);
     }
 
