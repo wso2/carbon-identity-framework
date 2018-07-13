@@ -25,9 +25,10 @@ var localAuthNumber = 0;
 var scriptStringHeader = "function onInitialRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
+var documentBeforeChange;
 
 $("#createApp").click(function () {
-    showAllErrors();
+    validateAppCreation();
 });
 
 var addTemplate = $("#addTemplate");
@@ -64,10 +65,10 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
-function showAllErrors() {
+function validateAppCreation() {
+    var warnCount = 0;
+    var errorCount = 0;
     myCodeMirror.operation(function () {
-        var warnCount = 0;
-        var errorCount = 0;
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
             var err = JSHINT.errors[i];
@@ -79,30 +80,31 @@ function showAllErrors() {
                 errorCount++;
             }
         }
+    });
 
-        if (scriptIsDirty) {
-            CARBON.showConfirmationDialog('This script has been modified, Save script at your own risk?',
-                submitFormWithoutCheck, null);
-        } else if (errorCount > 0) {
+    if (!scriptIsDirty) {
+        submitFormWithDIsabledScript();
+    } else {
+        if (errorCount > 0) {
             CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
                 ' saved)',
-                submitFormWithoutCheck, null);
-        } else if (warnCount > 0) {
+                submitFormWithDIsabledScript, null);
+        }
+        if (warnCount > 0) {
             CARBON.showConfirmationDialog('Save script with warnings? (Script will not be evaluated and will only be' +
                 ' saved)',
-                submitFormWithoutCheck, null);
-        } else {
-            submitForm();
+                submitFormWithEnabledScript, null);
         }
-    });
+
+    }
 }
 
-function submitFormWithoutCheck() {
+function submitFormWithDIsabledScript() {
     $("#enableScript").prop("checked", false);
     $("#configure-auth-flow-form").submit();
 }
 
-function submitForm() {
+function submitFormWithEnabledScript() {
     $("#enableScript").prop("checked", true);
     $("#configure-auth-flow-form").submit();
 }
@@ -427,9 +429,9 @@ function showHideTemplateList() {
     }
 }
 
-if (localStorage.getItem("scriptIsDirtyKey") != "true") {
-    buildScriptString();
-}
+// if (localStorage.getItem("scriptIsDirtyKey") != "true") {
+//     buildScriptString();
+// }
 function buildScriptString() {
     var str = "";
     scriptStringContent = [];
@@ -648,7 +650,29 @@ function setAttributeStep(element) {
     $(element).attr('checked', true);
 }
 
-var documentBeforeChange;
+function getExecuteStepsInUI() {
+    var currentUISteps = [];
+    $(".step_heads").each(function (i, e) {
+        currentUISteps.push(parseInt(i + 1));
+    });
+    return currentUISteps;
+}
+
+function getExecuteStepsInScript() {
+    var stepsIntArray = [];
+    var currentScriptMinified = myCodeMirror.getValue().replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    var result = currentScriptMinified.match(/executeStep\([0-9]+\)/g);
+    if (typeof result !== 'undefined' && result !== null) {
+        var uniqueStepsInScript = result.filter(onlyUnique);
+
+        $(uniqueStepsInScript).each(function (i, e) {
+            var currentInt = parseInt(e.replace(/executeStep\(/g, ''));
+            stepsIntArray.push(currentInt);
+        });
+    }
+
+    return stepsIntArray.sort(sortNumber);
+}
 
 doc.on("beforeChange", function (document, changeObj) {
     documentBeforeChange = editorContent;
@@ -662,7 +686,7 @@ doc.on("change", function (document, changeObj) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
-        localStorage.setItem('scriptIsDirtyKey', scriptIsDirty);
+        //localStorage.setItem('scriptIsDirtyKey', scriptIsDirty);
         if (fromTemplateLink || fromStepsAddLink) {
             scriptIsDirty = false;
         }
@@ -695,3 +719,11 @@ jQuery(function ($) {
         });
     }
 });
+
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+function sortNumber(a, b) {
+    return a - b;
+}

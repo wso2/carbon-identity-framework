@@ -399,8 +399,7 @@
                         <% }
                         } %>
                     </div>
-                    <div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %>
-                         style="display: none;">
+                    <div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
                         <label class="noselect">
                             <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                                 if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
