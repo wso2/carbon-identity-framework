@@ -23,11 +23,19 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +64,10 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
+    private final String THUMB_PRINT = "thumbPrint";
+    private final String CERT_VALUE = "certValue";
+    private final String JSON_ARRAY_IDENTIFIER = "[";
+    private final String EMPTY_JSON_ARRAY = "[]";
 
     private String id;
     private String identityProviderName;
@@ -76,6 +88,7 @@ public class IdentityProvider implements Serializable {
     private PermissionsAndRoleConfig permissionAndRoleConfig;
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
     private IdentityProviderProperty []idpProperties = new IdentityProviderProperty[0];
+    private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
 
     public static IdentityProvider build(OMElement identityProviderOM) {
         IdentityProvider identityProvider = new IdentityProvider();
@@ -189,7 +202,15 @@ public class IdentityProvider implements Serializable {
             } else if (FILE_ELEMENT_CLAIM_CONFIG.equals(elementName)) {
                 identityProvider.setClaimConfig(ClaimConfig.build(element));
             } else if (FILE_ELEMENT_CERTIFICATE.equals(elementName)) {
-                identityProvider.setCertificate(element.getText());
+                // Identity provider's Certificate should contain begin and end statement.
+                if (StringUtils.isBlank(element.getText()) || element.getText().contains(IdentityUtil
+                        .PEM_BEGIN_CERTFICATE)) {
+                    identityProvider.setCertificate(element.getText());
+                } else {
+                    log.warn("Identity provider " + identityProvider.getIdentityProviderName() + " doesn't have " +
+                            "begin and end certificate statement in it's certificate. Therefore certificate is not" +
+                            "set to the identity provider.");
+                }
             } else if (FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG.equals(elementName)) {
                 identityProvider
                         .setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
@@ -365,9 +386,20 @@ public class IdentityProvider implements Serializable {
     }
 
     /**
-     * @return
+     * Get certificate
+     * @return if certificate is in JSON array then return only first element.
      */
     public String getCertificate() {
+
+        // Check whether certificate is in json format.
+        if (StringUtils.isNotBlank(certificate) && certificate.startsWith(JSON_ARRAY_IDENTIFIER)) {
+            if (!certificate.equals(EMPTY_JSON_ARRAY)) {
+                certificate = ((JSONObject) (new JSONArray(certificate).get(0))).getString(CERT_VALUE);
+            } else {
+                // If certificate is an empty json array, then return empty value.
+                certificate = "";
+            }
+        }
         return certificate;
     }
 
@@ -375,7 +407,141 @@ public class IdentityProvider implements Serializable {
      * @param certificate
      */
     public void setCertificate(String certificate) {
+
+        setCertificateInfoArray(certificate);
         this.certificate = certificate;
+    }
+
+    /**
+     * Get certificate info array
+     * @return CertificateInfo array
+     */
+    public CertificateInfo[] getCertificateInfoArray() {
+
+        return certificateInfoArray;
+    }
+
+    /**
+     * Set certificateInfoArray
+     *
+     * @param certificateValue array which contains certificate info. Here Certificate info contains thumbPrint
+     *                             and certificate value as attributes.
+     */
+    private void setCertificateInfoArray(String certificateValue) {
+
+        try {
+            if (StringUtils.isNotBlank(certificateValue) && !certificateValue.equals(EMPTY_JSON_ARRAY)) {
+                certificateValue = certificateValue.trim();
+                try {
+                    this.certificateInfoArray = handleJsonFormatCertificate(certificateValue);
+                } catch (JSONException e) {
+                    // Handle plain text certificate for file based configuration.
+                    if (certificateValue.startsWith(IdentityUtil.PEM_BEGIN_CERTFICATE)) {
+                        this.certificateInfoArray = handlePlainTextCertificate(certificateValue);
+                    } else {
+                        // Handle encoded certificate values. While uploading through UI.
+                        this.certificateInfoArray = handleEncodedCertificate(certificateValue);
+                    }
+                }
+            }
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error while generating thumbPrint. Unsupported hash algorithm. ", e);
+        }
+    }
+
+    /**
+     * handle the certificates which is in json format.
+     * @param certificateValue
+     * @return array of certificate value and thumbPrint of each certificates.
+     * @throws NoSuchAlgorithmException
+     */
+    private CertificateInfo[] handleJsonFormatCertificate(String certificateValue) throws NoSuchAlgorithmException {
+
+        JSONArray jsonCertificateInfoArray = new JSONArray(certificateValue);
+        int lengthOfJsonArray = jsonCertificateInfoArray.length();
+        if (lengthOfJsonArray > 1 && log.isDebugEnabled()) {
+            log.debug(lengthOfJsonArray + " certificates have been found");
+        }
+        List<CertificateInfo> certificateInfos = new ArrayList<>();
+        for (int i = 0; i < lengthOfJsonArray; i++) {
+            JSONObject jsonCertificateInfoObject = (JSONObject) jsonCertificateInfoArray.get(i);
+            String thumbPrint = jsonCertificateInfoObject.getString(THUMB_PRINT);
+
+            CertificateInfo certificateInfo = new CertificateInfo();
+            certificateInfo.setThumbPrint(thumbPrint);
+            if (log.isDebugEnabled()) {
+                log.debug("Handling json format certificate. ThumbPrint of the certificate is: " + thumbPrint);
+            }
+            certificateInfo.setCertValue(jsonCertificateInfoObject.getString(CERT_VALUE));
+            certificateInfos.add(certificateInfo);
+        }
+        return certificateInfos.toArray(new CertificateInfo[lengthOfJsonArray]);
+    }
+
+    /**
+     * handle the certificate which is in encoded format.
+     *
+     * @param certificateValue
+     * @return array of certificate value and thumbPrint of each certificates.
+     * @throws NoSuchAlgorithmException
+     */
+    private CertificateInfo[] handleEncodedCertificate(String certificateValue) throws NoSuchAlgorithmException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Handling encoded certificates: " + certificateValue);
+        }
+        String decodedCertificate = new String(Base64.getDecoder().decode(certificateValue));
+        return createCertificateInfo(decodedCertificate);
+    }
+
+    /**
+     * handle the certificate which is in plain text format.
+     *
+     * @param certificateValue
+     * @return array of certificate value and thumbPrint of each certificates.
+     * @throws NoSuchAlgorithmException
+     */
+    private CertificateInfo[] handlePlainTextCertificate(String certificateValue) throws NoSuchAlgorithmException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Handling plain text certificate: " + certificateValue);
+        }
+        return createCertificateInfo(certificateValue);
+    }
+
+    /**
+     * create certificate info by assigning certificate value and thumbPrint value.
+     * @param decodedCertificate
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    private CertificateInfo[] createCertificateInfo(String decodedCertificate) throws
+            NoSuchAlgorithmException {
+
+        int numberOfCertificates = StringUtils.countMatches(decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE);
+        if (numberOfCertificates == 0) {
+            log.error("Uploaded certificate doesn't have " + IdentityUtil.PEM_BEGIN_CERTFICATE + " and " +
+                    IdentityUtil.PEM_END_CERTIFICATE);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(numberOfCertificates + " certificates have been found. ");
+            }
+        }
+        List<CertificateInfo> certificateInfoArrayList = new ArrayList<>();
+        for (int ordinal = 1; ordinal <= numberOfCertificates; ordinal++) {
+            String certificateVal;
+            certificateVal = Base64.getEncoder().encodeToString(IdentityApplicationManagementUtil.extractCertificate
+                    (decodedCertificate, ordinal).getBytes(StandardCharsets.UTF_8));
+            CertificateInfo certificateInfo = new CertificateInfo();
+            String thumbPrint = IdentityApplicationManagementUtil.generateThumbPrint(certificateVal);
+            if (log.isDebugEnabled()) {
+                log.debug("ThumbPrint of the certificate is: " + thumbPrint);
+            }
+            certificateInfo.setThumbPrint(thumbPrint);
+            certificateInfo.setCertValue(certificateVal);
+            certificateInfoArrayList.add(certificateInfo);
+        }
+        return certificateInfoArrayList.toArray(new CertificateInfo[numberOfCertificates]);
     }
 
     /**
