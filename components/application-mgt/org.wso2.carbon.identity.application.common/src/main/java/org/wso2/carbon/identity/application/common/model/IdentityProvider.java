@@ -96,7 +96,7 @@ public class IdentityProvider implements Serializable {
         Iterator<?> iter = identityProviderOM.getChildElements();
         String defaultAuthenticatorConfigName = null;
         String defaultProvisioningConfigName = null;
-        
+
         while (iter.hasNext()) {
             OMElement element = (OMElement) (iter.next());
             String elementName = element.getLocalName();
@@ -202,15 +202,7 @@ public class IdentityProvider implements Serializable {
             } else if (FILE_ELEMENT_CLAIM_CONFIG.equals(elementName)) {
                 identityProvider.setClaimConfig(ClaimConfig.build(element));
             } else if (FILE_ELEMENT_CERTIFICATE.equals(elementName)) {
-                // Identity provider's Certificate should contain begin and end statement.
-                if (StringUtils.isBlank(element.getText()) || element.getText().contains(IdentityUtil
-                        .PEM_BEGIN_CERTFICATE)) {
-                    identityProvider.setCertificate(element.getText());
-                } else {
-                    log.warn("Identity provider " + identityProvider.getIdentityProviderName() + " doesn't have " +
-                            "begin and end certificate statement in it's certificate. Therefore certificate is not" +
-                            "set to the identity provider.");
-                }
+                identityProvider.setCertificate(element.getText());
             } else if (FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG.equals(elementName)) {
                 identityProvider
                         .setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
@@ -439,7 +431,8 @@ public class IdentityProvider implements Serializable {
                     if (certificateValue.startsWith(IdentityUtil.PEM_BEGIN_CERTFICATE)) {
                         this.certificateInfoArray = handlePlainTextCertificate(certificateValue);
                     } else {
-                        // Handle encoded certificate values. While uploading through UI.
+                        // Handle encoded certificate values. While uploading through UI and file based configuration
+                        // without begin and end statement.
                         this.certificateInfoArray = handleEncodedCertificate(certificateValue);
                     }
                 }
@@ -490,8 +483,37 @@ public class IdentityProvider implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug("Handling encoded certificates: " + certificateValue);
         }
-        String decodedCertificate = new String(Base64.getDecoder().decode(certificateValue));
-        return createCertificateInfo(decodedCertificate);
+        String decodedCertificate;
+        try {
+            decodedCertificate = new String(Base64.getDecoder().decode(certificateValue));
+        } catch (IllegalArgumentException ex) {
+            // TODO Need to handle the exception handling in proper way.
+            return createCertificateInfoForNoBeginCertificate(certificateValue);
+        }
+        if (StringUtils.isNotBlank(decodedCertificate) && !decodedCertificate.startsWith(IdentityUtil.PEM_BEGIN_CERTFICATE)) {
+            // Handle certificates which are one time encoded but doesn't have BEGIN and END statement
+            return createCertificateInfoForNoBeginCertificate(certificateValue);
+        } else {
+            return createEncodedCertificateInfo(decodedCertificate, true);
+        }
+    }
+
+    /**
+     * Create certificate info for the certificate which doesn't have BEGIN and END statement.
+     * @param certificateValue value of the certificate
+     * @return certificate info array
+     * @throws NoSuchAlgorithmException
+     */
+    private CertificateInfo[] createCertificateInfoForNoBeginCertificate(String certificateValue) throws NoSuchAlgorithmException {
+
+        String encodedCertVal = Base64.getEncoder().encodeToString(certificateValue.getBytes());
+        String thumbPrint = IdentityApplicationManagementUtil.generateThumbPrint(encodedCertVal);
+        List<CertificateInfo> certificateInfoList = new ArrayList<>();
+        CertificateInfo certificateInfo = new CertificateInfo();
+        certificateInfo.setThumbPrint(thumbPrint);
+        certificateInfo.setCertValue(certificateValue);
+        certificateInfoList.add(certificateInfo);
+        return certificateInfoList.toArray(new CertificateInfo[1]);
     }
 
     /**
@@ -506,16 +528,16 @@ public class IdentityProvider implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug("Handling plain text certificate: " + certificateValue);
         }
-        return createCertificateInfo(certificateValue);
+        return createEncodedCertificateInfo(certificateValue, false);
     }
 
     /**
-     * create certificate info by assigning certificate value and thumbPrint value.
+     * Create certificate info for encoded certificates.
      * @param decodedCertificate
      * @return
      * @throws NoSuchAlgorithmException
      */
-    private CertificateInfo[] createCertificateInfo(String decodedCertificate) throws
+    private CertificateInfo[] createEncodedCertificateInfo(String decodedCertificate, boolean isEncoded) throws
             NoSuchAlgorithmException {
 
         int numberOfCertificates = StringUtils.countMatches(decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE);
@@ -530,8 +552,14 @@ public class IdentityProvider implements Serializable {
         List<CertificateInfo> certificateInfoArrayList = new ArrayList<>();
         for (int ordinal = 1; ordinal <= numberOfCertificates; ordinal++) {
             String certificateVal;
-            certificateVal = Base64.getEncoder().encodeToString(IdentityApplicationManagementUtil.extractCertificate
-                    (decodedCertificate, ordinal).getBytes(StandardCharsets.UTF_8));
+            if (isEncoded) {
+                certificateVal = Base64.getEncoder().encodeToString(IdentityApplicationManagementUtil.extractCertificate
+                        (decodedCertificate, ordinal).getBytes(StandardCharsets.UTF_8));
+            } else {
+                certificateVal = IdentityApplicationManagementUtil.extractCertificate(decodedCertificate, ordinal).
+                        replace(IdentityUtil.PEM_BEGIN_CERTFICATE, "").replace(
+                        IdentityUtil.PEM_END_CERTIFICATE, "");
+            }
             CertificateInfo certificateInfo = new CertificateInfo();
             String thumbPrint = IdentityApplicationManagementUtil.generateThumbPrint(certificateVal);
             if (log.isDebugEnabled()) {
