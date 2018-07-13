@@ -82,7 +82,7 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     fireEvent(context, IdentityEventConstants.Event.POST_AUTHENTICATION, false);
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
-                    return redirectToRetryAuthentication(request, response, context, e);
+                    return handleRetryOnFailure(request, response, context, e);
                 }
             }
             // if a logout flow
@@ -101,7 +101,7 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
      * @return authentication flow status
      * @throws AuthenticationFailedException the exception in the authentication flow
      */
-    protected AuthenticatorFlowStatus redirectToRetryAuthentication(HttpServletRequest request,
+    protected AuthenticatorFlowStatus handleRetryOnFailure(HttpServletRequest request,
                                                                     HttpServletResponse response,
                                                                     AuthenticationContext context,
                                                                     AuthenticationFailedException e)
@@ -129,9 +129,9 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
      */
     protected void processWithNonSaaSApp(AuthenticationContext context) throws AuthenticationFailedException {
 
-        String userDomain = context.getSubject().getTenantDomain();
-        String tenantDomain = context.getTenantDomain();
-        if (!StringUtils.equals(userDomain, tenantDomain)) {
+        String userTenantDomain = context.getSubject().getTenantDomain();
+        String spTenantDomain = context.getTenantDomain();
+        if (!StringUtils.equals(userTenantDomain, spTenantDomain)) {
             context.setProperty("UserTenantDomainMismatch", true);
             throw new AuthenticationFailedException("Service Provider tenant domain must be " +
                     "equal to user tenant domain for non-SaaS applications", context.getSubject());
