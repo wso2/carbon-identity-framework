@@ -30,7 +30,9 @@ public class ApplicationMgtDBQueries {
                                                      "DESCRIPTION, AUTH_TYPE, IS_USE_TENANT_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION,IS_USE_USER_DOMAIN_SUBJECT) " +
                                                      "VALUES (?,?,?,?,?,?,?,?,?)";
     public static final String UPDATE_BASIC_APPINFO = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, IS_SAAS_APP=? " +
-                                                      "WHERE TENANT_ID= ? AND ID = ?";
+            "WHERE TENANT_ID= ? AND ID = ?";
+    public static final String UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, " +
+            "IS_SAAS_APP=?, USERNAME=?, USER_STORE=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM = "UPDATE SP_APP SET ROLE_CLAIM=? WHERE TENANT_ID" +
                                                                       "= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT = "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +
