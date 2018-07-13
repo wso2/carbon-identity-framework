@@ -43,7 +43,6 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.remotefetch.common</artifactId>
-            <version>5.12.10-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -53,7 +52,6 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.11.0.201803080745-r</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -89,13 +87,13 @@
                             javax.xml.namespace,
                             org.json,
 
-                            org.eclipse.jgit.api; version="${org.jgit.version}",
-                            org.eclipse.jgit.api.errors; version="${org.jgit.version}",
-                            org.eclipse.jgit.lib; version="${org.jgit.version}",
-                            org.eclipse.jgit.revwalk; version="${org.jgit.version}",
-                            org.eclipse.jgit.storage.file; version="${org.jgit.version}",
-                            org.eclipse.jgit.treewalk; version="${org.jgit.version}",
-                            org.eclipse.jgit.treewalk.filter; version="${org.jgit.version}",
+                            org.eclipse.jgit.api; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.api.errors; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.lib; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.revwalk; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.storage.file; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.treewalk; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.treewalk.filter; version="${org.jgit.version.range}",
 
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

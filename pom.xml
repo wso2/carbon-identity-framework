@@ -921,6 +921,12 @@
                 <version>${apache.felix.scr.ds.annotations.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.remotefetch.common</artifactId>
+                <version>${project.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-jaxrs</artifactId>
                 <version>${io.swagger.version}</version>
@@ -1489,6 +1495,11 @@
                 <version>${msf4j.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit</artifactId>
+                <version>${org.jgit.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1766,7 +1777,8 @@
         <h2database.version>1.3.175</h2database.version>
 
         <!-- JGit Version -->
-        <org.jgit.version>4.11.0</org.jgit.version>
+        <org.jgit.version>5.0.1.201806211838-r</org.jgit.version>
+        <org.jgit.version.range>[5.0.0,6.0.0)</org.jgit.version.range>
     </properties>
 
     <build>
