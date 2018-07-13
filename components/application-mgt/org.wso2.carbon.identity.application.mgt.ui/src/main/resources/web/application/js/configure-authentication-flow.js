@@ -429,9 +429,6 @@ function showHideTemplateList() {
     }
 }
 
-// if (localStorage.getItem("scriptIsDirtyKey") != "true") {
-//     buildScriptString();
-// }
 function buildScriptString() {
     var str = "";
     scriptStringContent = [];
@@ -686,7 +683,6 @@ doc.on("change", function (document, changeObj) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
-        //localStorage.setItem('scriptIsDirtyKey', scriptIsDirty);
         if (fromTemplateLink || fromStepsAddLink) {
             scriptIsDirty = false;
         }
