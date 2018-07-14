@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * 
+ *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -59,7 +60,9 @@ import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -110,6 +113,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return ApplicationManagementServiceImpl
      */
     public static ApplicationManagementServiceImpl getInstance() {
+
         if (appMgtService == null) {
             synchronized (ApplicationManagementServiceImpl.class) {
                 if (appMgtService == null) {
@@ -137,6 +141,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         ServiceProvider serviceProvider = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -177,6 +182,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
+
         ApplicationDAO appDAO = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -250,6 +256,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
             appDAO.updateApplication(serviceProvider, tenantDomain);
+            if (isOwnerUpdateRequest(serviceProvider)) {
+                //It is not required to validate the user here, as the user is validating inside the updateApplication
+                // method above. Hence assign application role to the app owner.
+                assignApplicationRole(serviceProvider.getApplicationName(), serviceProvider.getOwner().getUserName());
+            }
 
             if (!isValidPEMCertificate(serviceProvider.getCertificateContent())) {
                 String errorMessage = "Application certificate of the service provider " +
@@ -304,6 +315,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private void startTenantFlow(String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
+
         int tenantId;
         try {
             tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
@@ -318,6 +330,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private void endTenantFlow() {
+
         PrivilegedCarbonContext.endTenantFlow();
     }
 
@@ -390,6 +403,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -405,6 +419,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public IdentityProvider[] getAllIdentityProviders(String tenantDomain)
             throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -424,6 +439,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public LocalAuthenticatorConfig[] getAllLocalAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -443,6 +459,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -461,6 +478,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
@@ -500,7 +518,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            name =  appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
+            name = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
 
         } catch (Exception e) {
             String error = "Error occurred while retrieving the service provider for client id :  " + clientId;
@@ -534,8 +552,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProviderName, tenantDomain);
 
         if (claimMap == null
-            || claimMap.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || claimMap.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getServiceProviderToLocalIdPClaimMapping(
                     serviceProviderName, tenantDomain);
@@ -562,8 +580,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProviderName, tenantDomain);
 
         if (claimMap == null
-            || claimMap.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || claimMap.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getLocalIdPToServiceProviderClaimMapping(
                     serviceProviderName, tenantDomain);
@@ -588,11 +606,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         List<String> reqClaims = appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName,
-                                                                               tenantDomain);
+                tenantDomain);
 
         if (reqClaims == null
-            || reqClaims.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || reqClaims.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getAllRequestedClaimsByServiceProvider(
                     serviceProviderName, tenantDomain);
@@ -627,7 +645,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (name == null) {
             name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
-                                                                                  clientType, tenantDomain);
+                    clientType, tenantDomain);
         }
 
         if (name == null) {
@@ -920,6 +938,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
+
         List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
 
         if (permissionList != null) {
@@ -941,6 +960,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return axis configuration
      */
     private AxisConfiguration getAxisConfig() {
+
         return ApplicationManagementServiceComponentHolder.getInstance().getConfigContextService()
                 .getServerConfigContext().getAxisConfiguration();
     }
@@ -952,11 +972,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @throws org.wso2.carbon.registry.api.RegistryException
      */
     private Registry getConfigSystemRegistry() throws RegistryException {
+
         return (Registry) ApplicationManagementServiceComponentHolder.getInstance().getRegistryService()
                 .getConfigSystemRegistry();
     }
 
     private void deleteApplicationPermission(String applicationName) {
+
         try {
             ApplicationMgtUtil.deletePermissions(applicationName);
         } catch (IdentityApplicationManagementException e) {
@@ -965,6 +987,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private void deleteApplicationRole(String applicationName) {
+
         try {
             ApplicationMgtUtil.deleteAppRole(applicationName);
         } catch (IdentityApplicationManagementException e) {
@@ -1028,6 +1051,45 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         return serviceProvider;
+    }
+
+    private boolean isOwnerUpdateRequest(ServiceProvider serviceProvider) {
+
+        return serviceProvider.getOwner() != null && StringUtils.isNotEmpty(serviceProvider.getOwner().getUserName())
+                && !CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(serviceProvider.getOwner().getUserName());
+    }
+
+    private void assignApplicationRole(String applicationName, String username)
+            throws IdentityApplicationManagementException {
+
+        String roleName = getAppRoleName(applicationName);
+        String[] newRoles = {roleName};
+
+        try {
+            // assign new application role to the user.
+            UserRealm realm = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            if (realm != null) {
+                String[] roleListOfUser = realm.getUserStoreManager().getRoleListOfUser(username);
+                if (ArrayUtils.contains(roleListOfUser, roleName)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("The user: " + username + " is already having the role: " + roleName);
+                    }
+                } else {
+                    realm.getUserStoreManager().updateRoleListOfUser(username, null, newRoles);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Assigning application role : " + roleName + " to the user : " + username);
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while assigning application role: " + roleName +
+                    " to the user: " + username, e);
+        }
+    }
+
+    private static String getAppRoleName(String applicationName) {
+
+        return ApplicationConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + applicationName;
     }
 
     /**

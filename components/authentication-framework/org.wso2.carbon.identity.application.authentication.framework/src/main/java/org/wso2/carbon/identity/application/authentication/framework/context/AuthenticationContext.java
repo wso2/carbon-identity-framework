@@ -59,10 +59,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String tenantDomain;
     private int retryCount;
     private int currentPostAuthHandlerIndex = 0;
-    private Map<String, String> authenticatorProperties = new HashMap<String, String>();
+    private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
+    private Map<String, String> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
     private boolean reAuthenticate;
@@ -70,8 +71,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean previousAuthTime;
     private AuthenticationRequest authenticationRequest;
 
-    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
-    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
+    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<>();
+    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<>();
 
     //flow controller flags
     private boolean requestAuthenticated = true;
@@ -501,5 +502,34 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             }
         }
         return Collections.emptyMap();
+    }
+
+    /**
+     * Add an API parameter to the context. This can be used to pass sensitive values to the endpoints, without
+     * sending them as query parameters.
+     * @param key parameter key
+     * @param value parameter value
+     */
+    public void addEndpointParam(String key, String value) {
+
+        endpointParams.put(key, value);
+    }
+
+    /**
+     * Similar to {@link #addEndpointParam(String, String)}. Provide the ability to add multiple parameters at once.
+     * @param params Map of parameters to add
+     */
+    public void addEndpointParams(Map<String, String> params) {
+
+        endpointParams.putAll(params);
+    }
+
+    /**
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, String)} for more details.
+     * @return
+     */
+    public Map<String, String> getEndpointParams() {
+
+        return endpointParams;
     }
 }

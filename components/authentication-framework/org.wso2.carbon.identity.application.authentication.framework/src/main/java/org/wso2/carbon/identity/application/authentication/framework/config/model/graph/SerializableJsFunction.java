@@ -30,6 +30,7 @@ import java.io.Serializable;
  */
 public class SerializableJsFunction implements Serializable {
 
+    private static final long serialVersionUID = -7605388897997019588L;
     private String source;
     private boolean isFunction;
 
