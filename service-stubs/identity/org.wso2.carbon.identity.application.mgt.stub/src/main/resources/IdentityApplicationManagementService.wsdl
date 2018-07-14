@@ -25,6 +25,18 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getAllApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="updateApplication">
                 <xs:complexType>
                     <xs:sequence>
@@ -36,18 +48,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationBasicInfo">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationBasicInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -114,15 +114,14 @@
             <xs:element name="importApplication">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="fileName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="spFileContent" nillable="true" type="ax2171:SpFileContent"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="importApplicationResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ImporterResponse"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ImportResponse"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -328,6 +327,9 @@
                 <xs:complexContent>
                     <xs:extension base="ax2171:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"/>
                         </xs:sequence>
                     </xs:extension>
@@ -400,10 +402,17 @@
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="ImporterResponse">
+            <xs:complexType name="SpFileContent">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="fileName" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ImportResponse">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="errors" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="responseCode" type="xs:int"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>

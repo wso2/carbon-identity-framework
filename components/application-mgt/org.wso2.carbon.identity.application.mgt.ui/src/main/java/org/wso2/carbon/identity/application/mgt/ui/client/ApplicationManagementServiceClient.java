@@ -26,10 +26,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.xsd.ImporterResponse;
+import org.wso2.carbon.identity.application.common.model.xsd.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.xsd.SpFileContent;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
@@ -249,16 +250,16 @@ public class ApplicationManagementServiceClient {
         }
     }
 
-    public ImporterResponse importApplication(String content, String fileName) throws AxisFault {
+    public ImportResponse importApplication(SpFileContent spFileContent) throws AxisFault {
         try {
             if (debugEnabled) {
-                log.debug("Importing Service Provider from file : " + fileName);
+                log.debug("Importing Service Provider from file : " + spFileContent.getFileName());
             }
-            return stub.importApplication(content, fileName);
+            return stub.importApplication(spFileContent);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
-        return new ImporterResponse();
+        return new ImportResponse();
     }
 
     public String exportApplication(String appid, boolean exportSecrets) throws AxisFault {

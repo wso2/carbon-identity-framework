@@ -82,12 +82,10 @@
 
                     function doInclude() {
                         document.getElementById('exportSecrets').value = "true";
-                        console.log(document.getElementById('exportSecrets').value);
                         jQuery('#spExportData').submit();
                     }
                     function doExclude() {
                         document.getElementById('exportSecrets').value = "false";
-                        console.log(document.getElementById('exportSecrets').value);
                         jQuery('#spExportData').submit();
                     }
                     document.getElementById('spName').value = appid;

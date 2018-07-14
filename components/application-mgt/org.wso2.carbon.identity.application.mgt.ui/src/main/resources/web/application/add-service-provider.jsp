@@ -96,7 +96,7 @@ $(function() {
         buttons: {
             OK: closeImportErrorDialog
         },
-        modal:true
+        width: "fit-content"
     });
 });
 function closeImportErrorDialog() {
@@ -107,7 +107,7 @@ function closeImportErrorDialog() {
 }
 window.onload = function() {
     showManual();
-    <% if (importError.length > 0) { %>
+    <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
         $( "#importErrorMsgDialog" ).dialog( "open" );
     <% } %>
 };
@@ -202,21 +202,22 @@ window.onload = function() {
             </form>
         </div>
     </div>
-    <div id = "importErrorMsgDialog" title = "WSO2 Carbon" style="height: fit-content;width: fit-content">
-        <h2 style="margin-left:10px;margin-top:20px;margin-left:10px;">
-            <fmt:message key="error.while.importing.sp"/>
-        </h2>
-        
-        <table style="margin-left:20px;margin-top:25px;margin-left:20px;">
-            <%
-                for (String error : importError){
-            %>
-            <tr style="height: 25px;">
-                <td><%=error%></td>
-            </tr>
-            <%
-                }
-            %>
-        </table>
-    </div>
+    <div id="importErrorMsgDialog" class="ui-dialog-container" style="position: relative; width: 100%; height: 100%;">
+            <div id="messagebox-error">
+                <h2 style="margin-top:20px;">
+                    <fmt:message key="error.while.importing.sp"/>
+                </h2>
+                <table style="margin-left:20px;margin-top:25px;margin-left:20px;">
+                    <%
+                        for (String error : importError){
+                    %>
+                    <tr style="height: 25px;">
+                        <td><%=error%></td>
+                    </tr>
+                    <%
+                        }
+                    %>
+                </table>
+            </div>
+        </div>
 </fmt:bundle>

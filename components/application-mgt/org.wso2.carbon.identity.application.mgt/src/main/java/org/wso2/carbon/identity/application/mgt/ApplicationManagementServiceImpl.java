@@ -903,13 +903,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.debug(String.format("Service provider %s@%s created successfully from file %s",
                         serviceProvider.getApplicationName(), tenantDomain, spFileContent.getFileName()));
             }
-            importResponse.setResponseCode(ImportResponse.ResponseCode.CREATED);
+            importResponse.setResponseCode(ImportResponse.CREATED);
             importResponse.setApplicationName(serviceProvider.getApplicationName());
             importResponse.setErrors(new String[0]);
             return importResponse;
         } catch (IdentityApplicationManagementValidationException e) {
             deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
-            importResponse.setResponseCode(ImportResponse.ResponseCode.FAILED);
+            importResponse.setResponseCode(ImportResponse.FAILED);
             importResponse.setApplicationName(null);
             importResponse.setErrors(e.getValidationMsg());
             return importResponse;

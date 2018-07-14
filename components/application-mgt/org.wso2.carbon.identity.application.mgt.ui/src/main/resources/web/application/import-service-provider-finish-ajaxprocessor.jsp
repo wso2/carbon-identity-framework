@@ -23,10 +23,11 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@ page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ImporterResponse" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpFileContent" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ImportResponse" %>
 
-<%!
+<%! public static final int CREATED = 201;
     private static final String HTTP_POST = "post";
 %><%
     String httpMethod = request.getMethod();
@@ -34,30 +35,33 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    String spFileContent = request.getParameter("sp-file-content");
-    String spFileName = request.getParameter("sp-file-name");
+    String content = request.getParameter("sp-file-content");
+    String fileName = request.getParameter("sp-file-name");
     
-    if (StringUtils.isNotEmpty(spFileContent)) {
+    if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
                             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-            ImporterResponse importerResponse = serviceClient.importApplication(spFileContent, spFileName);
-            String appName = importerResponse.getApplicationName();
-            if (appName != null) {
+            SpFileContent spFileContent = new SpFileContent();
+            spFileContent.setContent(content);
+            spFileContent.setFileName(fileName);
+            ImportResponse importResponse = serviceClient.importApplication(spFileContent);
+            if (importResponse.getResponseCode() == CREATED) {
+                String appName = importResponse.getApplicationName();
         %>
             <script>
                 location.href = 'load-service-provider.jsp?spName=<%=Encode.forUriComponent(appName)%>';
             </script>
         <%
             } else {
-                String[] errors = importerResponse.getErrors();
+                String[] errors = importResponse.getErrors();
                 session.setAttribute("importError", errors);
             %>
                 <script>
-                    location.href = 'add-service-provider.jsp';
+                    location.href = 'add-service-provider.jsp?importError=true';
                 </script>
             <%
             }
