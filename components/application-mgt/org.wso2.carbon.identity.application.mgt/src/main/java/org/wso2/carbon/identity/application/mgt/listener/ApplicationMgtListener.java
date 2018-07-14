@@ -277,4 +277,14 @@ public interface ApplicationMgtListener {
      */
     void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets) throws
             IdentityApplicationManagementException;
+
+    /**
+     * Define any addition actions before creating inbound keys.
+     *
+     * @param serviceProvider service Provider
+     * @param isUpdate        isUpdate
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException;
 }

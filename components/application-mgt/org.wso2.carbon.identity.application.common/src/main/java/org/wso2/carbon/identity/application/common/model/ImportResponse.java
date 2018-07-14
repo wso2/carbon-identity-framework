@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
-public class ImporterResponse {
+public class ImportResponse {
+
+    private ResponseCode responseCode;
 
     private String applicationName;
 
@@ -42,5 +44,20 @@ public class ImporterResponse {
     public void setErrors(String[] errors) {
 
         this.errors = errors;
+    }
+
+    public ResponseCode getResponseCode() {
+
+        return responseCode;
+    }
+
+    public void setResponseCode(ResponseCode responseCode) {
+
+        this.responseCode = responseCode;
+    }
+
+    public enum ResponseCode {
+        CREATED,
+        FAILED
     }
 }

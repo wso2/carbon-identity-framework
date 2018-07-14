@@ -18,7 +18,6 @@
 package org.wso2.carbon.directory.server.manager;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.directory.server.manager.common.ServerPrinciple;
@@ -85,7 +84,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
     }
 
     @Override
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate)
             throws IdentityApplicationManagementException {
 
         List<String> validationMsg = new ArrayList<>();
@@ -96,25 +95,36 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
 
-                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
+                if (KERBEROS.equals(authConfig.getInboundAuthType())) {
                     if (authConfig.getInboundConfiguration() != null) {
                         String inboundAuthKey = authConfig.getInboundAuthKey();
                         if (authConfig.getInboundConfiguration() == null) {
-                            return true;
+                            validationMsg.add("Kerberos inbound configuration is not available.");
+                            break;
                         }
                         ServerPrinciple serverPrinciple;
                         try {
                             serverPrinciple = unmarshalServerPrinciple(authConfig.getInboundConfiguration(),
-                                    serviceProvider.getApplicationName(), tenantDomain);
+                                    serviceProvider.getApplicationName(), serviceProvider.getOwner().getTenantDomain());
+                            if (!inboundAuthKey.equals(serverPrinciple.getServerName())) {
+                                validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
+                                        "is not match with Service Principal Name %s.", authConfig
+                                        .getInboundAuthKey(), serverPrinciple.getServerName()));
+                            }
+                            if (!isUpdate) {
+                                DirectoryServerManager directoryServerManager = new DirectoryServerManager();
+                                if (directoryServerManager.isExistingServicePrinciple(serverPrinciple.getServerName())) {
+                                    validationMsg.add("Already kerberos inbound configuration available with same server " +
+                                            "principle name");
+                                }
+                            }
                         } catch (IdentityApplicationManagementException e) {
                             validationMsg.add("Kerberos inbound configuration in the file is not valid.");
                             throw new IdentityApplicationManagementValidationException(
                                     validationMsg.toArray(new String[0]));
-                        }
-                        if (!inboundAuthKey.equals(serverPrinciple.getServerName())) {
-                            validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
-                                            "is not match with Service Principal Name %s.", authConfig
-                                            .getInboundAuthKey(), serverPrinciple.getServerName()));
+                        } catch (DirectoryServerManagerException e) {
+                            throw new IdentityApplicationManagementException("Error in accessing Directory Server " +
+                                    "Management ", e);
                         }
                     }
                     break;
@@ -124,7 +134,6 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
         if (!validationMsg.isEmpty()) {
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
-        return true;
     }
 
     @Override
@@ -136,7 +145,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
 
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
+                if (KERBEROS.equals(authConfig.getInboundAuthType())) {
 
                     String inboundConfiguration = authConfig.getInboundConfiguration();
                     if (inboundConfiguration == null || "".equals(inboundConfiguration)) {
@@ -172,7 +181,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
                 inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs() != null) {
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authConfig.getInboundAuthType(), KERBEROS)) {
+                if (KERBEROS.equals(authConfig.getInboundAuthType())) {
                     String inboundAuthKey = authConfig.getInboundAuthKey();
                     if (exportSecrets) {
                         try {

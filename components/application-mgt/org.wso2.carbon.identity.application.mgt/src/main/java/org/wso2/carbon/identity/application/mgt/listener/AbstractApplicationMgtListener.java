@@ -149,4 +149,10 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
 
         return;
     }
+
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
 }

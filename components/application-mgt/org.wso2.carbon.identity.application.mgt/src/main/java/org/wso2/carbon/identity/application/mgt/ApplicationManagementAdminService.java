@@ -24,7 +24,8 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.ImporterResponse;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
+import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -276,15 +277,15 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     /**
      * Import application from XML file from UI.
      *
-     * @param content XML content of the SP
+     * @param spFileContent xml string of the SP and file name
      * @return Created application name
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    public ImporterResponse importApplication(String content, String fileName) throws IdentityApplicationManagementException {
+    public ImportResponse importApplication(SpFileContent spFileContent) throws IdentityApplicationManagementException {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.importSPApplication(content, fileName, getTenantDomain(), getUsername(), false);
+            return applicationMgtService.importSPApplication(spFileContent, getTenantDomain(), getUsername(), false);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while importing application for tenant: " + getTenantDomain(), idpException);
             throw idpException;

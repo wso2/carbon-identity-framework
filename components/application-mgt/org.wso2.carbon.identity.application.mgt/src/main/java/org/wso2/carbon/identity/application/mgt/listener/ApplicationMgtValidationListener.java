@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -71,6 +73,12 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             // check for required attributes.
             throw new IdentityApplicationManagementException("Application Name is required");
         }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ServiceProvider savedSP = appDAO.getApplication(serviceProvider.getApplicationName(), tenantDomain);
+        if (savedSP != null) {
+            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+        }
         return true;
     }
 
@@ -78,17 +86,11 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
     public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
                                           String userName) throws IdentityApplicationManagementException {
 
-        List<String> validationMsg = new ArrayList<>();
-
         validateLocalAndOutBoundAuthenticationConfig(serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
-                tenantDomain, validationMsg);
-        validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain, validationMsg);
-        validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain, validationMsg);
-        if (validationMsg.isEmpty()) {
-            return true;
-        } else {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
+                tenantDomain);
+        validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
+        validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain);
+        return true;
     }
 
     /**
@@ -96,14 +98,14 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      *
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
-     * @param validationMsg                        validation msg
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      * authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(
-            LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain, List
-            <String> validationMsg)
+            LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
+
+        List<String> validationMsg = new ArrayList<>();
 
         if (localAndOutBoundAuthenticationConfig == null) {
             return;
@@ -153,7 +155,9 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 }
             });
         });
-        return;
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
     }
 
     /**
@@ -161,10 +165,11 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      *
      * @param outboundProvisioningConfig Outbound provisioning config
      * @param tenantDomain               tenant domain
-     * @param validationMsg              validation msg
      */
     private void validateOutBoundProvisioning(OutboundProvisioningConfig outboundProvisioningConfig, String
-            tenantDomain, List<String> validationMsg) {
+            tenantDomain) throws IdentityApplicationManagementValidationException {
+
+        List<String> validationMsg = new ArrayList<>();
 
         if (outboundProvisioningConfig == null
                 || outboundProvisioningConfig.getProvisioningIdentityProviders() == null) {
@@ -187,7 +192,9 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                         idp.getIdentityProviderName()));
             }
         });
-        return;
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
     }
 
     /**
@@ -195,11 +202,12 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      *
      * @param claimConfig   claim config
      * @param tenantDomain  tenant domain
-     * @param validationMsg validation msg
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain, List<String> validationMsg) throws
+    private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain) throws
             IdentityApplicationManagementException {
+
+        List<String> validationMsg = new ArrayList<>();
 
         if (claimConfig == null) {
             return;
@@ -234,6 +242,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
         } catch (ClaimMetadataException e) {
             validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
-        return;
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
     }
 }
