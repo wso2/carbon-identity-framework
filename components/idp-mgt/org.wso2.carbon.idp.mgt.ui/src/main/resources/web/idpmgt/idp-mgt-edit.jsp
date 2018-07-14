@@ -275,7 +275,8 @@
                 certInfoArr[i] = certificateInformation;
                 i++;
             }
-            certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr);
+            certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr).toArray(
+                    new CertData[identityProvider.getCertificateInfoArray().length]);
         }
         IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
         if (idpProperties != null) {

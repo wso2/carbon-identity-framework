@@ -247,7 +247,7 @@ public class ProvisioningManagementDAO {
             prepStmt.setBinaryStream(4, setBlobValue(certificateInfoJsonArray.toString()));
 
             if (log.isDebugEnabled()) {
-                log.debug("Certificate has been saved in the database as a JSON array");
+                log.debug("Certificate has been saved in the database as a JSON array: " + certificateInfoJsonArray);
             }
 
             prepStmt.setString(5, newIdentityProvider.getAlias());

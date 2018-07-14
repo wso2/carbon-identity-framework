@@ -1684,6 +1684,7 @@ public class IdPManagementDAO {
 
             if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray())) {
                 try {
+                    // Check whether certificate decoding and certificate generation fails or not.
                     IdentityApplicationManagementUtil.getCertDataArray(identityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided."

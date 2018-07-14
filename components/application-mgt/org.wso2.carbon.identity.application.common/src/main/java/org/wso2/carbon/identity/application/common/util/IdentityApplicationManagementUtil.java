@@ -502,20 +502,21 @@ public class IdentityApplicationManagementUtil {
      * @return CertData array
      * @throws CertificateException
      */
-    public static CertData[] getCertDataArray(CertificateInfo[] certificateInfo) throws CertificateException {
+    public static List<CertData> getCertDataArray(CertificateInfo[] certificateInfo) throws CertificateException {
 
         if (ArrayUtils.isNotEmpty(certificateInfo)) {
-            CertData[] certData = new CertData[certificateInfo.length];
+            List<CertData> certDataList = new ArrayList<>();
             HashMap<CertData, String> certDataMap = new HashMap<>();
             int i = 0;
             for (CertificateInfo certificateInfoVal : certificateInfo) {
                 String certVal = certificateInfoVal.getCertValue();
-                certData[i] = createCertData(certVal);
-                certDataMap.put(certData[i], certVal);
+                CertData certData = createCertData(certVal);
+                certDataList.add(certData);
+                certDataMap.put(certData, certVal);
                 i++;
             }
             setCertDataMap(certDataMap);
-            return certData;
+            return certDataList;
         } else {
             String errorMsg = "Certificate info array is empty";
             if (log.isDebugEnabled()) {

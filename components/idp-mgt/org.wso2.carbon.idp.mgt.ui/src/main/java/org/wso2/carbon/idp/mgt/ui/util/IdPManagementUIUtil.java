@@ -228,15 +228,16 @@ public class IdPManagementUIUtil {
                 if (oldIdentityProvider.getCertificateInfoArray() != null && oldIdentityProvider.
                         getCertificateInfoArray().length > 1) {
                     if (log.isDebugEnabled()) {
-                        log.debug("More than one certificate has been found as old certificate.");
+                        log.debug("Number of old certificate for the identity provider " +
+                                oldIdentityProvider.getDisplayName() + " is " + oldIdentityProvider.
+                                getCertificateInfoArray().length);
                     }
-
                     StringBuilder multipleCertificate = new StringBuilder();
                     for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
                         multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
                     }
                     paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, Base64.encode(multipleCertificate.toString().
-                            getBytes("UTF-8")));
+                            getBytes(StandardCharsets.UTF_8)));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("Only one certificate has been found as old certificate.");
@@ -985,10 +986,10 @@ public class IdPManagementUIUtil {
 
         // if there is no new certificate and not a delete - use the old one.
         if (oldCertFile != null && certFile == null
-                && (deletePublicCert == null || !Boolean.parseBoolean(deletePublicCert))) {
+                && (!Boolean.parseBoolean(deletePublicCert))) {
             certFile = oldCertFile;
         } else if (StringUtils.isNotBlank(oldCertFile) && StringUtils.isNotBlank(certFile)
-                && (deletePublicCert == null || !Boolean.parseBoolean(deletePublicCert))) {
+                && (!Boolean.parseBoolean(deletePublicCert))) {
             // If there is a new certificate and not a delete - get the distinct union of the new certificate and old
             // certificate and update it.
             certFile = handleCertificateAddition(oldCertFile, certFile);
