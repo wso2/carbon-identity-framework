@@ -16,15 +16,19 @@
  * under the License.
  */
 
+var scriptIsDirty = false;
+var fromTemplateLink = false;
+var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
 var scriptStringHeader = "function onInitialRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
+var documentBeforeChange;
 
 $("#createApp").click(function () {
-    showAllErrors();
+    validateAppCreation();
 });
 
 var addTemplate = $("#addTemplate");
@@ -61,10 +65,10 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
-function showAllErrors() {
+function validateAppCreation() {
+    var warnCount = 0;
+    var errorCount = 0;
     myCodeMirror.operation(function () {
-        var warnCount = 0;
-        var errorCount = 0;
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
             var err = JSHINT.errors[i];
@@ -76,27 +80,45 @@ function showAllErrors() {
                 errorCount++;
             }
         }
+    });
+
+    if (!scriptIsDirty) {
+        submitFormWithDIsabledScript();
+    } else {
+        var stepsInUI = getExecuteStepsInUI();
+        var stepsInScript = getExecuteStepsInScript();
+
+        if (stepsInUI.length < stepsInScript.length){
+            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
+                submitFormWithDIsabledScript, null);
+        } else if (stepsInUI.length > stepsInScript.length){
+            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
+                submitFormWithEnabledScript, null);
+        } else{
+            console.log("missed validation");
+        }
 
         if (errorCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
-                'Do you want to continue? ',
-                submitFormWithoutCheck, null);
-        } else if (warnCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
-                'Do you want to continue? ',
-                submitFormWithoutCheck, null);
-        } else {
-            submitForm();
+            CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
+                ' saved)',
+                submitFormWithDIsabledScript, null);
         }
-    });
+        if (warnCount > 0) {
+            CARBON.showConfirmationDialog('Save script with warnings? (Script will not be evaluated and will only be' +
+                ' saved)',
+                submitFormWithEnabledScript, null);
+        }
+
+    }
 }
 
-function submitFormWithoutCheck() {
+function submitFormWithDIsabledScript() {
     $("#enableScript").prop("checked", false);
     $("#configure-auth-flow-form").submit();
 }
 
-function submitForm() {
+function submitFormWithEnabledScript() {
+    $("#enableScript").prop("checked", true);
     $("#configure-auth-flow-form").submit();
 }
 
@@ -206,7 +228,6 @@ $('[data-toggle=template-link]').click(function (e) {
         ch: line.length - 1
     };
 
-    var editorContent = doc.getValue();
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
@@ -223,6 +244,7 @@ $('[data-toggle=template-link]').click(function (e) {
     if (editorContent.length === 0) {
         $('#template-replace-warn').hide();
     }
+    fromTemplateLink = true;
 });
 
 function addNewSteps(templateObj) {
@@ -246,7 +268,6 @@ function removeExistingSteps() {
     for (var i = $('.step_heads').length; i > 0; i--) {
         $('#subject_step_' + stepOrder).removeAttr('checked');
         $('#attribute_step_' + stepOrder).removeAttr('checked');
-        //$('#step_head_' + stepOrder).children('.icon-link').click();
         deleteStep($('#step_head_' + stepOrder).children('.icon-link'));
     }
     stepOrder = 0;
@@ -421,21 +442,13 @@ function showHideTemplateList() {
     }
 }
 
-buildScriptString("init");
-function buildScriptString(action) {
+function buildScriptString() {
     var str = "";
-    if (action == "add") {
-        scriptStringContent.push("executeStep(" + stepOrder + ");");
-        scriptStringContent.forEach(function (element) {
-            str += element;
-        });
-    } else {
-        scriptStringContent = [];
-        $(".steps > h2").each(function (index, element) {
-            scriptStringContent.push("executeStep(" + (index + 1) + ");");
-            str += scriptStringContent[index];
-        });
-    }
+    scriptStringContent = [];
+    $(".steps > h2").each(function (index, element) {
+        scriptStringContent.push("executeStep(" + (index + 1) + ");");
+        str += scriptStringContent[index];
+    });
     var scriptComposed = scriptStringHeader + str + scriptStringFooter;
     doc.setValue(scriptComposed);
     CodeMirror.commands["selectAll"](myCodeMirror);
@@ -472,15 +485,17 @@ function deleteIDPRow(obj) {
 
 $('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
-    buildScriptString("delete");
+    buildScriptString();
     e.stopImmediatePropagation();
 });
 
 $('#stepsAddLink').click(function (e) {
     e.preventDefault();
+    fromStepsAddLink = true;
     addNewUIStep();
-    buildScriptString("add");
+    buildScriptString();
 });
+
 function deleteStep(obj) {
 
     var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
@@ -575,7 +590,6 @@ function deleteLocalAuthRow(obj) {
 }
 
 function addLocalRow(obj, stepId) {
-    //var stepId = jQuery(obj).parent().children()[0].value;
     var selectedObj = jQuery(obj).prev().find(":selected");
     var selectedAuthenticatorName = selectedObj.val();
     var selectedAuthenticatorDisplayName = selectedObj.text();
@@ -599,7 +613,6 @@ function addIDPRow(obj, stepID) {
         return false;
     }
 
-    //var stepID = jQuery(obj).parent().children()[1].value;
     var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
     var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
     var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
@@ -645,4 +658,81 @@ function setAttributeStep(element) {
         $(this).attr('checked', false);
     });
     $(element).attr('checked', true);
+}
+
+function getExecuteStepsInUI() {
+    var currentUISteps = [];
+    $(".step_heads").each(function (i, e) {
+        currentUISteps.push(parseInt(i + 1));
+    });
+    return currentUISteps;
+}
+
+function getExecuteStepsInScript() {
+    var stepsIntArray = [];
+    var currentScriptMinified = myCodeMirror.getValue().replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    var result = currentScriptMinified.match(/executeStep\([0-9]+/g);
+    if (typeof result !== 'undefined' && result !== null) {
+        var uniqueStepsInScript = result.filter(onlyUnique);
+
+        $(uniqueStepsInScript).each(function (i, e) {
+            var currentInt = parseInt(e.replace(/executeStep\(/g, ''));
+            stepsIntArray.push(currentInt);
+        });
+    }
+
+    return stepsIntArray.sort(sortNumber);
+}
+
+doc.on("beforeChange", function (document, changeObj) {
+    documentBeforeChange = editorContent;
+    documentBeforeChange = documentBeforeChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+});
+
+doc.on("change", function (document, changeObj) {
+    var documentAfterChange = document.getValue();
+    documentAfterChange = documentAfterChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    if (documentAfterChange === documentBeforeChange) {
+        scriptIsDirty = false;
+    } else {
+        scriptIsDirty = true;
+        if (fromTemplateLink || fromStepsAddLink) {
+            scriptIsDirty = false;
+        }
+    }
+});
+
+$('#editorRow').bind('beforeShow', function () {
+    myCodeMirror.refresh();
+});
+
+jQuery(function ($) {
+
+    var _oldShow = $.fn.show;
+
+    $.fn.show = function (speed, oldCallback) {
+        return $(this).each(function () {
+            var obj = $(this),
+                newCallback = function () {
+                    if ($.isFunction(oldCallback)) {
+                        oldCallback.apply(obj);
+                    }
+                    obj.trigger('afterShow');
+                };
+
+            // you can trigger a before show if you want
+            obj.trigger('beforeShow');
+
+            // now use the old function to show the element passing the new callback
+            _oldShow.apply(obj, [speed, newCallback]);
+        });
+    }
+});
+
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+function sortNumber(a, b) {
+    return a - b;
 }

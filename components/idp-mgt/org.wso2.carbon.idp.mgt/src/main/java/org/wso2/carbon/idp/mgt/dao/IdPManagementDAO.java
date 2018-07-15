@@ -23,7 +23,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -1682,16 +1681,15 @@ public class IdPManagementDAO {
 
             prepStmt.setString(4, identityProvider.getHomeRealmId());
 
-            if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray())) {
+            if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
                 try {
-                    IdentityApplicationManagementUtil.getCertDataArray(identityProvider.getCertificateInfoArray());
+                    IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
                 } catch (CertificateException ex) {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided."
                             , ex);
                 }
             }
-            JSONArray certificateInfoJsonArray = new JSONArray(identityProvider.getCertificateInfoArray());
-            setBlobValue(certificateInfoJsonArray.toString(), prepStmt, 5);
+            setBlobValue(identityProvider.getCertificate(), prepStmt, 5);
 
             prepStmt.setString(6, identityProvider.getAlias());
 
@@ -1906,15 +1904,14 @@ public class IdPManagementDAO {
 
             prepStmt1.setString(3, newIdentityProvider.getHomeRealmId());
 
-            if (ArrayUtils.isNotEmpty(newIdentityProvider.getCertificateInfoArray())) {
+            if (StringUtils.isNotBlank(newIdentityProvider.getCertificate())) {
                 try {
-                    IdentityApplicationManagementUtil.getCertDataArray(newIdentityProvider.getCertificateInfoArray());
+                    IdentityApplicationManagementUtil.getCertData(newIdentityProvider.getCertificate());
                 } catch (CertificateException ex) {
                     throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided.", ex);
                 }
             }
-            JSONArray certificateInfoJsonArray = new JSONArray(newIdentityProvider.getCertificateInfoArray());
-            setBlobValue(certificateInfoJsonArray.toString(), prepStmt1, 4);
+            setBlobValue(newIdentityProvider.getCertificate(), prepStmt1, 4);
 
             prepStmt1.setString(5, newIdentityProvider.getAlias());
 

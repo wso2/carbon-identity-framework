@@ -662,14 +662,28 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         // update the application data
         PreparedStatement storeAppPrepStmt = null;
         try {
-            storeAppPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO);
+            String sql;
+            boolean isValidUserForOwnerUpdate = ApplicationMgtUtil.isValidAppicationOwner(serviceProvider);
+            if (isValidUserForOwnerUpdate) {
+                sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
+            } else {
+                sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
+            }
+
+            storeAppPrepStmt = connection.prepareStatement(sql);
             // SET APP_NAME=?, DESCRIPTION=? IS_SAAS_APP=? WHERE TENANT_ID= ? AND ID = ?
             storeAppPrepStmt.setString(1, applicationName);
             storeAppPrepStmt.setString(2, description);
             storeAppPrepStmt.setString(3, isSaasApp ? "1" : "0");
-            storeAppPrepStmt.setInt(4, tenantID);
-            storeAppPrepStmt.setInt(5, applicationId);
+            if (isValidUserForOwnerUpdate) {
+                storeAppPrepStmt.setString(4, serviceProvider.getOwner().getUserName());
+                storeAppPrepStmt.setString(5, serviceProvider.getOwner().getUserStoreDomain());
+                storeAppPrepStmt.setInt(6, tenantID);
+                storeAppPrepStmt.setInt(7, applicationId);
+            } else {
+                storeAppPrepStmt.setInt(4, tenantID);
+                storeAppPrepStmt.setInt(5, applicationId);
+            }
             storeAppPrepStmt.executeUpdate();
 
         } finally {

@@ -4,11 +4,11 @@
   "title": "ACR Based 2FA Template",
   "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
   "preRequisites": [
-    "Change the acrList parameter to an array of ACR Levels.",
+    "Change the supportedAcrValues parameter to an array of ACR Levels.",
     "Modify the default authentication steps and option(s) as required."
   ],
   "parametersDescription": {
-    "acrList": "An array of ACRs ordered by the level"
+    "supportedAcrValues": "An array of ACRs ordered by the level"
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
@@ -43,12 +43,12 @@
     "// as comma separated values.",
     "",
     "// Specify the ordered list of ACR here.",
-    "var acrList = ['acr1', 'acr2', 'acr3'];",
+    "var supportedAcrValues = ['acr1', 'acr2', 'acr3'];",
     "",
     "function onInitialRequest(context) {",
-    "    var acr = selectAcrFrom(context, acrList);",
-    "    Log.info('--------------- ACR selected: ' + acr);",
-    "    context.selectedAcr = acr;",
+    "    var selectedAcr = selectAcrFrom(context, supportedAcrValues);",
+    "    Log.info('--------------- ACR selected: ' + selectedAcr);",
+    "    context.selectedAcr = selectedAcr;",
     "    switch (acr) {",
     "        case acrList[0] :",
     "            executeStep(1);",
