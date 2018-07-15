@@ -37,9 +37,6 @@ public class RemoteFetchConfiguration implements Serializable {
     private Map<String, String> actionListenerAttributes = new HashMap<>();
     private Map<String, String> confgiurationDeployerAttributes = new HashMap<>();
 
-    public RemoteFetchConfiguration() { // default implementation ignored
-    }
-
     public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String repositoryManagerType,
                                     String actionListenerType, String confgiurationDeployerType) {
 
@@ -188,7 +185,9 @@ public class RemoteFetchConfiguration implements Serializable {
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) return true;
+        if (this == o) {
+            return true;
+        }
         if (!(o instanceof RemoteFetchConfiguration)) return false;
         RemoteFetchConfiguration that = (RemoteFetchConfiguration) o;
         return remoteFetchConfigurationId == that.remoteFetchConfigurationId &&

@@ -31,10 +31,6 @@ public abstract class ActionListenerBuilder {
     protected RepositoryManager repoConnector;
     protected ConfigDeployer configDeployer;
 
-    public ActionListenerBuilder() {
-
-    }
-
     /**
      * Set RemoteFetchConfiguration attribute
      *
