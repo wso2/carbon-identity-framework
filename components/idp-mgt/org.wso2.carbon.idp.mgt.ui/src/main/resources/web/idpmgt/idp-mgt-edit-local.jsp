@@ -675,7 +675,21 @@ function idpMgtCancel(){
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) {%>
+    
+                    <tr>
+                        <td style="width: 500px;">
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif);margin-right: 300px"
+                               href="<%=Encode.forHtmlAttribute(value)%>"><%=Encode.forHtmlContent(displayName)%>
+                            </a>
+                        </td>
+                    </tr>
+    
+                    <% } else { %>
                         <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
@@ -705,7 +719,7 @@ function idpMgtCancel(){
                             <td colspan="2"><input
                                     <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
                                     type="password"
-                                    <% } else {%>
+                                    <% } else  {%>
                                     type="text" <%
                                     } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
@@ -720,7 +734,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                 }
@@ -743,10 +757,24 @@ function idpMgtCancel(){
             <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
                 <table class="carbonFormTable">
                     <%
-                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
-                        <tr>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) { %>
+    
+                    <tr>
+                        <td style="width: 500px;">
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif);margin-right: 300px"
+                               href="<%=Encode.forHtmlAttribute(value)%>"><%=Encode.forHtmlContent(displayName)%>
+                            </a>
+                        </td>
+                    </tr>
+    
+                    <% } else { %>
+                    <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
@@ -790,7 +818,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                         }
