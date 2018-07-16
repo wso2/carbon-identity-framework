@@ -82,37 +82,37 @@ function validateAppCreation() {
         }
     });
 
-    if (!scriptIsDirty) {
-        if(checkEmptyStep()){
-            CARBON.showConfirmationDialog('Some authentication steps do not have authenticators added. Update anyway?',
-                checkStepSubmit, null);
-        } else {
-            submitFormWithDIsabledScript();
-        }
+    if(checkEmptyStep()){
+        CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
+            ' missing authenticators or delete the empty step.',
+            null, null);
     } else {
-        var stepsInUI = getExecuteStepsInUI();
-        var stepsInScript = getExecuteStepsInScript();
+        if (!scriptIsDirty) {
+            submitFormWithDisabledScript();
+        } else {
+            var stepsInUI = getExecuteStepsInUI();
+            var stepsInScript = getExecuteStepsInScript();
 
-        if (stepsInUI.length < stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
-                submitFormWithDIsabledScript, null);
-        } else if (stepsInUI.length > stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
-                submitFormWithEnabledScript, null);
-        } else if (stepsInUI.length == stepsInScript.length) {
-            submitFormWithEnabledScript();
-        }
+            if (stepsInUI.length < stepsInScript.length) {
+                CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
+                    submitFormWithDisabledScript, null);
+            } else if (stepsInUI.length > stepsInScript.length) {
+                CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
+                    submitFormWithEnabledScript, null);
+            } else if (stepsInUI.length == stepsInScript.length) {
+                submitFormWithEnabledScript();
+            }
 
-        if (errorCount > 0) {
-            CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
-                ' saved)',
-                submitFormWithDIsabledScript, null);
+            if (errorCount > 0) {
+                CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
+                    ' saved)',
+                    submitFormWithDisabledScript, null);
+            }
+            if (warnCount > 0) {
+                CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
+                    submitFormWithEnabledScript, null);
+            }
         }
-        if (warnCount > 0) {
-            CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
-                submitFormWithEnabledScript, null);
-        }
-
     }
 }
 
@@ -127,13 +127,7 @@ function checkEmptyStep() {
     return isEmptyStep;
 }
 
-function checkStepSubmit() {
-    var stepElementWithAuth = $('.step_body .auth_table > tbody > tr');
-    buildScriptString(stepElementWithAuth);
-    submitFormWithDIsabledScript();
-}
-
-function submitFormWithDIsabledScript() {
+function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
     $("#configure-auth-flow-form").submit();
 }
