@@ -289,6 +289,17 @@
     margin-left: 35px;
 }
 
+.messagebox-error-custom {
+    background-image: url(../../dialog/img/error.gif);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 75px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+}
 .messagebox-warning-custom {
     background-image: url(../../dialog/img/warning.gif);
     background-position: 15px 15px;
@@ -297,30 +308,39 @@
     padding: 15px 15px 15px 75px;
     width: auto;
     height: auto;
-    overflow: auto
+    overflow: auto;
+    min-height: 50px;
 }
 
-.messagebox-warning-custom p {
+.messagebox-warning-custom p,.messagebox-error-custom p {
     text-align: justify;
 }
 
-.messagebox-warning-custom table {
+.messagebox-warning-custom table,.messagebox-error-custom table {
     border-spacing: 0px;
 }
 
-.messagebox-warning-custom table td {
+.messagebox-warning-custom table td,.messagebox-error-custom table td {
     border: solid 1px #cccccc;
     height: 25px;
     padding: 2px 8px;
     vertical-align: middle;
 }
 
-.messagebox-warning-custom p, .messagebox-warning-custom ul li, .messagebox-warning-custom table td, .messagebox-warning-custom a {
+.messagebox-warning-custom p, .messagebox-warning-custom ul li, .messagebox-warning-custom table td, .messagebox-warning-custom a,
+.messagebox-error-custom p, .messagebox-error-custom ul li, .messagebox-error-custom table td, .messagebox-error-custom a {
     font-size: 12.65px;
     margin: 0px;
 }
 
-.messagebox-warning-custom .error-msg {
+.messagebox-warning-custom .warningListContainer, .messagebox-error-custom .errorListContainer{
+    margin-left: 20px;
+}
+.messagebox-warning-custom .warningListContainer li, .messagebox-error-custom .errorListContainer li{
+    list-style-type: disc;
+}
+
+.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg {
     margin: 10px 0px;
     margin-top: 20px;
     padding: 12px;

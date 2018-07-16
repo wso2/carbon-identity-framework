@@ -398,7 +398,7 @@
                         <% }
                         } %>
                     </div>
-                    <div class="script-select-container">
+                    <div class="script-select-container" style="display: none;">
                         <label class="noselect">
                             <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                                 if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
@@ -407,7 +407,7 @@
                                                 .getAuthenticationScriptConfig().getEnabled()) { %>
                                    checked="checked"  <% }
                             }
-                            }%>/> Enable Script Based Conditional Authentication
+                            }%>/> Enable Script Based Adaptive Authentication
                         </label>
                     </div>
                 </div>
@@ -416,7 +416,7 @@
                 <!-- sectionSub Div -->
                 <br/>
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
-                    <a href="#">Script Based Conditional Authentication</a>
+                    <a href="#">Script Based Adaptive Authentication</a>
                 </h2>
 
                 <div class="toggle_container sectionSub" id="editorRow">
@@ -449,6 +449,16 @@
                            onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="editor-error-content" style="display: none">
+        <div class="messagebox-error-custom">
+            <ul class="errorListContainer"></ul>
+        </div>
+    </div>
+    <div class="editor-warning-content" style="display: none">
+        <div class="messagebox-warning-custom">
+            <ul class="warningListContainer"></ul>
         </div>
     </div>
 </fmt:bundle>

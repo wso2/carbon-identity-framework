@@ -28,7 +28,8 @@ var scriptStringFooter = "}";
 var documentBeforeChange;
 
 $("#createApp").click(function () {
-    validateAppCreation();
+    return validateAppCreation();
+
 });
 
 var addTemplate = $("#addTemplate");
@@ -68,8 +69,11 @@ var editorContent = doc.getValue();
 checkScriptDirty();
 
 function validateAppCreation() {
-    var warnCount = 0;
-    var errorCount = 0;
+    var warningList = [];
+    var errorList = [];
+    var warningBullets = "";
+    var errorBullets = "";
+
     myCodeMirror.operation(function () {
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
@@ -77,51 +81,61 @@ function validateAppCreation() {
             if (!err) {
                 continue;
             } else if (err.code.lastIndexOf("W", 0) === 0) {
-                warnCount++;
+                warningList.push(err.reason);
+                warningBullets = $(".warningListContainer").append("<li>" + err.reason + "</li>");
             } else {
-                errorCount++;
+                errorList.push(err.reason);
+                errorBullets = $(".errorListContainer").append("<li>" + err.reason + "</li>");
             }
         }
     });
 
-    if(checkEmptyStep()){
+    if (checkEmptyStep()) {
         CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
             ' missing authenticators or delete the empty step.',
             null, null);
+    }
+    if (errorList.length > 0) {
+        showPopupConfirm($(".editor-error-content").html(), "Save script with errors ?", 250, 550, "OK", "Cancel",
+            submitFormWithDisabledScript, removeHtmlContent);
+        return false;
+    }
+    if (warningList.length > 0) {
+        showPopupConfirm($(".editor-warning-content").html(), "Save script with warnings ?", 250, 550, "OK", "Cancel",
+            submitFormWithEnabledScript, removeHtmlContent);
+        return false;
+    }
+    if (!scriptIsDirty) {
+        submitFormWithDisabledScript();
     } else {
-        if (!scriptIsDirty) {
-            submitFormWithDisabledScript();
+        var stepsInUI = getExecuteStepsInUI();
+        var stepsInScript = getExecuteStepsInScript();
+
+        if (stepsInUI.length < stepsInScript.length) {
+            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script. However, the' +
+                ' changes will be saved but will NOT be evaluated. Do you still want to proceed ?',
+                submitFormWithDisabledScript, null);
+        } else if (stepsInUI.length > stepsInScript.length) {
+            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script. However, the' +
+                ' changes will be saved and evaluated. Do you want to proceed ?',
+                submitFormWithEnabledScript, null);
         } else {
-            var stepsInUI = getExecuteStepsInUI();
-            var stepsInScript = getExecuteStepsInScript();
-
-            if (stepsInUI.length < stepsInScript.length) {
-                CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
-                    submitFormWithDisabledScript, null);
-            } else if (stepsInUI.length > stepsInScript.length) {
-                CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
-                    submitFormWithEnabledScript, null);
-            } else if (stepsInUI.length == stepsInScript.length) {
-                submitFormWithEnabledScript();
-            }
-
-            if (errorCount > 0) {
-                CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
-                    ' saved)',
-                    submitFormWithDisabledScript, null);
-            }
-            if (warnCount > 0) {
-                CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
-                    submitFormWithEnabledScript, null);
-            }
+            submitFormWithEnabledScript();
         }
     }
+    return true;
+
+}
+
+function removeHtmlContent() {
+    $(".warningListContainer").html('');
+    $(".errorListContainer").html('');
 }
 
 function checkEmptyStep() {
     var isEmptyStep = false;
     $.each($('.step_body'), function () {
-        if($(this).has(".auth_table > tbody > tr").length == 0) {
+        if ($(this).has(".auth_table > tbody > tr").length == 0) {
             isEmptyStep = true;
             return false;
         }
@@ -248,7 +262,7 @@ $('[data-toggle=template-link]').click(function (e) {
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
-    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, "OK", "Cancel", doReplaceRange, null);
+    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, "OK", "Cancel", doReplaceRange, null);
 
     function doReplaceRange() {
         myCodeMirror.setValue("");
@@ -304,7 +318,7 @@ function highlightNewCode() {
  * Temporary function that serves as the local popup customization till carbon-kernel release
  * This has also been moved to proper codebase in carbon.ui as this is reusable.
  */
-function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButton, callback, windowWidth) {
+function showPopupConfirm(htmlMessage, title, windowHeight, windowWidth, okButton, cancelButton, callback, closeCallback) {
     if (!isHTML(htmlMessage)) {
         htmlMessage = htmlEncode(htmlMessage);
     }
@@ -333,6 +347,9 @@ function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButt
                     "Cancel": function () {
                         jQuery(this).dialog('destroy').remove();
                         jQuery("#dcontainer").empty();
+                        if (closeCallback && typeof closeCallback == "function") {
+                            closeCallback();
+                        }
                         return false;
                     },
                 },
@@ -347,6 +364,9 @@ function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButt
                 close: function () {
                     jQuery(this).dialog('destroy').remove();
                     jQuery("#dcontainer").empty();
+                    if (closeCallback && typeof closeCallback == "function") {
+                        closeCallback();
+                    }
                     return false;
                 },
                 height: windowHeight,
@@ -502,7 +522,7 @@ function deleteIDPRow(obj) {
 
 $('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
-    if(!scriptIsDirty) {
+    if (!scriptIsDirty) {
         buildScriptString($(".steps > h2"));
     }
     e.stopImmediatePropagation();
@@ -512,12 +532,12 @@ $('#stepsAddLink').click(function (e) {
     e.preventDefault();
     fromStepsAddLink = true;
     addNewUIStep();
-    if(!scriptIsDirty) {
+    if (!scriptIsDirty) {
         buildScriptString($(".steps > h2"));
     }
 });
 
-function checkScriptDirty(){
+function checkScriptDirty() {
     var str = "";
     scriptStringContent = [];
     $(".steps > h2").each(function (index, element) {
@@ -529,7 +549,7 @@ function checkScriptDirty(){
     var minifiedEditorContent = editorContent.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
     var minifiedScriptComposed = scriptComposed.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
 
-    if (minifiedEditorContent == minifiedScriptComposed){
+    if (minifiedEditorContent == minifiedScriptComposed) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
@@ -775,4 +795,15 @@ function onlyUnique(value, index, self) {
 
 function sortNumber(a, b) {
     return a - b;
+}
+
+function arraysEqual(arr1, arr2) {
+    if (arr1.length !== arr2.length) {
+        return arr1.length;
+    }
+    for (var i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return arr2[i] + " not matching";
+        }
+    }
 }
