@@ -94,7 +94,7 @@ function validateAppCreation() {
         } else if (stepsInUI.length > stepsInScript.length) {
             CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
                 submitFormWithEnabledScript, null);
-        } else if(stepsInUI.length == stepsInScript.length){
+        } else if (stepsInUI.length == stepsInScript.length) {
             submitFormWithEnabledScript();
         }
 
