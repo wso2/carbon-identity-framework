@@ -88,7 +88,6 @@
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     String spName = appBean.getServiceProvider().getApplicationName();
     Map<String, String> claimMapping = appBean.getClaimMapping();
-    boolean isConditionalAuthenticationEnabled = System.getProperty("enableConditionalAuthenticationFeature") != null;
     
     LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
     IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
@@ -399,13 +398,13 @@
                         <% }
                         } %>
                     </div>
-                    <div class="script-select-container"  <%= !isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                    <div class="script-select-container">
                         <label class="noselect">
                             <input id="enableScript" name="enableScript" type="checkbox" value="true" <%
                                 if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
                                     if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null) {
                                         if (appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
-                                                .getAuthenticationScriptConfig().getEnabled() && isConditionalAuthenticationEnabled) { %>
+                                                .getAuthenticationScriptConfig().getEnabled()) { %>
                                    checked="checked"  <% }
                             }
                             }%>/> Enable Script Based Conditional Authentication
@@ -416,13 +415,11 @@
                 <div style="clear:both"></div>
                 <!-- sectionSub Div -->
                 <br/>
-                <h2 id="authentication_step_config_head" class="sectionSeperator trigger active"
-                        <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %> >
+                <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Script Based Conditional Authentication</a>
                 </h2>
 
-                <div class="toggle_container sectionSub" <%=!isConditionalAuthenticationEnabled ? "hidden" : "" %>
-                     id="editorRow">
+                <div class="toggle_container sectionSub" id="editorRow">
                     <div style="position: relative;">
                         <div class="sectionSub step_contents" id="codeMirror">
 <textarea id="scriptTextArea" name="scriptTextArea"

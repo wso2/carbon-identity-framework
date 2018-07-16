@@ -88,10 +88,10 @@
 
         <!-- Adding dependency to identity.core temporary -->
         <!-- 
-	     This should be removed once app.mgt component provide a listener model.
-	     Then other (inbound auth) servelets implement those listerns and get triggered
-	     for app.mgt operations. (like delete sp configuration)
-	-->
+         This should be removed once app.mgt component provide a listener model.
+         Then other (inbound auth) servelets implement those listerns and get triggered
+         for app.mgt operations. (like delete sp configuration)
+    -->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
