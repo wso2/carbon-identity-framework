@@ -65,6 +65,8 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
+checkScriptDirty();
+
 function validateAppCreation() {
     var warnCount = 0;
     var errorCount = 0;
@@ -500,7 +502,9 @@ function deleteIDPRow(obj) {
 
 $('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
-    buildScriptString($(".steps > h2"));
+    if(!scriptIsDirty) {
+        buildScriptString($(".steps > h2"));
+    }
     e.stopImmediatePropagation();
 });
 
@@ -508,8 +512,29 @@ $('#stepsAddLink').click(function (e) {
     e.preventDefault();
     fromStepsAddLink = true;
     addNewUIStep();
-    buildScriptString($(".steps > h2"));
+    if(!scriptIsDirty) {
+        buildScriptString($(".steps > h2"));
+    }
 });
+
+function checkScriptDirty(){
+    var str = "";
+    scriptStringContent = [];
+    $(".steps > h2").each(function (index, element) {
+        scriptStringContent.push("executeStep(" + (index + 1) + ");");
+        str += scriptStringContent[index];
+    });
+    var scriptComposed = scriptStringHeader + str + scriptStringFooter;
+
+    var minifiedEditorContent = editorContent.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    var minifiedScriptComposed = scriptComposed.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+
+    if (minifiedEditorContent == minifiedScriptComposed){
+        scriptIsDirty = false;
+    } else {
+        scriptIsDirty = true;
+    }
+}
 
 function deleteStep(obj) {
 
