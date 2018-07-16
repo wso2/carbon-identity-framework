@@ -25,6 +25,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -33,6 +36,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.ConsentConfig;
+import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
+import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
@@ -87,6 +93,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
@@ -255,6 +264,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
+
+            validateConsentPurposes(serviceProvider);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdateRequest(serviceProvider)) {
                 //It is not required to validate the user here, as the user is validating inside the updateApplication
@@ -295,6 +306,37 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostUpdateApplication(serviceProvider, tenantDomain, username)) {
                 return;
+            }
+        }
+    }
+
+    private void validateConsentPurposes(ServiceProvider serviceProvider) throws
+            IdentityApplicationManagementException {
+
+        ConsentManager consentManager = ApplicationManagementServiceComponentHolder.getInstance().getConsentManager();
+        ConsentConfig consentConfig = serviceProvider.getConsentConfig();
+        ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
+        if (nonNull(consentPurposeConfigs)) {
+            ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
+            if (nonNull(consentPurposes)) {
+                for (ConsentPurpose consentPurpose : consentPurposes) {
+                    int purposeId = consentPurpose.getPurposeId();
+                    try {
+                        Purpose purpose = consentManager.getPurpose(purposeId);
+                        if (isNull(purpose)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("ConsentManager returned null for Purpose ID: " + purposeId);
+                            }
+                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId);
+                        }
+                    } catch (ConsentManagementException e) {
+                        if (ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())) {
+                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId, e);
+                        }
+                        throw new IdentityApplicationManagementException("Error while retrieving consent purpose with" +
+                                                                         " ID: " + purposeId, e);
+                    }
+                }
             }
         }
     }
