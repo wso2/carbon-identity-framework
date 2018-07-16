@@ -205,16 +205,16 @@ public class MockInitialContextFactory implements InitialContextFactory {
      * Returns a file in current classpath in a directory.
      * Returns null if the resource is within a jar.
      *
-     * @param f
+     * @param relativeFilePath
      * @param clazz
      * @return
      */
-    private static File getClasspathAccessibleFile(String f, Class clazz) {
+    private static File getClasspathAccessibleFile(String relativeFilePath, Class clazz) {
 
-        URL url = clazz.getClassLoader().getResource(f);
-        File file = new File(url.getPath());
-        if (file.isFile()) {
-            return file;
+        URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        File fileInClassloader = new File(url.getPath());
+        if (fileInClassloader.isFile()) {
+            return fileInClassloader;
         }
         return null;
     }
@@ -223,19 +223,19 @@ public class MockInitialContextFactory implements InitialContextFactory {
      * Copies a resource inside a jar to external file within a directory.
      * Then returns the created file.
      *
-     * @param f
+     * @param relativeFilePath
      * @param clazz
      * @return
      * @throws TestCreationException
      */
-    private static File copyTempFile(String f, Class clazz) throws TestCreationException {
+    private static File copyTempFile(String relativeFilePath, Class clazz) throws TestCreationException {
 
-        URL url = clazz.getClassLoader().getResource(f);
-        InputStream inputStream = null;
+        URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        InputStream inputStream;
         try {
             inputStream = url.openStream();
             ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
-            File tempFile = File.createTempFile("tmp_", "registry.sql");
+            File tempFile = File.createTempFile("tmp_", "_registry.sql");
             FileOutputStream fos = new FileOutputStream(tempFile);
             WritableByteChannel targetChannel = fos.getChannel();
             //Transfer data from input channel to output channel
@@ -245,7 +245,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
             fos.close();
             return tempFile;
         } catch (IOException e) {
-            throw new TestCreationException("Could not copy the file content to temp file from : " + f);
+            throw new TestCreationException("Could not copy the file content to temp file from : " + relativeFilePath);
         }
     }
 }

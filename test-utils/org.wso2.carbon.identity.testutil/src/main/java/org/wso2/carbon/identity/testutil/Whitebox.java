@@ -29,17 +29,17 @@ import java.lang.reflect.Method;
  */
 public class Whitebox {
 
-    public static void setInternalState(Object instance, String field, Object value) throws Exception {
+    public static void setInternalState(Object instance, String fieldName, Object value) throws Exception {
 
         Class clazz = instance.getClass();
-        Field field1 = lookupField(clazz, field);
-        setFieldValue(instance, field1, value);
+        Field fieldReference = lookupField(clazz, fieldName);
+        setFieldValue(instance, fieldReference, value);
     }
 
-    private static void setFieldValue(Object instance, Field field1, Object value) throws Exception {
+    private static void setFieldValue(Object instance, Field field, Object value) throws Exception {
 
-        field1.setAccessible(true);
-        field1.set(instance, value);
+        field.setAccessible(true);
+        field.set(instance, value);
     }
 
     private static Field lookupField(Class clazz, String field) {
