@@ -77,8 +77,28 @@
                     CARBON.showConfirmationDialog('Are you sure you want to delete "' + appid + '" SP information?',
                             doDelete, null);
                 }
-            </script>
 
+                function exportSP(appid) {
+
+                    function doInclude() {
+                        document.getElementById('exportSecrets').value = "true";
+                        jQuery('#spExportData').submit();
+                    }
+                    function doExclude() {
+                        document.getElementById('exportSecrets').value = "false";
+                        jQuery('#spExportData').submit();
+                    }
+                    document.getElementById('spName').value = appid;
+                    CARBON.showConfirmationDialog('Do you want include the secret keys of "' + appid + '"' +
+                        ' export in the file ? (hashed or encrypted secret willn\'t be included)', doInclude, doExclude);
+                }
+            </script>
+    
+            <form id="spExportData" name="sp-export-data" method="post"
+                  action="export-service-provider-finish-ajaxprocessor.jsp">
+                <input hidden id="spName" name="spName"/>
+                <input hidden id="exportSecrets" name="exportSecrets"/>
+            </form>
             <%
                 ApplicationBasicInfo[] applications = null;
 
@@ -169,6 +189,11 @@
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../admin/images/delete.gif)">Delete
+                                    </a>
+                                    <a title="Export Service Providers"
+                                       onclick="exportSP('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
+                                       class="icon-link"
+                                       style="background-image: url(../admin/images/export.gif)">Export
                                     </a></td>
                             </tr>
                             <%

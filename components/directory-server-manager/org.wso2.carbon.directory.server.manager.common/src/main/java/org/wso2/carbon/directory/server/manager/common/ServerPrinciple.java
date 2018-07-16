@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.directory.server.manager.common;
 
+import java.io.Serializable;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Encapsulates a server principle. Has getters and setters to modify
  * server principle attributes.
  */
 @SuppressWarnings({"ALL"})
-public class ServerPrinciple implements Comparable {
+@XmlRootElement
+public class ServerPrinciple implements Comparable, Serializable {
 
     private String serverName;
     private String serverDescription;

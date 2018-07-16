@@ -18,9 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
-import edu.emory.mathcs.backport.java.util.Collections;
-
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 

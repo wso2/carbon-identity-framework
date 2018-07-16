@@ -24,7 +24,12 @@ import org.apache.commons.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "RequestPathAuthenticatorConfig")
 public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
 
     /**

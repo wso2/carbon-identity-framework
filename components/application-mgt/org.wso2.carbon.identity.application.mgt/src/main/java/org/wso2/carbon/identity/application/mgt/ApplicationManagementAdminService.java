@@ -24,6 +24,8 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
+import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -270,5 +272,52 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public String getAuthenticationTemplatesJSON() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+    }
+
+    /**
+     * Import application from XML file from UI.
+     *
+     * @param spFileContent xml string of the SP and file name
+     * @return Created application name
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public ImportResponse importApplication(SpFileContent spFileContent) throws IdentityApplicationManagementException {
+
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.importSPApplication(spFileContent, getTenantDomain(), getUsername(), false);
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while importing application for tenant: " + getTenantDomain(), idpException);
+            throw idpException;
+        }
+    }
+
+    /**
+     * Export service provider as XML.
+     *
+     * @param applicationName Name of the application to be exported
+     * @return XML content of the service provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public String exportApplication(String applicationName, boolean exportSecrets) throws
+            IdentityApplicationManagementException {
+
+        try {
+            if (ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+                log.warn("Illegal access! Local service provider can't be exported");
+                throw new IdentityApplicationManagementException("Local service provider can't be exported");
+            }
+            if (!ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have export the application " + applicationName);
+                throw new IdentityApplicationManagementException("User not authorized");
+            }
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.exportSPApplication(applicationName, exportSecrets, getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while exporting application: " + applicationName + " for tenant: " + getTenantDomain(),
+                    idpException);
+            throw idpException;
+        }
     }
 }

@@ -32,7 +32,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "IdentityProvider")
 public class IdentityProvider implements Serializable {
 
     private static final long serialVersionUID = 2199048941051702943L;
@@ -57,24 +65,63 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
 
+    @XmlTransient
     private String id;
+
+    @XmlElement(name = "IdentityProviderName")
     private String identityProviderName;
+
+    @XmlElement(name = "IdentityProviderDescription")
     private String identityProviderDescription;
+
+    @XmlElement(name = "Alias")
     private String alias;
+
+    @XmlElement(name = "IsPrimary")
     private boolean primary;
+
+    @XmlElement(name = "IsFederationHub")
     private boolean federationHub;
+
+    @XmlElement(name = "HomeRealmId")
     private String homeRealmId;
+
+    @XmlElement(name = "ProvisioningRole")
     private String provisioningRole;
+
+    @XmlElement(name = "DisplayName")
     private String displayName;
+
+    @XmlElement(name = "IsEnabled")
     private boolean enable;
+
+    @XmlElementWrapper(name= "FederatedAuthenticatorConfigs")
+    @XmlElement(name = "FederatedAuthenticatorConfig")
     private FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = new FederatedAuthenticatorConfig[0];
+
+    @XmlElement(name = "DefaultAuthenticatorConfig")
     private FederatedAuthenticatorConfig defaultAuthenticatorConfig;
+
+    @XmlElementWrapper(name= "ProvisioningConnectorConfigs")
+    @XmlElement(name = "ProvisioningConnectorConfig")
     private ProvisioningConnectorConfig[] provisioningConnectorConfigs = new ProvisioningConnectorConfig[0];
+
+    @XmlElement(name = "DefaultProvisioningConnectorConfig")
     private ProvisioningConnectorConfig defaultProvisioningConnectorConfig;
+
+    @XmlElement(name = "ClaimConfig")
     private ClaimConfig claimConfig;
+
+    @XmlElement(name = "Certificate")
     private String certificate;
+
+    @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
+
+    @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
+
+    @XmlTransient
     private IdentityProviderProperty []idpProperties = new IdentityProviderProperty[0];
 
     public static IdentityProvider build(OMElement identityProviderOM) {
@@ -148,7 +195,15 @@ public class IdentityProvider implements Serializable {
                             .setFederatedAuthenticatorConfigs(federatedAuthenticatorConfigsArr);
                 }
             } else if (FILE_ELEMENT_DEFAULT_AUTHENTICATOR_CONFIG.equals(elementName)) {
-                defaultAuthenticatorConfigName = element.getText();
+                if (element.getText().trim().isEmpty()) {
+                    FederatedAuthenticatorConfig defaultAuthenticatorConfig = FederatedAuthenticatorConfig
+                            .build(element);
+                    if (defaultAuthenticatorConfig != null) {
+                        defaultAuthenticatorConfigName = defaultAuthenticatorConfig.getName();
+                    }
+                } else {
+                    defaultAuthenticatorConfigName = element.getText();
+                }
             } else if (FILE_ELEMENT_PROVISIONING_CONNECTOR_CONFIGS.equals(elementName)) {
 
                 Iterator<?> provisioningConnectorConfigsIter = element.getChildElements();
@@ -185,7 +240,20 @@ public class IdentityProvider implements Serializable {
                             .setProvisioningConnectorConfigs(provisioningConnectorConfigsArr);
                 }
             } else if (FILE_ELEMENT_DEFAULT_PROVISIONING_CONNECTOR_CONFIG.equals(elementName)) {
-                defaultProvisioningConfigName = element.getText();
+                if (element.getText().trim().isEmpty()) {
+                    try {
+                        ProvisioningConnectorConfig proConConfig = ProvisioningConnectorConfig.build(element);
+                        if (proConConfig != null) {
+                            defaultProvisioningConfigName = proConConfig.getName();
+                        }
+                    } catch (IdentityApplicationManagementException e) {
+                        log.error(String.format("Error while building default provisioning connector config for IDP %s"
+                                + ". Cause : %s Building rest of the IDP configs",
+                                identityProvider.getIdentityProviderName(), e.getMessage()));
+                    }
+                } else {
+                    defaultProvisioningConfigName = element.getText();
+                }
             } else if (FILE_ELEMENT_CLAIM_CONFIG.equals(elementName)) {
                 identityProvider.setClaimConfig(ClaimConfig.build(element));
             } else if (FILE_ELEMENT_CERTIFICATE.equals(elementName)) {
