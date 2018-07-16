@@ -682,12 +682,21 @@ function idpMgtCancel(){
     
                     <tr>
                         <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
                             <a class="icon-link"
-                               style="background-image:url(images/configure.gif);margin-right: 300px"
-                               href="<%=Encode.forHtmlAttribute(value)%>"><%=Encode.forHtmlContent(displayName)%>
-                            </a>
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+            
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
                         </td>
                     </tr>
+    
     
                     <% } else { %>
                         <tr>
@@ -766,12 +775,21 @@ function idpMgtCancel(){
     
                     <tr>
                         <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
                             <a class="icon-link"
-                               style="background-image:url(images/configure.gif);margin-right: 300px"
-                               href="<%=Encode.forHtmlAttribute(value)%>"><%=Encode.forHtmlContent(displayName)%>
-                            </a>
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+            
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
                         </td>
                     </tr>
+    
     
                     <% } else { %>
                     <tr>
