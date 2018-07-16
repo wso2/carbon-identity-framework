@@ -88,14 +88,14 @@ function validateAppCreation() {
         var stepsInUI = getExecuteStepsInUI();
         var stepsInScript = getExecuteStepsInScript();
 
-        if (stepsInUI.length < stepsInScript.length){
+        if (stepsInUI.length < stepsInScript.length) {
             CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
                 submitFormWithDIsabledScript, null);
-        } else if (stepsInUI.length > stepsInScript.length){
+        } else if (stepsInUI.length > stepsInScript.length) {
             CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
                 submitFormWithEnabledScript, null);
-        } else{
-            console.log("missed validation");
+        } else if (stepsInUI.length == stepsInScript.length) {
+            submitFormWithEnabledScript();
         }
 
         if (errorCount > 0) {
@@ -104,8 +104,7 @@ function validateAppCreation() {
                 submitFormWithDIsabledScript, null);
         }
         if (warnCount > 0) {
-            CARBON.showConfirmationDialog('Save script with warnings? (Script will not be evaluated and will only be' +
-                ' saved)',
+            CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
                 submitFormWithEnabledScript, null);
         }
 
@@ -696,9 +695,9 @@ doc.on("change", function (document, changeObj) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
-        if (fromTemplateLink || fromStepsAddLink) {
-            scriptIsDirty = false;
-        }
+    }
+    if (fromTemplateLink) {
+        scriptIsDirty = true;
     }
 });
 
