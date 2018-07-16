@@ -82,36 +82,52 @@ function validateAppCreation() {
         }
     });
 
-    if (!scriptIsDirty) {
-        submitFormWithDIsabledScript();
+    if(checkEmptyStep()){
+        CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
+            ' missing authenticators or delete the empty step.',
+            null, null);
     } else {
-        var stepsInUI = getExecuteStepsInUI();
-        var stepsInScript = getExecuteStepsInScript();
+        if (!scriptIsDirty) {
+            submitFormWithDisabledScript();
+        } else {
+            var stepsInUI = getExecuteStepsInUI();
+            var stepsInScript = getExecuteStepsInScript();
 
-        if (stepsInUI.length < stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
-                submitFormWithDIsabledScript, null);
-        } else if (stepsInUI.length > stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
-                submitFormWithEnabledScript, null);
-        } else if (stepsInUI.length == stepsInScript.length) {
-            submitFormWithEnabledScript();
-        }
+            if (stepsInUI.length < stepsInScript.length) {
+                CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script.',
+                    submitFormWithDisabledScript, null);
+            } else if (stepsInUI.length > stepsInScript.length) {
+                CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script.',
+                    submitFormWithEnabledScript, null);
+            } else if (stepsInUI.length == stepsInScript.length) {
+                submitFormWithEnabledScript();
+            }
 
-        if (errorCount > 0) {
-            CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
-                ' saved)',
-                submitFormWithDIsabledScript, null);
+            if (errorCount > 0) {
+                CARBON.showConfirmationDialog('Save script with errors? (Script will not be evaluated and will only be' +
+                    ' saved)',
+                    submitFormWithDisabledScript, null);
+            }
+            if (warnCount > 0) {
+                CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
+                    submitFormWithEnabledScript, null);
+            }
         }
-        if (warnCount > 0) {
-            CARBON.showConfirmationDialog('Save script with warnings? (Script will be saved and evaluated)',
-                submitFormWithEnabledScript, null);
-        }
-
     }
 }
 
-function submitFormWithDIsabledScript() {
+function checkEmptyStep() {
+    var isEmptyStep = false;
+    $.each($('.step_body'), function () {
+        if($(this).has(".auth_table > tbody > tr").length == 0) {
+            isEmptyStep = true;
+            return false;
+        }
+    });
+    return isEmptyStep;
+}
+
+function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
     $("#configure-auth-flow-form").submit();
 }
@@ -441,10 +457,10 @@ function showHideTemplateList() {
     }
 }
 
-function buildScriptString() {
+function buildScriptString(element) {
     var str = "";
     scriptStringContent = [];
-    $(".steps > h2").each(function (index, element) {
+    element.each(function (index, element) {
         scriptStringContent.push("executeStep(" + (index + 1) + ");");
         str += scriptStringContent[index];
     });
@@ -484,7 +500,7 @@ function deleteIDPRow(obj) {
 
 $('body').delegate("a.delete_step", 'click', function (e) {
     deleteStep(this);
-    buildScriptString();
+    buildScriptString($(".steps > h2"));
     e.stopImmediatePropagation();
 });
 
@@ -492,7 +508,7 @@ $('#stepsAddLink').click(function (e) {
     e.preventDefault();
     fromStepsAddLink = true;
     addNewUIStep();
-    buildScriptString();
+    buildScriptString($(".steps > h2"));
 });
 
 function deleteStep(obj) {
