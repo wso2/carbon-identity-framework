@@ -193,7 +193,7 @@
                                     <a title="Export Service Providers"
                                        onclick="exportSP('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
                                        class="icon-link"
-                                       style="background-image: url(../admin/images/export.gif)">Export
+                                       style="background-image: url(../entitlement/images/publish.gif)">Export
                                     </a></td>
                             </tr>
                             <%
