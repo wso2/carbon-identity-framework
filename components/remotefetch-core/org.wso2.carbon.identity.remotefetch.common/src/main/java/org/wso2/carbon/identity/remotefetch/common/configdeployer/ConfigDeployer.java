@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 
+import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 
 import java.io.InputStream;
@@ -29,12 +30,12 @@ import java.io.InputStream;
 public interface ConfigDeployer {
 
     /**
-     * Deploy the configuration read from stream
+     * Deploy the configuration
      *
-     * @param reader
+     * @param configFileContent
      * @throws RemoteFetchCoreException
      */
-    void deploy(InputStream reader) throws RemoteFetchCoreException;
+    void deploy(ConfigFileContent configFileContent) throws RemoteFetchCoreException;
 
     /**
      * resolve the unique identifier for the configuration
@@ -42,5 +43,5 @@ public interface ConfigDeployer {
      * @return
      * @throws RemoteFetchCoreException
      */
-    String resolveConfigName(InputStream reader) throws RemoteFetchCoreException;
+    String resolveConfigName(ConfigFileContent configFileContent) throws RemoteFetchCoreException;
 }

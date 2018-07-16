@@ -35,12 +35,18 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;
+import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -106,6 +112,22 @@ public class GitRepositoryManager implements RepositoryManager {
         return revCommits.get(0);
     }
 
+    private String inputStreamToString(InputStream inputStream) throws IOException {
+
+        StringBuilder textBuilder = new StringBuilder();
+        InputStreamReader inputStreamReader = new InputStreamReader(
+                inputStream, Charset.forName(StandardCharsets.UTF_8.name()));
+
+        try (Reader reader = new BufferedReader(inputStreamReader)) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                textBuilder.append((char) c);
+            }
+        }
+
+        return textBuilder.toString();
+    }
+
     @Override
     public void fetchRepository() throws RemoteFetchCoreException {
 
@@ -126,12 +148,14 @@ public class GitRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    public InputStream getFile(File location) throws RemoteFetchCoreException {
+    public ConfigFileContent getFile(File location) throws RemoteFetchCoreException {
 
         try (ObjectReader reader = this.repo.newObjectReader()) {
             RevCommit commit = this.getLastCommit(location);
             TreeWalk treewalk = TreeWalk.forPath(this.repo, location.getPath(), commit.getTree());
-            return reader.open(treewalk.getObjectId(0)).openStream();
+            return new ConfigFileContent(
+                    this.inputStreamToString(reader.open(treewalk.getObjectId(0)).openStream())
+            );
         } catch (GitAPIException e) {
             throw new RemoteFetchCoreException("Unable to get last revision of file", e);
         } catch (NullPointerException e) {

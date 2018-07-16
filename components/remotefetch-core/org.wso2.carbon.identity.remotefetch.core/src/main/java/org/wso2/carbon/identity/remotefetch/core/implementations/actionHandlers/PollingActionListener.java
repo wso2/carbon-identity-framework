@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
 import org.wso2.carbon.identity.remotefetch.common.DeploymentRevision;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
@@ -96,10 +97,10 @@ public class PollingActionListener implements ActionListener {
             }
 
             if (!(resolvedName.isEmpty())) {
-                if (!this.deploymentRevisionMap.containsKey(resolvedName)) {
-                    createRevision(resolvedName, configPath);
-                } else {
+                if (this.deploymentRevisionMap.containsKey(resolvedName)) {
                     updateRevision(resolvedName, configPath);
+                } else {
+                    createRevision(resolvedName, configPath);
                 }
             }
         });
@@ -195,7 +196,8 @@ public class PollingActionListener implements ActionListener {
             if (!newHash.isEmpty() && (currentHash.isEmpty() || !(currentHash.equals(newHash)))) {
 
                 try {
-                    deployer.deploy(repo.getFile(deploymentRevision.getFile()));
+                    ConfigFileContent configFileContent = repo.getFile(deploymentRevision.getFile());
+                    deployer.deploy(configFileContent);
                     deploymentRevision.setFileHash(newHash);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
                     log.info("Deployed " + deploymentRevision.getFile().getPath());

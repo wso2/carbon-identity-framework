@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployer
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManager;
@@ -34,51 +35,32 @@ import java.io.InputStreamReader;
  * a XML configuration in the core.
  */
 public class SoutConfigDeployer implements ConfigDeployer {
+
     private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     /**
-     * Deploy the configuration read from stream
+     * Deploy the configuration
      *
-     * @param reader
+     * @param configFileContent
      * @throws RemoteFetchCoreException
      */
     @Override
-    public void deploy(InputStream reader) throws RemoteFetchCoreException {
-        BufferedReader buffer = null;
-        try {
-            buffer = new BufferedReader(new InputStreamReader(reader,"UTF-8"));
-            log.info("Deploying to STDIO");
+    public void deploy(ConfigFileContent configFileContent) throws RemoteFetchCoreException {
 
-            String line;
-            while ((line = buffer.readLine()) != null) {
-                System.out.println(line);
-            }
-        }catch (IOException e){
-            throw new RemoteFetchCoreException("Unable to read configuration file");
-        }
+        log.info("Deploying to STDIO");
+        System.out.println(configFileContent.getContent());
     }
 
     /**
      * resolve the unique identifier for the configuration
      *
-     * @param reader
+     * @param configFileContent
      * @return
      * @throws RemoteFetchCoreException
      */
     @Override
-    public String resolveConfigName(InputStream reader) throws RemoteFetchCoreException {
+    public String resolveConfigName(ConfigFileContent configFileContent) throws RemoteFetchCoreException {
 
-        BufferedReader buffer = null;
-        try {
-            buffer = new BufferedReader(new InputStreamReader(reader,"UTF-8"));
-
-            String line;
-            if ((line = buffer.readLine()) != null) {
-                line = buffer.readLine();
-            }
-            return line;
-        }catch (IOException e){
-            throw new RemoteFetchCoreException("Unable to read configuration file");
-        }
+        return configFileContent.getContent().split("[\\r\\n]+")[1];
     }
 }
