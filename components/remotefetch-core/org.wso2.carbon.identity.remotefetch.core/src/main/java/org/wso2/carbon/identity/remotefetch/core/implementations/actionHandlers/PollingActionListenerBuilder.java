@@ -21,10 +21,8 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilderException;
-import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 public class PollingActionListenerBuilder extends ActionListenerBuilder {
@@ -52,8 +50,7 @@ public class PollingActionListenerBuilder extends ActionListenerBuilder {
             throw new ActionListenerBuilderException("Directory not available in configuration");
         }
 
-        PollingActionListener actionListener = new PollingActionListener(this.repoConnector, directory,
+        return new PollingActionListener(this.repoConnector, directory,
                 this.configDeployer, frequency, this.fetchConfig.getRemoteFetchConfigurationId());
-        return actionListener;
     }
 }
