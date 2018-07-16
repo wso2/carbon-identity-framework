@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
+import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -201,4 +203,29 @@ public abstract class ApplicationManagementService {
     public abstract ServiceProvider getServiceProviderByClientId(String clientId, String clientType,
                                                                  String tenantDomain)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName name of the SP
+     * @param exportSecrets   is export the secrets
+     * @param tenantDomain    tenant Domain
+     * @return xml string of the SP
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Import Service Provider application.
+     *
+     * @param spFileContent xml string of the SP and file name
+     * @param tenantDomain  tenant Domain
+     * @param username      username
+     * @param isUpdate      isUpdate
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
+            username, boolean isUpdate) throws IdentityApplicationManagementException;
 }

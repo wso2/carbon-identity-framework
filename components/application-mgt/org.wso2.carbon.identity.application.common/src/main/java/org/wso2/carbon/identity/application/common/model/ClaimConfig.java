@@ -26,17 +26,41 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "ClaimConfig")
 public class ClaimConfig implements Serializable {
 
     private static final long serialVersionUID = 94689128465184610L;
 
+    @XmlElement(name = "RoleClaimURI")
     private String roleClaimURI;
+
+    @XmlElement(name = "UserClaimURI")
     private String userClaimURI;
+
+    @XmlElement(name = "LocalClaimDialect")
     private boolean localClaimDialect;
+
+    @XmlElementWrapper(name="IdpClaim")
+    @XmlElement(name = "Claims")
     private Claim[] idpClaims = new Claim[0];
+
+    @XmlElementWrapper(name="ClaimMappings")
+    @XmlElement(name = "ClaimMapping")
     private ClaimMapping[] claimMappings = new ClaimMapping[0];
+
+
+    @XmlElement(name = "AlwaysSendMappedLocalSubjectId")
     private boolean alwaysSendMappedLocalSubjectId;
+
+    @XmlElementWrapper(name="SPClaimDialects")
+    @XmlElement(name = "SPClaimDialect")
     private String[] spClaimDialects = null;
 
     /*
@@ -103,8 +127,21 @@ public class ClaimConfig implements Serializable {
                     ClaimMapping[] claimMappingsArr = claimMappingsArrList
                             .toArray(new ClaimMapping[0]);
                     claimConfig.setClaimMappings(claimMappingsArr);
-                } else if (IdentityApplicationConstants.ConfigElements.PROPERTY_SP_DIALECT.equals(elementName)) {
-                    claimConfig.setSpClaimDialects(element.getText().split(","));
+                }
+            } else if (IdentityApplicationConstants.ConfigElements.PROPERTY_SP_DIALECT.equals(elementName)) {
+                Iterator<?> spDialects = element.getChildElements();
+                List<String> spDialectsArrList = new ArrayList<String>();
+
+                while (spDialects.hasNext()) {
+                    OMElement spDialectElement = (OMElement) (spDialects.next());
+                    if (spDialectElement.getText() != null) {
+                        spDialectsArrList.add(spDialectElement.getText());
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(spDialectsArrList)) {
+                    String[] spDialectArr = spDialectsArrList.toArray(new String[0]);
+                    claimConfig.setSpClaimDialects(spDialectArr);
                 }
             }
         }

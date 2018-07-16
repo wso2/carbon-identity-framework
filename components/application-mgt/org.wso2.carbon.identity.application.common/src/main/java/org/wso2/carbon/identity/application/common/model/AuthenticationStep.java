@@ -28,15 +28,33 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "AuthenticationStep")
 public class AuthenticationStep implements Serializable {
 
     private static final long serialVersionUID = 497647508006862448L;
 
+    @XmlElement(name = "StepOrder")
     private int stepOrder = 1;
+
+    @XmlElementWrapper(name="LocalAuthenticatorConfigs")
+    @XmlElement(name = "LocalAuthenticatorConfig")
     private LocalAuthenticatorConfig[] localAuthenticatorConfigs = new LocalAuthenticatorConfig[0];
+
+    @XmlElementWrapper(name = "FederatedIdentityProviders")
+    @XmlElement(name = "FederatedIdentityProvider")
     private IdentityProvider[] federatedIdentityProviders = new IdentityProvider[0];
+
+    @XmlElement(name = "SubjectStep")
     private boolean subjectStep;
+
+    @XmlElement(name = "AttributeStep")
     private boolean attributeStep;
 
     /*
