@@ -31,8 +31,12 @@ public class DeploymentRevision {
     private File file;
     private String fileHash;
     private Date deployedDate;
-    private String deploymentStatus;
+    private DEPLOYMENT_STATUS deploymentStatus;
     private String itemName;
+
+    public enum DEPLOYMENT_STATUS {
+        DEPLOYED, ERROR_DEPLOYING, FILE_MISSING
+    }
 
     /**
      * @param configId
@@ -127,7 +131,7 @@ public class DeploymentRevision {
     /**
      * @return
      */
-    public String getDeploymentStatus() {
+    public DEPLOYMENT_STATUS getDeploymentStatus() {
 
         return deploymentStatus;
     }
@@ -135,7 +139,7 @@ public class DeploymentRevision {
     /**
      * @param deploymentStatus
      */
-    public void setDeploymentStatus(String deploymentStatus) {
+    public void setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS deploymentStatus) {
 
         this.deploymentStatus = deploymentStatus;
     }

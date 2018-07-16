@@ -156,11 +156,12 @@ public class PollingActionListener implements ActionListener {
                     log.info("Deploying " + deploymentRevision.getFile().getPath());
                     try {
                         deployer.deploy(repo.getFile(deploymentRevision.getFile()));
+                        deploymentRevision.setFileHash(newHash);
+                        deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
                     } catch (Exception e) {
                         log.info("Error Deploying " + deploymentRevision.getFile().getName());
+                        deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.ERROR_DEPLOYING);
                     }
-                    deploymentRevision.setFileHash(newHash);
-                    deploymentRevision.setDeploymentStatus("DEPLOYED");
                     deploymentRevision.setDeployedDate(new Date());
                     try {
                         this.deploymentRevisionDAO.updateDeploymentRevision(deploymentRevision);
