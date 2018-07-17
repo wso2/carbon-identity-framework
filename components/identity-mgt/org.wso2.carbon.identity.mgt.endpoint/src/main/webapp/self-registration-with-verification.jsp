@@ -54,6 +54,8 @@
     Integer defaultPurposeCatId = null;
     Integer userNameValidityStatusCode = null;
     String username = request.getParameter("username");
+    String consentPurposeGroupName = "SELF-SIGNUP";
+    String consentPurposeGroupType = "SYSTEM";
     String[] missingClaimList = new String[0];
     String[] missingClaimDisplayName = new String[0];
     if (request.getParameter(Constants.MISSING_CLAIMS) != null) {
@@ -68,6 +70,9 @@
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
     User user = IdentityManagementServiceUtil.getInstance().getUser(username);
     
+    if (skipSignUpEnableCheck) {
+        consentPurposeGroupName = "JIT";
+    }
     if (StringUtils.isEmpty(username)) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Pick.username"));
@@ -130,7 +135,8 @@
 
         }
     }
-    String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain());
+    String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain(), consentPurposeGroupName,
+            consentPurposeGroupType);
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
     
     if (hasPurposes) {
