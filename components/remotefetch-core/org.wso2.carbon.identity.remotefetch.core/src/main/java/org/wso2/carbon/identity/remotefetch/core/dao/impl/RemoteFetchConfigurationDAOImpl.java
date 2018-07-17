@@ -40,17 +40,18 @@ import org.json.JSONObject;
  */
 public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfigurationDAO {
 
-    private static final String CREATE_CONFIG = "INSERT IDN_RF_CONFIG (TENANT_ID, REPO_CONNECTOR_TYPE, ACTION_LISTENER_TYPE, " +
-            "CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON) VALUES (?,?,?,?,?)";
+    private static final String CREATE_CONFIG = "INSERT IDN_RF_CONFIG (TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE, " +
+            "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON) VALUES (?,?,?,?,?,?)";
 
-    private static final String LIST_CONFIGS = "SELECT ID, TENANT_ID, REPO_CONNECTOR_TYPE, ACTION_LISTENER_TYPE," +
-            " CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG`";
+    private static final String LIST_CONFIGS = "SELECT ID, TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE, " +
+            "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG`";
 
-    private static final String GET_CONFIG = "SELECT ID, TENANT_ID, REPO_CONNECTOR_TYPE, ACTION_LISTENER_TYPE," +
-            " CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE ID = ?";
+    private static final String GET_CONFIG = "SELECT ID, TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE," +
+            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE ID = ?";
 
-    private static final String UPDATE_CONFIG = "UPDATE IDN_RF_CONFIG SET TENANT_ID = ?, REPO_CONNECTOR_TYPE = ?, " +
-            "ACTION_LISTENER_TYPE = ?, CONFIG_DEPLOYER_TYPE = ?, ATTRIBUTES_JSON = ? WHERE ID = ?";
+    private static final String UPDATE_CONFIG = "UPDATE IDN_RF_CONFIG SET TENANT_ID = ?, USER_NAME = ?," +
+            " REPO_CONNECTOR_TYPE = ?, ACTION_LISTENER_TYPE = ?, CONFIG_DEPLOYER_TYPE = ?, ATTRIBUTES_JSON = ? " +
+            "WHERE ID = ?";
 
     private static final String DELETE_CONFIG = "DELETE FROM IDN_RF_CONFIG WHERE ID = ?";
 
@@ -66,11 +67,13 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
         PreparedStatement addStmnt = null;
         ResultSet result = null;
         try {
-            addStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.CREATE_CONFIG, Statement.RETURN_GENERATED_KEYS);
+            addStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.CREATE_CONFIG,
+                    Statement.RETURN_GENERATED_KEYS);
             addStmnt.setInt(1, configuration.getTenantId());
-            addStmnt.setString(2, configuration.getRepositoryManagerType());
-            addStmnt.setString(3, configuration.getActionListenerType());
-            addStmnt.setString(4, configuration.getConfgiurationDeployerType());
+            addStmnt.setString(2, configuration.getUserName());
+            addStmnt.setString(3, configuration.getRepositoryManagerType());
+            addStmnt.setString(4, configuration.getActionListenerType());
+            addStmnt.setString(5, configuration.getConfgiurationDeployerType());
 
             //Encode object attributes to JSON
             JSONObject attributesBundle = new JSONObject();
@@ -78,7 +81,7 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             attributesBundle.put("actionListenerAttributes", configuration.getActionListenerAttributes());
             attributesBundle.put("confgiurationDeployerAttributes", configuration.getConfgiurationDeployerAttributes());
 
-            addStmnt.setString(5, attributesBundle.toString(4));
+            addStmnt.setString(6, attributesBundle.toString(4));
             addStmnt.execute();
 
             int configId = -1;
@@ -120,14 +123,15 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             result = selectStmnt.executeQuery();
 
             if (result.next()) {
-                JSONObject attributesBundle = new JSONObject(result.getString(6));
+                JSONObject attributesBundle = new JSONObject(result.getString(7));
 
                 RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
                         result.getInt(1),
                         result.getInt(2),
                         result.getString(3),
                         result.getString(4),
-                        result.getString(5)
+                        result.getString(5),
+                        result.getString(6)
                 );
 
                 remoteFetchConfiguration.setRepositoryManagerAttributes(
@@ -170,8 +174,9 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             updateStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.UPDATE_CONFIG);
             updateStmnt.setInt(1, configuration.getTenantId());
             updateStmnt.setString(2, configuration.getRepositoryManagerType());
-            updateStmnt.setString(3, configuration.getActionListenerType());
-            updateStmnt.setString(4, configuration.getConfgiurationDeployerType());
+            updateStmnt.setString(3,configuration.getUserName());
+            updateStmnt.setString(4, configuration.getActionListenerType());
+            updateStmnt.setString(5, configuration.getConfgiurationDeployerType());
 
             //Encode object attributes to JSON
             JSONObject attributesBundle = new JSONObject();
@@ -179,8 +184,8 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             attributesBundle.put("actionListenerAttributes", configuration.getActionListenerAttributes());
             attributesBundle.put("confgiurationDeployerAttributes", configuration.getConfgiurationDeployerAttributes());
 
-            updateStmnt.setString(5, attributesBundle.toString(4));
-            updateStmnt.setInt(6, configuration.getRemoteFetchConfigurationId());
+            updateStmnt.setString(6, attributesBundle.toString(4));
+            updateStmnt.setInt(7, configuration.getRemoteFetchConfigurationId());
             updateStmnt.execute();
 
             if (!connection.getAutoCommit()) {
@@ -243,13 +248,14 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
 
             while (result.next()) {
 
-                JSONObject attributesBundle = new JSONObject(result.getString(6));
+                JSONObject attributesBundle = new JSONObject(result.getString(7));
                 RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
                         result.getInt(1),
                         result.getInt(2),
                         result.getString(3),
                         result.getString(4),
-                        result.getString(5)
+                        result.getString(5),
+                        result.getString(6)
                 );
 
                 remoteFetchConfiguration.setRepositoryManagerAttributes(

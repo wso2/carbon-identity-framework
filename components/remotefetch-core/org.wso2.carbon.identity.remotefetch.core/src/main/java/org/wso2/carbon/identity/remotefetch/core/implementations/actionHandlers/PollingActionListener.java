@@ -195,14 +195,14 @@ public class PollingActionListener implements ActionListener {
             // Deploy if new file or updated file
             if (!newHash.isEmpty() && (currentHash.isEmpty() || !(currentHash.equals(newHash)))) {
 
+                deploymentRevision.setFileHash(newHash);
                 try {
                     ConfigFileContent configFileContent = repo.getFile(deploymentRevision.getFile());
                     deployer.deploy(configFileContent);
-                    deploymentRevision.setFileHash(newHash);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
                     log.info("Deployed " + deploymentRevision.getFile().getPath());
                 } catch (Exception e) {
-                    log.info("Error Deploying " + deploymentRevision.getFile().getName());
+                    log.info("Error Deploying " + deploymentRevision.getFile().getName(),e);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.ERROR_DEPLOYING);
                 }
 

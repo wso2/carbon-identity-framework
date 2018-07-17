@@ -21,17 +21,27 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployer
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
 
-public class SoutConfigDeployerComponent implements ConfigDeployerComponent {
+public class ServiceProviderConfigDeployerComponent implements ConfigDeployerComponent {
 
+    /**
+     * Returns a new builder object for the component
+     *
+     * @return
+     */
     @Override
     public ConfigDeployerBuilder getConfigDeployerBuilder() {
 
-        return new SoutConfigDeployerBuilder();
+        return new ServiceProviderConfigDeployerBuilder();
     }
 
+    /**
+     * Returns a string of the unique identifier of the component
+     *
+     * @return
+     */
     @Override
     public String getIdentifier() {
 
-        return "SOUT";
+        return "SP";
     }
 }

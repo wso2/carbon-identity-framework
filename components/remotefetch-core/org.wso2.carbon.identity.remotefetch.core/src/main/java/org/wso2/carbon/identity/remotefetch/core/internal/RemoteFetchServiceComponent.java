@@ -25,12 +25,18 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
+import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegistryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
 import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerComponent;
-import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.SoutConfigDeployerComponent;
+import org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers.ServiceProviderConfigDeployerComponent;
 import org.wso2.carbon.identity.remotefetch.core.implementations.repositoryHandlers.GitRepositoryManagerComponent;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,7 +57,7 @@ public class RemoteFetchServiceComponent {
         RemoteFetchComponentRegistry remoteFetchComponentRegistry = new RemoteFetchComponentRegistryImpl();
 
         remoteFetchComponentRegistry.registerRepositoryManager(new GitRepositoryManagerComponent());
-        remoteFetchComponentRegistry.registerConfigDeployer(new SoutConfigDeployerComponent());
+        remoteFetchComponentRegistry.registerConfigDeployer(new ServiceProviderConfigDeployerComponent());
         remoteFetchComponentRegistry.registerActionListener(new PollingActionListenerComponent());
 
         RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistry(remoteFetchComponentRegistry);
@@ -79,5 +85,37 @@ public class RemoteFetchServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Identity RemoteFetchServiceComponent bundle is deactivated");
         }
+    }
+
+    @Reference(
+            name = "user.applicationmanagementservice.default",
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagerService"
+    )
+    protected void setApplicationManagerService(ApplicationManagementService applicationManagerService) {
+
+        RemoteFetchServiceComponentHolder.getInstance().setApplicationManagementService(applicationManagerService);
+    }
+
+    protected void unsetApplicationManagerService(ApplicationManagementService applicationManagerService) {
+
+        RemoteFetchServiceComponentHolder.getInstance().setApplicationManagementService(null);
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService){
+        RemoteFetchServiceComponentHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService){
+        RemoteFetchServiceComponentHolder.getInstance().setRealmService(null);
     }
 }

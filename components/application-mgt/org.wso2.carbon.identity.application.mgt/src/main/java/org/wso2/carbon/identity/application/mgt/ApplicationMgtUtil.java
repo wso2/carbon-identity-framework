@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -52,6 +53,8 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,6 +62,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 public class ApplicationMgtUtil {
 
@@ -605,5 +611,34 @@ public class ApplicationMgtUtil {
                     serviceProvider.getApplicationName(), e);
         }
         return true;
+    }
+
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param spFileContent
+     * @param tenantDomain
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public static String getApplicationNameFromSpFileContent(SpFileContent spFileContent, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(spFileContent.getContent())) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
+                    " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
+        }
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            ServiceProvider serviceProvider = (ServiceProvider) unmarshaller.unmarshal(new ByteArrayInputStream(
+                    spFileContent.getContent().getBytes(StandardCharsets.UTF_8)));
+
+            return serviceProvider.getApplicationName();
+
+        } catch (JAXBException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
+                    "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
+        }
     }
 }

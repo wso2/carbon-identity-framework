@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.identity.remotefetch.core.internal;
 
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
+import org.wso2.carbon.user.core.service.RealmService;
 
 public class RemoteFetchServiceComponentHolder {
 
     private static RemoteFetchServiceComponentHolder instance = new RemoteFetchServiceComponentHolder();
+    private ApplicationManagementService applicationManagementService;
     private RemoteFetchComponentRegistry remoteFetchComponentRegistry;
+    private RealmService realmService;
 
     public static RemoteFetchServiceComponentHolder getInstance() {
 
@@ -38,5 +42,25 @@ public class RemoteFetchServiceComponentHolder {
     public void setRemoteFetchComponentRegistry(RemoteFetchComponentRegistry remoteFetchComponentRegistry) {
 
         this.remoteFetchComponentRegistry = remoteFetchComponentRegistry;
+    }
+
+    public ApplicationManagementService getApplicationManagementService() {
+
+        return applicationManagementService;
+    }
+
+    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        this.applicationManagementService = applicationManagementService;
+    }
+
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 }

@@ -22,11 +22,17 @@ import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilderException;
 
-public class SoutConfigDeployerBuilder extends ConfigDeployerBuilder {
+public class ServiceProviderConfigDeployerBuilder extends ConfigDeployerBuilder {
 
+    /**
+     * Build and return a new ConfigDeployer with the set configuration
+     *
+     * @return
+     * @throws ConfigDeployerBuilderException
+     */
     @Override
     public ConfigDeployer build() throws ConfigDeployerBuilderException {
 
-        return new SoutConfigDeployer();
+        return new ServiceProviderConfigDeployer(this.fetchConfig.getTenantId(), this.fetchConfig.getUserName());
     }
 }

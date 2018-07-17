@@ -33,15 +33,18 @@ public class RemoteFetchConfiguration implements Serializable {
     private String repositoryManagerType = "";
     private String actionListenerType = "";
     private String confgiurationDeployerType = "";
+    private String userName = "";
     private Map<String, String> repositoryManagerAttributes = new HashMap<>();
     private Map<String, String> actionListenerAttributes = new HashMap<>();
     private Map<String, String> confgiurationDeployerAttributes = new HashMap<>();
 
-    public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String repositoryManagerType,
-                                    String actionListenerType, String confgiurationDeployerType) {
+    public RemoteFetchConfiguration(int remoteFetchConfigurationId, int tenantId, String userName,
+                                    String repositoryManagerType, String actionListenerType,
+                                    String confgiurationDeployerType) {
 
         this.remoteFetchConfigurationId = remoteFetchConfigurationId;
         this.tenantId = tenantId;
+        this.userName = userName;
         this.repositoryManagerType = repositoryManagerType;
         this.actionListenerType = actionListenerType;
         this.confgiurationDeployerType = confgiurationDeployerType;
@@ -61,6 +64,22 @@ public class RemoteFetchConfiguration implements Serializable {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    /**
+     * @return
+     */
+    public String getUserName() {
+
+        return userName;
+    }
+
+    /**
+     * @param userName
+     */
+    public void setUserName(String userName) {
+
+        this.userName = userName;
     }
 
     /**
@@ -168,33 +187,21 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     @Override
-    public String toString() {
-
-        return "RemoteFetchConfiguration{" +
-                "remoteFetchConfigurationId=" + remoteFetchConfigurationId +
-                ", tenantId=" + tenantId +
-                ", repositoryManagerType='" + repositoryManagerType + '\'' +
-                ", actionListenerType='" + actionListenerType + '\'' +
-                ", confgiurationDeployerType='" + confgiurationDeployerType + '\'' +
-                ", repositoryManagerAttributes=" + repositoryManagerAttributes +
-                ", actionListenerAttributes=" + actionListenerAttributes +
-                ", confgiurationDeployerAttributes=" + confgiurationDeployerAttributes +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
 
         if (this == o) {
             return true;
         }
-        if (!(o instanceof RemoteFetchConfiguration)) return false;
+        if (!(o instanceof RemoteFetchConfiguration)) {
+            return false;
+        }
         RemoteFetchConfiguration that = (RemoteFetchConfiguration) o;
         return remoteFetchConfigurationId == that.remoteFetchConfigurationId &&
                 tenantId == that.tenantId &&
                 Objects.equals(repositoryManagerType, that.repositoryManagerType) &&
                 Objects.equals(actionListenerType, that.actionListenerType) &&
                 Objects.equals(confgiurationDeployerType, that.confgiurationDeployerType) &&
+                Objects.equals(userName, that.userName) &&
                 Objects.equals(repositoryManagerAttributes, that.repositoryManagerAttributes) &&
                 Objects.equals(actionListenerAttributes, that.actionListenerAttributes) &&
                 Objects.equals(confgiurationDeployerAttributes, that.confgiurationDeployerAttributes);
@@ -203,6 +210,24 @@ public class RemoteFetchConfiguration implements Serializable {
     @Override
     public int hashCode() {
 
-        return Objects.hash(remoteFetchConfigurationId, tenantId, repositoryManagerType, actionListenerType, confgiurationDeployerType, repositoryManagerAttributes, actionListenerAttributes, confgiurationDeployerAttributes);
+        return Objects.hash(remoteFetchConfigurationId, tenantId, repositoryManagerType, actionListenerType,
+                confgiurationDeployerType, userName, repositoryManagerAttributes, actionListenerAttributes,
+                confgiurationDeployerAttributes);
+    }
+
+    @Override
+    public String toString() {
+
+        return "RemoteFetchConfiguration{" +
+                "remoteFetchConfigurationId=" + remoteFetchConfigurationId +
+                ", tenantId=" + tenantId +
+                ", repositoryManagerType='" + repositoryManagerType + '\'' +
+                ", actionListenerType='" + actionListenerType + '\'' +
+                ", confgiurationDeployerType='" + confgiurationDeployerType + '\'' +
+                ", userName='" + userName + '\'' +
+                ", repositoryManagerAttributes=" + repositoryManagerAttributes +
+                ", actionListenerAttributes=" + actionListenerAttributes +
+                ", confgiurationDeployerAttributes=" + confgiurationDeployerAttributes +
+                '}';
     }
 }
