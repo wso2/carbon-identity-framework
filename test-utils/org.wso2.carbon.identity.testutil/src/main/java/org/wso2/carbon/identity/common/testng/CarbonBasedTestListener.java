@@ -289,7 +289,8 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(withKeyStore.tenantId(),
                                                                           serverConfigurationService,
                                                                           registryService);
-            if (!Proxy.isProxyClass(keyStoreManager.getClass())) {
+            if (!Proxy.isProxyClass(keyStoreManager.getClass()) &&
+                    !keyStoreManager.getClass().getName().contains("EnhancerByMockitoWithCGLIB")  ) {
                 KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
                 org.wso2.carbon.identity.testutil.Whitebox.setInternalState(keyStoreManager, "primaryKeyStore",
                                                                             keyStore);
