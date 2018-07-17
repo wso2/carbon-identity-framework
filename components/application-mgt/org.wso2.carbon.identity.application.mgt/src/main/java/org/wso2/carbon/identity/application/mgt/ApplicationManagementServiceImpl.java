@@ -250,9 +250,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
-            if (                    !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
+            if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
+                    !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
                             serviceProvider.getApplicationID())) {
-                log.warn("Illegal Access! User " + username + " does not have access to the application " + applicationName);
+                log.warn("Illegal Access! User " +
+                        CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have access to the application " +
+                        applicationName);
                 throw new IdentityApplicationManagementException("User not authorized");
             }
 
