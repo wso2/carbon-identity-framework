@@ -784,13 +784,23 @@ function sortNumber(a, b) {
     return a - b;
 }
 
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return arr1.length;
-    }
-    for (var i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return arr2[i] + " not matching";
-        }
-    }
+/**
+ * Call with a ui array and script array as input params
+ * Ex: diffArray(getExecuteStepsInUI(), getExecuteStepsInScript());
+ */
+function diffArray(arrUI, arrScript) {
+    var difference = {
+        ui: [],
+        script: [],
+    };
+
+    arrUI.map(function (val) {
+        arrScript.indexOf(val) < 0 ? difference.ui.push(val) : '';
+    });
+
+    arrScript.map(function (val) {
+        arrUI.indexOf(val) < 0 ? difference.script.push(val) : '';
+    });
+
+    return difference;
 }
