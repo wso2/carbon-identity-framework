@@ -25,7 +25,6 @@ var localAuthNumber = 0;
 var scriptStringHeader = "function onInitialRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
-var documentBeforeChange;
 
 $("#createApp").click(function () {
     return validateAppCreation();
@@ -94,6 +93,7 @@ function validateAppCreation() {
         CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
             ' missing authenticators or delete the empty step.',
             null, null);
+        return false;
     }
     if (errorList.length > 0) {
         showPopupConfirm($(".editor-error-content").html(), "Save script with errors ?", 250, 550, "OK", "Cancel",
@@ -546,10 +546,11 @@ function checkScriptDirty() {
     });
     var scriptComposed = scriptStringHeader + str + scriptStringFooter;
 
+    var editorContent = doc.getValue();
     var minifiedEditorContent = editorContent.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
     var minifiedScriptComposed = scriptComposed.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
 
-    if (minifiedEditorContent == minifiedScriptComposed) {
+    if (minifiedEditorContent == "" || minifiedEditorContent == minifiedScriptComposed) {
         scriptIsDirty = false;
     } else {
         scriptIsDirty = true;
@@ -744,22 +745,8 @@ function getExecuteStepsInScript() {
     return stepsIntArray.sort(sortNumber);
 }
 
-doc.on("beforeChange", function (document, changeObj) {
-    documentBeforeChange = editorContent;
-    documentBeforeChange = documentBeforeChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
-});
-
 doc.on("change", function (document, changeObj) {
-    var documentAfterChange = document.getValue();
-    documentAfterChange = documentAfterChange.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
-    if (documentAfterChange === documentBeforeChange) {
-        scriptIsDirty = false;
-    } else {
-        scriptIsDirty = true;
-    }
-    if (fromTemplateLink) {
-        scriptIsDirty = true;
-    }
+    checkScriptDirty();
 });
 
 $('#editorRow').bind('beforeShow', function () {
