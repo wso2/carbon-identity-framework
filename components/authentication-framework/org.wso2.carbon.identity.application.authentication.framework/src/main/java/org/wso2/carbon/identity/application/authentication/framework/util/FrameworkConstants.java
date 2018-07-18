@@ -109,7 +109,7 @@ public abstract class FrameworkConstants {
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
-    public static final String ERROR_MSG = "This account is locked due to many failed login attempts.";
+    public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
 
     private FrameworkConstants() {
 
