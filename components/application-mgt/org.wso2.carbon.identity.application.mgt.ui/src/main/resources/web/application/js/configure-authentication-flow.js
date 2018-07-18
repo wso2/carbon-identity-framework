@@ -521,9 +521,31 @@ function deleteIDPRow(obj) {
 }
 
 $('body').delegate("a.delete_step", 'click', function (e) {
-    deleteStep(this);
+    var stepNo = $(this).attr('data-step-no');
+    var executeStepsInScript = getExecuteStepsInScript();
+    var element = $(this);
+
     if (!scriptIsDirty) {
+        deleteStep(this);
         buildScriptString($(".steps > h2"));
+    } else {
+        if($.inArray(parseInt(stepNo),  executeStepsInScript) > -1) {
+            if (stepNo == $(".steps > h2").length) {
+                CARBON.showConfirmationDialog('You are deleting a step that is used in the script. Are' +
+                    ' you sure you want to delete? ',
+                    function () {
+                        deleteStep(element);
+                    }, null);
+            } else {
+                CARBON.showConfirmationDialog('You are deleting a step that is used in the script. Are' +
+                    ' you sure you want to delete?\nPlease note that the steps will be reordered.',
+                    function () {
+                        deleteStep(element);
+                    }, null);
+            }
+        } else {
+            deleteStep(element);
+        }
     }
     e.stopImmediatePropagation();
 });
@@ -579,6 +601,7 @@ function deleteStep(obj) {
             $(this).attr('id', 'step_head_' + newStepOrderVal);
             $(this).find('input[name="auth_step"]').val(newStepOrderVal);
             $(this).find('.step_order_header').text('Step ' + newStepOrderVal);
+            $(this).find('.delete_step').attr('data-step-no', newStepOrderVal);
 
             //Changes in content
             var contentDiv = $('#step_dev_' + oldStepOrderVal);
