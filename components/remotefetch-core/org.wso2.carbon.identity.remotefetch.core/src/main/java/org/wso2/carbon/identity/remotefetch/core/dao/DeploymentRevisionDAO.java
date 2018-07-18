@@ -36,6 +36,15 @@ public interface DeploymentRevisionDAO {
     int createDeploymentRevision(DeploymentRevision deploymentRevision) throws RemoteFetchCoreException;
 
     /**
+     * @param remoteFetchConfigurationId
+     * @param itemName
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    DeploymentRevision getDeploymentRevision(int remoteFetchConfigurationId, String itemName)
+            throws RemoteFetchCoreException;
+
+    /**
      * @param deploymentRevision
      * @throws RemoteFetchCoreException
      */

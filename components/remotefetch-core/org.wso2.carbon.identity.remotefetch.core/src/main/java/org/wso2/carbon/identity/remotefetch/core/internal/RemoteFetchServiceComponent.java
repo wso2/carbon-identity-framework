@@ -30,7 +30,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
-import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegistryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
 import org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers.PollingActionListenerComponent;

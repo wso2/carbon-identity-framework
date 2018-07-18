@@ -53,7 +53,6 @@ public class RemoteFetchCore implements Runnable {
     public RemoteFetchCore() {
 
         this.remoteFetchConfigDAO = new CacheBackedRemoteFetchConfigurationDAOImpl();
-        System.out.println("TEST");
         this.componentRegistry = RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry();
     }
 

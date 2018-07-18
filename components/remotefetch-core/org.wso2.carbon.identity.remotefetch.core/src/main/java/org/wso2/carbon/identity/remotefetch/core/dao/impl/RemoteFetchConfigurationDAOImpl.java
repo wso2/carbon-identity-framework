@@ -40,17 +40,21 @@ import org.json.JSONObject;
  */
 public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfigurationDAO {
 
-    private static final String CREATE_CONFIG = "INSERT IDN_RF_CONFIG (TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE, " +
+    private static final String CREATE_CONFIG = "INSERT IDN_RF_CONFIG (TENANT_ID, USER_NAME, REPO_MANAGER_TYPE, " +
             "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON) VALUES (?,?,?,?,?,?)";
 
-    private static final String LIST_CONFIGS = "SELECT ID, TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE, " +
+    private static final String LIST_CONFIGS = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE, " +
             "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG`";
 
-    private static final String GET_CONFIG = "SELECT ID, TENANT_ID, USER_NAME, REPO_CONNECTOR_TYPE," +
+    private static final String GET_CONFIG = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE," +
             " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE ID = ?";
 
+    private static final String GET_CONFIG_BY_UNIQUE = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE," +
+            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE " +
+            "TENANT_ID = ? AND REPO_MANAGER_TYPE = ? AND CONFIG_DEPLOYER_TYPE = ?";
+
     private static final String UPDATE_CONFIG = "UPDATE IDN_RF_CONFIG SET TENANT_ID = ?, USER_NAME = ?," +
-            " REPO_CONNECTOR_TYPE = ?, ACTION_LISTENER_TYPE = ?, CONFIG_DEPLOYER_TYPE = ?, ATTRIBUTES_JSON = ? " +
+            " REPO_MANAGER_TYPE = ?, ACTION_LISTENER_TYPE = ?, CONFIG_DEPLOYER_TYPE = ?, ATTRIBUTES_JSON = ? " +
             "WHERE ID = ?";
 
     private static final String DELETE_CONFIG = "DELETE FROM IDN_RF_CONFIG WHERE ID = ?";
@@ -87,13 +91,17 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             int configId = -1;
             result = addStmnt.getGeneratedKeys();
 
-            // TODO if no ID SELECT and return id
-
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
 
-            return configId;
+            if (configId == -1) {
+                return this.getRemoteFetchConfiguration(configuration.getTenantId(),
+                        configuration.getRepositoryManagerType(), configuration.getConfgiurationDeployerType())
+                        .getRemoteFetchConfigurationId();
+            } else {
+                return configId;
+            }
 
         } catch (SQLException e) {
             throw new RemoteFetchCoreException("Error creating new object", e);
@@ -161,6 +169,64 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
     }
 
     /**
+     * @param tenantId
+     * @param repositoryManagerType
+     * @param configDeployerType
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    @Override
+    public RemoteFetchConfiguration getRemoteFetchConfiguration(int tenantId, String repositoryManagerType, String configDeployerType) throws RemoteFetchCoreException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement selectStmnt = null;
+        ResultSet result = null;
+        try {
+            selectStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.GET_CONFIG_BY_UNIQUE);
+            selectStmnt.setInt(1, tenantId);
+            selectStmnt.setString(2, repositoryManagerType);
+            selectStmnt.setString(3, configDeployerType);
+            result = selectStmnt.executeQuery();
+
+            if (result.next()) {
+                JSONObject attributesBundle = new JSONObject(result.getString(7));
+
+                RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
+                        result.getInt(1),
+                        result.getInt(2),
+                        result.getString(3),
+                        result.getString(4),
+                        result.getString(5),
+                        result.getString(6)
+                );
+
+                remoteFetchConfiguration.setRepositoryManagerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("repositoryManagerAttributes"))
+                );
+                remoteFetchConfiguration.setActionListenerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("actionListenerAttributes"))
+                );
+                remoteFetchConfiguration.setConfgiurationDeployerAttributes(
+                        this.attributeToMap(attributesBundle.getJSONObject("confgiurationDeployerAttributes"))
+                );
+
+                return remoteFetchConfiguration;
+
+            } else {
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error reading objects from database", e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(result);
+            IdentityDatabaseUtil.closeStatement(selectStmnt);
+            IdentityDatabaseUtil.closeConnection(connection);
+
+        }
+    }
+
+    /**
      * @param configuration
      * @throws RemoteFetchCoreException
      */
@@ -174,7 +240,7 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
             updateStmnt = connection.prepareStatement(RemoteFetchConfigurationDAOImpl.UPDATE_CONFIG);
             updateStmnt.setInt(1, configuration.getTenantId());
             updateStmnt.setString(2, configuration.getRepositoryManagerType());
-            updateStmnt.setString(3,configuration.getUserName());
+            updateStmnt.setString(3, configuration.getUserName());
             updateStmnt.setString(4, configuration.getActionListenerType());
             updateStmnt.setString(5, configuration.getConfgiurationDeployerType());
 

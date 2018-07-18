@@ -63,7 +63,6 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
         spFileContent.setContent(configFileContent.getContent());
 
         ServiceProvider serviceProvider;
-        //TODO get username from config
         startTenantFlow(tenantDomain,this.userName);
         try {
             serviceProvider = this.applicationManagementService

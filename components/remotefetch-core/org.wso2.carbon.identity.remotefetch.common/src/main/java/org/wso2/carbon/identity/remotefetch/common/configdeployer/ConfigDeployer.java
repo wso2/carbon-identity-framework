@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.remotefetch.common.configdeployer;
 import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 
-import java.io.InputStream;
-
 /**
  * Interface to define configuration deployer
  * which deploys configuration files

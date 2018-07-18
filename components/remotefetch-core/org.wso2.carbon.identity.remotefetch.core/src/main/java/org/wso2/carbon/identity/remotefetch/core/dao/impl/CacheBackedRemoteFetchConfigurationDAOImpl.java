@@ -30,7 +30,7 @@ import java.util.List;
 public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchConfigurationDAO {
 
     RemoteFetchConfigurationDAO remoteFetchConfigurationDAO = new RemoteFetchConfigurationDAOImpl();
-    RemoteFetchConfigurationByIdCache IdCache = RemoteFetchConfigurationByIdCache.getInstance();
+    RemoteFetchConfigurationByIdCache idCache = RemoteFetchConfigurationByIdCache.getInstance();
 
     /**
      * @param configuration
@@ -46,8 +46,8 @@ public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchCo
         RemoteFetchConfigurationByIdCacheKey cacheKey = new RemoteFetchConfigurationByIdCacheKey(id);
         RemoteFetchConfigurationByIdCacheEntry cacheEntry = new RemoteFetchConfigurationByIdCacheEntry(configuration);
 
-        this.IdCache.clearCacheEntry(cacheKey);
-        this.IdCache.addToCache(cacheKey, cacheEntry);
+        this.idCache.clearCacheEntry(cacheKey);
+        this.idCache.addToCache(cacheKey, cacheEntry);
         return id;
     }
 
@@ -60,13 +60,26 @@ public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchCo
     public RemoteFetchConfiguration getRemoteFetchConfiguration(int configurationId) throws RemoteFetchCoreException {
 
         RemoteFetchConfigurationByIdCacheKey cacheKey = new RemoteFetchConfigurationByIdCacheKey(configurationId);
-        RemoteFetchConfigurationByIdCacheEntry cacheEntry = this.IdCache.getValueFromCache(cacheKey);
+        RemoteFetchConfigurationByIdCacheEntry cacheEntry = this.idCache.getValueFromCache(cacheKey);
 
         if (cacheEntry != null) {
             return cacheEntry.getRemoteFetchConfiguration();
         } else {
             return this.remoteFetchConfigurationDAO.getRemoteFetchConfiguration(configurationId);
         }
+    }
+
+    /**
+     * @param tenantId
+     * @param repositoryManagerType
+     * @param configDeployerType
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    @Override
+    public RemoteFetchConfiguration getRemoteFetchConfiguration(int tenantId, String repositoryManagerType, String configDeployerType) throws RemoteFetchCoreException {
+
+        return this.getRemoteFetchConfiguration(tenantId, repositoryManagerType, configDeployerType);
     }
 
     /**
@@ -82,7 +95,7 @@ public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchCo
                 configuration.getRemoteFetchConfigurationId());
         RemoteFetchConfigurationByIdCacheEntry cacheEntry = new RemoteFetchConfigurationByIdCacheEntry(configuration);
 
-        this.IdCache.addToCache(cacheKey, cacheEntry);
+        this.idCache.addToCache(cacheKey, cacheEntry);
 
     }
 
@@ -97,7 +110,7 @@ public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchCo
 
         this.remoteFetchConfigurationDAO.deleteRemoteFetchConfiguration(configurationId);
 
-        this.IdCache.clearCacheEntry(cacheKey);
+        this.idCache.clearCacheEntry(cacheKey);
     }
 
     /**

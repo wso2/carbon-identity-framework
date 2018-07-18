@@ -48,6 +48,9 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     private static final String GET_REVISIONS_BY_CONFIG = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
             " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ?";
 
+    private static final String GET_REVISION_BY_UNIQUE = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
+            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ? AND ITEM_NAME = ?";
+
     /**
      * @param deploymentRevision
      * @return
@@ -68,20 +71,23 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             addStmnt.setString(4, deploymentRevision.getItemName());
             addStmnt.execute();
 
-            int configId = -1;
+            int revisionId = -1;
             result = addStmnt.getGeneratedKeys();
 
             if (result.next()) {
-                configId = result.getInt(1);
+                revisionId = result.getInt(1);
             }
-
-            // TODO if no ID SELECT and return id
 
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
 
-            return configId;
+            if (revisionId == -1 ){
+                return this.getDeploymentRevision(deploymentRevision.getConfigId(),deploymentRevision.getItemName())
+                        .getDeploymentRevisionId();
+            }else{
+                return revisionId;
+            }
 
         } catch (SQLIntegrityConstraintViolationException e) {
             throw new RemoteFetchCoreException("Constraint violation, duplicated entry", e);
@@ -91,6 +97,53 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
             IdentityDatabaseUtil.closeResultSet(result);
             IdentityDatabaseUtil.closeStatement(addStmnt);
             IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * @param remoteFetchConfigurationId
+     * @param itemName
+     * @return
+     * @throws RemoteFetchCoreException
+     */
+    @Override
+    public DeploymentRevision getDeploymentRevision(int remoteFetchConfigurationId, String itemName) throws RemoteFetchCoreException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement selectStmnt = null;
+        ResultSet result = null;
+        List<DeploymentRevision> deploymentRevisions = new ArrayList<>();
+        try {
+            selectStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.GET_REVISION_BY_UNIQUE);
+            selectStmnt.setInt(1, remoteFetchConfigurationId);
+            selectStmnt.setString(2, itemName);
+            result = selectStmnt.executeQuery();
+
+            while (result.next()) {
+                DeploymentRevision deploymentRevision = new DeploymentRevision(
+                        result.getInt(2),
+                        new File(result.getString(3))
+                );
+                deploymentRevision.setDeploymentRevisionId(result.getInt(1));
+                deploymentRevision.setFileHash(result.getString(4));
+                deploymentRevision.setDeployedDate(new Date(result.getTimestamp(5).getTime()));
+                deploymentRevision.setDeploymentStatus(DeploymentRevision
+                        .DEPLOYMENT_STATUS.valueOf(result.getString(6)));
+                deploymentRevision.setItemName(result.getString(7));
+
+                return deploymentRevision;
+
+            }
+
+            return null;
+
+        } catch (SQLException e) {
+            throw new RemoteFetchCoreException("Error reading DeploymentRevision from database", e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(result);
+            IdentityDatabaseUtil.closeStatement(selectStmnt);
+            IdentityDatabaseUtil.closeConnection(connection);
+
         }
     }
 
