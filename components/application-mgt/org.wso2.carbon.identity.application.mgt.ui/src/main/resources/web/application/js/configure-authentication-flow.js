@@ -70,9 +70,7 @@ checkScriptDirty();
 function validateAppCreation() {
     var warningList = [];
     var errorList = [];
-    var warningBullets = "";
-    var errorBullets = "";
-
+    var stepDifference = diffArray(getExecuteStepsInUI(), getExecuteStepsInScript());
     myCodeMirror.operation(function () {
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
@@ -81,13 +79,14 @@ function validateAppCreation() {
                 continue;
             } else if (err.code.lastIndexOf("W", 0) === 0) {
                 warningList.push(err.reason);
-                warningBullets = $(".warningListContainer").append("<li>" + err.reason + "</li>");
+                $(".warningListContainer").append("<li>" + err.reason + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             } else {
                 errorList.push(err.reason);
-                errorBullets = $(".errorListContainer").append("<li>" + err.reason + "</li>");
+                $(".errorListContainer").append("<li>" + err.reason + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             }
         }
     });
+
 
     if (checkEmptyStep()) {
         CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
@@ -112,15 +111,32 @@ function validateAppCreation() {
         var stepsInScript = getExecuteStepsInScript();
 
         if (stepsInUI.length < stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script. However, the' +
-                ' changes will be saved but will NOT be evaluated. Do you still want to proceed ?',
-                submitFormWithDisabledScript, null);
+            if (stepDifference.ui.length > 0) {
+                for (var i = 0; i < stepDifference.ui.length; ++i) {
+                    $(".stepWarningListContainer").append("<li>Can't find matching 'executeStep' function for" +
+                        " <span>Step " + stepDifference.ui[i] + "</span></li>");
+                }
+                for (var i = 0; i < stepDifference.script.length; ++i) {
+                    $(".stepErrorListContainer").append("<li>Can't find matching Step for <span>executeStep(" + stepDifference.script[i] + "...</span></li>");
+                }
+                showPopupConfirm($(".editor-warning-content").html(), "Save script with following Errors/Warnings?", 200, 550, "OK", null,
+                    submitFormWithEnabledScript, removeHtmlContent);
+                return false;
+            }
         } else if (stepsInUI.length > stepsInScript.length) {
             CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script. However, the' +
-                ' changes will be saved and evaluated. Do you want to proceed ?',
+                ' changes will be saved and evaluated. Do you want to proceed?',
                 submitFormWithEnabledScript, null);
-        } else {
-            submitFormWithEnabledScript();
+        } else if (stepsInUI.length == stepsInScript.length) {
+            if (stepDifference.script.length > 0) {
+                for (var i = 0; i < stepDifference.script.length; ++i) {
+                    $(".stepErrorListContainer").append("<li>Can't find matching Steps for <span>executeStep(" + stepDifference.script[i] + ")</span></li>");
+                }
+                showPopupConfirm($(".editor-error-content").html(), "Save script with Warnings?", 200, 550, "OK", null,
+                    submitFormWithEnabledScript, removeHtmlContent);
+                return false;
+            }
+
         }
     }
     return true;
@@ -128,8 +144,8 @@ function validateAppCreation() {
 }
 
 function removeHtmlContent() {
-    $(".warningListContainer").html('');
-    $(".errorListContainer").html('');
+    $(".warningListContainer,.stepWarningListContainer").html('');
+    $(".errorListContainer,.stepErrorListContainer").html('');
 }
 
 function checkEmptyStep() {

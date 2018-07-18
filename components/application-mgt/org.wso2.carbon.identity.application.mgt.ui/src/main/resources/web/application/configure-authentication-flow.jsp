@@ -454,11 +454,15 @@
     <div class="editor-error-content" style="display: none">
         <div class="messagebox-error-custom">
             <ul class="errorListContainer"></ul>
+            <ul class="stepErrorListContainer"></ul>
+            <ul class="stepWarningListContainer"></ul>
         </div>
     </div>
     <div class="editor-warning-content" style="display: none">
         <div class="messagebox-warning-custom">
             <ul class="warningListContainer"></ul>
+            <ul class="stepErrorListContainer"></ul>
+            <ul class="stepWarningListContainer"></ul>
         </div>
     </div>
 </fmt:bundle>
