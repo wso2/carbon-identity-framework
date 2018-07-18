@@ -212,6 +212,9 @@ public class MockInitialContextFactory implements InitialContextFactory {
     private static File getClasspathAccessibleFile(String relativeFilePath, Class clazz) {
 
         URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        if(url == null) {
+            return null;
+        }
         File fileInClassloader = new File(url.getPath());
         if (fileInClassloader.isFile()) {
             return fileInClassloader;
@@ -231,6 +234,9 @@ public class MockInitialContextFactory implements InitialContextFactory {
     private static File copyTempFile(String relativeFilePath, Class clazz) throws TestCreationException {
 
         URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        if(url == null) {
+            throw new TestCreationException("Could not find a resource on the classpath : " + relativeFilePath);
+        }
         InputStream inputStream;
         try {
             inputStream = url.openStream();
