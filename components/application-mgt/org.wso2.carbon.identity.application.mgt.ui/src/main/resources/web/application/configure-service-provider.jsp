@@ -965,6 +965,7 @@
             return false;
         }
     }
+    
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">

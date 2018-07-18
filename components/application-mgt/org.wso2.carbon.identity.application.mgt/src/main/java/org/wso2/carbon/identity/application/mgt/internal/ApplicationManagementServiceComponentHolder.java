@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal;
 
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -40,6 +41,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ConfigurationContextService configContextService;
 
     private boolean databaseBackedCertificateStoringSupportAvailable;
+
+    private ConsentManager consentManager;
 
     private ApplicationManagementServiceComponentHolder(){
     }
@@ -121,5 +124,23 @@ public class ApplicationManagementServiceComponentHolder {
 
     public String getAuthenticationTemplatesJson(){
         return authnTemplatesJson;
+    }
+
+    /**
+     * Set ConsentManager service instance.
+     * @param consentManager ConsentManager service instance.
+     */
+    public void setConsentManager(ConsentManager consentManager) {
+
+        this.consentManager = consentManager;
+    }
+
+    /**
+     * Get ConsentManager service instance.
+     * @return ConsentManager service instance.
+     */
+    public ConsentManager getConsentManager() {
+
+        return consentManager;
     }
 }

@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -177,6 +178,23 @@ public class ApplicationManagementServiceComponent {
 
     protected void unsetInboundAuthenticatorConfig(AbstractInboundAuthenticatorConfig authenticator) {
         ApplicationManagementServiceComponentHolder.removeInboundAuthenticatorConfig(authenticator.getName());
+    }
+
+    @Reference(
+            name = "consent.mgt.service",
+            service = ConsentManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentMgtService"
+    )
+    protected void setConsentMgtService(ConsentManager consentManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setConsentManager(consentManager);
+    }
+
+    protected void unsetConsentMgtService(ConsentManager consentManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setConsentManager(null);
     }
 
     private void buildFileBasedSPList() {

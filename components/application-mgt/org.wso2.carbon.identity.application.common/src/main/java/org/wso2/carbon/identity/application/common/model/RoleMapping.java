@@ -22,12 +22,21 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "RoleMapping")
 public class RoleMapping implements Serializable {
 
     private static final long serialVersionUID = 4838992846277456900L;
 
+    @XmlElement(name = "localRole")
     private LocalRole localRole = null;
+
+    @XmlElement(name = "remoteRole")
     private String remoteRole = null;
 
     public RoleMapping() {

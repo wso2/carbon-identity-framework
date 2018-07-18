@@ -29,14 +29,29 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "FederatedAuthenticatorConfig")
 public class FederatedAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = -2361107623257323257L;
 
+    @XmlElement(name = "Name")
     protected String name;
+
+    @XmlElement(name = "DisplayName")
     protected String displayName;
+
+    @XmlElement(name = "IsEnabled")
     protected boolean enabled;
+
+    @XmlElementWrapper(name= "Properties")
+    @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {

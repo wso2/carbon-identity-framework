@@ -24,7 +24,13 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "LocalRole")
 public class LocalRole implements Serializable {
 
     private static final long serialVersionUID = -1986741675509417413L;
@@ -32,11 +38,13 @@ public class LocalRole implements Serializable {
     /**
      * The mapped role name of the IdP role at this local IdP end
      */
+    @XmlElement(name = "LocalRoleName")
     private String localRoleName;
 
     /**
      * The user store domain ID of the mapped role name at this local IdP end
      */
+    @XmlElement(name = "UserStoreId")
     private String userStoreId;
 
     public LocalRole() {
