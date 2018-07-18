@@ -97,7 +97,12 @@ public class JsStep extends AbstractJSContextMemberObject {
 
         if (authenticatedIdp != null) {
             AuthenticatedIdPData idPData = getContext().getCurrentAuthenticatedIdPs().get(authenticatedIdp);
-            return idPData.getUser();
+            if (idPData == null) {
+                idPData = getContext().getPreviousAuthenticatedIdPs().get(authenticatedIdp);
+            }
+            if (idPData != null) {
+                return idPData.getUser();
+            }
         }
         return null;
     }
