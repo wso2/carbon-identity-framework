@@ -101,6 +101,8 @@
     String oauth2DcrEndpoint = null;
     String oauth2JwksEndpoint = null;
     String oidcDiscoveryEndpoint = null;
+    String category = request.getParameter("category");
+    String subCategory = request.getParameter("subCategory");
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -752,8 +754,18 @@ function idpMgtCancel(){
         <h2 id="governance_config_header_subcategory" class="sectionSeperator trigger active">
             <a href="#"><%=Encode.forHtmlContent(catName)%></a>
         </h2>
-          <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+        
 <%
+        if (StringUtils.isNotEmpty(category) && category.equalsIgnoreCase(catName)) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+            
+<%      }  else {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display:none;" id="roleConfig2">
+<%      }
+%>
+                                        <%
                 Map<String, List<ConnectorConfig>> subCatMap = catMap.get(catName);
                 for (String subCatName : subCatMap.keySet()) {
                     if (DEFAULT.equals(subCatName)){
@@ -763,7 +775,19 @@ function idpMgtCancel(){
                 <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
                 </a>
             </h2>
+            
+<%
+        if (StringUtils.isNotEmpty(subCategory) && subCategory.equalsIgnoreCase(connectorConfig.getFriendlyName())) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+<%
+        }  else {
+%>
             <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+<%
+        }
+%>
+            
                 <table class="carbonFormTable">
                     <%
                         org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
