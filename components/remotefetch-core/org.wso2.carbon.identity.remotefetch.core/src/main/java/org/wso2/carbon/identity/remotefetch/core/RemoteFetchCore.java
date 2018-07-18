@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilderException;
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
-import org.wso2.carbon.identity.remotefetch.core.dao.impl.RemoteFetchConfigurationDAOImpl;
+import org.wso2.carbon.identity.remotefetch.core.dao.impl.CacheBackedRemoteFetchConfigurationDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
 
 import java.util.HashMap;
@@ -52,7 +52,8 @@ public class RemoteFetchCore implements Runnable {
 
     public RemoteFetchCore() {
 
-        this.remoteFetchConfigDAO = new RemoteFetchConfigurationDAOImpl();
+        this.remoteFetchConfigDAO = new CacheBackedRemoteFetchConfigurationDAOImpl();
+        System.out.println("TEST");
         this.componentRegistry = RemoteFetchServiceComponentHolder.getInstance().getRemoteFetchComponentRegistry();
     }
 

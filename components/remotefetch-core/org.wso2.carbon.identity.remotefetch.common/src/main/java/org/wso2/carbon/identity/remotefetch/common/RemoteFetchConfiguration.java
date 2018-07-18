@@ -91,6 +91,14 @@ public class RemoteFetchConfiguration implements Serializable {
     }
 
     /**
+     * @param remoteFetchConfigurationId
+     */
+    public void setRemoteFetchConfigurationId(int remoteFetchConfigurationId) {
+
+        this.remoteFetchConfigurationId = remoteFetchConfigurationId;
+    }
+
+    /**
      * @return
      */
     public String getRepositoryManagerType() {
