@@ -47,7 +47,8 @@ import java.util.concurrent.TimeUnit;
 )
 public class RemoteFetchServiceComponent {
 
-    private static Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
+    private static final Log log = LogFactory.getLog(RemoteFetchServiceComponent.class);
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Activate
@@ -110,11 +111,13 @@ public class RemoteFetchServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRealmService"
     )
-    protected void setRealmService(RealmService realmService){
+    protected void setRealmService(RealmService realmService) {
+
         RemoteFetchServiceComponentHolder.getInstance().setRealmService(realmService);
     }
 
-    protected void unsetRealmService(RealmService realmService){
+    protected void unsetRealmService(RealmService realmService) {
+
         RemoteFetchServiceComponentHolder.getInstance().setRealmService(null);
     }
 }

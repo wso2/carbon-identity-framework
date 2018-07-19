@@ -35,7 +35,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 public class ServiceProviderConfigDeployer implements ConfigDeployer {
 
-    private static Log log = LogFactory.getLog(ServiceProviderConfigDeployer.class);
+    private static final Log log = LogFactory.getLog(ServiceProviderConfigDeployer.class);
+
     private ApplicationManagementService applicationManagementService;
     private int tenantId;
     private String userName;
@@ -63,7 +64,7 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
         spFileContent.setContent(configFileContent.getContent());
 
         ServiceProvider serviceProvider;
-        startTenantFlow(tenantDomain,this.userName);
+        startTenantFlow(tenantDomain, this.userName);
         try {
             serviceProvider = this.applicationManagementService
                     .getApplicationExcludingFileBasedSPs(resolvedName, tenantDomain);
@@ -75,10 +76,10 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
             ImportResponse importResponse = this.applicationManagementService.importSPApplication(spFileContent,
                     tenantDomain, this.userName, serviceProvider != null);
 
-            if(importResponse.getResponseCode() == ImportResponse.FAILED){
+            if (importResponse.getResponseCode() == ImportResponse.FAILED) {
                 log.warn("Unable to deploy Service Provider " + resolvedName);
-                for (String error: importResponse.getErrors()) {
-                    log.warn("Reason "+ error);
+                for (String error : importResponse.getErrors()) {
+                    log.warn("Reason " + error);
                 }
                 throw new RemoteFetchCoreException("Unable to deploy Service Provider");
             }
@@ -122,8 +123,7 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
         }
     }
 
-
-    private void startTenantFlow(String tenantDomain, String userName){
+    private void startTenantFlow(String tenantDomain, String userName) {
 
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);

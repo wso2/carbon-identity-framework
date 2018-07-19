@@ -44,7 +44,8 @@ import java.util.Map;
  */
 public class RemoteFetchCore implements Runnable {
 
-    private Log log = LogFactory.getLog(RemoteFetchCore.class);
+    private static final Log log = LogFactory.getLog(RemoteFetchCore.class);
+
     private RemoteFetchConfigurationDAO remoteFetchConfigDAO;
     private Map<Integer, RemoteFetchConfiguration> remoteFetchConfigurationMap = new HashMap<>();
     private Map<Integer, ActionListener> actionListenerMap = new HashMap<>();

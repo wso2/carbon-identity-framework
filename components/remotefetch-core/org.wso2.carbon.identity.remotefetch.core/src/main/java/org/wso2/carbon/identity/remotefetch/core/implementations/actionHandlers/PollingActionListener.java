@@ -39,7 +39,7 @@ import java.util.Map;
 
 public class PollingActionListener implements ActionListener {
 
-    private static Log log = LogFactory.getLog(GitRepositoryManager.class);
+    private static final Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     private RepositoryManager repo;
     private Integer frequency = 60;
@@ -202,7 +202,7 @@ public class PollingActionListener implements ActionListener {
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
                     log.info("Deployed " + deploymentRevision.getFile().getPath());
                 } catch (Exception e) {
-                    log.info("Error Deploying " + deploymentRevision.getFile().getName(),e);
+                    log.info("Error Deploying " + deploymentRevision.getFile().getName(), e);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.ERROR_DEPLOYING);
                 }
 

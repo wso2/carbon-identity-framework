@@ -54,14 +54,14 @@ import java.util.List;
 
 public class GitRepositoryManager implements RepositoryManager {
 
+    private static final Log log = LogFactory.getLog(GitRepositoryManager.class);
+
     private String uri = "";
     private String branch = "";
     private String name = "";
     private File repoPath;
     private Repository repo;
     private Git git;
-
-    private static Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     public GitRepositoryManager(String name, String uri, String branch) {
 
