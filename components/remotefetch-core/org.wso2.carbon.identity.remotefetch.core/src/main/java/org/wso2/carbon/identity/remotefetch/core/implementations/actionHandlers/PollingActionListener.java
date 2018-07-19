@@ -37,12 +37,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ActionListener that polls repository with frequency for changes to be deployed.
+ */
 public class PollingActionListener implements ActionListener {
 
     private static final Log log = LogFactory.getLog(GitRepositoryManager.class);
 
     private RepositoryManager repo;
-    private Integer frequency = 60;
+    private Integer frequency;
     private Date lastIteration;
     private File path;
     private ConfigDeployer configDeployer;
@@ -76,7 +79,8 @@ public class PollingActionListener implements ActionListener {
             }
 
         } catch (RemoteFetchCoreException e) {
-            log.info("Unable to seed DeploymentRevisions", e);
+            log.info("Unable to seed DeploymentRevisions for RemoteFetchConfiguration id " +
+                    this.remoteFetchConfigurationId, e);
         }
     }
 
@@ -92,8 +96,8 @@ public class PollingActionListener implements ActionListener {
 
             try {
                 resolvedName = this.configDeployer.resolveConfigName(this.repo.getFile(configPath));
-            } catch (Exception e) {
-                log.info("Unable to resolve configuration", e);
+            } catch (RemoteFetchCoreException e) {
+                log.error("Unable to resolve configuration name for file " + configPath.getAbsolutePath(), e);
             }
 
             if (!(resolvedName.isEmpty())) {
@@ -120,7 +124,7 @@ public class PollingActionListener implements ActionListener {
                 currentdDeploymentRevision.setFile(configPath);
                 this.deploymentRevisionDAO.updateDeploymentRevision(currentdDeploymentRevision);
             } catch (RemoteFetchCoreException e) {
-                log.info("Unable to update DeploymentRevision for configuration", e);
+                log.error("Unable to update DeploymentRevision for " + resolvedName, e);
             }
         }
     }
@@ -141,7 +145,7 @@ public class PollingActionListener implements ActionListener {
             deploymentRevision.setDeploymentRevisionId(id);
             this.deploymentRevisionMap.put(deploymentRevision.getItemName(), deploymentRevision);
         } catch (RemoteFetchCoreException e) {
-            log.info("Unable to add a new DeploymentRevision for configuration", e);
+            log.error("Unable to add a new DeploymentRevision for " + resolvedName, e);
         }
     }
 
@@ -153,8 +157,8 @@ public class PollingActionListener implements ActionListener {
         if ((lastIteration == null) || (lastIteration.before(nextIteration.getTime()))) {
             try {
                 this.repo.fetchRepository();
-            } catch (Exception e) {
-                log.info("Error pulling repository");
+            } catch (RemoteFetchCoreException e) {
+                log.error("Error pulling repository", e);
             }
 
             this.pollDirectory(this.path, this.configDeployer);
@@ -170,13 +174,12 @@ public class PollingActionListener implements ActionListener {
      */
     private void pollDirectory(File path, ConfigDeployer deployer) {
 
-        log.info("Polling Directory " + path.getPath() + " for changes");
         List<File> configFiles = null;
 
         try {
             configFiles = this.repo.listFiles(path);
-        } catch (Exception e) {
-            log.info("Error listing files in root");
+        } catch (RemoteFetchCoreException e) {
+            log.error("Error listing files at " + path.getAbsolutePath(), e);
             return;
         }
 
@@ -184,25 +187,22 @@ public class PollingActionListener implements ActionListener {
 
         for (DeploymentRevision deploymentRevision : this.deploymentRevisionMap.values()) {
             String newHash = "";
-            String currentHash = deploymentRevision.getFileHash();
-
             try {
                 newHash = this.repo.getRevisionHash(deploymentRevision.getFile());
-            } catch (Exception e) {
-                log.info("Unable to get new hash", e);
+            } catch (RemoteFetchCoreException e) {
+                log.error("Unable to get new hash for " + deploymentRevision.getItemName(), e);
             }
 
             // Deploy if new file or updated file
-            if (!newHash.isEmpty() && (currentHash.isEmpty() || !(currentHash.equals(newHash)))) {
+            if (this.deploymentRevisionChanged(deploymentRevision, newHash)) {
 
                 deploymentRevision.setFileHash(newHash);
                 try {
                     ConfigFileContent configFileContent = repo.getFile(deploymentRevision.getFile());
                     deployer.deploy(configFileContent);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
-                    log.info("Deployed " + deploymentRevision.getFile().getPath());
-                } catch (Exception e) {
-                    log.info("Error Deploying " + deploymentRevision.getFile().getName(), e);
+                } catch (RemoteFetchCoreException e) {
+                    log.error("Error Deploying " + deploymentRevision.getFile().getName(), e);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.ERROR_DEPLOYING);
                 }
 
@@ -211,10 +211,24 @@ public class PollingActionListener implements ActionListener {
 
                 try {
                     this.deploymentRevisionDAO.updateDeploymentRevision(deploymentRevision);
-                } catch (Exception e) {
-                    log.info("Error updating DeploymentRevision", e);
+                } catch (RemoteFetchCoreException e) {
+                    log.error("Error updating DeploymentRevision for " + deploymentRevision.getItemName(), e);
                 }
             }
         }
+    }
+
+    /**
+     * Returns if the DeploymentRevision hash changed.
+     *
+     * @param deploymentRevision
+     * @param newHash
+     * @return
+     */
+    private boolean deploymentRevisionChanged(DeploymentRevision deploymentRevision, String newHash) {
+
+        String currentHash = deploymentRevision.getFileHash();
+        // Check if previous revision is none which indicates the addition of a new file and if so deploy.
+        return (!newHash.isEmpty() && (currentHash.isEmpty() || !(currentHash.equals(newHash))));
     }
 }
