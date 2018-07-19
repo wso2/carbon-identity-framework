@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.remotefetch.core.implementations.configDeployers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
@@ -37,8 +35,6 @@ import org.wso2.carbon.user.api.UserStoreException;
  * Deploy new or update ServiceProviders using ApplicationManagementService.
  */
 public class ServiceProviderConfigDeployer implements ConfigDeployer {
-
-    private static final Log log = LogFactory.getLog(ServiceProviderConfigDeployer.class);
 
     private ApplicationManagementService applicationManagementService;
     private int tenantId;
@@ -83,7 +79,7 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
                 StringBuilder exceptionStringBuilder = new StringBuilder();
 
                 exceptionStringBuilder.append("Unable to deploy Service Provider " + resolvedName);
-                for (String errorText : importResponse.getErrors()){
+                for (String errorText : importResponse.getErrors()) {
                     exceptionStringBuilder.append(System.lineSeparator());
                     exceptionStringBuilder.append(errorText);
                 }
@@ -91,7 +87,7 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
                 throw new RemoteFetchCoreException(exceptionStringBuilder.toString());
             }
         } catch (IdentityApplicationManagementException e) {
-            throw new RemoteFetchCoreException("Unable to deploy Service Provider "+ resolvedName, e);
+            throw new RemoteFetchCoreException("Unable to deploy Service Provider " + resolvedName, e);
         }
         endTenantFlow();
 
