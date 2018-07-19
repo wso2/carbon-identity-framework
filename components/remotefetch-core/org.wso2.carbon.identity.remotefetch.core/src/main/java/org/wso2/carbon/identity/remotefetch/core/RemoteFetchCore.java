@@ -25,13 +25,16 @@ import org.wso2.carbon.identity.remotefetch.common.RemoteFetchConfiguration;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListenerComponent;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployerComponent;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManager;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilder;
 import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerBuilderException;
+import org.wso2.carbon.identity.remotefetch.common.repomanager.RepositoryManagerComponent;
 import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO;
 import org.wso2.carbon.identity.remotefetch.core.dao.impl.CacheBackedRemoteFetchConfigurationDAOImpl;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
@@ -66,51 +69,71 @@ public class RemoteFetchCore implements Runnable {
      */
     private ActionListener buildListener(RemoteFetchConfiguration fetchConfig) throws RemoteFetchCoreException {
 
-        RepositoryManager repoConnector;
+        RepositoryManager repositoryManager;
         ActionListener actionListener;
         ConfigDeployer configDeployer;
 
-        try {
-            RepositoryManagerBuilder repositoryManagerBuilder = this.componentRegistry
-                    .getRepositoryManagerComponent(fetchConfig.getRepositoryManagerType())
-                    .getRepositoryManagerBuilder();
+        // Get an instance of RepositoryManager from registry.
+        RepositoryManagerComponent repositoryManagerComponent = this.componentRegistry
+                .getRepositoryManagerComponent(fetchConfig.getRepositoryManagerType());
 
-            repoConnector = repositoryManagerBuilder.addRemoteFetchConfig(fetchConfig).build();
-        } catch (NullPointerException e) {
-            throw new RemoteFetchCoreException("Unable to retrieve specified RepositoryManager", e);
-        } catch (RepositoryManagerBuilderException e) {
-            throw new RemoteFetchCoreException("Unable to build RepositoryManager object", e);
+        if (repositoryManagerComponent != null) {
+            try {
+                RepositoryManagerBuilder repositoryManagerBuilder = repositoryManagerComponent
+                        .getRepositoryManagerBuilder();
+
+                repositoryManager = repositoryManagerBuilder.addRemoteFetchConfig(fetchConfig).build();
+            } catch (RepositoryManagerBuilderException e) {
+                throw new RemoteFetchCoreException("Unable to build " + fetchConfig.getRepositoryManagerType()
+                        + " RepositoryManager", e);
+            }
+        } else {
+            throw new RemoteFetchCoreException("RepositoryManager " + fetchConfig.getRepositoryManagerType()
+                    + " is not registered in RemoteFetchComponentRegistry");
+
         }
 
-        try {
-            ConfigDeployerBuilder configDeployerBuilder = this.componentRegistry
-                    .getConfigDeployerComponent(fetchConfig.getConfgiurationDeployerType())
-                    .getConfigDeployerBuilder();
+        // Get an instance of ConfigDeployer from registry.
+        ConfigDeployerComponent configDeployerComponent = this.componentRegistry
+                .getConfigDeployerComponent(fetchConfig.getConfgiurationDeployerType());
 
-            configDeployer = configDeployerBuilder.addRemoteFetchConfig(fetchConfig).build();
+        if (configDeployerComponent != null) {
+            try {
+                ConfigDeployerBuilder configDeployerBuilder = configDeployerComponent.getConfigDeployerBuilder();
+                configDeployer = configDeployerBuilder.addRemoteFetchConfig(fetchConfig).build();
 
-        } catch (NullPointerException e) {
-            throw new RemoteFetchCoreException("Unable to retrieve specified ConfigDeployer", e);
-        } catch (ConfigDeployerBuilderException e) {
-            throw new RemoteFetchCoreException("Unable to build ConfigDeployer object", e);
+            } catch (ConfigDeployerBuilderException e) {
+                throw new RemoteFetchCoreException("Unable to build " + fetchConfig.getConfgiurationDeployerType()
+                        + " ConfigDeployer object", e);
+            }
+        } else {
+            throw new RemoteFetchCoreException("ConfigurationDeployer " + fetchConfig.getConfgiurationDeployerType()
+                    + " is not registered in RemoteFetchComponentRegistry");
         }
 
-        try {
-            ActionListenerBuilder actionListenerBuilder = this.componentRegistry
-                    .getActionListenerComponent(fetchConfig.getActionListenerType())
-                    .getActionListenerBuilder();
+        // Get an instance of ActionListener from registry.
+        ActionListenerComponent actionListenerComponent = this.componentRegistry
+                .getActionListenerComponent(fetchConfig.getActionListenerType());
 
-            actionListener = actionListenerBuilder.addRemoteFetchConfig(fetchConfig)
-                    .addConfigDeployer(configDeployer).addRepositoryConnector(repoConnector).build();
+        if (actionListenerComponent != null) {
+            try {
+                ActionListenerBuilder actionListenerBuilder = this.componentRegistry
+                        .getActionListenerComponent(fetchConfig.getActionListenerType())
+                        .getActionListenerBuilder();
 
-        } catch (NullPointerException e) {
-            throw new RemoteFetchCoreException("Unable to retrieve specified ActionListener", e);
-        } catch (ActionListenerBuilderException e) {
-            throw new RemoteFetchCoreException("Unable to build ActionListener object", e);
+                actionListener = actionListenerBuilder.addRemoteFetchConfig(fetchConfig)
+                        .addConfigDeployer(configDeployer).addRepositoryConnector(repositoryManager).build();
+
+            } catch (ActionListenerBuilderException e) {
+                throw new RemoteFetchCoreException("Unable to build " + fetchConfig.getActionListenerType()
+                        + " ActionListener object", e);
+            }
+        } else {
+            throw new RemoteFetchCoreException("ActionListener " + fetchConfig.getActionListenerType()
+                    + " is not registered in RemoteFetchComponentRegistry");
         }
 
         return actionListener;
-
     }
 
     /**
@@ -121,12 +144,14 @@ public class RemoteFetchCore implements Runnable {
         try {
             this.remoteFetchConfigDAO.getAllRemoteFetchConfigurations().forEach((RemoteFetchConfiguration config) -> {
                 int configurationId = config.getRemoteFetchConfigurationId();
+                // Check if RemoteFetchConfig already exists in Map.
                 if (this.remoteFetchConfigurationMap.containsKey(configurationId)) {
+                    // Update RemoteFetchConfiguration if local and new config is different.
                     if (!remoteFetchConfigurationMap.get(configurationId).equals(config)) {
                         try {
                             this.actionListenerMap.put(configurationId, this.buildListener(config));
                         } catch (RemoteFetchCoreException e) {
-                            log.error("Exception re-building ActionListener", e);
+                            log.error("Exception re-building ActionListener " + config.getActionListenerType(), e);
                         }
                     }
                 } else {
@@ -134,7 +159,7 @@ public class RemoteFetchCore implements Runnable {
                     try {
                         this.actionListenerMap.put(configurationId, this.buildListener(config));
                     } catch (RemoteFetchCoreException e) {
-                        log.error("Exception building ActionListener", e);
+                        log.error("Exception building ActionListener " + config.getActionListenerType(), e);
                     }
                 }
             });
