@@ -27,10 +27,13 @@ import org.wso2.carbon.identity.remotefetch.core.dao.RemoteFetchConfigurationDAO
 
 import java.util.List;
 
+/**
+ * Cache Backed DAO Impl that wraps RemoteFetchConfigurationDAOImpl.
+ */
 public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchConfigurationDAO {
 
-    RemoteFetchConfigurationDAO remoteFetchConfigurationDAO = new RemoteFetchConfigurationDAOImpl();
-    RemoteFetchConfigurationByIdCache idCache = RemoteFetchConfigurationByIdCache.getInstance();
+    private RemoteFetchConfigurationDAO remoteFetchConfigurationDAO = new RemoteFetchConfigurationDAOImpl();
+    private RemoteFetchConfigurationByIdCache idCache = RemoteFetchConfigurationByIdCache.getInstance();
 
     /**
      * @param configuration
