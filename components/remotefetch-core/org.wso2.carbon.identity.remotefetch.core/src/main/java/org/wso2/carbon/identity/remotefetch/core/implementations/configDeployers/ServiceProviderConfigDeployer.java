@@ -24,11 +24,11 @@ import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
-import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
+import org.wso2.carbon.identity.remotefetch.common.ConfigurationFileStream;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.user.api.UserStoreException;
 
 /**
@@ -51,34 +51,34 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
     /**
      * Deploy the configuration
      *
-     * @param configFileContent
+     * @param configurationFileStream
      * @throws RemoteFetchCoreException
      */
     @Override
-    public void deploy(ConfigFileContent configFileContent) throws RemoteFetchCoreException {
+    public void deploy(ConfigurationFileStream configurationFileStream) throws RemoteFetchCoreException {
 
-        String resolvedName = this.resolveConfigName(configFileContent);
+        ServiceProvider previousServiceProvider = null;
+
         String tenantDomain = this.getTenantDomain();
-        SpFileContent spFileContent = new SpFileContent();
-        spFileContent.setContent(configFileContent.getContent());
-
-        ServiceProvider serviceProvider;
         startTenantFlow(tenantDomain, this.userName);
+
+        ServiceProvider serviceProvider = this.getServiceProviderFromStream(configurationFileStream);
         try {
-            serviceProvider = this.applicationManagementService
-                    .getApplicationExcludingFileBasedSPs(resolvedName, tenantDomain);
+            previousServiceProvider = this.applicationManagementService
+                    .getApplicationExcludingFileBasedSPs(serviceProvider.getApplicationName(), tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new RemoteFetchCoreException("Unable to check if Application already exists", e);
         }
 
         try {
-            ImportResponse importResponse = this.applicationManagementService.importSPApplication(spFileContent,
-                    tenantDomain, this.userName, serviceProvider != null);
+            ImportResponse importResponse = this.applicationManagementService.importSPApplication(serviceProvider,
+                    tenantDomain, this.userName, previousServiceProvider != null);
 
             if (importResponse.getResponseCode() == ImportResponse.FAILED) {
                 StringBuilder exceptionStringBuilder = new StringBuilder();
 
-                exceptionStringBuilder.append("Unable to deploy Service Provider " + resolvedName);
+                exceptionStringBuilder.append("Unable to deploy Service Provider " +
+                        serviceProvider.getApplicationName());
                 for (String errorText : importResponse.getErrors()) {
                     exceptionStringBuilder.append(System.lineSeparator());
                     exceptionStringBuilder.append(errorText);
@@ -87,7 +87,8 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
                 throw new RemoteFetchCoreException(exceptionStringBuilder.toString());
             }
         } catch (IdentityApplicationManagementException e) {
-            throw new RemoteFetchCoreException("Unable to deploy Service Provider " + resolvedName, e);
+            throw new RemoteFetchCoreException("Unable to deploy Service Provider " +
+                    serviceProvider.getApplicationName(), e);
         }
         endTenantFlow();
 
@@ -96,24 +97,29 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
     /**
      * resolve the unique identifier for the configuration
      *
-     * @param configFileContent
+     * @param configurationFileStream
      * @return
      * @throws RemoteFetchCoreException
      */
     @Override
-    public String resolveConfigName(ConfigFileContent configFileContent) throws RemoteFetchCoreException {
+    public String resolveConfigName(ConfigurationFileStream configurationFileStream) throws RemoteFetchCoreException {
 
-        SpFileContent spFileContent = new SpFileContent();
-        spFileContent.setContent(configFileContent.getContent());
+        return this.getServiceProviderFromStream(configurationFileStream).getApplicationName();
+    }
+
+    private ServiceProvider getServiceProviderFromStream(ConfigurationFileStream configurationFileStream) throws RemoteFetchCoreException {
+
+        SpFileStream spFileStream = new SpFileStream(configurationFileStream.getContentStream(),
+                configurationFileStream.getPath().getName());
 
         String tenantDomain = this.getTenantDomain();
 
         try {
-            return ApplicationMgtUtil.getApplicationNameFromSpFileContent(spFileContent, tenantDomain);
+            return ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
-            throw new RemoteFetchCoreException("Unable to get name for specified config file", e);
+            throw new RemoteFetchCoreException("Unable to get name for specified config file " +
+                    configurationFileStream.getPath(), e);
         }
-
     }
 
     private String getTenantDomain() throws RemoteFetchCoreException {
@@ -122,7 +128,7 @@ public class ServiceProviderConfigDeployer implements ConfigDeployer {
             return RemoteFetchServiceComponentHolder.getInstance().getRealmService().getTenantManager()
                     .getDomain(this.tenantId);
         } catch (UserStoreException e) {
-            throw new RemoteFetchCoreException("Unable to get tenant domain for specified tenant", e);
+            throw new RemoteFetchCoreException("Unable to get tenant domain for tenant id " + tenantId, e);
         }
     }
 

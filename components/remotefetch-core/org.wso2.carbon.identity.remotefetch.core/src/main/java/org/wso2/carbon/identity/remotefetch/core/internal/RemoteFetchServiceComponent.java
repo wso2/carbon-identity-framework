@@ -69,9 +69,7 @@ public class RemoteFetchServiceComponent {
         RemoteFetchCore core = new RemoteFetchCore();
         try {
             scheduler.scheduleAtFixedRate(core, 0, 60, TimeUnit.SECONDS);
-            if (log.isDebugEnabled()) {
-                log.debug("Identity RemoteFetchServiceComponent bundle is activated");
-            }
+            log.info("Identity RemoteFetchServiceComponent bundle is activated");
         } catch (Exception e) {
             log.error("Error while activating RemoteFetchServiceComponent bundle", e);
         }

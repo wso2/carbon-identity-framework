@@ -18,20 +18,40 @@
 
 package org.wso2.carbon.identity.remotefetch.common;
 
+import java.io.File;
+import java.io.InputStream;
+
 /**
  * holds raw config file content
  */
-public class ConfigFileContent {
+public class ConfigurationFileStream {
 
-    private String content;
+    private InputStream contentStream;
+    private File path;
 
-    public ConfigFileContent(String content) {
+    /**
+     * @param contentStream
+     * @param path
+     */
+    public ConfigurationFileStream(InputStream contentStream, File path) {
 
-        this.content = content;
+        this.contentStream = contentStream;
+        this.path = path;
     }
 
-    public String getContent() {
+    /**
+     * @return
+     */
+    public InputStream getContentStream() {
 
-        return content;
+        return contentStream;
+    }
+
+    /**
+     * @return
+     */
+    public File getPath() {
+
+        return path;
     }
 }

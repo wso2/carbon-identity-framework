@@ -18,11 +18,10 @@
 
 package org.wso2.carbon.identity.remotefetch.common.repomanager;
 
-import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
+import org.wso2.carbon.identity.remotefetch.common.ConfigurationFileStream;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -48,7 +47,7 @@ public interface RepositoryManager {
      * @return
      * @throws RemoteFetchCoreException
      */
-    ConfigFileContent getFile(File location) throws RemoteFetchCoreException;
+    ConfigurationFileStream getFile(File location) throws RemoteFetchCoreException;
 
     /**
      * Returns the last modified date of the local file

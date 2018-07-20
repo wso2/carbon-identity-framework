@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.remotefetch.core.implementations.actionHandlers
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.remotefetch.common.ConfigFileContent;
+import org.wso2.carbon.identity.remotefetch.common.ConfigurationFileStream;
 import org.wso2.carbon.identity.remotefetch.common.DeploymentRevision;
 import org.wso2.carbon.identity.remotefetch.common.actionlistener.ActionListener;
 import org.wso2.carbon.identity.remotefetch.common.configdeployer.ConfigDeployer;
@@ -198,8 +198,8 @@ public class PollingActionListener implements ActionListener {
 
                 deploymentRevision.setFileHash(newHash);
                 try {
-                    ConfigFileContent configFileContent = repo.getFile(deploymentRevision.getFile());
-                    deployer.deploy(configFileContent);
+                    ConfigurationFileStream configurationFileStream = repo.getFile(deploymentRevision.getFile());
+                    deployer.deploy(configurationFileStream);
                     deploymentRevision.setDeploymentStatus(DeploymentRevision.DEPLOYMENT_STATUS.DEPLOYED);
                 } catch (RemoteFetchCoreException e) {
                     log.error("Error Deploying " + deploymentRevision.getFile().getName(), e);
