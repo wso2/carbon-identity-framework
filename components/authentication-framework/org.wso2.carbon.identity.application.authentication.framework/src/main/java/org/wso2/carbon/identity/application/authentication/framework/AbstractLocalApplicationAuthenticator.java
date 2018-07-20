@@ -46,6 +46,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This is the super class to fire the account lock event for all authenticators which are not federated
+ * authenticator and are not use user-store to authenticate the user.
+ */
 public abstract class AbstractLocalApplicationAuthenticator extends AbstractApplicationAuthenticator
         implements ApplicationAuthenticator {
 
@@ -69,14 +73,24 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
                             .getApplicationConfig().isSaaSApp()) {
-                        processWithNonSaaSApp(context);
+                        validateNonSaasAppLogin(context);
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, null);
                     fireEvent(context, IdentityEventConstants.Event.POST_AUTHENTICATION, true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    if (checkUserAccountStatus(response, context)) {
+                    if (isAccountLocked(context)) {
+                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                        String queryParams = context.getContextIdIncludedQueryParams();
+                        try {
+                            String redirectUrl = response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
+                                    FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
+                                    FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
+                            response.sendRedirect(redirectUrl);
+                        } catch (IOException e1) {
+                            throw new AuthenticationFailedException(" Error while redirecting to the retry page ", e1);
+                        }
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     }
                     fireEvent(context, IdentityEventConstants.Event.POST_AUTHENTICATION, false);
@@ -85,7 +99,7 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     return handleRetryOnFailure(request, response, context, e);
                 }
             }
-            // if a logout flow
+            // else a logout flow
         } else {
             return processLogoutFlow(request, response, context);
         }
@@ -115,8 +129,10 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
             return initiateAuthenticationFlow(request, response, context);
         } else {
             context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
-            // By throwing this exception step handler will redirect to multi options page if
-            // multi-option are available in the step.
+            /*
+                By throwing this exception step handler will redirect to multi options page if
+                multi-option are available in the step.
+             */
             throw e;
         }
     }
@@ -127,12 +143,12 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
      * @param context the authentication context
      * @throws AuthenticationFailedException the exception in the authentication flow
      */
-    protected void processWithNonSaaSApp(AuthenticationContext context) throws AuthenticationFailedException {
+    protected void validateNonSaasAppLogin(AuthenticationContext context) throws AuthenticationFailedException {
 
         String userTenantDomain = context.getSubject().getTenantDomain();
         String spTenantDomain = context.getTenantDomain();
         if (!StringUtils.equals(userTenantDomain, spTenantDomain)) {
-            context.setProperty("UserTenantDomainMismatch", true);
+            context.setProperty(FrameworkConstants.USER_TENANT_DOMAIN_MISMATCH, true);
             throw new AuthenticationFailedException("Service Provider tenant domain must be " +
                     "equal to user tenant domain for non-SaaS applications", context.getSubject());
         }
@@ -163,29 +179,17 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
     /**
      * To check whether the user's account is being already locked or not.
      *
-     * @param response httpServletResponse
      * @param context  the authentication context
      * @return true or false
      * @throws AuthenticationFailedException the exception in the authentication flow
      */
-    protected boolean checkUserAccountStatus(HttpServletResponse response, AuthenticationContext context)
-            throws AuthenticationFailedException {
+    protected boolean isAccountLocked(AuthenticationContext context) throws AuthenticationFailedException {
 
-        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-        String queryParams = context.getContextIdIncludedQueryParams();
         String errorCode = getErrorCode();
         if (StringUtils.isNotEmpty(errorCode) && errorCode.equals(UserCoreConstants.ErrorCode
                 .USER_IS_LOCKED)) {
             context.setRetrying(true);
             context.setCurrentAuthenticator(getName());
-            try {
-                String redirectUrl = response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
-                        FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
-                        FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
-                response.sendRedirect(redirectUrl);
-            } catch (IOException e1) {
-                throw new AuthenticationFailedException(" Error while redirecting to the retry page ", e1);
-            }
             return true;
         }
         return false;
