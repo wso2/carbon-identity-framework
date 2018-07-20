@@ -85,31 +85,31 @@ function validateAppCreation() {
         getStepErrorsWarnings($(".stepWarningListContainer"), $(".stepErrorListContainer"));
         getEditorErrorsWarnings($(".warningListContainer"), $(".errorListContainer"));
 
-        if($(".messagebox-error-custom li").length > 0){
+        if ($(".messagebox-error-custom li").length > 0) {
             $(".editor-error-content").show();
             showErr = true;
         }
 
-        if($(".messagebox-warning-custom li").length > 0){
+        if ($(".messagebox-warning-custom li").length > 0) {
             $(".editor-warning-content").show();
             showWarn = true;
         }
 
-        if(showErr) {
+        if (showErr) {
             $(".err_warn_text").text('Update script with errors?');
-                showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
-                    submitFormWithDisabledScript, removeHtmlContent);
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                submitFormWithDisabledScript, removeHtmlContent);
         } else if (showWarn) {
             $(".err_warn_text").text('Update script with warnings?');
-                showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
-                    submitFormWithEnabledScript, removeHtmlContent);
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                submitFormWithEnabledScript, removeHtmlContent);
         } else {
             submitFormWithEnabledScript();
         }
     }
 }
 
-function showDisabledScriptErrorsWarnings(){
+function showDisabledScriptErrorsWarnings() {
 
     var showErr = false;
     var showWarn = false;
@@ -117,17 +117,17 @@ function showDisabledScriptErrorsWarnings(){
     getStepErrorsWarnings($(".warn_list"), $(".err_list"));
     getEditorErrorsWarnings($(".warn_list"), $(".err_list"));
 
-    if($(".err_list li").length > 0){
+    if ($(".err_list li").length > 0) {
         $(".err_container").show();
         showErr = true;
     }
 
-    if($(".warn_list li").length > 0){
+    if ($(".warn_list li").length > 0) {
         $(".warn_container").show();
         showWarn = true;
     }
 
-    if(showErr || showWarn) {
+    if (showErr || showWarn) {
         $(".err_warn_container").show();
     }
 }
@@ -172,7 +172,7 @@ function getEditorErrorsWarnings(elementWarn, elementErr) {
     });
 }
 
-$('.show_errors_toggle_buttons a').each(function() {
+$('.show_errors_toggle_buttons a').each(function () {
     $(this).click(function () {
         $(this).parent().parent().next().slideToggle();
         $(this).parent().parent().find('a').each(function () {
@@ -589,7 +589,7 @@ $('body').delegate("a.delete_step", 'click', function (e) {
         deleteStep(this);
         buildScriptString($(".steps > h2"));
     } else {
-        if($.inArray(parseInt(stepNo),  executeStepsInScript) > -1) {
+        if ($.inArray(parseInt(stepNo), executeStepsInScript) > -1) {
             if (stepNo == $(".steps > h2").length) {
                 CARBON.showConfirmationDialog('You are deleting a step that is used in the script. Are' +
                     ' you sure you want to delete? ',
