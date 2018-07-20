@@ -294,7 +294,7 @@
     background-position: 15px 15px;
     background-repeat: no-repeat;
     background-attachment: scroll;
-    padding: 15px 15px 15px 75px;
+    padding: 15px 15px 15px 90px;
     width: auto;
     height: auto;
     overflow: auto;
@@ -305,7 +305,7 @@
     background-position: 15px 15px;
     background-repeat: no-repeat;
     background-attachment: scroll;
-    padding: 15px 15px 15px 75px;
+    padding: 15px 15px 15px 90px;
     width: auto;
     height: auto;
     overflow: auto;
@@ -333,17 +333,81 @@
     margin: 0px;
 }
 
-.messagebox-warning-custom .warningListContainer, .messagebox-error-custom .errorListContainer{
-    margin-left: 20px;
-}
-.messagebox-warning-custom .warningListContainer li, .messagebox-error-custom .errorListContainer li{
+.editor-warning-content li, .editor-error-content li{
     list-style-type: disc;
 }
-
+.editor-error-content, .editor-warning-content {
+    display: none;
+}
 .messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg {
     margin: 10px 0px;
     margin-top: 20px;
     padding: 12px;
     color: #D8000C;
     background-color: #FFD2D2;
+}
+.messagebox-warning-custom .stepErrorListContainer{
+    padding-bottom: 10px;
+}
+.messagebox-warning-custom .stepErrorListContainer span,
+.messagebox-warning-custom .stepWarningListContainer span{
+    font-weight: bold;
+}
+.editor-error-warn-container {
+    display: none;
+}
+.err_warn_container {
+    display: none;
+}
+.disable_text {
+    font-weight: 700;
+    color: #c51e1e;
+    padding-left: 4px;
+}
+.disable_status {
+    padding-bottom: 12px;
+}
+.err_warn_content li {
+    list-style-type: disc;
+}
+.editor_err_img, .editor_warn_img {
+    height: 18px;
+    float: left;
+}
+.err_head {
+    font-weight: 600;
+    padding-left: 12px;
+}
+.err_list, .warn_list {
+    padding-left: 47px;
+}
+
+.warn_container {
+    padding: 10px 0;
+}
+
+.err_warn_content {
+    padding: 10px;
+    border: 1px solid #cecece;
+    margin-bottom: 10px;
+    color: #444;
+    display: none;
+}
+.instruction{
+    padding-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+}
+.err_container, .warn_container {
+    display: none;
+}
+.show_errors_toggle_buttons a:hover{
+    color:#2F7ABD;
+}
+.err_warn_text {
+    padding: 20px 0 0 16px;
+    font-size: 12.65px;
+}
+.ui-dialog-titlebar-close {
+    display: none;
 }
