@@ -25,6 +25,7 @@ var localAuthNumber = 0;
 var scriptStringHeader = "function onInitialRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
+var scriptEnabled = false;
 
 $("#createApp").click(function () {
     return validateAppCreation();
@@ -68,11 +69,92 @@ var editorContent = doc.getValue();
 checkScriptDirty();
 
 function validateAppCreation() {
-    var warningList = [];
-    var errorList = [];
-    var warningBullets = "";
-    var errorBullets = "";
+    if (checkEmptyStep()) {
+        CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
+            ' missing authenticators or delete the empty step.',
+            null, null);
+        return false;
+    }
 
+    if (!scriptIsDirty) {
+        submitFormWithDisabledScript();
+    } else {
+        var showErr = false;
+        var showWarn = false;
+
+        getStepErrorsWarnings($(".stepWarningListContainer"), $(".stepErrorListContainer"));
+        getEditorErrorsWarnings($(".warningListContainer"), $(".errorListContainer"));
+
+        if($(".messagebox-error-custom li").length > 0){
+            $(".editor-error-content").show();
+            showErr = true;
+        }
+
+        if($(".messagebox-warning-custom li").length > 0){
+            $(".editor-warning-content").show();
+            showWarn = true;
+        }
+
+        if(showErr) {
+            $(".err_warn_text").text('Update script with errors?');
+                showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                    submitFormWithDisabledScript, removeHtmlContent);
+        } else if (showWarn) {
+            $(".err_warn_text").text('Update script with warnings?');
+                showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                    submitFormWithEnabledScript, removeHtmlContent);
+        } else {
+            submitFormWithEnabledScript();
+        }
+    }
+}
+
+function showDisabledScriptErrorsWarnings(){
+
+    var showErr = false;
+    var showWarn = false;
+
+    getStepErrorsWarnings($(".warn_list"), $(".err_list"));
+    getEditorErrorsWarnings($(".warn_list"), $(".err_list"));
+
+    if($(".err_list li").length > 0){
+        $(".err_container").show();
+        showErr = true;
+    }
+
+    if($(".warn_list li").length > 0){
+        $(".warn_container").show();
+        showWarn = true;
+    }
+
+    if(showErr || showWarn) {
+        $(".err_warn_container").show();
+    }
+}
+
+function getStepErrorsWarnings(elementWarn, elementErr) {
+    var stepsInUI = getExecuteStepsInUI();
+    var stepsInScript = getExecuteStepsInScript();
+    var stepDifference = diffArray(stepsInUI, stepsInScript);
+
+    if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
+        if (stepDifference.script.length > 0) {
+            for (var i = 0; i < stepDifference.script.length; ++i) {
+                elementErr.append("<li>Could not find matching Authentication Step for script executeStep <b>"
+                    + stepDifference.script[i] + "</b>.</li>");
+            }
+        }
+    }
+
+    if (stepsInUI.length > stepsInScript.length) {
+        for (var i = 0; i < stepDifference.ui.length; ++i) {
+            elementWarn.append("<li>Could not find matching 'executeStep' function for" +
+                " <span>Step " + stepDifference.ui[i] + ".</span></li>");
+        }
+    }
+}
+
+function getEditorErrorsWarnings(elementWarn, elementErr) {
     myCodeMirror.operation(function () {
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
@@ -80,56 +162,29 @@ function validateAppCreation() {
             if (!err) {
                 continue;
             } else if (err.code.lastIndexOf("W", 0) === 0) {
-                warningList.push(err.reason);
-                warningBullets = $(".warningListContainer").append("<li>" + err.reason + "</li>");
+                elementWarn.append("<li>" + err.reason
+                    + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             } else {
-                errorList.push(err.reason);
-                errorBullets = $(".errorListContainer").append("<li>" + err.reason + "</li>");
+                elementErr.append("<li>" + err.reason
+                    + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             }
         }
     });
-
-    if (checkEmptyStep()) {
-        CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
-            ' missing authenticators or delete the empty step.',
-            null, null);
-        return false;
-    }
-    if (errorList.length > 0) {
-        showPopupConfirm($(".editor-error-content").html(), "Save script with errors ?", 250, 550, "OK", "Cancel",
-            submitFormWithDisabledScript, removeHtmlContent);
-        return false;
-    }
-    if (warningList.length > 0) {
-        showPopupConfirm($(".editor-warning-content").html(), "Save script with warnings ?", 250, 550, "OK", "Cancel",
-            submitFormWithEnabledScript, removeHtmlContent);
-        return false;
-    }
-    if (!scriptIsDirty) {
-        submitFormWithDisabledScript();
-    } else {
-        var stepsInUI = getExecuteStepsInUI();
-        var stepsInScript = getExecuteStepsInScript();
-
-        if (stepsInUI.length < stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are smaller than that of the Script. However, the' +
-                ' changes will be saved but will NOT be evaluated. Do you still want to proceed ?',
-                submitFormWithDisabledScript, null);
-        } else if (stepsInUI.length > stepsInScript.length) {
-            CARBON.showConfirmationDialog('Total number of steps are greater than that of the Script. However, the' +
-                ' changes will be saved and evaluated. Do you want to proceed ?',
-                submitFormWithEnabledScript, null);
-        } else {
-            submitFormWithEnabledScript();
-        }
-    }
-    return true;
-
 }
 
+$('.show_errors_toggle_buttons a').each(function() {
+    $(this).click(function () {
+        $(this).parent().parent().next().slideToggle();
+        $(this).parent().parent().find('a').each(function () {
+            $(this).toggle();
+        });
+    });
+});
+
 function removeHtmlContent() {
-    $(".warningListContainer").html('');
-    $(".errorListContainer").html('');
+    $('.editor-error-warn-container li').remove();
+    $('.err_warn_text').empty();
+    $('.editor-error-content, .editor-warning-content').hide();
 }
 
 function checkEmptyStep() {
@@ -439,12 +494,17 @@ $("#editorRow").hide();
 checkScriptEnabled();
 
 function checkScriptEnabled() {
-    var scriptEnabled = $("#enableScript").is(":checked");
+    scriptEnabled = $("#enableScript").is(":checked");
     var stepConfigTrigger = $(".authentication_step_config_head");
     var editorRow = $("#editorRow");
 
     if (scriptEnabled) {
         stepConfigTrigger.addClass('active');
+        editorRow.slideDown('fast');
+    }
+
+    if (scriptIsDirty && !scriptEnabled) {
+        showDisabledScriptErrorsWarnings();
         editorRow.slideDown('fast');
     }
 
@@ -807,13 +867,23 @@ function sortNumber(a, b) {
     return a - b;
 }
 
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return arr1.length;
-    }
-    for (var i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return arr2[i] + " not matching";
-        }
-    }
+/**
+ * Call with a ui array and script array as input params
+ * Ex: diffArray(getExecuteStepsInUI(), getExecuteStepsInScript());
+ */
+function diffArray(arrUI, arrScript) {
+    var difference = {
+        ui: [],
+        script: [],
+    };
+
+    arrUI.map(function (val) {
+        arrScript.indexOf(val) < 0 ? difference.ui.push(val) : '';
+    });
+
+    arrScript.map(function (val) {
+        arrUI.indexOf(val) < 0 ? difference.script.push(val) : '';
+    });
+
+    return difference;
 }
