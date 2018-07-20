@@ -347,3 +347,10 @@
     color: #D8000C;
     background-color: #FFD2D2;
 }
+.messagebox-warning-custom .stepErrorListContainer{
+    padding-bottom: 10px;
+}
+.messagebox-warning-custom .stepErrorListContainer span,
+.messagebox-warning-custom .stepWarningListContainer span{
+    font-weight: bold;
+}
