@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.xsd.ConsentConfig;
+import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurpose;
+import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurposeConfigs;
 import org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationConfig;
@@ -88,6 +91,7 @@ public class ApplicationBean {
     private List<String> claimDialectUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
+    private ConsentConfig consentConfig;
 
     Log log = LogFactory.getLog(ApplicationBean.class);
 
@@ -121,6 +125,7 @@ public class ApplicationBean {
         attrConsumServiceIndex = null;
         enabledFederatedIdentityProviders = null;
         inboundAuthenticationRequestConfigs = Collections.EMPTY_LIST;
+        consentConfig = null;
     }
 
     /**
@@ -1433,6 +1438,13 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+        // TODO: Update the configs from request once the SP consent purpose UI is implemented.
+        ConsentConfig consentConfig = new ConsentConfig();
+        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
+        consentPurposeConfigs.setConsentPurpose(new ConsentPurpose[0]);
+        consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
+
+        serviceProvider.setConsentConfig(consentConfig);
     }
 
     /**

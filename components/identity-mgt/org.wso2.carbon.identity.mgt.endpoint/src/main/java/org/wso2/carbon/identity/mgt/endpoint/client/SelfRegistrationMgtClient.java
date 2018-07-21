@@ -77,12 +77,14 @@ public class SelfRegistrationMgtClient {
      * @return A JSON string which contains purposes.
      * @throws SelfRegistrationMgtClientException SelfRegistrationMgtClientException
      */
-    public String getPurposes(String tenantDomain) throws SelfRegistrationMgtClientException {
+    public String getPurposes(String tenantDomain, String group, String groupType) throws
+            SelfRegistrationMgtClientException {
 
         String purposesEndpoint;
         String purposesJsonString = "";
 
         purposesEndpoint = getPurposesEndpoint(tenantDomain);
+        purposesEndpoint = purposesEndpoint + "?group=" + group + "&groupType=" + groupType;
         try {
             String purposesResponse = executeGet(purposesEndpoint);
             JSONArray purposes = new JSONArray(purposesResponse);

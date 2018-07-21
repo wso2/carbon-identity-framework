@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import java.io.Serializable;
+
 /**
  * Object holding long wait status.
  */
-public class LongWaitStatus {
+public class LongWaitStatus implements Serializable {
 
     public enum Status {
         WAITING, COMPLETED, UNKNOWN

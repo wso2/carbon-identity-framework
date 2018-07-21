@@ -16,15 +16,20 @@
  * under the License.
  */
 
+var scriptIsDirty = false;
+var fromTemplateLink = false;
+var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
 var scriptStringHeader = "function onInitialRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
+var scriptEnabled = false;
 
 $("#createApp").click(function () {
-    showAllErrors();
+    return validateAppCreation();
+
 });
 
 var addTemplate = $("#addTemplate");
@@ -61,42 +66,145 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
-function showAllErrors() {
+checkScriptDirty();
+
+function validateAppCreation() {
+    if (checkEmptyStep()) {
+        CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add' +
+            ' missing authenticators or delete the empty step.',
+            null, null);
+        return false;
+    }
+
+    if (!scriptIsDirty) {
+        submitFormWithDisabledScript();
+    } else {
+        var showErr = false;
+        var showWarn = false;
+
+        getStepErrorsWarnings($(".stepWarningListContainer"), $(".stepErrorListContainer"));
+        getEditorErrorsWarnings($(".warningListContainer"), $(".errorListContainer"));
+
+        if ($(".messagebox-error-custom li").length > 0) {
+            $(".editor-error-content").show();
+            showErr = true;
+        }
+
+        if ($(".messagebox-warning-custom li").length > 0) {
+            $(".editor-warning-content").show();
+            showWarn = true;
+        }
+
+        if (showErr) {
+            $(".err_warn_text").text('Update script with errors?');
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                submitFormWithDisabledScript, removeHtmlContent);
+        } else if (showWarn) {
+            $(".err_warn_text").text('Update script with warnings?');
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                submitFormWithEnabledScript, removeHtmlContent);
+        } else {
+            submitFormWithEnabledScript();
+        }
+    }
+}
+
+function showDisabledScriptErrorsWarnings() {
+
+    var showErr = false;
+    var showWarn = false;
+
+    getStepErrorsWarnings($(".warn_list"), $(".err_list"));
+    getEditorErrorsWarnings($(".warn_list"), $(".err_list"));
+
+    if ($(".err_list li").length > 0) {
+        $(".err_container").show();
+        showErr = true;
+    }
+
+    if ($(".warn_list li").length > 0) {
+        $(".warn_container").show();
+        showWarn = true;
+    }
+
+    if (showErr || showWarn) {
+        $(".err_warn_container").show();
+    }
+}
+
+function getStepErrorsWarnings(elementWarn, elementErr) {
+    var stepsInUI = getExecuteStepsInUI();
+    var stepsInScript = getExecuteStepsInScript();
+    var stepDifference = diffArray(stepsInUI, stepsInScript);
+
+    if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
+        if (stepDifference.script.length > 0) {
+            for (var i = 0; i < stepDifference.script.length; ++i) {
+                elementErr.append("<li>Could not find matching Authentication Step for script executeStep <b>"
+                    + stepDifference.script[i] + "</b>.</li>");
+            }
+        }
+    }
+
+    if (stepsInUI.length > stepsInScript.length) {
+        for (var i = 0; i < stepDifference.ui.length; ++i) {
+            elementWarn.append("<li>Could not find matching 'executeStep' function for" +
+                " <span>Step " + stepDifference.ui[i] + ".</span></li>");
+        }
+    }
+}
+
+function getEditorErrorsWarnings(elementWarn, elementErr) {
     myCodeMirror.operation(function () {
-        var warnCount = 0;
-        var errorCount = 0;
         JSHINT(myCodeMirror.getValue());
         for (var i = 0; i < JSHINT.errors.length; ++i) {
             var err = JSHINT.errors[i];
             if (!err) {
                 continue;
             } else if (err.code.lastIndexOf("W", 0) === 0) {
-                warnCount++;
+                elementWarn.append("<li>" + err.reason
+                    + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             } else {
-                errorCount++;
+                elementErr.append("<li>" + err.reason
+                    + "<span>[ Ln: " + err.line + " ch:" + err.character + " ]</span></li>");
             }
-        }
-
-        if (errorCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Errors, But it will be saved. ' +
-                'Do you want to continue? ',
-                submitFormWithoutCheck, null);
-        } else if (warnCount > 0) {
-            CARBON.showConfirmationDialog('This script will not be evaluated since is has Warnings, But it will be saved. ' +
-                'Do you want to continue? ',
-                submitFormWithoutCheck, null);
-        } else {
-            submitForm();
         }
     });
 }
 
-function submitFormWithoutCheck() {
+$('.show_errors_toggle_buttons a').each(function () {
+    $(this).click(function () {
+        $(this).parent().parent().next().slideToggle();
+        $(this).parent().parent().find('a').each(function () {
+            $(this).toggle();
+        });
+    });
+});
+
+function removeHtmlContent() {
+    $('.editor-error-warn-container li').remove();
+    $('.err_warn_text').empty();
+    $('.editor-error-content, .editor-warning-content').hide();
+}
+
+function checkEmptyStep() {
+    var isEmptyStep = false;
+    $.each($('.step_body'), function () {
+        if ($(this).has(".auth_table > tbody > tr").length == 0) {
+            isEmptyStep = true;
+            return false;
+        }
+    });
+    return isEmptyStep;
+}
+
+function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
     $("#configure-auth-flow-form").submit();
 }
 
-function submitForm() {
+function submitFormWithEnabledScript() {
+    $("#enableScript").prop("checked", true);
     $("#configure-auth-flow-form").submit();
 }
 
@@ -206,11 +314,10 @@ $('[data-toggle=template-link]').click(function (e) {
         ch: line.length - 1
     };
 
-    var editorContent = doc.getValue();
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
-    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, "OK", "Cancel", doReplaceRange, null);
+    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, "OK", "Cancel", doReplaceRange, null);
 
     function doReplaceRange() {
         myCodeMirror.setValue("");
@@ -223,6 +330,7 @@ $('[data-toggle=template-link]').click(function (e) {
     if (editorContent.length === 0) {
         $('#template-replace-warn').hide();
     }
+    fromTemplateLink = true;
 });
 
 function addNewSteps(templateObj) {
@@ -246,7 +354,6 @@ function removeExistingSteps() {
     for (var i = $('.step_heads').length; i > 0; i--) {
         $('#subject_step_' + stepOrder).removeAttr('checked');
         $('#attribute_step_' + stepOrder).removeAttr('checked');
-        //$('#step_head_' + stepOrder).children('.icon-link').click();
         deleteStep($('#step_head_' + stepOrder).children('.icon-link'));
     }
     stepOrder = 0;
@@ -266,7 +373,7 @@ function highlightNewCode() {
  * Temporary function that serves as the local popup customization till carbon-kernel release
  * This has also been moved to proper codebase in carbon.ui as this is reusable.
  */
-function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButton, callback, windowWidth) {
+function showPopupConfirm(htmlMessage, title, windowHeight, windowWidth, okButton, cancelButton, callback, closeCallback) {
     if (!isHTML(htmlMessage)) {
         htmlMessage = htmlEncode(htmlMessage);
     }
@@ -295,6 +402,9 @@ function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButt
                     "Cancel": function () {
                         jQuery(this).dialog('destroy').remove();
                         jQuery("#dcontainer").empty();
+                        if (closeCallback && typeof closeCallback == "function") {
+                            closeCallback();
+                        }
                         return false;
                     },
                 },
@@ -309,6 +419,9 @@ function showPopupConfirm(htmlMessage, title, windowHeight, okButton, cancelButt
                 close: function () {
                     jQuery(this).dialog('destroy').remove();
                     jQuery("#dcontainer").empty();
+                    if (closeCallback && typeof closeCallback == "function") {
+                        closeCallback();
+                    }
                     return false;
                 },
                 height: windowHeight,
@@ -381,12 +494,17 @@ $("#editorRow").hide();
 checkScriptEnabled();
 
 function checkScriptEnabled() {
-    var scriptEnabled = $("#enableScript").is(":checked");
+    scriptEnabled = $("#enableScript").is(":checked");
     var stepConfigTrigger = $(".authentication_step_config_head");
     var editorRow = $("#editorRow");
 
     if (scriptEnabled) {
         stepConfigTrigger.addClass('active');
+        editorRow.slideDown('fast');
+    }
+
+    if (scriptIsDirty && !scriptEnabled) {
+        showDisabledScriptErrorsWarnings();
         editorRow.slideDown('fast');
     }
 
@@ -421,21 +539,13 @@ function showHideTemplateList() {
     }
 }
 
-buildScriptString("init");
-function buildScriptString(action) {
+function buildScriptString(element) {
     var str = "";
-    if (action == "add") {
-        scriptStringContent.push("executeStep(" + stepOrder + ");");
-        scriptStringContent.forEach(function (element) {
-            str += element;
-        });
-    } else {
-        scriptStringContent = [];
-        $(".steps > h2").each(function (index, element) {
-            scriptStringContent.push("executeStep(" + (index + 1) + ");");
-            str += scriptStringContent[index];
-        });
-    }
+    scriptStringContent = [];
+    element.each(function (index, element) {
+        scriptStringContent.push("executeStep(" + (index + 1) + ");");
+        str += scriptStringContent[index];
+    });
     var scriptComposed = scriptStringHeader + str + scriptStringFooter;
     doc.setValue(scriptComposed);
     CodeMirror.commands["selectAll"](myCodeMirror);
@@ -471,16 +581,64 @@ function deleteIDPRow(obj) {
 }
 
 $('body').delegate("a.delete_step", 'click', function (e) {
-    deleteStep(this);
-    buildScriptString("delete");
+    var stepNo = $(this).attr('data-step-no');
+    var executeStepsInScript = getExecuteStepsInScript();
+    var element = $(this);
+
+    if (!scriptIsDirty) {
+        deleteStep(this);
+        buildScriptString($(".steps > h2"));
+    } else {
+        if ($.inArray(parseInt(stepNo), executeStepsInScript) > -1) {
+            if (stepNo == $(".steps > h2").length) {
+                CARBON.showConfirmationDialog('You are deleting a step that is used in the script. Are' +
+                    ' you sure you want to delete? ',
+                    function () {
+                        deleteStep(element);
+                    }, null);
+            } else {
+                CARBON.showConfirmationDialog('You are deleting a step that is used in the script. Are' +
+                    ' you sure you want to delete?\nPlease note that the steps will be reordered.',
+                    function () {
+                        deleteStep(element);
+                    }, null);
+            }
+        } else {
+            deleteStep(element);
+        }
+    }
     e.stopImmediatePropagation();
 });
 
 $('#stepsAddLink').click(function (e) {
     e.preventDefault();
+    fromStepsAddLink = true;
     addNewUIStep();
-    buildScriptString("add");
+    if (!scriptIsDirty) {
+        buildScriptString($(".steps > h2"));
+    }
 });
+
+function checkScriptDirty() {
+    var str = "";
+    scriptStringContent = [];
+    $(".steps > h2").each(function (index, element) {
+        scriptStringContent.push("executeStep(" + (index + 1) + ");");
+        str += scriptStringContent[index];
+    });
+    var scriptComposed = scriptStringHeader + str + scriptStringFooter;
+
+    var editorContent = doc.getValue();
+    var minifiedEditorContent = editorContent.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    var minifiedScriptComposed = scriptComposed.replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+
+    if (minifiedEditorContent == "" || minifiedEditorContent == minifiedScriptComposed) {
+        scriptIsDirty = false;
+    } else {
+        scriptIsDirty = true;
+    }
+}
+
 function deleteStep(obj) {
 
     var currentStep = parseInt($(obj).parent().find('input[name="auth_step"]').val());
@@ -503,6 +661,7 @@ function deleteStep(obj) {
             $(this).attr('id', 'step_head_' + newStepOrderVal);
             $(this).find('input[name="auth_step"]').val(newStepOrderVal);
             $(this).find('.step_order_header').text('Step ' + newStepOrderVal);
+            $(this).find('.delete_step').attr('data-step-no', newStepOrderVal);
 
             //Changes in content
             var contentDiv = $('#step_dev_' + oldStepOrderVal);
@@ -575,7 +734,6 @@ function deleteLocalAuthRow(obj) {
 }
 
 function addLocalRow(obj, stepId) {
-    //var stepId = jQuery(obj).parent().children()[0].value;
     var selectedObj = jQuery(obj).prev().find(":selected");
     var selectedAuthenticatorName = selectedObj.val();
     var selectedAuthenticatorDisplayName = selectedObj.text();
@@ -599,7 +757,6 @@ function addIDPRow(obj, stepID) {
         return false;
     }
 
-    //var stepID = jQuery(obj).parent().children()[1].value;
     var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
     var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
     var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
@@ -645,4 +802,88 @@ function setAttributeStep(element) {
         $(this).attr('checked', false);
     });
     $(element).attr('checked', true);
+}
+
+function getExecuteStepsInUI() {
+    var currentUISteps = [];
+    $(".step_heads").each(function (i, e) {
+        currentUISteps.push(parseInt(i + 1));
+    });
+    return currentUISteps;
+}
+
+function getExecuteStepsInScript() {
+    var stepsIntArray = [];
+    var currentScriptMinified = myCodeMirror.getValue().replace(/(?:\r\n|\r|\n)/g, '').replace(/\s/g, '');
+    var result = currentScriptMinified.match(/executeStep\([0-9]+/g);
+    if (typeof result !== 'undefined' && result !== null) {
+        var uniqueStepsInScript = result.filter(onlyUnique);
+
+        $(uniqueStepsInScript).each(function (i, e) {
+            var currentInt = parseInt(e.replace(/executeStep\(/g, ''));
+            stepsIntArray.push(currentInt);
+        });
+    }
+
+    return stepsIntArray.sort(sortNumber);
+}
+
+doc.on("change", function (document, changeObj) {
+    checkScriptDirty();
+});
+
+$('#editorRow').bind('beforeShow', function () {
+    myCodeMirror.refresh();
+});
+
+jQuery(function ($) {
+
+    var _oldShow = $.fn.show;
+
+    $.fn.show = function (speed, oldCallback) {
+        return $(this).each(function () {
+            var obj = $(this),
+                newCallback = function () {
+                    if ($.isFunction(oldCallback)) {
+                        oldCallback.apply(obj);
+                    }
+                    obj.trigger('afterShow');
+                };
+
+            // you can trigger a before show if you want
+            obj.trigger('beforeShow');
+
+            // now use the old function to show the element passing the new callback
+            _oldShow.apply(obj, [speed, newCallback]);
+        });
+    }
+});
+
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+function sortNumber(a, b) {
+    return a - b;
+}
+
+/**
+ * Call with a ui array and script array as input params
+ * Ex: diffArray(getExecuteStepsInUI(), getExecuteStepsInScript());
+ */
+function diffArray(arrUI, arrScript) {
+    var difference = {
+        ui: [],
+        script: [],
+    };
+
+    arrUI.map(function (val) {
+        arrScript.indexOf(val) < 0 ? difference.ui.push(val) : '';
+    });
+
+    arrScript.map(function (val) {
+        arrUI.indexOf(val) < 0 ? difference.script.push(val) : '';
+    });
+
+    return difference;
 }

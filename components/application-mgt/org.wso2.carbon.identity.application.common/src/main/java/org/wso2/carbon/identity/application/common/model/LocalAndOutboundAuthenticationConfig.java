@@ -26,7 +26,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "LocalAndOutboundAuthenticationConfig")
 public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     private static final long serialVersionUID = 6552125621314155291L;
@@ -41,15 +48,35 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
 
+    @XmlElementWrapper(name="AuthenticationSteps")
+    @XmlElement(name = "AuthenticationStep")
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
+
+    @XmlElement(name = "AuthenticationType")
     private String authenticationType;
+
+    @XmlElement(name = AUTHENTICATION_STEP_FOR_SUBJECT)
     private AuthenticationStep authenticationStepForSubject;
+
+    @XmlElement(name = AUTHENTICATION_STEP_FOR_ATTRIBUTES)
     private AuthenticationStep authenticationStepForAttributes;
+
+    @XmlElement(name = ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS)
     private boolean alwaysSendBackAuthenticatedListOfIdPs;
+
+    @XmlElement(name = SUBJECT_CLAIM_URI)
     private String subjectClaimUri;
+
+    @XmlElement(name = USE_TENANT_DOMAIN_IN_USERNAME)
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
+
+    @XmlElement(name = USE_USERSTORE_DOMAIN_IN_USERNAME)
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+
+    @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
+
+    @XmlElement(name = AUTHENTICATION_SCRIPT)
     private AuthenticationScriptConfig authenticationScriptConfig;
 
     /*

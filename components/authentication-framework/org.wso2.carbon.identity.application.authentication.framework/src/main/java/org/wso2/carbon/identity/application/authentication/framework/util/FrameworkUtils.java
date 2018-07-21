@@ -121,13 +121,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
-    public static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
-            .asList(new String[] { FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2 });
+            .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
     private static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
@@ -360,11 +359,6 @@ public class FrameworkUtils {
         if (obj instanceof StepBasedSequenceHandler) {
             stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
-            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
-        }
-
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
-                && !(stepBasedSequenceHandler instanceof GraphBasedSequenceHandler)) {
             stepBasedSequenceHandler = new GraphBasedSequenceHandler();
         }
         return stepBasedSequenceHandler;
@@ -399,11 +393,6 @@ public class FrameworkUtils {
         if (obj instanceof StepHandler) {
             stepHandler = (StepHandler) obj;
         } else {
-            stepHandler = DefaultStepHandler.getInstance();
-        }
-
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null
-                && !(stepHandler instanceof GraphBasedStepHandler)) {
             stepHandler = new GraphBasedStepHandler();
         }
         return stepHandler;

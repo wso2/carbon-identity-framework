@@ -22,7 +22,6 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.powermock.reflect.Whitebox;
 import org.testng.IClassListener;
 import org.testng.IMethodInstance;
 import org.testng.ITestClass;
@@ -30,7 +29,7 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.wso2.carbon.base.CarbonBaseConstants;
-import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
@@ -62,6 +61,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -69,19 +69,13 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Common TestNg Listener to provide common functions in Identity Testing.
@@ -93,6 +87,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     private static final String REG_DB_SQL_FILE = "dbScripts/registry.sql";
 
     private RealmService testSessionRealmService;
+    private RegistryService registryService;
     private Map<Object, MicroserviceServer> microserviceServerMap = new HashMap<>();
 
     @Override
@@ -132,14 +127,12 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
 
     private boolean annotationPresent(Class c, Class clazz) {
 
-        boolean retVal = c.isAnnotationPresent(clazz) ? true : false;
-        return retVal;
+        return c.isAnnotationPresent(clazz);
     }
 
     private boolean annotationPresent(Field f, Class clazz) {
 
-        boolean retVal = f.isAnnotationPresent(clazz) ? true : false;
-        return retVal;
+        return f.isAnnotationPresent(clazz) ? true : false;
     }
 
     public static void setInternalState(Class c, String field, Object value) {
@@ -223,7 +216,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
         if (annotationPresent(realClass, WithKeyStore.class)) {
             Annotation annotation = realClass.getAnnotation(WithKeyStore.class);
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
-            createKeyStore(withKeyStore);
+            createKeyStore(realClass, withKeyStore);
         }
         if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(
                 iMethodInstance.getInstance())) {
@@ -257,19 +250,21 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             try {
                 //Copy default identity xml into temp location and use it.
                 URL url = CarbonBasedTestListener.class.getClassLoader().getResource("repository/conf/carbon.xml");
-                InputStream inputStream = null;
-
-                inputStream = url.openStream();
+                InputStream inputStream = url.openStream();
                 ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
-                File f = File.createTempFile(this.getClass().getSimpleName(), "carbon.xml");
-                FileOutputStream fos = new FileOutputStream(f);
+
+                Path tmpDirPath = Paths.get(System.getProperty("java.io.tmpdir"), "tests", callerClass.getSimpleName());
+                Path repoConfPath = Paths.get(tmpDirPath.toUri().getPath(), "repository", "conf");
+                Path carbonXMLPath = repoConfPath.resolve("carbon.xml");
+                Path carbonXML = Files.createFile(carbonXMLPath);
+                FileOutputStream fos = new FileOutputStream(carbonXML.toFile());
                 WritableByteChannel targetChannel = fos.getChannel();
                 //Transfer data from input channel to output channel
                 ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Short.MAX_VALUE);
                 inputStream.close();
                 targetChannel.close();
                 fos.close();
-                System.setProperty(TestConstants.CARBON_CONFIG_DIR_PATH, Paths.get(f.toURI()).getParent().toString());
+                System.setProperty(TestConstants.CARBON_CONFIG_DIR_PATH, tmpDirPath.toString());
             } catch (IOException e) {
                 log.error("Failed to copy carbon.xml", e);
             }
@@ -284,35 +279,29 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
 
     }
 
-    private void createKeyStore(WithKeyStore withKeyStore) {
+    private void createKeyStore(Class realClass, WithKeyStore withKeyStore) {
 
         try {
-            KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
-            ServerConfigurationService serverConfigurationService = mock(ServerConfigurationService.class);
-            RegistryService registryService = mock(RegistryService.class);
-            ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
-            mtKeyStoreManagers.put(String.valueOf(withKeyStore.tenantId()), keyStoreManager);
-            Whitebox.setInternalState(keyStoreManager, "mtKeyStoreManagers", mtKeyStoreManagers);
-            KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
-            Whitebox.setInternalState(keyStoreManager, "primaryKeyStore", keyStore);
-            Whitebox.setInternalState(keyStoreManager, "registryKeyStore", keyStore);
-            CarbonCoreDataHolder carbonCoreDataHolder = mock(CarbonCoreDataHolder.class);
+            RegistryService registryService = createRegistryService(realClass, withKeyStore.tenantId(),
+                                                                    withKeyStore.tenantDomain());
+            ServerConfiguration serverConfigurationService = ServerConfiguration.getInstance();
+            serverConfigurationService.init(realClass.getResourceAsStream("/repository/conf/carbon.xml"));
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(withKeyStore.tenantId(),
+                                                                          serverConfigurationService,
+                                                                          registryService);
+            if (!Proxy.isProxyClass(keyStoreManager.getClass()) &&
+                    !keyStoreManager.getClass().getName().contains("EnhancerByMockitoWithCGLIB")  ) {
+                KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
+                org.wso2.carbon.identity.testutil.Whitebox.setInternalState(keyStoreManager, "primaryKeyStore",
+                                                                            keyStore);
+                org.wso2.carbon.identity.testutil.Whitebox.setInternalState(keyStoreManager, "registryKeyStore",
+                                                                            keyStore);
+            }
             CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
             CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
-            carbonCoreDataHolder.setServerConfigurationService(serverConfigurationService);
-            carbonCoreDataHolder.setRegistryService(registryService);
-            when(keyStoreManager.getDefaultPrimaryCertificate())
-                    .thenReturn((X509Certificate) keyStore.getCertificate(withKeyStore.alias()));
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Error while reading cert.", e);
-        } catch (UnrecoverableKeyException e) {
-            log.error("Error while reading cert.", e);
-        } catch (IllegalAccessException e) {
-            log.error("Error while reading cert.", e);
-        } catch (KeyStoreException e) {
-            log.error("Error while reading cert.", e);
         } catch (Exception e) {
-            log.error("Error while reading cert.", e);
+            throw new TestCreationException(
+                    "Unhandled error while reading cert for test class:  " + realClass.getName(), e);
         }
     }
 
@@ -336,6 +325,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                     .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
             IdentityTenantUtil.setRealmService(testSessionRealmService);
             RegistryDataHolder.getInstance().setRealmService(testSessionRealmService);
+            OSGiDataHolder.getInstance().setUserRealmService(testSessionRealmService);
 
             Class[] singletonClasses = withRealmService.injectToSingletons();
             for (Class singletonClass : singletonClasses) {
@@ -369,21 +359,48 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     private void createRegistryService(Class realClass, WithRegistry withRegistry) {
 
         try {
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(withRegistry.tenantDomain());
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(withRegistry.tenantId());
+            RegistryService registryService = createRegistryService(realClass, withRegistry.tenantId(),
+                                                                    withRegistry.tenantDomain());
+            Class[] singletonClasses = withRegistry.injectToSingletons();
+            injectSingletonVariables(registryService, RegistryService.class, singletonClasses);
+        } catch (RegistryException e) {
+            log.error("Error creating the registry, for test case : " + realClass.getName(), e);
+        }
+    }
+
+    /**
+     * Creates the regostry service if not available.
+     *
+     * @param realClass
+     * @return
+     * @throws RegistryException
+     */
+    private RegistryService createRegistryService(Class realClass, int tenantID, String tenantDomain) throws
+            RegistryException {
+
+        if (registryService != null) {
+            return registryService;
+        }
+
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
+
             RegistryContext registryContext = RegistryContext.getBaseInstance(IdentityTenantUtil.getRealmService());
             DataSource dataSource = MockInitialContextFactory
                     .initializeDatasource(REG_DB_JNDI_NAME, realClass, new String[]{REG_DB_SQL_FILE});
             registryContext.setDataAccessManager(new JDBCDataAccessManager(dataSource));
-            RegistryService registryService = new EmbeddedRegistryService(registryContext);
+            registryService = new EmbeddedRegistryService(registryContext);
 
             OSGiDataHolder.getInstance().setRegistryService(registryService);
+            CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
             PrivilegedCarbonContext.getThreadLocalCarbonContext()
                     .setRegistry(RegistryType.USER_GOVERNANCE, registryService.getRegistry());
-            Class[] singletonClasses = withRegistry.injectToSingletons();
-            injectSingletonVariables(registryService, RegistryService.class, singletonClasses);
-        } catch (RegistryException e) {
-            log.error("Error creating the registry.", e);
+
+            return registryService;
+        } catch (TestCreationException e) {
+            log.error("Could not load registry data", e);
+            throw new RegistryException("Could not load registry data", e);
         }
     }
 
@@ -441,6 +458,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                     RealmService realmService = createRealmService(withRealmService, true);
                     field.set(realInstance, realmService);
                     IdentityTenantUtil.setRealmService(realmService);
+                    CarbonCoreDataHolder.getInstance().setRealmService(realmService);
                 } catch (IllegalAccessException e) {
                     log.error("Error in setting field value: " + field.getName() + ", Class: " + field
                             .getDeclaringClass(), e);

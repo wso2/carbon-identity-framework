@@ -101,6 +101,8 @@
     String oauth2DcrEndpoint = null;
     String oauth2JwksEndpoint = null;
     String oidcDiscoveryEndpoint = null;
+    String category = request.getParameter("category");
+    String subCategory = request.getParameter("subCategory");
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -675,7 +677,30 @@ function idpMgtCancel(){
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) {%>
+    
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+            
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
+                        </td>
+                    </tr>
+    
+    
+                    <% } else { %>
                         <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
@@ -705,7 +730,7 @@ function idpMgtCancel(){
                             <td colspan="2"><input
                                     <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
                                     type="password"
-                                    <% } else {%>
+                                    <% } else  {%>
                                     type="text" <%
                                     } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
@@ -720,7 +745,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                 }
@@ -729,8 +754,18 @@ function idpMgtCancel(){
         <h2 id="governance_config_header_subcategory" class="sectionSeperator trigger active">
             <a href="#"><%=Encode.forHtmlContent(catName)%></a>
         </h2>
-          <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+        
 <%
+        if (StringUtils.isNotEmpty(category) && category.equalsIgnoreCase(catName)) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+            
+<%      }  else {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display:none;" id="roleConfig2">
+<%      }
+%>
+                                        <%
                 Map<String, List<ConnectorConfig>> subCatMap = catMap.get(catName);
                 for (String subCatName : subCatMap.keySet()) {
                     if (DEFAULT.equals(subCatName)){
@@ -740,13 +775,48 @@ function idpMgtCancel(){
                 <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
                 </a>
             </h2>
+            
+<%
+        if (StringUtils.isNotEmpty(subCategory) && subCategory.equalsIgnoreCase(connectorConfig.getFriendlyName())) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+<%
+        }  else {
+%>
             <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+<%
+        }
+%>
+            
                 <table class="carbonFormTable">
                     <%
-                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
-                        <tr>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) { %>
+    
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+            
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
+                        </td>
+                    </tr>
+    
+    
+                    <% } else { %>
+                    <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
@@ -790,7 +860,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                         }

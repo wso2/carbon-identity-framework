@@ -92,13 +92,16 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_BASIC_APP_INFO_BY_APP_NAME = "SELECT ID, TENANT_ID, APP_NAME, USER_STORE, " +
                                                                  "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
                                                                  "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
-                                                                 "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, SUBJECT_CLAIM_URI, IS_SAAS_APP FROM SP_APP WHERE " +
-                                                                 "APP_NAME = ? AND TENANT_ID= ?";
+                                                                 "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
+                                                                 "SUBJECT_CLAIM_URI, IS_SAAS_APP, " +
+                                                                 "IS_CONSENT_MGT_ENABLED FROM SP_APP WHERE APP_NAME " +
+                                                                 "= ? AND TENANT_ID= ?";
     public static final String LOAD_BASIC_APP_INFO_BY_APP_ID = "SELECT ID, TENANT_ID, APP_NAME, USER_STORE, " +
-                                                                 "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
-                                                                 "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
-                                                                 "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, SUBJECT_CLAIM_URI, IS_SAAS_APP FROM SP_APP WHERE " +
-                                                                 "ID = ?";
+                                                               "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
+                                                               "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
+                                                               "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
+                                                               "SUBJECT_CLAIM_URI, IS_SAAS_APP, " +
+                                                               "IS_CONSENT_MGT_ENABLED FROM SP_APP WHERE ID = ?";
     public static final String LOAD_AUTH_TYPE_BY_APP_ID = "SELECT AUTH_TYPE FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
     public static final String LOAD_APP_NAME_BY_APP_ID = "SELECT APP_NAME FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
     public static final String LOAD_CLIENTS_INFO_BY_APP_ID = "SELECT INBOUND_AUTH_KEY, INBOUND_AUTH_TYPE, PROP_NAME, " +
@@ -194,5 +197,17 @@ public class ApplicationMgtDBQueries {
             "FROM IDN_CERTIFICATE";
     public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_ORACLE = "SELECT ID FROM " +
             "IDN_CERTIFICATE WHERE ROWNUM < 2";
+
+    public static final String ADD_SP_CONSENT_PURPOSE = "INSERT INTO SP_CONSENT_PURPOSE_ASSOC (APP_ID, PURPOSE_ID, " +
+                                                         "DISPLAY_ORDER, TENANT_ID) VALUES (?, ?, ?, ?)";
+
+    public static final String DELETE_SP_CONSENT_PURPOSES = "DELETE FROM SP_CONSENT_PURPOSE_ASSOC WHERE APP_ID = ? AND " +
+                                                            "TENANT_ID = ?";
+
+    public static final String LOAD_SP_CONSENT_PURPOSES = "SELECT APP_ID, PURPOSE_ID, DISPLAY_ORDER, TENANT_ID FROM " +
+                                                          "SP_CONSENT_PURPOSE_ASSOC WHERE APP_ID = ? AND TENANT_ID = ?";
+
+    public static final String UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED = "UPDATE SP_APP SET IS_CONSENT_MGT_ENABLED" +
+                                                                            " = ? WHERE TENANT_ID= ? AND ID = ?";
 
 }

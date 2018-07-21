@@ -24,13 +24,24 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "JustInTimeProvisioningConfig")
 public class JustInTimeProvisioningConfig extends InboundProvisioningConfig implements Serializable {
+
     private static final long serialVersionUID = 6754801699494009980L;
 
+    @XmlElement(name = "IsPasswordProvisioningEnabled")
     private boolean passwordProvisioningEnabled = false;
+    @XmlElement(name = "UserStoreClaimUri")
     private String userStoreClaimUri;
+    @XmlElement(name = "AllowModifyUserName")
     private boolean modifyUserNameAllowed = false;
+    @XmlElement(name = "PromptConsent")
     private boolean promptConsent = false;
 
     /*

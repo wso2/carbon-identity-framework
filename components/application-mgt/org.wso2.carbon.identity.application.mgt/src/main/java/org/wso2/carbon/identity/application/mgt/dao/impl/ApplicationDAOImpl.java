@@ -24,9 +24,40 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ConsentConfig;
+import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
+import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.LocalRole;
+import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
@@ -67,6 +98,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static java.util.Objects.isNull;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.DELETE_SP_CONSENT_PURPOSES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_SP_CONSENT_PURPOSES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
+        .UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
+
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
  * The IDN_APPMGT database contains few tables
@@ -82,7 +120,6 @@ import java.util.Map.Entry;
 public class ApplicationDAOImpl implements ApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
-    private static final String ENABLE_CONDITIONAL_AUTHENTICATION_FLAG = "enableConditionalAuthenticationFeature";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -373,6 +410,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         .getSpProperties()), tenantID);
             }
 
+            deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
+            if (serviceProvider.getConsentConfig() != null) {
+                updateConsentPurposeConfiguration(connection, applicationId, serviceProvider.getConsentConfig
+                        (), tenantID);
+            }
+
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
@@ -389,6 +432,81 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * Delete existing consent purpose configurations of the application.
+     *
+     * @param connection
+     * @param applicationId
+     * @param tenantId
+     */
+    private void deleteConsentPurposeConfiguration(Connection connection, int applicationId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        try (PreparedStatement ps = connection.prepareStatement(DELETE_SP_CONSENT_PURPOSES)) {
+            ps.setInt(1, applicationId);
+            ps.setInt(2, tenantId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while removing existing consent purposes for " +
+                                                             "ApplicationId: " + applicationId + " and TenantId: " +
+                                                             tenantId, e);
+        }
+    }
+
+    /**
+     * Updates the consent purpose configurations of the application.
+     * @param connection
+     * @param applicationId
+     * @param consentConfig
+     * @param tenantID
+     */
+    private void updateConsentPurposeConfiguration(Connection connection, int applicationId,
+                                                   ConsentConfig consentConfig, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        try (PreparedStatement pst = connection.prepareStatement(UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED)) {
+            pst.setString(1, consentConfig.isEnabled() ? "1" : "0");
+            pst.setInt(2, tenantID);
+            pst.setInt(3, applicationId);
+            pst.executeUpdate();
+        } catch (SQLException e) {
+            String error = String.format("Error while setting consentEnabled: %s for applicationId: %s in tenantId: " +
+                                         "%s", Boolean.toString(consentConfig.isEnabled()), applicationId, tenantID);
+            throw new IdentityApplicationManagementException(error, e);
+        }
+
+        ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
+        if (isNull(consentPurposeConfigs)) {
+            if (log.isDebugEnabled()) {
+                log.debug("ConsentPurposeConfigs entry is null for application ID: " + applicationId);
+            }
+            return;
+        }
+
+        ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
+        if (isNull(consentPurposes)) {
+            if (log.isDebugEnabled()) {
+                log.debug("ConsentPurpose entry is null for application ID: " + applicationId);
+            }
+            return;
+        }
+
+        for (ConsentPurpose consentPurpose : consentPurposes) {
+            try (PreparedStatement ps = connection.prepareStatement(ADD_SP_CONSENT_PURPOSE)) {
+                ps.setInt(1, applicationId);
+                ps.setInt(2, consentPurpose.getPurposeId());
+                ps.setInt(3, consentPurpose.getDisplayOrder());
+                ps.setInt(4, tenantID);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                String error = String.format("Error while persisting consent purposeId: %s for applicationId: %s " +
+                                             "in tenantId: %s", consentPurpose.getPurposeId(), applicationId,
+                                             tenantID);
+                throw new IdentityApplicationManagementException(error, e);
+            }
         }
     }
 
@@ -1044,9 +1162,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             return;
         }
 
-        if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-            updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
-        }
+        updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
         PreparedStatement updateAuthTypePrepStmt = null;
 
@@ -1532,8 +1648,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         try {
 
             // Load basic application data
-            ServiceProvider serviceProvider = getBasicApplicationData(applicationName, connection,
-                    tenantID);
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationName, connection, tenantID);
 
             if ((serviceProvider == null || serviceProvider.getApplicationName() == null)
                     && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
@@ -1582,6 +1697,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
+            ConsentConfig consentConfig = serviceProvider.getConsentConfig();
+            if (isNull(consentConfig)) {
+                consentConfig = new ConsentConfig();
+            }
+            consentConfig.setConsentPurposeConfigs(getConsentPurposeConfigs(connection, applicationId, tenantID));
+            serviceProvider.setConsentConfig(consentConfig);
+
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
@@ -1590,6 +1712,31 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private ConsentPurposeConfigs getConsentPurposeConfigs(Connection connection, int applicationId, int tenantId) throws
+            IdentityApplicationManagementException {
+
+        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
+        List<ConsentPurpose> consentPurposes = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(LOAD_SP_CONSENT_PURPOSES)) {
+            ps.setInt(1, applicationId);
+            ps.setInt(2, tenantId);
+            try (ResultSet resultSet = ps.executeQuery()) {
+                while (resultSet.next()) {
+                    ConsentPurpose consentPurpose = new ConsentPurpose();
+                    consentPurpose.setPurposeId(resultSet.getInt(2));
+                    consentPurpose.setDisplayOrder(resultSet.getInt(3));
+                    consentPurposes.add(consentPurpose);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving consent purpose configurations " +
+                                                             "for application ID: " + applicationId, e);
+        }
+        consentPurposeConfigs.setConsentPurpose(consentPurposes.toArray(new ConsentPurpose[0]));
+        return consentPurposeConfigs;
     }
 
     /**
@@ -1670,7 +1817,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             basicAppDataResultSet = loadBasicAppInfoStmt.executeQuery();
             // ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE,
             // PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT, IS_SEND_LOCAL_SUBJECT_ID,
-            // IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI, IS_SAAS_APP
+            // IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI, IS_SAAS_APP, IS_CONSENT_ENABLED
 
             if (basicAppDataResultSet.next()) {
                 serviceProvider = new ServiceProvider();
@@ -1716,6 +1863,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
 
+                ConsentConfig consentConfig = new ConsentConfig();
+                consentConfig.setEnabled("1".equals(basicAppDataResultSet.getString(18)));
+                serviceProvider.setConsentConfig(consentConfig);
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
                             + " ApplicationName: " + serviceProvider.getApplicationName()
@@ -1774,6 +1924,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+
+            ConsentConfig consentConfig = serviceProvider.getConsentConfig();
+            if (isNull(consentConfig)) {
+                consentConfig = new ConsentConfig();
+            }
+            consentConfig.setConsentPurposeConfigs(getConsentPurposeConfigs(connection, applicationId, tenantID));
+            serviceProvider.setConsentConfig(consentConfig);
 
             return serviceProvider;
 
@@ -1849,6 +2006,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
                 serviceProvider.setSaasApp("1".equals(rs.getString(17)));
+
+                ConsentConfig consentConfig = new ConsentConfig();
+                consentConfig.setEnabled("1".equals(rs.getString(18)));
+                serviceProvider.setConsentConfig(consentConfig);
 
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
@@ -2997,11 +3158,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(1, applicationId);
             deleteLocalAndOutboundAuthConfigPrepStmt.setInt(2, tenantId);
             deleteLocalAndOutboundAuthConfigPrepStmt.execute();
-
-            if (System.getProperty(ENABLE_CONDITIONAL_AUTHENTICATION_FLAG) != null) {
-                deleteAuthenticationScript(applicationId, connection);
-            }
-
+            deleteAuthenticationScript(applicationId, connection);
         } finally {
             IdentityApplicationManagementUtil
                     .closeStatement(deleteLocalAndOutboundAuthConfigPrepStmt);
