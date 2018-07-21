@@ -258,6 +258,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 (IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION))), "Assertion encrypted mismatch");
         assertEquals(serviceProviderDO.isDoValidateSignatureInRequests(), Boolean.parseBoolean(dummyResource
                 .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS))));
+        assertEquals(serviceProviderDO.isDoValidateSignatureInArtifactResolve(), Boolean.parseBoolean(dummyResource
+                .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE))));
         assertEquals(serviceProviderDO.getNameIDFormat(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SSO_NAMEID_FORMAT), "Name id format Mismatch.");
         assertEquals(serviceProviderDO.getNameIdClaimUri(), dummyResource.getProperty(IdentityRegistryResources

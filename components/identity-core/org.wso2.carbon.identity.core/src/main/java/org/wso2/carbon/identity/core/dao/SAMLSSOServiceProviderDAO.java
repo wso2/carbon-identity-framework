@@ -206,6 +206,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             serviceProviderDO.setDoValidateSignatureInRequests(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS).trim()));
         }
+        if (resource.getProperty(
+                IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE) != null) {
+            serviceProviderDO.setDoValidateSignatureInArtifactResolve(Boolean.valueOf(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE).trim()));
+        }
         return serviceProviderDO;
     }
 
@@ -359,6 +364,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String validateSignatureInRequests = String.valueOf(serviceProviderDO.isDoValidateSignatureInRequests());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS,
                 validateSignatureInRequests);
+
+        String validateSignatureInArtifactResolve =
+                String.valueOf(serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
+                validateSignatureInArtifactResolve);
         return resource;
     }
 
@@ -444,7 +454,8 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 serviceProviderDO = resourceToObject(registry.get(path));
 
                 // Load the certificate stored in the database, if signature validation is enabled..
-                if (serviceProviderDO.isDoValidateSignatureInRequests()) {
+                if (serviceProviderDO.isDoValidateSignatureInRequests() ||
+                        serviceProviderDO.isDoValidateSignatureInArtifactResolve()) {
                     Tenant tenant = new Tenant();
                     tenant.setDomain(tenantDomain);
                     tenant.setId(userRegistry.getTenantId());
