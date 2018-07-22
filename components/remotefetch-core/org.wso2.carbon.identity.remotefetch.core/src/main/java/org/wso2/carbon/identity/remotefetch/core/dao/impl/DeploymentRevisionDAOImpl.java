@@ -37,19 +37,19 @@ import java.util.List;
 
 public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
 
-    private static final String CREATE_REVISION = "INSERT IDN_RF_REVISIONS (CONFIG_ID, FILE_PATH, FILE_HASH," +
+    private static final String CREATE_REVISION = "INSERT IDN_REMOTE_FETCH_REVISIONS (CONFIG_ID, FILE_PATH, FILE_HASH," +
             " ITEM_NAME) VALUES(?,?,?,?);";
 
-    private static final String UPDATE_REVISION = "UPDATE IDN_RF_REVISIONS SET CONFIG_ID = ?, FILE_PATH = ?," +
+    private static final String UPDATE_REVISION = "UPDATE IDN_REMOTE_FETCH_REVISIONS SET CONFIG_ID = ?, FILE_PATH = ?," +
             " FILE_HASH = ?, DEPLOYED_DATE = ?, DEPLOYMENT_STATUS = ?, ITEM_NAME = ? WHERE ID = ?";
 
-    private static final String DELETE_REVISION = "DELETE FROM IDN_RF_REVISIONS WHERE ID = ?";
+    private static final String DELETE_REVISION = "DELETE FROM IDN_REMOTE_FETCH_REVISIONS WHERE ID = ?";
 
     private static final String GET_REVISIONS_BY_CONFIG = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
-            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ?";
+            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_REMOTE_FETCH_REVISIONS WHERE CONFIG_ID = ?";
 
     private static final String GET_REVISION_BY_UNIQUE = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
-            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_RF_REVISIONS WHERE CONFIG_ID = ? AND ITEM_NAME = ?";
+            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_REMOTE_FETCH_REVISIONS WHERE CONFIG_ID = ? AND ITEM_NAME = ?";
 
     /**
      * @param deploymentRevision

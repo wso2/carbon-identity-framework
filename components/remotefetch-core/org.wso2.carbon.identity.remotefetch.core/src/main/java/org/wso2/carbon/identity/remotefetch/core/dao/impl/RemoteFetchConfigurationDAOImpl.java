@@ -36,28 +36,28 @@ import java.util.Map;
 import org.json.JSONObject;
 
 /**
- * this class accesses IDN_RF_CONFIG table to store/update and delete Remote Fetch configurations.
+ * this class accesses IDN_REMOTE_FETCH_CONFIG table to store/update and delete Remote Fetch configurations.
  */
 public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfigurationDAO {
 
-    private static final String CREATE_CONFIG = "INSERT IDN_RF_CONFIG (TENANT_ID, USER_NAME, REPO_MANAGER_TYPE, " +
+    private static final String CREATE_CONFIG = "INSERT IDN_REMOTE_FETCH_CONFIG (TENANT_ID, USER_NAME, REPO_MANAGER_TYPE, " +
             "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON) VALUES (?,?,?,?,?,?)";
 
     private static final String LIST_CONFIGS = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE, " +
-            "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG`";
+            "ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_REMOTE_FETCH_CONFIG`";
 
     private static final String GET_CONFIG = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE," +
-            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE ID = ?";
+            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_REMOTE_FETCH_CONFIG` WHERE ID = ?";
 
     private static final String GET_CONFIG_BY_UNIQUE = "SELECT ID, TENANT_ID, USER_NAME, REPO_MANAGER_TYPE," +
-            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_RF_CONFIG` WHERE " +
+            " ACTION_LISTENER_TYPE, CONFIG_DEPLOYER_TYPE, ATTRIBUTES_JSON FROM `IDN_REMOTE_FETCH_CONFIG` WHERE " +
             "TENANT_ID = ? AND REPO_MANAGER_TYPE = ? AND CONFIG_DEPLOYER_TYPE = ?";
 
-    private static final String UPDATE_CONFIG = "UPDATE IDN_RF_CONFIG SET TENANT_ID = ?, USER_NAME = ?," +
+    private static final String UPDATE_CONFIG = "UPDATE IDN_REMOTE_FETCH_CONFIG SET TENANT_ID = ?, USER_NAME = ?," +
             " REPO_MANAGER_TYPE = ?, ACTION_LISTENER_TYPE = ?, CONFIG_DEPLOYER_TYPE = ?, ATTRIBUTES_JSON = ? " +
             "WHERE ID = ?";
 
-    private static final String DELETE_CONFIG = "DELETE FROM IDN_RF_CONFIG WHERE ID = ?";
+    private static final String DELETE_CONFIG = "DELETE FROM IDN_REMOTE_FETCH_CONFIG WHERE ID = ?";
 
     /**
      * @param configuration
