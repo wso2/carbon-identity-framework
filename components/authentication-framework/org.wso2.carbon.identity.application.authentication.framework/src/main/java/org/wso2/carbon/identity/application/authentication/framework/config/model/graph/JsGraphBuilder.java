@@ -503,9 +503,7 @@ public class JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            Gson gson = new GsonBuilder().create();
-            String json = gson.toJson(ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
-            newNode.setData(json);
+            newNode.setData((Map<String, Object>) ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);

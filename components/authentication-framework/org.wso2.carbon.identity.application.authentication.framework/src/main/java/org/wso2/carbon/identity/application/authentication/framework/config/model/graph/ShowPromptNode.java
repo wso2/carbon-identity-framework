@@ -32,7 +32,7 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
 
     private static final long serialVersionUID = -5644595996095910601L;
     private String templateId;
-    private String data;
+    private Map<String, Object> data;
     private Map<String, Object> parameters;
     private Map<String, SerializableJsFunction> handlerMap = new HashMap<>();
 
@@ -46,12 +46,12 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
         this.templateId = templateId;
     }
 
-    public String getData() {
+    public Map<String, Object> getData() {
 
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(Map<String, Object> data) {
 
         this.data = data;
     }
