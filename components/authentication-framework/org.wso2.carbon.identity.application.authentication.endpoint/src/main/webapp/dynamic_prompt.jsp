@@ -16,9 +16,11 @@
   ~ under the License.
   --%>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.DynamicPromptUtil" %>
-<%@ page import="java.util.zip.DataFormatException" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
@@ -30,13 +32,17 @@
 <%
     String templateId = request.getParameter("templateId");
     String promptId = request.getParameter("promptId");
-    String dataStr = request.getParameter("data");
-    Map data = null;
-    try {
-        data = DynamicPromptUtil.inflateJson(dataStr);
-    } catch (DataFormatException e) {
-        response.sendRedirect("retry.do");
+    String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
+    if (StringUtils.isBlank(authAPIURL)) {
+        authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
     }
+    if (!authAPIURL.endsWith("/")) {
+        authAPIURL += "/";
+    }
+    authAPIURL += "context/" + request.getParameter("promptId");
+    String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
+    Gson gson = new Gson();
+    Map data = gson.fromJson(contextProperties, Map.class);
     String templatePath = templateMap.get(templateId);
 %>
 

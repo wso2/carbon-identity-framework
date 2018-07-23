@@ -34,10 +34,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -503,9 +505,7 @@ public class JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            Gson gson = new GsonBuilder().create();
-            String json = gson.toJson(ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
-            newNode.setData(json);
+            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);
