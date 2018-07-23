@@ -536,8 +536,8 @@ function showHideTemplateList() {
     }
     else {
         addTemplate.css("background-image", "url(images/template-close.png)");
-        codeMirror.animate({marginRight: 212}, {duration: 125, queue: false});
-        templates.animate({width: 210}, {duration: 50, queue: false});
+        codeMirror.animate({marginRight: 240}, {duration: 125, queue: false});
+        templates.animate({width: 240}, {duration: 50, queue: false});
         contentToggle = 0;
     }
 }

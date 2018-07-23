@@ -4,7 +4,7 @@
     display: inline-table;
 }
 #template_list{
-    height: 280px;
+    height: 325px;
     overflow-y: scroll;
 }
 #template_list .name {
@@ -260,7 +260,7 @@
     background:url('../images/templates.png') 5px 50% no-repeat;
     background-color: rgba(204, 204, 204, 0.4);
     height: auto;
-    width: 260px;
+    width: 305px;
     line-height: inherit;
     margin: 0px;
     padding: 5px 10px;
@@ -407,4 +407,11 @@
 .err_warn_text {
     padding: 20px 0 0 16px;
     font-size: 12.65px;
+}
+#editorRow .CodeMirror {
+    height: 345px;
+}
+.template-list-container h2.trigger {
+    background-color: #f5f5f5;
+    border: 1px solid #cccccc!important;
 }
