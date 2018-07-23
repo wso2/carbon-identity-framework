@@ -22,9 +22,14 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.remotefetch.core.internal.RemoteFetchServiceComponentHolder;
 
 /**
- * utill class to aid Jdbc executions.
+ * Util class to aid Jdbc executions.
  */
 public class JdbcUtils {
+
+    private JdbcUtils() {
+
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Get a new Jdbc Template

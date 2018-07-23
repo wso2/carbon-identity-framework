@@ -143,9 +143,9 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
 
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLConstants.DELETE_CONFIG, preparedStatement -> {
-                    preparedStatement.setInt(1, configurationId);
-                });
+                template.executeUpdate(SQLConstants.DELETE_CONFIG, preparedStatement ->
+                    preparedStatement.setInt(1, configurationId)
+                );
                 return null;
             });
         } catch (TransactionException e) {
@@ -163,7 +163,7 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             return jdbcTemplate.withTransaction(template ->
-                    template.executeQuery(SQLConstants.LIST_CONFIGS, (((resultSet, i) -> {
+                    template.executeQuery(SQLConstants.LIST_CONFIGS, ((resultSet, i) -> {
                         RemoteFetchConfiguration remoteFetchConfiguration = new RemoteFetchConfiguration(
                                 resultSet.getInt(1),
                                 resultSet.getInt(2),
@@ -175,7 +175,7 @@ public class RemoteFetchConfigurationDAOImpl implements RemoteFetchConfiguration
                         JSONObject attributesBundle = new JSONObject(resultSet.getString(7));
                         this.mapAttributes(remoteFetchConfiguration, attributesBundle);
                         return remoteFetchConfiguration;
-                    })))
+                    }))
             );
         } catch (TransactionException e) {
             throw new RemoteFetchCoreException("Error listing RemoteFetchConfigurations from database", e);
