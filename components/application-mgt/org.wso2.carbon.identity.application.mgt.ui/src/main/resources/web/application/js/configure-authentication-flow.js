@@ -276,7 +276,7 @@ function populateTemplates() {
         $.each(categoryTemplates, function (i, template) {
             details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
                 'data-type-name="' + template.name + '" title="' + template.name + '"><img src="' + template.img + '"/>' +
-                '<span>' + template.name + '</span></a><span  title="' + template.help + '" class="helpLink">' +
+                '<span>' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
                 '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
         });
         details += '</ul>';
