@@ -73,19 +73,6 @@ public class CacheBackedRemoteFetchConfigurationDAOImpl implements RemoteFetchCo
     }
 
     /**
-     * @param tenantId
-     * @param repositoryManagerType
-     * @param configDeployerType
-     * @return
-     * @throws RemoteFetchCoreException
-     */
-    @Override
-    public RemoteFetchConfiguration getRemoteFetchConfiguration(int tenantId, String repositoryManagerType, String configDeployerType) throws RemoteFetchCoreException {
-
-        return this.getRemoteFetchConfiguration(tenantId, repositoryManagerType, configDeployerType);
-    }
-
-    /**
      * @param configuration
      * @throws RemoteFetchCoreException
      */

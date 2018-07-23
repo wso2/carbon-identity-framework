@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.remotefetch.common.RemoteFetchComponentRegistry;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchComponentRegistryImpl;
 import org.wso2.carbon.identity.remotefetch.core.RemoteFetchCore;
@@ -40,6 +41,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.sql.DataSource;
 
 @Component(
         name = "identity.application.remotefetch.component",
@@ -61,6 +63,7 @@ public class RemoteFetchServiceComponent {
         remoteFetchComponentRegistry.registerActionListener(new PollingActionListenerComponent());
 
         RemoteFetchServiceComponentHolder.getInstance().setRemoteFetchComponentRegistry(remoteFetchComponentRegistry);
+        RemoteFetchServiceComponentHolder.getInstance().setDataSource(this.getDataSource());
 
         BundleContext bundleContext = context.getBundleContext();
         bundleContext.registerService(RemoteFetchComponentRegistry.class.getName(),
@@ -117,5 +120,9 @@ public class RemoteFetchServiceComponent {
     protected void unsetRealmService(RealmService realmService) {
 
         RemoteFetchServiceComponentHolder.getInstance().setRealmService(null);
+    }
+
+    private DataSource getDataSource(){
+        return IdentityDatabaseUtil.getDataSource();
     }
 }

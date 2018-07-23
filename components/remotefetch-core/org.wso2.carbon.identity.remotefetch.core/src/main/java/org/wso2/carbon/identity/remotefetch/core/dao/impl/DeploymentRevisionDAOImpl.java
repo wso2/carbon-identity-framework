@@ -18,38 +18,20 @@
 
 package org.wso2.carbon.identity.remotefetch.core.dao.impl;
 
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.remotefetch.common.DeploymentRevision;
 import org.wso2.carbon.identity.remotefetch.common.exceptions.RemoteFetchCoreException;
+import org.wso2.carbon.identity.remotefetch.core.constants.SQLConstants;
 import org.wso2.carbon.identity.remotefetch.core.dao.DeploymentRevisionDAO;
+import org.wso2.carbon.identity.remotefetch.core.util.JdbcUtils;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
-
-    private static final String CREATE_REVISION = "INSERT IDN_REMOTE_FETCH_REVISIONS (CONFIG_ID, FILE_PATH, FILE_HASH," +
-            " ITEM_NAME) VALUES(?,?,?,?);";
-
-    private static final String UPDATE_REVISION = "UPDATE IDN_REMOTE_FETCH_REVISIONS SET CONFIG_ID = ?, FILE_PATH = ?," +
-            " FILE_HASH = ?, DEPLOYED_DATE = ?, DEPLOYMENT_STATUS = ?, ITEM_NAME = ? WHERE ID = ?";
-
-    private static final String DELETE_REVISION = "DELETE FROM IDN_REMOTE_FETCH_REVISIONS WHERE ID = ?";
-
-    private static final String GET_REVISIONS_BY_CONFIG = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
-            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_REMOTE_FETCH_REVISIONS WHERE CONFIG_ID = ?";
-
-    private static final String GET_REVISION_BY_UNIQUE = "SELECT ID, CONFIG_ID, FILE_PATH, FILE_HASH, DEPLOYED_DATE," +
-            " DEPLOYMENT_STATUS, ITEM_NAME FROM IDN_REMOTE_FETCH_REVISIONS WHERE CONFIG_ID = ? AND ITEM_NAME = ?";
 
     /**
      * @param deploymentRevision
@@ -59,44 +41,20 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     @Override
     public int createDeploymentRevision(DeploymentRevision deploymentRevision) throws RemoteFetchCoreException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement addStmnt = null;
-        ResultSet result = null;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
         try {
-            addStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.CREATE_REVISION,
-                    Statement.RETURN_GENERATED_KEYS);
-            addStmnt.setInt(1, deploymentRevision.getConfigId());
-            addStmnt.setString(2, deploymentRevision.getFile().getPath());
-            addStmnt.setString(3, deploymentRevision.getFileHash());
-            addStmnt.setString(4, deploymentRevision.getItemName());
-            addStmnt.execute();
-
-            int revisionId = -1;
-            result = addStmnt.getGeneratedKeys();
-
-            if (result.next()) {
-                revisionId = result.getInt(1);
-            }
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-
-            if (revisionId == -1 ){
-                return this.getDeploymentRevision(deploymentRevision.getConfigId(),deploymentRevision.getItemName())
-                        .getDeploymentRevisionId();
-            }else{
-                return revisionId;
-            }
-
-        } catch (SQLIntegrityConstraintViolationException e) {
-            throw new RemoteFetchCoreException("Constraint violation, duplicated entry", e);
-        } catch (SQLException e) {
-            throw new RemoteFetchCoreException("Error creating new object", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(result);
-            IdentityDatabaseUtil.closeStatement(addStmnt);
-            IdentityDatabaseUtil.closeConnection(connection);
+            return jdbcTemplate.withTransaction(template ->
+                    template.executeInsert(SQLConstants.CREATE_REVISION, preparedStatement -> {
+                        preparedStatement.setInt(1, deploymentRevision.getConfigId());
+                        preparedStatement.setString(2, deploymentRevision.getFile().getPath());
+                        preparedStatement.setString(3, deploymentRevision.getFileHash());
+                        preparedStatement.setString(4, deploymentRevision.getItemName());
+                    }, deploymentRevision, true)
+            );
+        } catch (TransactionException e) {
+            throw new RemoteFetchCoreException("Error creating new DeploymentRevision " +
+                    deploymentRevision.getItemName(), e);
         }
     }
 
@@ -107,44 +65,40 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
      * @throws RemoteFetchCoreException
      */
     @Override
-    public DeploymentRevision getDeploymentRevision(int remoteFetchConfigurationId, String itemName) throws RemoteFetchCoreException {
+    public DeploymentRevision getDeploymentRevision(int remoteFetchConfigurationId, String itemName)
+            throws RemoteFetchCoreException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement selectStmnt = null;
-        ResultSet result = null;
-        List<DeploymentRevision> deploymentRevisions = new ArrayList<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        DeploymentRevision deploymentRevision;
         try {
-            selectStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.GET_REVISION_BY_UNIQUE);
-            selectStmnt.setInt(1, remoteFetchConfigurationId);
-            selectStmnt.setString(2, itemName);
-            result = selectStmnt.executeQuery();
+            deploymentRevision = jdbcTemplate.withTransaction(template -> {
+                return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_REVISIONS_BY_CONFIG,
+                        (resultSet, rowNumber) -> {
 
-            while (result.next()) {
-                DeploymentRevision deploymentRevision = new DeploymentRevision(
-                        result.getInt(2),
-                        new File(result.getString(3))
-                );
-                deploymentRevision.setDeploymentRevisionId(result.getInt(1));
-                deploymentRevision.setFileHash(result.getString(4));
-                deploymentRevision.setDeployedDate(new Date(result.getTimestamp(5).getTime()));
-                deploymentRevision.setDeploymentStatus(DeploymentRevision
-                        .DEPLOYMENT_STATUS.valueOf(result.getString(6)));
-                deploymentRevision.setItemName(result.getString(7));
+                            DeploymentRevision revisionObj = new DeploymentRevision(
+                                    resultSet.getInt(2),
+                                    new File(resultSet.getString(3))
+                            );
+                            revisionObj.setDeploymentRevisionId(resultSet.getInt(1));
+                            revisionObj.setFileHash(resultSet.getString(4));
+                            revisionObj.setDeployedDate(new Date(resultSet.getTimestamp(5).getTime()));
+                            revisionObj.setDeploymentStatus(DeploymentRevision
+                                    .DEPLOYMENT_STATUS.valueOf(resultSet.getString(6)));
+                            revisionObj.setItemName(resultSet.getString(7));
 
-                return deploymentRevision;
+                            return revisionObj;
 
-            }
-
-            return null;
-
-        } catch (SQLException e) {
-            throw new RemoteFetchCoreException("Error reading DeploymentRevision from database", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(result);
-            IdentityDatabaseUtil.closeStatement(selectStmnt);
-            IdentityDatabaseUtil.closeConnection(connection);
-
+                        }, preparedStatement -> {
+                            preparedStatement.setInt(1, remoteFetchConfigurationId);
+                            preparedStatement.setString(2, itemName);
+                        });
+            });
+        } catch (TransactionException e) {
+            throw new RemoteFetchCoreException("Error reading DeploymentRevision id " +
+                    remoteFetchConfigurationId + " from database", e);
         }
+
+        return deploymentRevision;
     }
 
     /**
@@ -154,35 +108,29 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     @Override
     public void updateDeploymentRevision(DeploymentRevision deploymentRevision) throws RemoteFetchCoreException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement updateStmnt = null;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
         try {
-            updateStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.UPDATE_REVISION);
-
-            updateStmnt.setInt(1, deploymentRevision.getConfigId());
-            updateStmnt.setString(2, deploymentRevision.getFile().getPath());
-            updateStmnt.setString(3, deploymentRevision.getFileHash());
-            if (deploymentRevision.getDeployedDate() != null) {
-                updateStmnt.setTimestamp(4, new Timestamp(deploymentRevision.getDeployedDate().getTime()));
-            } else {
-                updateStmnt.setTimestamp(4, null);
-            }
-            updateStmnt.setString(5, deploymentRevision.getDeploymentStatus().name());
-            updateStmnt.setString(6, deploymentRevision.getItemName());
-            updateStmnt.setInt(7, deploymentRevision.getDeploymentRevisionId());
-            updateStmnt.execute();
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-
-        } catch (SQLIntegrityConstraintViolationException e) {
-            throw new RemoteFetchCoreException("Constraint violation, duplicated entry", e);
-        } catch (SQLException e) {
-            throw new RemoteFetchCoreException("Error updating object", e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(updateStmnt);
-            IdentityDatabaseUtil.closeConnection(connection);
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLConstants.UPDATE_REVISION, preparedStatement -> {
+                    preparedStatement.setInt(1, deploymentRevision.getConfigId());
+                    preparedStatement.setString(2, deploymentRevision.getFile().getPath());
+                    preparedStatement.setString(3, deploymentRevision.getFileHash());
+                    if (deploymentRevision.getDeployedDate() != null) {
+                        preparedStatement.setTimestamp(4,
+                                new Timestamp(deploymentRevision.getDeployedDate().getTime()));
+                    } else {
+                        preparedStatement.setTimestamp(4, null);
+                    }
+                    preparedStatement.setString(5, deploymentRevision.getDeploymentStatus().name());
+                    preparedStatement.setString(6, deploymentRevision.getItemName());
+                    preparedStatement.setInt(7, deploymentRevision.getDeploymentRevisionId());
+                });
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new RemoteFetchCoreException("Error updating DeploymentRevision of id "
+                    + deploymentRevision.getDeploymentRevisionId(), e);
         }
 
     }
@@ -194,25 +142,17 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     @Override
     public void deleteDeploymentRevision(int deploymentRevisionId) throws RemoteFetchCoreException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement deleteStmnt = null;
-        ResultSet result = null;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
         try {
-            deleteStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.DELETE_REVISION);
-            deleteStmnt.setInt(1, deploymentRevisionId);
-            deleteStmnt.execute();
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-
-        } catch (SQLException e) {
-            throw new RemoteFetchCoreException("Error Deleting object", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(result);
-            IdentityDatabaseUtil.closeStatement(deleteStmnt);
-            IdentityDatabaseUtil.closeConnection(connection);
-
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLConstants.DELETE_REVISION, preparedStatement -> {
+                    preparedStatement.setInt(1, deploymentRevisionId);
+                });
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new RemoteFetchCoreException("Error Deleting DeploymentRevision by id " + deploymentRevisionId, e);
         }
     }
 
@@ -225,38 +165,29 @@ public class DeploymentRevisionDAOImpl implements DeploymentRevisionDAO {
     public List<DeploymentRevision> getDeploymentRevisionsByConfigurationId(
             int remoteFetchConfigurationId) throws RemoteFetchCoreException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement selectStmnt = null;
-        ResultSet result = null;
-        List<DeploymentRevision> deploymentRevisions = new ArrayList<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            selectStmnt = connection.prepareStatement(DeploymentRevisionDAOImpl.GET_REVISIONS_BY_CONFIG);
-            selectStmnt.setInt(1, remoteFetchConfigurationId);
-            result = selectStmnt.executeQuery();
+            return jdbcTemplate.withTransaction(template ->
+                    template.executeQuery(SQLConstants.GET_REVISIONS_BY_CONFIG, ((resultSet, rowNumber) -> {
+                        DeploymentRevision deploymentRevision = new DeploymentRevision(
+                                resultSet.getInt(2),
+                                new File(resultSet.getString(3))
+                        );
+                        deploymentRevision.setDeploymentRevisionId(resultSet.getInt(1));
+                        deploymentRevision.setFileHash(resultSet.getString(4));
+                        deploymentRevision.setDeployedDate(new Date(resultSet.getTimestamp(5).getTime()));
+                        deploymentRevision.setDeploymentStatus(DeploymentRevision
+                                .DEPLOYMENT_STATUS.valueOf(resultSet.getString(6)));
+                        deploymentRevision.setItemName(resultSet.getString(7));
 
-            while (result.next()) {
-                DeploymentRevision deploymentRevision = new DeploymentRevision(
-                        result.getInt(2),
-                        new File(result.getString(3))
-                );
-                deploymentRevision.setDeploymentRevisionId(result.getInt(1));
-                deploymentRevision.setFileHash(result.getString(4));
-                deploymentRevision.setDeployedDate(new Date(result.getTimestamp(5).getTime()));
-                deploymentRevision.setDeploymentStatus(DeploymentRevision
-                        .DEPLOYMENT_STATUS.valueOf(result.getString(6)));
-                deploymentRevision.setItemName(result.getString(7));
-
-                deploymentRevisions.add(deploymentRevision);
-            }
-
-            return deploymentRevisions;
-        } catch (SQLException e) {
-            throw new RemoteFetchCoreException("Error reading objects from database", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(result);
-            IdentityDatabaseUtil.closeStatement(selectStmnt);
-            IdentityDatabaseUtil.closeConnection(connection);
-
+                        return deploymentRevision;
+                    }), preparedStatement -> {
+                        preparedStatement.setInt(1, remoteFetchConfigurationId);
+                    })
+            );
+        } catch (TransactionException e) {
+            throw new RemoteFetchCoreException("Error reading DeploymentRevisions from database for configuration id " +
+                    remoteFetchConfigurationId, e);
         }
     }
 }

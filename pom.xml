@@ -1482,6 +1482,12 @@
                 <version>${h2database.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.wso2.carbon.utils</groupId>
+                <artifactId>org.wso2.carbon.database.utils</artifactId>
+                <version>${carbon.database.utils.version}</version>
+            </dependency>
+
             <!-- MSF4J currently used only on tests as of now -->
             <dependency>
                 <groupId>org.wso2.msf4j</groupId>
@@ -1779,6 +1785,11 @@
         <!-- JGit Version -->
         <org.jgit.version>5.0.1.201806211838-r</org.jgit.version>
         <org.jgit.version.range>[5.0.0,6.0.0)</org.jgit.version.range>
+
+        <!-- Carbon Utils -->
+        <carbon.database.utils.version>2.0.8</carbon.database.utils.version>
+        <carbon.database.utils.version.range>[2.0.0,3.0.0]</carbon.database.utils.version.range>
+
     </properties>
 
     <build>

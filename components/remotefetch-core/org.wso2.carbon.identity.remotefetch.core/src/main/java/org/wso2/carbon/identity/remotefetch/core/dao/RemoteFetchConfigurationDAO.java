@@ -43,16 +43,6 @@ public interface RemoteFetchConfigurationDAO {
     RemoteFetchConfiguration getRemoteFetchConfiguration(int configurationId) throws RemoteFetchCoreException;
 
     /**
-     * @param tenantId
-     * @param repositoryManagerType
-     * @param configDeployerType
-     * @return
-     * @throws RemoteFetchCoreException
-     */
-    RemoteFetchConfiguration getRemoteFetchConfiguration(int tenantId, String repositoryManagerType,
-                                                         String configDeployerType) throws RemoteFetchCoreException;
-
-    /**
      * @param configuration
      * @throws RemoteFetchCoreException
      */
