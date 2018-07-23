@@ -22,32 +22,21 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
-import org.xml.sax.InputSource;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import javax.net.ssl.HostnameVerifier;
@@ -59,16 +48,10 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 
-public class MutualSslManager {
+public class MutualSSLManager {
 
-    private static final Log log = LogFactory.getLog(MutualSslManager.class);
+    private static final Log log = LogFactory.getLog(MutualSSLManager.class);
     private static final String PROTECTED_TOKENS = "protectedTokens";
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
@@ -101,7 +84,7 @@ public class MutualSslManager {
     private static char[] keyStorePassword;
     private static SSLSocketFactory sslSocketFactory;
 
-    private MutualSslManager() {
+    private MutualSSLManager() {
 
     }
 
@@ -109,8 +92,6 @@ public class MutualSslManager {
      * Initialize Tenant data manager
      */
     public static synchronized void init() {
-
-        InputStream inputStream = null;
 
         try {
             prop = new Properties();
@@ -120,25 +101,27 @@ public class MutualSslManager {
             if (configFile.exists()) {
                 log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " + Constants
                         .TenantConstants.CONFIG_RELATIVE_PATH);
-                inputStream = new FileInputStream(configFile);
+                try (InputStream inputStream = new FileInputStream(configFile)) {
 
-                prop.load(inputStream);
-                if (isSecuredPropertyAvailable(prop)) {
-                    // Resolve encrypted properties with secure vault
-                    resolveSecrets(prop);
+                    prop.load(inputStream);
+                    if (isSecuredPropertyAvailable(prop)) {
+                        // Resolve encrypted properties with secure vault
+                        resolveSecrets(prop);
+                    }
                 }
 
             } else {
-                inputStream = MutualSslManager.class.getClassLoader()
-                        .getResourceAsStream(Constants.TenantConstants.CONFIG_FILE_NAME);
+                try (InputStream inputStream = MutualSSLManager.class.getClassLoader()
+                        .getResourceAsStream(Constants.TenantConstants.CONFIG_FILE_NAME)) {
 
-                if (inputStream != null) {
-                    prop.load(inputStream);
-                    log.debug(Constants.TenantConstants.CONFIG_FILE_NAME
-                            + " file loaded from authentication endpoint webapp");
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Input stream is null while loading authentication endpoint from webapp");
+                    if (inputStream != null) {
+                        prop.load(inputStream);
+                        log.debug(Constants.TenantConstants.CONFIG_FILE_NAME
+                                + " file loaded from authentication endpoint webapp");
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Input stream is null while loading authentication endpoint from webapp");
+                        }
                     }
                 }
             }
@@ -176,15 +159,6 @@ public class MutualSslManager {
 
         } catch (AuthenticationException | IOException e) {
             log.error("Initialization failed : ", e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    log.error("Failed to close the FileInputStream, file : " + Constants.TenantConstants
-                            .CONFIG_FILE_NAME, e);
-                }
-            }
         }
     }
 
@@ -294,22 +268,14 @@ public class MutualSslManager {
     public static void loadKeyStore(String keyStorePath, String keyStorePassword)
             throws AuthenticationException {
 
-        InputStream fis = null;
         try {
-            MutualSslManager.keyStorePassword = keyStorePassword.toCharArray();
+            MutualSSLManager.keyStorePassword = keyStorePassword.toCharArray();
             keyStore = KeyStore.getInstance(keyStoreType);
-            fis = new FileInputStream(keyStorePath);
-            keyStore.load(fis, MutualSslManager.keyStorePassword);
+            try (InputStream fis = new FileInputStream(keyStorePath)) {
+                keyStore.load(fis, MutualSSLManager.keyStorePassword);
+            }
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
             throw new AuthenticationException("Error while trying to load Key Store.", e);
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    log.error("Failed to close file. ", e);
-                }
-            }
         }
     }
 
@@ -323,21 +289,13 @@ public class MutualSslManager {
     public static void loadTrustStore(String trustStorePath, String trustStorePassword)
             throws AuthenticationException {
 
-        InputStream is = null;
         try {
             trustStore = KeyStore.getInstance(trustStoreType);
-            is = new FileInputStream(trustStorePath);
-            trustStore.load(is, trustStorePassword.toCharArray());
+            try (InputStream is = new FileInputStream(trustStorePath)) {
+                trustStore.load(is, trustStorePassword.toCharArray());
+            }
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             throw new AuthenticationException("Error while trying to load Trust Store.", e);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    log.error("Failed to close file. ", e);
-                }
-            }
         }
     }
 

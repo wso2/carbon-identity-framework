@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorServi
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -503,7 +504,7 @@ public class JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            newNode.setData((Map<String, Object>) ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
+            newNode.setData((Map<String, Serializable>) ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);

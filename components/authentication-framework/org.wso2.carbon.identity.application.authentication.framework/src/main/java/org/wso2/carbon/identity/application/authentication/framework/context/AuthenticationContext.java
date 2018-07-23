@@ -63,7 +63,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
-    private Map<String, Object> endpointParams = new HashMap<>();
+    private Map<String, Serializable> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
     private boolean reAuthenticate;
@@ -510,25 +510,25 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * @param key parameter key
      * @param value parameter value
      */
-    public void addEndpointParam(String key, Object value) {
+    public void addEndpointParam(String key, Serializable value) {
 
         endpointParams.put(key, value);
     }
 
     /**
-     * Similar to {@link #addEndpointParam(String, Object)}. Provide the ability to add multiple parameters at once.
+     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters at once.
      * @param params Map of parameters to add
      */
-    public void addEndpointParams(Map<String, Object> params) {
+    public void addEndpointParams(Map<String, Serializable> params) {
 
         endpointParams.putAll(params);
     }
 
     /**
-     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Object)} for more details.
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)} for more details.
      * @return
      */
-    public Map<String, Object> getEndpointParams() {
+    public Map<String, Serializable> getEndpointParams() {
 
         return endpointParams;
     }

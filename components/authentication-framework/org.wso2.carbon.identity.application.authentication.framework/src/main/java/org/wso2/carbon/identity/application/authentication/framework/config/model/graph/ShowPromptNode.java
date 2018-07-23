@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
 
     private static final long serialVersionUID = -5644595996095910601L;
     private String templateId;
-    private Map<String, Object> data;
+    private Map<String, Serializable> data;
     private Map<String, Object> parameters;
     private Map<String, SerializableJsFunction> handlerMap = new HashMap<>();
 
@@ -46,12 +47,12 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
         this.templateId = templateId;
     }
 
-    public Map<String, Object> getData() {
+    public Map<String, Serializable> getData() {
 
         return data;
     }
 
-    public void setData(Map<String, Object> data) {
+    public void setData(Map<String, Serializable> data) {
 
         this.data = data;
     }

@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import javax.net.ssl.HttpsURLConnection;
@@ -60,12 +59,12 @@ public class AuthContextAPIClient {
         try {
             url = new URL(backendURL);
             HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
-            httpsURLConnection.setSSLSocketFactory(MutualSslManager.getSslSocketFactory());
+            httpsURLConnection.setSSLSocketFactory(MutualSSLManager.getSslSocketFactory());
             httpsURLConnection.setDoOutput(true);
             httpsURLConnection.setDoInput(true);
             httpsURLConnection.setRequestMethod(HTTP_METHOD_GET);
 
-            httpsURLConnection.setRequestProperty(MutualSslManager.getUsernameHeaderName(), MutualSslManager.getCarbonLogin());
+            httpsURLConnection.setRequestProperty(MutualSSLManager.getUsernameHeaderName(), MutualSSLManager.getCarbonLogin());
 
             inputStream = httpsURLConnection.getInputStream();
             reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
