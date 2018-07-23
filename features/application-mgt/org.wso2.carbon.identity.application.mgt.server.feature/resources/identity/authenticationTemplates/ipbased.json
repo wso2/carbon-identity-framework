@@ -37,7 +37,7 @@
     "// Configure the network ranges here",
     "var corpNetwork = ['192.168.1.0/24', '10.100.0.0/16'];",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            var user = context.steps[1].subject;",

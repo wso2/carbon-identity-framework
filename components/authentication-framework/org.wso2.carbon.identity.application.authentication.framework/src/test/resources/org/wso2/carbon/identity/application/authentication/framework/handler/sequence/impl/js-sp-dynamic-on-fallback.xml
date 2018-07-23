@@ -96,9 +96,9 @@ var jsFn1 = function(context, a) {
     Log.debug('Test fn1 '+a);
 }
 
-function onInitialRequest(context) {
+function onLoginRequest(context) {
 Log.info('Test0');
-	executeStep(4, {
+    executeStep(4, {
         onSuccess : function(context){
                 Log.info('Test1');
                 executeStep(2);
@@ -114,7 +114,7 @@ Log.info('Test0');
                 executeStep(2);
                 executeStep(3);
         }
-	})
+    })
 }
 
 ]]></AuthenticationScript>

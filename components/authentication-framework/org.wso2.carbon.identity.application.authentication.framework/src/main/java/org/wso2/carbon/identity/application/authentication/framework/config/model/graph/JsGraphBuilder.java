@@ -147,7 +147,7 @@ public class JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(script);
-            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_INITIATE_REQUEST,
+            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
@@ -159,7 +159,7 @@ public class JsGraphBuilder {
         } catch (NoSuchMethodException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
-                    .JS_FUNC_INITIATE_REQUEST + " function is not defined.");
+                    .JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
