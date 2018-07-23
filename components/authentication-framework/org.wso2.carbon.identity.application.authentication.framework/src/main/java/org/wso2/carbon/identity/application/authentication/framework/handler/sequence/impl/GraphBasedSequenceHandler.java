@@ -180,6 +180,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             for (String s : request.getParameterMap().keySet()) {
                 if (s.startsWith(PROMPT_ACTION_PREFIX)) {
                     action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
+                    action = StringUtils.capitalize(action);
                     break;
                 }
             }
