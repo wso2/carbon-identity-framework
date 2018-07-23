@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -49,13 +50,15 @@ import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
 
 public class ApplicationBean {
 
@@ -92,6 +95,8 @@ public class ApplicationBean {
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
     private ConsentConfig consentConfig;
+    private ApplicationPurposes applicationPurposes;
+    private Purpose[] generalPurposes;
 
     Log log = LogFactory.getLog(ApplicationBean.class);
 
@@ -126,6 +131,8 @@ public class ApplicationBean {
         enabledFederatedIdentityProviders = null;
         inboundAuthenticationRequestConfigs = Collections.EMPTY_LIST;
         consentConfig = null;
+        applicationPurposes = null;
+        generalPurposes = null;
     }
 
     /**
@@ -1438,13 +1445,66 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
-        // TODO: Update the configs from request once the SP consent purpose UI is implemented.
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        Map<Integer, Integer> consentPurposes = new HashMap<>();
+        Map<Integer, Integer> consentPurposeDisplayOrders = new HashMap<>();
+        for (Map.Entry<String, String[]> parameter : parameterMap.entrySet()) {
+            String key = parameter.getKey();
+            String SELECTED_PURPOSE_ID_PARAM_PREFIX = "selected_purpose_id_";
+            String DISPLAY_ORDER_GEN_PURPOSE_ID_PREFIX = "display_order_gen_purpose_id_";
+            String DISPLAY_ORDER_PURPOSE_ID_PREFIX = "display_order_purpose_id_";
+            if (key.startsWith(SELECTED_PURPOSE_ID_PARAM_PREFIX)) {
+                String[] paramKeySplit = key.split(SELECTED_PURPOSE_ID_PARAM_PREFIX, 2);
+                if (paramKeySplit.length == 2) {
+                    consentPurposes.put(Integer.parseInt(paramKeySplit[1]), DEFAULT_DISPLAY_ORDER);
+                }
+            } else if (key.startsWith(DISPLAY_ORDER_GEN_PURPOSE_ID_PREFIX)) {
+                processConsentParamDisplayOrder(consentPurposes, parameter, key, DISPLAY_ORDER_GEN_PURPOSE_ID_PREFIX);
+            } else if (key.startsWith(DISPLAY_ORDER_PURPOSE_ID_PREFIX)) {
+                processConsentParamDisplayOrder(consentPurposeDisplayOrders, parameter, key,
+                                                DISPLAY_ORDER_PURPOSE_ID_PREFIX);
+            }
+        }
+
+        ArrayList<ConsentPurpose> consentPurposesList = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> consentPurpose : consentPurposes.entrySet()) {
+            ConsentPurpose appConsent = new ConsentPurpose();
+            appConsent.setPurposeId(consentPurpose.getKey());
+            if (consentPurposeDisplayOrders.containsKey(consentPurpose.getKey())) {
+                appConsent.setDisplayOrder(consentPurposeDisplayOrders.get(consentPurpose.getKey()));
+            } else {
+                appConsent.setDisplayOrder(consentPurpose.getValue());
+            }
+            consentPurposesList.add(appConsent);
+        }
+
+        boolean consentEnabled = request.getParameter("is_consent_enabled") != null;
+
         ConsentConfig consentConfig = new ConsentConfig();
+        consentConfig.setEnabled(consentEnabled);
         ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
-        consentPurposeConfigs.setConsentPurpose(new ConsentPurpose[0]);
+        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
         consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
 
         serviceProvider.setConsentConfig(consentConfig);
+    }
+
+    private void processConsentParamDisplayOrder(Map<Integer, Integer> consentPurposes, Map.Entry<String, String[]> parameter,
+                                                 String key, String parameterPrefix) {
+
+        String[] paramKeySplit = key.split(parameterPrefix, 2);
+        if (paramKeySplit.length == 2) {
+            String[] displayOrders = parameter.getValue();
+            int displayOrder = DEFAULT_DISPLAY_ORDER;
+            if (displayOrders.length > 0) {
+                try {
+                    displayOrder = Integer.parseInt(displayOrders[0]);
+                } catch (NumberFormatException e) {
+                    // Do nothing. Default display order '0' will be used.
+                }
+            }
+            consentPurposes.put(Integer.parseInt(paramKeySplit[1]), displayOrder);
+        }
     }
 
     /**
@@ -1548,5 +1608,35 @@ public class ApplicationBean {
             }
         }
 
+    }
+
+    public ConsentConfig getConsentConfig() {
+
+        return consentConfig;
+    }
+
+    public void setConsentConfig(ConsentConfig consentConfig) {
+
+        this.consentConfig = consentConfig;
+    }
+
+    public ApplicationPurposes getApplicationPurposes() {
+
+        return applicationPurposes;
+    }
+
+    public void setApplicationPurposes(ApplicationPurposes applicationPurposes) {
+
+        this.applicationPurposes = applicationPurposes;
+    }
+
+    public Purpose[] getGeneralPurposes() {
+
+        return generalPurposes;
+    }
+
+    public void setGeneralPurposes(Purpose[] generalPurposes) {
+
+        this.generalPurposes = generalPurposes;
     }
 }
