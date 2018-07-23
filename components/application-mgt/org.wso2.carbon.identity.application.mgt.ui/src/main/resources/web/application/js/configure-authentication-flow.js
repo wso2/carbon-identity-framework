@@ -446,6 +446,9 @@ function showPopupConfirm(htmlMessage, title, windowHeight, windowWidth, okButto
             jQuery('#dialog').dialog("destroy").remove();
             jQuery("#dcontainer").empty();
             jQuery("#dcontainer").html('');
+            if (closeCallback && typeof closeCallback == "function") {
+                closeCallback();
+            }
         });
 
     };
