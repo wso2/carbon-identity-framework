@@ -319,26 +319,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ConsentManager consentManager = ApplicationManagementServiceComponentHolder.getInstance().getConsentManager();
         ConsentConfig consentConfig = serviceProvider.getConsentConfig();
-        ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
-        if (nonNull(consentPurposeConfigs)) {
-            ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
-            if (nonNull(consentPurposes)) {
-                for (ConsentPurpose consentPurpose : consentPurposes) {
-                    int purposeId = consentPurpose.getPurposeId();
-                    try {
-                        Purpose purpose = consentManager.getPurpose(purposeId);
-                        if (isNull(purpose)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("ConsentManager returned null for Purpose ID: " + purposeId);
+        if (nonNull(consentConfig)) {
+            ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
+            if (nonNull(consentPurposeConfigs)) {
+                ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
+                if (nonNull(consentPurposes)) {
+                    for (ConsentPurpose consentPurpose : consentPurposes) {
+                        if (nonNull(consentPurpose)) {
+                            int purposeId = consentPurpose.getPurposeId();
+                            try {
+                                Purpose purpose = consentManager.getPurpose(purposeId);
+                                if (isNull(purpose)) {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug("ConsentManager returned null for Purpose ID: " + purposeId);
+                                    }
+                                    throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId);
+                                }
+                            } catch (ConsentManagementException e) {
+                                if (ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())) {
+                                    throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId, e);
+                                }
+                                throw new IdentityApplicationManagementException("Error while retrieving consent purpose with" +
+                                        " ID: " + purposeId, e);
                             }
-                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId);
                         }
-                    } catch (ConsentManagementException e) {
-                        if (ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())) {
-                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId, e);
-                        }
-                        throw new IdentityApplicationManagementException("Error while retrieving consent purpose with" +
-                                                                         " ID: " + purposeId, e);
                     }
                 }
             }
