@@ -140,8 +140,17 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
         if (stepDifference.script.length > 0) {
             for (var i = 0; i < stepDifference.script.length; ++i) {
+
+                var lineNo = [];
+                var stepReg = new RegExp("executeStep\\(" + stepDifference.script[i] + "+", "g");
+                myCodeMirror.eachLine(function (line) {
+                    if (line.text.match(stepReg)) {
+                        lineNo.push(myCodeMirror.getLineNumber(line) + 1);
+                    }
+                });
+
                 elementErr.append("<li>Could not find matching Authentication Step for script executeStep <b>"
-                    + stepDifference.script[i] + "</b>.</li>");
+                    + stepDifference.script[i] + "</b> [Ln: " + lineNo.join() + "].</li>");
             }
         }
     }
