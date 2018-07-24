@@ -489,7 +489,11 @@
 </fmt:bundle>
 
 <script id="template-info" type="text/x-handlebars-template">
-    <div id='messagebox-template-summary' class="messagebox-warning-custom">
+    <div id="template-replace-warn" class="error-msg">
+        <p>The template code will replace the existing scripts in the editor. Any of your current
+            changes will be lost. Click "OK" to continue.</p>
+    </div>
+    <div id='messagebox-template-summary' class="messagebox-info-custom">
         <h2>{{title}}</h2>
         <br/>
         {{#if summary}}
@@ -532,10 +536,6 @@
         <h3>Help/Reference</h3>
         <a href="{{helpLink}}">{{helpLink}}</a>
         {{/if}}
-        <div id="template-replace-warn" class="error-msg">
-            <p>The template code will replace the existing scripts in the editor. Any of your current
-                changes will be lost. Click "OK" to continue.</p>
-        </div>
     </div>
 </script>
 <script>

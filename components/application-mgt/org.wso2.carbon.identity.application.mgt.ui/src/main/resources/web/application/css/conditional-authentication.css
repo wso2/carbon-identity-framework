@@ -311,6 +311,22 @@
     overflow: auto;
     min-height: 50px;
 }
+.messagebox-info-custom {
+    background-image: url(../images/info.png);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 90px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+    font-size: 12px;
+}
+
+#messagebox-template-summary {
+    margin-bottom: 40px;
+}
 
 .messagebox-warning-custom p,.messagebox-error-custom p {
     text-align: justify;
@@ -339,13 +355,18 @@
 .editor-error-content, .editor-warning-content {
     display: none;
 }
-.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg {
+.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg, #template-replace-warn{
     margin: 10px 0px;
     margin-top: 20px;
     padding: 12px;
     color: #D8000C;
     background-color: #FFD2D2;
 }
+
+#template-replace-warn {
+    margin: 20px 10px 10px 10px;
+}
+
 .messagebox-warning-custom .stepErrorListContainer{
     padding-bottom: 10px;
 }
