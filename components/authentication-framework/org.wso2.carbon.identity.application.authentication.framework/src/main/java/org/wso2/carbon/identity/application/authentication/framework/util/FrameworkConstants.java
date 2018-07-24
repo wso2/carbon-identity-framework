@@ -311,7 +311,7 @@ public abstract class FrameworkConstants {
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
 
-        public static final String JS_FUNC_INITIATE_REQUEST = "onInitialRequest";
+        public static final String JS_FUNC_ON_LOGIN_REQUEST = "onLoginRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
         public static final String JS_FUNC_SHOW_PROMPT = "prompt";
         public static final String JS_FUNC_CALL_AND_WAIT = "callAndWait";

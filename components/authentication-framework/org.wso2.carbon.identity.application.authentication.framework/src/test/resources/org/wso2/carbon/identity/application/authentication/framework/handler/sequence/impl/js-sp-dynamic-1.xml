@@ -84,16 +84,16 @@ var jsFn1 = function(context, a) {
     Log.debug('Test fn1 '+a);
 }
 
-function onInitialRequest(context) {
+function onLoginRequest(context) {
 Log.info('Test0');
-	executeStep(1, {
+    executeStep(1, {
         onSuccess : function(context){
                 Log.info('Test1');
                 executeStep(2);
             },
         onFail : fn1
-	})
-	executeStep(3);
+    })
+    executeStep(3);
 }
 
 ]]></AuthenticationScript>
