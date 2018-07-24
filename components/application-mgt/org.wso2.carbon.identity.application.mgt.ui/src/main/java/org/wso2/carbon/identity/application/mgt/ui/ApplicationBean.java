@@ -1446,12 +1446,60 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+        String IS_CONSENT_ENABLED = "is_consent_enabled";
+        boolean consentEnabled = request.getParameter(IS_CONSENT_ENABLED) != null;
+
         ArrayList<ConsentPurpose> consentPurposesList = new ArrayList<>();
+        processConsentPurposesInput(request, consentPurposesList);
+
+        ConsentConfig consentConfig = new ConsentConfig();
+        consentConfig.setEnabled(consentEnabled);
+        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
+        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
+        consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
+
+        serviceProvider.setConsentConfig(consentConfig);
+    }
+
+    private void processConsentPurposesInput(HttpServletRequest request, ArrayList<ConsentPurpose> consentPurposesList) {
+
+        processAppConsentPurposesInput(request, consentPurposesList);
+        processSharedConsentPurposesInput(request, consentPurposesList);
+    }
+
+    private void processSharedConsentPurposesInput(HttpServletRequest request,
+                                                   ArrayList<ConsentPurpose> consentPurposesList) {
+
+        String SHARED_PURPOSE_ID_PARAM_KEY = "shared_purpose_id";
+        String DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX = "display_order_shared_purpose_id_";
+
+        String[] sharedPurposeIds = request.getParameterValues(SHARED_PURPOSE_ID_PARAM_KEY);
+        if (nonNull(sharedPurposeIds)) {
+            for (String sharedPurposeId : sharedPurposeIds) {
+                String displayOrderValue = request.getParameter(DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX +
+                                                                sharedPurposeId);
+                if (nonNull(displayOrderValue)) {
+                    ConsentPurpose consentPurpose = new ConsentPurpose();
+                    consentPurpose.setPurposeId(Integer.parseInt(sharedPurposeId));
+
+                    int displayOrder = DEFAULT_DISPLAY_ORDER;
+                    try {
+                        displayOrder = Integer.parseInt(displayOrderValue);
+                    } catch (NumberFormatException e) {
+                        // Do nothing. Default display order '0' will be used.
+                    }
+                    consentPurpose.setDisplayOrder(displayOrder);
+                    consentPurposesList.add(consentPurpose);
+                }
+            }
+        }
+    }
+
+    private void processAppConsentPurposesInput(HttpServletRequest request,
+                                                ArrayList<ConsentPurpose> consentPurposesList) {
 
         String APP_PURPOSE_ID_PARAM_KEY = "app_purpose_id";
-        String SHARED_PURPOSE_ID_PARAM_KEY = "shared_purpose_id";
         String SELECTED_PURPOSE_ID_PARAM_PREFIX = "selected_purpose_id_";
-        String DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX = "display_order_shared_purpose_id_";
         String DISPLAY_ORDER_PURPOSE_ID_PREFIX = "display_order_purpose_id_";
 
         String[] appPurposeIds = request.getParameterValues(APP_PURPOSE_ID_PARAM_KEY);
@@ -1460,6 +1508,7 @@ public class ApplicationBean {
                 String selectedAppPurpose = request.getParameter(SELECTED_PURPOSE_ID_PARAM_PREFIX + appPurposeId);
                 if (nonNull(selectedAppPurpose)) {
                     String displayOrderValue = request.getParameter(DISPLAY_ORDER_PURPOSE_ID_PREFIX + appPurposeId);
+                    // If app specific purpose is selected, get the display order and add to consentPurposesList.
                     if (nonNull(displayOrderValue)) {
                         ConsentPurpose consentPurpose = new ConsentPurpose();
                         consentPurpose.setPurposeId(Integer.parseInt(appPurposeId));
@@ -1476,36 +1525,6 @@ public class ApplicationBean {
                 }
             }
         }
-
-        String[] sharedPurposeIds = request.getParameterValues(SHARED_PURPOSE_ID_PARAM_KEY);
-        if (nonNull(sharedPurposeIds)) {
-            for (String sharedPurposeId : sharedPurposeIds) {
-                String displayOrderValue = request.getParameter(DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX + sharedPurposeId);
-                if (nonNull(displayOrderValue)) {
-                    ConsentPurpose consentPurpose = new ConsentPurpose();
-                    consentPurpose.setPurposeId(Integer.parseInt(sharedPurposeId));
-
-                    int displayOrder = DEFAULT_DISPLAY_ORDER;
-                    try {
-                        displayOrder = Integer.parseInt(displayOrderValue);
-                    } catch (NumberFormatException e) {
-                        // Do nothing. Default display order '0' will be used.
-                    }
-                    consentPurpose.setDisplayOrder(displayOrder);
-                    consentPurposesList.add(consentPurpose);
-                }
-            }
-        }
-
-        boolean consentEnabled = request.getParameter("is_consent_enabled") != null;
-
-        ConsentConfig consentConfig = new ConsentConfig();
-        consentConfig.setEnabled(consentEnabled);
-        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
-        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
-        consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
-
-        serviceProvider.setConsentConfig(consentConfig);
     }
 
     /**

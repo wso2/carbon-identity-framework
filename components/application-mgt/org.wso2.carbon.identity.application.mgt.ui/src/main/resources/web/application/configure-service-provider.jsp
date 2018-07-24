@@ -598,8 +598,8 @@
         $('#shared_purposes_tbl').show();
         <%for (Purpose sharedPurpose : sharedPurposes) {%>
             if (sharedPurposeId === "<%=sharedPurpose.getId()%>") {
-                var sharedPurposeName = "<%=sharedPurpose.getName()%>";
-                var sharedPurposeDesc = "<%=sharedPurpose.getDescription()%>";
+                var sharedPurposeName = "<%=Encode.forJavaScriptBlock(sharedPurpose.getName())%>";
+                var sharedPurposeDesc = "<%=Encode.forJavaScriptBlock(sharedPurpose.getDescription())%>";
             }
         <%}%>
         var row = '<tr id="row_shared_purpose_id_' + sharedPurposeId + '">' +
@@ -610,8 +610,8 @@
                 '            value="0" autofocus="">' +
                 '    </td>' +
                 '    <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)"' +
-                '        onclick="removeSharedPurposeRow(\'row_shared_purpose_id_' + sharedPurposeId + '\')">Delete</a></td>' +
-                '    <td>' +                
+                '        onclick="removeSharedPurposeRow(\'row_shared_purpose_id_' + sharedPurposeId + '\')">Delete</a>' +
+                '    </td>' +                
                 '</tr>';
         $('#shared_purposes_tbl tbody').append(row);
         $('#shared_purposes').prop("selectedIndex", 0);
@@ -1587,7 +1587,7 @@
                                     <td class="leftCol-med">
                                             <select class="leftCol-med" id="shared_purposes" name="shared_purposes"
                                             style=" margin-left: 5px; ">
-                                                <option value="not_selected">---Select---</option>
+                                                <option value="not_selected">---<fmt:message key="select"/>---</option>
                                                 <%for (Purpose sharedPurpose : sharedPurposes) {%>
                                                 <option
                                                     value="<%="row_shared_purpose_id_" + sharedPurpose.getId()%>"><%=Encode.forHtmlContent(sharedPurpose.getName())%>
@@ -1610,7 +1610,7 @@
                             <tbody>
                                 <%if (appSharedPurposes == null || appSharedPurposes.isEmpty()) {%>
                                 <script>
-                                    $(jQuery('#shared_purposes_tbl')).hide();
+                                    $('#shared_purposes_tbl').hide();
                                 </script>
                                 <%}%>
                                 <%for (ApplicationPurpose sharedPurpose : appSharedPurposes) {%>
@@ -1623,7 +1623,7 @@
                                     <td><input style="width:30px" name="display_order_shared_purpose_id_<%=sharedPurpose.getId()%>"
                                             type="number" min="0" type="text" value="<%=sharedPurpose.getDisplayOrder()%>" autofocus=""></td>
                                     <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)" 
-                                        onclick="removeSharedPurposeRow('row_shared_purpose_id_<%=sharedPurpose.getId()%>')">Delete</a></td>
+                                        onclick="removeSharedPurposeRow('row_shared_purpose_id_<%=sharedPurpose.getId()%>')"><fmt:message key="link.delete"/></a></td>
                                 </tr>
                                 <%}%>
                             </tbody>

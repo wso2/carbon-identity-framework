@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
+import static java.util.Objects.nonNull;
 import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
 import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_SHARED;
 import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_TYPE_SP;
@@ -104,8 +105,9 @@ public class ApplicationMgtUIUtil {
             consentPurposes = consentConfig.getConsentPurposeConfigs().getConsentPurpose();
         }
 
+        // Get application specific purposes associated with the service provider.
         spPurposes = consentServiceClient.listPurposes(serviceProvider.getApplicationName(), PURPOSE_GROUP_TYPE_SP);
-        if (spPurposes != null) {
+        if (nonNull(spPurposes)) {
             for (Purpose spPurpose : spPurposes) {
                 boolean isPurposeAssociated = false;
                 for (ConsentPurpose consentPurpose : consentPurposes) {
@@ -128,9 +130,10 @@ public class ApplicationMgtUIUtil {
             }
         }
 
+        // Add shared purposes associated with the service provider.
         Purpose[] sharedPurposes;
         sharedPurposes = consentServiceClient.listPurposes(PURPOSE_GROUP_SHARED, PURPOSE_GROUP_TYPE_SYSTEM);
-        if (sharedPurposes != null) {
+        if (nonNull(sharedPurposes)) {
             for (ConsentPurpose consentPurpose : consentPurposes) {
                 for (Purpose sharedPurpose : sharedPurposes) {
                     if (consentPurpose.getPurposeId() == sharedPurpose.getId()) {

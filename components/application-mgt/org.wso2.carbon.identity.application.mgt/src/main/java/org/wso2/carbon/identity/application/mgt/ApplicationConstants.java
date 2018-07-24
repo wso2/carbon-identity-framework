@@ -54,4 +54,7 @@ public class ApplicationConstants {
     public static final String TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
         + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
         .separator;
+    public static final String PURPOSE_GROUP_TYPE_SP = "SP";
+    public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final String PURPOSE_GROUP_SHARED = "SHARED";
 }
