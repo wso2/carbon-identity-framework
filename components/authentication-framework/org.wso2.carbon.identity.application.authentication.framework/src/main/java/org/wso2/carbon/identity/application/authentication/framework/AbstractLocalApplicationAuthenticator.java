@@ -81,12 +81,8 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
                     if (isAccountLocked(context)) {
-                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-                        String queryParams = context.getContextIdIncludedQueryParams();
                         try {
-                            String redirectUrl = response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
-                                    FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
-                                    FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
+                            String redirectUrl = getRedirectUrlOnAccountLock(context, response);
                             response.sendRedirect(redirectUrl);
                         } catch (IOException e1) {
                             throw new AuthenticationFailedException(" Error while redirecting to the retry page ", e1);
@@ -193,6 +189,23 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
             return true;
         }
         return false;
+    }
+
+    /**
+     * To get the redirect url when the user's account gets locked.
+     *
+     * @param context the authentication context
+     * @param response the the httpServletResponse
+     * @return redirect_url
+     */
+
+    protected String getRedirectUrlOnAccountLock(AuthenticationContext context, HttpServletResponse response) {
+
+        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+        String queryParams = context.getContextIdIncludedQueryParams();
+        return response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
+                FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
+                FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
     }
 
     /**
