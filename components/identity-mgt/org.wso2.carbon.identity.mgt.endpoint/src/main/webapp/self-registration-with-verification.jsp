@@ -453,7 +453,7 @@
                                             <span class="required">
                                                 <strong>
                                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "Please.note.all.consents.are.mandatory")%>
+                                                            "All.asterisked.consents.are.mandatory")%>
                                                 </strong>
                                             </span>
                                         </div>
@@ -564,8 +564,6 @@
         var allAttributes = [];
         $(document).ready(function () {
 
-            var ALL_ATTRIBUTES_MANDATORY = true;
-
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
 
@@ -599,17 +597,14 @@
                     }
                 }
 
-                if (ALL_ATTRIBUTES_MANDATORY) {
-                    if (container) {
-                        var selectedAttributes = container.jstree(true).get_selected();
-                        var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
+                if (container) {
+                    var selectedAttributes = container.jstree(true).get_selected();
+                    var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
 
-                        if (!allSelected) {
-                            $("#attribute_selection_validation").modal();
-                            return false;
-                        }
+                    if (!allSelected) {
+                        $("#attribute_selection_validation").modal();
+                        return false;
                     }
-
                 }
 
                 if (invalidInput) {
@@ -680,9 +675,9 @@
                 '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                 '<ul>' +
                 '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>{{purpose}}{{#if description}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}: <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
                 '{{#piiCategories}}' +
-                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}</li>' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}" mandetorypiicatergory={{mandatory}}>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}</li>' +
                 '</li>' +
                 '{{/piiCategories}}' +
                 '</ul>' +
@@ -742,7 +737,6 @@
                 var purpose = purposes[i];
                 var newPurpose = {};
                 newPurpose["purposeId"] = purpose.li_attr.purposeid;
-                //newPurpose = oldPurpose[0];
                 newPurpose['piiCategory'] = [];
                 newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
 
