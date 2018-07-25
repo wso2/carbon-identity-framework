@@ -1,5 +1,5 @@
 {
-  "category": "User Based",
+  "category": "user_based",
   "name": "Userstore Based",
   "title": "Userstore Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given user store domains.",

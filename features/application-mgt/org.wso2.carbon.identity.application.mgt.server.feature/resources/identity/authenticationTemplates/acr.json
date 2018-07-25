@@ -1,5 +1,5 @@
 {
-  "category": "Request Based",
+  "category": "request_based",
   "name": "ACR",
   "title": "ACR Based 2FA Template",
   "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",

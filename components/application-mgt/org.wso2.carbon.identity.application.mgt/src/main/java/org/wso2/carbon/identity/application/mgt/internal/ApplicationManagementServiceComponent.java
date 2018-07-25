@@ -238,42 +238,80 @@ public class ApplicationManagementServiceComponent {
     private void loadAuthenticationTemplates() {
 
         File templatesDir = new File(ApplicationConstants.TEMPLATES_DIR_PATH);
-        JSONObject templatesJsonObject = new JSONObject();
-        if (templatesDir.exists() && templatesDir.isDirectory()) {
-            File[] jsonFiles = templatesDir.listFiles((d, name) -> name.endsWith(ApplicationConstants.FILE_EXT_JSON));
-            if (jsonFiles != null) {
-                for (File jsonFile : jsonFiles) {
-                    if (jsonFile.isFile()) {
-                        try {
-                            String templateJsonString = FileUtils.readFileToString(jsonFile);
-                            JSONObject templateObject = new JSONObject(templateJsonString);
-                            if (templateObject.has(ApplicationConstants.TEMPLATE_CATEGORY)) {
-                                String category = templateObject.getString(ApplicationConstants.TEMPLATE_CATEGORY);
-                                if (!templatesJsonObject.has(category)) {
-                                    templatesJsonObject.put(category, Collections.emptyList());
-                                }
-                                JSONArray categoryTemplateArray = templatesJsonObject.getJSONArray(category);
-                                categoryTemplateArray.put(templateObject);
-                            } else {
-                                log.warn(String.format("Script template in file %s is missing category information. " +
-                                    "Hence it will be ignored.", jsonFile.getName()));
+        if (!templatesDir.exists() || !templatesDir.isDirectory()) {
+            log.warn("Templates directory not found at " + templatesDir.getPath());
+            ApplicationManagementServiceComponentHolder.getInstance().setAuthenticationTemplatesJson("{}");
+            return;
+        }
+        File categoriesFile = new File(templatesDir, ApplicationConstants.CATEGORIES_METADATA_FILE);
+        JSONObject categoriesObj = parseCategoryMetadata(categoriesFile);
+        File[] jsonFiles = templatesDir.listFiles((d, name) -> name.endsWith(ApplicationConstants
+                .FILE_EXT_JSON) && !ApplicationConstants.CATEGORIES_METADATA_FILE.equals(name));
+        if (jsonFiles != null) {
+            for (File jsonFile : jsonFiles) {
+                if (jsonFile.isFile()) {
+                    try {
+                        String templateJsonString = FileUtils.readFileToString(jsonFile);
+                        JSONObject templateObj = new JSONObject(templateJsonString);
+                        if (templateObj.has(ApplicationConstants.TEMPLATE_CATEGORY)) {
+                            String category = templateObj.getString(ApplicationConstants.TEMPLATE_CATEGORY);
+                            if (!categoriesObj.has(category)) {
+                                log.warn(String.format("No category defined as %s for template at %s. Proceeding with" +
+                                        " uncategorized.", category, jsonFile.getName()));
+                                category = ApplicationConstants.UNCATEGORIZED;
                             }
-                            if (log.isDebugEnabled()) {
-                                log.debug("Authentication template file loaded from: " + jsonFile.getName());
+                            JSONObject categoryObj = categoriesObj.getJSONObject(category);
+                            if (!categoryObj.has(ApplicationConstants.CATEGORY_TEMPLATES)) {
+                                categoryObj.put(ApplicationConstants.CATEGORY_TEMPLATES, Collections.emptyList());
                             }
-                        } catch (JSONException e) {
-                            log.error("Error when parsing json content from file " + jsonFile.getName(), e);
-                        } catch (IOException e) {
-                            log.error("Error when reading authentication template file " + jsonFile.getName(), e);
+                            JSONArray categoryTemplateArray = categoryObj.getJSONArray(ApplicationConstants
+                                    .CATEGORY_TEMPLATES);
+                            categoryTemplateArray.put(templateObj);
+                        } else {
+                            log.warn(String.format("Script template in file %s is missing category information, or " +
+                                    "using an undefined category. Hence it will be ignored.", jsonFile.getName()));
                         }
+                        if (log.isDebugEnabled()) {
+                            log.debug("Authentication template file loaded from: " + jsonFile.getName());
+                        }
+                    } catch (JSONException e) {
+                        log.error("Error when parsing json content from file " + jsonFile.getName(), e);
+                    } catch (IOException e) {
+                        log.error("Error when reading authentication template file " + jsonFile.getName(), e);
                     }
                 }
-            } else {
-                log.warn("Authentication template files could not be read from " + ApplicationConstants
-                    .TEMPLATES_DIR_PATH);
             }
+        } else {
+            log.warn("Authentication template files could not be read from " + ApplicationConstants
+                    .TEMPLATES_DIR_PATH);
         }
-        ApplicationManagementServiceComponentHolder.getInstance().setAuthenticationTemplatesJson(templatesJsonObject
-            .toString());
+        ApplicationManagementServiceComponentHolder.getInstance().setAuthenticationTemplatesJson(categoriesObj
+                .toString());
+    }
+
+    private JSONObject parseCategoryMetadata(File categoryMetadataFile) {
+
+        JSONObject categoriesObj = null;
+        try {
+            String categoryMetadataString = FileUtils.readFileToString(categoryMetadataFile);
+            try {
+                categoriesObj = new JSONObject(categoryMetadataString);
+            } catch (JSONException e) {
+                log.error("Invalid syntax for authentication template category metadata file: " +
+                        categoryMetadataFile.getName() + " . Hence ignoring and proceeding with defaults.", e);
+            }
+        } catch (IOException e) {
+            log.error("Error when reading authentication template category metadata file: " + categoryMetadataFile
+                    .getName(), e);
+        }
+        if (categoriesObj == null) {
+            categoriesObj = new JSONObject();
+        }
+        JSONObject objForUncategorized = new JSONObject();
+        objForUncategorized.put(ApplicationConstants.CATEGORY_DISPLAY_NAME, ApplicationConstants
+                .DISPLAY_NAME_FOR_UNCATEGORIZED);
+        objForUncategorized.put(ApplicationConstants.CATEGORY_ORDER, ApplicationConstants.ORDER_FOR_UNCATEGORIZED);
+        categoriesObj.put(ApplicationConstants.UNCATEGORIZED, objForUncategorized);
+        return categoriesObj;
     }
 }

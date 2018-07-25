@@ -1,0 +1,25 @@
+{
+  "user_based": {
+    "displayName": "User based",
+    "order": 1,
+    "icon": "./images/user.png"
+  },
+
+  "request_based": {
+    "displayName": "Request based",
+    "order": 2,
+    "icon": "./images/http.png"
+  },
+
+  "environment_based": {
+    "displayName": "Environment Based",
+    "order": 3,
+    "icon": "./images/environment.png"
+  },
+
+  "analytics_based": {
+    "displayName": "Analytics Based",
+    "order": 4,
+    "icon": "./images/http.png"
+  }
+}
