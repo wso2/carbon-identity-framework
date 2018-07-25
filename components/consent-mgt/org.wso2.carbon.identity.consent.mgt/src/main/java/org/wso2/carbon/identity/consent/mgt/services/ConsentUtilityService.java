@@ -22,14 +22,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
-import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
-import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.identity.consent.mgt.exceptions.ConsentUtilityServiceException;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
@@ -64,7 +61,7 @@ public class ConsentUtilityService {
         for (Purpose purpose : purposes) {
             purpose = fillPurpose(purpose);
             boolean purposeConsented = false;
-            Set<String> mandatoryPIIs = getMandatoryPIIs(purpose);
+            Set<Integer> mandatoryPIIs = getMandatoryPIIs(purpose);
             if (log.isDebugEnabled()) {
                 log.debug("Mandatory PIIs for purpose : " + purpose.getName() + " : " + Arrays.toString
                         (mandatoryPIIs.toArray()));
@@ -75,7 +72,7 @@ public class ConsentUtilityService {
                     if (consentPurpose.getPurposeId() == purpose.getId()) {
                         purposeConsented = true;
                         List<PIICategoryValidity> pIICategories = consentPurpose.getPiiCategory();
-                        Set<String> consentedPIIs = getPIIs(pIICategories);
+                        Set<Integer> consentedPIIs = getPIIs(pIICategories);
 
                         if (log.isDebugEnabled()) {
                             log.debug("Consented PIIs: " + Arrays.toString
@@ -118,7 +115,7 @@ public class ConsentUtilityService {
             for (ReceiptPurposeInput consentPurpose : purposes) {
                 List<PIICategoryValidity> piiCategories = consentPurpose.getPiiCategory();
                 for (PIICategoryValidity piiCategory : piiCategories) {
-                    consentedPIIs.add(piiCategory.getName());
+                    consentedPIIs.add(getPIIName(consentPurpose.getPurposeId(), piiCategory.getId()));
                 }
 
             }
@@ -134,14 +131,15 @@ public class ConsentUtilityService {
      * @return Set of Mandatory PIIs.
      * @throws ConsentUtilityServiceException
      */
-    public Set<String> getMandatoryPIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
+
+    public Set<Integer> getMandatoryPIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
         if (purposes == null) {
             throw new ConsentUtilityServiceException("Purposes list should not be null");
         }
-        Set<String> mandatoryPIIs = new HashSet<>();
+        Set<Integer> mandatoryPIIs = new HashSet<>();
         for (Purpose purpose : purposes) {
-            Set<String> mandatoryPurposePIIs = getMandatoryPIIs(purpose);
+            Set<Integer> mandatoryPurposePIIs = getMandatoryPIIs(purpose);
             mandatoryPIIs.addAll(mandatoryPurposePIIs);
 
         }
@@ -156,20 +154,19 @@ public class ConsentUtilityService {
      * @throws ConsentUtilityServiceException ConsentUtilityServiceException.
      */
 
-    public Set<String> getMandatoryPIIs(Purpose purpose) throws
+    public Set<Integer> getMandatoryPIIs(Purpose purpose) throws
             ConsentUtilityServiceException {
 
         if (purpose == null) {
             throw new ConsentUtilityServiceException("Purposes List should not be null");
         }
-        Set<String> mandatoryPIIs = new HashSet<>();
+        Set<Integer> mandatoryPIIs = new HashSet<>();
         purpose = fillPurpose(purpose);
         List<PurposePIICategory> purposePIICategories = purpose.getPurposePIICategories();
         for (PurposePIICategory purposePIICategory : purposePIICategories) {
             if (purposePIICategory.getMandatory()) {
-                mandatoryPIIs.add(purposePIICategory.getName());
+                mandatoryPIIs.add(purposePIICategory.getId());
             }
-
         }
         return mandatoryPIIs;
     }
@@ -181,40 +178,49 @@ public class ConsentUtilityService {
      * @return Set of PIIs which contains in Map.
      * @throws ConsentUtilityServiceException ConsentUtilityServiceException.
      */
-    public Set<String> getUniquePIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
+    public Set<Integer> getUniquePIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
         if (purposes == null) {
             throw new ConsentUtilityServiceException("Purposes List should not be null");
         }
 
-        Set<String> uniquePIIs = new HashSet<>();
+        Set<Integer> uniquePIIs = new HashSet<>();
         for (Purpose purpose : purposes) {
-            Set<String> piis = getPIIs(purpose);
+            Set<Integer> piis = getPIIs(purpose);
             uniquePIIs.addAll(piis);
         }
         return uniquePIIs;
     }
 
-    private Set<String> getPIIs(Purpose purpose) throws ConsentUtilityServiceException {
-
-        Set<String> uniquePIIs = new HashSet<>();
-        Integer id = purpose.getId();
-        purpose = fillPurpose(purpose);
-        List<PurposePIICategory> purposePIICategories = purpose.getPurposePIICategories();
-        for (PurposePIICategory purposePIICategory : purposePIICategories) {
-            uniquePIIs.add(purposePIICategory.getName());
-        }
-        return uniquePIIs;
-    }
-
+    /**
+     * Retrieve full purposes which are filled with all information.
+     *
+     * @param purposes Purposes list
+     * @return Filled purposes list.
+     * @throws ConsentUtilityServiceException ConsentUtilityServiceException.
+     */
     public List<Purpose> getFilledPurposes(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
+        if (purposes == null) {
+            throw new IllegalArgumentException("Purposes List should not be null");
+        }
         List<Purpose> filledPurposes = new ArrayList<>();
         for (Purpose purpose : purposes) {
             filledPurposes.add(fillPurpose(purpose));
         }
         return filledPurposes;
+    }
 
+    private Set<Integer> getPIIs(Purpose purpose) throws ConsentUtilityServiceException {
+
+        Set<Integer> uniquePIIs = new HashSet<>();
+        Integer id = purpose.getId();
+        purpose = fillPurpose(purpose);
+        List<PurposePIICategory> purposePIICategories = purpose.getPurposePIICategories();
+        for (PurposePIICategory purposePIICategory : purposePIICategories) {
+            uniquePIIs.add(purposePIICategory.getId());
+        }
+        return uniquePIIs;
     }
 
     private Purpose fillPurpose(Purpose purpose) throws ConsentUtilityServiceException {
@@ -224,18 +230,38 @@ public class ConsentUtilityService {
             try {
                 purpose = consentManager.getPurpose(purpose.getId());
             } catch (ConsentManagementException e) {
-                throw new ConsentUtilityServiceException("Error while retrieving purpose with purpose ID: ");
+                throw new ConsentUtilityServiceException("Error while retrieving purpose with purpose ID: " + purpose
+                        .getId(), e);
             }
         }
         return purpose;
     }
 
-    private Set<String> getPIIs(List<PIICategoryValidity> piiCategoryValidities) {
+    private Set<Integer> getPIIs(List<PIICategoryValidity> piiCategoryValidities) {
 
-        Set<String> piis = new HashSet<>();
+        Set<Integer> piis = new HashSet<>();
         for (PIICategoryValidity piiCategoryValidity : piiCategoryValidities) {
-            piis.add(piiCategoryValidity.getName());
+            piis.add(piiCategoryValidity.getId());
         }
         return piis;
     }
+
+    private String getPIIName(int purposeId, int PIIId) throws ConsentUtilityServiceException {
+
+        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
+        try {
+            Purpose purpose = consentManager.getPurpose(purposeId);
+            List<PurposePIICategory> purposePIICategories = purpose.getPurposePIICategories();
+            for (PurposePIICategory purposePIICategory : purposePIICategories) {
+                if (purposePIICategory.getId() == PIIId) {
+                    return purposePIICategory.getName();
+                }
+            }
+        } catch (ConsentManagementException e) {
+            throw new ConsentUtilityServiceException("Error while retrieving purpose with id:" + purposeId, e);
+        }
+        throw new ConsentUtilityServiceException("No PII can be found within given id: " + PIIId + "for purpose :" +
+                purposeId);
+    }
 }
+

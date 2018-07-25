@@ -597,16 +597,6 @@
                     }
                 }
 
-                if (container) {
-                    var selectedAttributes = container.jstree(true).get_selected();
-                    var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
-
-                    if (!allSelected) {
-                        $("#attribute_selection_validation").modal();
-                        return false;
-                    }
-                }
-
                 if (invalidInput) {
                     return false;
                 }

@@ -382,7 +382,6 @@ public class IdentityManagementEndpointUtil {
                     }
                 }
             }
-
         }
         return claimsMap;
     }
@@ -402,7 +401,6 @@ public class IdentityManagementEndpointUtil {
                     piis.put(defaultClaim.getUri(), defaultClaim);
                 }
             }
-
         }
         return piis;
     }
