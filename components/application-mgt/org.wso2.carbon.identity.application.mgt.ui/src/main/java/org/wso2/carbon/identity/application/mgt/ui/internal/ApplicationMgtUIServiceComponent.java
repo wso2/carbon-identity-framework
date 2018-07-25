@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -90,6 +91,21 @@ public class ApplicationMgtUIServiceComponent {
          is started */
     }
 
+    @Reference(
+            name = "consent.mgt.service",
+            service = ConsentManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentMgtService"
+    )
+    protected void setConsentMgtService(ConsentManager consentManager) {
 
+        ApplicationMgtServiceComponentHolder.getInstance().setConsentManager(consentManager);
+    }
+
+    protected void unsetConsentMgtService(ConsentManager consentManager) {
+
+        ApplicationMgtServiceComponentHolder.getInstance().setConsentManager(null);
+    }
 
 }

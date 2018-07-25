@@ -21,6 +21,7 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.CertData" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
@@ -34,6 +35,8 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -48,6 +51,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
+
+<fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
@@ -96,6 +101,24 @@
     }
     
     String samlIssuerName = request.getParameter("samlIssuer");
+
+    if ("updateSPPurposes".equals(action)) {
+        appBean.setApplicationPurposes(ApplicationMgtUIUtil.getApplicationSpecificPurposes(appBean.getServiceProvider()));
+    }
+    if ("updateSharedPurposes".equals(action)) {
+        appBean.setSharedPurposes(ApplicationMgtUIUtil.getSharedPurposes());
+    }
+
+    ApplicationPurposes applicationPurposes = appBean.getApplicationPurposes();
+    List<ApplicationPurpose> appPurposes = applicationPurposes.getAppPurposes();
+    List<ApplicationPurpose> appSharedPurposes = applicationPurposes.getAppSharedPurposes();
+    Purpose[] sharedPurposes = appBean.getSharedPurposes();
+    boolean isConsentManagementEnabled = false;
+
+    if (appBean.getServiceProvider().getConsentConfig() != null) {
+        isConsentManagementEnabled = appBean.getServiceProvider().getConsentConfig().getEnabled();
+    }
+
     
     if (samlIssuerName != null && "update".equals(action)) {
         appBean.setSAMLIssuer(samlIssuerName);
@@ -116,7 +139,7 @@
         appBean.deleteSAMLIssuer();
         isNeedToUpdate = true;
     }
-    
+
     samlIssuerName = appBean.getSAMLIssuer();
     
     String kerberosServicePrinciple = request.getParameter("kerberos");
@@ -275,7 +298,7 @@
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occured while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
+        CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
     }
     
     String certString = appBean.getServiceProvider().getCertificateContent();
@@ -284,7 +307,7 @@
         try {
             certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
         } catch (CertificateException e) {
-            //Invalid cert data, ignore showing cert infomation in the UI
+            //Invalid cert data, ignore showing cert information in the UI
         }
     }
 
@@ -292,7 +315,7 @@
 
 <script>
     
-    
+   
     <% if(claimMapping != null) {%>
     var claimMappinRowID = <%=claimMapping.size() -1 %>;
     <%} else {%>
@@ -482,6 +505,24 @@
             document.getElementById("saml_link").href = "#"
         }
     }
+
+    function onAppPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
+
+    function onGenralPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
     
     function onKerberosClick() {
         var spName = document.getElementById("oldSPName").value;
@@ -525,6 +566,66 @@
         location.href = 'configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>';
     }
     
+    function onSharedPurposesClick() {
+
+        var sharedPurposesSelect = $("#shared_purposes").val();
+        if (sharedPurposesSelect === null || sharedPurposesSelect.trim().length == 0) {
+            CARBON.showWarningDialog('<fmt:message key="provide.valid.purpose"/>');
+            return false;
+        } else if (sharedPurposesSelect === "not_selected") {
+            CARBON.showWarningDialog("<fmt:message key="select.a.consent.purpose"/>");
+            return false;
+        }
+
+        var sharedPurposeIdSplit = sharedPurposesSelect.split("row_shared_purpose_id_", 2);
+        if (sharedPurposeIdSplit.length !== 2) {
+            CARBON.showWarningDialog('<fmt:message key="invalid.purpose.selection"/>', null, null);
+            return false;
+        }
+
+        var sharedPurposeId = sharedPurposeIdSplit[1];
+        var isPurposeExist = false;
+        $('#shared_purposes_tbl tr').each(function() {
+            if ($(this).attr("id") === "row_shared_purpose_id_" + sharedPurposeId) {
+                isPurposeExist = true;
+            }
+        })
+
+        if (isPurposeExist) {
+            CARBON.showWarningDialog('<fmt:message key="purpose.already.added"/>');
+            return false;
+        }
+        $('#shared_purposes_tbl').show();
+        <%for (Purpose sharedPurpose : sharedPurposes) {%>
+            if (sharedPurposeId === "<%=sharedPurpose.getId()%>") {
+                var sharedPurposeName = "<%=Encode.forJavaScriptBlock(sharedPurpose.getName())%>";
+                var sharedPurposeDesc = "<%=Encode.forJavaScriptBlock(sharedPurpose.getDescription())%>";
+            }
+        <%}%>
+        var row = '<tr id="row_shared_purpose_id_' + sharedPurposeId + '">' +
+                '    <td>'+ sharedPurposeName +
+                '    <input type="hidden" id="shared_purpose_id" name="shared_purpose_id" value="' + sharedPurposeId + '"</td>' +
+                '    <td>'+ sharedPurposeDesc +'</td>' +
+                '    <td><input style="width:30px" name="display_order_shared_purpose_id_' + sharedPurposeId + '" type="number" min="0"' +
+                '            value="0" autofocus="">' +
+                '    </td>' +
+                '    <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)"' +
+                '        onclick="removeSharedPurposeRow(\'row_shared_purpose_id_' + sharedPurposeId + '\')">Delete</a>' +
+                '    </td>' +                
+                '</tr>';
+        $('#shared_purposes_tbl tbody').append(row);
+        $('#shared_purposes').prop("selectedIndex", 0);
+    }
+
+    function removeSharedPurposeRow(rowId) {
+
+        $('#shared_purposes_tbl tr#' + rowId).remove();
+        var rows = $('#shared_purposes_tbl tr').length;
+        if (rows < 2) {
+            $('#shared_purposes_tbl').hide();
+        }
+    }
+
     function onClickAddSpClaimDialectUri() {
         
         var spClaimDialect = $("#standard_dialect").val();
@@ -968,7 +1069,6 @@
     
 </script>
 
-<fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
             <fmt:message key='title.service.providers'/>
@@ -1390,7 +1490,152 @@
                         </table>
                     </div>
                 </div>
-                
+                <h2 id="consent_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="user.consent.configuration"/></a>
+                </h2>
+                <%if (display!=null && display.equals("consent")) {%>
+                <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:block;" id="consentRow">
+                <%} else {%>
+                <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:none;" id="consentRow">
+                <%}%>
+                    <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key="enable.consent.collection"/></td>
+                            <td class="leftCol-med">
+                                <div class="sectionCheckbox">
+                                    <%if (isConsentManagementEnabled) {%>
+                                    <input type="checkbox" id="is_consent_enabled" name="is_consent_enabled" checked/>
+                                    <%} else {%>
+                                    <input type="checkbox" id="is_consent_enabled" name="is_consent_enabled"/>
+                                    <%}%>
+                                    <div class="sectionHelp">
+                                        <fmt:message key="enable.consent.collection.help"/>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key="consent.collection.message"/></td>
+                            <td class="leftCol-med">
+                                <textarea style="width:500px; margin: 0px; height: 100px;" type="text" name="consent-description" id="consent-description"
+                                            class="text-box-big"></textarea>
+                                <div class="sectionHelp">
+                                    <fmt:message key="consent.collection.message.help"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <h2 id="advance_consent_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="advance.consent.config"/></a>
+                    </h2>
+                    <%if (display!=null && display.equals("consent")) {%>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display:block;" id="advance_consent">
+                    <%} else {%>
+                    <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:none;" id="advance_consent">
+                    <%}%>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key="application.specific.consent.purpose"/></td>
+                                <td class="leftCol-med"></td>
+                            </tr>
+                        </table>
+                        <table class="styledLeft" id="app_purposes_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="leftCol-big"><fmt:message key="purpose"/></th>
+                                    <th class="leftCol-big"><fmt:message key="description"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="selected"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="display.order"/></th>
+                                </tr>
+                            </thead>
+                            <%if (appPurposes == null || appPurposes.isEmpty()) {%>
+                            <script>
+                                $(jQuery('#app_purposes_tbl')).hide();
+                            </script>
+                            <%}%>
+                            <%for (ApplicationPurpose applicationPurpose : appPurposes) {%>
+                            <tr>
+                                <td>
+                                    <%=Encode.forHtmlContent(applicationPurpose.getName())%>
+                                    <input type="hidden" id="app_purpose_id" name="app_purpose_id" value="<%=applicationPurpose.getId()%>">
+                                </td>
+                                <td><%=Encode.forHtmlContent(applicationPurpose.getDescription())%></td>
+                                <td>
+                                    <%if (applicationPurpose.isSelected()) {%>
+                                        <input type="checkbox" name="selected_purpose_id_<%=applicationPurpose.getId()%>" checked="checked" style="margin:0px;" />
+                                    <%} else {%>
+                                        <input type="checkbox" name="selected_purpose_id_<%=applicationPurpose.getId()%>" style="margin:0px;" />
+                                    <%}%>
+                                </td>
+                                <td><input style="width:30px" name="display_order_purpose_id_<%=applicationPurpose.getId()%>" 
+                                        type="number" min="0" value="<%=applicationPurpose.getDisplayOrder()%>" autofocus=""></td>
+                            </tr>
+                            <%}%>
+                        </table>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><a id="saml_link" class="icon-link" 
+                                    onclick="onAppPurposesManageClick()"><fmt:message key="manage.app.consent.purposes"/></a></td>
+                            </tr>
+                        </table>
+                        <table style="padding-top: 15px; padding-bottom: 10px;" class="carbonFormTable" id="shared_purposes_combo">
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key="shared.consent.purposes"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med">
+                                            <select class="leftCol-med" id="shared_purposes" name="shared_purposes"
+                                            style=" margin-left: 5px; ">
+                                                <option value="not_selected">---<fmt:message key="select"/>---</option>
+                                                <%for (Purpose sharedPurpose : sharedPurposes) {%>
+                                                <option
+                                                    value="<%="row_shared_purpose_id_" + sharedPurpose.getId()%>"><%=Encode.forHtmlContent(sharedPurpose.getName())%>
+                                                </option>
+                                                <%}%>
+                                            </select>
+                                            <input id="addSharedConsentBtn" type="button" value="Add" onclick="onSharedPurposesClick()"/>
+                                    </td>
+                                </tr>
+                        </table>
+                        <table class="styledLeft" id="shared_purposes_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="leftCol-big"><fmt:message key="purpose"/></th>
+                                    <th class="leftCol-big"><fmt:message key="description"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="display.order"/></th>                                    
+                                    <th class="leftCol-mid"><fmt:message key="remove"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%if (appSharedPurposes == null || appSharedPurposes.isEmpty()) {%>
+                                <script>
+                                    $('#shared_purposes_tbl').hide();
+                                </script>
+                                <%}%>
+                                <%for (ApplicationPurpose sharedPurpose : appSharedPurposes) {%>
+                                <tr id="row_shared_purpose_id_<%=sharedPurpose.getId()%>">
+                                    <td>
+                                        <%=Encode.forHtmlContent(sharedPurpose.getName())%>
+                                        <input type="hidden" id="shared_purpose_id" name="shared_purpose_id" value="<%=sharedPurpose.getId()%>">
+                                    </td>
+                                    <td><%=Encode.forHtmlContent(sharedPurpose.getDescription())%></td>
+                                    <td><input style="width:30px" name="display_order_shared_purpose_id_<%=sharedPurpose.getId()%>"
+                                            type="number" min="0" type="text" value="<%=sharedPurpose.getDisplayOrder()%>" autofocus=""></td>
+                                    <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)" 
+                                        onclick="removeSharedPurposeRow('row_shared_purpose_id_<%=sharedPurpose.getId()%>')"><fmt:message key="link.delete"/></a></td>
+                                </tr>
+                                <%}%>
+                            </tbody>
+                        </table>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><a id="manage_shared_purposes" class="icon-link"
+                                    onclick="onGenralPurposesManageClick()"><fmt:message key="manage.shared.consent.purposes"/></a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
                 <h2 id="authorization_permission_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="title.config.app.authorization.permission"/></a>
                 </h2>
