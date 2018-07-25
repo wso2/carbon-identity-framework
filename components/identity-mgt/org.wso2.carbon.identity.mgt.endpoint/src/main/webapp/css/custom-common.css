@@ -306,6 +306,11 @@ span.required {
 	color: red;
 	vertical-align: middle;
 }
+span.required_consent{
+	color: red;
+	font-size: 16px;
+	margin: 0px 4px 0px 2px;
+}
 
 .truncate {
 	white-space: nowrap;

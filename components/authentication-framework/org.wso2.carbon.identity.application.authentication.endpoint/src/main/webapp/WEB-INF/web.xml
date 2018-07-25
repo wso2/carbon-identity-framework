@@ -78,7 +78,7 @@
     <!-- *************** Authentication REST API URL Configuration ********************** -->
     <!--context-param>
         <param-name>AuthenticationRESTEndpointURL</param-name>
-        <param-value>https://localhost:9443/api/identity/auth/v1.0/</param-value>
+        <param-value>https://localhost:9443/api/identity/auth/v1.1/</param-value>
     </context-param-->
     <!-- *************** End of Authentication REST API URL Configuration ********************** -->
 

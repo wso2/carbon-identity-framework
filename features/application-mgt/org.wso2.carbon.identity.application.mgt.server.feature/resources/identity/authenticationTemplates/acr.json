@@ -45,7 +45,7 @@
     "// Specify the ordered list of ACR here.",
     "var supportedAcrValues = ['acr1', 'acr2', 'acr3'];",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    var selectedAcr = selectAcrFrom(context, supportedAcrValues);",
     "    Log.info('--------------- ACR selected: ' + selectedAcr);",
     "    context.selectedAcr = selectedAcr;",

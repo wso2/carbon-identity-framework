@@ -34,9 +34,9 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
@@ -582,7 +582,7 @@ public class ApplicationMgtUtil {
                     return false;
                 }
                 String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
-                userNameWithDomain = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+                userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
             }
             org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             if (realm == null) {
@@ -594,7 +594,7 @@ public class ApplicationMgtUtil {
                         serviceProvider.getApplicationName() + " as user is not existing.");
             }
 
-            boolean isPermitted = realm.getAuthorizationManager().isUserAuthorized(userName, PERMISSION_APPLICATION_MGT,
+            boolean isPermitted = realm.getAuthorizationManager().isUserAuthorized(userNameWithDomain, PERMISSION_APPLICATION_MGT,
                     UserMgtConstants.EXECUTE_ACTION);
             if (!isPermitted) {
                 throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +

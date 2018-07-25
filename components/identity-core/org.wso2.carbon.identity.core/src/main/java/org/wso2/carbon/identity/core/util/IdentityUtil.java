@@ -21,7 +21,6 @@ import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -130,6 +129,8 @@ public class IdentityUtil {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
+    private static final String APPLICATION_DOMAIN = "Application";
+    private static final String WORKFLOW_DOMAIN = "Workflow";
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -690,6 +691,10 @@ public class IdentityUtil {
 
         if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
             String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
+            if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) || WORKFLOW_DOMAIN.equalsIgnoreCase(domain)
+                    || APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+                return domain.substring(0, 1).toUpperCase() + domain.substring(1).toLowerCase();
+            }
             return domain.toUpperCase();
         } else {
             return getPrimaryDomainName();
@@ -704,11 +709,13 @@ public class IdentityUtil {
      * @return application name with domain name
      */
     public static String addDomainToName(String name, String domainName) {
+
         if (domainName != null && name != null && !name.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
             if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(domainName)) {
                 if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domainName) ||
-                        "Workflow".equalsIgnoreCase(domainName) || "Application".equalsIgnoreCase(domainName)) {
-                    name = domainName + UserCoreConstants.DOMAIN_SEPARATOR + name;
+                        WORKFLOW_DOMAIN.equalsIgnoreCase(domainName) || APPLICATION_DOMAIN.equalsIgnoreCase(domainName)) {
+                    name = domainName.substring(0, 1).toUpperCase() + domainName.substring(1).toLowerCase() +
+                            UserCoreConstants.DOMAIN_SEPARATOR + name;
                 } else {
                     name = domainName.toUpperCase() + UserCoreConstants.DOMAIN_SEPARATOR + name;
                 }

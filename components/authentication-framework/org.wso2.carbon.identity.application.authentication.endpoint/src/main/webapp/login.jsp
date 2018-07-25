@@ -16,12 +16,12 @@
   ~ under the License.
   --%>
 
+<%@page import="com.google.gson.Gson" %>
+<%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
-<%@page import="java.util.ArrayList" %>
-<%@ page import="java.util.Arrays" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS" %>
 <%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS_MSG" %>
 <%@ page
@@ -30,6 +30,9 @@
         import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.AUTHENTICATION_MECHANISM_NOT_CONFIGURED" %>
 <%@ page
         import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.ENABLE_AUTHENTICATION_WITH_REST_API" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.Map" %>
 <%@include file="localize.jsp" %>
 <jsp:directive.include file="init-url.jsp"/>
 
@@ -88,9 +91,23 @@
     %>
     <%
         String inputType = request.getParameter("inputType");
+        String username = null;
+    
+        if (isIdentifierFirstLogin(inputType)) {
+            String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
+            if (StringUtils.isBlank(authAPIURL)) {
+                authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
+            }
+            if (!authAPIURL.endsWith("/")) {
+                authAPIURL += "/";
+            }
+            authAPIURL += "context/" + request.getParameter("sessionDataKey");
+            String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
+            Gson gson = new Gson();
+            Map<String, Object> parameters = gson.fromJson(contextProperties, Map.class);
+            username = (String) parameters.get("username");
+        }
         
-        // TODO get the username from backend api
-        String username = request.getParameter("username");
     %>
     <html>
     <head>

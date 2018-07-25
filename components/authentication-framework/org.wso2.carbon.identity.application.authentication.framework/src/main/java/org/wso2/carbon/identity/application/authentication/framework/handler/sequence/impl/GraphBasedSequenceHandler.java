@@ -180,6 +180,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             for (String s : request.getParameterMap().keySet()) {
                 if (s.startsWith(PROMPT_ACTION_PREFIX)) {
                     action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
+                    action = StringUtils.capitalize(action);
                     break;
                 }
             }
@@ -197,29 +198,27 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     AuthGraphNode nextNode = promptNode.getDefaultEdge();
                     context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
                 } else {
-                    displayPrompt(context, request, response, promptNode, promptNode.getData());
+                    displayPrompt(context, request, response, promptNode);
                     isPromptToBeDisplayed = true;
                 }
                 return isPromptToBeDisplayed;
             }
-            displayPrompt(context, request, response, promptNode, promptNode.getData());
+            displayPrompt(context, request, response, promptNode);
             isPromptToBeDisplayed = true;
         }
         return isPromptToBeDisplayed;
     }
 
     private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
-                               ShowPromptNode promptNode, String data) throws FrameworkException {
+                               ShowPromptNode promptNode) throws FrameworkException {
 
         try {
 
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
             String redirectUrl = promptPage + "?templateId=" +
                     URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" + context.getContextIdentifier();
-            if (data != null) {
-                //TODO encrypt data based on a config.
-                String encodedDataString = deflateJson(data);
-                redirectUrl += "&data=" + encodedDataString;
+            if (promptNode.getData() != null) {
+                context.addEndpointParams(promptNode.getData());
             }
 
             response.sendRedirect(redirectUrl);
@@ -233,26 +232,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } catch (IOException e) {
             throw new FrameworkException("Error while redirecting the user for prompt page with session data key"
                     + context.getContextIdentifier(), e);
-        }
-    }
-
-    private String deflateJson(String data) throws IOException {
-
-        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
-        Deflater deflater = new Deflater();
-        deflater.setInput(dataBytes);
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(dataBytes.length)) {
-            deflater.finish();
-            byte[] buffer = new byte[1024];
-            while (!deflater.finished()) {
-                int count = deflater.deflate(buffer); // returns the generated code... index
-                outputStream.write(buffer, 0, count);
-            }
-            byte[] deflatedBytes = outputStream.toByteArray();
-
-            byte[] base64EncodedBytes = Base64.getEncoder().encode(deflatedBytes);
-            String base64EncodedString = new String(base64EncodedBytes);
-            return URLEncoder.encode(base64EncodedString, StandardCharsets.UTF_8.name());
         }
     }
 
@@ -520,21 +499,21 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
         if (flowStatus != null) {
             switch (flowStatus) {
-            case SUCCESS_COMPLETED:
-                executeFunction("onSuccess", dynamicDecisionNode, context);
-                break;
-            case FAIL_COMPLETED:
-                executeFunction("onFail", dynamicDecisionNode, context);
-                if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
-                    dynamicDecisionNode.setDefaultEdge(new FailNode());
-                }
-                break;
-            case FALLBACK:
-                executeFunction("onFallback", dynamicDecisionNode, context);
-                break;
-            case USER_ABORT:
-                executeFunction("onUserAbort", dynamicDecisionNode, context);
-                break;
+                case SUCCESS_COMPLETED:
+                    executeFunction("onSuccess", dynamicDecisionNode, context);
+                    break;
+                case FAIL_COMPLETED:
+                    executeFunction("onFail", dynamicDecisionNode, context);
+                    if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
+                        dynamicDecisionNode.setDefaultEdge(new FailNode());
+                    }
+                    break;
+                case FALLBACK:
+                    executeFunction("onFallback", dynamicDecisionNode, context);
+                    break;
+                case USER_ABORT:
+                    executeFunction("onUserAbort", dynamicDecisionNode, context);
+                    break;
             }
         }
 
