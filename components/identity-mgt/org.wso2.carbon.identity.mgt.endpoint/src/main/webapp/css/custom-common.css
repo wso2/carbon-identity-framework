@@ -259,7 +259,7 @@ img.idp-image {
 	color: red;
 }
 
-#consent-mgt-container p span {
+#consent-mgt-container p span, #consent-mgt-template-container p span {
 	margin-top: 4px;
 	display: block;
 }
@@ -311,6 +311,11 @@ span.required_consent{
 	font-size: 16px;
 	margin: 0px 4px 0px 2px;
 }
+strong span.required_consent{
+	color: red;
+	font-size: 16px;
+	margin: 0px 0px 0px 4px;
+}
 
 .truncate {
 	white-space: nowrap;
@@ -324,4 +329,50 @@ span.required_consent{
 	white-space : normal !important;
 	height : auto !important;
 	padding-right : 24px;
+}
+.alert-consent{
+	background: none;
+}
+
+.consent-container-1 span label,.consent-container-2 span label{
+	font-weight: normal;
+	padding: 2px 6px;
+	background: #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.consent-container-1 strong label,.consent-container-2 strong label{
+	padding: 2px 6px;
+	background: none;
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.consent-container-1 span label input,.consent-container-2 span label input{
+	margin-right: 5px;
+}
+.consent-container-1 div,.consent-container p{
+	margin-bottom: 12px;
+	line-height: 18px;
+	text-align: justify;
+}
+.consent-container-2 .box{
+	padding-top:15px;
+	padding-bottom:15px;
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	min-height: 220px;
+	text-align: justify;
+}
+.consent-container-2 .box ul{
+	margin: 0;
+	margin-top: 20px;
+	padding: 0;
+}
+.consent-container-2 .box ul li{
+	list-style: none;
 }
