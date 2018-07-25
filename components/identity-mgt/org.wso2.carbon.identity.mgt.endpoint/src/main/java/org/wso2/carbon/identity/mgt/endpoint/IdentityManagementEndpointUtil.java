@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.mgt.endpoint;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,11 +31,15 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
+import org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -45,6 +51,11 @@ public class IdentityManagementEndpointUtil {
 
     public static final String PADDING_CHAR = "=";
     public static final String UNDERSCORE = "_";
+    public static final String PII_CATEGORIES = "piiCategories";
+    public static final String PII_CATEGORY = "piiCategory";
+    public static final String PURPOSES = "purposes";
+    public static final String MANDATORY = "mandatory";
+    public static final String DISPLAY_NAME = "displayName";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
 
@@ -340,5 +351,59 @@ public class IdentityManagementEndpointUtil {
             // default, not to break the UI
             return Encode.forHtml(key);
         }
+    }
+
+    /**
+     * Get unique PIIs out of given purposes.
+     *
+     * @param purposesResponseString Purposes response JSON received from Consent Mgt API.
+     * @return Unique PIIs out of given purposes in the purposes JSON String.
+     */
+    public static Map<String, Claim> getUniquePIIs(String purposesResponseString) {
+
+        Map<String, Claim> claimsMap = new HashMap<>();
+        JSONObject purposes = new JSONObject(purposesResponseString);
+        JSONArray purposesArray = purposes.getJSONArray(PURPOSES);
+        for (int i = 0; i < purposesArray.length(); i++) {
+            JSONObject purpose = purposesArray.getJSONObject(i);
+            JSONArray piis = (JSONArray) purpose.get(PII_CATEGORIES);
+            for (int j = 0; j < piis.length(); j++) {
+                JSONObject pii = piis.getJSONObject(j);
+                if (claimsMap.get(pii.getString(PII_CATEGORY)) == null) {
+                    Claim claim = new Claim();
+                    claim.displayName(pii.getString(DISPLAY_NAME));
+                    claim.setUri(pii.getString(PII_CATEGORY));
+                    claim.required(pii.getBoolean(MANDATORY));
+                    claimsMap.put(pii.getString(PII_CATEGORY), claim);
+                } else {
+                    Claim claim = claimsMap.get(pii.getString(PII_CATEGORY));
+                    if (pii.getBoolean(MANDATORY)) {
+                        claim.required(true);
+                    }
+                }
+            }
+
+        }
+        return claimsMap;
+    }
+
+    public static Map<String, Claim> fillPiisWithClaimInfo(Map<String, Claim> piis, List<Claim> defaultClaims) {
+
+        if (piis != null) {
+            for (Claim defaultClaim : defaultClaims) {
+                if (defaultClaim != null && defaultClaim.getUri() != null && piis.get(defaultClaim.getUri()) != null) {
+                    piis.get(defaultClaim.getUri()).setValidationRegex(defaultClaim.getValidationRegex());
+                }
+            }
+        } else {
+            piis = new HashMap<>();
+            for (Claim defaultClaim : defaultClaims) {
+                if (defaultClaim != null && defaultClaim.getUri() != null) {
+                    piis.put(defaultClaim.getUri(), defaultClaim);
+                }
+            }
+
+        }
+        return piis;
     }
 }
