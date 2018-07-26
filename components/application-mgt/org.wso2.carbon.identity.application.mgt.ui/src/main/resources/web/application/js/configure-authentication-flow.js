@@ -146,7 +146,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
                 var lineNo = [];
                 var stepReg = new RegExp("executeStep\\(" + stepDifference.script[i] + "+", "g");
                 myCodeMirror.eachLine(function (line) {
-                    if (line.text.match(stepReg)) {
+                    if (line.text.trim().match(stepReg)) {
                         lineNo.push(myCodeMirror.getLineNumber(line) + 1);
                     }
                 });
