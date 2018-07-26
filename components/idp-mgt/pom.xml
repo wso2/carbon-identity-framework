@@ -37,6 +37,8 @@
     <modules>
         <module>org.wso2.carbon.idp.mgt</module>
         <module>org.wso2.carbon.idp.mgt.ui</module>
+        <module>org.wso2.carbon.identity.api.idpmgt.endpoint</module>
+        <module>org.wso2.carbon.identity.api.idpmgt</module>
 
 
     </modules>
