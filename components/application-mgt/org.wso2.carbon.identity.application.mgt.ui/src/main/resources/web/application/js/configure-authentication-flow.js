@@ -276,23 +276,42 @@ populateTemplates();
 
 function populateTemplates() {
 
-    $.each(templates, function (category, categoryTemplates) {
+    var categoryTempArr = [];
 
-        var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
-            '<a href="#" title="' + category + '">' + category + '</a></h2></li>';
-        var details = '<ul class="normal details">';
-
-        $.each(categoryTemplates, function (i, template) {
-            details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
-                'data-type-name="' + template.name + '" title="' + template.name + '"><img src="' + template.img + '"/>' +
-                '<span>' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
-                '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
-        });
-        details += '</ul>';
-        $(tempType).appendTo('#template_list').append(details);
+    $.each(templates, function (i, categoryTemplates) {
+        categoryTempArr.push(categoryTemplates);
     });
 
+    var sortedCategoryTempArr = categoryTempArr.slice(0);
+    sortedCategoryTempArr.sort(function (a, b) {
+        return a.order - b.order;
+    });
 
+    $.each(sortedCategoryTempArr, function (i) {
+
+        var categoryImg = '';
+        if (sortedCategoryTempArr[i].icon) {
+            categoryImg = sortedCategoryTempArr[i].icon;
+        } else {
+            categoryImg = "./images/http.png";
+        }
+
+        if (sortedCategoryTempArr[i].templates) {
+            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
+                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '">' + sortedCategoryTempArr[i].displayName +
+                '</a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
+            var details = '<ul class="normal details">';
+
+            $.each(sortedCategoryTempArr[i].templates, function (i, template) {
+                details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
+                    'data-type-name="' + template.name + '" title="' + template.name + '">' +
+                    '<span>' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
+                    '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
+            });
+            details += '</ul>';
+            $(tempType).appendTo('#template_list').append(details);
+        }
+    });
 }
 
 $('[data-toggle=template-link]').click(function (e) {
@@ -301,15 +320,22 @@ $('[data-toggle=template-link]').click(function (e) {
     var data;
     var tempName;
     var templateObj = null;
+    var categoryTempArr = [];
 
-    $.each(templates, function (category, categoryTemplates) {
-        $.each(categoryTemplates, function (i, template) {
-            if (template.name === typeName) {
-                data = template.code.join("\n");
-                tempName = template.name;
-                templateObj = template;
-            }
-        });
+    $.each(templates, function (i, categoryTemplates) {
+        categoryTempArr.push(categoryTemplates);
+    });
+
+    $.each(categoryTempArr, function (i) {
+        if (categoryTempArr[i].templates) {
+            $.each(categoryTempArr[i].templates, function (i, template) {
+                if (template.name === typeName) {
+                    data = template.code.join("\n");
+                    tempName = template.name;
+                    templateObj = template;
+                }
+            })
+        }
     });
 
     if (templateObj === null) {
@@ -326,6 +352,9 @@ $('[data-toggle=template-link]').click(function (e) {
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
+
+    editorContent = doc.getValue();
+
     showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, "OK", "Cancel", doReplaceRange, null);
 
     function doReplaceRange() {
