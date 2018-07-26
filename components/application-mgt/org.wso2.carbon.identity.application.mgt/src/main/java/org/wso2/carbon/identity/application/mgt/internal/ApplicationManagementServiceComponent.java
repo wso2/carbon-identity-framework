@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProv
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtValidationListener;
+import org.wso2.carbon.identity.application.mgt.listener.STSApplicationMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -84,6 +86,15 @@ public class ApplicationManagementServiceComponent {
             ApplicationMgtSystemConfig.getInstance();
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
                     null);
+            ServiceRegistration stsApplicationMgtListener = bundleContext.registerService(ApplicationMgtListener
+                    .class.getName(), new STSApplicationMgtListener(), null);
+            if (stsApplicationMgtListener != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("STS - ApplicationMgtListener registered.");
+                }
+            } else {
+                log.error("STS - ApplicationMgtListener could not be registered.");
+            }
             buildFileBasedSPList();
             loadAuthenticationTemplates();
 
