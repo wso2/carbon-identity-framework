@@ -1,0 +1,98 @@
+{
+  "category": "request_based",
+  "name": "New device login",
+  "title": "New device login notification template",
+  "summary":
+  "Send an email notification and/or prompts 2FA to the users who is logging in from a previously unused device",
+  "preRequisites": [
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required.",
+    "Change the parameters detailed below to reflect your requirements"
+  ],
+  "parametersDescription": {
+    "deviceRememberPeriod":
+    "How long should this device be remembered as trusted. Once this time passed, login attempts will be considered as new device logins",
+    "cookieName": "Cookie name to be used for device identification",
+    "sendNotification" : "Whether to send email notifications to the users",
+    "stepUpAuthentication": "Whether to step up the authentication"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "code": [
+    "// This script will step up authentication and send email notification in case of",
+    "// a user being logging in from a new device (identified by a cookie).",
+    "",
+    "// Amount of time in seconds to remember a device. Set to 2 years below.",
+    "var deviceRememberPeriod = 60 * 60 * 24 * 365 * 2;",
+    "",
+    "// Cookie name to be set",
+    "var cookieName = 'deviceAuth';",
+    "",
+    "// Whether to send a notification on new device login",
+    "var sendNotification = true;",
+    "",
+    "// Whether to step up authentication for new device login",
+    "var stepUpAuthentication = true;",
+    "",
+    "// Email template to be used for new device login notification",
+    "var emailTemplate = 'UnseenDeviceLogin';",
+    "",
+    "",
+    "function onLoginRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            subject = context.currentKnownSubject;",
+    "            if (!validateCookie(context, subject)) {",
+    "                Log.debug('New device login for ' + subject.identifier);",
+    "",
+    "                if (sendNotification === true) {",
+    "                    var templatePlaceholders = {",
+    "                        'username': subject.identifier,",
+    "                        'login-time': new Date().toUTCString()",
+    "                    };",
+    "                    sendEmail(subject, emailTemplate, templatePlaceholders);",
+    "                    Log.debug('New device login notification sent to ' + subject.identifier);",
+    "                }",
+    "",
+    "                if (stepUpAuthentication === true) {",
+    "                    Log.debug('Stepping up authentication due to a new device login for ' + subject.identifier);",
+    "                    executeStep(2, {",
+    "                        onSuccess: function (context) {",
+    "                            setCookie(context.response, cookieName, subject.identifier, {",
+    "                                'sign': true,",
+    "                                'max-age': deviceRememberPeriod",
+    "                            });",
+    "                        }",
+    "                    });",
+    "                }",
+    "            }",
+    "        }",
+    "    });",
+    "}",
+    "",
+    "//Validate if the user has a valid cookie with the value as subject's username",
+    "function validateCookie(context, subject) {",
+    "    var cookieVal = getCookieValue(context.request, cookieName, {'validateSignature': true});",
+    "    return subject.identifier === cookieVal;",
+    "}",
+    ""
+  ]
+}
