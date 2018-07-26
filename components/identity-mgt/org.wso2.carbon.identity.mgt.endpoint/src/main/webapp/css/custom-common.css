@@ -259,12 +259,12 @@ img.idp-image {
 	color: red;
 }
 
-#consent-mgt-container p span, #consent-mgt-template-container p span {
+#consent-mgt-tree-container p span, #consent-mgt-template-container p span {
 	margin-top: 4px;
 	display: block;
 }
 
-#consent-mgt-container #tree-table {
+#consent-mgt-tree-container #tree-table {
 	background: #fff;
 	padding: 10px;
 	color: #333;
@@ -359,8 +359,7 @@ strong span.required_consent{
 	text-align: justify;
 }
 .consent-container-2 .box{
-	padding-top:15px;
-	padding-bottom:15px;
+	padding:15px;
 	border: 1px solid #41c0f97a;
 	border-radius: 4px;
 	-moz-border-radius: 4px;
