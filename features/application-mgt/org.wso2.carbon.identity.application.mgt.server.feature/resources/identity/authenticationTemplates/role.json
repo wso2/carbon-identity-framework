@@ -41,7 +41,7 @@
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting authenticated subject from the first step",
-    "            var user = context.steps[1].subject;",
+    "            var user = context.currentKnownSubject;",
     "            // Checking if the user is assigned to one of the given roles",
     "            var hasRole = hasAnyOfTheRoles(user, rolesToStepUp);",
     "            if (hasRole) {",

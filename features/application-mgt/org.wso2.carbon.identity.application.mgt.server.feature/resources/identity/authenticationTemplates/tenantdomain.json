@@ -43,7 +43,7 @@
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting tenant domain of authenticated subject from the first step",
-    "            var userTenantDomain = context.steps[1].subject.tenantDomain;",
+    "            var userTenantDomain = context.currentKnownSubject.tenantDomain;",
     "            // Checking if the user is from whitelisted tenant domain",
     "            if (tenantsToStepUp.indexOf(userTenantDomain) >= 0) {",
     "                executeStep(2);",
