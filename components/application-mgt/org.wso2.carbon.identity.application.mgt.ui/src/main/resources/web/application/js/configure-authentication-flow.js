@@ -293,7 +293,7 @@ function populateTemplates() {
         if (sortedCategoryTempArr[i].icon) {
             categoryImg = sortedCategoryTempArr[i].icon;
         } else {
-            categoryImg = "./images/http.png";
+            categoryImg = "./images/uncategorized-template.png";
         }
 
         if (sortedCategoryTempArr[i].templates) {
