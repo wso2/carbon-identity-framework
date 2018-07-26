@@ -18,12 +18,28 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.util;
 
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.identity.application.common.model.xsd.ConsentConfig;
+import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurpose;
+import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ui.ApplicationBean;
+import org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose;
+import org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes;
+import org.wso2.carbon.identity.application.mgt.ui.client.ConsentManagementServiceClient;
 
-import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.http.HttpSession;
+
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_SHARED;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_TYPE_SP;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_TYPE_SYSTEM;
 
 public class ApplicationMgtUIUtil {
 
@@ -74,5 +90,88 @@ public class ApplicationMgtUIUtil {
         }
         session.removeAttribute(spUniqueIdMap.get(spName).toString());
         spUniqueIdMap.remove(spName);
+    }
+
+    public static ApplicationPurposes getApplicationSpecificPurposes(ServiceProvider serviceProvider)
+            throws ConsentManagementException {
+
+        ConsentConfig consentConfig = serviceProvider.getConsentConfig();
+        ConsentManagementServiceClient consentServiceClient = new ConsentManagementServiceClient();
+        Purpose[] spPurposes;
+        List<ApplicationPurpose> appPurposes = new ArrayList<>();
+        List<ApplicationPurpose> appSharedPurposes = new ArrayList<>();
+        ConsentPurpose[] consentPurposes = new ConsentPurpose[0];
+        if (isConsentPurposesAvailable(consentConfig)) {
+            consentPurposes = consentConfig.getConsentPurposeConfigs().getConsentPurpose();
+        }
+
+        // Get application specific purposes associated with the service provider.
+        spPurposes = consentServiceClient.listPurposes(serviceProvider.getApplicationName(), PURPOSE_GROUP_TYPE_SP);
+        if (nonNull(spPurposes)) {
+            for (Purpose spPurpose : spPurposes) {
+                boolean isPurposeAssociated = false;
+                for (ConsentPurpose consentPurpose : consentPurposes) {
+                    if (consentPurpose.getPurposeId() == spPurpose.getId()) {
+                        ApplicationPurpose appPurpose = buildApplicationPurpose(consentPurpose, spPurpose);
+                        isPurposeAssociated = true;
+                        appPurposes.add(appPurpose);
+                        break;
+                    }
+                }
+                if (!isPurposeAssociated) {
+                    ApplicationPurpose appPurpose = new ApplicationPurpose();
+                    appPurpose.setId(spPurpose.getId());
+                    appPurpose.setName(spPurpose.getName());
+                    appPurpose.setDescription(spPurpose.getDescription());
+                    appPurpose.setDisplayOrder(DEFAULT_DISPLAY_ORDER);
+                    appPurpose.setSelected(false);
+                    appPurposes.add(appPurpose);
+                }
+            }
+        }
+
+        // Add shared purposes associated with the service provider.
+        Purpose[] sharedPurposes;
+        sharedPurposes = consentServiceClient.listPurposes(PURPOSE_GROUP_SHARED, PURPOSE_GROUP_TYPE_SYSTEM);
+        if (nonNull(sharedPurposes)) {
+            for (ConsentPurpose consentPurpose : consentPurposes) {
+                for (Purpose sharedPurpose : sharedPurposes) {
+                    if (consentPurpose.getPurposeId() == sharedPurpose.getId()) {
+                        ApplicationPurpose appPurpose = buildApplicationPurpose(consentPurpose, sharedPurpose);
+                        appSharedPurposes.add(appPurpose);
+                        break;
+                    }
+                }
+            }
+        }
+
+        ApplicationPurposes applicationPurposes = new ApplicationPurposes();
+        applicationPurposes.setAppPurposes(appPurposes);
+        applicationPurposes.setAppSharedPurposes(appSharedPurposes);
+
+        return applicationPurposes;
+    }
+
+    public static Purpose[] getSharedPurposes() throws ConsentManagementException {
+
+        ConsentManagementServiceClient consentServiceClient = new ConsentManagementServiceClient();
+        return consentServiceClient.listPurposes(PURPOSE_GROUP_SHARED, PURPOSE_GROUP_TYPE_SYSTEM);
+    }
+
+    private static ApplicationPurpose buildApplicationPurpose(ConsentPurpose consentPurpose, Purpose sharedPurpose) {
+
+        ApplicationPurpose appPurpose = new ApplicationPurpose();
+        appPurpose.setId(sharedPurpose.getId());
+        appPurpose.setName(sharedPurpose.getName());
+        appPurpose.setDescription(sharedPurpose.getDescription());
+        appPurpose.setDisplayOrder(consentPurpose.getDisplayOrder());
+        appPurpose.setSelected(true);
+        return appPurpose;
+    }
+
+    private static boolean isConsentPurposesAvailable(ConsentConfig consentConfig) {
+
+        return consentConfig != null && consentConfig.getConsentPurposeConfigs() != null
+            && consentConfig.getConsentPurposeConfigs().getConsentPurpose() != null;
     }
 }

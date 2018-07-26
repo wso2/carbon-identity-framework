@@ -81,7 +81,7 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest (context) {
+function onLoginRequest (context) {
     executeStep(1, {
         onSuccess : function(context) {
             Log.info('First Authentication success');

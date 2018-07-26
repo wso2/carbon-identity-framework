@@ -61,6 +61,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private List<String> idpInitSLOReturnToURLList;
     private boolean doEnableEncryptedAssertion;
     private boolean doValidateSignatureInRequests;
+    private boolean doValidateSignatureInArtifactResolve;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
     private String assertionEncryptionAlgorithmUri;
@@ -71,6 +72,16 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
     private boolean enableSAML2ArtifactBinding;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
 
     public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
         this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;

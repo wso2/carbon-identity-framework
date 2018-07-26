@@ -50,8 +50,18 @@ public class ApplicationConstants {
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
     public static final String TEMPLATE_CATEGORY = "category";
+    public static final String CATEGORY_DISPLAY_NAME = "displayName";
+    public static final String CATEGORY_ORDER = "order";
+    public static final String CATEGORY_TEMPLATES = "templates";
+    public static final String UNCATEGORIZED = "uncategorized";
+    public static final String DISPLAY_NAME_FOR_UNCATEGORIZED = "Uncategorized";
+    public static final int ORDER_FOR_UNCATEGORIZED = 10000;
     public static final String FILE_EXT_JSON = ".json";
+    public static final String CATEGORIES_METADATA_FILE = "categories.json";
     public static final String TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
         + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
         .separator;
+    public static final String PURPOSE_GROUP_TYPE_SP = "SP";
+    public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final String PURPOSE_GROUP_SHARED = "SHARED";
 }
