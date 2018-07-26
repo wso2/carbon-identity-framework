@@ -438,18 +438,16 @@
                             %>
                                 <!--User Consents from Template-->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
-                                    <div class="alert alert-consent margin-none" role="alert">
-                                        <div id="consent-mgt-template-container">
-                                            <div class="consent-statement"></div>
-                                        </div>
-                                        <div class="text-left padding-top-double">
-                                            <span class="required">
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "All.asterisked.consents.are.mandatory")%>
-                                                </strong>
-                                            </span>
-                                        </div>
+                                    <div id="consent-mgt-template-container">
+                                        <div class="consent-statement"></div>
+                                    </div>
+                                    <div class="text-left padding-top-double">
+                                        <span class="required">
+                                            <strong>
+                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                        "All.asterisked.consents.are.mandatory")%>
+                                            </strong>
+                                        </span>
                                     </div>
                                 </div>
                                 <!--End User Consents from Template-->
