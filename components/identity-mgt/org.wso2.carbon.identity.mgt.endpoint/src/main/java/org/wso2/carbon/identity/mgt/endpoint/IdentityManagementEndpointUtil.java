@@ -60,23 +60,25 @@ public class IdentityManagementEndpointUtil {
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
 
     private IdentityManagementEndpointUtil() {
+
     }
 
     /**
      * Reruns the full qualified username of the user in below format.
      * <user_store_domain>/<username>@<tenant_domain>
      *
-     * @param username username of the user
-     * @param tenantDomain tenant domain the user belongs to
+     * @param username        username of the user
+     * @param tenantDomain    tenant domain the user belongs to
      * @param userStoreDomain user store domain usee belongs to
      * @return full qualified username
      */
     public static final String getFullQualifiedUsername(String username, String tenantDomain, String userStoreDomain) {
+
         String fullQualifiedUsername = username;
         if (StringUtils.isNotBlank(userStoreDomain) && !IdentityManagementEndpointConstants.PRIMARY_USER_STORE_DOMAIN
                 .equals(userStoreDomain)) {
             fullQualifiedUsername = userStoreDomain + IdentityManagementEndpointConstants.USER_STORE_DOMAIN_SEPARATOR
-                                    + fullQualifiedUsername;
+                    + fullQualifiedUsername;
         }
 
         if (StringUtils.isNotBlank(tenantDomain) && !IdentityManagementEndpointConstants.SUPER_TENANT.equals
@@ -91,7 +93,7 @@ public class IdentityManagementEndpointUtil {
     /**
      * Returns the error to be viewed for end user.
      *
-     * @param errorMsgSummary required error message to be viewed
+     * @param errorMsgSummary  required error message to be viewed
      * @param optionalErrorMsg optional content to be viewed
      * @param verificationBean info recovery confirmation bean
      * @return error message to be viewed
@@ -118,6 +120,7 @@ public class IdentityManagementEndpointUtil {
      * @return configured url or the default url if configured url is empty
      */
     public static final String getUserPortalUrl(String userPortalUrl) {
+
         if (StringUtils.isNotBlank(userPortalUrl)) {
             return userPortalUrl;
         }
@@ -131,6 +134,7 @@ public class IdentityManagementEndpointUtil {
      * @return Boolean
      */
     public static boolean getBooleanValue(Object value) {
+
         if (value != null && value instanceof Boolean) {
             return (Boolean) value;
         }
@@ -145,6 +149,7 @@ public class IdentityManagementEndpointUtil {
      * @return String
      */
     public static String getStringValue(Object value) {
+
         if (value != null && value instanceof String) {
             return (String) value;
         }
@@ -159,6 +164,7 @@ public class IdentityManagementEndpointUtil {
      * @return Integer
      */
     public static int getIntValue(Object value) {
+
         if (value != null && value instanceof Integer) {
             return (Integer) value;
         }
@@ -173,6 +179,7 @@ public class IdentityManagementEndpointUtil {
      * @return String[]
      */
     public static String[] getStringArray(Object value) {
+
         if (value != null && value instanceof String[]) {
             return (String[]) value;
         }
@@ -181,18 +188,21 @@ public class IdentityManagementEndpointUtil {
     }
 
     public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
         bean.setProviders(providers);
         return bean.create(cls, new Object[0]);
     }
 
     private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
         bean.setServiceClass(cls);
         return bean;
     }
 
     static JAXRSClientFactoryBean getBean(String baseAddress, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
         if (configLocation != null) {
             SpringBusFactory bf = new SpringBusFactory();
@@ -207,6 +217,7 @@ public class IdentityManagementEndpointUtil {
     }
 
     public static void addReCaptchaHeaders(HttpServletRequest request, Map<String, List<String>> headers) {
+
         if (headers != null && headers.get("reCaptcha") != null) {
             request.setAttribute("reCaptcha", Boolean.TRUE.toString());
             request.setAttribute("reCaptchaAPI", headers.get("reCaptchaAPI").get(0));
@@ -315,7 +326,7 @@ public class IdentityManagementEndpointUtil {
      * Retrieve the value of property entry for key, return key if a value is not found for key
      *
      * @param resourceBundle name of the resourcebundle object
-     * @param key name of the key
+     * @param key            name of the key
      * @return property value entry of the key or key value itself
      */
     public static String i18n(ResourceBundle resourceBundle, String key) {
@@ -337,7 +348,7 @@ public class IdentityManagementEndpointUtil {
      * return key if a value is not found for above calculated
      *
      * @param resourceBundle name of the resourcebundle object
-     * @param key name of the key
+     * @param key            name of the key
      * @return property value entry of the base64 encoded key value or key value itself
      */
     public static String i18nBase64(ResourceBundle resourceBundle, String key) {
@@ -371,10 +382,10 @@ public class IdentityManagementEndpointUtil {
                 JSONObject pii = piis.getJSONObject(j);
                 if (claimsMap.get(pii.getString(PII_CATEGORY)) == null) {
                     Claim claim = new Claim();
-                    claim.displayName(pii.getString(DISPLAY_NAME));
-                    claim.setUri(pii.getString(PII_CATEGORY));
+                    claim.displayName(getStringValue(pii.get(DISPLAY_NAME)));
+                    claim.setUri(getStringValue(pii.get(PII_CATEGORY)));
                     claim.required(pii.getBoolean(MANDATORY));
-                    claimsMap.put(pii.getString(PII_CATEGORY), claim);
+                    claimsMap.put(getStringValue(pii.get(PII_CATEGORY)), claim);
                 } else {
                     Claim claim = claimsMap.get(pii.getString(PII_CATEGORY));
                     if (pii.getBoolean(MANDATORY)) {

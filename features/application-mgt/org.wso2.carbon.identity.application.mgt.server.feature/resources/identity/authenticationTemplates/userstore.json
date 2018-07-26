@@ -39,7 +39,7 @@
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting user store domain of authenticated subject from the first step",
-    "            var userStoreDomain = context.steps[1].subject.userStoreDomain;",
+    "            var userStoreDomain = context.currentKnownSubject.userStoreDomain;",
     "            // Checking if the user is from whitelisted tenant domain",
     "            if (userStoresToStepUp.indexOf(userStoreDomain) >= 0) {",
     "                executeStep(2);",
