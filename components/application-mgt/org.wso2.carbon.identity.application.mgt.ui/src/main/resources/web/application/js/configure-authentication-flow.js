@@ -66,6 +66,8 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
+checkEmptyEditorContent();
+
 checkScriptDirty();
 
 function validateAppCreation() {
@@ -659,6 +661,12 @@ $('#stepsAddLink').click(function (e) {
         buildScriptString($(".steps > h2"));
     }
 });
+
+function checkEmptyEditorContent() {
+    if (editorContent.length === 0) {
+        buildScriptString($(".steps > h2"));
+    }
+}
 
 function checkScriptDirty() {
     var str = "";
