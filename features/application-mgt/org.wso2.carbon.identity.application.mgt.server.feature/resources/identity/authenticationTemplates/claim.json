@@ -24,8 +24,7 @@
       "federated": []
     }
   },
-  "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/User+Attribute+Based+Adaptive+Authentication",
   "code": [
     "// This script will only allow login to application if the user's age is over configured value.",
     "// The user will be redirected to an error page if the date of birth is not present or user is below configured value.",

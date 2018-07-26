@@ -24,13 +24,12 @@
     },
     "2": {
       "local": [
-        "totp",
+        "totp"
       ],
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
-  "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/User+Store+Based+Adaptive+Authentication",
   "code": [
     "// This script will prompt 2FA to the app only for a selected set of user stores.",
     "// If the user is in one of the following user stores, user will be prompted 2FA",

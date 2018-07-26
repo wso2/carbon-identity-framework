@@ -1,6 +1,6 @@
 {
   "category": "analytics_based",
-  "name": "RiskCalculation",
+  "name": "Risk Calculation",
   "title": "Risk Calculation Based 2FA Template",
   "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
   "preRequisites": [
@@ -30,8 +30,7 @@
       "federated": []
     }
   },
-  "img": "./images/http.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Risk+Based+Adaptive+Authentication",
   "code": [
     "// Define conditional authentication by risk score value calculated from analytics engine.",
     "",
