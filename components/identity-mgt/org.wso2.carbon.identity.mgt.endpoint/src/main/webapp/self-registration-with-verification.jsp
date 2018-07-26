@@ -315,7 +315,7 @@
                                     String emailValue =
                                             request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group  <% if (lastNamePII.getRequired()
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group  <% if (emailNamePII.getRequired()
                             || !piisConfigured) {%> required <%}%>">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Email")%>
