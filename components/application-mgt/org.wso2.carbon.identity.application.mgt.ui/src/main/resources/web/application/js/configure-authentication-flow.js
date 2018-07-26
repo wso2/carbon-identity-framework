@@ -300,14 +300,14 @@ function populateTemplates() {
 
         if (sortedCategoryTempArr[i].templates) {
             var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
-                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '">' + sortedCategoryTempArr[i].displayName +
-                '</a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
+                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '"><span class="truncate-content  category-title">' + sortedCategoryTempArr[i].displayName +
+                '</span></a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
             var details = '<ul class="normal details">';
 
             $.each(sortedCategoryTempArr[i].templates, function (i, template) {
                 details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
                     'data-type-name="' + template.name + '" title="' + template.name + '">' +
-                    '<span>' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
+                    '<span class="truncate-content">' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
                     '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
             });
             details += '</ul>';
