@@ -29,8 +29,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
-  "img": "./images/environment.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/IP+Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication for any user who are trying to log in outside from the configured network",
     "",

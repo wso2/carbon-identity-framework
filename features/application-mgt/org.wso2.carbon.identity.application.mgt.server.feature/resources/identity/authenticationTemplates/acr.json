@@ -36,8 +36,7 @@
       "federated": []
     }
   },
-  "img": "./images/http.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Authentication+Context+Reference+Based+Adaptive+Authentication",
   "code": [
     "// Define conditional authentication by passing one or many Authentication Context Class References ",
     "// as comma separated values.",

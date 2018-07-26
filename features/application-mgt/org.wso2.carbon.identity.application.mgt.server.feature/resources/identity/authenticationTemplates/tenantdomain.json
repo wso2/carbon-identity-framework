@@ -30,8 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
-  "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Tenant+Based+Adaptive+Authentication",
   "code": [
     "// This script will prompt 2FA to the app only for a selected",
     "// set of tenants.",

@@ -30,8 +30,7 @@
       "federated": []
     }
   },
-  "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Role+Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication for any user belonging",
     "// to one of the given roles",
