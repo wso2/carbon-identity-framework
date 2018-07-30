@@ -942,6 +942,9 @@
         <!--End of timeouts in milliseconds-->
 
         <!--<PromptOnLongWait>false</PromptOnLongWait>-->
+
+        <!--Timeout in milliseconds for the waiting external calls-->
+        <LongWaitTimeout>10000</LongWaitTimeout>
     </AdaptiveAuth>
 
 </Server>
