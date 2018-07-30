@@ -138,7 +138,7 @@
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
     Claim[] claims = new Claim[0];
 
-    boolean isFromConsentTemplate = true;
+    String consentDisplayType = "row";
 
     if (hasPurposes) {
         defaultPurposeCatId = selfRegistrationMgtClient.getDefaultPurposeId(user.getTenantDomain());
@@ -185,6 +185,7 @@
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
         <link href="libs/font-awesome/css/font-awesome.css" rel="stylesheet">
+        <link href="css/custom-checkbox.css" rel="stylesheet">
         <link href="css/Roboto.css" rel="stylesheet">
         <link href="css/custom-common.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="libs/jstree/dist/themes/default/style.min.css" />
@@ -434,7 +435,7 @@
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
                             <%
                                 if (hasPurposes) {
-                                    if(isFromConsentTemplate){
+                                    if(consentDisplayType == "template"){
                             %>
                                 <!--User Consents from Template-->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
@@ -451,11 +452,11 @@
                                     </div>
                                 </div>
                                 <!--End User Consents from Template-->
-                            <% } else { %>
-                                <!--User Consents-->
+                            <% } else if(consentDisplayType == "tree"){ %>
+                                <!--User Consents Tree-->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
                                     <div class="alert alert-warning margin-none" role="alert">
-                                        <div id="consent-mgt-container">
+                                        <div id="consent-mgt-tree-container">
                                             <p>
                                                 <strong>
                                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
@@ -478,7 +479,27 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!--End User Consents-->
+                                <!--End User Consents Tree-->
+                            <%
+                                }else if(consentDisplayType == "row"){
+                            %>
+                                <!--User Consents Row-->
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                    <div class="col-xs-8 col-xs-offset-2 padding-top border-consent margin-bottom-double">
+                                        <div id="consent-mgt-row-container">
+                                            <div id="row-container"></div>
+                                        </div>
+                                        <div class="text-left padding-bottom">
+                                            <span class="required">
+                                                <strong>
+                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                            "All.asterisked.consents.are.mandatory")%>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--End User Consents Row-->
                             <%
                                 }}
                             %>
@@ -603,7 +624,6 @@
         $(document).ready(function () {
             var container;
             var allAttributes = [];
-            var SHOW_CONSENTS_FROM_TEMPLATES = <%=isFromConsentTemplate%>;
 
 
             var agreementChk = $(".agreement-checkbox input");
@@ -676,13 +696,17 @@
                 var receipt;
                 e.preventDefault();
                 <%
-                if (isFromConsentTemplate) {
+                if (consentDisplayType == "template") {
                 %>
                 receipt = addReciptInformationFromTemplate();
                 <%
-                } else {
+                } else if (consentDisplayType == "tree") {
                 %>
                 receipt = addReciptInformation(container);
+                <%
+                } else if (consentDisplayType == "row")  {
+                %>
+                receipt = addReciptInformationFromRows(container);
                 <%
                 }
                 %>
@@ -705,20 +729,40 @@
 
             String.prototype.replaceAll = function (str1, str2, ignore) {
                 return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), (ignore ? "gi" : "g")), (typeof(str2) == "string") ? str2.replace(/\$/g, "$$$$") : str2);
-            }
+            };
+
+            Handlebars.registerHelper('grouped_each', function(every, context, options) {
+                var out = "", subcontext = [], i;
+                if (context && context.length > 0) {
+                    for (i = 0; i < context.length; i++) {
+                        if (i > 0 && i % every === 0) {
+                            out += options.fn(subcontext);
+                            subcontext = [];
+                        }
+                        subcontext.push(context[i]);
+                    }
+                    out += options.fn(subcontext);
+                }
+                return out;
+            });
+
             <%
             if (hasPurposes) {
-                if(isFromConsentTemplate) {
+                if(consentDisplayType == "template") {
                     %>
-            renderReceiptDetailsFromTemplate(<%=purposes%>);
+                renderReceiptDetailsFromTemplate(<%=purposes%>);
             <%
-        } else {
+                } else if (consentDisplayType == "tree") {
             %>
-            renderReceiptDetails(<%=purposes%>);
+                renderReceiptDetails(<%=purposes%>);
             <%
-        }
-    }
-    %>
+                } else if (consentDisplayType == "row"){
+            %>
+                renderReceiptDetailsFromRows(<%=purposes%>);
+            <%
+                }
+            }
+            %>
 
             function renderReceiptDetails(data) {
 
@@ -850,6 +894,11 @@
                 return newReceipt;
             }
 
+            function addReciptInformationFromRows(purposes) {
+                console.log(purposes);
+                //return newReceipt;
+            }
+
             function unflatten(arr) {
                 var tree = [],
                     mappedArr = {},
@@ -906,6 +955,36 @@
                 });
 
                 $(".consent-statement").html(templateString);
+            }
+
+            function renderReceiptDetailsFromRows(data) {
+                var rowTemplate =
+                    '<div class="padding-bottom padding-top font-medium">We would like to request following attributes from you for specified purposes.</div>' +
+                    '{{#purposes}}' +
+                        '<div class="consent-container-3 box clearfix">' +
+                        '<p>For ' +
+                            '<strong data-purposeid="{{purposeId}}" data-mandetorypurpose="{{mandatory}}">{{purpose}}</strong>' +
+                        ', we need your, </p>' +
+                            '{{#grouped_each 2 piiCategories}}' +
+                        '<div class="row">' +
+                        '{{#each this }}' +
+                        '<div class="col-xs-6">' +
+                    '<input type="checkbox" name="switch" class="custom-checkbox" id="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}"/>' +
+                    '<label for="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}" data-piicategoryid="{{piiCategoryId}}" data-mandetorypiicatergory="{{mandatory}}">' +
+                            '<span>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}' +
+                            '<span class="required_consent">*</span>{{/if}}</span>' +
+                            '</label></div>' +
+                            '{{/each}}' +
+                        '</div>' +
+                        '{{/grouped_each}}' +
+                    '</div>' +
+                    '{{/purposes}}';
+
+                var rows = Handlebars.compile(rowTemplate);
+                var rowsRendered = rows(data);
+
+                $("#row-container").html(rowsRendered);
+                //$(".toggle-switch").toggleSwitch();
             }
 
         });
