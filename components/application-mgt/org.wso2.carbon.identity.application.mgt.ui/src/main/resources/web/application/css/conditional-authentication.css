@@ -22,7 +22,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100px;
+    width: 145px;
 }
 #template_list .type {
     margin-bottom: 4px;
@@ -440,5 +440,14 @@
     float: right;
     padding: 4px;
     margin-left: 0 !important;
-    height: 16px;
+    height: 18px;
+}
+.truncate-content {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+.category-title {
+    width: 120px;
 }
