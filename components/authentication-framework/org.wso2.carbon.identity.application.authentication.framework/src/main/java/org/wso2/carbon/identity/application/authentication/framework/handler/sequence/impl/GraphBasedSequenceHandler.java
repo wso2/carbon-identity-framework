@@ -500,9 +500,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             }
         } catch (NumberFormatException e) {
             //ignore. Default value will be used.
-            if (log.isDebugEnabled()) {
-                log.debug("Error while reading the wait timeout. ", e);
-            }
+            log.warn("Error while reading the wait timeout. Default value of 10 seconds will be used. ", e);
         }
         return waitTimeout;
     }
