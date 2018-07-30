@@ -411,11 +411,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         .getSpProperties()), tenantID);
             }
 
+            // Will be supported with 'Advance Consent Management Feature'.
+            /*
             deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
             if (serviceProvider.getConsentConfig() != null) {
-                updateConsentPurposeConfiguration(connection, applicationId, serviceProvider.getConsentConfig
-                        (), tenantID);
+                updateConsentPurposeConfiguration(connection, applicationId, serviceProvider.getConsentConfig(),
+                        tenantID);
             }
+            */
 
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -1698,12 +1701,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
+            // Will be supported with 'Advance Consent Management Feature'.
+            /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
             if (isNull(consentConfig)) {
                 consentConfig = new ConsentConfig();
             }
             consentConfig.setConsentPurposeConfigs(getConsentPurposeConfigs(connection, applicationId, tenantID));
             serviceProvider.setConsentConfig(consentConfig);
+            */
 
             return serviceProvider;
 
@@ -1818,7 +1824,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             basicAppDataResultSet = loadBasicAppInfoStmt.executeQuery();
             // ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE,
             // PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT, IS_SEND_LOCAL_SUBJECT_ID,
-            // IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI, IS_SAAS_APP, IS_CONSENT_ENABLED
+            // IS_SEND_AUTH_LIST_OF_IDPS, SUBJECT_CLAIM_URI, IS_SAAS_APP
 
             if (basicAppDataResultSet.next()) {
                 serviceProvider = new ServiceProvider();
@@ -1864,9 +1870,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
 
+                // Will be supported with 'Advance Consent Management Feature'.
+                /*
                 ConsentConfig consentConfig = new ConsentConfig();
                 consentConfig.setEnabled("1".equals(basicAppDataResultSet.getString(18)));
                 serviceProvider.setConsentConfig(consentConfig);
+                */
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
                             + " ApplicationName: " + serviceProvider.getApplicationName()
@@ -1926,12 +1935,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
 
+            // Will be supported with 'Advance Consent Management Feature'.
+            /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
             if (isNull(consentConfig)) {
                 consentConfig = new ConsentConfig();
             }
             consentConfig.setConsentPurposeConfigs(getConsentPurposeConfigs(connection, applicationId, tenantID));
             serviceProvider.setConsentConfig(consentConfig);
+            */
 
             return serviceProvider;
 
@@ -2008,9 +2020,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 serviceProvider.setSaasApp("1".equals(rs.getString(17)));
 
+                // Will be supported with 'Advance Consent Management Feature'.
+                /*
                 ConsentConfig consentConfig = new ConsentConfig();
                 consentConfig.setEnabled("1".equals(rs.getString(18)));
                 serviceProvider.setConsentConfig(consentConfig);
+                */
 
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()

@@ -18,28 +18,12 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.util;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
-import org.wso2.carbon.identity.application.common.model.xsd.ConsentConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurpose;
-import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ui.ApplicationBean;
-import org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose;
-import org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes;
-import org.wso2.carbon.identity.application.mgt.ui.client.ConsentManagementServiceClient;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpSession;
-
-import static java.util.Objects.nonNull;
-import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
-import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_SHARED;
-import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_TYPE_SP;
-import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PURPOSE_GROUP_TYPE_SYSTEM;
 
 public class ApplicationMgtUIUtil {
 
@@ -92,6 +76,8 @@ public class ApplicationMgtUIUtil {
         spUniqueIdMap.remove(spName);
     }
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
     public static ApplicationPurposes getApplicationSpecificPurposes(ServiceProvider serviceProvider)
             throws ConsentManagementException {
 
@@ -174,4 +160,5 @@ public class ApplicationMgtUIUtil {
         return consentConfig != null && consentConfig.getConsentPurposeConfigs() != null
             && consentConfig.getConsentPurposeConfigs().getConsentPurpose() != null;
     }
+    */
 }

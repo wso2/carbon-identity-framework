@@ -30,7 +30,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -85,8 +84,6 @@ public class ServiceProvider implements Serializable {
     @XmlTransient
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
-    @XmlElement(name = "ConsentConfig")
-    private ConsentConfig consentConfig;
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -192,9 +189,6 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
-            } else if (CONSENT_CONFIG_ELEM.equals(elementName)) {
-                //build consent purpose configuration.
-                serviceProvider.setConsentConfig(ConsentConfig.build(element));
             }
         }
 
@@ -387,24 +381,5 @@ public class ServiceProvider implements Serializable {
     public void setCertificateContent(String certificateContent) {
         this.certificateContent = certificateContent;
     }
-
-    /**
-     * Get consent purposes for service provider.
-     * @return ConsentConfig of the service provider
-     */
-    public ConsentConfig getConsentConfig() {
-
-        return consentConfig;
-    }
-
-    /**
-     * Set consent purposes for service provider.
-     * @param consentConfig ConsentConfig of the service provider.
-     */
-    public void setConsentConfig(ConsentConfig consentConfig) {
-
-        this.consentConfig = consentConfig;
-    }
-
 }
 
