@@ -109,8 +109,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private static final Log log = LogFactory.getLog(SSOConsentServiceImpl.class);
     private static final String DEFAULT_PURPOSE = "DEFAULT";
     private static final String DEFAULT_PURPOSE_CATEGORY = "DEFAULT";
-    private static final String DEFAULT_PUPRPOSE_GROUP = "DEFAULT";
-    private static final String DEFAULT_PURPOSE_GROUP_TYPE = "SYSTEM";
+    private static final String DEFAULT_PURPOSE_GROUP = "DEFAULT";
+    private static final String DEFAULT_PURPOSE_GROUP_TYPE = "SP";
     private boolean ssoConsentEnabled = true;
 
     public SSOConsentServiceImpl() {
@@ -598,7 +598,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         Purpose purpose;
 
         try {
-            purpose = getConsentManager().getPurposeByName(DEFAULT_PURPOSE);
+            purpose = getConsentManager().getPurposeByName(DEFAULT_PURPOSE, DEFAULT_PURPOSE_GROUP,
+                                                           DEFAULT_PURPOSE_GROUP_TYPE);
         } catch (ConsentManagementClientException e) {
 
             if (isInvalidPurposeError(e)) {
@@ -618,7 +619,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         Purpose purpose;
         Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product",
-                                             DEFAULT_PUPRPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE, false);
+                                             DEFAULT_PURPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE, false);
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {

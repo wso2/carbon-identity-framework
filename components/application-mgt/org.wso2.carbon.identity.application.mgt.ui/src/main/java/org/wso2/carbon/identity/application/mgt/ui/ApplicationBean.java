@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -49,13 +50,16 @@ import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
 
 public class ApplicationBean {
 
@@ -92,6 +96,8 @@ public class ApplicationBean {
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
     private ConsentConfig consentConfig;
+    private ApplicationPurposes applicationPurposes;
+    private Purpose[] sharedPurposes;
 
     Log log = LogFactory.getLog(ApplicationBean.class);
 
@@ -126,6 +132,8 @@ public class ApplicationBean {
         enabledFederatedIdentityProviders = null;
         inboundAuthenticationRequestConfigs = Collections.EMPTY_LIST;
         consentConfig = null;
+        applicationPurposes = null;
+        sharedPurposes = null;
     }
 
     /**
@@ -1438,13 +1446,85 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
-        // TODO: Update the configs from request once the SP consent purpose UI is implemented.
+        String IS_CONSENT_ENABLED = "is_consent_enabled";
+        boolean consentEnabled = request.getParameter(IS_CONSENT_ENABLED) != null;
+
+        ArrayList<ConsentPurpose> consentPurposesList = new ArrayList<>();
+        processConsentPurposesInput(request, consentPurposesList);
+
         ConsentConfig consentConfig = new ConsentConfig();
+        consentConfig.setEnabled(consentEnabled);
         ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
-        consentPurposeConfigs.setConsentPurpose(new ConsentPurpose[0]);
+        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
         consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
 
         serviceProvider.setConsentConfig(consentConfig);
+    }
+
+    private void processConsentPurposesInput(HttpServletRequest request, ArrayList<ConsentPurpose> consentPurposesList) {
+
+        processAppConsentPurposesInput(request, consentPurposesList);
+        processSharedConsentPurposesInput(request, consentPurposesList);
+    }
+
+    private void processSharedConsentPurposesInput(HttpServletRequest request,
+                                                   ArrayList<ConsentPurpose> consentPurposesList) {
+
+        String SHARED_PURPOSE_ID_PARAM_KEY = "shared_purpose_id";
+        String DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX = "display_order_shared_purpose_id_";
+
+        String[] sharedPurposeIds = request.getParameterValues(SHARED_PURPOSE_ID_PARAM_KEY);
+        if (nonNull(sharedPurposeIds)) {
+            for (String sharedPurposeId : sharedPurposeIds) {
+                String displayOrderValue = request.getParameter(DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX +
+                                                                sharedPurposeId);
+                if (nonNull(displayOrderValue)) {
+                    ConsentPurpose consentPurpose = new ConsentPurpose();
+                    consentPurpose.setPurposeId(Integer.parseInt(sharedPurposeId));
+
+                    int displayOrder = DEFAULT_DISPLAY_ORDER;
+                    try {
+                        displayOrder = Integer.parseInt(displayOrderValue);
+                    } catch (NumberFormatException e) {
+                        // Do nothing. Default display order '0' will be used.
+                    }
+                    consentPurpose.setDisplayOrder(displayOrder);
+                    consentPurposesList.add(consentPurpose);
+                }
+            }
+        }
+    }
+
+    private void processAppConsentPurposesInput(HttpServletRequest request,
+                                                ArrayList<ConsentPurpose> consentPurposesList) {
+
+        String APP_PURPOSE_ID_PARAM_KEY = "app_purpose_id";
+        String SELECTED_PURPOSE_ID_PARAM_PREFIX = "selected_purpose_id_";
+        String DISPLAY_ORDER_PURPOSE_ID_PREFIX = "display_order_purpose_id_";
+
+        String[] appPurposeIds = request.getParameterValues(APP_PURPOSE_ID_PARAM_KEY);
+        if (nonNull(appPurposeIds)) {
+            for (String appPurposeId : appPurposeIds) {
+                String selectedAppPurpose = request.getParameter(SELECTED_PURPOSE_ID_PARAM_PREFIX + appPurposeId);
+                if (nonNull(selectedAppPurpose)) {
+                    String displayOrderValue = request.getParameter(DISPLAY_ORDER_PURPOSE_ID_PREFIX + appPurposeId);
+                    // If app specific purpose is selected, get the display order and add to consentPurposesList.
+                    if (nonNull(displayOrderValue)) {
+                        ConsentPurpose consentPurpose = new ConsentPurpose();
+                        consentPurpose.setPurposeId(Integer.parseInt(appPurposeId));
+
+                        int displayOrder = DEFAULT_DISPLAY_ORDER;
+                        try {
+                            displayOrder = Integer.parseInt(displayOrderValue);
+                        } catch (NumberFormatException e) {
+                            // Do nothing. Default display order '0' will be used.
+                        }
+                        consentPurpose.setDisplayOrder(displayOrder);
+                        consentPurposesList.add(consentPurpose);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1548,5 +1628,35 @@ public class ApplicationBean {
             }
         }
 
+    }
+
+    public ConsentConfig getConsentConfig() {
+
+        return consentConfig;
+    }
+
+    public void setConsentConfig(ConsentConfig consentConfig) {
+
+        this.consentConfig = consentConfig;
+    }
+
+    public ApplicationPurposes getApplicationPurposes() {
+
+        return applicationPurposes;
+    }
+
+    public void setApplicationPurposes(ApplicationPurposes applicationPurposes) {
+
+        this.applicationPurposes = applicationPurposes;
+    }
+
+    public Purpose[] getSharedPurposes() {
+
+        return sharedPurposes;
+    }
+
+    public void setSharedPurposes(Purpose[] sharedPurposes) {
+
+        this.sharedPurposes = sharedPurposes;
     }
 }

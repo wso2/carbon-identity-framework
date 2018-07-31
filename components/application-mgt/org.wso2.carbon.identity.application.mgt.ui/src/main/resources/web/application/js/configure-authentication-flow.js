@@ -22,7 +22,7 @@ var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
-var scriptStringHeader = "function onInitialRequest(context) {";
+var scriptStringHeader = "function onLoginRequest(context) {";
 var scriptStringContent = [];
 var scriptStringFooter = "}";
 var scriptEnabled = false;
@@ -65,6 +65,8 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 });
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
+
+checkEmptyEditorContent();
 
 checkScriptDirty();
 
@@ -140,8 +142,17 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
         if (stepDifference.script.length > 0) {
             for (var i = 0; i < stepDifference.script.length; ++i) {
+
+                var lineNo = [];
+                var stepReg = new RegExp("executeStep\\(" + stepDifference.script[i] + "+", "g");
+                myCodeMirror.eachLine(function (line) {
+                    if (line.text.trim().match(stepReg)) {
+                        lineNo.push(myCodeMirror.getLineNumber(line) + 1);
+                    }
+                });
+
                 elementErr.append("<li>Could not find matching Authentication Step for script executeStep <b>"
-                    + stepDifference.script[i] + "</b>.</li>");
+                    + stepDifference.script[i] + "</b> [Ln: " + lineNo.join() + "].</li>");
             }
         }
     }
@@ -267,23 +278,42 @@ populateTemplates();
 
 function populateTemplates() {
 
-    $.each(templates, function (category, categoryTemplates) {
+    var categoryTempArr = [];
 
-        var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
-            '<a href="#" title="' + category + '">' + category + '</a></h2></li>';
-        var details = '<ul class="normal details">';
-
-        $.each(categoryTemplates, function (i, template) {
-            details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
-                'data-type-name="' + template.name + '" title="' + template.name + '"><img src="' + template.img + '"/>' +
-                '<span>' + template.name + '</span></a><span  title="' + template.help + '" class="helpLink">' +
-                '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
-        });
-        details += '</ul>';
-        $(tempType).appendTo('#template_list').append(details);
+    $.each(templates, function (i, categoryTemplates) {
+        categoryTempArr.push(categoryTemplates);
     });
 
+    var sortedCategoryTempArr = categoryTempArr.slice(0);
+    sortedCategoryTempArr.sort(function (a, b) {
+        return a.order - b.order;
+    });
 
+    $.each(sortedCategoryTempArr, function (i) {
+
+        var categoryImg = '';
+        if (sortedCategoryTempArr[i].icon) {
+            categoryImg = sortedCategoryTempArr[i].icon;
+        } else {
+            categoryImg = "./images/uncategorized-template.png";
+        }
+
+        if (sortedCategoryTempArr[i].templates) {
+            var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
+                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '"><span class="truncate-content  category-title">' + sortedCategoryTempArr[i].displayName +
+                '</span></a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
+            var details = '<ul class="normal details">';
+
+            $.each(sortedCategoryTempArr[i].templates, function (i, template) {
+                details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
+                    'data-type-name="' + template.name + '" title="' + template.name + '">' +
+                    '<span class="truncate-content">' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
+                    '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
+            });
+            details += '</ul>';
+            $(tempType).appendTo('#template_list').append(details);
+        }
+    });
 }
 
 $('[data-toggle=template-link]').click(function (e) {
@@ -292,15 +322,22 @@ $('[data-toggle=template-link]').click(function (e) {
     var data;
     var tempName;
     var templateObj = null;
+    var categoryTempArr = [];
 
-    $.each(templates, function (category, categoryTemplates) {
-        $.each(categoryTemplates, function (i, template) {
-            if (template.name === typeName) {
-                data = template.code.join("\n");
-                tempName = template.name;
-                templateObj = template;
-            }
-        });
+    $.each(templates, function (i, categoryTemplates) {
+        categoryTempArr.push(categoryTemplates);
+    });
+
+    $.each(categoryTempArr, function (i) {
+        if (categoryTempArr[i].templates) {
+            $.each(categoryTempArr[i].templates, function (i, template) {
+                if (template.name === typeName) {
+                    data = template.code.join("\n");
+                    tempName = template.name;
+                    templateObj = template;
+                }
+            })
+        }
     });
 
     if (templateObj === null) {
@@ -317,6 +354,9 @@ $('[data-toggle=template-link]').click(function (e) {
     var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
     var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
     var renderedTemplateInfo = compiledTemplate(templateObj);
+
+    editorContent = doc.getValue();
+
     showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, "OK", "Cancel", doReplaceRange, null);
 
     function doReplaceRange() {
@@ -536,8 +576,8 @@ function showHideTemplateList() {
     }
     else {
         addTemplate.css("background-image", "url(images/template-close.png)");
-        codeMirror.animate({marginRight: 212}, {duration: 125, queue: false});
-        templates.animate({width: 210}, {duration: 50, queue: false});
+        codeMirror.animate({marginRight: 240}, {duration: 125, queue: false});
+        templates.animate({width: 240}, {duration: 50, queue: false});
         contentToggle = 0;
     }
 }
@@ -621,6 +661,12 @@ $('#stepsAddLink').click(function (e) {
         buildScriptString($(".steps > h2"));
     }
 });
+
+function checkEmptyEditorContent() {
+    if (editorContent.length === 0) {
+        buildScriptString($(".steps > h2"));
+    }
+}
 
 function checkScriptDirty() {
     var str = "";

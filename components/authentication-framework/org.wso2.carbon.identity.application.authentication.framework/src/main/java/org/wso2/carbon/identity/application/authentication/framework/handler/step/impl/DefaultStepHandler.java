@@ -756,8 +756,7 @@ public class DefaultStepHandler implements StepHandler {
 
         if (promptType != null) {
             retryParam += "&" + FrameworkConstants.RequestParams.INPUT_TYPE + "=" + promptType;
-            //TODO remove this from url and add to the new endpoint.
-            retryParam += "&username=" + usernameFromContext;
+            context.addEndpointParam("username", usernameFromContext);
         }
         return retryParam;
     }

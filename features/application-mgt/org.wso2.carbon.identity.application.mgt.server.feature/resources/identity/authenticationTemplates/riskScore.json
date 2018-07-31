@@ -1,6 +1,6 @@
 {
-  "category": "Analytics Based",
-  "name": "RiskCalculation",
+  "category": "analytics_based",
+  "name": "Risk Calculation",
   "title": "Risk Calculation Based 2FA Template",
   "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
   "preRequisites": [
@@ -30,8 +30,7 @@
       "federated": []
     }
   },
-  "img": "./images/http.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Risk+Based+Adaptive+Authentication",
   "code": [
     "// Define conditional authentication by risk score value calculated from analytics engine.",
     "",
@@ -40,10 +39,10 @@
     "// Specify the Siddhi input stream name.",
     "var siddhiInputStream = 'InputStream';",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
-    "            var username = context.steps[1].subject.username;",
+    "            var username = context.currentKnownSubject.username;",
     "            callAnalytics({'Application':siddhiApplication,'InputStream':siddhiInputStream}, {'username':username}, {",
     "                onSuccess : function(context, data) {",
     "                    Log.info('--------------- Received risk score value: ' + data.event.riskScore);",

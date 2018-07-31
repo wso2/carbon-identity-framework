@@ -1,5 +1,5 @@
 {
-  "category": "User Based",
+  "category": "user_based",
   "name": "Role Based",
   "title": "Role Based 2FA Template",
   "summary": "Prompts 2FA to the users who belongs to any of the given set of roles.",
@@ -30,19 +30,18 @@
       "federated": []
     }
   },
-  "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Role+Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication for any user belonging",
     "// to one of the given roles",
     "// If the user has any of the below roles, authentication will be stepped up",
     "var rolesToStepUp = ['admin', 'manager'];",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting authenticated subject from the first step",
-    "            var user = context.steps[1].subject;",
+    "            var user = context.currentKnownSubject;",
     "            // Checking if the user is assigned to one of the given roles",
     "            var hasRole = hasAnyOfTheRoles(user, rolesToStepUp);",
     "            if (hasRole) {",

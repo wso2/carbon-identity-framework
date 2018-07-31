@@ -1,5 +1,5 @@
 {
-  "category": "Environment Based",
+  "category": "environment_based",
   "name": "IP Based",
   "title": "IP based Authentication Template",
   "summary": "Prompts 2FA to the users who are logging outside of the given ip range.",
@@ -29,18 +29,17 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
-  "img": "./images/environment.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/IP+Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication for any user who are trying to log in outside from the configured network",
     "",
     "// Configure the network ranges here",
     "var corpNetwork = ['192.168.1.0/24', '10.100.0.0/16'];",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
-    "            var user = context.steps[1].subject;",
+    "            var user = context.currentKnownSubject;",
     "            // Extracting the origin IP of the request",
     "            var loginIp = context.request.ip;",
     "            Log.info('User: ' + user.username + ' logged in from IP: ' + loginIp);",

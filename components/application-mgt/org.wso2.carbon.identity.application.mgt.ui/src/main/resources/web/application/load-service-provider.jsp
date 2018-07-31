@@ -23,6 +23,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ConsentConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ClaimMetadataMgtServiceClient" %>
@@ -83,7 +84,9 @@
                     String claimDialectURI = claimDialect.getClaimDialectURI();
                     claimDialectUris.add(claimDialectURI);
                 }
-                
+                appBean.setApplicationPurposes(ApplicationMgtUIUtil.getApplicationSpecificPurposes(serviceProvider));
+                appBean.setSharedPurposes(ApplicationMgtUIUtil.getSharedPurposes());
+
                 LocalAuthenticatorConfig[] localAuthenticatorConfigs = serviceClient.getAllLocalAuthenticators();
                 RequestPathAuthenticatorConfig[] requestPathAuthenticators = serviceClient.getAllRequestPathAuthenticators();
                 appBean.setServiceProvider(serviceProvider);

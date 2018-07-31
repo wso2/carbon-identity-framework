@@ -1,5 +1,5 @@
 {
-  "category": "User Based",
+  "category": "user_based",
   "name": "Tenant Based",
   "title": "Tenant Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given tenants.",
@@ -30,8 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
-  "img": "./images/user.png",
+  "helpLink": "https://docs.wso2.com/display/IS570/Tenant+Based+Adaptive+Authentication",
   "code": [
     "// This script will prompt 2FA to the app only for a selected",
     "// set of tenants.",
@@ -40,11 +39,11 @@
     "// If the user is in one of the following tenants, user will be prompted 2FA",
     "var tenantsToStepUp = ['abc.com', 'xyz.com'];",
     "",
-    "function onInitialRequest(context) {",
+    "function onLoginRequest(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting tenant domain of authenticated subject from the first step",
-    "            var userTenantDomain = context.steps[1].subject.tenantDomain;",
+    "            var userTenantDomain = context.currentKnownSubject.tenantDomain;",
     "            // Checking if the user is from whitelisted tenant domain",
     "            if (tenantsToStepUp.indexOf(userTenantDomain) >= 0) {",
     "                executeStep(2);",

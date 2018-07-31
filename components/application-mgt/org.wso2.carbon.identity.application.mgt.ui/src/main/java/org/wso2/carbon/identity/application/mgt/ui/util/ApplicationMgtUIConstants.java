@@ -26,6 +26,11 @@ public class ApplicationMgtUIConstants {
     private ApplicationMgtUIConstants() {
     }
 
+    public static final String PURPOSE_GROUP_SHARED = "SHARED";
+    public static final String PURPOSE_GROUP_TYPE_SP = "SP";
+    public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final int DEFAULT_DISPLAY_ORDER = 0;
+
     /**
      * Holds the application UI param related constants.
      */

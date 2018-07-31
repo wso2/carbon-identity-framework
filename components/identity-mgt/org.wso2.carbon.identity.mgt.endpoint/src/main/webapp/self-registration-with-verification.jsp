@@ -39,18 +39,14 @@
 <%@ page import="org.apache.commons.collections.CollectionUtils" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="org.apache.commons.collections.MapUtils" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.ArrayList" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
     SelfRegistrationMgtClient selfRegistrationMgtClient = new SelfRegistrationMgtClient();
-    boolean isFirstNameInClaims = true;
-    boolean isFirstNameRequired = true;
-    boolean isLastNameInClaims = true;
-    boolean isLastNameRequired = true;
-    boolean isEmailInClaims = true;
-    boolean isEmailRequired = true;
     Integer defaultPurposeCatId = null;
     Integer userNameValidityStatusCode = null;
     String username = request.getParameter("username");
@@ -58,6 +54,8 @@
     String consentPurposeGroupType = "SYSTEM";
     String[] missingClaimList = new String[0];
     String[] missingClaimDisplayName = new String[0];
+    Map<String, Claim> uniquePIIs = null;
+    boolean piisConfigured = false;
     if (request.getParameter(Constants.MISSING_CLAIMS) != null) {
         missingClaimList = request.getParameter(Constants.MISSING_CLAIMS).split(",");
     }
@@ -138,21 +136,26 @@
     String purposes = selfRegistrationMgtClient.getPurposes(user.getTenantDomain(), consentPurposeGroupName,
             consentPurposeGroupType);
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
+    Claim[] claims = new Claim[0];
     
     if (hasPurposes) {
         defaultPurposeCatId = selfRegistrationMgtClient.getDefaultPurposeId(user.getTenantDomain());
+        uniquePIIs = IdentityManagementEndpointUtil.getUniquePIIs(purposes);
+        if (MapUtils.isNotEmpty(uniquePIIs)) {
+            piisConfigured = true;
+        }
     }
-    Claim[] claims = new Claim[0];
-
+    
     List<Claim> claimsList;
     UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
     try {
         claimsList = usernameRecoveryApi.claimsGet(user.getTenantDomain(), false);
-        if (claimsList != null) {
-            claims = claimsList.toArray(new Claim[claimsList.size()]);
+        uniquePIIs = IdentityManagementEndpointUtil.fillPiisWithClaimInfo(uniquePIIs, claimsList);
+        if (uniquePIIs != null) {
+            claims = uniquePIIs.values().toArray(new Claim[0]);
         }
         IdentityManagementEndpointUtil.addReCaptchaHeaders(request, usernameRecoveryApi.getApiClient().getResponseHeaders());
-
+        
     } catch (ApiException e) {
         Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
@@ -160,7 +163,7 @@
             request.setAttribute("errorMsg", errorD.getDescription());
             request.setAttribute("errorCode", errorD.getCode());
         }
-
+        
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
@@ -250,31 +253,36 @@
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
                             <div id="regFormSuc" class="alert alert-success" style="display:none"></div>
 
-                            <% if (isFirstNameInClaims) {
-                                String firstNameClaimURI = "http://wso2.org/claims/givenname";
-                                String firstNameValue = request.getParameter(firstNameClaimURI);
+                            <% Claim firstNamePII =
+                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
+                                if (firstNamePII != null) {
+                                String firstNameValue = request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (firstNamePII.getRequired() ||
+                            !piisConfigured) {%> required <%}%>">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "First.name")%>
                                 </label>
                                 <input type="text" name="http://wso2.org/claims/givenname" class="form-control"
-                                    <% if (isFirstNameRequired) {%> required <%}%>
+                                    <% if (firstNamePII.getRequired() || !piisConfigured) {%> required <%}%>
                                 <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(firstNameValue)) { %>
                                 value="<%= Encode.forHtmlAttribute(firstNameValue)%>" disabled <% } %>>
                             </div>
                             <%}%>
-
-                            <% if (isLastNameInClaims) {
-                                String lastNameClaimURI = "http://wso2.org/claims/lastname";
-                                String lastNameValue = request.getParameter(lastNameClaimURI);
+    
+                            <% Claim lastNamePII =
+                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
+                                if (lastNamePII != null) {
+                                    String lastNameValue =
+                                            request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (lastNamePII.getRequired() ||
+                            !piisConfigured) {%> required <%}%>">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Last.name")%>
                                 </label>
                                 <input type="text" name="http://wso2.org/claims/lastname" class="form-control"
-                                    <% if (isLastNameRequired) {%> required <%}%>
+                                    <% if (lastNamePII.getRequired() || !piisConfigured) {%> required <%}%>
                                     <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(lastNameValue)) { %>
                                        value="<%= Encode.forHtmlAttribute(lastNameValue)%>" disabled <% } %>>
 
@@ -300,18 +308,21 @@
                                 <input id="password2" name="password2" type="password" class="form-control"
                                        data-match="reg-password" required>
                             </div>
-
-                            <% if (isEmailInClaims) {
-                                String claimURI = "http://wso2.org/claims/emailaddress";
-                                String emailValue = request.getParameter(claimURI);
+    
+                            <% Claim emailNamePII =
+                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
+                                if (emailNamePII != null) {
+                                    String emailValue =
+                                            request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group  <% if (emailNamePII.getRequired()
+                            || !piisConfigured) {%> required <%}%>">
                                 <label class="control-label">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Email")%>
                                 </label>
                                 <input type="email" name="http://wso2.org/claims/emailaddress" class="form-control"
                                        data-validate="email"
-                                    <% if (isEmailRequired) {%> required <%}%><% if
+                                    <% if (emailNamePII.getRequired() || !piisConfigured) {%> required <%}%><% if
                                     (skipSignUpEnableCheck && StringUtils.isNotEmpty(emailValue)) {%>
                                        value="<%= Encode.forHtmlAttribute(emailValue)%>"
                                        disabled<%}%>>
@@ -361,7 +372,8 @@
                                     String claimURI = claim.getUri();
                                     String claimValue = request.getParameter(claimURI);
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group <% if
+                            (claim.getRequired()) {%> required <%}%>" >
                                 <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
                                     <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
                                 </label>
@@ -441,7 +453,7 @@
                                             <span class="required">
                                                 <strong>
                                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "Please.note.all.consents.are.mandatory")%>
+                                                            "All.asterisked.consents.are.mandatory")%>
                                                 </strong>
                                             </span>
                                         </div>
@@ -552,8 +564,6 @@
         var allAttributes = [];
         $(document).ready(function () {
 
-            var ALL_ATTRIBUTES_MANDATORY = true;
-
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
 
@@ -585,19 +595,6 @@
                         invalidInput = true;
                         return false;
                     }
-                }
-
-                if (ALL_ATTRIBUTES_MANDATORY) {
-                    if (container) {
-                        var selectedAttributes = container.jstree(true).get_selected();
-                        var allSelected = compareArrays(allAttributes, selectedAttributes) ? true : false;
-
-                        if (!allSelected) {
-                            $("#attribute_selection_validation").modal();
-                            return false;
-                        }
-                    }
-
                 }
 
                 if (invalidInput) {
@@ -668,9 +665,9 @@
                 '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                 '<ul>' +
                 '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}">{{purpose}}{{#if description}} : <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
+                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>{{purpose}}{{#if description}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}: <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
                 '{{#piiCategories}}' +
-                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}">{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}</li>' +
+                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}" mandetorypiicatergory={{mandatory}}>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}</li>' +
                 '</li>' +
                 '{{/piiCategories}}' +
                 '</ul>' +
@@ -730,7 +727,6 @@
                 var purpose = purposes[i];
                 var newPurpose = {};
                 newPurpose["purposeId"] = purpose.li_attr.purposeid;
-                //newPurpose = oldPurpose[0];
                 newPurpose['piiCategory'] = [];
                 newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
 

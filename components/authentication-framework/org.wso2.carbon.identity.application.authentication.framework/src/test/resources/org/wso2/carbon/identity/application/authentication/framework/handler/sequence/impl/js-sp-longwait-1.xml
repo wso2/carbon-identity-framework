@@ -80,7 +80,7 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-function onInitialRequest(context) {
+function onLoginRequest(context) {
     //TODO remove this executeStep and make it to work.
     executeStep(1);
     testLongWaitCall('a', 'b', 'c', {}, {

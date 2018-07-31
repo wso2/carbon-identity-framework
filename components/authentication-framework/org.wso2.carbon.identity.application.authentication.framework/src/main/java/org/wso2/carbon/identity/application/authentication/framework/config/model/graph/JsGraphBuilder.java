@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
@@ -34,10 +32,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -147,7 +147,7 @@ public class JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(script);
-            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_INITIATE_REQUEST,
+            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
@@ -159,7 +159,7 @@ public class JsGraphBuilder {
         } catch (NoSuchMethodException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
-                    .JS_FUNC_INITIATE_REQUEST + " function is not defined.");
+                    .JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
@@ -503,9 +503,7 @@ public class JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            Gson gson = new GsonBuilder().create();
-            String json = gson.toJson(ScriptObjectMirror.wrapAsJSONCompatible(parameters[0], null));
-            newNode.setData(json);
+            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);

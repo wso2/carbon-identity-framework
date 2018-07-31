@@ -4,7 +4,7 @@
     display: inline-table;
 }
 #template_list{
-    height: 280px;
+    height: 325px;
     overflow-y: scroll;
 }
 #template_list .name {
@@ -22,7 +22,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100px;
+    width: 145px;
 }
 #template_list .type {
     margin-bottom: 4px;
@@ -260,7 +260,7 @@
     background:url('../images/templates.png') 5px 50% no-repeat;
     background-color: rgba(204, 204, 204, 0.4);
     height: auto;
-    width: 260px;
+    width: 305px;
     line-height: inherit;
     margin: 0px;
     padding: 5px 10px;
@@ -311,6 +311,22 @@
     overflow: auto;
     min-height: 50px;
 }
+.messagebox-info-custom {
+    background-image: url(../images/info.png);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 90px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+    font-size: 12px;
+}
+
+#messagebox-template-summary {
+    margin-bottom: 40px;
+}
 
 .messagebox-warning-custom p,.messagebox-error-custom p {
     text-align: justify;
@@ -339,13 +355,18 @@
 .editor-error-content, .editor-warning-content {
     display: none;
 }
-.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg {
+.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg, #template-replace-warn{
     margin: 10px 0px;
     margin-top: 20px;
     padding: 12px;
     color: #D8000C;
     background-color: #FFD2D2;
 }
+
+#template-replace-warn {
+    margin: 20px 10px 10px 10px;
+}
+
 .messagebox-warning-custom .stepErrorListContainer{
     padding-bottom: 10px;
 }
@@ -407,4 +428,26 @@
 .err_warn_text {
     padding: 20px 0 0 16px;
     font-size: 12.65px;
+}
+#editorRow .CodeMirror {
+    height: 345px;
+}
+.template-list-container h2.trigger {
+    background-color: #f5f5f5;
+    border: 1px solid #cccccc!important;
+}
+.categoryImg {
+    float: right;
+    padding: 4px;
+    margin-left: 0 !important;
+    height: 18px;
+}
+.truncate-content {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+.category-title {
+    width: 120px;
 }

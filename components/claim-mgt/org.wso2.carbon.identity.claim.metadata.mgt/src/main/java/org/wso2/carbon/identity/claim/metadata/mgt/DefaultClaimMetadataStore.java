@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -91,18 +92,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
         if (claimConfig.getClaimMap() != null) {
 
-            // Adding local claims
-            String primaryDomainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
-            UserRealm realm;
-            try {
-                realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
-                        .getTenantUserRealm(tenantId);
-                primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-                        (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-            } catch (UserStoreException e) {
-                log.error("Error while retrieving primary userstore domain name", e);
-            }
-
+            // Get the primary domain name
+            String primaryDomainName = IdentityUtil.getPrimaryDomainName();
 
             // Adding external dialects and claims
             Set<String> claimDialectList = new HashSet<>();
