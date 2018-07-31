@@ -67,7 +67,7 @@
     boolean isPasswordProvisionEnabled = Boolean.parseBoolean(request.getParameter("passwordProvisionEnabled"));
     String callback = Encode.forHtmlAttribute(request.getParameter("callback"));
     User user = IdentityManagementServiceUtil.getInstance().getUser(username);
-    
+
     if (skipSignUpEnableCheck) {
         consentPurposeGroupName = "JIT";
     }
@@ -109,7 +109,7 @@
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
-    
+
     if (userNameValidityStatusCode != null && !SelfRegistrationStatusCodes.CODE_USER_NAME_AVAILABLE.
             equalsIgnoreCase(userNameValidityStatusCode.toString())) {
         if (allowchangeusername ||  !skipSignUpEnableCheck) {
@@ -576,8 +576,8 @@
                         <div class="clearfix"></div>
                     </div>
                 </form>
-                
-                
+
+
                 </div>
             </div>
         </div>
@@ -617,6 +617,27 @@
         </div>
     </div>
 
+    <div id="mandetory_pii_selection_validation" class="modal fade" tabindex="-1" role="dialog"
+         aria-labelledby="mySmallModalLabel">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Consent.selection")%>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Need.to.select.all.mandatory.attributes")%>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Ok")%></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="libs/handlebars-v4.0.11.js"></script>
@@ -628,7 +649,6 @@
         $(document).ready(function () {
             var container;
             var allAttributes = [];
-
 
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
@@ -645,7 +665,6 @@
             });
 
             $("#register").submit(function (e) {
-
                 var unsafeCharPattern = /[<>`\"]/;
                 var elements = document.getElementsByTagName("input");
                 var invalidInput = false;
@@ -710,11 +729,10 @@
                 <%
                 } else if (consentDisplayType == "row")  {
                 %>
-                receipt = addReciptInformationFromRows(container);
+                receipt = addReciptInformationFromRows();
                 <%
                 }
                 %>
-
 
                 $('<input />').attr('type', 'hidden')
                     .attr('name', "consent")
@@ -737,7 +755,7 @@
                 return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), (ignore ? "gi" : "g")), (typeof(str2) == "string") ? str2.replace(/\$/g, "$$$$") : str2);
             };
 
-            Handlebars.registerHelper('grouped_each', function(every, context, options) {
+            Handlebars.registerHelper('grouped_each', function (every, context, options) {
                 var out = "", subcontext = [], i;
                 if (context && context.length > 0) {
                     for (i = 0; i < context.length; i++) {
@@ -756,15 +774,15 @@
             if (hasPurposes) {
                 if(consentDisplayType == "template") {
                     %>
-                renderReceiptDetailsFromTemplate(<%=purposes%>);
+            renderReceiptDetailsFromTemplate(<%=purposes%>);
             <%
                 } else if (consentDisplayType == "tree") {
             %>
-                renderReceiptDetails(<%=purposes%>);
+            renderReceiptDetails(<%=purposes%>);
             <%
                 } else if (consentDisplayType == "row"){
             %>
-                renderReceiptDetailsFromRows(<%=purposes%>);
+            renderReceiptDetailsFromRows(<%=purposes%>);
             <%
                 }
             }
@@ -772,21 +790,21 @@
 
             function renderReceiptDetails(data) {
 
-            var treeTemplate =
-                '<div id="html1">' +
-                '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
-                '<ul>' +
-                '{{#purposes}}' +
-                '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>{{purpose}}{{#if description}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}: <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
-                '{{#piiCategories}}' +
-                '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}" mandetorypiicatergory={{mandatory}}>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}</li>' +
-                '</li>' +
-                '{{/piiCategories}}' +
-                '</ul>' +
-                '{{/purposes}}' +
-                '</ul></li>' +
-                '</ul>' +
-                '</div>';
+                var treeTemplate =
+                    '<div id="html1">' +
+                    '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
+                    '<ul>' +
+                    '{{#purposes}}' +
+                    '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>{{purpose}}{{#if description}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}: <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
+                    '{{#piiCategories}}' +
+                    '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}" mandetorypiicatergory={{mandatory}}>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}</li>' +
+                    '</li>' +
+                    '{{/piiCategories}}' +
+                    '</ul>' +
+                    '{{/purposes}}' +
+                    '</ul></li>' +
+                    '</ul>' +
+                    '</div>';
 
                 var tree = Handlebars.compile(treeTemplate);
                 var treeRendered = tree(data);
@@ -835,30 +853,30 @@
                 var purposes = relationshipTree[0].children;
                 var newPurposes = [];
 
-            for (var i = 0; i < purposes.length; i++) {
-                var purpose = purposes[i];
-                var newPurpose = {};
-                newPurpose["purposeId"] = purpose.li_attr.purposeid;
-                newPurpose['piiCategory'] = [];
-                newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
+                for (var i = 0; i < purposes.length; i++) {
+                    var purpose = purposes[i];
+                    var newPurpose = {};
+                    newPurpose["purposeId"] = purpose.li_attr.purposeid;
+                    newPurpose['piiCategory'] = [];
+                    newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
 
-                var piiCategory = [];
-                var categories = purpose.children;
-                for (var j = 0; j < categories.length; j++) {
-                    var category = categories[j];
-                    var c = {};
-                    c['piiCategoryId'] = category.li_attr.piicategoryid;
-                    piiCategory.push(c);
+                    var piiCategory = [];
+                    var categories = purpose.children;
+                    for (var j = 0; j < categories.length; j++) {
+                        var category = categories[j];
+                        var c = {};
+                        c['piiCategoryId'] = category.li_attr.piicategoryid;
+                        piiCategory.push(c);
+                    }
+                    newPurpose['piiCategory'] = piiCategory;
+                    newPurposes.push(newPurpose);
                 }
-                newPurpose['piiCategory'] = piiCategory;
-                newPurposes.push(newPurpose);
-            }
-            service['purposes'] = newPurposes;
-            services.push(service);
-            newReceipt['services'] = services;
+                service['purposes'] = newPurposes;
+                services.push(service);
+                newReceipt['services'] = services;
 
-            return newReceipt;
-        }
+                return newReceipt;
+            }
 
             function addReciptInformationFromTemplate() {
                 var newReceipt = {};
@@ -866,30 +884,38 @@
                 var service = {};
                 var newPurposes = [];
 
-                $('.consent-statement input[type="checkbox"]').each(function (i, purposes) {
-                    var checked = $(purposes).prop('checked');
-                    if(checked){
-                        var purposeId = $(purposes).data("purposeid");
-                        if(newPurposes.length != 0){
-                            newPurposes[0].each(function (i, purposeInArr) {
-                                if(purposeId == purposeInArr.purposeId){
-                                    console.log("Exists: ", purposeId);
-                                } else{
-                                    console.log("Doesn't: ", purposeId);
-                                }
-                            });
-                        } else{
-                            var newPurpose = {};
-                            var piiCategories = [];
-                            var newPiiCategory = {};
+                $('.consent-statement input[type="checkbox"], .consent-statement strong label')
+                    .each(function (i, element) {
+                    var checked = $(element).prop('checked');
+                    var isLable = $(element).is( "lable" );
+                    var newPurpose = {};
+                    var piiCategories = [];
+                    var isExistingPurpose = false;
 
-                            newPurpose["purposeId"] = $(purposes).data("purposeid");
-                            newPiiCategory['piiCategoryId'] = $(purposes).data("piicategoryid");
-                            piiCategories.push(newPiiCategory);
-                            newPurpose['piiCategory'] = piiCategories;
-                            newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
-                            newPurposes.push(newPurpose);
+                    if (!isLable && checked) {
+                        var purposeId = element.data("purposeid");
+
+                        if (newPurposes.length != 0) {
+                            for (var i = 0; i < newPurposes.length; i++) {
+                                var selectedPurpose = newPurposes[i];
+                                if (selectedPurpose.purposeId == purposeId) {
+                                    newPurpose = selectedPurpose;
+                                    piiCategories = newPurpose.piiCategory;
+                                    isExistingPurpose = true;
+                                }
+                            }
                         }
+                    }
+
+                    var newPiiCategory = {};
+
+                    newPurpose["purposeId"] = element.data("purposeid");
+                    newPiiCategory['piiCategoryId'] = element.data("piicategoryid");
+                    piiCategories.push(newPiiCategory);
+                    newPurpose['piiCategory'] = piiCategories;
+                    newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
+                    if (!isExistingPurpose) {
+                        newPurposes.push(newPurpose);
                     }
                 });
                 service['purposes'] = newPurposes;
@@ -899,11 +925,13 @@
                 return newReceipt;
             }
 
-            function addReciptInformationFromRows(purposes) {
+            function addReciptInformationFromRows() {
                 var newReceipt = {};
                 var services = [];
                 var service = {};
                 var newPurposes = [];
+                var mandatoryPiis = [];
+                var selectedMandatoryPiis = [];
 
                 $('#row-container input[type="checkbox"]').each(function (i, checkbox) {
                     var checkboxLabel = $(checkbox).next();
@@ -911,10 +939,16 @@
                     var newPurpose = {};
                     var piiCategories = [];
                     var isExistingPurpose = false;
+
+                    if (checkboxLabel.data("mandetorypiicatergory")) {
+                        mandatoryPiis.push(checkboxLabel.data("piicategoryid"));
+                    }
+
                     if (checked) {
                         var purposeId = checkboxLabel.data("purposeid");
-                        if(newPurposes.length != 0){
-                            for (var i = 0; i < newPurposes.length; i++){
+                        selectedMandatoryPiis.push(checkboxLabel.data("piicategoryid"));
+                        if (newPurposes.length != 0) {
+                            for (var i = 0; i < newPurposes.length; i++) {
                                 var selectedPurpose = newPurposes[i];
                                 if (selectedPurpose.purposeId == purposeId) {
                                     newPurpose = selectedPurpose;
@@ -923,21 +957,31 @@
                                 }
                             }
                         }
-                            var newPiiCategory = {};
+                        var newPiiCategory = {};
 
-                            newPurpose["purposeId"] = checkboxLabel.data("purposeid");
-                            newPiiCategory['piiCategoryId'] = checkboxLabel.data("piicategoryid");
-                            piiCategories.push(newPiiCategory);
-                            newPurpose['piiCategory'] = piiCategories;
-                            newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
-                            if (!isExistingPurpose) {
-                                newPurposes.push(newPurpose);
-                            }
+                        newPurpose["purposeId"] = checkboxLabel.data("purposeid");
+                        newPiiCategory['piiCategoryId'] = checkboxLabel.data("piicategoryid");
+                        piiCategories.push(newPiiCategory);
+                        newPurpose['piiCategory'] = piiCategories;
+                        newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
+                        if (!isExistingPurpose) {
+                            newPurposes.push(newPurpose);
+                        }
                     }
                 });
                 service['purposes'] = newPurposes;
                 services.push(service);
                 newReceipt['services'] = services;
+
+                var allMandatoryPiisSelected = mandatoryPiis.every(function (val) {
+                    return selectedMandatoryPiis.indexOf(val) >= 0;
+                });
+
+                if (!allMandatoryPiisSelected) {
+                    $("#mandetory_pii_selection_validation").modal();
+                    return false;
+                }
+
                 return newReceipt;
             }
 
@@ -947,34 +991,35 @@
                     arrElem,
                     mappedElem;
 
-            // First map the nodes of the array to an object -> create a hash table.
-            for (var i = 0, len = arr.length; i < len; i++) {
-                arrElem = arr[i];
-                mappedArr[arrElem.id] = arrElem;
-                mappedArr[arrElem.id]['children'] = [];
-            }
+                // First map the nodes of the array to an object -> create a hash table.
+                for (var i = 0, len = arr.length; i < len; i++) {
+                    arrElem = arr[i];
+                    mappedArr[arrElem.id] = arrElem;
+                    mappedArr[arrElem.id]['children'] = [];
+                }
 
-            for (var id in mappedArr) {
-                if (mappedArr.hasOwnProperty(id)) {
-                    mappedElem = mappedArr[id];
-                    // If the element is not at the root level, add it to its parent array of children.
-                    if (mappedElem.parent && mappedElem.parent != "#" && mappedArr[mappedElem['parent']]) {
-                        mappedArr[mappedElem['parent']]['children'].push(mappedElem);
-                    }
-                    // If the element is at the root level, add it to first level elements array.
-                    else {
-                        tree.push(mappedElem);
+                for (var id in mappedArr) {
+                    if (mappedArr.hasOwnProperty(id)) {
+                        mappedElem = mappedArr[id];
+                        // If the element is not at the root level, add it to its parent array of children.
+                        if (mappedElem.parent && mappedElem.parent != "#" && mappedArr[mappedElem['parent']]) {
+                            mappedArr[mappedElem['parent']]['children'].push(mappedElem);
+                        }
+                        // If the element is at the root level, add it to first level elements array.
+                        else {
+                            tree.push(mappedElem);
+                        }
                     }
                 }
+                return tree;
             }
-            return tree;
-        }
 
             function renderReceiptDetailsFromTemplate(receipt) {
                 /*
-                *   customConsentTempalte1 is from the js file which is loaded as a normal js resource
-                *   also try customConsentTempalte2 located at assets/js/consent_template_2.js
-                */
+                 *   Available when consentDisplayType is set to "template"
+                 *   customConsentTempalte1 is from the js file which is loaded as a normal js resource
+                 *   also try customConsentTempalte2 located at assets/js/consent_template_2.js
+                 */
                 var templateString = customConsentTempalte1;
                 var purp, purpose, piiCategory, piiCategoryInputTemplate;
                 $(receipt.purposes).each(function (i, e) {
@@ -985,15 +1030,15 @@
                     $(e.piiCategories).each(function (i, ee) {
                         piiCategory = "{{pii:" + purp + ":" + ee.displayName + "}}";
                         var piiCategoryMin = piiCategory.replace(/\s/g, '');
-                        if(ee.mandatory == true){
+                        if (ee.mandatory == true) {
                             piiCategoryInputTemplate = '<strong><label id="' + piiCategoryMin + '" data-id="' +
                                 piiCategory + '" data-piiCategoryId="' + ee.piiCategoryId + '" data-purposeId="' +
-                                e.purposeId +'" data-mandetoryPiiCategory="'+ ee.mandatory +'">' + ee.displayName +
+                                e.purposeId + '" data-mandetoryPiiCategory="' + ee.mandatory + '">' + ee.displayName +
                                 '<span class="required_consent">*</span></label></strong>';
-                        }else{
+                        } else {
                             piiCategoryInputTemplate = '<span><label for="' + piiCategoryMin + '"><input type="checkbox" id="' + piiCategoryMin + '" data-id="' +
-                            piiCategory + '" data-piiCategoryId="' + ee.piiCategoryId + '" data-purposeId="' + e.purposeId +'"' +
-                            'data-mandetoryPiiCategory="'+ ee.mandatory +'" name="" value="">' + ee.displayName + '</label></span>';
+                                piiCategory + '" data-piiCategoryId="' + ee.piiCategoryId + '" data-purposeId="' + e.purposeId + '"' +
+                                'data-mandetoryPiiCategory="' + ee.mandatory + '" name="" value="">' + ee.displayName + '</label></span>';
                         }
                         templateString = templateString.replaceAll(piiCategory, piiCategoryInputTemplate);
                     });
@@ -1006,22 +1051,22 @@
                 var rowTemplate =
                     '<div class="padding-bottom padding-top font-medium">We would like to request following attributes from you for specified purposes.</div>' +
                     '{{#purposes}}' +
-                        '<div class="consent-container-3 box clearfix">' +
-                        '<p>For ' +
-                            '<strong>{{purpose}}</strong>' +
-                        ', we need your, </p>' +
-                            '{{#grouped_each 2 piiCategories}}' +
-                        '<div class="row">' +
-                        '{{#each this }}' +
-                        '<div class="col-xs-6">' +
+                    '<div class="consent-container-3 box clearfix">' +
+                    '<p>For ' +
+                    '<strong>{{purpose}}</strong>' +
+                    ', we need your, </p>' +
+                    '{{#grouped_each 2 piiCategories}}' +
+                    '<div class="row">' +
+                    '{{#each this }}' +
+                    '<div class="col-xs-6">' +
                     '<input type="checkbox" name="switch" class="custom-checkbox" id="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}"/>' +
                     '<label for="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}" data-piicategoryid="{{piiCategoryId}}" data-mandetorypiicatergory="{{mandatory}}" data-purposeid="{{../../purposeId}}">' +
-                            '<span>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}' +
-                            '<span class="required_consent">*</span>{{/if}}</span>' +
-                            '</label></div>' +
-                            '{{/each}}' +
-                        '</div>' +
-                        '{{/grouped_each}}' +
+                    '<span>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}' +
+                    '<span class="required_consent">*</span>{{/if}}</span>' +
+                    '</label></div>' +
+                    '{{/each}}' +
+                    '</div>' +
+                    '{{/grouped_each}}' +
                     '</div>' +
                     '{{/purposes}}';
 
