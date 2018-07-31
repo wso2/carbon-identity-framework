@@ -309,7 +309,7 @@ span.required {
 span.required_consent{
 	color: red;
 	font-size: 16px;
-	margin: 0px 4px 0px 2px;
+	margin: 0px 4px;
 }
 strong span.required_consent{
 	color: red;
@@ -390,8 +390,10 @@ strong span.required_consent{
 	margin-bottom: 4px;
 }
 #row-container .box p{
+	display: list-item;
 	margin: 0;
 	margin-bottom: 4px;
+	margin-left: 8px;
 }
 #row-container .box ul{
 	margin: 0;

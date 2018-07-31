@@ -138,6 +138,10 @@
     boolean hasPurposes = StringUtils.isNotEmpty(purposes);
     Claim[] claims = new Claim[0];
 
+    /**
+     * Change consentDisplayType to "template" inorder to use a custom html template.
+     * other Default values are "row" and "tree".
+     */
     String consentDisplayType = "row";
 
     if (hasPurposes) {
@@ -710,6 +714,8 @@
                 <%
                 }
                 %>
+
+
                 $('<input />').attr('type', 'hidden')
                     .attr('name', "consent")
                     .attr('value', JSON.stringify(receipt))
@@ -890,13 +896,49 @@
                 services.push(service);
                 newReceipt['services'] = services;
 
-                //console.log(newReceipt);
                 return newReceipt;
             }
 
             function addReciptInformationFromRows(purposes) {
-                console.log(purposes);
-                //return newReceipt;
+                var newReceipt = {};
+                var services = [];
+                var service = {};
+                var newPurposes = [];
+
+                $('#row-container input[type="checkbox"]').each(function (i, checkbox) {
+                    var checkboxLabel = $(checkbox).next();
+                    var checked = $(checkbox).prop('checked');
+                    var newPurpose = {};
+                    var piiCategories = [];
+                    var isExistingPurpose = false;
+                    if (checked) {
+                        var purposeId = checkboxLabel.data("purposeid");
+                        if(newPurposes.length != 0){
+                            for (var i = 0; i < newPurposes.length; i++){
+                                var selectedPurpose = newPurposes[i];
+                                if (selectedPurpose.purposeId == purposeId) {
+                                    newPurpose = selectedPurpose;
+                                    piiCategories = newPurpose.piiCategory;
+                                    isExistingPurpose = true;
+                                }
+                            }
+                        }
+                            var newPiiCategory = {};
+
+                            newPurpose["purposeId"] = checkboxLabel.data("purposeid");
+                            newPiiCategory['piiCategoryId'] = checkboxLabel.data("piicategoryid");
+                            piiCategories.push(newPiiCategory);
+                            newPurpose['piiCategory'] = piiCategories;
+                            newPurpose['purposeCategoryId'] = [<%=defaultPurposeCatId%>];
+                            if (!isExistingPurpose) {
+                                newPurposes.push(newPurpose);
+                            }
+                    }
+                });
+                service['purposes'] = newPurposes;
+                services.push(service);
+                newReceipt['services'] = services;
+                return newReceipt;
             }
 
             function unflatten(arr) {
@@ -929,8 +971,11 @@
         }
 
             function renderReceiptDetailsFromTemplate(receipt) {
-                // tempStr1 is from the js file which is loaded as a normal js resource
-                var templateString = tempStr2;
+                /*
+                *   customConsentTempalte1 is from the js file which is loaded as a normal js resource
+                *   also try customConsentTempalte2 located at assets/js/consent_template_2.js
+                */
+                var templateString = customConsentTempalte1;
                 var purp, purpose, piiCategory, piiCategoryInputTemplate;
                 $(receipt.purposes).each(function (i, e) {
                     purp = e.purpose;
@@ -963,14 +1008,14 @@
                     '{{#purposes}}' +
                         '<div class="consent-container-3 box clearfix">' +
                         '<p>For ' +
-                            '<strong data-purposeid="{{purposeId}}" data-mandetorypurpose="{{mandatory}}">{{purpose}}</strong>' +
+                            '<strong>{{purpose}}</strong>' +
                         ', we need your, </p>' +
                             '{{#grouped_each 2 piiCategories}}' +
                         '<div class="row">' +
                         '{{#each this }}' +
                         '<div class="col-xs-6">' +
                     '<input type="checkbox" name="switch" class="custom-checkbox" id="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}"/>' +
-                    '<label for="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}" data-piicategoryid="{{piiCategoryId}}" data-mandetorypiicatergory="{{mandatory}}">' +
+                    '<label for="consent-checkbox-{{../../purposeId}}-{{piiCategoryId}}" data-piicategoryid="{{piiCategoryId}}" data-mandetorypiicatergory="{{mandatory}}" data-purposeid="{{../../purposeId}}">' +
                             '<span>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}' +
                             '<span class="required_consent">*</span>{{/if}}</span>' +
                             '</label></div>' +
@@ -984,7 +1029,6 @@
                 var rowsRendered = rows(data);
 
                 $("#row-container").html(rowsRendered);
-                //$(".toggle-switch").toggleSwitch();
             }
 
         });

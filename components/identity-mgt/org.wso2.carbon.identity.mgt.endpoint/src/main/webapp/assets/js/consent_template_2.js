@@ -1,4 +1,4 @@
-var tempStr2 =
+var customConsentTempalte2 =
     "<div class='consent-container-2 row'><div class='col-xs-6'><div class='box'>We would like to get" +
     " your approval to {{purpose:Educational Purposes}} with following information <ul><li>{{pii:Educational" +
     " Purposes:Full" +
