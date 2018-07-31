@@ -94,6 +94,7 @@
     String operation = request.getParameter("operation");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
+    boolean isAdvanceConsentManagementEnabled = false;
     
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
@@ -102,13 +103,14 @@
     
     String samlIssuerName = request.getParameter("samlIssuer");
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
     if ("updateSPPurposes".equals(action)) {
         appBean.setApplicationPurposes(ApplicationMgtUIUtil.getApplicationSpecificPurposes(appBean.getServiceProvider()));
     }
     if ("updateSharedPurposes".equals(action)) {
         appBean.setSharedPurposes(ApplicationMgtUIUtil.getSharedPurposes());
     }
-
     ApplicationPurposes applicationPurposes = appBean.getApplicationPurposes();
     List<ApplicationPurpose> appPurposes = applicationPurposes.getAppPurposes();
     List<ApplicationPurpose> appSharedPurposes = applicationPurposes.getAppSharedPurposes();
@@ -118,6 +120,7 @@
     if (appBean.getServiceProvider().getConsentConfig() != null) {
         isConsentManagementEnabled = appBean.getServiceProvider().getConsentConfig().getEnabled();
     }
+    */
 
     
     if (samlIssuerName != null && "update".equals(action)) {
@@ -505,24 +508,6 @@
             document.getElementById("saml_link").href = "#"
         }
     }
-
-    function onAppPurposesManageClick() {
-        var spName = document.getElementById("oldSPName").value;
-        if (spName != '') {
-            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
-        } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
-        }
-    }
-
-    function onGenralPurposesManageClick() {
-        var spName = document.getElementById("oldSPName").value;
-        if (spName != '') {
-            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
-        } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
-        }
-    }
     
     function onKerberosClick() {
         var spName = document.getElementById("oldSPName").value;
@@ -566,6 +551,27 @@
         location.href = 'configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>';
     }
     
+    // Will be supported with 'Advance Consent Management Feature'.
+    <%--
+    <%if (isAdvanceConsentManagementEnabled) {%>
+    function onAppPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
+
+    function onGenralPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
+
     function onSharedPurposesClick() {
 
         var sharedPurposesSelect = $("#shared_purposes").val();
@@ -625,7 +631,7 @@
             $('#shared_purposes_tbl').hide();
         }
     }
-
+    
     function onClickAddSpClaimDialectUri() {
         
         var spClaimDialect = $("#standard_dialect").val();
@@ -706,7 +712,7 @@
             $('#spClaimDialectsTblRow').remove();
         }
     }
-    
+    --%>
     var openFile = function (event) {
         var input = event.target;
         
@@ -1490,7 +1496,7 @@
                         </table>
                     </div>
                 </div>
-                <h2 id="consent_head" class="sectionSeperator trigger active">
+                <%-- <h2 id="consent_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="user.consent.configuration"/></a>
                 </h2>
                 <%if (display!=null && display.equals("consent")) {%>
@@ -1549,7 +1555,7 @@
                                     <th class="leftCol-mid"><fmt:message key="display.order"/></th>
                                 </tr>
                             </thead>
-                            <%if (appPurposes == null || appPurposes.isEmpty()) {%>
+                            <%if (appPurpoappPurposes == null || appPurposes.isEmpty()) {%>
                             <script>
                                 $(jQuery('#app_purposes_tbl')).hide();
                             </script>
@@ -1635,7 +1641,7 @@
                             </tr>
                         </table>
                     </div>
-                </div>
+                </div> --%>
                 <h2 id="authorization_permission_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="title.config.app.authorization.permission"/></a>
                 </h2>

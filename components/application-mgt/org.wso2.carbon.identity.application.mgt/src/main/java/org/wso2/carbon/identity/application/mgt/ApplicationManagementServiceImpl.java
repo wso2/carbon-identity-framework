@@ -272,7 +272,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
 
-            validateConsentPurposes(serviceProvider);
+            // Will be supported with 'Advance Consent Management Feature'.
+            // validateConsentPurposes(serviceProvider);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdateRequest(serviceProvider)) {
                 //It is not required to validate the user here, as the user is validating inside the updateApplication
@@ -317,6 +318,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
     private void validateConsentPurposes(ServiceProvider serviceProvider) throws
             IdentityApplicationManagementException {
 
@@ -358,6 +361,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+
     private boolean isSharedPurpose(Purpose purpose) {
 
         return PURPOSE_GROUP_SHARED.equals(purpose.getGroup()) && PURPOSE_GROUP_TYPE_SYSTEM.equals(
@@ -369,6 +373,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider.getApplicationName().equals(purpose.getGroup())&& PURPOSE_GROUP_TYPE_SP.equals(
                 purpose.getGroupType());
     }
+    */
 
     private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
 

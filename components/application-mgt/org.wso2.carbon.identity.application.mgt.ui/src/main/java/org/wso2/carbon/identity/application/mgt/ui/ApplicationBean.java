@@ -29,9 +29,6 @@ import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.xsd.ConsentConfig;
-import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurpose;
-import org.wso2.carbon.identity.application.common.model.xsd.ConsentPurposeConfigs;
 import org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationConfig;
@@ -57,9 +54,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-
-import static java.util.Objects.nonNull;
-import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_DISPLAY_ORDER;
 
 public class ApplicationBean {
 
@@ -95,7 +89,6 @@ public class ApplicationBean {
     private List<String> claimDialectUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
-    private ConsentConfig consentConfig;
     private ApplicationPurposes applicationPurposes;
     private Purpose[] sharedPurposes;
 
@@ -131,7 +124,6 @@ public class ApplicationBean {
         attrConsumServiceIndex = null;
         enabledFederatedIdentityProviders = null;
         inboundAuthenticationRequestConfigs = Collections.EMPTY_LIST;
-        consentConfig = null;
         applicationPurposes = null;
         sharedPurposes = null;
     }
@@ -1446,6 +1438,8 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+        // Will be supported with 'Advance Consent Management Feature'.
+        /*
         String IS_CONSENT_ENABLED = "is_consent_enabled";
         boolean consentEnabled = request.getParameter(IS_CONSENT_ENABLED) != null;
 
@@ -1457,10 +1451,13 @@ public class ApplicationBean {
         ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
         consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
         consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
-
         serviceProvider.setConsentConfig(consentConfig);
+        */
+
     }
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
     private void processConsentPurposesInput(HttpServletRequest request, ArrayList<ConsentPurpose> consentPurposesList) {
 
         processAppConsentPurposesInput(request, consentPurposesList);
@@ -1526,6 +1523,7 @@ public class ApplicationBean {
             }
         }
     }
+    */
 
     /**
      * @return
@@ -1628,16 +1626,6 @@ public class ApplicationBean {
             }
         }
 
-    }
-
-    public ConsentConfig getConsentConfig() {
-
-        return consentConfig;
-    }
-
-    public void setConsentConfig(ConsentConfig consentConfig) {
-
-        this.consentConfig = consentConfig;
     }
 
     public ApplicationPurposes getApplicationPurposes() {

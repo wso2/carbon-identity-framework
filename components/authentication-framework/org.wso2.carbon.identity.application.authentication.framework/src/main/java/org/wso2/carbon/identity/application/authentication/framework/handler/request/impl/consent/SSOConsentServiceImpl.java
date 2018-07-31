@@ -619,7 +619,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         Purpose purpose;
         Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product",
-                                             DEFAULT_PURPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE, false);
+                                             DEFAULT_PURPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE);
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {
