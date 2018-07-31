@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>remotefetch-core</artifactId>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <version>5.12.54-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>org.wso2.carbon.identity.remotefetch.core</artifactId>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.remotefetch.common</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.database.utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.user.core</artifactId>
+        </dependency>
+    </dependencies>
+
+    <packaging>bundle</packaging>
+    <name>WSO2 Carbon - Identity Application RemoteFetch Core Bundle</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.carbon.identity.remotefetch.core.internal,
+                        </Private-Package>
+                        <Import-Package>
+                            javax.xml.namespace,
+                            org.json,
+
+                            org.eclipse.jgit.api; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.api.errors; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.lib; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.revwalk; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.storage.file; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.treewalk; version="${org.jgit.version.range}",
+                            org.eclipse.jgit.treewalk.filter; version="${org.jgit.version.range}",
+
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+
+                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+
+                            org.wso2.carbon.identity.core.util;resolution:=optional;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.cache;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.model;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.database.utils.jdbc;version="${carbon.database.utils.version.range}",
+                            org.wso2.carbon.database.utils.jdbc.exceptions;version="${carbon.database.utils.version.range}",
+
+                            org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
+
+                            org.wso2.carbon.identity.remotefetch.common.*
+
+                        </Import-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.identity.remotefetch.core.internal,
+                            org.wso2.carbon.identity.remotefetch.core.*; version="${carbon.identity.package.export.version}"
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
