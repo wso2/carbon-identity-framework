@@ -846,9 +846,35 @@
                 var newReceipt = {};
                 var services = [];
                 var service = {};
+                var mandatoryPiis = [];
+                var selectedMandatoryPiis = [];
 
                 var selectedNodes = container.jstree(true).get_selected('full', true);
                 var undeterminedNodes = container.jstree(true).get_undetermined('full', true);
+
+                var allTreeNodes = container.jstree(true).get_json('#', {flat: true});
+                $.each(allTreeNodes, function (i, val) {
+                    if (typeof (val.li_attr.mandetorypiicatergory) != "undefined" &&
+                        val.li_attr.mandetorypiicatergory == "true") {
+                        mandatoryPiis.push(val.li_attr.piicategoryid);
+                    }
+                });
+                $.each(selectedNodes, function (i, val) {
+                    if (val.hasOwnProperty('li_attr')) {
+                        selectedMandatoryPiis.push(selectedNodes[i].li_attr.piicategoryid);
+                    }
+                });
+
+                var allMandatoryPiisSelected = mandatoryPiis.every(function (val) {
+                    return selectedMandatoryPiis.indexOf(val) >= 0;
+                });
+
+                if (!allMandatoryPiisSelected) {
+                    $("#mandetory_pii_selection_validation").modal();
+                    canSubmit = false;
+                } else {
+                    canSubmit = true;
+                }
 
                 if (!selectedNodes || selectedNodes.length < 1) {
                     //revokeReceipt(oldReceipt.consentReceiptID);
