@@ -138,7 +138,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInUI = getExecuteStepsInUI();
     var stepsInScript = getExecuteStepsInScript();
     var stepDifference = diffArray(stepsInUI, stepsInScript);
-    var functionRegex = new RegExp("LoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
+    var functionRegex = new RegExp("onLoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
     var editorContent = doc.getValue();
 
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
