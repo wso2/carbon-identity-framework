@@ -439,7 +439,21 @@
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
                             <%
                                 if (hasPurposes) {
-                                    if(consentDisplayType == "template"){
+                                    %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top-double padding-left-double padding-right-double">
+                                <p style="text-align: justify;">
+                                    <strong>
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                "Need.consent.for.following.purposes")%>
+                                    </strong>
+                                    <span>
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                            "I.consent.to.use.them")%>
+                                </span>
+                                </p>
+                            </div>
+                            <%
+                                if(consentDisplayType == "template"){
                             %>
                                 <!--User Consents from Template-->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
@@ -463,16 +477,6 @@
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
                                     <div class="alert alert-warning margin-none" role="alert">
                                         <div id="consent-mgt-tree-container">
-                                            <p>
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "Need.consent.for.following.purposes")%>
-                                                </strong>
-                                                <span>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "I.consent.to.use.them")%>
-                                                </span>
-                                            </p>
                                             <div id="tree-table"></div>
                                         </div>
                                         <div class="text-left padding-top-double">
@@ -837,6 +841,7 @@
                             var node = container.jstree().get_node(this.id);
                             allAttributes.push(node.id);
                         });
+                    container.jstree('open_all');
                 });
 
             }
@@ -1084,12 +1089,11 @@
 
             function renderReceiptDetailsFromRows(data) {
                 var rowTemplate =
-                    '<div class="padding-bottom padding-top font-medium">We would like to request following attributes from you for specified purposes.</div>' +
                     '{{#purposes}}' +
                     '<div class="consent-container-3 box clearfix">' +
                     '<p>For ' +
-                    '<strong>{{purpose}}</strong>' +
-                    ', we need your, </p>' +
+                    '<strong>"{{purpose}}"</strong>' +
+                    ', We need your </p>' +
                     '{{#grouped_each 2 piiCategories}}' +
                     '<div class="row">' +
                     '{{#each this }}' +
