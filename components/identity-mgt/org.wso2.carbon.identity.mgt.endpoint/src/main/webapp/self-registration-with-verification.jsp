@@ -439,20 +439,36 @@
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
                             <%
                                 if (hasPurposes) {
-                                    if(consentDisplayType == "template"){
+                                    %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top-double padding-left-double padding-right-double">
+                                <p style="text-align: justify;">
+                                    <strong>
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                "Need.consent.for.following.purposes")%>
+                                    </strong>
+                                    <span>
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                            "I.consent.to.use.them")%>
+                                </span>
+                                </p>
+                            </div>
+                            <%
+                                if(consentDisplayType == "template"){
                             %>
                                 <!--User Consents from Template-->
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
-                                    <div id="consent-mgt-template-container">
-                                        <div class="consent-statement"></div>
-                                    </div>
-                                    <div class="text-left padding-top-double">
-                                        <span class="required">
-                                            <strong>
-                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                        "All.asterisked.consents.are.mandatory")%>
-                                            </strong>
-                                        </span>
+                                    <div class="col-xs-12 padding-top border-consent margin-bottom-double">
+                                        <div id="consent-mgt-template-container">
+                                            <div class="consent-statement"></div>
+                                        </div>
+                                        <div class="text-left padding-bottom padding-top">
+                                            <span class="required">
+                                                <strong>
+                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                            "All.asterisked.consents.are.mandatory")%>
+                                                </strong>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <!--End User Consents from Template-->
@@ -461,16 +477,6 @@
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
                                     <div class="alert alert-warning margin-none" role="alert">
                                         <div id="consent-mgt-tree-container">
-                                            <p>
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "Need.consent.for.following.purposes")%>
-                                                </strong>
-                                                <span>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "I.consent.to.use.them")%>
-                                                </span>
-                                            </p>
                                             <div id="tree-table"></div>
                                         </div>
                                         <div class="text-left padding-top-double">
@@ -649,6 +655,7 @@
         $(document).ready(function () {
             var container;
             var allAttributes = [];
+            var canSubmit;
 
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
@@ -738,7 +745,10 @@
                     .attr('name', "consent")
                     .attr('value', JSON.stringify(receipt))
                     .appendTo('#register');
-                self.submit();
+                if (canSubmit) {
+                    self.submit();
+                }
+
                 <%
                 }
                 %>
@@ -831,6 +841,7 @@
                             var node = container.jstree().get_node(this.id);
                             allAttributes.push(node.id);
                         });
+                    container.jstree('open_all');
                 });
 
             }
@@ -840,9 +851,36 @@
                 var newReceipt = {};
                 var services = [];
                 var service = {};
+                var mandatoryPiis = [];
+                var selectedMandatoryPiis = [];
 
                 var selectedNodes = container.jstree(true).get_selected('full', true);
                 var undeterminedNodes = container.jstree(true).get_undetermined('full', true);
+                var allTreeNodes = container.jstree(true).get_json('#', {flat: true});
+
+                $.each(allTreeNodes, function (i, val) {
+                    if (typeof (val.li_attr.mandetorypiicatergory) != "undefined" &&
+                        val.li_attr.mandetorypiicatergory == "true") {
+                        mandatoryPiis.push(val.li_attr.piicategoryid);
+                    }
+                });
+
+                $.each(selectedNodes, function (i, val) {
+                    if (val.hasOwnProperty('li_attr')) {
+                        selectedMandatoryPiis.push(selectedNodes[i].li_attr.piicategoryid);
+                    }
+                });
+
+                var allMandatoryPiisSelected = mandatoryPiis.every(function (val) {
+                    return selectedMandatoryPiis.indexOf(val) >= 0;
+                });
+
+                if (!allMandatoryPiisSelected) {
+                    $("#mandetory_pii_selection_validation").modal();
+                    canSubmit = false;
+                } else {
+                    canSubmit = true;
+                }
 
                 if (!selectedNodes || selectedNodes.length < 1) {
                     //revokeReceipt(oldReceipt.consentReceiptID);
@@ -979,7 +1017,9 @@
 
                 if (!allMandatoryPiisSelected) {
                     $("#mandetory_pii_selection_validation").modal();
-                    return false;
+                    canSubmit = false;
+                } else {
+                    canSubmit = true;
                 }
 
                 return newReceipt;
@@ -1049,12 +1089,11 @@
 
             function renderReceiptDetailsFromRows(data) {
                 var rowTemplate =
-                    '<div class="padding-bottom padding-top font-medium">We would like to request following attributes from you for specified purposes.</div>' +
                     '{{#purposes}}' +
                     '<div class="consent-container-3 box clearfix">' +
                     '<p>For ' +
-                    '<strong>{{purpose}}</strong>' +
-                    ', we need your, </p>' +
+                    '<strong>"{{purpose}}"</strong>' +
+                    ', We need your </p>' +
                     '{{#grouped_each 2 piiCategories}}' +
                     '<div class="row">' +
                     '{{#each this }}' +
