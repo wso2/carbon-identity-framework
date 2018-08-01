@@ -259,12 +259,12 @@ img.idp-image {
 	color: red;
 }
 
-#consent-mgt-container p span {
+#consent-mgt-tree-container p span, #consent-mgt-template-container p span {
 	margin-top: 4px;
 	display: block;
 }
 
-#consent-mgt-container #tree-table {
+#consent-mgt-tree-container #tree-table {
 	background: #fff;
 	padding: 10px;
 	color: #333;
@@ -309,7 +309,12 @@ span.required {
 span.required_consent{
 	color: red;
 	font-size: 16px;
-	margin: 0px 4px 0px 2px;
+	margin: 0px 4px;
+}
+strong span.required_consent{
+	color: red;
+	font-size: 16px;
+	margin: 0px 0px 0px 4px;
 }
 
 .truncate {
@@ -324,4 +329,89 @@ span.required_consent{
 	white-space : normal !important;
 	height : auto !important;
 	padding-right : 24px;
+}
+.alert-consent{
+	background: none;
+}
+
+.consent-container-1 span label,.consent-container-2 span label{
+	font-weight: normal;
+	padding: 2px 6px;
+	background: #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.consent-container-3 label{
+	font-weight: normal;
+	padding: 5px 10px;
+	background: #dcdcdc7a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	width: 92%;
+	margin: 4px 8px;
+}
+.consent-container-1 strong label,.consent-container-2 strong label{
+	padding: 2px 6px;
+	background: none;
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.consent-container-1 span label input,.consent-container-2 span label input, .consent-container-3 label input{
+	margin-right: 5px;
+}
+.consent-container-1 div,.consent-container p{
+	margin-bottom: 12px;
+	line-height: 18px;
+	text-align: justify;
+}
+.consent-container-2 .box{
+	padding:15px;
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	min-height: 220px;
+	text-align: justify;
+}
+.consent-container-2 .box ul{
+	margin: 0;
+	margin-top: 20px;
+	padding: 0;
+}
+.consent-container-2 .box ul li{
+	list-style: none;
+}
+#row-container .box{
+	padding: 10px;
+	margin-bottom: 4px;
+}
+#row-container .box p{
+	display: list-item;
+	margin: 0;
+	margin-bottom: 4px;
+	margin-left: 8px;
+}
+#row-container .box ul{
+	margin: 0;
+	padding: 0;
+}
+#row-container .box ul li{
+	list-style: none;
+}
+#row-container .box table td{
+	font-size: 13px;
+	padding: 4px;
+}
+#row-container .box table td:first-child{
+	width: 200px;
+}
+.border-consent{
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
 }

@@ -731,9 +731,12 @@ public class FrameworkUtils {
     }
 
     /**
+     * @deprecated Use the {@link #addSessionContextToCache(String, SessionContext, String)}
+     *
      * @param key
      * @param sessionContext
      */
+    @Deprecated
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
@@ -744,11 +747,12 @@ public class FrameworkUtils {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
                     entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                    entry.getValue().setAuthenticationGraph(null);
                 }
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
@@ -766,11 +770,15 @@ public class FrameworkUtils {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
                     entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+
+                    // AuthenticationGraph in the SequenceConfig is used during the authentication flow and is not
+                    // needed after the whole authentication flow is completed. Hense removed from the SessionContext.
+                    entry.getValue().setAuthenticationGraph(null);
                 }
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }

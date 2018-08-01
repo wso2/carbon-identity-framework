@@ -24,11 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -785,7 +780,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         PreparedStatement storeAppPrepStmt = null;
         try {
             String sql;
-            boolean isValidUserForOwnerUpdate = ApplicationMgtUtil.isValidAppicationOwner(serviceProvider);
+            boolean isValidUserForOwnerUpdate = ApplicationMgtUtil.isValidApplicationOwner(serviceProvider);
             if (isValidUserForOwnerUpdate) {
                 sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
             } else {
