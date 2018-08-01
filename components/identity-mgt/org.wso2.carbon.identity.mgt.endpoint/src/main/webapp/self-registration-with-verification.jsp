@@ -649,6 +649,7 @@
         $(document).ready(function () {
             var container;
             var allAttributes = [];
+            var canSubmit;
 
             var agreementChk = $(".agreement-checkbox input");
             var registrationBtn = $("#registrationSubmit");
@@ -738,7 +739,10 @@
                     .attr('name', "consent")
                     .attr('value', JSON.stringify(receipt))
                     .appendTo('#register');
-                self.submit();
+                if (canSubmit) {
+                    self.submit();
+                }
+
                 <%
                 }
                 %>
@@ -979,7 +983,9 @@
 
                 if (!allMandatoryPiisSelected) {
                     $("#mandetory_pii_selection_validation").modal();
-                    return false;
+                    canSubmit = false;
+                } else {
+                    canSubmit = true;
                 }
 
                 return newReceipt;
