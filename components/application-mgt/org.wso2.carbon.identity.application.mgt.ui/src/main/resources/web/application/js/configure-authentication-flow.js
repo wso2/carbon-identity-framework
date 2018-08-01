@@ -138,6 +138,8 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInUI = getExecuteStepsInUI();
     var stepsInScript = getExecuteStepsInScript();
     var stepDifference = diffArray(stepsInUI, stepsInScript);
+    var functionRegex = new RegExp("onLoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
+    var editorContent = doc.getValue();
 
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
         if (stepDifference.script.length > 0) {
@@ -162,6 +164,10 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
             elementWarn.append("<li>Could not find matching 'executeStep' function for" +
                 " <span>Step " + stepDifference.ui[i] + ".</span></li>");
         }
+    }
+
+    if (!editorContent.trim().match(functionRegex)) {
+        elementErr.append("<li>Missing required function: <b>onLoginRequest(parameter)</b>.</li>");
     }
 }
 
