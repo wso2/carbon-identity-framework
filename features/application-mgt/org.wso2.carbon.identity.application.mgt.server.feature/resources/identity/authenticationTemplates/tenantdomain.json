@@ -1,7 +1,7 @@
 {
   "category": "user_based",
-  "name": "Tenant Based",
-  "title": "Tenant Based Authentication Template",
+  "name": "Tenant-Based",
+  "title": "Tenant-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given tenants.",
   "preRequisites": [
     "Service provider should be registered as a SAAS Application.",
@@ -25,12 +25,12 @@
     },
     "2": {
       "local": [
-        "totp",
+        "totp"
       ],
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Tenant+Based+Adaptive+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Tenant-Based+Adaptive+Authentication",
   "code": [
     "// This script will prompt 2FA to the app only for a selected",
     "// set of tenants.",

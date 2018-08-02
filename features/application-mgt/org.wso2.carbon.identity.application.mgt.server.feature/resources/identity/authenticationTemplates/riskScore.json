@@ -1,7 +1,7 @@
 {
   "category": "analytics_based",
-  "name": "Risk Calculation",
-  "title": "Risk Calculation Based 2FA Template",
+  "name": "Risk-Based",
+  "title": "Risk-Based 2FA Template",
   "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
   "preRequisites": [
     "Change the siddhiApplication and siddhiInputStream according to the Siddhi application you have deployed in the Stream Processor.",
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Risk+Based+Adaptive+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Risk-Based+Adaptive+Authentication",
   "code": [
     "// Define conditional authentication by risk score value calculated from analytics engine.",
     "",

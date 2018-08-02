@@ -534,7 +534,7 @@
         {{/if}}
         {{#if helpLink}}
         <h3>Help/Reference</h3>
-        <a href="{{helpLink}}">{{helpLink}}</a>
+        <a href="{{helpLink}}" target="_blank">{{helpLink}}</a>
         {{/if}}
     </div>
 </script>
