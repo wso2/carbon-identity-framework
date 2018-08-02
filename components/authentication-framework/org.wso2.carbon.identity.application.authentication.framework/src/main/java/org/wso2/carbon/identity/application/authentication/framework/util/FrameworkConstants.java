@@ -362,4 +362,9 @@ public abstract class FrameworkConstants {
         public static final String EXPLICIT_CONSENT_TYPE = "EXPLICIT";
         public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
     }
+
+    public static class AdaptiveAuthentication {
+
+        public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+    }
 }

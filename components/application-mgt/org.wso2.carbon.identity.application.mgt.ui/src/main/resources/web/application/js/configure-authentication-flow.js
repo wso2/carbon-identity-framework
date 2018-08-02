@@ -66,6 +66,8 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
 var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
+checkEmptyEditorContent();
+
 checkScriptDirty();
 
 function validateAppCreation() {
@@ -136,6 +138,8 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInUI = getExecuteStepsInUI();
     var stepsInScript = getExecuteStepsInScript();
     var stepDifference = diffArray(stepsInUI, stepsInScript);
+    var functionRegex = new RegExp("onLoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
+    var editorContent = doc.getValue();
 
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
         if (stepDifference.script.length > 0) {
@@ -144,7 +148,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
                 var lineNo = [];
                 var stepReg = new RegExp("executeStep\\(" + stepDifference.script[i] + "+", "g");
                 myCodeMirror.eachLine(function (line) {
-                    if (line.text.match(stepReg)) {
+                    if (line.text.trim().match(stepReg)) {
                         lineNo.push(myCodeMirror.getLineNumber(line) + 1);
                     }
                 });
@@ -160,6 +164,10 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
             elementWarn.append("<li>Could not find matching 'executeStep' function for" +
                 " <span>Step " + stepDifference.ui[i] + ".</span></li>");
         }
+    }
+
+    if (!editorContent.trim().match(functionRegex)) {
+        elementErr.append("<li>Missing required function: <b>onLoginRequest(parameter)</b>.</li>");
     }
 }
 
@@ -298,14 +306,14 @@ function populateTemplates() {
 
         if (sortedCategoryTempArr[i].templates) {
             var tempType = '<li class="type"><h2  class = "sectionSeperator trigger">' +
-                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '">' + sortedCategoryTempArr[i].displayName +
-                '</a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
+                '<a href="#" title="' + sortedCategoryTempArr[i].displayName + '"><span class="truncate-content  category-title">' + sortedCategoryTempArr[i].displayName +
+                '</span></a><img src="' + categoryImg + '" class="categoryImg"/> </h2></li>';
             var details = '<ul class="normal details">';
 
             $.each(sortedCategoryTempArr[i].templates, function (i, template) {
                 details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
                     'data-type-name="' + template.name + '" title="' + template.name + '">' +
-                    '<span>' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
+                    '<span class="truncate-content">' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
                     '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
             });
             details += '</ul>';
@@ -659,6 +667,12 @@ $('#stepsAddLink').click(function (e) {
         buildScriptString($(".steps > h2"));
     }
 });
+
+function checkEmptyEditorContent() {
+    if (editorContent.length === 0) {
+        buildScriptString($(".steps > h2"));
+    }
+}
 
 function checkScriptDirty() {
     var str = "";

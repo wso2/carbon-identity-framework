@@ -519,6 +519,7 @@
         -->
         <UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Users</UserEPUrl>
         <GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Groups</GroupEPUrl>
+        <ShowAllUserDetails>false</ShowAllUserDetails>
         <SCIMAuthenticators>
             <Authenticator class="org.wso2.carbon.identity.scim.provider.auth.BasicAuthHandler">
                 <Property name="Priority">5</Property>
@@ -942,6 +943,9 @@
         <!--End of timeouts in milliseconds-->
 
         <!--<PromptOnLongWait>false</PromptOnLongWait>-->
+
+        <!--Timeout in milliseconds for the waiting external calls-->
+        <LongWaitTimeout>10000</LongWaitTimeout>
     </AdaptiveAuth>
 
 </Server>

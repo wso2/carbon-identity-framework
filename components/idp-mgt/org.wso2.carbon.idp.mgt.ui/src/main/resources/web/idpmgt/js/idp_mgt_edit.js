@@ -697,7 +697,7 @@ function doValidation() {
         if ($('#meta_data_saml').val() == "") {
 
             if ($('#idPEntityId').val() == "") {
-                CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
+                CARBON.showWarningDialog('Identity Provider Entity ID cannot be empty');
                 return false;
             }
             if ($('#ssoUrl').val() == "") {
@@ -707,7 +707,7 @@ function doValidation() {
         }
 
         if ($('#spEntityId').val() == "") {
-            CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+            CARBON.showWarningDialog('Service Provider Entity ID cannot be empty');
             return false;
         }
 
@@ -716,7 +716,7 @@ function doValidation() {
 
     if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').attr('checked') ) {
         if ($('#spEntityId').val() == "") {
-            CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+            CARBON.showWarningDialog('Service Provider Entity ID cannot be empty');
             return false;
         }
 

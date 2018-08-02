@@ -64,7 +64,6 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    public static final String PERMISSION_APPLICATION_MGT = "/permission/admin/manage/identity/applicationmgt";
     private static final List<String> paths = new ArrayList<String>();
     private static String applicationNode;
     // Regex for validating application name
@@ -571,7 +570,7 @@ public class ApplicationMgtUtil {
      * @return true if the application owner is valid.
      * @throws IdentityApplicationManagementException when an error occurs while validating the user.
      */
-    public static boolean isValidAppicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+    public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
             String userName = null;
@@ -592,13 +591,6 @@ public class ApplicationMgtUtil {
             if (!isUserExist) {
                 throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
                         serviceProvider.getApplicationName() + " as user is not existing.");
-            }
-
-            boolean isPermitted = realm.getAuthorizationManager().isUserAuthorized(userNameWithDomain, PERMISSION_APPLICATION_MGT,
-                    UserMgtConstants.EXECUTE_ACTION);
-            if (!isPermitted) {
-                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
-                        serviceProvider.getApplicationName() + " as the user does not have required permissions.");
             }
         } catch (UserStoreException | IdentityApplicationManagementException e) {
             throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +

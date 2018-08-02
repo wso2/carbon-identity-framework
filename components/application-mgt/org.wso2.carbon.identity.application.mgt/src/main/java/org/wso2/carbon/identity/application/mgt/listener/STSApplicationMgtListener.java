@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.security.sts.service;
+package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.AxisFault;
@@ -34,12 +34,12 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.config.SecurityServiceAdmin;
-import org.wso2.carbon.security.internal.SecurityMgtServiceComponent;
+import org.wso2.carbon.security.sts.service.STSAdminServiceImpl;
 import org.wso2.carbon.security.sts.service.util.TrustedServiceData;
 import org.wso2.carbon.utils.ServerConstants;
 
@@ -228,7 +228,8 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
      */
     private AxisConfiguration getAxisConfig() {
 
-        return SecurityMgtServiceComponent.getServerConfigurationContext().getAxisConfiguration();
+        return ApplicationManagementServiceComponentHolder.getInstance().getConfigContextService()
+                .getServerConfigContext().getAxisConfiguration();
     }
 
     /**
@@ -239,7 +240,8 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
      */
     private Registry getConfigSystemRegistry() throws RegistryException {
 
-        return SecurityMgtServiceComponent.getRegistryService().getConfigSystemRegistry();
+        return (Registry) ApplicationManagementServiceComponentHolder.getInstance().getRegistryService()
+                .getConfigSystemRegistry();
     }
 
     /**
