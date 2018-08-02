@@ -1,7 +1,7 @@
 {
   "category": "user_based",
-  "name": "User Store-Based",
-  "title": "User Store-Based Authentication Template",
+  "name": "Userstore-Based",
+  "title": "Userstore-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given user store domains.",
   "preRequisites": [
     "Change the userStoresToStepUp parameter to an array of user store domains that should require 2FA.",
