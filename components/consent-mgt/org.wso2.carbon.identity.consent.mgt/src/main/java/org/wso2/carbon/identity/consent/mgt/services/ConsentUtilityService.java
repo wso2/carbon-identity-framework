@@ -57,6 +57,9 @@ public class ConsentUtilityService {
         if (purposes == null || receiptInput == null) {
             throw new IllegalArgumentException("Receipt Input and purposes should not be null");
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Validating receipt against purposes.");
+        }
         List<ReceiptServiceInput> services = receiptInput.getServices();
         for (Purpose purpose : purposes) {
             purpose = fillPurpose(purpose);
@@ -83,11 +86,11 @@ public class ConsentUtilityService {
                                     "the given receipt");
                         }
                     }
-                    if (!purposeConsented && !mandatoryPIIs.isEmpty()) {
-                        throw new ConsentUtilityServiceException("Consent receipt does not contain consent for " +
-                                "purpose " + purpose.getName() + " with ID: " + purpose.getId() + ", which has " +
-                                "mandatory PIIs");
-                    }
+                }
+                if (!purposeConsented && !mandatoryPIIs.isEmpty()) {
+                    throw new ConsentUtilityServiceException("Consent receipt does not contain consent for " +
+                            "purpose " + purpose.getName() + " with ID: " + purpose.getId() + ", which has " +
+                            "mandatory PIIs");
                 }
             }
 
