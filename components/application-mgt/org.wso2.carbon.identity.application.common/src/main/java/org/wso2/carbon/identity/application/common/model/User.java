@@ -91,7 +91,7 @@ public class User implements Serializable {
      */
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
-        if (userStoreDomain != null) {
+        if (StringUtils.isNotEmpty(userStoreDomain)) {
             setUserStoreCaseSensitive();
         }
     }
@@ -112,7 +112,7 @@ public class User implements Serializable {
      */
     public void setUserStoreDomain(String userStoreDomain) {
         this.userStoreDomain = userStoreDomain.toUpperCase();
-        if (tenantDomain != null) {
+        if (StringUtils.isNotEmpty(tenantDomain)) {
             setUserStoreCaseSensitive();
         }
     }
