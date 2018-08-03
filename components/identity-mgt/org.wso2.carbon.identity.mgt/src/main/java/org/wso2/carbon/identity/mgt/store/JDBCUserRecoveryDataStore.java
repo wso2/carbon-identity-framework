@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.store;
 
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -64,7 +65,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(SQLQuery.INVALIDATE_METADATA);
-            prepStmt.setString(1, userId);
+            prepStmt.setString(1, userId.toLowerCase());
             prepStmt.setInt(2, tenant);
             prepStmt.execute();
             connection.commit();
@@ -84,7 +85,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         PreparedStatement prepStmt = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.INVALIDATE_METADATA_FROM_CODE);
-            prepStmt.setString(1, code);
+            prepStmt.setString(1, code.toLowerCase());
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
@@ -107,9 +108,9 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         PreparedStatement prepStmt = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.STORE_META_DATA);
-            prepStmt.setString(1, recoveryDataDO.getUserName());
-            prepStmt.setInt(2, recoveryDataDO.getTenantId());
-            prepStmt.setString(3, recoveryDataDO.getCode());
+            prepStmt.setString(1, recoveryDataDO.getUserName().toLowerCase());
+            prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+            prepStmt.setString(3, recoveryDataDO.getCode().toLowerCase());
             prepStmt.setString(4, recoveryDataDO.getSecret());
             prepStmt.setString(5, recoveryDataDO.getExpireTime());
             prepStmt.execute();
@@ -138,9 +139,9 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
             connection.setAutoCommit(false);
             prepStmt = connection.prepareStatement(SQLQuery.STORE_META_DATA);
             for (UserRecoveryDataDO dataDO : recoveryDataDOs) {
-                prepStmt.setString(1, dataDO.getUserName());
-                prepStmt.setInt(2, dataDO.getTenantId());
-                prepStmt.setString(3, dataDO.getCode());
+                prepStmt.setString(1, dataDO.getUserName().toLowerCase());
+                prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                prepStmt.setString(3, dataDO.getCode().toLowerCase());
                 prepStmt.setString(4, dataDO.getSecret());
                 prepStmt.setString(5, dataDO.getExpireTime());
                 prepStmt.addBatch();
@@ -180,7 +181,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         ResultSet results = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.LOAD_USER_METADATA);
-            prepStmt.setString(1, userName);
+            prepStmt.setString(1, userName.toLowerCase());
             prepStmt.setInt(2, IdentityTenantUtil.getTenantIdOfUser(userName));
 
             results = prepStmt.executeQuery();
@@ -209,7 +210,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         ResultSet results = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.LOAD_USER_METADATA_FROM_CODE);
-            prepStmt.setString(1, code);
+            prepStmt.setString(1, code.toLowerCase());
 
             results = prepStmt.executeQuery();
             if (results.next()) {
