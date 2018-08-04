@@ -47,11 +47,12 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private CacheBuilder<K, V> cacheBuilder;
     private String cacheName;
-    private List<AbstractCacheListener> cacheListeners = new ArrayList<AbstractCacheListener>();
+    private List<AbstractCacheListener> cacheListeners = new ArrayList<>();
+    private IdentityCacheConfig identityCacheConfig;
 
     public BaseCache(String cacheName) {
         this.cacheName = cacheName;
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && !identityCacheConfig.isDistributed()) {
             this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
         }
@@ -59,7 +60,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
 
     public BaseCache(String cacheName, boolean isTemp) {
         this.cacheName = cacheName;
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null) {
             if (!identityCacheConfig.isDistributed()) {
                 this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
@@ -232,7 +233,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public boolean isEnabled() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null) {
             return identityCacheConfig.isEnabled();
         }
@@ -240,7 +240,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCacheTimeout() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && identityCacheConfig.getTimeout() > 0) {
             return identityCacheConfig.getTimeout();
         }
@@ -248,7 +247,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCapacity() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && identityCacheConfig.getCapacity() > 0) {
             return identityCacheConfig.getCapacity();
         }
