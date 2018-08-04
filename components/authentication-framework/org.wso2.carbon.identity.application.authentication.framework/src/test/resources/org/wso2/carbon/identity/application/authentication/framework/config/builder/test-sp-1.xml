@@ -57,7 +57,7 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
