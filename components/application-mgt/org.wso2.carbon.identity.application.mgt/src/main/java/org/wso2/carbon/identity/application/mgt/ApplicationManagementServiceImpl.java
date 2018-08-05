@@ -933,9 +933,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.debug("Importing service provider from file " + spFileContent.getFileName());
         }
 
-        ImportResponse importResponse = new ImportResponse();
         ServiceProvider serviceProvider = unmarshalSP(spFileContent, tenantDomain);
 
+        ImportResponse importResponse = this.importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Service provider %s@%s created successfully from file %s",
+                    serviceProvider.getApplicationName(), tenantDomain, spFileContent.getFileName()));
+        }
+
+        return importResponse;
+
+    }
+
+    public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                              boolean isUpdate) throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Importing service provider from object " + serviceProvider.getApplicationName());
+        }
+
+        ImportResponse importResponse = this.importSPApplicationFromObject(serviceProvider, tenantDomain,
+                username, isUpdate);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Service provider %s@%s created successfully from object",
+                    serviceProvider.getApplicationName(), tenantDomain));
+        }
+
+        return importResponse;
+
+    }
+
+    private ImportResponse importSPApplicationFromObject(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                                         boolean isUpdate) throws IdentityApplicationManagementException {
+
+        ImportResponse importResponse = new ImportResponse();
 
         Collection<ApplicationMgtListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -975,10 +1008,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Service provider %s@%s created successfully from file %s",
-                        serviceProvider.getApplicationName(), tenantDomain, spFileContent.getFileName()));
-            }
             importResponse.setResponseCode(ImportResponse.CREATED);
             importResponse.setApplicationName(serviceProvider.getApplicationName());
             importResponse.setErrors(new String[0]);
@@ -990,10 +1019,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             importResponse.setErrors(e.getValidationMsg());
             return importResponse;
         } catch (IdentityApplicationManagementException e) {
-           deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
+            deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
             String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
                     serviceProvider.getApplicationName(), tenantDomain);
-            log.error(errorMsg, e);
             throw new IdentityApplicationManagementException(errorMsg);
         }
     }

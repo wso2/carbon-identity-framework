@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 
 import java.util.List;
 import java.util.Map;
@@ -217,7 +218,7 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
     /**
-     * Import Service Provider application.
+     * Import Service Provider application from file.
      *
      * @param spFileContent xml string of the SP and file name
      * @param tenantDomain  tenant Domain
@@ -227,5 +228,18 @@ public abstract class ApplicationManagementService {
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
+            username, boolean isUpdate) throws IdentityApplicationManagementException;
+
+    /**
+     * Import Service Provider application from stream.
+     *
+     * @param serviceProvider
+     * @param tenantDomain
+     * @param username
+     * @param isUpdate
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String
             username, boolean isUpdate) throws IdentityApplicationManagementException;
 }
