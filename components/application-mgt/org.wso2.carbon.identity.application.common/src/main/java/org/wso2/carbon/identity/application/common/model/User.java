@@ -91,7 +91,7 @@ public class User implements Serializable {
      */
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
-        setUserStoreCaseSensitive();
+        updateCaseSensitivity();
     }
 
     /**
@@ -110,7 +110,7 @@ public class User implements Serializable {
      */
     public void setUserStoreDomain(String userStoreDomain) {
         this.userStoreDomain = userStoreDomain.toUpperCase();
-        setUserStoreCaseSensitive();
+        updateCaseSensitivity();
     }
 
     /**
@@ -212,7 +212,7 @@ public class User implements Serializable {
     /**
      * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that value.
      */
-    protected void setUserStoreCaseSensitive() {
+    protected void updateCaseSensitivity() {
 
         if (StringUtils.isNotEmpty(tenantDomain) && StringUtils.isNotEmpty(userStoreDomain)
                 && IdentityTenantUtil.getRealmService() != null) {
