@@ -35,8 +35,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -48,7 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -100,10 +97,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
         IdentityTenantUtil.setRealmService(mockRealmService);
-        UserRealm mockUserRealm = mock(UserRealm.class);
-        UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
-        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
 
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);

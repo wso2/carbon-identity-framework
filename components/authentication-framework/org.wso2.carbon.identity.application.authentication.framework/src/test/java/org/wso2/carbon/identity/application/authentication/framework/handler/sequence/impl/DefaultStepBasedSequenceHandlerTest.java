@@ -29,7 +29,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -49,11 +48,6 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
@@ -66,7 +60,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
@@ -919,16 +912,6 @@ public class DefaultStepBasedSequenceHandlerTest {
         when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(appendTenantDomainToSubject);
         when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier())
                 .thenReturn(appendUserStoreDomainToSubject);
-
-        RealmService mockRealmService = mock(RealmService.class);
-        TenantManager tenantManager = mock(TenantManager.class);
-        when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
-        IdentityTenantUtil.setRealmService(mockRealmService);
-        UserRealm mockUserRealm = mock(UserRealm.class);
-        UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
-        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName(authenticatedUserNameInSequence);

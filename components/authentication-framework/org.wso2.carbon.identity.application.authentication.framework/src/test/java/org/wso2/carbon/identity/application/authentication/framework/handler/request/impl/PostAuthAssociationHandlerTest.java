@@ -44,15 +44,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.HttpServletRequest;
@@ -64,8 +58,6 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -117,7 +109,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
             " user via federated IDP")
     public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore()
-            throws FrameworkException, UserProfileException, UserStoreException {
+            throws FrameworkException, UserProfileException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
         mockStatic(UserProfileAdmin.class);
@@ -126,15 +118,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         doReturn(SECONDARY + "/" + LOCAL_USER).when(userProfileAdmin).getNameAssociatedWith(Mockito.anyString(),
                 Mockito.anyString());
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
-        RealmService mockRealmService = mock(RealmService.class);
-        TenantManager tenantManager = mock(TenantManager.class);
-        when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
-        IdentityTenantUtil.setRealmService(mockRealmService);
-        UserRealm mockUserRealm = mock(UserRealm.class);
-        UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
-        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response, context);
         AuthenticatedUser authUser = context.getSequenceConfig().getAuthenticatedUser();
         Assert.assertEquals(authUser.getUserName(), LOCAL_USER, "Post Association handler failed to set associated " +

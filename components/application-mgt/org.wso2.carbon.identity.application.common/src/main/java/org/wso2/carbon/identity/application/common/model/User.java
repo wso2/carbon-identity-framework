@@ -91,9 +91,7 @@ public class User implements Serializable {
      */
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
-        if (StringUtils.isNotEmpty(userStoreDomain)) {
-            setUserStoreCaseSensitive();
-        }
+        setUserStoreCaseSensitive();
     }
 
     /**
@@ -112,9 +110,7 @@ public class User implements Serializable {
      */
     public void setUserStoreDomain(String userStoreDomain) {
         this.userStoreDomain = userStoreDomain.toUpperCase();
-        if (StringUtils.isNotEmpty(tenantDomain)) {
-            setUserStoreCaseSensitive();
-        }
+        setUserStoreCaseSensitive();
     }
 
     /**
@@ -218,8 +214,11 @@ public class User implements Serializable {
      */
     protected void setUserStoreCaseSensitive() {
 
-        this.isUsernameCaseSensitive = IdentityUtil
-                .isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain));
+        if (StringUtils.isNotEmpty(tenantDomain) && StringUtils.isNotEmpty(userStoreDomain)
+                && IdentityTenantUtil.getRealmService() != null) {
+            this.isUsernameCaseSensitive = IdentityUtil
+                    .isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain));
+        }
     }
 
 
