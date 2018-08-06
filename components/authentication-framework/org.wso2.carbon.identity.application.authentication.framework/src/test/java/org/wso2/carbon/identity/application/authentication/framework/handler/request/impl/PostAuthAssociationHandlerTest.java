@@ -108,9 +108,8 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
             " user via federated IDP")
-    public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore() throws
-            FrameworkException,
-            UserProfileException {
+    public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore()
+            throws FrameworkException, UserProfileException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
         mockStatic(UserProfileAdmin.class);

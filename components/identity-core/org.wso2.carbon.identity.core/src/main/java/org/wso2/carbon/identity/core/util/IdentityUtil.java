@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -579,12 +580,13 @@ public class IdentityUtil {
             return true;
         }
         try {
-            org.wso2.carbon.user.core.UserStoreManager userStoreManager = (org.wso2.carbon.user.core
-                    .UserStoreManager) IdentityTenantUtil.getRealmService()
-                    .getTenantUserRealm(tenantId).getUserStoreManager();
-            org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager = userStoreManager
-                    .getSecondaryUserStoreManager(userStoreDomain);
-            return isUserStoreCaseSensitive(userAvailableUserStoreManager);
+            UserRealm tenantUserRealm = IdentityTenantUtil.getRealmService().getTenantUserRealm(tenantId);
+            if (tenantUserRealm != null) {
+                org.wso2.carbon.user.core.UserStoreManager userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) tenantUserRealm
+                        .getUserStoreManager();
+                org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+                return isUserStoreCaseSensitive(userAvailableUserStoreManager);
+            }
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while reading user store property CaseInsensitiveUsername. Considering as case " +
