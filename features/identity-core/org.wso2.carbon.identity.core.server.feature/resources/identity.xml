@@ -131,6 +131,13 @@
     </OpenID>
 
     <OAuth>
+        <!-- token cleanup feature config-->
+        <TokenCleanup>
+            <!--if true old access token cleaning feature is enabled -->
+            <EnableTokenCleanup>true</EnableTokenCleanup>
+            <!--if true  old access token retained in audit table  -->
+            <RetainOldAccessToken>true</RetainOldAccessToken>
+        </TokenCleanup>
         <!-- Specify the Token issuer class to be used.
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
