@@ -618,6 +618,31 @@ public class IdentityUtil {
         return !Boolean.parseBoolean(caseInsensitiveUsername);
     }
 
+    /**
+     * This returns whether case sensitive user name can be used as the cache key.
+     *
+     * @param userStoreManager user-store manager
+     * @return true if case sensitive username can be use as cache key
+     */
+    public static boolean isUseCaseSensitiveUsernameForCacheKeys(UserStoreManager userStoreManager) {
+
+        if (userStoreManager == null) {
+            //this is done to handle federated scenarios. For federated scenarios, there is no user store manager for
+            // the user
+            return true;
+        }
+        String useCaseSensitiveUsernameForCacheKeys = userStoreManager.getRealmConfiguration()
+                .getUserStoreProperty(IdentityCoreConstants.USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS);
+        if (StringUtils.isBlank(useCaseSensitiveUsernameForCacheKeys)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to read user store property UseCaseSensitiveUsernameForCacheKeys. Considering as "
+                        + "case sensitive.");
+            }
+            return true;
+        }
+        return Boolean.parseBoolean(useCaseSensitiveUsernameForCacheKeys);
+    }
+
     public static boolean isNotBlank(String input) {
         if (StringUtils.isNotBlank(input) && !"null".equals(input.trim())) {
             return true;
