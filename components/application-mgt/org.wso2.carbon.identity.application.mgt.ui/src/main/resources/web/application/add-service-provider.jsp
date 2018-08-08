@@ -161,7 +161,7 @@ window.onload = function() {
                     <tr>
                        <td class="leftCol-med labelField">Description:</td>
                      <td>
-                        <textarea style="width:50%" type="text" name="sp-description" id="sp-description" class="text-box-big"></textarea>
+                        <textarea maxlength="1023" style="width:50%" type="text" name="sp-description" id="sp-description" class="text-box-big"></textarea>
                         <div class="sectionHelp">
                                 <fmt:message key='help.desc'/>
                             </div>
