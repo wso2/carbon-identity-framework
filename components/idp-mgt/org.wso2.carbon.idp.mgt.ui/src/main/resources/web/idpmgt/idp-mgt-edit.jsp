@@ -3194,10 +3194,15 @@
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
+        <% if ( idPName != null && idPName != "") { %>
+        <h2>
+            <fmt:message key = 'identity.provider'/>
+        </h2>
+        <% } else { %>
         <h2>
             <fmt:message key='add.identity.provider'/>
         </h2>
-
+        <% } %>
         <div id="workArea">
             <form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post"
                   action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
