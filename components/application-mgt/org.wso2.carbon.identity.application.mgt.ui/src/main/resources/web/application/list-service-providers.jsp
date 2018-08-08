@@ -45,6 +45,29 @@
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 
+    <script>
+        function exportSPClick() {
+            jQuery('#spExportData').submit();
+            jQuery(this).dialog("close");
+        }
+        function closeSP() {
+            jQuery(this).dialog("close");
+        }
+        $(function() {
+            $( "#exportSPMsgDialog" ).dialog({
+                autoOpen: false,
+                buttons: {
+                    OK: exportSPClick,
+                    Cancel: closeSP
+                },
+                height:160,
+                width:450,
+                minHeight:160,
+                minWidth:330,
+                modal:true
+            });
+        });
+    </script>
     <div id="middle">
 
         <h2>
@@ -79,26 +102,11 @@
                 }
 
                 function exportSP(appid) {
-
-                    function doInclude() {
-                        document.getElementById('exportSecrets').value = "true";
-                        jQuery('#spExportData').submit();
-                    }
-                    function doExclude() {
-                        document.getElementById('exportSecrets').value = "false";
-                        jQuery('#spExportData').submit();
-                    }
                     document.getElementById('spName').value = appid;
-                    CARBON.showConfirmationDialog('Do you want include the secret keys of "' + appid + '"' +
-                        ' export in the file ? (hashed or encrypted secret willn\'t be included)', doInclude, doExclude);
+                    document.getElementById('exportSecrets').checked = true;
+                    $('#exportSPMsgDialog').dialog("open");
                 }
             </script>
-    
-            <form id="spExportData" name="sp-export-data" method="post"
-                  action="export-service-provider-finish-ajaxprocessor.jsp">
-                <input hidden id="spName" name="spName"/>
-                <input hidden id="exportSecrets" name="exportSecrets"/>
-            </form>
             <%
                 ApplicationBasicInfo[] applications = null;
 
@@ -184,17 +192,17 @@
                                         href="load-service-provider.jsp?spName=<%=Encode.forUriComponent(app.getApplicationName())%>"
                                         class="icon-link"
                                         style="background-image: url(../admin/images/edit.gif)">Edit</a>
-
+                                    <a title="Export Service Providers"
+                                       onclick="exportSP('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
+                                       class="icon-link"
+                                       style="background-image: url(../entitlement/images/publish.gif)">Export
+                                    </a>
                                     <a title="Remove Service Providers"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../admin/images/delete.gif)">Delete
                                     </a>
-                                    <a title="Export Service Providers"
-                                       onclick="exportSP('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
-                                       class="icon-link"
-                                       style="background-image: url(../entitlement/images/publish.gif)">Export
-                                    </a></td>
+                                </td>
                             </tr>
                             <%
                                     }
@@ -222,6 +230,16 @@
                               parameters="<%=paginationValue%>"
                               prevKey="prev" nextKey="next"/>
             <br/>
+        </div>
+    </div>
+    <div id='exportSPMsgDialog' title='WSO2 Carbon'>
+        <div id='messagebox-confirm'>
+            <p> Do you want to export Service Provider as the file ? </p><br>
+            <form id="spExportData" name="sp-export-data" method="post"
+                  action="export-service-provider-finish-ajaxprocessor.jsp">
+                <input hidden id="spName" name="spName"/>
+                <input type="checkbox" id="exportSecrets" name="exportSecrets" checked> Include Secrets (hashed or encrypted values will be excluded)<br>
+            </form>
         </div>
     </div>
 </fmt:bundle>
