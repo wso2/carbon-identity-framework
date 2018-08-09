@@ -22,5 +22,5 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 
 @FunctionalInterface
 public interface SelectOneFunction {
-    String evaluate(JsAuthenticationContext context, String[] possibleOutcomes);
+    String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj);
 }
