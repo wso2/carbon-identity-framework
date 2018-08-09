@@ -39,6 +39,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final long serialVersionUID = 6552125621314155291L;
     private static final String USE_USERSTORE_DOMAIN_IN_USERNAME = "UseUserstoreDomainInUsername";
     private static final String USE_TENANT_DOMAIN_IN_USERNAME = "UseTenantDomainInUsername";
+    private static final String USE_USERSTORE_DOMAIN_IN_ROLES = "UseUserstoreDomainInRoles";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -48,7 +49,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
 
-    @XmlElementWrapper(name="AuthenticationSteps")
+    @XmlElementWrapper(name = "AuthenticationSteps")
     @XmlElement(name = "AuthenticationStep")
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
 
@@ -69,6 +70,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     @XmlElement(name = USE_TENANT_DOMAIN_IN_USERNAME)
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
+
+    @XmlElement(name = USE_USERSTORE_DOMAIN_IN_ROLES)
+    private boolean useUserstoreDomainInRoles = false;
 
     @XmlElement(name = USE_USERSTORE_DOMAIN_IN_USERNAME)
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
@@ -129,7 +133,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                             .setAuthenticationSteps(authenticationStepsArr);
                 }
 
-
             } else if ("AuthenticationType".equals(member.getLocalName())) {
                 localAndOutboundAuthenticationConfig.setAuthenticationType(member.getText());
             } else if (AUTHENTICATION_STEP_FOR_SUBJECT.equals(member.getLocalName())) {
@@ -161,6 +164,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 }
             } else if (SUBJECT_CLAIM_URI.equals(member.getLocalName())) {
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(member.getText());
+            } else if (USE_USERSTORE_DOMAIN_IN_ROLES.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setUseUserstoreDomainInRoles(true);
+                }
             }
         }
 
@@ -282,5 +289,15 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
         this.authenticationScriptConfig = authenticationScriptConfig;
+    }
+
+    public boolean isUseUserstoreDomainInRoles() {
+
+        return useUserstoreDomainInRoles;
+    }
+
+    public void setUseUserstoreDomainInRoles(boolean useUserstoreDomainInRoles) {
+
+        this.useUserstoreDomainInRoles = useUserstoreDomainInRoles;
     }
 }

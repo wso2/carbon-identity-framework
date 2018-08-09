@@ -1319,6 +1319,12 @@ public class ApplicationBean {
                 .setUseUserstoreDomainInLocalSubjectIdentifier(useUserstoreDomainInLocalSubjectIdentifier != null &&
                                                                "on".equals(useUserstoreDomainInLocalSubjectIdentifier) ? true : false);
 
+        String useUserstoreDomainInRoles = request.getParameter("use_userstore_domain_in_roles");
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setUseUserstoreDomainInRoles(useUserstoreDomainInRoles != null &&
+                                        "on".equals(useUserstoreDomainInRoles) ? true : false);
+
+
         String enableAuthorization = request.getParameter(
                 "enable_authorization");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
@@ -1548,5 +1554,18 @@ public class ApplicationBean {
             }
         }
 
+    }
+
+    /**
+     * To check whether to append userstore domain name with role name.
+     *
+     * @return true, if the user store domain should be appended with the role name.
+     */
+    public boolean isUseUserstoreDomainInRoles() {
+
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInRoles();
+        }
+        return false;
     }
 }
