@@ -934,7 +934,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         ServiceProvider serviceProvider = unmarshalSP(spFileContent, tenantDomain);
-
         ImportResponse importResponse = this.importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
 
         if (log.isDebugEnabled()) {
@@ -943,7 +942,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return importResponse;
-
     }
 
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
@@ -1021,7 +1019,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
             String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
                     serviceProvider.getApplicationName(), tenantDomain);
-            throw new IdentityApplicationManagementException(errorMsg);
+            throw new IdentityApplicationManagementException(errorMsg,e);
         }
     }
 
