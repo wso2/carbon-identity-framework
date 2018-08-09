@@ -231,7 +231,7 @@ public abstract class ApplicationManagementService {
             username, boolean isUpdate) throws IdentityApplicationManagementException;
 
     /**
-     * Import Service Provider application from object
+     * Import Service Provider application from object.
      *
      * @param serviceProvider
      * @param tenantDomain

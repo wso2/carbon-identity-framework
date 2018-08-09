@@ -1019,7 +1019,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
             String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
                     serviceProvider.getApplicationName(), tenantDomain);
-            throw new IdentityApplicationManagementException(errorMsg,e);
+            throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }
 
