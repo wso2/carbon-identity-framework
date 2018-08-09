@@ -1102,7 +1102,7 @@
                         <tr>
                             <td style="width:15%" class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea style="width:50%" type="text" name="sp-description" id="sp-description"
+                                <textarea maxlength="1023" style="width:50%" type="text" name="sp-description" id="sp-description"
                                           class="text-box-big"><%=appBean.getServiceProvider().getDescription() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getDescription()) : "" %></textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
