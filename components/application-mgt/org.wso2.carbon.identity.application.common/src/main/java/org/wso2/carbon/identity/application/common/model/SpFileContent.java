@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * Holds file name and content of the uploaded SP file configuration.
+ */
 public class SpFileContent {
 
     private String content;

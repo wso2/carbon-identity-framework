@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.common;
 
+/**
+ * Exception class handling exceptions during application validation. Validation errors have to added to the
+ * validationMsg list.
+ */
 public class IdentityApplicationManagementValidationException extends IdentityApplicationManagementException {
 
     private static final long serialVersionUID = 546145354402013968L;
@@ -25,6 +29,7 @@ public class IdentityApplicationManagementValidationException extends IdentityAp
     private String[] validationMsg;
 
     public IdentityApplicationManagementValidationException(String[] validationMsg) {
+
         super("Validation Error");
         this.validationMsg = validationMsg;
     }
