@@ -44,7 +44,7 @@ public class SelectAcrFromFunction implements SelectOneFunction {
             }
             return null;
         }
-        if (possibleOutcomes != null) {
+        if (possibleOutcomes.length > 0) {
             return selectBestOutcome(acrListRequested, possibleOutcomes);
         }
         return null;
@@ -62,13 +62,13 @@ public class SelectAcrFromFunction implements SelectOneFunction {
                 log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
                         .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
                         .getServiceProviderName() + ". Expected array of strings.");
-                possibleOutcomes = null;
+                possibleOutcomes = new String[0];
             }
         } else {
             log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
                     .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
                     .getServiceProviderName() + ". Expected array of strings.");
-            possibleOutcomes = null;
+            possibleOutcomes = new String[0];
         }
         return possibleOutcomes;
     }
