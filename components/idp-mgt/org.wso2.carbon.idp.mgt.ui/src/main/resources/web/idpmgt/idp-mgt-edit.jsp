@@ -290,8 +290,8 @@
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
 
-        userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
-        roleClaimURI = identityProvider.getClaimConfig().getRoleClaimURI();
+        userIdClaimURI = Encode.forJavaScriptBlock(identityProvider.getClaimConfig().getUserClaimURI());
+        roleClaimURI = Encode.forJavaScriptBlock(identityProvider.getClaimConfig().getRoleClaimURI());
 
         claimMappings = identityProvider.getClaimConfig().getClaimMappings();
 
@@ -825,30 +825,31 @@
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
                     if (googleProperty != null) {
+                        String googlePropertyValue = Encode.forJavaScriptBlock(googleProperty.getValue());
                         if ("google_prov_domain_name".equals(googleProperty.getName())) {
-                            googleDomainName = googleProperty.getValue();
+                            googleDomainName = googlePropertyValue;
                         } else if ("google_prov_givenname".equals(googleProperty.getName())) {
-                            googleGivenNameDefaultValue = googleProperty.getValue();
+                            googleGivenNameDefaultValue = googlePropertyValue;
                         } else if ("google_prov_familyname".equals(googleProperty.getName())) {
-                            googleFamilyNameDefaultValue = googleProperty.getValue();
+                            googleFamilyNameDefaultValue = googlePropertyValue;
                         } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
-                            googleProvServiceAccEmail = googleProperty.getValue();
+                            googleProvServiceAccEmail = googlePropertyValue;
                         } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
-                            googleProvAdminEmail = googleProperty.getValue();
+                            googleProvAdminEmail = googlePropertyValue;
                         } else if ("google_prov_application_name".equals(googleProperty.getName())) {
-                            googleProvApplicationName = googleProperty.getValue();
+                            googleProvApplicationName = googlePropertyValue;
                         } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
-                            googlePrimaryEmailClaim = googleProperty.getValue();
+                            googlePrimaryEmailClaim = googlePropertyValue;
                         } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
-                            googleGivenNameClaim = googleProperty.getValue();
+                            googleGivenNameClaim = googlePropertyValue;
                         } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
-                            googleFamilyNameClaim = googleProperty.getValue();
+                            googleFamilyNameClaim = googlePropertyValue;
                         } else if ("google_prov_private_key".equals(googleProperty.getName())) {
-                            googleProvPrivateKeyData = googleProperty.getValue();
+                            googleProvPrivateKeyData = googlePropertyValue;
                         } else if ("google_prov_pattern".equals(googleProperty.getName())) {
-                            googleProvPattern = googleProperty.getValue();
+                            googleProvPattern = googlePropertyValue;
                         } else if ("google_prov_separator".equals(googleProperty.getName())) {
-                            googleProvisioningSeparator = googleProperty.getValue();
+                            googleProvisioningSeparator = googlePropertyValue;
                         }
                     }
                 }
@@ -1464,8 +1465,8 @@
         $idpClaimsList2.append('<option value = "" >--- Select Claim URI ---</option>');
 
         jQuery('#claimAddTable .claimrow').each(function () {
-            if ($(this).val().trim() != "") {
-                var val = htmlEncode($(this).val());
+            var val = htmlEncode($(this).val());
+            if (val.trim() != "") {
                 if (val == '<%=userIdClaimURI%>') {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
@@ -1522,9 +1523,9 @@
             <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
-            user_id_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            user_id_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            user_id_option += '<option value="' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -4082,7 +4083,8 @@
                                 <tr>
                                     <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                                     <td>
-                                        <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
+                                        <input id="logoutUrl" name="logoutUrl" type="text"
+                                               value=<%=Encode.forHtmlAttribute(logoutUrl) %>>
 
                                         <div class="sectionHelp">
                                             <fmt:message key='logout.url.help'/>
@@ -5160,7 +5162,7 @@
                                         <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                type="password" autocomplete="off"
-                                               value="<%=prop.getValue()%>"
+                                               value="<%=Encode.forHtmlAttribute(prop.getValue())%>"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
                                               style=" float: right; padding-right: 5px;">
@@ -5191,7 +5193,7 @@
                                     <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            type="text"
-                                           value="<%=prop.getValue()%>"/>
+                                           value="<%=Encode.forHtmlAttribute(prop.getValue())%>"/>
                                     <% } else { %>
                                     <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
@@ -5663,7 +5665,7 @@
                                     <fmt:message key='scim.default.password'/>:
                                 </td>
                                 <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
-                                           name="scim-default-pwd" type="text" value=<%=scimDefaultPwd%>></td>
+                                           name="scim-default-pwd" type="text" value=<%=Encode.forHtmlAttribute(scimDefaultPwd)%>></td>
                                 <%if (scimUniqueID != null) {%>
                                 <input type="hidden" id="scim-unique-id" name="scim-unique-id"
                                        value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>
