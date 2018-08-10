@@ -53,6 +53,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.CertificateInfo" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
@@ -69,7 +71,9 @@
     String idpDisplayName = null;
     String description = null;
     boolean federationHubIdp = false;
-    CertData certData = null;
+    CertData[] certDataArr = null;
+    CertificateInfo[] certInfoArr = new CertificateInfo[0];
+    HashMap<String, String> certificateWithRawIdMap = new HashMap<String, String>();
     String jwksUri = null;
     boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
@@ -259,8 +263,20 @@
         idpDisplayName = identityProvider.getDisplayName();
         description = identityProvider.getIdentityProviderDescription();
         provisioningRole = identityProvider.getProvisioningRole();
-        if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
-            certData = IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+        if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray()) && !("[]").equals(identityProvider
+                .getCertificateInfoArray())) {
+            certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
+            int i = 0;
+            for (org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo certificateInfo :
+                    identityProvider.getCertificateInfoArray()) {
+                CertificateInfo certificateInformation = new CertificateInfo();
+                certificateInformation.setCertValue(certificateInfo.getCertValue());
+                certificateInformation.setThumbPrint(certificateInfo.getThumbPrint());
+                certInfoArr[i] = certificateInformation;
+                i++;
+            }
+            certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr).toArray(
+                    new CertData[identityProvider.getCertificateInfoArray().length]);
         }
         IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
         if (idpProperties != null) {
@@ -1695,17 +1711,26 @@
             jQuery(this).next().slideToggle("fast");
             return false; //Prevent the browser jump to the link anchor
         })
-        jQuery('#publicCertDeleteLink').click(function () {
-            $(jQuery('#publicCertDiv')).toggle();
+        jQuery('.publicCertDeleteLinkClass').click(function () {
+            $(this).closest('tr').remove();
+            if ($('#certTableData tbody tr').length == 0) {
+                jQuery('#certTableData').hide();
+            }
             if (!jQuery('#deletePublicCert').length) {
 
-                var input = document.createElement('input');
-                input.type = "hidden";
-                input.name = "deletePublicCert";
-                input.id = "deletePublicCert";
-                input.value = "true";
-                document.forms['idp-mgt-edit-form'].appendChild(input);
+                var inputForDelete = document.createElement('input');
+                inputForDelete.type = "hidden";
+                inputForDelete.name = "deletePublicCert";
+                inputForDelete.id = "deletePublicCert";
+                inputForDelete.value = "true";
+                document.forms['idp-mgt-edit-form'].appendChild(inputForDelete);
             }
+            var inputForCertificateVal = document.createElement('input');
+            inputForCertificateVal.type = "hidden";
+            inputForCertificateVal.name = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.id = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.value = $(this).attr('data-certno');
+            document.forms['idp-mgt-edit-form'].appendChild(inputForCertificateVal);
         })
         jQuery('#claimAddLink').click(function () {
 
@@ -3256,21 +3281,22 @@
                             <td>
                                 <label style="display:block">
                                     <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
-                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && certData == null)) { %>
+                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && ArrayUtils
+                                           .isEmpty(certDataArr))) { %>
                                            checked="checked" <% } %>
-                                           onclick="selectJWKS('<%=(certData != null)%>');" />
+                                           onclick="selectJWKS('<%=(ArrayUtils.isNotEmpty(certDataArr))%>');" />
                                     Use IDP JWKS endpoint
                                 </label>
                                 <label style="display:block">
                                     <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
-                                            <% if (certData != null) { %> checked="checked" <% } %>
+                                            <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> checked="checked" <% } %>
                                            value="choose_upload_certificate"
                                            onclick="selectCertificate()" />
                                     Upload IDP certificate
                                 </label>
                             </td>
                         </tr>
-                        <tr id="upload_certificate" <% if (certData == null) { %> style="display:none" <% } %>>
+                        <tr id="upload_certificate" <% if (ArrayUtils.isEmpty(certDataArr)) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3278,14 +3304,12 @@
                                 <div class="sectionHelp">
                                     <fmt:message key='certificate.help'/>
                                 </div>
-                                <div id="publicCertDiv">
-                                    <% if (certData != null) { %>
-                                    <a id="publicCertDeleteLink" class="icon-link"
-                                       style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
-                                            key='public.cert.delete'/></a>
 
+                                    <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
+                                
+                                <div class="publicCertDiv">
                                     <div style="clear:both"></div>
-                                    <table class="styledLeft">
+                                    <table class="styledLeft" id="certTableData">
                                         <thead>
                                         <tr>
                                             <th><fmt:message key='issuerdn'/></th>
@@ -3294,10 +3318,18 @@
                                             <th><fmt:message key='notbefore'/></th>
                                             <th><fmt:message key='serialno'/></th>
                                             <th><fmt:message key='version'/></th>
+                                            <th><fmt:message key='actions'/></th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
+                                        <%
+                                            HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.
+                                                    getCertDataMap();
+                                            int i = 0;
+                                            for (CertData certData : certDataArr) {
+                                                String certificate = certDataHashMap.get(certData);
+                                        %>
+                                        <tr class="publicCertRowClass<%=i%>" incrementor="<%=i%>">
                                             <td><%
                                                 String issuerDN = "";
                                                 if (certData.getIssuerDN() != null) {
@@ -3335,14 +3367,24 @@
                                             </td>
                                             <td><%=certData.getVersion()%>
                                             </td>
+                                            <td>
+                                                <a id="publicCertDeleteLink" data-certno="<%=certificate%>"
+                                                   class="icon-link publicCertDeleteLinkClass"
+                                                   style="margin-left:0;background-image:url(images/delete.gif);">Delete</a>
+                                            </td>
+                                            <%
+                                                    i++;
+                                                }
+                                            %>
                                         </tr>
                                         </tbody>
                                     </table>
-                                    <% } %>
                                 </div>
+                                <%
+                                    } %>
                             </td>
                         </tr>
-                        <tr id="use_jwks_uri" <% if (certData != null) { %> style="display:none" <% } %>>
+                        <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
                             <td>
                                 <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"

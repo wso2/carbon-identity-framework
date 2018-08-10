@@ -52,6 +52,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -448,17 +449,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                     context.setPreviousSessionFound(true);
 
-                    if (!isReinitialize(previousAuthenticatedSeq, effectiveSequence, request, context)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Previous Sequence should be used without change");
-                        }
-                        try {
-                            effectiveSequence = (SequenceConfig) previousAuthenticatedSeq.clone();
-                        } catch (CloneNotSupportedException e) {
-                            throw new FrameworkException("Exception when trying to clone the Previous Authentication "
-                                    + "Sequence object of SP:" + appName, e);
-                        }
-                    }
+                    effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
+                    effectiveSequence.setReqPathAuthenticators(new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
+                    effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
+                    effectiveSequence.setAuthenticatedIdPs(previousAuthenticatedSeq.getAuthenticatedIdPs());
+                    effectiveSequence.setAuthenticatedReqPathAuthenticator(previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
 
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 

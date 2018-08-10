@@ -84,6 +84,10 @@
                     claimDialectUris.add(claimDialectURI);
                 }
                 
+                // Will be supported with 'Advance Consent Management Feature'.
+                // appBean.setApplicationPurposes(ApplicationMgtUIUtil.getApplicationSpecificPurposes(serviceProvider));
+                // appBean.setSharedPurposes(ApplicationMgtUIUtil.getSharedPurposes());
+                
                 LocalAuthenticatorConfig[] localAuthenticatorConfigs = serviceClient.getAllLocalAuthenticators();
                 RequestPathAuthenticatorConfig[] requestPathAuthenticators = serviceClient.getAllRequestPathAuthenticators();
                 appBean.setServiceProvider(serviceProvider);

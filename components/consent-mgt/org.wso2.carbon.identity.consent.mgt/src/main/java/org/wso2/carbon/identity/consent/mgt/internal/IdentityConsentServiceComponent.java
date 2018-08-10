@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener;
 import org.wso2.carbon.identity.consent.mgt.handler.ConsentDeletionUserEventHandler;
 import org.wso2.carbon.identity.consent.mgt.listener.TenantConsentMgtListener;
+import org.wso2.carbon.identity.consent.mgt.services.ConsentUtilityService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -58,6 +59,8 @@ public class IdentityConsentServiceComponent {
                     new ConsentDeletionAppMgtListener(), null);
             ctxt.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantConsentMgtListener()
                     , null);
+            ctxt.getBundleContext().registerService(ConsentUtilityService.class.getName(), new ConsentUtilityService
+                    (), null);
         } catch (Throwable throwable) {
             log.error("Error while activating Identity Consent Service Component.", throwable);
         }

@@ -25,9 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -36,17 +33,14 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.ConsentConfig;
-import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
-import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
@@ -93,9 +87,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
@@ -269,7 +260,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
 
-            validateConsentPurposes(serviceProvider);
+            // Will be supported with 'Advance Consent Management Feature'.
+            // validateConsentPurposes(serviceProvider);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdateRequest(serviceProvider)) {
                 //It is not required to validate the user here, as the user is validating inside the updateApplication
@@ -314,36 +306,62 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
     private void validateConsentPurposes(ServiceProvider serviceProvider) throws
             IdentityApplicationManagementException {
 
         ConsentManager consentManager = ApplicationManagementServiceComponentHolder.getInstance().getConsentManager();
         ConsentConfig consentConfig = serviceProvider.getConsentConfig();
-        ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
-        if (nonNull(consentPurposeConfigs)) {
-            ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
-            if (nonNull(consentPurposes)) {
-                for (ConsentPurpose consentPurpose : consentPurposes) {
-                    int purposeId = consentPurpose.getPurposeId();
-                    try {
-                        Purpose purpose = consentManager.getPurpose(purposeId);
-                        if (isNull(purpose)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("ConsentManager returned null for Purpose ID: " + purposeId);
+        if (nonNull(consentConfig)) {
+            ConsentPurposeConfigs consentPurposeConfigs = consentConfig.getConsentPurposeConfigs();
+            if (nonNull(consentPurposeConfigs)) {
+                ConsentPurpose[] consentPurposes = consentPurposeConfigs.getConsentPurpose();
+                if (nonNull(consentPurposes)) {
+                    for (ConsentPurpose consentPurpose : consentPurposes) {
+                        int purposeId = consentPurpose.getPurposeId();
+                        try {
+                            Purpose purpose = consentManager.getPurpose(purposeId);
+                            if (isNull(purpose)) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("ConsentManager returned null for Purpose ID: " + purposeId);
+                                }
+                                throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId);
                             }
-                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId);
+
+                            if (!isSPSpecificPurpose(serviceProvider, purpose) && !isSharedPurpose(purpose)) {
+                                String message = "Purpose: %s with ID: %s is not defined under purposes for SP:" +
+                                                 " %s or 'SHARED' purposes.";
+                                String error = String.format(message, purpose.getName(), purpose.getId(),
+                                                             serviceProvider.getApplicationName());
+                                throw new IdentityApplicationManagementException(error);
+                            }
+                        } catch (ConsentManagementException e) {
+                            if (ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())) {
+                                throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId, e);
+                            }
+                            throw new IdentityApplicationManagementException("Error while retrieving consent purpose " +
+                                                                             "with ID: " + purposeId, e);
                         }
-                    } catch (ConsentManagementException e) {
-                        if (ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())) {
-                            throw new IdentityApplicationManagementException("Invalid purpose ID: " + purposeId, e);
-                        }
-                        throw new IdentityApplicationManagementException("Error while retrieving consent purpose with" +
-                                                                         " ID: " + purposeId, e);
                     }
                 }
             }
         }
     }
+
+
+    private boolean isSharedPurpose(Purpose purpose) {
+
+        return PURPOSE_GROUP_SHARED.equals(purpose.getGroup()) && PURPOSE_GROUP_TYPE_SYSTEM.equals(
+                purpose.getGroupType());
+    }
+
+    private boolean isSPSpecificPurpose(ServiceProvider serviceProvider, Purpose purpose) {
+
+        return serviceProvider.getApplicationName().equals(purpose.getGroup())&& PURPOSE_GROUP_TYPE_SP.equals(
+                purpose.getGroupType());
+    }
+    */
 
     private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
 

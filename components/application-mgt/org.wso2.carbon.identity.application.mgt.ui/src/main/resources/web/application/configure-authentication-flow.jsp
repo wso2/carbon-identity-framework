@@ -420,6 +420,26 @@
                 </h2>
 
                 <div class="toggle_container sectionSub" id="editorRow">
+                    <div class="err_warn_container">
+                        <div class="disable_status">
+                            <img src="images/disabled.png"><span class="disable_text">Disabled</span>
+                            <span class="show_errors_toggle_buttons">
+                                <a href="#">[+] See Errors</a>
+                                <a href="#" style="display: none;">[-] Hide Errors</a>
+                            </span>
+                        </div>
+                        <div class="err_warn_content">
+                            <div class="err_container">
+                                <img src="images/error.gif" class="editor_err_img"/> <span class="err_head">Errors</span>
+                                <ul class="err_list"></ul>
+                            </div>
+                            <div class="warn_container">
+                                <img src="images/warning.gif" class="editor_warn_img"/><span class="err_head">Warnings</span>
+                                <ul class="warn_list"></ul>
+                            </div>
+                        </div>
+                        <div class="instruction">Correct errors and update to enable the script.</div>
+                    </div>
                     <div style="position: relative;">
                         <div class="sectionSub step_contents" id="codeMirror">
 <textarea id="scriptTextArea" name="scriptTextArea"
@@ -451,20 +471,29 @@
             </form>
         </div>
     </div>
-    <div class="editor-error-content" style="display: none">
-        <div class="messagebox-error-custom">
-            <ul class="errorListContainer"></ul>
+    <div class="editor-error-warn-container">
+        <div class="err_warn_text"></div>
+        <div class="editor-error-content">
+            <div class="messagebox-error-custom">
+                <ul class="errorListContainer"></ul>
+                <ul class="stepErrorListContainer"></ul>
+            </div>
         </div>
-    </div>
-    <div class="editor-warning-content" style="display: none">
-        <div class="messagebox-warning-custom">
-            <ul class="warningListContainer"></ul>
+        <div class="editor-warning-content">
+            <div class="messagebox-warning-custom">
+                <ul class="warningListContainer"></ul>
+                <ul class="stepWarningListContainer"></ul>
+            </div>
         </div>
     </div>
 </fmt:bundle>
 
 <script id="template-info" type="text/x-handlebars-template">
-    <div id='messagebox-template-summary' class="messagebox-warning-custom">
+    <div id="template-replace-warn" class="error-msg">
+        <p>The template code will replace the existing scripts in the editor. Any of your current
+            changes will be lost. Click "OK" to continue.</p>
+    </div>
+    <div id='messagebox-template-summary' class="messagebox-info-custom">
         <h2>{{title}}</h2>
         <br/>
         {{#if summary}}
@@ -505,12 +534,8 @@
         {{/if}}
         {{#if helpLink}}
         <h3>Help/Reference</h3>
-        <a href="{{helpLink}}">{{helpLink}}</a>
+        <a href="{{helpLink}}" target="_blank">{{helpLink}}</a>
         {{/if}}
-        <div id="template-replace-warn" class="error-msg">
-            <p>The template code will replace the existing scripts in the editor. Any of your current
-                changes will be lost. Click "OK" to continue.</p>
-        </div>
     </div>
 </script>
 <script>

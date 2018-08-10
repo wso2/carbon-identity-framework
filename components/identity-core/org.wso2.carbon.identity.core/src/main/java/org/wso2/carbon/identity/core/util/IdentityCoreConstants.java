@@ -35,6 +35,7 @@ public class IdentityCoreConstants {
     public static final int EVENT_LISTENER_ORDER_ID = -1;
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
+    public static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
     public static final String USER_NOT_FOUND = "UserNotFound";
     public static final String EXISTING_USER = "UserAlreadyExisting";
     public final static String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";

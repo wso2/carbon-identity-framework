@@ -56,6 +56,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                 if (log.isDebugEnabled()) {
                     log.debug("Added wait status for wait key: " + waitKey);
                 }
+                connection.commit();
             } catch (SQLException e) {
                 throw new FrameworkException("Error while adding wait status for key:" + waitKey, e);
             }
@@ -76,6 +77,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                 if (log.isDebugEnabled()) {
                     log.debug("Removed wait status for wait key: " + waitKey);
                 }
+                connection.commit();
             } catch (SQLException e) {
                 throw new FrameworkException("Error while removing wait status with key:" + waitKey, e);
             }

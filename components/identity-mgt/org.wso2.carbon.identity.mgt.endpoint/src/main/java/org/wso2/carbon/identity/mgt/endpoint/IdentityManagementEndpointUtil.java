@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.mgt.endpoint;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,11 +31,15 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
+import org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -45,27 +51,34 @@ public class IdentityManagementEndpointUtil {
 
     public static final String PADDING_CHAR = "=";
     public static final String UNDERSCORE = "_";
+    public static final String PII_CATEGORIES = "piiCategories";
+    public static final String PII_CATEGORY = "piiCategory";
+    public static final String PURPOSES = "purposes";
+    public static final String MANDATORY = "mandatory";
+    public static final String DISPLAY_NAME = "displayName";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
 
     private IdentityManagementEndpointUtil() {
+
     }
 
     /**
      * Reruns the full qualified username of the user in below format.
      * <user_store_domain>/<username>@<tenant_domain>
      *
-     * @param username username of the user
-     * @param tenantDomain tenant domain the user belongs to
+     * @param username        username of the user
+     * @param tenantDomain    tenant domain the user belongs to
      * @param userStoreDomain user store domain usee belongs to
      * @return full qualified username
      */
     public static final String getFullQualifiedUsername(String username, String tenantDomain, String userStoreDomain) {
+
         String fullQualifiedUsername = username;
         if (StringUtils.isNotBlank(userStoreDomain) && !IdentityManagementEndpointConstants.PRIMARY_USER_STORE_DOMAIN
                 .equals(userStoreDomain)) {
             fullQualifiedUsername = userStoreDomain + IdentityManagementEndpointConstants.USER_STORE_DOMAIN_SEPARATOR
-                                    + fullQualifiedUsername;
+                    + fullQualifiedUsername;
         }
 
         if (StringUtils.isNotBlank(tenantDomain) && !IdentityManagementEndpointConstants.SUPER_TENANT.equals
@@ -80,7 +93,7 @@ public class IdentityManagementEndpointUtil {
     /**
      * Returns the error to be viewed for end user.
      *
-     * @param errorMsgSummary required error message to be viewed
+     * @param errorMsgSummary  required error message to be viewed
      * @param optionalErrorMsg optional content to be viewed
      * @param verificationBean info recovery confirmation bean
      * @return error message to be viewed
@@ -107,6 +120,7 @@ public class IdentityManagementEndpointUtil {
      * @return configured url or the default url if configured url is empty
      */
     public static final String getUserPortalUrl(String userPortalUrl) {
+
         if (StringUtils.isNotBlank(userPortalUrl)) {
             return userPortalUrl;
         }
@@ -120,6 +134,7 @@ public class IdentityManagementEndpointUtil {
      * @return Boolean
      */
     public static boolean getBooleanValue(Object value) {
+
         if (value != null && value instanceof Boolean) {
             return (Boolean) value;
         }
@@ -134,6 +149,7 @@ public class IdentityManagementEndpointUtil {
      * @return String
      */
     public static String getStringValue(Object value) {
+
         if (value != null && value instanceof String) {
             return (String) value;
         }
@@ -148,6 +164,7 @@ public class IdentityManagementEndpointUtil {
      * @return Integer
      */
     public static int getIntValue(Object value) {
+
         if (value != null && value instanceof Integer) {
             return (Integer) value;
         }
@@ -162,6 +179,7 @@ public class IdentityManagementEndpointUtil {
      * @return String[]
      */
     public static String[] getStringArray(Object value) {
+
         if (value != null && value instanceof String[]) {
             return (String[]) value;
         }
@@ -170,18 +188,21 @@ public class IdentityManagementEndpointUtil {
     }
 
     public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
         bean.setProviders(providers);
         return bean.create(cls, new Object[0]);
     }
 
     private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
         bean.setServiceClass(cls);
         return bean;
     }
 
     static JAXRSClientFactoryBean getBean(String baseAddress, String configLocation, Map<String, String> headers) {
+
         JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
         if (configLocation != null) {
             SpringBusFactory bf = new SpringBusFactory();
@@ -196,6 +217,7 @@ public class IdentityManagementEndpointUtil {
     }
 
     public static void addReCaptchaHeaders(HttpServletRequest request, Map<String, List<String>> headers) {
+
         if (headers != null && headers.get("reCaptcha") != null) {
             request.setAttribute("reCaptcha", Boolean.TRUE.toString());
             request.setAttribute("reCaptchaAPI", headers.get("reCaptchaAPI").get(0));
@@ -304,7 +326,7 @@ public class IdentityManagementEndpointUtil {
      * Retrieve the value of property entry for key, return key if a value is not found for key
      *
      * @param resourceBundle name of the resourcebundle object
-     * @param key name of the key
+     * @param key            name of the key
      * @return property value entry of the key or key value itself
      */
     public static String i18n(ResourceBundle resourceBundle, String key) {
@@ -326,7 +348,7 @@ public class IdentityManagementEndpointUtil {
      * return key if a value is not found for above calculated
      *
      * @param resourceBundle name of the resourcebundle object
-     * @param key name of the key
+     * @param key            name of the key
      * @return property value entry of the base64 encoded key value or key value itself
      */
     public static String i18nBase64(ResourceBundle resourceBundle, String key) {
@@ -340,5 +362,57 @@ public class IdentityManagementEndpointUtil {
             // default, not to break the UI
             return Encode.forHtml(key);
         }
+    }
+
+    /**
+     * Get unique PIIs out of given purposes.
+     *
+     * @param purposesResponseString Purposes response JSON received from Consent Mgt API.
+     * @return Unique PIIs out of given purposes in the purposes JSON String.
+     */
+    public static Map<String, Claim> getUniquePIIs(String purposesResponseString) {
+
+        Map<String, Claim> claimsMap = new HashMap<>();
+        JSONObject purposes = new JSONObject(purposesResponseString);
+        JSONArray purposesArray = purposes.getJSONArray(PURPOSES);
+        for (int i = 0; i < purposesArray.length(); i++) {
+            JSONObject purpose = purposesArray.getJSONObject(i);
+            JSONArray piis = (JSONArray) purpose.get(PII_CATEGORIES);
+            for (int j = 0; j < piis.length(); j++) {
+                JSONObject pii = piis.getJSONObject(j);
+                if (claimsMap.get(pii.getString(PII_CATEGORY)) == null) {
+                    Claim claim = new Claim();
+                    claim.displayName(getStringValue(pii.get(DISPLAY_NAME)));
+                    claim.setUri(getStringValue(pii.get(PII_CATEGORY)));
+                    claim.required(pii.getBoolean(MANDATORY));
+                    claimsMap.put(getStringValue(pii.get(PII_CATEGORY)), claim);
+                } else {
+                    Claim claim = claimsMap.get(pii.getString(PII_CATEGORY));
+                    if (pii.getBoolean(MANDATORY)) {
+                        claim.required(true);
+                    }
+                }
+            }
+        }
+        return claimsMap;
+    }
+
+    public static Map<String, Claim> fillPiisWithClaimInfo(Map<String, Claim> piis, List<Claim> defaultClaims) {
+
+        if (piis != null) {
+            for (Claim defaultClaim : defaultClaims) {
+                if (defaultClaim != null && defaultClaim.getUri() != null && piis.get(defaultClaim.getUri()) != null) {
+                    piis.get(defaultClaim.getUri()).setValidationRegex(defaultClaim.getValidationRegex());
+                }
+            }
+        } else {
+            piis = new HashMap<>();
+            for (Claim defaultClaim : defaultClaims) {
+                if (defaultClaim != null && defaultClaim.getUri() != null) {
+                    piis.put(defaultClaim.getUri(), defaultClaim);
+                }
+            }
+        }
+        return piis;
     }
 }

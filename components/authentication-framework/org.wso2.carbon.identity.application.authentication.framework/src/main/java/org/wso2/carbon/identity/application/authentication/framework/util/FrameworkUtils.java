@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -48,6 +49,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -96,6 +99,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -111,6 +115,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -725,9 +731,12 @@ public class FrameworkUtils {
     }
 
     /**
+     * @deprecated Use the {@link #addSessionContextToCache(String, SessionContext, String)}
+     *
      * @param key
      * @param sessionContext
      */
+    @Deprecated
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
@@ -738,11 +747,12 @@ public class FrameworkUtils {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
                     entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                    entry.getValue().setAuthenticationGraph(null);
                 }
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
@@ -760,11 +770,15 @@ public class FrameworkUtils {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
                     entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+
+                    // AuthenticationGraph in the SequenceConfig is used during the authentication flow and is not
+                    // needed after the whole authentication flow is completed. Hense removed from the SessionContext.
+                    entry.getValue().setAuthenticationGraph(null);
                 }
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
@@ -1741,6 +1755,72 @@ public class FrameworkUtils {
             }
         }
         return null;
+    }
+
+    public static Object toJsSerializable(Object value) {
+
+        if (value instanceof Serializable) {
+            return value;
+        } else if (value instanceof ScriptObjectMirror) {
+            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
+            if (scriptObjectMirror.isFunction()) {
+                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+            } else if (scriptObjectMirror.isArray()) {
+                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
+                scriptObjectMirror.values().forEach(v -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        arrayItems.add((Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value of array item as : " + serializedObj);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
+                                serializedObj));
+                    }
+                });
+                return arrayItems;
+            } else if (!scriptObjectMirror.isEmpty()) {
+                Map<String, Serializable> serializedMap = new HashMap<>();
+                scriptObjectMirror.forEach((k, v) -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        serializedMap.put(k, (Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value for key : " + k);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
+                    }
+
+                });
+                return serializedMap;
+            } else {
+                return Collections.EMPTY_MAP;
+            }
+        }
+        return value;
+    }
+
+    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
+
+        if (value instanceof SerializableJsFunction) {
+            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
+            try {
+                return engine.eval(serializableJsFunction.getSource());
+            } catch (ScriptException e) {
+                throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
+            }
+
+        } else if (value instanceof Map) {
+            Map<String, Object> deserializedMap = new HashMap<>();
+            for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
+                deserializedMap.put(entry.getKey(), deserializedObj);
+            }
+            return deserializedMap;
+        }
+        return value;
     }
 }
 
