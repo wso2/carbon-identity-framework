@@ -131,11 +131,11 @@
     </OpenID>
 
     <OAuth>
-        <!-- token cleanup feature config-->
+        <!-- Token cleanup feature config-->
         <TokenCleanup>
-            <!--if true old access token cleaning feature is enabled -->
+            <!--If true old access token cleaning feature is enabled -->
             <EnableTokenCleanup>true</EnableTokenCleanup>
-            <!--if true  old access token retained in audit table  -->
+            <!--If true  old access token retained in audit table  -->
             <RetainOldAccessToken>true</RetainOldAccessToken>
         </TokenCleanup>
         <!-- Specify the Token issuer class to be used.
