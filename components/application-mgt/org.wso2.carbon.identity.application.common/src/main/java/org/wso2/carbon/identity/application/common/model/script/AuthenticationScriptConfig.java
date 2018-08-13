@@ -20,12 +20,19 @@ package org.wso2.carbon.identity.application.common.model.script;
 import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 
 /**
  * Holds a dynamic authentication script.
  * Contains script as a string and several other meta-information related to script.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "AuthenticationScript")
 public class AuthenticationScriptConfig implements Serializable {
 
     private static final long serialVersionUID = -16127229981193884L;
@@ -34,8 +41,14 @@ public class AuthenticationScriptConfig implements Serializable {
     public static final QName ATTR_ENABLED = new QName(null, "enabled");
     public static final String LANGUAGE_JAVASCRIPT = "application/javascript";
 
+
+    @XmlAttribute(name = "language")
     private String language = LANGUAGE_JAVASCRIPT;
+
+    @XmlValue
     private String content;
+
+    @XmlAttribute(name = "enabled")
     private boolean enabled;
 
     /**

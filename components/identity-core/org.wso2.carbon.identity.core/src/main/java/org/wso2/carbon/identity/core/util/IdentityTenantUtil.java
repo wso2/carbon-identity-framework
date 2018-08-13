@@ -237,7 +237,9 @@ public class IdentityTenantUtil {
 
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
-            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            if (realmService != null) {
+                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            }
         } catch (UserStoreException e) {
             // Ideally user.core should be throwing an unchecked exception, in which case no need to wrap at this
             // level once more without adding any valuable contextual information. Because we don't have exception

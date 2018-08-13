@@ -26,9 +26,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.xsd.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.xsd.SpFileContent;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
@@ -233,6 +235,44 @@ public class ApplicationManagementServiceClient {
         }
     }
 
+    /**
+     * Retrieve the configured authentication templates as a JSON String.
+     *
+     * @return Authentication template configuration
+     * @throws AxisFault
+     */
+    public String getAuthenticationTemplatesJson() throws AxisFault {
+
+        try {
+            return stub.getAuthenticationTemplatesJSON();
+        } catch (RemoteException e) {
+            throw new AxisFault("Error occurred while retrieving authentication flow templates", e);
+        }
+    }
+
+    public ImportResponse importApplication(SpFileContent spFileContent) throws AxisFault {
+        try {
+            if (debugEnabled) {
+                log.debug("Importing Service Provider from file : " + spFileContent.getFileName());
+            }
+            return stub.importApplication(spFileContent);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return new ImportResponse();
+    }
+
+    public String exportApplication(String appid, boolean exportSecrets) throws AxisFault {
+        try {
+            if (debugEnabled) {
+                log.debug("Exporting Service Provider to file" );
+            }
+            return stub.exportApplication(appid, exportSecrets);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return null;
+    }
 
     private void handleException(Exception e) throws AxisFault {
         String errorMessage = "Unknown error occurred.";

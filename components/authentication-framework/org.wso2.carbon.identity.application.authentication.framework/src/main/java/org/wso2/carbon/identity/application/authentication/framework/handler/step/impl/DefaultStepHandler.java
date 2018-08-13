@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -149,6 +148,14 @@ public class DefaultStepHandler implements StepHandler {
                     context.setPreviousAuthTime(true);
                 }
             }
+        }
+
+        if (request.getParameter(FrameworkConstants.RequestParams.USER_ABORT) != null
+                && Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT))) {
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                    .USER_ABORT);
+            stepConfig.setCompleted(true);
+            return;
         }
 
         // if Request has fidp param and if this is the first step
@@ -635,6 +642,8 @@ public class DefaultStepHandler implements StepHandler {
         IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
         IdentityUtil.clearIdentityErrorMsg();
 
+        retryParam = handleIdentifierFirstLogin(context, retryParam);
+
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
@@ -730,6 +739,26 @@ public class DefaultStepHandler implements StepHandler {
                         "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
             }
         }
+    }
+
+    private String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
+
+        Map<String, String> runtimeParams = context
+                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+        String promptType = null;
+        String usernameFromContext = null;
+        if (runtimeParams != null) {
+            usernameFromContext = runtimeParams.get(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME);
+            if (usernameFromContext != null) {
+                promptType = FrameworkConstants.INPUT_TYPE_IDENTIFIER_FIRST;
+            }
+        }
+
+        if (promptType != null) {
+            retryParam += "&" + FrameworkConstants.RequestParams.INPUT_TYPE + "=" + promptType;
+            context.addEndpointParam("username", usernameFromContext);
+        }
+        return retryParam;
     }
 
     private AuthenticatorConfig getAuthenticatorConfig() {

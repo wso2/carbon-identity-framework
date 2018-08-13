@@ -39,7 +39,7 @@ import static org.testng.Assert.assertNotNull;
 public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test(dataProvider = "noJsDataProvider")
-    public void testHandle_Static_Sequence(String spFileName, int authHistoryCount) throws
+    public void testHandleStaticSequence(String spFileName, int authHistoryCount) throws
             Exception {
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 

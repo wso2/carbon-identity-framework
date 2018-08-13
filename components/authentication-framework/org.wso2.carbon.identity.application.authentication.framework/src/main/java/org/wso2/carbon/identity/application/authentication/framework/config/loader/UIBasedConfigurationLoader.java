@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.loa
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -32,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -59,8 +60,6 @@ import java.util.Map;
 public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
-    private JsFunctionRegistry jsFunctionRegistrar;
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
@@ -81,11 +80,12 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
 
         //Use script based evaluation if script is present.
-        if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig())) {
+        if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             sequenceConfig.getStepMap().clear();
-
+            JsGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
+                    .getJsGraphBuilderFactory();
             JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
             context.setServiceProviderName(serviceProvider.getApplicationName());
 
@@ -99,8 +99,15 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         return sequenceConfig;
     }
 
-    private boolean isAuthenticationScriptBasedSequence(AuthenticationScriptConfig authenticationScriptConfig) {
-        return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+    private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
+                                                            localAndOutboundAuthenticationConfig) {
+
+        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                .getAuthenticationScriptConfig();
+            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        }
+        return false;
     }
 
     /**
@@ -301,13 +308,5 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
         }
-    }
-
-    public void setJsFunctionRegistrar(JsFunctionRegistry jsFunctionRegistrar) {
-        this.jsFunctionRegistrar = jsFunctionRegistrar;
-    }
-
-    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
-        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 }

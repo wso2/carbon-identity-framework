@@ -25,6 +25,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String confirmationKey = request.getParameter("confirmation");
@@ -62,7 +63,8 @@
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", "Cannot process the email notification confirmation. confirmation code is missing.");
+        request.setAttribute("errorMsg",
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cannot.process.email.confirmation.code.is.missing"));
         request.setAttribute("errorCode", "18001");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;

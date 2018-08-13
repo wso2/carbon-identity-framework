@@ -44,7 +44,7 @@ public class AuthenticationRequestCache extends
      * Private constructor which will not allow to create objects of this class from outside
      */
     private AuthenticationRequestCache() {
-        super(AUTHENTICATION_REQUEST_CACHE_NAME);
+        super(AUTHENTICATION_REQUEST_CACHE_NAME, true);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));

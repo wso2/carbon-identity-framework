@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
         .SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -52,6 +51,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -109,6 +109,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private static final Log log = LogFactory.getLog(SSOConsentServiceImpl.class);
     private static final String DEFAULT_PURPOSE = "DEFAULT";
     private static final String DEFAULT_PURPOSE_CATEGORY = "DEFAULT";
+    private static final String DEFAULT_PURPOSE_GROUP = "DEFAULT";
+    private static final String DEFAULT_PURPOSE_GROUP_TYPE = "SP";
     private boolean ssoConsentEnabled = true;
 
     public SSOConsentServiceImpl() {
@@ -185,11 +187,12 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         if (isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
-                Claim remoteClaim = userAttribute.getKey().getRemoteClaim();
-                if (subjectClaimUri.equals(remoteClaim.getClaimUri())) {
+                String remoteClaimUri = userAttribute.getKey().getRemoteClaim().getClaimUri();
+                if (subjectClaimUri.equals(remoteClaimUri) ||
+                        IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR.equals(remoteClaimUri)) {
                     continue;
                 }
-                mandatoryClaims.add(remoteClaim.getClaimUri());
+                mandatoryClaims.add(remoteClaimUri);
             }
         } else {
 
@@ -595,7 +598,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         Purpose purpose;
 
         try {
-            purpose = getConsentManager().getPurposeByName(DEFAULT_PURPOSE);
+            purpose = getConsentManager().getPurposeByName(DEFAULT_PURPOSE, DEFAULT_PURPOSE_GROUP,
+                                                           DEFAULT_PURPOSE_GROUP_TYPE);
         } catch (ConsentManagementClientException e) {
 
             if (isInvalidPurposeError(e)) {
@@ -614,7 +618,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private Purpose addDefaultPurpose() throws SSOConsentServiceException {
 
         Purpose purpose;
-        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product");
+        Purpose defaultPurpose = new Purpose(DEFAULT_PURPOSE, "For core functionalities of the product",
+                                             DEFAULT_PURPOSE_GROUP, DEFAULT_PURPOSE_GROUP_TYPE);
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {

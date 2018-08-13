@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -191,7 +192,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
-        if (rememberMe != null && "on".equalsIgnoreCase(rememberMe)) {
+        if (FrameworkConstants.REMEMBER_ME_OPT_ON.equalsIgnoreCase(rememberMe)) {
             context.setRememberMe(true);
         } else {
             context.setRememberMe(false);
@@ -316,6 +317,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
             }
 
+            String applicationTenantDomain = getApplicationTenantDomain(context);
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
@@ -377,7 +379,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
@@ -409,12 +411,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if (context.getSelectedAcr() != null) {
                     sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
                 }
-                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
-                String applicationTenantDomain = context.getTenantDomain();
-                if (StringUtils.isEmpty(applicationTenantDomain)) {
-                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-                }
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
@@ -448,6 +446,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    private String getApplicationTenantDomain(AuthenticationContext context) {
+
+        return (StringUtils.isNotEmpty(context.getTenantDomain()) ?
+                context.getTenantDomain() : MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
     }
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,

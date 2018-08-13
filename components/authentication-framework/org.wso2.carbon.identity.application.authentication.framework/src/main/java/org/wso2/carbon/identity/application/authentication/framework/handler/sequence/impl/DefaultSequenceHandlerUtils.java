@@ -17,14 +17,18 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +38,7 @@ import java.util.Map;
 public class DefaultSequenceHandlerUtils {
 
     private static Log log = LogFactory.getLog(DefaultSequenceHandlerUtils.class);
-
+    private static final String SEND_ONLY_SP_MAPPED_ROLES = "SPRoleManagement.ReturnOnlyMappedLocalRoles";
     private DefaultSequenceHandlerUtils() {
     }
 
@@ -47,12 +51,15 @@ public class DefaultSequenceHandlerUtils {
                     " of user: " + authenticatedUser);
         }
 
-        // SP role mapped role values joined by Multi Attribute Separatorg
+        // SP role mapped role values joined by Multi Attribute Separator.
+        boolean returnOnlyMappedLocalRoles = Boolean.parseBoolean(IdentityUtil.getProperty(SEND_ONLY_SP_MAPPED_ROLES));
+
         String spMappedRoles = null;
         if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
             // Get SP Role mappings
             Map<String, String> localToSpRoleMapping = sequenceConfig.getApplicationConfig().getRoleMappings();
             List<String> spMappedRoleList = new ArrayList<>();
+            List<String> domainRemovedRoleList = new ArrayList<>();
             // Check whether there are any SpRoleMappings
             if (localToSpRoleMapping != null && !localToSpRoleMapping.isEmpty()) {
                 for (String locallyMappedRole : locallyMappedUserRoles) {
@@ -65,8 +72,15 @@ public class DefaultSequenceHandlerUtils {
                                     + spMappedRole);
                         }
                     } else {
-                        // Add local role to the list since there are no SP mapped roles for this one
-                        spMappedRoleList.add(locallyMappedRole);
+                        //  If ReturnOnlyMappedLocalRoles is false, add local role to the list.
+                        if (!returnOnlyMappedLocalRoles) {
+                            if (isRemoveUserDomainInRole(sequenceConfig)) {
+                                //if 'Use user store domain in roles' is false add the list to remove domain name.
+                                domainRemovedRoleList.add(locallyMappedRole);
+                            } else {
+                                spMappedRoleList.add(locallyMappedRole);
+                            }
+                        }
                     }
                 }
             } else {
@@ -75,7 +89,20 @@ public class DefaultSequenceHandlerUtils {
                             "as service provider mapped roles.");
                 }
                 // We don't have any sp role mappings
-                spMappedRoleList = locallyMappedUserRoles;
+                if (isRemoveUserDomainInRole(sequenceConfig)) {
+                    domainRemovedRoleList = locallyMappedUserRoles;
+                } else {
+                    spMappedRoleList = locallyMappedUserRoles;
+                }
+            }
+
+            //if 'Use user store domain in roles' is false remove the domain from roles.
+            if (isRemoveUserDomainInRole(sequenceConfig)) {
+                String[] domainRemovedRoles = UserCoreUtil.removeDomainFromNames(domainRemovedRoleList.toArray
+                        (new String[domainRemovedRoleList.size()]));
+                if (!ArrayUtils.isEmpty(domainRemovedRoles)) {
+                    spMappedRoleList.addAll(Arrays.asList(domainRemovedRoles));
+                }
             }
             spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), FrameworkUtils.getMultiAttributeSeparator());
         }
@@ -84,5 +111,12 @@ public class DefaultSequenceHandlerUtils {
             log.debug("Service Provider Mapped Roles: " + spMappedRoles);
         }
         return spMappedRoles;
+    }
+
+    // Execute only if it has allowed removing userstore domain from the sp level configurations.
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+
+        return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
+                isUseUserstoreDomainInRoles();
     }
 }

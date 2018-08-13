@@ -16,18 +16,25 @@
   ~ under the License.
   --%>
 
+<%@page import="com.google.gson.Gson" %>
+<%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@page import="java.util.ArrayList" %>
-<%@page import="java.util.Arrays" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
-<%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
-<%@ page import="java.net.URL" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS" %>
+<%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS_MSG" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.CONFIGURATION_ERROR" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.AUTHENTICATION_MECHANISM_NOT_CONFIGURED" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.ENABLE_AUTHENTICATION_WITH_REST_API" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.Map" %>
 <%@include file="localize.jsp" %>
+<jsp:directive.include file="init-url.jsp"/>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -35,6 +42,7 @@
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
+    private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
 %>
 
     <%
@@ -63,6 +71,7 @@
     <%
 
         boolean hasLocalLoginOptions = false;
+        boolean isBackChannelBasicAuth = false;
         List<String> localAuthenticatorNames = new ArrayList<String>();
 
         if (idpAuthenticatorMapping != null && idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) {
@@ -79,6 +88,26 @@
         if (request.getParameter("reCaptcha") != null && "TRUE".equalsIgnoreCase(request.getParameter("reCaptcha"))) {
             reCaptchaEnabled = true;
         }
+    %>
+    <%
+        String inputType = request.getParameter("inputType");
+        String username = null;
+    
+        if (isIdentifierFirstLogin(inputType)) {
+            String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
+            if (StringUtils.isBlank(authAPIURL)) {
+                authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
+            }
+            if (!authAPIURL.endsWith("/")) {
+                authAPIURL += "/";
+            }
+            authAPIURL += "context/" + request.getParameter("sessionDataKey");
+            String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
+            Gson gson = new Gson();
+            Map<String, Object> parameters = gson.fromJson(contextProperties, Map.class);
+            username = (String) parameters.get("username");
+        }
+        
     %>
     <html>
     <head>
@@ -160,7 +189,19 @@
                 <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                     <div>
                         <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                            <%
+                                if (isIdentifierFirstLogin(inputType)) {
+                            %>
+                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "welcome") + " " + username%>
+    
+                            <%
+                                } else {
+                            %>
                             <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
+                            <%
+                                }
+                            %>
+                            
                         </h2>
                     </div>
                     <div class="boarder-all ">
@@ -174,24 +215,31 @@
                             %>
 
                             <%@ include file="openid.jsp" %>
-
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
+                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
+                                    localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
+                                boolean includeBasicAuth = true;
+                                if (localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR)) {
+                                    if (Boolean.parseBoolean(application.getInitParameter(ENABLE_AUTHENTICATION_WITH_REST_API))) {
+                                        isBackChannelBasicAuth = true;
+                                    } else {
+                                        String redirectURL = "error.do?" + STATUS + "=" + CONFIGURATION_ERROR + "&" +
+                                                STATUS_MSG + "=" + AUTHENTICATION_MECHANISM_NOT_CONFIGURED;
+                                        response.sendRedirect(redirectURL);
+                                    }
+                                } else if (localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
+                                    isBackChannelBasicAuth = false;
+                                    if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
+                                        includeBasicAuth = false;
                             %>
-
-                            <%
-                                if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
-                            %>
-
                             <%@ include file="tenantauth.jsp" %>
-
-                            <script>
-                                //set the selected tenant domain in dropdown from the cookie value
-                                window.onload = selectTenantFromCookie;
-                            </script>
                             <%
-                            } else {
+                                    }
+                                }
+
+                                if (includeBasicAuth) {
+
                             %>
                             <%@ include file="basicauth.jsp" %>
                             <%
@@ -325,7 +373,30 @@
 
 
                             <% } %>
+    
+                            <% if (isIdentifierFirstLogin(inputType)) { %>
+                            <div class="padding-double login-form">
+                                <form action="<%=commonauthURL%>" method="post" id="changeUserForm">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>'/>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <input type="hidden" name="userAbort" value='true'/>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                        <div class="form-actions">
+                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "not.me") + " " + username
+                                                    + "? "%>
+                                            <a id="changeUser" href="#" onclick="changeUsername(event)">
+                                                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login.as.different.user")%>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <% } %>
                             <div class="clearfix"></div>
+
                         </div>
                     </div>
                     <!-- /content -->
@@ -391,11 +462,11 @@
 
 
             if (domain != "") {
-                document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+                document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                         "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>&domain=" +
                         domain;
             } else {
-                document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+                document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                         "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>";
             }
         }
@@ -408,7 +479,7 @@
                         (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
                 }
             %>
-            document.location = "../commonauth?idp=" + key + "&authenticator=" + value +
+            document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                     "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>" +
                     "<%=multiOptionURIParam%>";
         }
@@ -424,6 +495,18 @@
         });
         window.onunload = function(){};
     </script>
+
+    <script>
+        function changeUsername (e) {
+            document.getElementById("changeUserForm").submit();
+        }
+    </script>
+
+    <%!
+        private boolean isIdentifierFirstLogin(String inputType) {
+            return "idf".equalsIgnoreCase(inputType);
+        }
+    %>
 
     </body>
     </html>

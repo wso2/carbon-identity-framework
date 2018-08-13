@@ -16,10 +16,10 @@
   ~ under the License.
   -->
 
-<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd" >
-
-<web-app>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
     <!--  Custom Page configurations -->
     <!-- *************** Application specific configurations ********************** -->
     <!--context-param>
@@ -56,7 +56,31 @@
        <param-name>AccountRecoveryRESTEndpointURL</param-name>
        <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v1.0/</param-value>
    </context-param>
+    <!--context-param>
+        <param-name>EnableRecoveryEndpoint</param-name>
+        <param-value>true</param-value>
+    </context-param-->
+    <!--context-param>
+        <param-name>EnableSelfSignUpEndpoint</param-name>
+        <param-value>true</param-value>
+    </context-param-->
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
+    <!-- *************** Identity Server Endpoint URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>IdentityServerEndpointContextURL</param-name>
+        <param-value>https://localhost:9443</param-value>
+    </context-param-->
+    <!-- *************** End of Identity Server Endpoint URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>EnableAuthenticationWithAuthenticationRESTAPI</param-name>
+        <param-value>true</param-value>
+    </context-param-->
+    <!-- *************** Authentication REST API URL Configuration ********************** -->
+    <!--context-param>
+        <param-name>AuthenticationRESTEndpointURL</param-name>
+        <param-value>https://localhost:9443/api/identity/auth/v1.1/</param-value>
+    </context-param-->
+    <!-- *************** End of Authentication REST API URL Configuration ********************** -->
 
     <!--Display scopes in the consent page.-->
     <context-param>
@@ -125,6 +149,16 @@
     <servlet>
         <servlet-name>retry.do</servlet-name>
         <jsp-file>/retry.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>wait.do</servlet-name>
+        <jsp-file>/long-wait.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>dynamic_prompt.do</servlet-name>
+        <jsp-file>/dynamic_prompt.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -222,9 +256,29 @@
         <jsp-file>/privacy_policy.jsp</jsp-file>
     </servlet>
 
+    <servlet>
+        <servlet-name>authenticate.do</servlet-name>
+        <jsp-file>/authenticate.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>error.do</servlet-name>
+        <jsp-file>/generic-exception-response.jsp</jsp-file>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>wait.do</servlet-name>
+        <url-pattern>/wait.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>dynamic_prompt.do</servlet-name>
+        <url-pattern>/dynamic_prompt.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -320,6 +374,16 @@
     <servlet-mapping>
         <servlet-name>privacy_policy.do</servlet-name>
         <url-pattern>/privacy_policy.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>authenticate.do</servlet-name>
+        <url-pattern>/authenticate.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>error.do</servlet-name>
+        <url-pattern>/error.do</url-pattern>
     </servlet-mapping>
 
     <error-page>

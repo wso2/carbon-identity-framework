@@ -25,6 +25,10 @@
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandlerTest"/>
+            <class
+                    name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>
+           <class
+                   name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
@@ -37,13 +41,13 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClusterTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoaderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerLongWaitTest" />
         </classes>
     </test>
 </suite>

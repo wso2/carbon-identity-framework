@@ -43,12 +43,20 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
@@ -60,6 +68,8 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Au
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
+import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -70,6 +80,8 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -77,6 +89,8 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.Collections;
 import java.util.List;
 import javax.servlet.Servlet;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
@@ -91,11 +105,11 @@ public class FrameworkServiceComponent {
     public static final String COMMON_SERVLET_URL = "/commonauth";
     private static final String IDENTITY_SERVLET_URL = "/identity";
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
+    private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
 
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
     public static RealmService getRealmService() {
@@ -203,16 +217,25 @@ public class FrameworkServiceComponent {
             throw new RuntimeException(errMsg, e);
         }
 
+        if (promptOnLongWait()) {
+            Servlet longWaitStatusServlet = new ContextPathServletAdaptor(new LongWaitStatusServlet(),
+                    LONGWAITSTATUS_SERVLET_URL);
+            try {
+                httpService.registerServlet(LONGWAITSTATUS_SERVLET_URL, longWaitStatusServlet, null, null);
+            } catch (Exception e) {
+                String errMsg = "Error when registering longwaitstatus servlet via the HttpService.";
+                log.error(errMsg, e);
+                throw new RuntimeException(errMsg, e);
+            }
+        }
+
         dataHolder.setBundleContext(bundleContext);
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.setJsFunctionRegistry(dataHolder.getJsFunctionRegistry());
+        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
-        uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
-        uiBasedConfigurationLoader.setJsFunctionRegistrar(dataHolder.getJsFunctionRegistry());
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
         dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
@@ -227,9 +250,42 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
         dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
+
+        bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
+
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
 
+        AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
+        asyncSequenceExecutor.init();
+        dataHolder.setAsyncSequenceExecutor(asyncSequenceExecutor);
+
+        LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
+        CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
+
+        String connectionTimeoutString = IdentityUtil.getProperty("AdaptiveAuth.HTTPConnectionTimeout");
+        int connectionTimeout = 5000;
+        if (connectionTimeoutString != null) {
+            try {
+                connectionTimeout = Integer.parseInt(connectionTimeoutString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing connection timeout : " + connectionTimeoutString, e);
+            }
+        }
+
+        LongWaitStatusStoreService longWaitStatusStoreService =
+                new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
+        dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
+
+        // Registering JIT, association and domain handler as post authentication handler
+        PostAuthenticationHandler postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
+        PostAuthenticationHandler postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = PostAuthenticatedSubjectIdentifierHandler
+                .getInstance();
+        bundleContext
+                .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -242,6 +298,7 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
+        SessionDataStore.getInstance().stopService();
     }
 
     @Reference(
@@ -528,4 +585,43 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
+
+    @Reference(
+            name = "claim.filter.service",
+            service = ClaimFilter.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimFilter"
+    )
+    protected void setClaimFilter(ClaimFilter claimFilter) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("DefaultClaimFilter: " + claimFilter.getClass().getName() + " set in " +
+                    "FrameworkServiceComponent.");
+        }
+        FrameworkServiceDataHolder.getInstance().addClaimFilter(claimFilter);
+    }
+
+    protected void unsetClaimFilter (ClaimFilter claimFilter) {
+
+        FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityEventService(null);
+    }
+
 }

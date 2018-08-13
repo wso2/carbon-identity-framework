@@ -72,6 +72,9 @@ public class AuthenticatedUser extends User {
             this.userAttributes.putAll(authenticatedUser.getUserAttributes());
         }
         this.isFederatedUser = authenticatedUser.isFederatedUser();
+        if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
+            updateCaseSensitivity();
+        }
     }
 
     /**

@@ -19,6 +19,7 @@
 <%@page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String authRequest = request.getParameter("data");
@@ -133,7 +134,7 @@
 
 </script>
 
-<form method="POST" action="../commonauth" id="form" onsubmit="return false;">
+<form method="POST" action="<%=commonauthURL%>" id="form" onsubmit="return false;">
     <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>'/>
     <input type="hidden" name="tokenResponse" id="tokenResponse" value="tmp val"/>
 </form>

@@ -70,6 +70,9 @@ public class FileBasedConfigurationBuilder {
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
+    private String authenticationEndpointWaitURL;
+    private String authenticationEndpointPromptURL;
+    private String authenticationEndpointMissingClaimsURL;
 
     /**
      * List of URLs that receive the tenant list
@@ -164,6 +167,9 @@ public class FileBasedConfigurationBuilder {
             //########### Read Authentication Endpoint URL ###########
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
+            readAuthenticationEndpointWaitURL(rootElement);
+            readAuthenticationEndpointPromptURL(rootElement);
+            readAuthenticationEndpointMissingClaimsURL(rootElement);
 
             //########### Read tenant data listener URLs ###########
             readTenantDataListenerURLs(rootElement);
@@ -500,6 +506,43 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    private void readAuthenticationEndpointWaitURL(OMElement documentElement) {
+        OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL));
+
+        if (authEndpointWaitURLElem != null) {
+            authenticationEndpointWaitURL = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointPromptURL(OMElement documentElement) {
+        OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL));
+
+        if (authEndpointPromptURLElem != null) {
+            authenticationEndpointPromptURL = IdentityUtil.fillURLPlaceholders(authEndpointPromptURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointMissingClaimsURL(OMElement documentElement) {
+        OMElement authEndpointMissingClaimsURLElem = documentElement.getFirstChildWithName
+                (IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(FrameworkConstants.Config
+                        .QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL));
+
+        if (authEndpointMissingClaimsURLElem != null) {
+            authenticationEndpointMissingClaimsURL = IdentityUtil.fillURLPlaceholders
+                    (authEndpointMissingClaimsURLElem.getText());
+        }
+    }
+
+    public String getAuthenticationEndpointMissingClaimsURL() {
+        return authenticationEndpointMissingClaimsURL;
+    }
+
+    public void setAuthenticationEndpointMissingClaimsURL(String authenticationEndpointMissingClaimsURL) {
+        this.authenticationEndpointMissingClaimsURL = authenticationEndpointMissingClaimsURL;
+    }
+
     private void readCacheTimeOut(OMElement cacheTimeoutElem, String value) {
         Integer timeout;
 
@@ -829,6 +872,22 @@ public class FileBasedConfigurationBuilder {
 
     public void setAuthenticationEndpointRetryURL(String authenticationEndpointRetryURL) {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
+    }
+
+    public String getAuthenticationEndpointWaitURL() {
+        return authenticationEndpointWaitURL;
+    }
+
+    public void setAuthenticationEndpointWaitURL(String authenticationEndpointWaitURL) {
+        this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
+    }
+
+    public String getAuthenticationEndpointPromptURL() {
+        return authenticationEndpointPromptURL;
+    }
+
+    public void setAuthenticationEndpointPromptURL(String authenticationEndpointPromptURL) {
+        this.authenticationEndpointPromptURL = authenticationEndpointPromptURL;
     }
 
     /**

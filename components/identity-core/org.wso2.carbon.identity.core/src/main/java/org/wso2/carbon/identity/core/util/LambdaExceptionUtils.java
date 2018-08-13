@@ -53,6 +53,33 @@ public final class LambdaExceptionUtils {
     }
 
     /**
+     * Represents a {@code TriConsumer} interface.
+     *
+     * @param <T> the type of the first input to the operation
+     * @param <U> the type of the second input to the operation
+     * @param <V> the type of the third input to the operation
+     */
+    @FunctionalInterface
+    public interface TriConsumer<T, U, V> {
+
+        void accept(T t, U u, V v);
+    }
+
+    /**
+     * Represents a {@code BiConsumer} interface which can throw exceptions.
+     *
+     * @param <T> the type of the first input to the operation
+     * @param <U> the type of the second input to the operation
+     * @param <V> the type of the third input to the operation
+     * @param <E> the type of Exception
+     */
+    @FunctionalInterface
+    public interface TriConsumerWithExceptions<T, U, V, E extends Exception> {
+
+        void accept(T t, U u, V v) throws E;
+    }
+
+    /**
      * Represents a {@code Function} interface which can throw exceptions.
      *
      * @param <T> the type of the input to the function

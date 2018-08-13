@@ -21,31 +21,38 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.CertData" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig" %>
+<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.security.cert.CertificateException" %>
+<%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.Comparator" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="java.util.Comparator" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.CertData" %>
-<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="java.security.cert.CertificateException" %>
+<%@ page import="java.util.ResourceBundle" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
+
+<fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
@@ -57,6 +64,9 @@
 
 
 <%
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     if (appBean.getServiceProvider() == null || appBean.getServiceProvider().getApplicationName() == null) {
 // if appbean is not set properly redirect the user to list-service-provider.jsp.
@@ -68,131 +78,151 @@
         return;
     }
     String spName = appBean.getServiceProvider().getApplicationName();
-
+    
     List<String> permissions = null;
     permissions = appBean.getPermissions();
-
+    
     String[] allClaimUris = appBean.getClaimUris();
     Map<String, String> claimMapping = appBean.getClaimMapping();
     Map<String, String> roleMapping = appBean.getRoleMapping();
     boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
+    List<String> spClaimDialects = appBean.getSPClaimDialects();
+    List<String> claimDialectUris = appBean.getClaimDialectUris();
+    String isHashDisabled = request.getParameter("isHashDisabled");
     String idPName = request.getParameter("idPName");
     String action = request.getParameter("action");
+    String operation = request.getParameter("operation");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
-
+    boolean isAdvanceConsentManagementEnabled = false;
+    
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
         appBean.setAuthenticationType(authTypeReq);
     }
-
+    
     String samlIssuerName = request.getParameter("samlIssuer");
 
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
+    if ("updateSPPurposes".equals(action)) {
+        appBean.setApplicationPurposes(ApplicationMgtUIUtil.getApplicationSpecificPurposes(appBean.getServiceProvider()));
+    }
+    if ("updateSharedPurposes".equals(action)) {
+        appBean.setSharedPurposes(ApplicationMgtUIUtil.getSharedPurposes());
+    }
+    ApplicationPurposes applicationPurposes = appBean.getApplicationPurposes();
+    List<ApplicationPurpose> appPurposes = applicationPurposes.getAppPurposes();
+    List<ApplicationPurpose> appSharedPurposes = applicationPurposes.getAppSharedPurposes();
+    Purpose[] sharedPurposes = appBean.getSharedPurposes();
+    boolean isConsentManagementEnabled = false;
 
+    if (appBean.getServiceProvider().getConsentConfig() != null) {
+        isConsentManagementEnabled = appBean.getServiceProvider().getConsentConfig().getEnabled();
+    }
+    */
+
+    
     if (samlIssuerName != null && "update".equals(action)) {
         appBean.setSAMLIssuer(samlIssuerName);
-
+        
         // Inbound authentication components might have set an application certificate in the session.
         // One usage in this scenario is, using the certificate inside SAML SP metadata.
         String applicationCertificate = (String) session.getAttribute("applicationCertificate");
-
+        
         if (applicationCertificate != null) {
             appBean.getServiceProvider().setCertificateContent(applicationCertificate);
             session.removeAttribute("applicationCertificate");
         }
-
+        
         isNeedToUpdate = true;
     }
-
+    
     if (samlIssuerName != null && "delete".equals(action)) {
         appBean.deleteSAMLIssuer();
         isNeedToUpdate = true;
     }
 
     samlIssuerName = appBean.getSAMLIssuer();
-
-
+    
     String kerberosServicePrinciple = request.getParameter("kerberos");
-
-
+    
     if (kerberosServicePrinciple != null && "update".equals(action)) {
         appBean.setKerberosServiceName(kerberosServicePrinciple);
         isNeedToUpdate = true;
     }
-
+    
     if (kerberosServicePrinciple != null && "delete".equals(action)) {
         appBean.deleteKerberosApp();
         isNeedToUpdate = true;
     }
-
-
+    
     String attributeConsumingServiceIndex = request.getParameter("attrConServIndex");
     if (attributeConsumingServiceIndex != null) {
         appBean.setAttributeConsumingServiceIndex(attributeConsumingServiceIndex);
     }
-
+    
     String oauthapp = request.getParameter("oauthapp");
-
+    
     if (oauthapp != null && "update".equals(action)) {
         appBean.setOIDCAppName(oauthapp);
         isNeedToUpdate = true;
     }
-
+    
     if (oauthapp != null && "delete".equals(action)) {
         appBean.deleteOauthApp();
         isNeedToUpdate = true;
     }
-
+    
     String oauthConsumerSecret = null;
-
+    
     if (session.getAttribute("oauth-consum-secret") != null && ("update".equals(action) || "regenerate".equals(action))) {
         oauthConsumerSecret = (String) session.getAttribute("oauth-consum-secret");
         appBean.setOauthConsumerSecret(oauthConsumerSecret);
         session.removeAttribute("oauth-consum-secret");
     }
-
+    
     oauthapp = appBean.getOIDCClientId();
-
+    
     String wsTrust = request.getParameter("serviceName");
-
+    
     if (wsTrust != null && "update".equals(action)) {
         appBean.setWstrustEp(wsTrust);
         isNeedToUpdate = true;
     }
-
+    
     if (wsTrust != null && "delete".equals(action)) {
         appBean.deleteWstrustEp();
         isNeedToUpdate = true;
     }
-
+    
     wsTrust = appBean.getWstrustSP();
-
+    
     String display = request.getParameter("display");
-
-
+    
     if (idPName != null && idPName.equals("")) {
         idPName = null;
     }
-
+    
     if ((ApplicationBean.AUTH_TYPE_FLOW.equals(authTypeReq) || "graph".equals(authTypeReq)) && "update".equals(action)) {
         isNeedToUpdate = true;
     }
-
+    
     String authType = appBean.getAuthenticationType();
-
+    
     StringBuffer localAuthTypes = new StringBuffer();
     String startOption = "<option value=\"";
     String middleOption = "\">";
     String endOPtion = "</option>";
     StringBuffer requestPathAuthTypes = new StringBuffer();
     RequestPathAuthenticatorConfig[] requestPathAuthenticators = appBean.getRequestPathAuthenticators();
-
+    
     if (requestPathAuthenticators != null && requestPathAuthenticators.length > 0) {
         for (RequestPathAuthenticatorConfig reqAuth : requestPathAuthenticators) {
             requestPathAuthTypes.append(startOption + Encode.forHtmlAttribute(reqAuth.getName()) + middleOption + Encode.forHtmlContent(reqAuth.getDisplayName()) + endOPtion);
         }
     }
-
+    
     Map<String, String> idpAuthenticators = new HashMap<String, String>();
     IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
     Map<String, String> proIdpConnector = new HashMap<String, String>();
@@ -200,11 +230,11 @@
     Map<String, String> selectedProIdpConnectors = new HashMap<String, String>();
     Map<String, Boolean> idpStatus = new HashMap<String, Boolean>();
     Map<String, Boolean> IdpProConnectorsStatus = new HashMap<String, Boolean>();
-
+    
     StringBuffer idpType = null;
     StringBuffer connType = null;
     StringBuffer enabledConnType = null;
-
+    
     if (federatedIdPs != null && federatedIdPs.length > 0) {
         idpType = new StringBuffer();
         StringBuffer provisioningConnectors = null;
@@ -236,11 +266,11 @@
                 }
             }
         }
-
+        
         if (appBean.getServiceProvider().getOutboundProvisioningConfig() != null
-                && appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders() != null
-                && appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders().length > 0) {
-
+            && appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders() != null
+            && appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders().length > 0) {
+            
             IdentityProvider[] proIdps = appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders();
             for (IdentityProvider idp : proIdps) {
                 ProvisioningConnectorConfig proIdp = idp.getDefaultProvisioningConnectorConfig();
@@ -258,57 +288,57 @@
                     options = enabledProIdpConnector.get(idp.getIdentityProviderName());
                     selectedProIdpConnectors.put(idp.getIdentityProviderName(), options);
                 }
-
+                
             }
         }
-
+        
     }
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
-                .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occured while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
+        CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
     }
-
+    
     String certString = appBean.getServiceProvider().getCertificateContent();
     CertData certData = null;
     if (StringUtils.isNotBlank(certString)) {
         try {
             certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
         } catch (CertificateException e) {
-            //Invalid cert data, ignore showing cert infomation in the UI
+            //Invalid cert data, ignore showing cert information in the UI
         }
     }
 
 %>
 
 <script>
-
-
+    
+   
     <% if(claimMapping != null) {%>
     var claimMappinRowID = <%=claimMapping.size() -1 %>;
     <%} else {%>
     var claimMappinRowID = -1;
     <%}%>
-
+    
     var reqPathAuth = 0;
-
+    
     <%if(appBean.getServiceProvider().getRequestPathAuthenticatorConfigs() != null){%>
     var reqPathAuth = <%=appBean.getServiceProvider().getRequestPathAuthenticatorConfigs().length%>;
     <%} else {%>
     var reqPathAuth = 0;
     <%}%>
-
+    
     <% if(roleMapping != null) {%>
     var roleMappinRowID = <%=roleMapping.size() -1 %>;
     <% } else { %>
     var roleMappinRowID = -1;
     <% } %>
-
+    
     function createAppOnclick() {
         var spName = document.getElementById("spName").value;
         if (spName == '') {
@@ -333,7 +363,7 @@
             // number_of_claimmappings
             var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
             document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
+            
             if ($('[name=app_permission]').length > 0) {
                 var isValied = true;
                 $.each($('[name=app_permission]'), function () {
@@ -373,10 +403,10 @@
             }
             var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
             document.getElementById('number_of_permissions').value = numberOfPermissions;
-
+            
             var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
             document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+            
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';
@@ -395,17 +425,17 @@
             }
         }
     }
-
+    
     function updateBeanAndRedirect(redirectURL) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
+        
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
         document.getElementById('number_of_permissions').value = numberOfPermissions;
-
+        
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+        
         $.ajax({
             type: "POST",
             url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
@@ -415,17 +445,17 @@
             }
         });
     }
-
+    
     function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
+        
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
         document.getElementById('number_of_permissions').value = numberOfPermissions;
-
+        
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+        
         $.ajax({
             type: "POST",
             url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
@@ -448,14 +478,14 @@
             }
         });
     }
-
+    
     function updateBeanAndPostTo(postURL, data) {
         $.ajax({
             type: "POST",
             url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
             data: $("#configure-sp-form").serialize(),
             success: function () {
-
+                
                 $.ajax({
                     type: 'POST',
                     url: postURL,
@@ -463,12 +493,12 @@
                     success: function (data, textStatus, request) {
                         window.location = request.getResponseHeader('redirectUrl');
                     }
-
+                    
                 });
             }
         });
     }
-
+    
     function onSamlSsoClick() {
         var spName = document.getElementById("oldSPName").value;
         if (spName != '') {
@@ -478,7 +508,7 @@
             document.getElementById("saml_link").href = "#"
         }
     }
-
+    
     function onKerberosClick() {
         var spName = document.getElementById("oldSPName").value;
         if (spName != '') {
@@ -488,7 +518,7 @@
             document.getElementById("kerberos_link").href = "#"
         }
     }
-
+    
     function onOauthClick() {
         var spName = document.getElementById("oldSPName").value;
         if (spName != '') {
@@ -498,7 +528,7 @@
             document.getElementById("oauth_link").href = "#"
         }
     }
-
+    
     function onSTSClick() {
         var spName = document.getElementById("oldSPName").value;
         if (spName != '') {
@@ -508,7 +538,7 @@
             document.getElementById("sts_link").href = "#"
         }
     }
-
+    
     function deleteReqPathRow(obj) {
         reqPathAuth--;
         jQuery(obj).parent().parent().remove();
@@ -516,14 +546,176 @@
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function onAdvanceAuthClick() {
         location.href = 'configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>';
     }
+    
+    // Will be supported with 'Advance Consent Management Feature'.
+    <%--
+    <%if (isAdvanceConsentManagementEnabled) {%>
+    function onAppPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
 
+    function onGenralPurposesManageClick() {
+        var spName = document.getElementById("oldSPName").value;
+        if (spName != '') {
+            updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
+        } else {
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+        }
+    }
+
+    function onSharedPurposesClick() {
+
+        var sharedPurposesSelect = $("#shared_purposes").val();
+        if (sharedPurposesSelect === null || sharedPurposesSelect.trim().length == 0) {
+            CARBON.showWarningDialog('<fmt:message key="provide.valid.purpose"/>');
+            return false;
+        } else if (sharedPurposesSelect === "not_selected") {
+            CARBON.showWarningDialog("<fmt:message key="select.a.consent.purpose"/>");
+            return false;
+        }
+
+        var sharedPurposeIdSplit = sharedPurposesSelect.split("row_shared_purpose_id_", 2);
+        if (sharedPurposeIdSplit.length !== 2) {
+            CARBON.showWarningDialog('<fmt:message key="invalid.purpose.selection"/>', null, null);
+            return false;
+        }
+
+        var sharedPurposeId = sharedPurposeIdSplit[1];
+        var isPurposeExist = false;
+        $('#shared_purposes_tbl tr').each(function() {
+            if ($(this).attr("id") === "row_shared_purpose_id_" + sharedPurposeId) {
+                isPurposeExist = true;
+            }
+        })
+
+        if (isPurposeExist) {
+            CARBON.showWarningDialog('<fmt:message key="purpose.already.added"/>');
+            return false;
+        }
+        $('#shared_purposes_tbl').show();
+        <%for (Purpose sharedPurpose : sharedPurposes) {%>
+            if (sharedPurposeId === "<%=sharedPurpose.getId()%>") {
+                var sharedPurposeName = "<%=Encode.forJavaScriptBlock(sharedPurpose.getName())%>";
+                var sharedPurposeDesc = "<%=Encode.forJavaScriptBlock(sharedPurpose.getDescription())%>";
+            }
+        <%}%>
+        var row = '<tr id="row_shared_purpose_id_' + sharedPurposeId + '">' +
+                '    <td>'+ sharedPurposeName +
+                '    <input type="hidden" id="shared_purpose_id" name="shared_purpose_id" value="' + sharedPurposeId + '"</td>' +
+                '    <td>'+ sharedPurposeDesc +'</td>' +
+                '    <td><input style="width:30px" name="display_order_shared_purpose_id_' + sharedPurposeId + '" type="number" min="0"' +
+                '            value="0" autofocus="">' +
+                '    </td>' +
+                '    <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)"' +
+                '        onclick="removeSharedPurposeRow(\'row_shared_purpose_id_' + sharedPurposeId + '\')">Delete</a>' +
+                '    </td>' +                
+                '</tr>';
+        $('#shared_purposes_tbl tbody').append(row);
+        $('#shared_purposes').prop("selectedIndex", 0);
+    }
+
+    function removeSharedPurposeRow(rowId) {
+
+        $('#shared_purposes_tbl tr#' + rowId).remove();
+        var rows = $('#shared_purposes_tbl tr').length;
+        if (rows < 2) {
+            $('#shared_purposes_tbl').hide();
+        }
+    }
+    
+    function onClickAddSpClaimDialectUri() {
+        
+        var spClaimDialect = $("#standard_dialect").val();
+        if (spClaimDialect == null || spClaimDialect.trim().length == 0) {
+            CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.not.valid'/>",
+                null, null);
+            return false;
+        }
+        spClaimDialect = spClaimDialect.trim();
+        if (!$("#spClaimDialectsTblRow").length) {
+            var row = '<tr id="spClaimDialectsTblRow">' +
+                '    <td></td>' +
+                '    <td>' +
+                '        <table id="spClaimDialectsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
+                '            <tbody id="spClaimDialectsTableBody">' +
+                '            </tbody>' +
+                '        </table>' +
+                '        <input type="hidden" id="spClaimDialects" name="spClaimDialects" value="">' +
+                '        <input type="hidden" id="currentColumnId" value="0">' +
+                '    </td>' +
+                '</tr>';
+            $('#spClaimDialectInputRow').after(row);
+        }
+        var spClaimDialects = $("#spClaimDialects").val();
+        var currentColumnId = $("#currentColumnId").val();
+        if (spClaimDialects == null || spClaimDialects.trim().length == 0) {
+            $("#spClaimDialects").val(spClaimDialect);
+            var row =
+                '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
+                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
+            $('#spClaimDialectsTable tbody').append(row);
+        } else {
+            var isExist = false;
+            $.each(spClaimDialects.split(","), function (index, value) {
+                if (value === spClaimDialect) {
+                    isExist = true;
+                    CARBON.showWarningDialog("<fmt:message key='config.application.claim.dialect.sp.already.exists'/>",
+                        null, null);
+                    return false;
+                }
+            });
+            if (isExist) {
+                return false;
+            }
+            $("#spClaimDialects").val(spClaimDialects + "," + spClaimDialect);
+            var row =
+                '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
+                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
+            $('#spClaimDialectsTable tr:last').after(row);
+        }
+        $("#standard_dialect").val("");
+        $("#currentColumnId").val(parseInt(currentColumnId) + 1);
+    }
+    
+    function removeSpClaimDialect(spClaimDialect, columnId) {
+        
+        var spClaimDialects = $("#spClaimDialects").val();
+        var newSpClaimDialects = "";
+        if (spClaimDialects != null && spClaimDialects.trim().length > 0) {
+            $.each(spClaimDialects.split(","), function (index, value) {
+                if (value.trim() === spClaimDialect.trim()) {
+                    return true;
+                }
+                if (newSpClaimDialects.length > 0) {
+                    newSpClaimDialects = newSpClaimDialects + "," + value.trim();
+                } else {
+                    newSpClaimDialects = value.trim();
+                }
+            });
+        }
+        $('#' + columnId).remove();
+        $("#spClaimDialects").val(newSpClaimDialects);
+        if (newSpClaimDialects.length == 0) {
+            $('#spClaimDialectsTblRow').remove();
+        }
+    }
+    --%>
     var openFile = function (event) {
         var input = event.target;
-
+        
         var reader = new FileReader();
         reader.onload = function () {
             var data = reader.result;
@@ -531,12 +723,42 @@
         };
         reader.readAsText(input.files[0]);
     };
-
+    
     var resetCertFile = function (event) {
         event.preventDefault();
         document.getElementById('sp-certificate').value = document.getElementById('sp-old-certificate').value;
     };
-
+    
+    function copyTextClick(value) {
+        var copyText = value;
+        copyText.select();
+        document.execCommand("Copy");
+        
+        return false;
+    }
+    
+    $(function () {
+        $("#showDialog").dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+                OK: function () {
+                    $(this).dialog("close");
+                }
+            },
+            height: 300,
+            width: 590,
+            modal: true
+        });
+    });
+    
+    window.onload = function (e) {
+        <% if(isHashDisabled != null && "false".equals(isHashDisabled) && appBean.getOIDCClientId() != null &&
+           appBean.getOauthConsumerSecret() != null && ((operation != null && "add".equals(operation)) || "regenerate".equals(action))) { %>
+        $("#showDialog").dialog("open");
+        <% } %>
+    }
+    
     jQuery(document).ready(function () {
         jQuery('#authenticationConfRow').hide();
         jQuery('#outboundProvisioning').hide();
@@ -598,7 +820,7 @@
                     resetRoleClaims();
                 });
             }
-
+            
         });
         jQuery('#roleMappingAddLink').click(function () {
             roleMappinRowID++;
@@ -614,7 +836,7 @@
             if (!validaForDuplications('[name=req_path_auth]', selectedRePathAuthenticator, "Configuration")) {
                 return false;
             }
-
+            
             jQuery(this)
                 .parent()
                 .parent()
@@ -622,15 +844,15 @@
                 .parent()
                 .append(
                     jQuery('<tr><td><input name="req_path_auth' + '" id="req_path_auth" type="hidden" value="' + selectedRePathAuthenticator + '" />' + selectedRePathAuthenticator + '</td><td class="leftCol-small" ><a onclick="deleteReqPathRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>'));
-
+            
         });
-
+        
         $("[name=claim_dialect]").click(function () {
             var element = $(this);
             var currentId = element.attr('id');
-
+            
             claimMappinRowID = -1;
-
+            
             if ($('.idpClaim').length > 0) {
                 CARBON.showConfirmationDialog('Changing dialect will delete all claim mappings. Do you want to proceed?',
                     function () {
@@ -661,25 +883,25 @@
                 changeDialectUIs(element);
             }
         });
-
+        
         if ($('#isNeedToUpdate').val() == 'true') {
             $('#isNeedToUpdate').val('false');
             var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
             document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
+            
             var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
             document.getElementById('number_of_permissions').value = numberOfPermissions;
-
+            
             var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
             document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+            
             $.ajax({
                 type: "POST",
                 url: 'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>',
                 data: $("#configure-sp-form").serialize()
             });
         }
-
+        
         jQuery('#publicCertDeleteLink').click(function () {
             $(jQuery('#publicCertDiv')).toggle();
             var input = document.createElement('input');
@@ -690,9 +912,9 @@
             document.forms['configure-sp-form'].appendChild(input);
             document.getElementById('sp-certificate').value = "";
         });
-
+        
     });
-
+    
     function resetRoleClaims() {
         $("#roleClaim option").filter(function () {
             return $(this).val().length > 0;
@@ -707,16 +929,16 @@
             }
         });
     }
-
+    
     function changeDialectUIs(element) {
         $("#roleClaim option").filter(function () {
             return $(this).val().length > 0;
         }).remove();
-
+        
         $("#subject_claim_uri option").filter(function () {
             return $(this).val().length > 0;
         }).remove();
-
+        
         if (element.val() == 'local') {
             $('#addClaimUrisLbl').text('Requested Claims:');
             $('#roleMappingSelection').hide();
@@ -739,7 +961,7 @@
             $('#roleMappingSelection').show();
         }
     }
-
+    
     function deleteClaimRow(obj) {
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
             if ($(obj).parent().parent().find('input.spClaimVal').val().length > 0) {
@@ -747,26 +969,26 @@
                 $('#subject_claim_uri option[value="' + $(obj).parent().parent().find('input.spClaimVal').val() + '"]').remove();
             }
         }
-
+        
         jQuery(obj).parent().parent().remove();
         if ($('.idpClaim').length == 0) {
             $('#claimMappingAddTable').hide();
         }
     }
-
+    
     function deleteRoleMappingRow(obj) {
         jQuery(obj).parent().parent().remove();
         if ($('.roleMapIdp').length == 0) {
             $('#roleMappingAddTable').hide();
         }
     }
-
+    
     function deletePermissionRow(obj) {
         jQuery(obj).parent().parent().remove();
     }
-
+    
     var deletePermissionRows = [];
-
+    
     function deletePermissionRowOld(obj) {
         if (jQuery(obj).parent().prev().children()[0].value != '') {
             deletePermissionRows.push(jQuery(obj).parent().prev().children()[0].value);
@@ -776,15 +998,15 @@
             $(jQuery('#permissionAddTable')).toggle();
         }
     }
-
+    
     function addIDPRow(obj) {
         var selectedObj = jQuery(obj).prev().find(":selected");
-
+        
         var selectedIDPName = selectedObj.val();
         if (!validaForDuplications('[name=provisioning_idp]', selectedIDPName, 'Configuration')) {
             return false;
         }
-
+        
         //var stepID = jQuery(obj).parent().children()[1].value;
         var dataArray = selectedObj.attr('data').split(',');
         var newRow = '<tr><td><input name="provisioning_idp" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="provisioning_con_idp_' + selectedIDPName + '" style="float: left; min-width: 150px;font-size:13px;">';
@@ -805,11 +1027,11 @@
             .append(
                 jQuery(newRow));
     }
-
+    
     function deleteIDPRow(obj) {
         jQuery(obj).parent().parent().remove();
     }
-
+    
     function validaForDuplications(selector, authenticatorName, type) {
         if ($(selector).length > 0) {
             var isNew = true;
@@ -826,7 +1048,7 @@
         }
         return true;
     }
-
+    
     function showHidePassword(element, inputId) {
         if ($(element).text() == 'Show') {
             document.getElementById(inputId).type = 'text';
@@ -836,12 +1058,12 @@
             $(element).text('Show');
         }
     }
-
+    
     function disable() {
         document.getElementById("scim-inbound-userstore").disabled = !document.getElementById("scim-inbound-userstore").disabled;
         document.getElementById("dumb").value = document.getElementById("scim-inbound-userstore").disabled;
     }
-
+    
     function validateTextForIllegal(fld) {
         var isValid = doValidateInput(fld, "Provided Service Provider name is invalid.");
         if (isValid) {
@@ -850,9 +1072,9 @@
             return false;
         }
     }
+    
 </script>
 
-<fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
             <fmt:message key='title.service.providers'/>
@@ -867,7 +1089,7 @@
                     <table class="carbonFormTable">
                         <tr>
                             <td style="width:15%" class="leftCol-med labelField"><fmt:message
-                                    key='config.application.info.basic.name'/>:<span class="required">*</span></td>
+                                key='config.application.info.basic.name'/>:<span class="required">*</span></td>
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
@@ -880,7 +1102,7 @@
                         <tr>
                             <td style="width:15%" class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea style="width:50%" type="text" name="sp-description" id="sp-description"
+                                <textarea maxlength="1023" style="width:50%" type="text" name="sp-description" id="sp-description"
                                           class="text-box-big"><%=appBean.getServiceProvider().getDescription() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getDescription()) : "" %></textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
@@ -904,7 +1126,7 @@
                                     <% if (certData != null) { %>
                                     <a id="publicCertDeleteLink" class="icon-link"
                                        style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
-                                            key='public.cert.delete'/></a>
+                                        key='public.cert.delete'/></a>
                                     <div style="clear:both"></div>
                                     <table class="styledLeft">
                                         <thead>
@@ -979,7 +1201,7 @@
                         </tr>
                     </table>
                 </div>
-
+                
                 <h2 id="claims_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="title.config.app.claim"/></a>
                 </h2>
@@ -992,8 +1214,8 @@
                             <td class="leftCol-med">
                                 <input type="radio" id="claim_dialect_wso2" name="claim_dialect"
                                        value="local" <%=isLocalClaimsSelected ? "checked" : ""%>><label
-                                    for="claim_dialect_wso2" style="cursor: pointer;"><fmt:message
-                                    key="config.application.claim.dialect.local"/></label>
+                                for="claim_dialect_wso2" style="cursor: pointer;"><fmt:message
+                                key="config.application.claim.dialect.local"/></label>
                             </td>
                         </tr>
                         <tr>
@@ -1002,40 +1224,41 @@
                             <td class="leftCol-med">
                                 <input type="radio" id="claim_dialect_custom" name="claim_dialect"
                                        value="custom" <%=!isLocalClaimsSelected ? "checked" : ""%>><label
-                                    for="claim_dialect_custom" style="cursor: pointer;"><fmt:message
-                                    key="config.application.claim.dialect.custom"/></label>
+                                for="claim_dialect_custom" style="cursor: pointer;"><fmt:message
+                                key="config.application.claim.dialect.custom"/></label>
                             </td>
                         </tr>
                     </table>
                     <table class="carbonFormTable">
                         <tr>
                             <td class="leftCol-med labelField" style="width:15%">
-                                <label id="addClaimUrisLbl"><%=isLocalClaimsSelected ? "Requested Claims:" : "Identity Provider Claim URIs:"%>
+                                <label
+                                    id="addClaimUrisLbl"><%=isLocalClaimsSelected ? "Requested Claims:" : "Identity Provider Claim URIs:"%>
                                 </label>
                             </td>
                             <td class="leftCol-med">
                                 <a id="claimMappingAddLink" class="icon-link"
                                    style="background-image: url(images/add.gif); margin-top: 0px !important; margin-bottom: 5px !important; margin-left: 5px;"><fmt:message
-                                        key='button.add.claim.mapping'/></a>
+                                    key='button.add.claim.mapping'/></a>
                                 <table class="styledLeft" id="claimMappingAddTable"
                                        style="<%= claimMapping == null || claimMapping.isEmpty() ? "display:none" : "" %>">
                                     <thead>
                                     <tr>
                                         <th class="leftCol-big spClaimHeaders"
                                             style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message
-                                                key='title.table.claim.sp.claim'/></th>
+                                            key='title.table.claim.sp.claim'/></th>
                                         <th class="leftCol-big"><fmt:message key='title.table.claim.idp.claim'/></th>
                                         <th class="leftCol-mid spClaimHeaders"
                                             style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message
-                                                key='config.application.req.claim'/></th>
-
+                                            key='config.application.req.claim'/></th>
+                                        
                                         <th><fmt:message key='config.application.mand.claim'/></th>
                                         <th><fmt:message key='config.application.authz.permissions.action'/></th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <% if (claimMapping != null && !claimMapping.isEmpty()) { %>
-
+                                    
                                     <%
                                         int i = -1;
                                         for (Map.Entry<String, String> entry : claimMapping.entrySet()) {
@@ -1060,7 +1283,8 @@
                                                         selected><%=Encode.forHtmlContent(localClaimName)%>
                                                 </option>
                                                 <%} else {%>
-                                                <option value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
+                                                <option
+                                                    value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
                                                 </option>
                                                 <% }
                                                 }%>
@@ -1082,7 +1306,7 @@
                                             <input type="checkbox" id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>"/>
                                             <%}%>
                                         </td>
-
+                                        
                                         <td>
                                             <a title="<fmt:message key='alert.info.delete.permission'/>"
                                                onclick="deleteClaimRow(this);return false;"
@@ -1099,10 +1323,10 @@
                                 </table>
                             </td>
                         </tr>
-
+                        
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message
-                                    key='config.application.info.subject.claim.uri'/>:
+                                key='config.application.info.subject.claim.uri'/>:
                             <td>
                                 <select class="leftCol-med" id="subject_claim_uri" name="subject_claim_uri"
                                         style=" margin-left: 5px; ">
@@ -1115,7 +1339,8 @@
                                             selected><%=Encode.forHtmlContent(localClaimName)%>
                                     </option>
                                     <%} else {%>
-                                    <option value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
+                                    <option
+                                        value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
                                     </option>
                                     <% }
                                     }
@@ -1127,7 +1352,8 @@
                                             selected><%=Encode.forHtmlContent(entry.getValue())%>
                                     </option>
                                     <% } else { %>
-                                    <option value="<%=Encode.forHtmlAttribute(entry.getValue())%>"><%=Encode.forHtmlContent(entry.getValue())%>
+                                    <option
+                                        value="<%=Encode.forHtmlAttribute(entry.getValue())%>"><%=Encode.forHtmlContent(entry.getValue())%>
                                     </option>
                                     <%
                                                     }
@@ -1139,14 +1365,15 @@
                             </td>
                         </tr>
                     </table>
-
+                    
                     <input type="hidden" name="number_of_claimmappings" id="number_of_claimmappings" value="1">
                     <div id="localClaimsList" style="display: none;">
                         <select style="float:left; width: 100%">
                             <% String[] localClaims = appBean.getClaimUris();
                                 StringBuffer allLocalClaims = new StringBuffer();
                                 for (String localClaimName : localClaims) { %>
-                            <option value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
+                            <option
+                                value="<%=Encode.forHtmlAttribute(localClaimName)%>"><%=Encode.forHtmlContent(localClaimName)%>
                             </option>
                             <%
                                     allLocalClaims.append(localClaimName + ",");
@@ -1160,7 +1387,7 @@
                             <tr>
                                 <td class="leftCol-med labelField" style="width:15%">
                                     <label id="addClaimUrisLbl"><fmt:message
-                                            key='config.application.role.claim.uri'/>:</label>
+                                        key='config.application.role.claim.uri'/>:</label>
                                 </td>
                                 <td>
                                     <select id="roleClaim" name="roleClaim" style="float:left;min-width: 250px;">
@@ -1173,7 +1400,8 @@
                                                 selected><%=Encode.forHtmlContent(entry.getValue())%>
                                         </option>
                                         <% } else { %>
-                                        <option value="<%=Encode.forHtmlAttribute(entry.getValue())%>"><%=Encode.forHtmlContent(entry.getValue())%>
+                                        <option
+                                            value="<%=Encode.forHtmlAttribute(entry.getValue())%>"><%=Encode.forHtmlContent(entry.getValue())%>
                                         </option>
                                         <% }
                                         }%>
@@ -1192,8 +1420,228 @@
                             </tr>
                         </table>
                     </div>
+                    <div id="spClaimDialectSelection">
+                        <table class="carbonFormTable">
+                            <tr id="spClaimDialectInputRow">
+                                <td class="leftCol-med labelField" style="width:15%">
+                                    <label id="addSpClaimDialectUrisLbl"><fmt:message
+                                        key='config.application.claim.dialect.sp'/>:</label>
+                                </td>
+                                <td>
+                                    <select class="leftCol-med" id="standard_dialect" name="standard_dialect"
+                                            style=" margin-left: 5px; ">
+                                        <option value="">---Select---</option>
+                                        <%
+                                            for (String dialectURI : claimDialectUris) {%>
+                                        <option
+                                            value="<%=Encode.forHtmlAttribute(dialectURI)%>"><%=Encode.forHtmlContent(dialectURI)%>
+                                        </option>
+                                        <%
+                                            } %>
+                                    </select>
+                                    <input id="addSpClaimDialectUriBtn" type="button"
+                                           value="<fmt:message key="config.application.claim.dialect.sp.add"/>"
+                                           onclick="onClickAddSpClaimDialectUri()"/>
+                                </td>
+                            </tr>
+                            
+                            <%if (spClaimDialects != null) {%>
+                            <tr id="spClaimDialectsTblRow">
+                                <td></td>
+                                <td>
+                                    <table id="spClaimDialectsTable" style="width: 40%; margin-bottom: 3px;"
+                                           class="styledInner">
+                                        <tbody id="spClaimDialectsTableBody">
+                                        <%
+                                            StringBuilder spClaimDialectsBuilder = new StringBuilder();
+                                            int spClaimDialectColumnId = 0;
+                                            for (String spClaimDialect : spClaimDialects) {
+                                                if (spClaimDialect != null) {
+                                                    if (spClaimDialectsBuilder.length() > 0) {
+                                                        spClaimDialectsBuilder.append(",").append(spClaimDialect);
+                                                    } else {
+                                                        spClaimDialectsBuilder.append(spClaimDialect);
+                                                    }
+                                        %>
+                                        <tr id="spClaimDialectUri_<%=spClaimDialectColumnId%>">
+                                            <td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">
+                                                <%=Encode.forHtml(spClaimDialect)%>
+                                            </td>
+                                            <td>
+                                                <a onclick="removeSpClaimDialect('<%=Encode.forJavaScriptAttribute(spClaimDialect)%>',
+                                                    'spClaimDialectUri_<%=spClaimDialectColumnId%>');return false;"
+                                                   href="#" class="icon-link"
+                                                   style="background-image: url(../admin/images/delete.gif)">
+                                                    Delete
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <%
+                                                    spClaimDialectColumnId++;
+                                                }
+                                            }
+                                        %>
+                                        </tbody>
+                                    </table>
+                                    <input type="hidden" id="spClaimDialects" name="spClaimDialects"
+                                           value="<%=spClaimDialectsBuilder.length() > 0 ?
+         Encode.forHtmlAttribute(spClaimDialectsBuilder.toString()) : ""%>">
+                                    <input type="hidden" id="currentColumnId" value="<%=spClaimDialectColumnId%>">
+                                </td>
+                            </tr>
+                            <%
+                                }
+                            %>
+                        
+                        </table>
+                    </div>
                 </div>
-
+                <%-- <h2 id="consent_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="user.consent.configuration"/></a>
+                </h2>
+                <%if (display!=null && display.equals("consent")) {%>
+                <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:block;" id="consentRow">
+                <%} else {%>
+                <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:none;" id="consentRow">
+                <%}%>
+                    <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key="enable.consent.collection"/></td>
+                            <td class="leftCol-med">
+                                <div class="sectionCheckbox">
+                                    <%if (isConsentManagementEnabled) {%>
+                                    <input type="checkbox" id="is_consent_enabled" name="is_consent_enabled" checked/>
+                                    <%} else {%>
+                                    <input type="checkbox" id="is_consent_enabled" name="is_consent_enabled"/>
+                                    <%}%>
+                                    <div class="sectionHelp">
+                                        <fmt:message key="enable.consent.collection.help"/>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key="consent.collection.message"/></td>
+                            <td class="leftCol-med">
+                                <textarea style="width:500px; margin: 0px; height: 100px;" type="text" name="consent-description" id="consent-description"
+                                            class="text-box-big"></textarea>
+                                <div class="sectionHelp">
+                                    <fmt:message key="consent.collection.message.help"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <h2 id="advance_consent_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="advance.consent.config"/></a>
+                    </h2>
+                    <%if (display!=null && display.equals("consent")) {%>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display:block;" id="advance_consent">
+                    <%} else {%>
+                    <div class="toggle_container sectionSub" style="margin-bottom: 10px;display:none;" id="advance_consent">
+                    <%}%>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key="application.specific.consent.purpose"/></td>
+                                <td class="leftCol-med"></td>
+                            </tr>
+                        </table>
+                        <table class="styledLeft" id="app_purposes_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="leftCol-big"><fmt:message key="purpose"/></th>
+                                    <th class="leftCol-big"><fmt:message key="description"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="selected"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="display.order"/></th>
+                                </tr>
+                            </thead>
+                            <%if (appPurpoappPurposes == null || appPurposes.isEmpty()) {%>
+                            <script>
+                                $(jQuery('#app_purposes_tbl')).hide();
+                            </script>
+                            <%}%>
+                            <%for (ApplicationPurpose applicationPurpose : appPurposes) {%>
+                            <tr>
+                                <td>
+                                    <%=Encode.forHtmlContent(applicationPurpose.getName())%>
+                                    <input type="hidden" id="app_purpose_id" name="app_purpose_id" value="<%=applicationPurpose.getId()%>">
+                                </td>
+                                <td><%=Encode.forHtmlContent(applicationPurpose.getDescription())%></td>
+                                <td>
+                                    <%if (applicationPurpose.isSelected()) {%>
+                                        <input type="checkbox" name="selected_purpose_id_<%=applicationPurpose.getId()%>" checked="checked" style="margin:0px;" />
+                                    <%} else {%>
+                                        <input type="checkbox" name="selected_purpose_id_<%=applicationPurpose.getId()%>" style="margin:0px;" />
+                                    <%}%>
+                                </td>
+                                <td><input style="width:30px" name="display_order_purpose_id_<%=applicationPurpose.getId()%>" 
+                                        type="number" min="0" value="<%=applicationPurpose.getDisplayOrder()%>" autofocus=""></td>
+                            </tr>
+                            <%}%>
+                        </table>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><a id="saml_link" class="icon-link" 
+                                    onclick="onAppPurposesManageClick()"><fmt:message key="manage.app.consent.purposes"/></a></td>
+                            </tr>
+                        </table>
+                        <table style="padding-top: 15px; padding-bottom: 10px;" class="carbonFormTable" id="shared_purposes_combo">
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key="shared.consent.purposes"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med">
+                                            <select class="leftCol-med" id="shared_purposes" name="shared_purposes"
+                                            style=" margin-left: 5px; ">
+                                                <option value="not_selected">---<fmt:message key="select"/>---</option>
+                                                <%for (Purpose sharedPurpose : sharedPurposes) {%>
+                                                <option
+                                                    value="<%="row_shared_purpose_id_" + sharedPurpose.getId()%>"><%=Encode.forHtmlContent(sharedPurpose.getName())%>
+                                                </option>
+                                                <%}%>
+                                            </select>
+                                            <input id="addSharedConsentBtn" type="button" value="Add" onclick="onSharedPurposesClick()"/>
+                                    </td>
+                                </tr>
+                        </table>
+                        <table class="styledLeft" id="shared_purposes_tbl">
+                            <thead>
+                                <tr>
+                                    <th class="leftCol-big"><fmt:message key="purpose"/></th>
+                                    <th class="leftCol-big"><fmt:message key="description"/></th>
+                                    <th class="leftCol-mid"><fmt:message key="display.order"/></th>                                    
+                                    <th class="leftCol-mid"><fmt:message key="remove"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%if (appSharedPurposes == null || appSharedPurposes.isEmpty()) {%>
+                                <script>
+                                    $('#shared_purposes_tbl').hide();
+                                </script>
+                                <%}%>
+                                <%for (ApplicationPurpose sharedPurpose : appSharedPurposes) {%>
+                                <tr id="row_shared_purpose_id_<%=sharedPurpose.getId()%>">
+                                    <td>
+                                        <%=Encode.forHtmlContent(sharedPurpose.getName())%>
+                                        <input type="hidden" id="shared_purpose_id" name="shared_purpose_id" value="<%=sharedPurpose.getId()%>">
+                                    </td>
+                                    <td><%=Encode.forHtmlContent(sharedPurpose.getDescription())%></td>
+                                    <td><input style="width:30px" name="display_order_shared_purpose_id_<%=sharedPurpose.getId()%>"
+                                            type="number" min="0" type="text" value="<%=sharedPurpose.getDisplayOrder()%>" autofocus=""></td>
+                                    <td><a class="icon-link" style="background-image: url(../admin/images/delete.gif)" 
+                                        onclick="removeSharedPurposeRow('row_shared_purpose_id_<%=sharedPurpose.getId()%>')"><fmt:message key="link.delete"/></a></td>
+                                </tr>
+                                <%}%>
+                            </tbody>
+                        </table>
+                        <table style="padding-top: 5px; padding-bottom: 10px;" class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><a id="manage_shared_purposes" class="icon-link"
+                                    onclick="onGenralPurposesManageClick()"><fmt:message key="manage.shared.consent.purposes"/></a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div> --%>
                 <h2 id="authorization_permission_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="title.config.app.authorization.permission"/></a>
                 </h2>
@@ -1209,7 +1657,7 @@
                                 <td>
                                     <a id="permissionAddLink" class="icon-link"
                                        style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
-                                            key='button.add.permission'/></a>
+                                        key='button.add.permission'/></a>
                                     <div style="clear:both"></div>
                                     <div class="sectionHelp">
                                         <fmt:message key='help.permission.add'/>
@@ -1219,11 +1667,11 @@
                                         </thead>
                                         <tbody>
                                         <% if (permissions != null && !permissions.isEmpty()) { %>
-
+                                        
                                         <% for (int i = 0; i < permissions.size(); i++) {
                                             if (permissions.get(i) != null) {
                                         %>
-
+                                        
                                         <tr>
                                             <td class="leftCol-big"><input style="width: 98%;" type="text"
                                                                            value="<%=Encode.forHtmlAttribute(permissions.get(i))%>"
@@ -1249,7 +1697,7 @@
                                            value="1">
                                 </td>
                             </tr>
-
+                        
                         </table>
                     </div>
                     <h2 id="role_mapping_head" class="sectionSeperator trigger active" style="background-color: beige;">
@@ -1262,7 +1710,7 @@
                                 <td>
                                     <a id="roleMappingAddLink" class="icon-link"
                                        style="background-image: url(images/add.gif);margin-left:0;"><fmt:message
-                                            key='button.add.role.mapping'/></a>
+                                        key='button.add.role.mapping'/></a>
                                     <div style="clear:both"/>
                                     <div class="sectionHelp">
                                         <fmt:message key='help.role.mapping'/>
@@ -1314,14 +1762,14 @@
                         <input type="hidden" name="number_of_rolemappings" id="number_of_rolemappings" value="1">
                     </div>
                 </div>
-
+                
                 <h2 id="app_authentication_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="title.config.app.authentication"/></a>
                 </h2>
-
+                
                 <%
                     if (display != null && (display.equals("oauthapp") || display.equals("samlIssuer") ||
-                            display.equals("serviceName") || display.equals("kerberos"))) {
+                        display.equals("serviceName") || display.equals("kerberos"))) {
                 %>
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="inbound_auth_request_div">
                             <%} else { %>
@@ -1335,7 +1783,7 @@
                             <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
                             <%} %>
                         </h2>
-
+                                
                                 <%if (display!=null && display.equals("samlIssuer")) { %>
                         <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="saml.config.div">
                                     <% } else { %>
@@ -1349,7 +1797,7 @@
                                                 if (appBean.getSAMLIssuer() == null) {
                                             %>
                                             <a id="saml_link" class="icon-link" onclick="onSamlSsoClick()"><fmt:message
-                                                    key='auth.configure'/></a>
+                                                key='auth.configure'/></a>
                                             <%
                                             } else {
                                             %>
@@ -1358,9 +1806,9 @@
                                                 <thead>
                                                 <tr>
                                                     <th class="leftCol-big"><fmt:message
-                                                            key='title.table.saml.config.issuer'/></th>
+                                                        key='title.table.saml.config.issuer'/></th>
                                                     <th class="leftCol-big"><fmt:message
-                                                            key='application.info.saml2sso.acsi'/></th>
+                                                        key='application.info.saml2sso.acsi'/></th>
                                                     <th><fmt:message key='application.info.saml2sso.action'/></th>
                                                 </tr>
                                                 </thead>
@@ -1372,7 +1820,7 @@
                                                         <% if (attributeConsumingServiceIndex == null || attributeConsumingServiceIndex.isEmpty()) {
                                                             attributeConsumingServiceIndex = appBean.getAttributeConsumingServiceIndex();
                                                         }
-
+                                                            
                                                             if (attributeConsumingServiceIndex != null) {%>
                                                         <%=Encode.forHtmlContent(attributeConsumingServiceIndex)%>
                                                         <% } %>
@@ -1384,8 +1832,8 @@
                                                            style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                         <a title="Delete Service Providers"
                                                            onclick="updateBeanAndPost('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
-                                                                   'issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>',
-                                                                   'configure-service-provider.jsp?action=delete&samlIssuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"
+                                                               'issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>',
+                                                               'configure-service-provider.jsp?action=delete&samlIssuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"
                                                            class="icon-link"
                                                            style="background-image: url(images/delete.gif)">
                                                             Delete </a>
@@ -1400,7 +1848,7 @@
                                         </td>
                                     </tr>
                                 </table>
-
+                            
                             </div>
                             <h2 id="oauth.config.head" class="sectionSeperator trigger active"
                                 style="background-color: beige;">
@@ -1446,6 +1894,7 @@
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
+                                                            <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
                                                                        type="password" autocomplete="off"
@@ -1458,6 +1907,7 @@
                                                            onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
                                                             </div>
+                                                            <% } %>
                                                             <%} %>
                                                         </td>
                                                         <td style="white-space: nowrap;">
@@ -1465,25 +1915,25 @@
                                                                onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"
                                                                class="icon-link"
                                                                style="background-image: url(../admin/images/edit.gif)">Edit</a>
-
-
+                                                            
+                                                            
                                                             <a title="Revoke Service Providers"
                                                                onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');"
                                                                class="icon-link"
                                                                style="background-image: url(images/disabled.png)">Revoke</a>
-
-
+                                                            
+                                                            
                                                             <a title="Regenerate Secret Key"
                                                                onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
                                                                class="icon-link"
                                                                style="background-image: url(images/enabled.png)">Regenerate
                                                                 Secret</a>
-
-
+                                                            
+                                                            
                                                             <a title="Delete Service Providers"
                                                                onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
-                                                                       'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
-                                                                       'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
+                                                                   'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
+                                                                   'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
                                                                class="icon-link"
                                                                style="background-image: url(images/delete.gif)">
                                                                 Delete </a>
@@ -1499,8 +1949,8 @@
                                         </tr>
                                     </table>
                                 </div>
-
-
+                                
+                                
                                 <h2 id="openid.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">OpenID Configuration</a>
@@ -1509,7 +1959,7 @@
                                 <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                                      id="openid.config.div">
                                     <table class="carbonFormTable">
-
+                                        
                                         <tr>
                                             <td style="width:15%" class="leftCol-med labelField">
                                                 <fmt:message key='application.openid.realm'/>:
@@ -1529,13 +1979,13 @@
                                                     <fmt:message key='help.openid'/>
                                                 </div>
                                             </td>
-
+                                        
                                         </tr>
-
+                                    
                                     </table>
                                 </div>
-
-
+                                
+                                
                                 <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">WS-Federation (Passive) Configuration</a>
@@ -1544,7 +1994,7 @@
                                 <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                                      id="passive.config.div">
                                     <table class="carbonFormTable">
-
+                                        
                                         <tr>
                                             <td style="width:15%" class="leftCol-med labelField">
                                                 <fmt:message key='application.passive.sts.realm'/>:
@@ -1565,7 +2015,7 @@
                                                     <fmt:message key='help.passive.sts'/>
                                                 </div>
                                             </td>
-
+                                        
                                         </tr>
                                         <tr>
                                             <td style="width:15%" class="leftCol-med labelField">
@@ -1587,12 +2037,12 @@
                                                     <fmt:message key='help.passive.sts.wreply'/>
                                                 </div>
                                             </td>
-
+                                        
                                         </tr>
-
+                                    
                                     </table>
                                 </div>
-
+                                
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#"><fmt:message key="title.config.sts.config"/></a>
@@ -1608,7 +2058,7 @@
                                          id="wst.config.div">
                                         <%} %>
                                         <table class="carbonFormTable">
-
+                                            
                                             <tr>
                                                 <td>
                                                     <%
@@ -1625,7 +2075,7 @@
                                                         <tr>
                                                             <th class="leftCol-med">Audience</th>
                                                             <th><fmt:message
-                                                                    key='application.info.oauthoidc.action'/></th>
+                                                                key='application.info.oauthoidc.action'/></th>
                                                         </tr>
                                                         </thead>
                                                         <tbody>
@@ -1639,8 +2089,8 @@
                                                                    style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                                 <a title="Delete Audience"
                                                                    onclick="updateBeanAndPost('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
-                                                                           'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(appBean.getWstrustSP())%>',
-                                                                           'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(appBean.getWstrustSP())%>');"
+                                                                       'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(appBean.getWstrustSP())%>',
+                                                                       'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(appBean.getWstrustSP())%>');"
                                                                    class="icon-link"
                                                                    style="background-image: url(images/delete.gif)">
                                                                     Delete </a>
@@ -1654,19 +2104,19 @@
                                                     <div style="clear:both"></div>
                                                 </td>
                                             </tr>
-
+                                        
                                         </table>
                                     </div>
-
+                                    
                                     <h2 id="kerberos.kdc.head" class="sectionSeperator trigger active"
                                         style="background-color: beige;">
                                         <a href="#">Kerberos KDC</a>
-
+                                        
                                         <% if (appBean.getKerberosServiceName() != null) { %>
                                         <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
                                         <% } %>
                                     </h2>
-
+                                            
                                             <%if (display!=null && display.equals("kerberos")) { %>
                                     <div class="toggle_container sectionSub" style="margin-bottom:10px;"
                                          id="kerberos.config.div">
@@ -1675,9 +2125,9 @@
                                              style="margin-bottom:10px;display:none;"
                                              id="kerberos.config.div">
                                             <%} %>
-
+                                            
                                             <table class="carbonFormTable">
-
+                                                
                                                 <tr>
                                                     <td>
                                                         <%
@@ -1685,20 +2135,20 @@
                                                         %>
                                                         <a id="kerberos_link" class="icon-link"
                                                            onclick="onKerberosClick()"><fmt:message
-                                                                key='auth.configure'/></a>
-
+                                                            key='auth.configure'/></a>
+                                                        
                                                         <% } else { %>
                                                         <div style="clear:both"></div>
                                                         <table class="styledLeft" id="kerberosTable">
                                                             <thead>
                                                             <tr>
                                                                 <th class="leftCol-big"><fmt:message
-                                                                        key='title.table.kerberos.config'/></th>
+                                                                    key='title.table.kerberos.config'/></th>
                                                                 <th><fmt:message
-                                                                        key='application.info.kerberos.action'/></th>
+                                                                    key='application.info.kerberos.action'/></th>
                                                             </tr>
                                                             </thead>
-
+                                                            
                                                             <tbody>
                                                             <tr>
                                                                 <td><%=Encode.forHtmlContent(appBean.getKerberosServiceName())%>
@@ -1711,8 +2161,8 @@
                                                                         Password</a>
                                                                     <a title="Delete"
                                                                        onclick="updateBeanAndPost('../servicestore/delete-finish-ajaxprocessor.jsp',
-                                                                               'SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>',
-                                                                               'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&kerberos=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>');"
+                                                                           'SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>',
+                                                                           'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&kerberos=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>');"
                                                                        class="icon-link"
                                                                        style="background-image: url(images/delete.gif)">
                                                                         Delete </a>
@@ -1724,12 +2174,12 @@
                                                             }
                                                         %>
                                                     </td>
-
+                                                
                                                 </tr>
-
+                                            
                                             </table>
                                         </div>
-
+                                        
                                         <%
                                             List<String> standardInboundAuthTypes = new ArrayList<String>();
                                             standardInboundAuthTypes = new ArrayList<String>();
@@ -1739,21 +2189,21 @@
                                             standardInboundAuthTypes.add("openid");
                                             standardInboundAuthTypes.add("passivests");
                                             standardInboundAuthTypes.add("kerberos");
-
+                                            
                                             if (!CollectionUtils.isEmpty(appBean.getInboundAuthenticators())) {
                                                 List<InboundAuthenticationRequestConfig> customAuthenticators = appBean
-                                                        .getInboundAuthenticators();
+                                                    .getInboundAuthenticators();
                                                 for (InboundAuthenticationRequestConfig customAuthenticator : customAuthenticators) {
                                                     if (!standardInboundAuthTypes.contains(customAuthenticator.getInboundAuthType())) {
                                                         String type = customAuthenticator.getInboundAuthType();
                                                         String friendlyName = customAuthenticator.getFriendlyName();
                                         %>
-
+                                        
                                         <h2 id="openid.config.head" class="sectionSeperator trigger active"
                                             style="background-color: beige;">
                                             <a href="#"><%=friendlyName%>
                                             </a>
-
+                                            
                                             <div class="enablelogo"><img src="images/ok.png" width="16" height="16">
                                             </div>
                                         </h2>
@@ -1763,24 +2213,24 @@
                                             <table class="carbonFormTable">
                                                 <%
                                                     Property[] properties = customAuthenticator.getProperties();
-
+                                                    
                                                     if (properties != null && properties.length > 0) {
                                                         // Remove invalid properties returned from custom authenticators
                                                         List<Property> nonNullProperties = new ArrayList<Property>();
                                                         for (Property property : properties) {
                                                             if (property != null && StringUtils.isNotBlank(property.getName()) &&
-                                                                    StringUtils.isNotBlank(property.getDisplayName())) {
+                                                                StringUtils.isNotBlank(property.getDisplayName())) {
                                                                 nonNullProperties.add(property);
                                                             }
                                                         }
                                                         properties = nonNullProperties.toArray(new Property[nonNullProperties.size()]);
                                                         Arrays.sort(properties, new Comparator<Property>() {
                                                             public int compare(Property obj1, Property obj2) {
-
+                                                                
                                                                 return Integer.compare(obj1.getDisplayOrder(), obj2.getDisplayOrder());
                                                             }
                                                         });
-
+                                                        
                                                         for (Property prop : properties) {
                                                             String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
                                                             String hiddenProp = "";
@@ -1806,11 +2256,11 @@
                                                              class="leftCol-med">
                                                             <input id=<%=propName%> name="<%=propName%>"
                                                                    type="password" autocomplete="off"
-                                                                    <% if (StringUtils.isNotBlank(prop.getValue())) { %>
+                                                                <% if (StringUtils.isNotBlank(prop.getValue())) { %>
                                                                    value="<%=prop.getValue()%>"
-                                                                    <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
+                                                                <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
                                                                    value="<%=prop.getDefaultValue()%>"
-                                                                    <%}%>
+                                                                <%}%>
                                                                    style="  outline: none; border: none; min-width: 175px; max-width:
 						                            180px;"/>
                                                             <span style=" float: right; padding-right: 5px;">
@@ -1822,11 +2272,11 @@
                                                         <input id="<%=propName%>"
                                                                name="<%=propName%>"
                                                                type="text"
-                                                                <% if (StringUtils.isNotBlank(prop.getValue())) { %>
+                                                            <% if (StringUtils.isNotBlank(prop.getValue())) { %>
                                                                value="<%=prop.getValue()%>"
-                                                                <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
+                                                            <% } else if (StringUtils.isNotBlank(prop.getDefaultValue())) { %>
                                                                value="<%=prop.getDefaultValue()%>"
-                                                                <% } %>
+                                                            <% } %>
                                                         />
                                                         <% } %>
                                                         <% if (prop.getDescription() != null) { %>
@@ -1846,10 +2296,10 @@
                                             }
                                         %>
                                     </div>
-
+                                    
                                     <h2 id="app_authentication_advance_head" class="sectionSeperator trigger active">
                                         <a href="#"><fmt:message
-                                                key="outbound.title.config.app.authentication.type"/></a>
+                                            key="outbound.title.config.app.authentication.type"/></a>
                                     </h2>
                                             <%if (display!=null && "auth_config".equals(display)) {%>
                                     <div class="toggle_container sectionSub" style="margin-bottom:10px;display:block;"
@@ -1861,20 +2311,20 @@
                                             <table class="carbonFormTable">
                                                 <tr>
                                                     <td class="leftCol-med labelField"><fmt:message
-                                                            key='config.application.info.authentication.advance.type'/>:<span
-                                                            class="required">*</span>
+                                                        key='config.application.info.authentication.advance.type'/>:<span
+                                                        class="required">*</span>
                                                     </td>
                                                     <td class="leftCol-med">
                                                         <% if (ApplicationBean.AUTH_TYPE_DEFAULT.equals(appBean.getAuthenticationType())) { %>
                                                         <input type="radio" id="default" name="auth_type"
                                                                value="default" checked><label for="default"
                                                                                               style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.default"/></label>
+                                                        key="config.authentication.type.default"/></label>
                                                         <% } else { %>
                                                         <input type="radio" id="default" name="auth_type"
                                                                value="default"><label for="default"
                                                                                       style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.default"/></label>
+                                                        key="config.authentication.type.default"/></label>
                                                         <% } %>
                                                     </td>
                                                     <td/>
@@ -1886,12 +2336,12 @@
                                                         <input type="radio" id="local" name="auth_type" value="local"
                                                                checked><label for="local"
                                                                               style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.local"/></label>
+                                                        key="config.authentication.type.local"/></label>
                                                         <% } else { %>
                                                         <input type="radio" id="local" name="auth_type"
                                                                value="local"><label for="local"
                                                                                     style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.local"/></label>
+                                                        key="config.authentication.type.local"/></label>
                                                         <% } %>
                                                     </td>
                                                     <td>
@@ -1902,11 +2352,13 @@
                                                                     for (LocalAuthenticatorConfig authenticator : localAuthenticatorConfigs) {
                                                             %>
                                                             <% if (authenticator.getName().equals(appBean.getStepZeroAuthenticatorName(ApplicationBean.AUTH_TYPE_LOCAL))) { %>
-                                                            <option value="<%=Encode.forHtmlAttribute(authenticator.getName())%>"
-                                                                    selected><%=Encode.forHtmlContent(authenticator.getDisplayName())%>
+                                                            <option
+                                                                value="<%=Encode.forHtmlAttribute(authenticator.getName())%>"
+                                                                selected><%=Encode.forHtmlContent(authenticator.getDisplayName())%>
                                                             </option>
                                                             <% } else { %>
-                                                            <option value="<%=Encode.forHtmlAttribute(authenticator.getName())%>"><%=Encode.forHtmlContent(authenticator.getDisplayName())%>
+                                                            <option
+                                                                value="<%=Encode.forHtmlAttribute(authenticator.getName())%>"><%=Encode.forHtmlContent(authenticator.getDisplayName())%>
                                                             </option>
                                                             <% } %>
                                                             <% } %>
@@ -1915,7 +2367,7 @@
                                                     </td>
                                                 </tr>
                                                 <%
-
+                                                    
                                                     if (appBean.getEnabledFederatedIdentityProviders() != null && appBean.getEnabledFederatedIdentityProviders().size() > 0) {%>
                                                 <tr>
                                                     <td class="leftCol-med labelField"/>
@@ -1924,12 +2376,12 @@
                                                         <input type="radio" id="federated" name="auth_type"
                                                                value="federated" checked><label for="federated"
                                                                                                 style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.federated"/></label>
+                                                        key="config.authentication.type.federated"/></label>
                                                         <% } else { %>
                                                         <input type="radio" id="federated" name="auth_type"
                                                                value="federated"><label for="federated"
                                                                                         style="cursor: pointer;"><fmt:message
-                                                            key="config.authentication.type.federated"/></label>
+                                                        key="config.authentication.type.federated"/></label>
                                                         <% } %>
                                                     </td>
                                                     <td>
@@ -1941,11 +2393,13 @@
                                                                     if (selectedIdP != null && idp.getIdentityProviderName().equals(selectedIdP)) {
                                                                         isSelectedIdPUsed = true;
                                                             %>
-                                                            <option value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"
-                                                                    selected><%=Encode.forHtmlContent(idp.getIdentityProviderName()) %>
+                                                            <option
+                                                                value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"
+                                                                selected><%=Encode.forHtmlContent(idp.getIdentityProviderName()) %>
                                                             </option>
                                                             <% } else { %>
-                                                            <option value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"><%=Encode.forHtmlContent(idp.getIdentityProviderName())%>
+                                                            <option
+                                                                value="<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"><%=Encode.forHtmlContent(idp.getIdentityProviderName())%>
                                                             </option>
                                                             <% } %>
                                                             <% } %>
@@ -1958,8 +2412,8 @@
                                                     <td>
                                                         <input type="radio" id="disabledFederated" name="auth_type"
                                                                value="federated" disabled><label
-                                                            for="disabledFederated"><fmt:message
-                                                            key="config.authentication.type.federated"/></label>
+                                                        for="disabledFederated"><fmt:message
+                                                        key="config.authentication.type.federated"/></label>
                                                     </td>
                                                     <td></td>
                                                 </tr>
@@ -1972,13 +2426,13 @@
                                                                onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>');"
                                                                checked><label style="cursor: pointer; color: #2F7ABD;"
                                                                               for="advanced"><fmt:message
-                                                            key="config.authentication.type.flow"/></label>
+                                                        key="config.authentication.type.flow"/></label>
                                                         <% } else { %>
                                                         <input type="radio" id="advanced" name="auth_type" value="flow"
                                                                onclick="updateBeanAndRedirect('configure-authentication-flow.jsp?spName=<%=Encode.forUriComponent(spName)%>')"><label
-                                                            style="cursor: pointer; color: #2F7ABD;"
-                                                            for="advanced"><fmt:message
-                                                            key="config.authentication.type.flow"/></label>
+                                                        style="cursor: pointer; color: #2F7ABD;"
+                                                        for="advanced"><fmt:message
+                                                        key="config.authentication.type.flow"/></label>
                                                         <% } %>
                                                     </td>
                                                 </tr>
@@ -1988,16 +2442,16 @@
                                                     <td class="leftCol-med">
                                                         <input type="checkbox" id="always_send_local_subject_id"
                                                                name="always_send_local_subject_id" <%=appBean.isAlwaysSendMappedLocalSubjectId() ? "checked" : "" %>/><label
-                                                            for="always_send_local_subject_id"><fmt:message
-                                                            key="config.application.claim.assert.local.select"/></label>
+                                                        for="always_send_local_subject_id"><fmt:message
+                                                        key="config.application.claim.assert.local.select"/></label>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="leftCol-med">
                                                         <input type="checkbox" id="always_send_auth_list_of_idps"
                                                                name="always_send_auth_list_of_idps" <%=appBean.isAlwaysSendBackAuthenticatedListOfIdPs() ? "checked" : "" %>/><label
-                                                            for="always_send_auth_list_of_idps"><fmt:message
-                                                            key="config.application.claim.always.auth.list"/></label>
+                                                        for="always_send_auth_list_of_idps"><fmt:message
+                                                        key="config.application.claim.always.auth.list"/></label>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -2005,9 +2459,9 @@
                                                         <input type="checkbox"
                                                                id="use_tenant_domain_in_local_subject_identifier"
                                                                name="use_tenant_domain_in_local_subject_identifier" <%=appBean.isUseTenantDomainInLocalSubjectIdentifier() ? "checked"
-                                                                : "" %>/><label
-                                                            for="use_tenant_domain_in_local_subject_identifier"><fmt:message
-                                                            key="config.application.use.tenant.domain.in.local.subject.identifier"/></label>
+                                                            : "" %>/><label
+                                                        for="use_tenant_domain_in_local_subject_identifier"><fmt:message
+                                                        key="config.application.use.tenant.domain.in.local.subject.identifier"/></label>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -2015,27 +2469,36 @@
                                                         <input type="checkbox"
                                                                id="use_userstore_domain_in_local_subject_identifier"
                                                                name="use_userstore_domain_in_local_subject_identifier" <%=appBean.isUseUserstoreDomainInLocalSubjectIdentifier() ?
+                                                            "checked" : "" %>/><label
+                                                        for="use_userstore_domain_in_local_subject_identifier"><fmt:message
+                                                        key="config.application.use.userstore.domain.in.local.subject.identifier"/></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="leftCol-med">
+                                                        <input type="checkbox" id="use_userstore_domain_in_roles"
+                                                               name="use_userstore_domain_in_roles" <%=appBean.isUseUserstoreDomainInRoles() ?
                                                                 "checked" : "" %>/><label
-                                                            for="use_userstore_domain_in_local_subject_identifier"><fmt:message
-                                                            key="config.application.use.userstore.domain.in.local.subject.identifier"/></label>
+                                                            for="use_userstore_domain_in_roles"><fmt:message
+                                                            key="config.application.use.userstore.domain.in.roles"/></label>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="leftCol-med">
                                                         <input type="checkbox" id="enable_authorization"
                                                                name="enable_authorization" <%=appBean.isEnableAuthorization() ?
-                                                                "checked" : "" %>/><label
-                                                            for="enable_authorization"><fmt:message
-                                                            key="config.application.enable.authorization"/></label>
+                                                            "checked" : "" %>/><label
+                                                        for="enable_authorization"><fmt:message
+                                                        key="config.application.enable.authorization"/></label>
                                                     </td>
                                                 </tr>
                                             </table>
-
-
+                                            
+                                            
                                             <h2 id="req_path_head" class="sectionSeperator trigger active"
                                                 style="background-color: beige;">
                                                 <a href="#"><fmt:message
-                                                        key="title.req.config.authentication.steps"/></a>
+                                                    key="title.req.config.authentication.steps"/></a>
                                             </h2>
                                             <div class="toggle_container sectionSub" style="margin-bottom:10px;"
                                                  id="ReqPathAuth">
@@ -2055,7 +2518,7 @@
                                                         </td>
                                                     </tr>
                                                     </thead>
-
+                                                    
                                                     <%
                                                         if (appBean.getServiceProvider().getRequestPathAuthenticatorConfigs() != null && appBean.getServiceProvider().getRequestPathAuthenticatorConfigs().length > 0) {
                                                             int x = 0;
@@ -2066,11 +2529,12 @@
                                                         <td>
                                                             <input name="req_path_auth" id="req_path_auth" type="hidden"
                                                                    value="<%=Encode.forHtmlAttribute(reqAth.getName())%>"/>
-                                                            <input name="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>"
-                                                                   id="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>"
-                                                                   type="hidden"
-                                                                   value="<%=Encode.forHtmlAttribute(reqAth.getName())%>"/>
-
+                                                            <input
+                                                                name="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>"
+                                                                id="req_path_auth_<%=Encode.forHtmlAttribute(reqAth.getName())%>"
+                                                                type="hidden"
+                                                                value="<%=Encode.forHtmlAttribute(reqAth.getName())%>"/>
+                                                            
                                                             <%=Encode.forHtmlContent(reqAth.getName())%>
                                                         </td>
                                                         <td class="leftCol-small">
@@ -2084,19 +2548,19 @@
                                                                 }
                                                             }
                                                         }
-
+                                                    
                                                     %>
                                                 </table>
                                             </div>
-
+                                        
                                         </div>
-
+                                        
                                         <h2 id="inbound_provisioning_head" class="sectionSeperator trigger active">
                                             <a href="#"><fmt:message key="inbound.provisioning.head"/></a>
                                         </h2>
                                         <div class="toggle_container sectionSub" style="margin-bottom:10px;"
                                              id="inboundProvisioning">
-
+                                            
                                             <h2 id="scim-inbound_provisioning_head"
                                                 class="sectionSeperator trigger active"
                                                 style="background-color: beige;">
@@ -2125,8 +2589,8 @@
                                                                         for (String userStoreDomain : userStoreDomains) {
                                                                             if (userStoreDomain != null) {
                                                                                 if (appBean.getServiceProvider().getInboundProvisioningConfig() != null
-                                                                                        && appBean.getServiceProvider().getInboundProvisioningConfig().getProvisioningUserStore() != null
-                                                                                        && userStoreDomain.equals(appBean.getServiceProvider().getInboundProvisioningConfig().getProvisioningUserStore())) {
+                                                                                    && appBean.getServiceProvider().getInboundProvisioningConfig().getProvisioningUserStore() != null
+                                                                                    && userStoreDomain.equals(appBean.getServiceProvider().getInboundProvisioningConfig().getProvisioningUserStore())) {
                                                                 %>
                                                                 <option selected="selected"
                                                                         value="<%=Encode.forHtmlAttribute(userStoreDomain)%>"><%=Encode.forHtmlContent(userStoreDomain)%>
@@ -2134,7 +2598,8 @@
                                                                 <%
                                                                 } else {
                                                                 %>
-                                                                <option value="<%=Encode.forHtmlAttribute(userStoreDomain)%>"><%=Encode.forHtmlContent(userStoreDomain)%>
+                                                                <option
+                                                                    value="<%=Encode.forHtmlAttribute(userStoreDomain)%>"><%=Encode.forHtmlContent(userStoreDomain)%>
                                                                 </option>
                                                                 <%
                                                                                 }
@@ -2160,20 +2625,20 @@
                                                     </tr>
                                                 </table>
                                             </div>
-
-
+                                        
+                                        
                                         </div>
-
+                                        
                                         <h2 id="outbound_provisioning_head" class="sectionSeperator trigger active">
                                             <a href="#"><fmt:message key="outbound.provisioning.head"/></a>
                                         </h2>
                                         <div class="toggle_container sectionSub" style="margin-bottom:10px;"
                                              id="outboundProvisioning">
                                             <table class="styledLeft" width="100%" id="fed_auth_table">
-
+                                                
                                                 <% if (idpType != null && idpType.length() > 0) {%>
                                                 <thead>
-
+                                                
                                                 <tr>
                                                     <td>
                                                         <select name="provisioning_idps"
@@ -2185,7 +2650,7 @@
                                                            style="background-image:url(images/add.gif);"></a>
                                                     </td>
                                                 </tr>
-
+                                                
                                                 </thead>
                                                 <% } else { %>
                                                 <tr>
@@ -2194,7 +2659,7 @@
                                                     </td>
                                                 </tr>
                                                 <%} %>
-
+                                                
                                                 <%
                                                     if (appBean.getServiceProvider().getOutboundProvisioningConfig() != null) {
                                                         IdentityProvider[] fedIdps = appBean.getServiceProvider().getOutboundProvisioningConfig().getProvisioningIdentityProviders();
@@ -2204,22 +2669,22 @@
                                                                     boolean jitEnabled = false;
                                                                     boolean blocking = false;
                                                                     boolean ruleEnabled = false;
-
+                                                                    
                                                                     if (idp.getJustInTimeProvisioningConfig() != null &&
-                                                                            idp.getJustInTimeProvisioningConfig().getProvisioningEnabled()) {
+                                                                        idp.getJustInTimeProvisioningConfig().getProvisioningEnabled()) {
                                                                         jitEnabled = true;
                                                                     }
                                                                     if (idp.getDefaultProvisioningConnectorConfig() != null &&
-                                                                            idp.getDefaultProvisioningConnectorConfig().getBlocking()) {
+                                                                        idp.getDefaultProvisioningConnectorConfig().getBlocking()) {
                                                                         blocking = true;
                                                                     }
                                                                     if (idp.getDefaultProvisioningConnectorConfig() != null &&
-                                                                            idp.getDefaultProvisioningConnectorConfig().getRulesEnabled()) {
+                                                                        idp.getDefaultProvisioningConnectorConfig().getRulesEnabled()) {
                                                                         ruleEnabled = true;
                                                                     }
-
+                                                
                                                 %>
-
+                                                
                                                 <tr>
                                                     <td>
                                                         <input name="provisioning_idp" id="" type="hidden"
@@ -2228,8 +2693,9 @@
                                                     </td>
                                                     <td>
                                                         <% if (selectedProIdpConnectors.get(idp.getIdentityProviderName()) != null) { %>
-                                                        <select name="provisioning_con_idp_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"
-                                                                style="float: left; min-width: 150px;font-size:13px;"><%=selectedProIdpConnectors.get(idp.getIdentityProviderName())%>
+                                                        <select
+                                                            name="provisioning_con_idp_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>"
+                                                            style="float: left; min-width: 150px;font-size:13px;"><%=selectedProIdpConnectors.get(idp.getIdentityProviderName())%>
                                                         </select>
                                                         <% } %>
                                                     </td>
@@ -2269,9 +2735,9 @@
                                                     }
                                                 %>
                                             </table>
-
+                                        
                                         </div>
-
+                                        
                                         <div style="clear:both"/>
                                         <!-- sectionSub Div -->
                                         <div class="buttonRow">
@@ -2284,5 +2750,64 @@
             </form>
         </div>
     </div>
-
+    
+    <div id="showDialog" title="WSO2 Carbon">
+        <h2 style="margin-left:20px;margin-top:20px;">
+            <fmt:message key="title.oauth.application"/>
+        </h2>
+        
+        <% if ("add".equals(operation)) { %>
+        <p style="font-size: 12px;margin-top:6px;margin-left:20px;"><fmt:message key="application.successfull"/></p>
+        <% } %>
+        
+        <% if ("regenerate".equals(action)) { %>
+        <p style="font-size: 12px;margin-top:6px;margin-left:20px;">
+            <% String message = MessageFormat.format(resourceBundle.getString("application.regenerated"), Encode.forHtml(appBean.getOIDCClientId())); %>
+            <%= message %>
+        </p>
+        <% } %>
+        
+        <div style="margin-left:20px;background-color: #f4f4f4; border-left: 6px solid #cccccc;height:50px;width:90%;">
+            <p style="margin:20px;padding-top:10px;display:block;"><strong><fmt:message key="note"/><font
+                color="red"><fmt:message key="note.oauth.application"/></font></strong></p>
+        </div>
+        <table style="margin-left:20px;margin-top:25px;">
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message
+                    key="config.application.consumerkey"/></b></td>
+                <td>
+                    <input style="border: none; background: white; font-size: 14px;" type="password" size="25"
+                           autocomplete="off" id="consumerKey" name="consumerKey"
+                           value=<%=Encode.forHtmlAttribute(appBean.getOIDCClientId())%> readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerKey')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerKey'))"><fmt:message
+                            key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
+            <tr style="height: 35px;">
+                <td class="leftCol-small" style="margin-top:10px;font-size: 12px;"><b><fmt:message
+                    key="config.application.consumersecret"/></b></td>
+                <td>
+                    <input style="border: none; background: white;font-size: 14px;" type="password" size="25"
+                           autocomplete="off" id="consumerSecret" name="consumerSecret"
+                           value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>" readonly="readonly">
+                    <span>
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="showHidePassword(this, 'consumerSecret')">Show</a>
+                    </span>
+                    <span style="margin-left: 6px;float: right;">
+                        <a style="margin-top: 5px;" class="showHideBtn"
+                           onclick="return copyTextClick(document.getElementById('consumerSecret'))"><fmt:message
+                            key="button.copy"/></a>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
 </fmt:bundle>

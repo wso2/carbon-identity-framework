@@ -103,6 +103,19 @@ public class DirectoryServerManager extends AbstractAdmin {
     }
 
     /**
+     * get service principle matching the name.
+     *
+     * @param serverName server name.
+     * @return Returns the service principle.
+     * @throws DirectoryServerManagerException If an error occurred while getting service principle.
+     */
+    public ServerPrinciple getServicePrinciple(String serverName) throws DirectoryServerManagerException {
+
+        LDAPServerStoreManager ldapServerStoreManager = getServerStoreManager();
+        return ldapServerStoreManager.getServicePrinciple(serverName);
+    }
+
+    /**
      * This method checks whether give service principle already exists in the LDAP KDC.
      *
      * @param servicePrinciple Name of the service principle.

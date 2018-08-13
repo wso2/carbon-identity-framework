@@ -26,10 +26,25 @@
         <parameter name="ServiceClass" locked="false">
             org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin
         </parameter>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/login</parameter>
+
+        <operation name="associateIDForUser">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/user/association/create
+            </parameter>
+        </operation>
+        <operation name="removeAssociateIDForUser">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/user/association/delete
+            </parameter>
+        </operation>
+        <operation name="getAssociatedIDsForUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user/association/view
+            </parameter>
+        </operation>
 
     </service>
 
-    <parameter name="AuthorizationAction" locked="false">/permission/admin/login</parameter>
     <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>

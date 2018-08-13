@@ -51,6 +51,7 @@
     String currentUser = (String) session.getAttribute("logged-user");
     String encryptedUsername = request.getParameter("username");
     String decryptedUsername = null;
+    boolean isLockable = true;
 
     if (noOfProfiles == null) {
         noOfProfiles = "0";
@@ -86,6 +87,7 @@
             userFields = client.getOrderedUserFields(userProfile.getFieldValues());
             profileConfigs = userProfile.getProfileConfigurations();
         }
+        isLockable = UserProfileUIUtil.isAccountLockable(decryptedUsername);
     } catch (Exception e) {
         String message = resourceBundle.getString("error.while.loading.user.profile.data");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -189,21 +191,27 @@
                             }
                         <%}
                         }
+                    if (!isLockable && userFields[i].getClaimUri().equals(ACCOUNT_LOCKED_CLAIM_URI)) { %>
+                        var value = document.getElementsByName("<%=userFields[i].getClaimUri()%>")[0].value;
+                        if (value == "true") {
+                            CARBON.showWarningDialog(" <fmt:message key='lock.message' />" +
+                            "<%=Encode.forJavaScript(Encode.forHtml(decryptedUsername))%>");
+                            return false;
+                        }
+                    <%}
                     }
                 }
                 %>
-                
-	                var unsafeCharPattern = /[<>`\"]/;
-	                var elements = document.getElementsByTagName("input");
-	                for(i = 0; i < elements.length; i++){
-	                    if((elements[i].type === 'text' || elements[i].type === 'password') && 
-	                       elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null){
-	                        CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
-	                        return false;
-	                    }
-	                }
-
-                    document.updateProfileform.submit();
+                       var unsafeCharPattern = /[<>`\"]/;
+                       var elements = document.getElementsByTagName("input");
+                       for(i = 0; i < elements.length; i++){
+                           if((elements[i].type === 'text' || elements[i].type === 'password') &&
+                              elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null){
+                               CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
+                               return false;
+                           }
+                       }
+                       document.updateProfileform.submit();
                 }
             </script>
 

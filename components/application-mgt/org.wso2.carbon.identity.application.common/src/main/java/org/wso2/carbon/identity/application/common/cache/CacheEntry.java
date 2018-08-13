@@ -30,4 +30,16 @@ public abstract class CacheEntry implements Serializable {
 
     protected CacheEntry() {
     }
+
+    private long validityPeriod;
+
+    public long getValidityPeriod() {
+        return validityPeriod;
+    }
+
+    public void setValidityPeriod(long validityPeriod) {
+        this.validityPeriod = validityPeriod;
+    }
+
+
 }

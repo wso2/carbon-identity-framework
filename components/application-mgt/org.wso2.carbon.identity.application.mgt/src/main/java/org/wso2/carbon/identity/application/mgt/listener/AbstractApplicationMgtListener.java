@@ -138,4 +138,21 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
         }
         return getDefaultOrderId();
     }
+
+    public void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
+            throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
 }

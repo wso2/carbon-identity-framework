@@ -22,20 +22,47 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "Property")
 public class Property implements Serializable {
 
     private static final long serialVersionUID = 2423059969331364604L;
 
+    @XmlElement(name = "Name")
     private String name;
+
+    @XmlElement(name = "Value")
     private String value;
+
+    @XmlElement(name = "IsConfidential")
     private boolean isConfidential;
+
+    @XmlElement(name = "DefaultValue")
     private String defaultValue;
+
+
+    @XmlElement(name = "DisplayName")
     private String displayName;
+
+    @XmlElement(name = "Required")
     private boolean required;
+
+
+    @XmlElement(name = "DefaultValue")
     private String description;
+
+    @XmlElement(name = "Type")
     private String type;
+
+    @XmlElement(name = "DisplayOrder")
     private int displayOrder;
+
+    @XmlElement(name = "IsAdvanced")
     private boolean isAdvanced;
 
     public Property() {

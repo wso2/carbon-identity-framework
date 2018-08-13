@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -82,5 +83,9 @@ public class JsServletResponse extends AbstractJSObjectWrapper<TransientObjectWr
 
         TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
+    }
+
+    public void addCookie(Cookie cookie) {
+        getResponse().addCookie(cookie);
     }
 }

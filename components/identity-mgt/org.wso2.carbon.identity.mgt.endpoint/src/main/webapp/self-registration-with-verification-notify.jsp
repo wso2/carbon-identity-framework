@@ -20,6 +20,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <html>
 <head>
@@ -34,13 +35,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Information")%></h4>
                 </div>
                 <div class="modal-body">
-                    <p>Account confirmation has been sent to your email.</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Account.confirmation.sent.to.your.email")%></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>

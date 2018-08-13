@@ -226,6 +226,7 @@ public class IdentityConstants {
         public static final String SSO_TENANT_PARTITIONING_ENABLED = "SSOService.TenantPartitioningEnabled";
         public static final String ACCEPT_OPENID_LOGIN = "SSOService.AcceptOpenIDLogin";
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
+        public static final String SAML2_ARTIFACT_VALIDITY_PERIOD = "SSOService.SAML2ArtifactValidityPeriodInMinutes";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
@@ -248,12 +249,16 @@ public class IdentityConstants {
                                                          ".OperationDataCleanUp.CleanUpPeriod";
         public static final String OPERATION_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
                                                                 ".OperationDataCleanUp.CleanUpTimeout";
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
+                                                                ".TempDataCleanup.CleanUpTimeout";
 
         public static final String CLEAN_UP_TIMEOUT_DEFAULT = "20160";
         public static final String CLEAN_UP_PERIOD_DEFAULT = "1140";
 
         public static final String OPERATION_CLEAN_UP_TIMEOUT_DEFAULT = "1";
         public static final String OPERATION_CLEAN_UP_PERIOD_DEFAULT = "720";
+
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT = "1";
 
         //PassiveSTS
         public static final String PASSIVE_STS_RETRY = "PassiveSTS.RetryURL";

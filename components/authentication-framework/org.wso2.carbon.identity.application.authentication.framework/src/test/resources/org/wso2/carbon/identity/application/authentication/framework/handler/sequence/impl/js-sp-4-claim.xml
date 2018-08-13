@@ -57,7 +57,7 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
@@ -75,27 +75,26 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest (context) {
-    executeStep({id :'1',
-            on : {
-                success : function(context) {
-                    Log.info('First Authentication success');
-                    var fName = context.steps[1].subject.localClaims['http://wso2.org/claims/givenname'];
-                    var lName = context.steps[1].subject.localClaims['http://wso2.org/claims/lastname'];
-                    var displayName = fName + ' '+ lName + ' by Javascript';
-                    Log.info('Display Name: '+displayName);
-                    context.steps[1].subject.localClaims['http://wso2.org/claims/displayName'] = displayName;
-                }
-            }
-        });
+function onLoginRequest (context) {
+    executeStep(1, {
+        onSuccess : function(context) {
+            Log.info('First Authentication success');
+            var fName = context.steps[1].subject.localClaims['http://wso2.org/claims/givenname'];
+            var lName = context.steps[1].subject.localClaims['http://wso2.org/claims/lastname'];
+            var displayName = fName + ' '+ lName + ' by Javascript';
+            Log.info('Display Name: '+displayName);
+            context.steps[1].subject.localClaims['http://wso2.org/claims/displayName'] = displayName;
+        }
+    });
 }
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

@@ -18,6 +18,7 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String domainUnknown = AuthenticationEndpointUtil.i18n(resourceBundle, "domain.unknown");
@@ -90,7 +91,7 @@
                 </div>
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../commonauth" method="post" id="loginForm" class="form-horizontal" >
+                    <form action="<%=commonauthURL%>" method="post" id="loginForm" class="form-horizontal" >
                         <div class="padding-double login-form">
                             <% if (loginFailed) { %>
                             <div class="alert alert-erro" id="error-msg" ><%=Encode.forHtml(errorMessage)%></div>

@@ -23,6 +23,8 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +52,7 @@ public class Util {
         String localRoles = "LOCAL_ROLE1,ADMIN,LOCAL_ROLE2";
 
         return new Object[][]{
-                {spRoleMappings, localUserRoles, "##", "SP_ROLE1##ADMIN##SP_ROLE2"},
+                {spRoleMappings, localUserRoles, "##", "SP_ROLE1##SP_ROLE2##ADMIN"},
                 {null, localUserRoles, ",", localRoles},
                 {new HashMap<>(), localUserRoles, ",", localRoles},
                 {spRoleMappings, new ArrayList<>(), ",", null},
@@ -67,9 +69,15 @@ public class Util {
     public static SequenceConfig mockSequenceConfig(Map<String, String> spRoleMappings) {
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = mock
+                (LocalAndOutboundAuthenticationConfig.class);
         when(applicationConfig.getApplicationName()).thenReturn("APP");
         when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
         when(applicationConfig.getRoleMappings()).thenReturn(spRoleMappings);
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        when(serviceProvider.getLocalAndOutBoundAuthenticationConfig()).thenReturn(localAndOutboundAuthenticationConfig);
+        when(localAndOutboundAuthenticationConfig.isUseUserstoreDomainInRoles()).thenReturn(false);
         return sequenceConfig;
     }
 

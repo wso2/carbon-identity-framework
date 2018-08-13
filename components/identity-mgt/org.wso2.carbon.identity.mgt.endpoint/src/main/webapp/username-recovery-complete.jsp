@@ -19,6 +19,8 @@
 
 <%@ page import="java.net.URLDecoder" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String callback = (String) request.getAttribute("callback");
@@ -37,13 +39,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Information")%></h4>
                 </div>
                 <div class="modal-body">
-                    <p>Username recovery information has been sent to your email.</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Username.recovery.information.sent.to.your.email")%></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>

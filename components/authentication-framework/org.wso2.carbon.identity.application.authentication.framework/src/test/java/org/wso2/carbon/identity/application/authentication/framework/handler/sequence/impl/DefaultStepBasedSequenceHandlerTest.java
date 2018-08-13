@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
@@ -79,7 +81,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-@PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class})
+@PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class})
 public class DefaultStepBasedSequenceHandlerTest {
 
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
@@ -89,6 +91,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Mock
     private HttpServletResponse response;
+
+    @Mock
+    ApplicationDAO applicationDAO;
+
+    @Mock
+    private ApplicationMgtSystemConfig applicationMgtSystemConfig;
 
     private AuthenticationContext context;
 
@@ -132,6 +140,9 @@ public class DefaultStepBasedSequenceHandlerTest {
                                                       String multiAttributeSeparator,
                                                       String expectedRoles) throws Exception {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
+        mockStatic(ApplicationMgtSystemConfig.class);
+        when(ApplicationMgtSystemConfig.getInstance()).thenReturn(applicationMgtSystemConfig);
+        when(applicationMgtSystemConfig.getApplicationDAO()).thenReturn(applicationDAO);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         String mappedRoles = stepBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         assertEquals(mappedRoles, expectedRoles, "Service Provider Mapped Role do not have the expect value.");
@@ -399,9 +410,10 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
-
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getRoleMappings()).thenReturn(idpToLocalRoleMappings);
+        when(FrameworkUtils.getIdentityProvideMappedUserRoles(externalIdPConfig,
+                attributeValueMap, idpRoleClaimUri, excludeUnmapped)).thenCallRealMethod();
 
         List<String> mappedUserRoles = stepBasedSequenceHandler.getIdentityProvideMappedUserRoles(externalIdPConfig,
                 attributeValueMap, idpRoleClaimUri, excludeUnmapped);
@@ -898,7 +910,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     @Test(dataProvider = "postAuthenticationDataProvider")
-    public void testHandlePostAuthenticationSubjectIdentifier(String subjectClaimUriFromAppConfig,
+    public void testHandlePostUserName(String subjectClaimUriFromAppConfig,
                                                               String spSubjectClaimValue,
                                                               boolean appendTenantDomainToSubject,
                                                               boolean appendUserStoreDomainToSubject,
@@ -927,7 +939,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         stepBasedSequenceHandler.handlePostAuthentication(request, response, context);
 
-        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                expectedSubjectIdentifier);
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getUserName(),
+                authenticatedUserNameInSequence);
     }
 }

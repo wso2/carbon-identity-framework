@@ -62,12 +62,25 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>
         </operation>
+        <operation name="getAuthenticationTemplatesJSON">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
         <operation name="updateApplication">
             <parameter name="AuthorizationAction" locked="true">
                 /permission/admin/manage/identity/applicationmgt/update
             </parameter>
         </operation>
-        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt</parameter>
+        <operation name="importApplication">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/applicationmgt/create
+            </parameter>
+        </operation>
+        <operation name="exportApplication">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt</parameter>
         <parameter name="adminService" locked="true">true</parameter>
     </service>
 

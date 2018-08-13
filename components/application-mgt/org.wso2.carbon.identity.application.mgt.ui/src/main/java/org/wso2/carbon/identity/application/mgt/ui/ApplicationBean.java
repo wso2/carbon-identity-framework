@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.mgt.ui;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -42,8 +45,10 @@ import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnect
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -81,8 +86,13 @@ public class ApplicationBean {
     private String passiveSTSWReply;
     private String openid;
     private String[] claimUris;
+    private List<String> claimDialectUris;
     private List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigs;
     private List<String> standardInboundAuthTypes;
+    private ApplicationPurposes applicationPurposes;
+    private Purpose[] sharedPurposes;
+
+    Log log = LogFactory.getLog(ApplicationBean.class);
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -114,6 +124,8 @@ public class ApplicationBean {
         attrConsumServiceIndex = null;
         enabledFederatedIdentityProviders = null;
         inboundAuthenticationRequestConfigs = Collections.EMPTY_LIST;
+        applicationPurposes = null;
+        sharedPurposes = null;
     }
 
     /**
@@ -853,6 +865,38 @@ public class ApplicationBean {
         this.claimUris = claimUris;
     }
 
+    /**
+     * Get service provider claim dialects.
+     *
+     * @return claim dialects of service provider
+     */
+    public List<String> getSPClaimDialects() {
+
+        return serviceProvider.getClaimConfig() != null && !ArrayUtils.isEmpty(serviceProvider.getClaimConfig()
+                .getSpClaimDialects()) ? Arrays.asList(serviceProvider.getClaimConfig().getSpClaimDialects()) :
+                new ArrayList<>();
+    }
+
+    /**
+     * Set claim dialects Uris.
+     *
+     * @param claimDialectUris list of claim dialect Uris
+     */
+    public void setClaimDialectUris(List<String> claimDialectUris) {
+
+        this.claimDialectUris = claimDialectUris;
+    }
+
+    /**
+     * Get claim dialects Uris.
+     *
+     * @return list of claim dialect Uris
+     */
+    public List<String> getClaimDialectUris() {
+
+        return claimDialectUris;
+    }
+
 
     private boolean isCustomInboundAuthType(String authType) {
         return !standardInboundAuthTypes.contains(authType);
@@ -890,7 +934,7 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
-        
+
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
@@ -1275,6 +1319,11 @@ public class ApplicationBean {
                 .setUseUserstoreDomainInLocalSubjectIdentifier(useUserstoreDomainInLocalSubjectIdentifier != null &&
                                                                "on".equals(useUserstoreDomainInLocalSubjectIdentifier) ? true : false);
 
+        String useUserstoreDomainInRoles = request.getParameter("use_userstore_domain_in_roles");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setUseUserstoreDomainInRoles(useUserstoreDomainInRoles != null &&
+                        "on".equals(useUserstoreDomainInRoles) ? true : false);
+
         String enableAuthorization = request.getParameter(
                 "enable_authorization");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
@@ -1376,6 +1425,14 @@ public class ApplicationBean {
             }
         }
 
+        String spClaimDialectParam = request.getParameter(ApplicationMgtUIConstants.Params.SP_CLAIM_DIALECT);
+        String[] spClaimDialects = null;
+        if (StringUtils.isNotBlank(spClaimDialectParam)) {
+            spClaimDialects = spClaimDialectParam.split(",");
+
+        }
+        serviceProvider.getClaimConfig().setSpClaimDialects(spClaimDialects);
+
         serviceProvider.getClaimConfig().setClaimMappings(
                 claimMappingList.toArray(new ClaimMapping[claimMappingList.size()]));
 
@@ -1386,7 +1443,92 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                 && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+        // Will be supported with 'Advance Consent Management Feature'.
+        /*
+        String IS_CONSENT_ENABLED = "is_consent_enabled";
+        boolean consentEnabled = request.getParameter(IS_CONSENT_ENABLED) != null;
+
+        ArrayList<ConsentPurpose> consentPurposesList = new ArrayList<>();
+        processConsentPurposesInput(request, consentPurposesList);
+
+        ConsentConfig consentConfig = new ConsentConfig();
+        consentConfig.setEnabled(consentEnabled);
+        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
+        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
+        consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
+        serviceProvider.setConsentConfig(consentConfig);
+        */
+
     }
+
+    // Will be supported with 'Advance Consent Management Feature'.
+    /*
+    private void processConsentPurposesInput(HttpServletRequest request, ArrayList<ConsentPurpose> consentPurposesList) {
+
+        processAppConsentPurposesInput(request, consentPurposesList);
+        processSharedConsentPurposesInput(request, consentPurposesList);
+    }
+
+    private void processSharedConsentPurposesInput(HttpServletRequest request,
+                                                   ArrayList<ConsentPurpose> consentPurposesList) {
+
+        String SHARED_PURPOSE_ID_PARAM_KEY = "shared_purpose_id";
+        String DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX = "display_order_shared_purpose_id_";
+
+        String[] sharedPurposeIds = request.getParameterValues(SHARED_PURPOSE_ID_PARAM_KEY);
+        if (nonNull(sharedPurposeIds)) {
+            for (String sharedPurposeId : sharedPurposeIds) {
+                String displayOrderValue = request.getParameter(DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX +
+                                                                sharedPurposeId);
+                if (nonNull(displayOrderValue)) {
+                    ConsentPurpose consentPurpose = new ConsentPurpose();
+                    consentPurpose.setPurposeId(Integer.parseInt(sharedPurposeId));
+
+                    int displayOrder = DEFAULT_DISPLAY_ORDER;
+                    try {
+                        displayOrder = Integer.parseInt(displayOrderValue);
+                    } catch (NumberFormatException e) {
+                        // Do nothing. Default display order '0' will be used.
+                    }
+                    consentPurpose.setDisplayOrder(displayOrder);
+                    consentPurposesList.add(consentPurpose);
+                }
+            }
+        }
+    }
+
+    private void processAppConsentPurposesInput(HttpServletRequest request,
+                                                ArrayList<ConsentPurpose> consentPurposesList) {
+
+        String APP_PURPOSE_ID_PARAM_KEY = "app_purpose_id";
+        String SELECTED_PURPOSE_ID_PARAM_PREFIX = "selected_purpose_id_";
+        String DISPLAY_ORDER_PURPOSE_ID_PREFIX = "display_order_purpose_id_";
+
+        String[] appPurposeIds = request.getParameterValues(APP_PURPOSE_ID_PARAM_KEY);
+        if (nonNull(appPurposeIds)) {
+            for (String appPurposeId : appPurposeIds) {
+                String selectedAppPurpose = request.getParameter(SELECTED_PURPOSE_ID_PARAM_PREFIX + appPurposeId);
+                if (nonNull(selectedAppPurpose)) {
+                    String displayOrderValue = request.getParameter(DISPLAY_ORDER_PURPOSE_ID_PREFIX + appPurposeId);
+                    // If app specific purpose is selected, get the display order and add to consentPurposesList.
+                    if (nonNull(displayOrderValue)) {
+                        ConsentPurpose consentPurpose = new ConsentPurpose();
+                        consentPurpose.setPurposeId(Integer.parseInt(appPurposeId));
+
+                        int displayOrder = DEFAULT_DISPLAY_ORDER;
+                        try {
+                            displayOrder = Integer.parseInt(displayOrderValue);
+                        } catch (NumberFormatException e) {
+                            // Do nothing. Default display order '0' will be used.
+                        }
+                        consentPurpose.setDisplayOrder(displayOrder);
+                        consentPurposesList.add(consentPurpose);
+                    }
+                }
+            }
+        }
+    }
+    */
 
     /**
      * @return
@@ -1489,5 +1631,37 @@ public class ApplicationBean {
             }
         }
 
+    }
+
+    public ApplicationPurposes getApplicationPurposes() {
+
+        return applicationPurposes;
+    }
+
+    public void setApplicationPurposes(ApplicationPurposes applicationPurposes) {
+
+        this.applicationPurposes = applicationPurposes;
+    }
+
+    public Purpose[] getSharedPurposes() {
+
+        return sharedPurposes;
+    }
+
+    public void setSharedPurposes(Purpose[] sharedPurposes) {
+
+        this.sharedPurposes = sharedPurposes;
+    }
+
+    /**
+     * To check whether to append userstore domain name with role name.
+     *
+     * @return true, if the user store domain should be appended with the role name.
+     */
+    public boolean isUseUserstoreDomainInRoles() {
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInRoles();
+        }
+        return false;
     }
 }
