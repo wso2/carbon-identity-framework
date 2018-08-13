@@ -2476,6 +2476,15 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="leftCol-med">
+                                                        <input type="checkbox" id="use_userstore_domain_in_roles"
+                                                               name="use_userstore_domain_in_roles" <%=appBean.isUseUserstoreDomainInRoles() ?
+                                                                "checked" : "" %>/><label
+                                                            for="use_userstore_domain_in_roles"><fmt:message
+                                                            key="config.application.use.userstore.domain.in.roles"/></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="leftCol-med">
                                                         <input type="checkbox" id="enable_authorization"
                                                                name="enable_authorization" <%=appBean.isEnableAuthorization() ?
                                                             "checked" : "" %>/><label
