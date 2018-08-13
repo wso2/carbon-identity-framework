@@ -45,7 +45,7 @@ public class Event {
         return eventName;
     }
 
-    public void addEventProperty(String key, String value) {
+    public void addEventProperty(String key, Object value) {
         eventProperties.put(key, value);
     }
 }
