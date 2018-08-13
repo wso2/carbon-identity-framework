@@ -122,7 +122,7 @@ public class ApplicationMgtUtil {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Checking whether user has role : " + applicationRoleName + " by retrieving role list of " +
-                          "user : " + username);
+                        "user : " + username);
             }
 
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
@@ -160,7 +160,7 @@ public class ApplicationMgtUtil {
             // create a role for the application and assign the user to that role.
             if (log.isDebugEnabled()) {
                 log.debug("Creating application role : " + roleName + " and assign the user : "
-                          + Arrays.toString(usernames) + " to that role");
+                        + Arrays.toString(usernames) + " to that role");
             }
             CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
                     .addRole(roleName, usernames, null);
@@ -531,8 +531,8 @@ public class ApplicationMgtUtil {
     /**
      * Get Property values
      *
-     * @param tenantDomain Tenant domain
-     * @param spIssuer SP Issuer
+     * @param tenantDomain  Tenant domain
+     * @param spIssuer      SP Issuer
      * @param propertyNames Property names
      * @return Properties map
      * @throws IdentityApplicationManagementException
@@ -588,7 +588,7 @@ public class ApplicationMgtUtil {
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
             }
             org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (realm == null) {
+            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
                 return false;
             }
             boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
