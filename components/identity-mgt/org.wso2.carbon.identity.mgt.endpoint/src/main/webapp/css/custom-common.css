@@ -104,7 +104,7 @@ footer a, footer a:hover {
 	padding-bottom: 50px;
 }
 
-.wr-login input[type=text], .wr-login input[type=password] {
+.wr-login input[type=text], .wr-login input[type=password], .wr-login input[type=email] {
 	border: 1px #d2d2d2 solid;
 	width: 100%;
 	padding: 6px 10px;
@@ -122,6 +122,22 @@ footer a, footer a:hover {
 	padding: 10px 10px;
 	display: inline-block;
 	border: none;
+}
+
+.light-btn {
+	font-weight: normal;
+	font-size: 13px;
+	color: #555;
+	background: #eee;
+	padding: 10px 10px;
+	display: inline-block;
+	text-align: center;
+}
+
+.light-btn:hover {
+	text-decoration: none;
+	color: #555;
+	background: #d4d3d3;
 }
 
 button.grey-bg:hover {
@@ -280,6 +296,7 @@ img.idp-image {
 	display: block;
 	background: #d9edf7;
 	border: 1px solid #bce8f1;
+	border-radius: 4px;
 }
 
 .agreement-checkbox input {
@@ -337,11 +354,33 @@ strong span.required_consent{
 .consent-container-1 span label,.consent-container-2 span label{
 	font-weight: normal;
 	padding: 2px 6px;
-	background: #41c0f97a;
+	background: #dcdcdc7a;
 	border-radius: 4px;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
 }
+
+.consent-container-3 {
+	padding-left: 0;
+	border-top: 1px solid #eee;
+}
+.consent-ul {
+	padding-left: 12px!important;
+	color: #3a9ecf;
+}
+
+.consent-ul li {
+	list-style-type: square!important;
+	font-size: 16px;
+	padding-bottom: 10px;
+}
+
+.consent-ul li span{
+	font-size: 14px;
+	font-weight: 600;
+	color: #6b6b6b
+}
+
 .consent-container-3 label{
 	font-weight: normal;
 	padding: 5px 10px;
@@ -355,7 +394,7 @@ strong span.required_consent{
 .consent-container-1 strong label,.consent-container-2 strong label{
 	padding: 2px 6px;
 	background: none;
-	border: 1px solid #41c0f97a;
+	border: 1px solid #dcdcdc7a;
 	border-radius: 4px;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
@@ -370,7 +409,7 @@ strong span.required_consent{
 }
 .consent-container-2 .box{
 	padding:15px;
-	border: 1px solid #41c0f97a;
+	border: 2px solid #dcdcdc7a;
 	border-radius: 4px;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
@@ -384,6 +423,13 @@ strong span.required_consent{
 }
 .consent-container-2 .box ul li{
 	list-style: none;
+}
+.consent-section {
+	padding: 11px 40px 20px 40px;
+}
+.consent-border {
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
 }
 #row-container .box{
 	padding: 10px;
@@ -414,4 +460,19 @@ strong span.required_consent{
 	border-radius: 4px;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
+}
+.remove-padding-left {
+	padding-left: 0;
+}
+.remove-padding-right {
+	padding-right: 0;
+}
+.full-width {
+	width: 100%;
+}
+.consent-section {
+	color: #6b6b6b;
+}
+.form-info {
+	height: 12px;
 }
