@@ -825,7 +825,7 @@
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
                     if (googleProperty != null) {
-                        String googlePropertyValue = Encode.forJavaScriptBlock(googleProperty.getValue());
+                        String googlePropertyValue = googleProperty.getValue();
                         if ("google_prov_domain_name".equals(googleProperty.getName())) {
                             googleDomainName = googlePropertyValue;
                         } else if ("google_prov_givenname".equals(googleProperty.getName())) {
@@ -1444,19 +1444,19 @@
         }
 
 
-        if ('<%=googlePrimaryEmailClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>' == '') {
             $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=googleFamilyNameClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>' == '') {
             $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=googleGivenNameClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>' == '') {
             $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
@@ -1478,19 +1478,19 @@
                     $role_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googlePrimaryEmailClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>') {
                     $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googleFamilyNameClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>') {
                     $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googleGivenNameClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>') {
                     $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
@@ -1523,9 +1523,9 @@
             <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
-            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
+            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            user_id_option += '<option value="' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
+            user_id_option += '<option value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -1534,7 +1534,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googlePrimaryEmailClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googlePrimaryEmailClaim))){  %>
             google_prov_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -1546,7 +1546,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googleFamilyNameClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleFamilyNameClaim))){  %>
             google_prov_family_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_family_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -1558,7 +1558,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googleGivenNameClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleGivenNameClaim))){  %>
             google_prov_givenname_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_givenname_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -5481,7 +5481,7 @@
                                 </td>
                                 <td><span><input id="google_prov_private_key"
                                                  name="google_prov_private_key" type="file"/>
-									<% if (googleProvPrivateKeyData != null) { %>
+									<% if (Encode.forJavaScriptBlock(googleProvPrivateKeyData) != null) { %>
                                          <img src="images/key.png" alt="key" width="14" height="14"
                                               style=" padding-right: 5px; "><label>Private Key attached</label>
 									<% } %></span>
