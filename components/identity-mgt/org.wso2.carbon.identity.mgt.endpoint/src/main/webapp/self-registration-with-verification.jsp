@@ -182,6 +182,7 @@
 %>
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
@@ -242,179 +243,179 @@
                     <div class="clearfix"></div>
                     <div class="boarder-all ">
 
-                        <% if (error) { %>
-                        <div class="alert alert-danger" id="server-error-msg">
-                            <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
-                        </div>
-                        <% } %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <% if (error) { %>
+                                <div class="alert alert-danger" id="server-error-msg">
+                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
+                                </div>
+                                <% } %>
 
-                        <div class="alert alert-danger" id="error-msg" hidden="hidden">
-                        </div>
+                                <div class="alert alert-danger" id="error-msg" hidden="hidden">
+                                </div>
 
-                        <% if (isPasswordProvisionEnabled || !skipSignUpEnableCheck) { %>
-                        <div class="padding-double font-large">
-                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.fields.to.cmplete.reg")%>
-                            <b><%=Encode.forHtmlAttribute(username)%></b></div>
-                        <!-- validation -->
-                        <div class="padding-double">
-                            <div id="regFormError" class="alert alert-danger" style="display:none"></div>
-                            <div id="regFormSuc" class="alert alert-success" style="display:none"></div>
-
-                            <% Claim firstNamePII =
-                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
-                                if (firstNamePII != null) {
-                                String firstNameValue = request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (firstNamePII.getRequired() ||
-                            !piisConfigured) {%> required <%}%>">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "First.name")%>
-                                </label>
-                                <input type="text" name="http://wso2.org/claims/givenname" class="form-control"
-                                    <% if (firstNamePII.getRequired() || !piisConfigured) {%> required <%}%>
-                                <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(firstNameValue)) { %>
-                                value="<%= Encode.forHtmlAttribute(firstNameValue)%>" disabled <% } %>>
+                                <% if (isPasswordProvisionEnabled || !skipSignUpEnableCheck) { %>
+                                <div class="padding-double ">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.fields.to.cmplete.reg")%>
+                                </div>
                             </div>
-                            <%}%>
+                            <!-- validation -->
+                            <div class="padding-double">
+                                <div id="regFormError" class="alert alert-danger" style="display:none"></div>
+                                <div id="regFormSuc" class="alert alert-success" style="display:none"></div>
 
-                            <% Claim lastNamePII =
-                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
-                                if (lastNamePII != null) {
-                                    String lastNameValue =
-                                            request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (lastNamePII.getRequired() ||
-                            !piisConfigured) {%> required <%}%>">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Last.name")%>
-                                </label>
-                                <input type="text" name="http://wso2.org/claims/lastname" class="form-control"
-                                    <% if (lastNamePII.getRequired() || !piisConfigured) {%> required <%}%>
-                                    <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(lastNameValue)) { %>
-                                       value="<%= Encode.forHtmlAttribute(lastNameValue)%>" disabled <% } %>>
+                                <% Claim firstNamePII =
+                                        uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
+                                    if (firstNamePII != null) {
+                                        String firstNameValue = request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM);
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (firstNamePII.getRequired() ||
+                                !piisConfigured) {%> required <%}%>">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "First.name")%>
+                                    </label>
+                                    <input type="text" name="http://wso2.org/claims/givenname" class="form-control"
+                                        <% if (firstNamePII.getRequired() || !piisConfigured) {%> required <%}%>
+                                        <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(firstNameValue)) { %>
+                                           value="<%= Encode.forHtmlAttribute(firstNameValue)%>" disabled <% } %>>
+                                </div>
+                                <%}%>
 
-                            </div>
-                            <%}%>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <input id="username" name="username" type="hidden" value="<%=Encode.forHtmlAttribute(username)%>"
-                                       class="form-control required usrName usrNameLength">
-                            </div>
+                                <% Claim lastNamePII =
+                                        uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
+                                    if (lastNamePII != null) {
+                                        String lastNameValue =
+                                                request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM);
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (lastNamePII.getRequired() ||
+                                !piisConfigured) {%> required <%}%>">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Last.name")%>
+                                    </label>
+                                    <input type="text" name="http://wso2.org/claims/lastname" class="form-control"
+                                        <% if (lastNamePII.getRequired() || !piisConfigured) {%> required <%}%>
+                                        <% if (skipSignUpEnableCheck && StringUtils.isNotEmpty(lastNameValue)) { %>
+                                           value="<%= Encode.forHtmlAttribute(lastNameValue)%>" disabled <% } %>>
 
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Password")%>
-                                </label>
-                                <input id="password" name="password" type="password"
-                                       class="form-control" required>
-                            </div>
+                                </div>
+                                <%}%>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                    <input id="username" name="username" type="hidden" value="<%=Encode.forHtmlAttribute(username)%>"
+                                           class="form-control required usrName usrNameLength">
+                                </div>
 
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Confirm.password")%>
-                                </label>
-                                <input id="password2" name="password2" type="password" class="form-control"
-                                       data-match="reg-password" required>
-                            </div>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Password")%>
+                                    </label>
+                                    <input id="password" name="password" type="password"
+                                           class="form-control" required>
+                                </div>
 
-                            <% Claim emailNamePII =
-                                    uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
-                                if (emailNamePII != null) {
-                                    String emailValue =
-                                            request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group  <% if (emailNamePII.getRequired()
-                            || !piisConfigured) {%> required <%}%>">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Email")%>
-                                </label>
-                                <input type="email" name="http://wso2.org/claims/emailaddress" class="form-control"
-                                       data-validate="email"
-                                    <% if (emailNamePII.getRequired() || !piisConfigured) {%> required <%}%><% if
-                                    (skipSignUpEnableCheck && StringUtils.isNotEmpty(emailValue)) {%>
-                                       value="<%= Encode.forHtmlAttribute(emailValue)%>"
-                                       disabled<%}%>>
-                            </div>
-                            <%
-                                }
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Confirm.password")%>
+                                    </label>
+                                    <input id="password2" name="password2" type="password" class="form-control"
+                                           data-match="reg-password" required>
+                                </div>
 
-                                if (callback != null) {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <% Claim emailNamePII =
+                                        uniquePIIs.get(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
+                                    if (emailNamePII != null) {
+                                        String emailValue =
+                                                request.getParameter(IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM);
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group  <% if (emailNamePII.getRequired()
+                                || !piisConfigured) {%> required <%}%>">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Email")%>
+                                    </label>
+                                    <input type="email" name="http://wso2.org/claims/emailaddress" class="form-control"
+                                           data-validate="email"
+                                        <% if (emailNamePII.getRequired() || !piisConfigured) {%> required <%}%><% if
+                                        (skipSignUpEnableCheck && StringUtils.isNotEmpty(emailValue)) {%>
+                                           value="<%= Encode.forHtmlAttribute(emailValue)%>"
+                                           disabled<%}%>>
+                                </div>
+                                <%
+                                    }
+
+                                    if (callback != null) {
+                                %>
                                 <input type="hidden" name="callback" value="<%=callback %>"/>
-                            </div>
-                            <% for (int index = 0; index < missingClaimList.length; index++) {
-                                String claim = missingClaimList[index];
-                                String claimDisplayName = missingClaimDisplayName[index];
-                                if (!StringUtils
-                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)
-                                        && !StringUtils
-                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)
-                                        && !StringUtils
-                                        .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">
-                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claimDisplayName)%>
-                                </label>
-                                <input type="text" name="missing-<%=Encode.forHtmlAttribute(claim)%>"
-                                       id="<%=Encode.forHtmlAttribute(claim)%>" class="form-control" required="required">
-                            </div>
-                            <% }}%>
-                            <%
-                                }
-                                List<String> missingClaims = null;
-                                if (ArrayUtils.isNotEmpty(missingClaimList)) {
-                                    missingClaims = Arrays.asList(missingClaimList);
-                                }
-                                for (Claim claim : claims) {
+                                <% for (int index = 0; index < missingClaimList.length; index++) {
+                                    String claim = missingClaimList[index];
+                                    String claimDisplayName = missingClaimDisplayName[index];
+                                    if (!StringUtils
+                                            .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)
+                                            && !StringUtils
+                                            .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)
+                                            && !StringUtils
+                                            .equals(claim, IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                                    <label class="control-label">
+                                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claimDisplayName)%>
+                                    </label>
+                                    <input type="text" name="missing-<%=Encode.forHtmlAttribute(claim)%>"
+                                           id="<%=Encode.forHtmlAttribute(claim)%>" class="form-control" required="required">
+                                </div>
+                                <% }}%>
+                                <%
+                                    }
+                                    List<String> missingClaims = null;
+                                    if (ArrayUtils.isNotEmpty(missingClaimList)) {
+                                        missingClaims = Arrays.asList(missingClaimList);
+                                    }
+                                    for (Claim claim : claims) {
 
-                                if ((CollectionUtils.isEmpty(missingClaims) || !missingClaims.contains(claim.getUri())) &&
-                                            !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(claim.getUri(),
-                                            IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
-                                    String claimURI = claim.getUri();
-                                    String claimValue = request.getParameter(claimURI);
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group <% if
-                            (claim.getRequired()) {%> required <%}%>" >
-                                <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
-                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
-                                </label>
-                                <input type="text" name="<%= Encode.forHtmlAttribute(claimURI) %>"
-                                       class="form-control"
+                                        if ((CollectionUtils.isEmpty(missingClaims) || !missingClaims.contains(claim.getUri())) &&
+                                                !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                                !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                                !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
+                                                !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
+                                                !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
+                                                !StringUtils.equals(claim.getUri(),
+                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                            String claimURI = claim.getUri();
+                                            String claimValue = request.getParameter(claimURI);
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group <% if
+                                (claim.getRequired()) {%> required <%}%>" >
+                                    <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
+                                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
+                                    </label>
+                                    <input type="text" name="<%= Encode.forHtmlAttribute(claimURI) %>"
+                                           class="form-control"
                                         <% if (claim.getValidationRegex() != null) { %>
                                                 pattern="<%= Encode.forHtmlContent(claim.getValidationRegex()) %>"
                                         <% } %>
                                         <% if (claim.getRequired()) { %>
-                                            required
+                                                required
                                         <% } %>
-                                    <% if(skipSignUpEnableCheck && StringUtils.isNotEmpty(claimValue)) {%>
-                                       value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled<%}%>>
-                            </div>
-                            <%
+                                        <% if(skipSignUpEnableCheck && StringUtils.isNotEmpty(claimValue)) {%>
+                                                value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled<%}%>>
+                                </div>
+                                <%
+                                        }
                                     }
-                                }
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group"></div>
-                        </div>
-                        <% } else { %>
-                        <div class="padding-double">
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label">User Name
-                                </label>
-                                <input type="text" class="form-control"
-                                       value="<%=Encode.forHtmlAttribute(username)%>" disabled>
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group"></div>
                             </div>
-                            <%
-                                for (Claim claim : claims) {
-                                    String claimUri = claim.getUri();
-                                    String claimValue = request.getParameter(claimUri);
+                            <% } else { %>
+                            <div class="padding-double">
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <label class="control-label">User Name
+                                    </label>
+                                    <input type="text" class="form-control"
+                                           value="<%=Encode.forHtmlAttribute(username)%>" disabled>
+                                </div>
+                                <%
+                                    for (Claim claim : claims) {
+                                        String claimUri = claim.getUri();
+                                        String claimValue = request.getParameter(claimUri);
 
-                                    if (StringUtils.isNotEmpty(claimValue)) { %>
+                                        if (StringUtils.isNotEmpty(claimValue)) { %>
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                     <label class="control-label">
                                         <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayName())%>
@@ -422,172 +423,155 @@
                                     <input type="text" class="form-control"
                                            value="<%= Encode.forHtmlAttribute(claimValue)%>" disabled>
                                 </div>
-                            <% } }%>
-                        </div>
-                        <% } %>
-                        <% if (skipSignUpEnableCheck) { %>
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                            <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
-                                (request.getParameter("sessionDataKey"))%>'/>
-                        </div>
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                            <input type="hidden" name="policy" value='<%=Encode.forHtmlAttribute
-                                (IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
-                                "/authenticationendpoint/privacy_policy.do"))%>'/>
-                        </div>
-                        <% } %>
-                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double border-top">
-                            <%
-                                if (hasPurposes) {
-                                    %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top-double padding-left-double padding-right-double">
-                                <p style="text-align: justify;">
-                                    <strong>
-                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                "Need.consent.for.following.purposes")%>
-                                    </strong>
-                                    <span>
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                            "I.consent.to.use.them")%>
-                                </span>
-                                </p>
+                                <% } }%>
                             </div>
-                            <%
-                                if(consentDisplayType == "template"){
-                            %>
-                                <!--User Consents from Template-->
-                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
-                                    <div class="col-xs-12 padding-top border-consent margin-bottom-double">
-                                        <div id="consent-mgt-template-container">
-                                            <div class="consent-statement"></div>
-                                        </div>
-                                        <div class="text-left padding-bottom padding-top">
-                                            <span class="required">
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "All.asterisked.consents.are.mandatory")%>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--End User Consents from Template-->
-                            <% } else if(consentDisplayType == "tree"){ %>
-                                <!--User Consents Tree-->
-                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
-                                    <div class="alert alert-warning margin-none" role="alert">
-                                        <div id="consent-mgt-tree-container">
-                                            <div id="tree-table"></div>
-                                        </div>
-                                        <div class="text-left padding-top-double">
-                                            <span class="required">
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "All.asterisked.consents.are.mandatory")%>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--End User Consents Tree-->
-                            <%
-                                }else if(consentDisplayType == "row"){
-                            %>
-                                <!--User Consents Row-->
-                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                    <div class="col-xs-8 col-xs-offset-2 padding-top border-consent margin-bottom-double">
-                                        <div id="consent-mgt-row-container">
-                                            <div id="row-container"></div>
-                                        </div>
-                                        <div class="text-left padding-bottom">
-                                            <span class="required">
-                                                <strong>
-                                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                            "All.asterisked.consents.are.mandatory")%>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--End User Consents Row-->
-                            <%
-                                }}
-                            %>
-                            <%
-                                if (reCaptchaEnabled) {
-                            %>
+                            <% } %>
+                            <% if (skipSignUpEnableCheck) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <div class="g-recaptcha"
-                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+                                    (request.getParameter("sessionDataKey"))%>'/>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <input type="hidden" name="policy" value='<%=Encode.forHtmlAttribute
+                                    (IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                                    "/authenticationendpoint/privacy_policy.do"))%>'/>
+                            </div>
+                            <% }
+
+                                if (hasPurposes) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double consent-section test">
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 consent-border">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top-double padding-left-double padding-right-double">
+                                        <p style="text-align: justify;">
+                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                    "Need.consent.for.following.purposes")%>
+                                            <span>
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                "I.consent.to.use.them")%>
+                                    </span>
+                                        </p>
+                                    </div>
+                                    <%
+                                        if(consentDisplayType == "template"){
+                                    %>
+                                    <!--User Consents from Template-->
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top margin-bottom-half">
+                                        <div class="padding-top margin-bottom-double">
+                                            <div id="consent-mgt-template-container">
+                                                <div class="consent-statement"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--End User Consents from Template-->
+                                    <% } else if(consentDisplayType == "tree"){ %>
+                                    <!--User Consents Tree-->
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-top padding-bottom-double">
+                                        <div class="margin-none">
+                                            <div id="consent-mgt-tree-container">
+                                                <div id="tree-table"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--End User Consents Tree-->
+                                    <%
+                                    }else if(consentDisplayType == "row"){
+                                    %>
+                                    <!--User Consents Row-->
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <div class="padding-top margin-bottom-double">
+                                            <div id="consent-mgt-row-container">
+                                                <div id="row-container">
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--End User Consents Row-->
+                                    <%
+                                            }
+                                    %>
                                 </div>
                             </div>
                             <%
                                 }
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <!--Cookie Policy-->
-                                <div class="alert alert-warning margin-bottom-double" role="alert">
-                                    <div>
-                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                "After.signin.we.use.a.cookie.in.browser")%>
-                                        <a href="/authenticationendpoint/cookie_policy.do" target="policy-pane">
-                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                    "Cookie.policy")%>
-                                        </a>
-                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "For.more.details")%>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double">
+                                <%
+                                    if (reCaptchaEnabled) {
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <div class="g-recaptcha"
+                                         data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
                                     </div>
                                 </div>
-                                <!--End Cookie Policy-->
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <!--Terms/Privacy Policy-->
-                                <div>
-                                    <label class="agreement-checkbox">
-                                        <input type="checkbox" />
-                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                                "I.confirm.that.read.and.understood")%>
-                                        <a href="/authenticationendpoint/privacy_policy.do" target="policy-pane">
-                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Privacy.policy")%>
-                                        </a>
-                                    </label>
+                                <%
+                                    }
+                                %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <!--Cookie Policy-->
+                                    <div class="alert alert-warning margin-bottom-double" role="alert">
+                                        <div>
+                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                    "After.signin.we.use.a.cookie.in.browser")%>
+                                            <a href="/authenticationendpoint/cookie_policy.do" target="policy-pane">
+                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                        "Cookie.policy")%>
+                                            </a>
+                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "For.more.details")%>
+                                        </div>
+                                    </div>
+                                    <!--End Cookie Policy-->
                                 </div>
-                                <!--End Terms/Privacy Policy-->
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <!--Terms/Privacy Policy-->
+                                    <div>
+                                        <label class="agreement-checkbox">
+                                            <input type="checkbox" />
+                                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                                    "I.confirm.that.read.and.understood")%>
+                                            <a href="/authenticationendpoint/privacy_policy.do" target="policy-pane">
+                                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Privacy.policy")%>
+                                            </a>
+                                        </label>
+                                    </div>
+                                    <!--End Terms/Privacy Policy-->
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <button id="registrationSubmit"
+                                            class="wr-btn col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                                            type="submit">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Register")%>
+                                    </button>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <input id="isSelfRegistrationWithVerification" type="hidden"
+                                           name="isSelfRegistrationWithVerification"
+                                           value="true"/>
+                                    <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
+                                </div>
+                                <% if (!skipSignUpEnableCheck) { %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                    <span class="margin-top padding-top-double">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Already.have.account")%></span>
+                                    <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
+                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
+                                       id="signInLink">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Sign.in")%>
+                                    </a>
+                                </div>
+                                <% } %>
+                                <div class="clearfix"></div>
                             </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <button id="registrationSubmit"
-                                        class="wr-btn col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Register")%>
-                                </button>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input id="isSelfRegistrationWithVerification" type="hidden"
-                                       name="isSelfRegistrationWithVerification"
-                                       value="true"/>
-                                <input id="tenantDomain" name="tenantDomain" type="hidden" value="<%=user.getTenantDomain()%>"/>
-                            </div>
-                            <% if (!skipSignUpEnableCheck) { %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <span class="margin-top padding-top-double font-large">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Already.have.account")%></span>
-                                <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
-                                    application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
-                                   id="signInLink" class="font-large">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Sign.in")%>
-                                </a>
-                            </div>
-                            <% } %>
                             <div class="clearfix"></div>
                         </div>
-                        <div class="clearfix"></div>
-                    </div>
-                </form>
+                    </form>
 
 
-                </div>
             </div>
         </div>
-        <!-- /content/body -->
+    </div>
+    <!-- /content/body -->
 
     </div>
 
@@ -670,6 +654,8 @@
                     registrationBtn.prop("disabled", true).addClass("disabled");
                 }
             });
+
+            $(".form-info").tooltip();
 
             $("#register").submit(function (e) {
                 var unsafeCharPattern = /[<>`\"]/;
@@ -805,7 +791,8 @@
                     '<ul><li class="jstree-open" data-jstree=\'{"icon":"icon-book"}\'>All' +
                     '<ul>' +
                     '{{#purposes}}' +
-                    '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>{{purpose}}{{#if description}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}: <span class="text-muted">{{description}}</span>{{/if}}<ul>' +
+                    '<li data-jstree=\'{"icon":"icon-book"}\' purposeid="{{purposeId}}" mandetorypurpose={{mandatory}}>'+
+                    '{{purpose}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}} {{#if description}}<img src="images/info.png" class="form-info" data-toggle="tooltip" title="{{description}}" data-placement="right"/>{{/if}}<ul>' +
                     '{{#piiCategories}}' +
                     '<li data-jstree=\'{"icon":"icon-user"}\' piicategoryid="{{piiCategoryId}}" mandetorypiicatergory={{mandatory}}>{{#if displayName}}{{displayName}}{{else}}{{piiCategory}}{{/if}}{{#if mandatory}}<span class="required_consent">*</span>{{/if}}</li>' +
                     '</li>' +
@@ -1090,10 +1077,8 @@
             function renderReceiptDetailsFromRows(data) {
                 var rowTemplate =
                     '{{#purposes}}' +
-                    '<div class="consent-container-3 box clearfix">' +
-                    '<p>For ' +
-                    '<strong>"{{purpose}}"</strong>' +
-                    ', We need your </p>' +
+                    '<div class="consent-container-3 box clearfix"><ul class="consent-ul">' +
+                    '<li><span>{{purpose}} {{#if description}}<img src="images/info.png" class="form-info" data-toggle="tooltip" title="{{description}}" data-placement="right"/>{{/if}}</span></li></ul>' +
                     '{{#grouped_each 2 piiCategories}}' +
                     '<div class="row">' +
                     '{{#each this }}' +
