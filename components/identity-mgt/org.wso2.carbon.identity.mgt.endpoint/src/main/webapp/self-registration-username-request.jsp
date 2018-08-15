@@ -93,7 +93,7 @@
     
         <div class="row">
             <!-- content -->
-            <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
+            <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-centered wr-login">
                 <form action="signup.do" method="post" id="register">
                     <h2
                             class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
@@ -137,21 +137,17 @@
                                            value="<%=Encode.forHtmlAttribute(value)%>" class="form-control">
                                 </div>
                             <% } %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <div class="col-xs-6 col-md-6 col-lg-6 remove-padding-left">
-                                    <button id="registrationSubmit"
-                                            class="wr-btn grey-bg uppercase font-extra-large full-width"
-                                            type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                            "Proceed.to.self.register")%>
-                                    </button>
-                                </div>
-                                <div class="col-xs-6 col-md-6 col-lg-6 remove-padding-right">
-                                    <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
-                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
-                                       class="light-btn uppercase font-extra-large full-width">
-                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
-                                    </a>
-                                </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group username-proceed">
+                                <button id="registrationSubmit"
+                                        class="wr-btn grey-bg uppercase font-large full-width-xs"
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Proceed.to.self.register")%>
+                                </button>
+                                <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
+                                    application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
+                                   class="light-btn uppercase font-large full-width-xs">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
+                                </a>
                             </div>
                             <div class="clearfix"></div>
                         </div>
