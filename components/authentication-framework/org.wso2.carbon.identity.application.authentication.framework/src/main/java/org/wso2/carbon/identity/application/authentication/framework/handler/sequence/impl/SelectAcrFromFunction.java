@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,7 +34,9 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
-    public String evaluate(JsAuthenticationContext context, String[] possibleOutcomes) {
+    public String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj) {
+
+        String[] possibleOutcomes = extractPossibleOutcomes(context, possibleOutcomesObj);
         List<String> acrListRequested = context.getWrapped().getRequestedAcr();
         if (acrListRequested == null || acrListRequested.isEmpty()) {
             if (log.isDebugEnabled()) {
@@ -40,10 +44,33 @@ public class SelectAcrFromFunction implements SelectOneFunction {
             }
             return null;
         }
-        if (possibleOutcomes != null) {
+        if (possibleOutcomes.length > 0) {
             return selectBestOutcome(acrListRequested, possibleOutcomes);
         }
         return null;
+    }
+
+    private String[] extractPossibleOutcomes(JsAuthenticationContext context, Object possibleOutcomesObj) {
+
+        String[] possibleOutcomes;
+        if (possibleOutcomesObj instanceof String[]) {
+            possibleOutcomes = (String[]) possibleOutcomesObj;
+        } else if (possibleOutcomesObj instanceof ScriptObjectMirror) {
+            if (((ScriptObjectMirror) possibleOutcomesObj).isArray()) {
+                possibleOutcomes = ((ScriptObjectMirror) possibleOutcomesObj).to(String[].class);
+            } else {
+                log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
+                        .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
+                        .getServiceProviderName() + ". Expected array of strings.");
+                possibleOutcomes = new String[0];
+            }
+        } else {
+            log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
+                    .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
+                    .getServiceProviderName() + ". Expected array of strings.");
+            possibleOutcomes = new String[0];
+        }
+        return possibleOutcomes;
     }
 
     private String selectBestOutcome(List<String> acrListRequested, String[] possibleOutcomes) {

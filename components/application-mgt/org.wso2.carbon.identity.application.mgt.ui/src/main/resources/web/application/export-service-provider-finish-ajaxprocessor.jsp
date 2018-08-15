@@ -43,7 +43,8 @@
     }
     
     String spName = request.getParameter("spName");
-    boolean exportSecrets = Boolean.parseBoolean(request.getParameter("exportSecrets"));
+    String secrets = request.getParameter("exportSecrets");
+    boolean exportSecrets = "on".equals(secrets);
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     
     if (StringUtils.isNotEmpty(spName)) {

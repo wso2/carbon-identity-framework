@@ -1,5 +1,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
@@ -53,6 +54,7 @@
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
@@ -111,7 +113,7 @@
                         <div class="padding-double">
                         
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <div class="font-large margin-bottom-double">
+                                <div class="margin-bottom-double">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.your.username.here")%>
                                 </div>
                                 <label class="control-label">
@@ -119,8 +121,8 @@
                                 
                                 <input id="username" name="username" type="text"
                                        class="form-control required usrName usrNameLength" required
-                                <% if(skipSignUpEnableCheck) {%> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
-                                <div class="font-small">
+                                    <% if(skipSignUpEnableCheck) {%> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
+                                <div class="font-small help-block">
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
                                             "If.you.specify.tenant.domain.you.registered.under.super.tenant")%></div>
                                 <input id="callback" name="callback" type="hidden" value="<%=callback%>"
@@ -136,12 +138,20 @@
                                 </div>
                             <% } %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <br/>
-                                <button id="registrationSubmit"
-                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                        "Proceed.to.self.register")%>
-                                </button>
+                                <div class="col-xs-6 col-md-6 col-lg-6 remove-padding-left">
+                                    <button id="registrationSubmit"
+                                            class="wr-btn grey-bg uppercase font-extra-large full-width"
+                                            type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                            "Proceed.to.self.register")%>
+                                    </button>
+                                </div>
+                                <div class="col-xs-6 col-md-6 col-lg-6 remove-padding-right">
+                                    <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
+                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
+                                       class="light-btn uppercase font-extra-large full-width">
+                                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
+                                    </a>
+                                </div>
                             </div>
                             <div class="clearfix"></div>
                         </div>

@@ -27,11 +27,11 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.tenant.Tenant;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Simple mocked  UserStore Manager for testing.
@@ -40,8 +40,8 @@ public class MockUserStoreManager implements UserStoreManager {
 
     private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
     private RealmConfiguration inMemoryRealmConfiguration = null;
-    private Map<String, List<String>> usersOfRole = new HashMap<>();
-    private Map<String, List<String>> userRoleMap = new HashMap<>();
+    private Map<String, Set<String>> usersOfRole = new HashMap<>();
+    private Map<String, Set<String>> userRoleMap = new HashMap<>();
 
     @Override
     public boolean authenticate(String s, Object o) throws UserStoreException {
@@ -85,9 +85,9 @@ public class MockUserStoreManager implements UserStoreManager {
 
     @Override
     public String[] getRoleListOfUser(String userName) throws UserStoreException {
-        List<String> roles = userRoleMap.get(userName);
+        Set<String> roles = userRoleMap.get(userName);
         if (roles != null) {
-            return roles.toArray(new String[roles.size()]);
+            return roles.toArray(new String[0]);
         }
         return new String[0];
     }
@@ -154,11 +154,7 @@ public class MockUserStoreManager implements UserStoreManager {
             throws org.wso2.carbon.user.api.UserStoreException {
         if (users != null) {
             for (String user : users) {
-                List<String> roles = userRoleMap.get(user);
-                if (roles == null) {
-                    roles = new ArrayList<>();
-                    userRoleMap.put(user, roles);
-                }
+                Set<String> roles = userRoleMap.computeIfAbsent(user, k -> new HashSet<>());
                 roles.add(role);
             }
         }

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -59,6 +60,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 public class ApplicationMgtUtil {
 
@@ -118,7 +122,7 @@ public class ApplicationMgtUtil {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Checking whether user has role : " + applicationRoleName + " by retrieving role list of " +
-                          "user : " + username);
+                        "user : " + username);
             }
 
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
@@ -156,7 +160,7 @@ public class ApplicationMgtUtil {
             // create a role for the application and assign the user to that role.
             if (log.isDebugEnabled()) {
                 log.debug("Creating application role : " + roleName + " and assign the user : "
-                          + Arrays.toString(usernames) + " to that role");
+                        + Arrays.toString(usernames) + " to that role");
             }
             CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
                     .addRole(roleName, usernames, null);
@@ -527,8 +531,8 @@ public class ApplicationMgtUtil {
     /**
      * Get Property values
      *
-     * @param tenantDomain Tenant domain
-     * @param spIssuer SP Issuer
+     * @param tenantDomain  Tenant domain
+     * @param spIssuer      SP Issuer
      * @param propertyNames Property names
      * @return Properties map
      * @throws IdentityApplicationManagementException
@@ -584,7 +588,7 @@ public class ApplicationMgtUtil {
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
             }
             org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (realm == null) {
+            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
                 return false;
             }
             boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
@@ -597,5 +601,27 @@ public class ApplicationMgtUtil {
                     serviceProvider.getApplicationName(), e);
         }
         return true;
+    }
+
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param spFileStream
+     * @param tenantDomain
+     * @return ServiceProvider
+     * @throws IdentityApplicationManagementException
+     */
+    public static ServiceProvider getApplicationFromSpFileStream(SpFileStream spFileStream, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            return (ServiceProvider) unmarshaller.unmarshal(spFileStream.getFileStream());
+
+        } catch (JAXBException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
+                    "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
+        }
     }
 }

@@ -1,9 +1,8 @@
 {
   "category": "request_based",
-  "name": "New device login",
-  "title": "New device login notification template",
-  "summary":
-  "Send an email notification and/or prompts 2FA to the users who is logging in from a previously unused device",
+  "name": "New-Device-Based",
+  "title": "New-Device-Based Authentication Template",
+  "summary": "Send an email notification and/or prompts 2FA to the users who is logging in from a previously unused device. A cookie is used to identify whether the device has been used before.",
   "preRequisites": [
     "Modify the 1st and 2nd factor authentication option(s) from defaults as required.",
     "Change the parameters detailed below to reflect your requirements"
@@ -35,7 +34,7 @@
     }
   },
   "img": "./images/user.png",
-  "helpLink": "https://docs.wso2.com/display/IS570/Conditional+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+New-Device-Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication and send email notification in case of",
     "// a user being logging in from a new device (identified by a cookie).",

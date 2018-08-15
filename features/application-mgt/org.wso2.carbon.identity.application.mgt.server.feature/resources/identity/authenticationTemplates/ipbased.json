@@ -1,7 +1,7 @@
 {
   "category": "environment_based",
-  "name": "IP Based",
-  "title": "IP based Authentication Template",
+  "name": "IP-Based",
+  "title": "IP-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are logging outside of the given ip range.",
   "preRequisites": [
     "Change the corpNetwork parameter to an array of ip ranges that should bypass 2FA",
@@ -29,7 +29,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/IP+Based+Adaptive+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+IP-Based+Adaptive+Authentication",
   "code": [
     "// This script will step up authentication for any user who are trying to log in outside from the configured network",
     "",

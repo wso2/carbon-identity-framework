@@ -1,21 +1,3 @@
-<!--
-  ~  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-  ~
-  ~  WSO2 Inc. licenses this file to you under the Apache License,
-  ~  Version 2.0 (the "License"); you may not use this file except
-  ~  in compliance with the License.
-  ~  You may obtain a copy of the License at
-  ~
-  ~  http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~  Unless required by applicable law or agreed to in writing,
-  ~  software distributed under the License is distributed on an
-  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~  KIND, either express or implied.  See the License for the
-  ~  specific language governing permissions and limitations
-  ~  under the License.
-  -->
-
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2169="http://common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2171="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:tns="http://mgt.application.identity.carbon.wso2.org" xmlns:ax2172="http://script.model.common.application.identity.carbon.wso2.org/xsd" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.application.identity.carbon.wso2.org">
     <wsdl:documentation>IdentityApplicationManagementService</wsdl:documentation>
     <wsdl:types>
@@ -64,6 +46,13 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="createApplication">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2171:ServiceProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getAllApplicationBasicInfo">
                 <xs:complexType>
                     <xs:sequence/>
@@ -73,13 +62,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="createApplication">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2171:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -195,7 +177,6 @@
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2171:ClaimConfig"/>
-                    <xs:element minOccurs="0" name="consentConfig" nillable="true" type="ax2171:ConsentConfig"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2171:InboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2171:InboundProvisioningConfig"/>
@@ -232,23 +213,6 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="claimId" type="xs:int"/>
                     <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="ConsentConfig">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="consentPurposeConfigs" nillable="true" type="ax2171:ConsentPurposeConfigs"/>
-                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="ConsentPurposeConfigs">
-                <xs:sequence>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="consentPurpose" nillable="true" type="ax2171:ConsentPurpose"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="ConsentPurpose">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="displayOrder" type="xs:int"/>
-                    <xs:element minOccurs="0" name="purposeId" type="xs:int"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">
@@ -299,6 +263,7 @@
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="useTenantDomainInLocalSubjectIdentifier" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useUserstoreDomainInLocalSubjectIdentifier" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="useUserstoreDomainInRoles" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="AuthenticationStep">
@@ -314,6 +279,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2171:CertificateInfo"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2171:ClaimConfig"/>
                     <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2171:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2171:ProvisioningConnectorConfig"/>
@@ -331,6 +297,12 @@
                     <xs:element minOccurs="0" name="primary" type="xs:boolean"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2171:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="CertificateInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="certValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="thumbPrint" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="FederatedAuthenticatorConfig">

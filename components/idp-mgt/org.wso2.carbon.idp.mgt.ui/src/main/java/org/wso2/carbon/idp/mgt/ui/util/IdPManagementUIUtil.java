@@ -25,12 +25,12 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
@@ -44,14 +44,17 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.Property;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -114,6 +117,7 @@ public class IdPManagementUIUtil {
             Map<String, List<Property>> customAuthenticatorProperties = new HashMap<String, List<Property>>();
             Map<String, List<Property>> customProProperties = new HashMap<String, List<Property>>();
             String idpUUID = StringUtils.EMPTY;
+            StringBuilder deletedCertificateValue = new StringBuilder();
 
             for (Object item : items) {
                 DiskFileItem diskFileItem = (DiskFileItem) item;
@@ -134,6 +138,8 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
+                    } else if (key.startsWith(IdentityApplicationConstants.CERTIFICATE_VAL)) {
+                        deletedCertificateValue.append(new String(value));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -207,6 +213,8 @@ public class IdPManagementUIUtil {
                 }
             }
 
+            paramMap.put(IdentityApplicationConstants.CERTIFICATE_VAL, deletedCertificateValue.toString());
+
             IdentityProvider oldIdentityProvider = (IdentityProvider) request.getSession().getAttribute(idpUUID);
 
             if (oldIdentityProvider != null) {
@@ -217,7 +225,25 @@ public class IdPManagementUIUtil {
             }
 
             if (oldIdentityProvider != null && oldIdentityProvider.getCertificate() != null) {
-                paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                if (oldIdentityProvider.getCertificateInfoArray() != null && oldIdentityProvider.
+                        getCertificateInfoArray().length > 1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Number of old certificate for the identity provider " +
+                                oldIdentityProvider.getDisplayName() + " is " + oldIdentityProvider.
+                                getCertificateInfoArray().length);
+                    }
+                    StringBuilder multipleCertificate = new StringBuilder();
+                    for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
+                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
+                    }
+                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, Base64.encode(multipleCertificate.toString().
+                            getBytes(StandardCharsets.UTF_8)));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Only one certificate has been found as old certificate.");
+                    }
+                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, oldIdentityProvider.getCertificate());
+                }
             }
 
             if (oldIdentityProvider != null
@@ -285,7 +311,6 @@ public class IdPManagementUIUtil {
 
         return fedIdp;
     }
-
     /**
      * @param fedIdp
      * @param paramMap
@@ -945,8 +970,8 @@ public class IdPManagementUIUtil {
         fedIdp.setAlias(paramMap.get("tokenEndpointAlias"));
 
         // get the value of the old certificate - if this is an update.
-        if (paramMap.get("oldCertFile") != null) {
-            oldCertFile = paramMap.get("oldCertFile");
+        if (paramMap.get(IdentityApplicationConstants.OLD_CERT_FILE) != null) {
+            oldCertFile = paramMap.get(IdentityApplicationConstants.OLD_CERT_FILE);
         }
 
         // get the value of the uploaded certificate.
@@ -961,10 +986,25 @@ public class IdPManagementUIUtil {
 
         // if there is no new certificate and not a delete - use the old one.
         if (oldCertFile != null && certFile == null
-                && (deletePublicCert == null || ("false").equals(deletePublicCert))) {
+                && (!Boolean.parseBoolean(deletePublicCert))) {
             certFile = oldCertFile;
+        } else if (StringUtils.isNotBlank(oldCertFile) && StringUtils.isNotBlank(certFile)
+                && (!Boolean.parseBoolean(deletePublicCert))) {
+            // If there is a new certificate and not a delete - get the distinct union of the new certificate and old
+            // certificate and update it.
+            certFile = handleCertificateAddition(oldCertFile, certFile);
+        } else if (oldCertFile != null && certFile == null
+                && (Boolean.parseBoolean(deletePublicCert))) {
+            // if there is no new certificate and there is atleast one deletion then update the new value by removing the
+            // deleted values.
+            String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
+            certFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
+        } else if (oldCertFile != null && certFile != null
+                && (Boolean.parseBoolean(deletePublicCert))) {
+            String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
+            oldCertFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
+            certFile = handleCertificateAddition(oldCertFile, certFile);
         }
-
         // set public certificate of the identity provider.
         fedIdp.setCertificate(certFile);
 
@@ -977,6 +1017,44 @@ public class IdPManagementUIUtil {
             jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
             fedIdp.addIdpProperties(jwksProperty);
         }
+    }
+
+    private static String handleCertificateDeletion(String oldCertificateValues, String deletedCertificateValues) {
+
+        String decodedOldCertificate = new String(Base64.decode(oldCertificateValues));
+        String decodedDeletedCertificate = new String(Base64.decode(deletedCertificateValues));
+
+        Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues(decodedOldCertificate));
+        updatedCertificateSet.removeAll(getExtractedCertificateValues(decodedDeletedCertificate));
+        return Base64.encode(String.join("", updatedCertificateSet).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String handleCertificateAddition(String oldCertValues, String newCertValues) {
+
+        String decodedOldCertificate = new String(Base64.decode(oldCertValues));
+        String decodedNewCertificate = new String(Base64.decode(newCertValues));
+
+        Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues
+                (decodedOldCertificate));
+
+        updatedCertificateSet.addAll(getExtractedCertificateValues(decodedNewCertificate));
+        return Base64.encode(String.join("", updatedCertificateSet).getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * get extracted certificate values from decodedCertificate
+     * @param decodedCertificate decoded series of certificate value.
+     * @return list of decoded certificate values.
+     */
+    private static List<String> getExtractedCertificateValues(String decodedCertificate) {
+
+        int numOfCertificates = StringUtils.countMatches(decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE);
+        List<String> extractedCertificateValues = new ArrayList<>();
+        for (int i = 1; i <= numOfCertificates; i++) {
+            extractedCertificateValues.add(IdentityApplicationManagementUtil.extractCertificate
+                    (decodedCertificate, i));
+        }
+        return extractedCertificateValues;
     }
 
     /**

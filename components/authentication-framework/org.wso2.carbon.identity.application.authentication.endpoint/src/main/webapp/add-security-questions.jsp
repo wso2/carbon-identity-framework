@@ -76,6 +76,7 @@
 <html lang="en">
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "add.challenge.answers")%>
     </title>
     <meta charset="utf-8">

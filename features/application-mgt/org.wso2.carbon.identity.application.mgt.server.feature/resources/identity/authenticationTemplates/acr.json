@@ -1,7 +1,7 @@
 {
   "category": "request_based",
-  "name": "ACR",
-  "title": "ACR Based 2FA Template",
+  "name": "ACR-Based",
+  "title": "ACR-Based 2FA Template",
   "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
   "preRequisites": [
     "Change the supportedAcrValues parameter to an array of ACR Levels.",
@@ -36,7 +36,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Authentication+Context+Reference+Based+Adaptive+Authentication",
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+ACR-Based+Adaptive+Authentication",
   "code": [
     "// Define conditional authentication by passing one or many Authentication Context Class References ",
     "// as comma separated values.",
@@ -48,15 +48,15 @@
     "    var selectedAcr = selectAcrFrom(context, supportedAcrValues);",
     "    Log.info('--------------- ACR selected: ' + selectedAcr);",
     "    context.selectedAcr = selectedAcr;",
-    "    switch (acr) {",
-    "        case acrList[0] :",
+    "    switch (selectedAcr) {",
+    "        case supportedAcrValues[0] :",
     "            executeStep(1);",
     "            break;",
-    "        case acrList[1] :",
+    "        case supportedAcrValues[1] :",
     "            executeStep(1);",
     "            executeStep(2);",
     "            break;",
-    "        case acrList[2] :",
+    "        case supportedAcrValues[2] :",
     "            executeStep(1);",
     "            executeStep(3);",
     "            break;",
