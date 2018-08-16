@@ -16,9 +16,16 @@
   ~  under the License.
   --%>
 
+<%@ page import="org.apache.cxf.jaxrs.client.JAXRSClientFactory" %>
+<%@ page import="org.apache.cxf.jaxrs.provider.json.JSONProvider" %>
+<%@ page import="org.apache.http.HttpStatus" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
@@ -36,7 +43,14 @@
     }
 </script>
 
-<div>
+<form action="<%=loginFormActionURL%>" method="post" id="identifierForm">
+    <%
+        if (loginFormActionURL.equals(samlssoURL) || loginFormActionURL.equals(oauth2AuthorizeURL)) {
+    %>
+    <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
+    <%
+        }
+    %>
     <% if (Boolean.parseBoolean(loginFailed)) { %>
     <div class="alert alert-danger" id="error-msg"><%= AuthenticationEndpointUtil.i18n(resourceBundle, errorMessage) %>
     </div>
@@ -46,12 +60,11 @@
     </div>
     <%}%>
     
-    <%--<form class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">--%>
-    <form action="<%=loginFormActionURL%>" method="post" id="identifierForm">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
     
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
         <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
-    </form>
+    </div>
     <%
         if (reCaptchaEnabled) {
     %>
@@ -66,25 +79,6 @@
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
     (request.getParameter("sessionDataKey"))%>'/>
-    </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 padding-double">
-        <div class="alert alert-warning margin-bottom-3 padding-10" role="alert">
-            <div>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies.short.description")%>
-                <a href="cookie_policy.do" target="policy-pane">
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.cookies")%>
-                </a>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.for.more.details")%>
-            </div>
-        </div>
-        <div class="alert alert-warning margin-none padding-10" role="alert">
-            <div>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.privacy.short.description")%>
-                <a href="privacy_policy.do" target="policy-pane">
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "privacy.policy.general")%>
-                </a>
-            </div>
-        </div>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="form-actions">
@@ -156,4 +150,4 @@
         }
     %>
     <div class="clearfix"></div>
-</div>
+</form>

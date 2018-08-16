@@ -66,8 +66,7 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig" %>
-<%@ page
-    import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
@@ -79,6 +78,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
 
+<%!public static final String IS_HANDLER = "IS_HANDLER";%>
 <carbon:breadcrumb label="breadcrumb.advanced.auth.step.config"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
@@ -558,13 +558,24 @@
     var authMap = {};
     var conditionalAuthFunctions = $.parseJSON('<%=availableJsFunctionsJson%>');
     var localAuthenticators = [];
+    var localHandlers = [];
 
     <%
     if (localAuthenticatorConfigs != null && localAuthenticatorConfigs.length > 0) {
         for (LocalAuthenticatorConfig auth : localAuthenticatorConfigs) {
-            %>
-    localAuthenticators.push('<%=auth.getName()%>');
-    <%
+        %>
+            localAuthenticators.push('<%=auth.getName()%>');
+        <%
+            Property[] props = auth.getProperties();
+             if (props != null && props.length > 0) {
+                for (Property pro : props) {
+                    if ((IS_HANDLER.equals(pro.getName()) && Boolean.valueOf(pro.getValue()))) {
+                        %>
+                            localHandlers.push('<%=auth.getName()%>');
+                        <%
+                    }
+                }
+            }
         }
     }
     %>

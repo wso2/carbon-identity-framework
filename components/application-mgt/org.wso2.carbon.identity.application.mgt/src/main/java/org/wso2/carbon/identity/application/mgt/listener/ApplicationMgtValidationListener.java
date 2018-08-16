@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
@@ -45,6 +46,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class ApplicationMgtValidationListener extends AbstractApplicationMgtListener {
@@ -59,6 +62,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             "Federated Identity Provider %s is not available in the server";
     private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s";
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s";
+    public static final String IS_HANDLER = "IS_HANDLER";
 
     @Override
     public int getDefaultOrderId() {
@@ -116,9 +120,11 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             return;
         }
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
-        List<String> allLocalAuthenticators = Arrays.stream(applicationMgtService.
-                getAllLocalAuthenticators(tenantDomain)).map(LocalAuthenticatorConfig::getName)
-                .collect(Collectors.toList());
+        Map<String, Property[]> allLocalAuthenticators = Arrays.stream( applicationMgtService
+                .getAllLocalAuthenticators(tenantDomain))
+                .collect(Collectors.toMap(LocalAuthenticatorConfig::getName, LocalAuthenticatorConfig::getProperties));
+
+        AtomicBoolean isAuthenticatorExecuted = new AtomicBoolean(false);
 
         Arrays.stream(authenticationSteps).forEach(authenticationStep -> {
             Arrays.stream(authenticationStep.getFederatedIdentityProviders()).forEach(idp -> {
@@ -136,6 +142,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                             if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
                                 validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
                                         federatedAuth.getName(), idp.getIdentityProviderName()));
+                            } else {
+                                isAuthenticatorExecuted.set(true);
                             }
                         });
                     } else {
@@ -150,11 +158,25 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 }
             });
             Arrays.stream(authenticationStep.getLocalAuthenticatorConfigs()).forEach(localAuth -> {
-                if (!allLocalAuthenticators.contains(localAuth.getName())) {
+                if (!allLocalAuthenticators.keySet().contains(localAuth.getName())) {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
+                } else if (!isAuthenticatorExecuted.get()){
+                    Property[] properties = allLocalAuthenticators.get(localAuth.getName());
+                    if (properties.length == 0) {
+                        isAuthenticatorExecuted.set(true);
+                    } else {
+                        Arrays.stream(properties).forEach(property -> {
+                            if (!(IS_HANDLER.equals(property.getName()) && Boolean.valueOf(property.getValue()))) {
+                                isAuthenticatorExecuted.set(true);
+                            }
+                        });
+                    }
                 }
             });
         });
+        if (!isAuthenticatorExecuted.get()) {
+            validationMsg.add("No authenticator have been registered in the authentication flow.");
+        }
         if (!validationMsg.isEmpty()) {
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
@@ -183,7 +205,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 if (savedIdp == null) {
                     validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                             idp.getIdentityProviderName()));
-                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null) {
+                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null ||
+                        savedIdp.getProvisioningConnectorConfigs().length == 0) {
                     validationMsg.add(String.format(PROVISIONING_CONNECTOR_NOT_CONFIGURED,
                             idp.getIdentityProviderName()));
                 }
