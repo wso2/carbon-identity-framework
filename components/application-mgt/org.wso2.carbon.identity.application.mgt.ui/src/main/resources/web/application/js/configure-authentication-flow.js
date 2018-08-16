@@ -134,6 +134,15 @@ function showDisabledScriptErrorsWarnings() {
     }
 }
 
+function showOnlyWarnings() {
+    getStepErrorsWarnings($(".warning_list"), "");
+    getEditorErrorsWarnings($(".warning_list"), "");
+
+    if ($(".warning_list li").length > 0) {
+        $(".warning_container").show();
+    }
+}
+
 function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInUI = getExecuteStepsInUI();
     var stepsInScript = getExecuteStepsInScript();
@@ -311,10 +320,12 @@ function populateTemplates() {
             var details = '<ul class="normal details">';
 
             $.each(sortedCategoryTempArr[i].templates, function (i, template) {
-                details += '<li class="name"><a class="templateName" href="#" data-toggle="template-link" ' +
-                    'data-type-name="' + template.name + '" title="' + template.name + '">' +
-                    '<span class="truncate-content">' + template.name + '</span></a><span  title="' + template.summary + '" class="helpLink">' +
-                    '<img  style="float:right;" src="./images/help-small-icon.png"></span></li>';
+                details += '<li class="name"><span class="templateName" title="' + template.name + '">' +
+                    '<span class="truncate-content">' + template.name + '</span></span>' +
+                    '<a  href="#" data-toggle="template-link" data-type-name="' + template.name + '"title="' +
+                    template.name + '" class="view-template"><img  style="float:right;" src="./images/template-view.png"/></a>' +
+                    '<a  href="#" data-type-name="' + template.name + '" title="' + template.name + '"class="add-template">' +
+                    '<img  style="float:right;" src="./images/add.png"/></a></li>';
             });
             details += '</ul>';
             $(tempType).appendTo('#template_list').append(details);
@@ -322,9 +333,49 @@ function populateTemplates() {
     });
 }
 
+$('.add-template').click(function (e) {
+    e.preventDefault();
+
+    var typeName = $(this).data('type-name');
+    var data = getTemplateInfo(typeName)[0];
+    var templateObj = getTemplateInfo(typeName)[1];
+
+    editorContent = doc.getValue();
+    if ((editorContent.length === 0 || editorContent.replace(/\s/g, '') == "functiononLoginRequest(context){}")) {
+        doReplaceRange(typeName, templateObj, data);
+    } else {
+        CARBON.showConfirmationDialog('The template code will replace the existing scripts in the editor. Any of your current' +
+            '            changes will be lost. Do you want to continue?',
+            function () {
+                doReplaceRange(typeName, templateObj, data);
+            }, null);
+    }
+});
+
 $('[data-toggle=template-link]').click(function (e) {
     e.preventDefault();
     var typeName = $(this).data('type-name');
+    var templateObj = getTemplateInfo(typeName)[1];
+
+    if (templateObj === null) {
+        return;
+    }
+
+    var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
+    var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
+    var renderedTemplateInfo = compiledTemplate(templateObj);
+
+    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, null, "Cancel", null, null);
+
+    var templateCode = templateObj.code.join("\n");
+    $("textarea#codesnippet_readonly").val(templateCode);
+    readOnlyCodeMirror();
+
+    fromTemplateLink = true;
+});
+
+function getTemplateInfo(templateName) {
+    var typeName = templateName;
     var data;
     var tempName;
     var templateObj = null;
@@ -345,39 +396,27 @@ $('[data-toggle=template-link]').click(function (e) {
             })
         }
     });
+    return [data, templateObj];
+}
 
-    if (templateObj === null) {
-        return;
-    }
-
+function getCursorPosition() {
     var cursor = doc.getCursor();
     var line = doc.getLine(cursor.line); // get the line contents
     var pos = {
         line: cursor.line,
         ch: line.length - 1
     };
+    return pos;
+}
 
-    var authNTemplateInfoTemplate = $('#template-info')[0].innerHTML;
-    var compiledTemplate = Handlebars.compile(authNTemplateInfoTemplate);
-    var renderedTemplateInfo = compiledTemplate(templateObj);
-
-    editorContent = doc.getValue();
-
-    showPopupConfirm(renderedTemplateInfo, templateObj.title, 450, null, "OK", "Cancel", doReplaceRange, null);
-
-    function doReplaceRange() {
-        myCodeMirror.setValue("");
-        doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
-        highlightNewCode();
-        removeExistingSteps();
-        addNewSteps(templateObj);
-    }
-
-    if (editorContent.length === 0) {
-        $('#template-replace-warn').hide();
-    }
-    fromTemplateLink = true;
-});
+function doReplaceRange(tempName, templateObj, data) {
+    var pos = getCursorPosition();
+    myCodeMirror.setValue("");
+    doc.replaceRange('\n// ' + tempName + ' from Template...\n\n' + data + '\n\n// End of ' + tempName + '.......\n', pos);
+    highlightNewCode();
+    removeExistingSteps();
+    addNewSteps(templateObj);
+}
 
 function addNewSteps(templateObj) {
     var steps = templateObj.authenticationSteps;
@@ -430,7 +469,7 @@ function showPopupConfirm(htmlMessage, title, windowHeight, windowWidth, okButto
     }
     var func = function () {
         jQuery("#dcontainer").html(strDialog);
-        if (okButton) {
+        if (okButton || cancelButton) {
             jQuery("#dialog").dialog({
                 close: function () {
                     jQuery(this).dialog('destroy').remove();
@@ -481,12 +520,16 @@ function showPopupConfirm(htmlMessage, title, windowHeight, windowWidth, okButto
         if (okButton) {
             $('.ui-dialog-buttonpane button:contains(OK)').attr("id", "dialog-confirm_ok-button");
             $('#dialog-confirm_ok-button').html(okButton);
+        } else {
+            $('.ui-dialog-buttonpane button:contains(OK)').hide();
         }
+
         if (cancelButton) {
             $('.ui-dialog-buttonpane button:contains(Cancel)').attr("id", "dialog-confirm_cancel-button");
             $('#dialog-confirm_cancel-button').html(cancelButton);
+        } else {
+            $('.ui-dialog-buttonpane button:contains(Cancel)').hide();
         }
-
 
         jQuery('.ui-dialog-titlebar-close').click(function () {
             jQuery('#dialog').dialog("destroy").remove();
@@ -550,6 +593,7 @@ function checkScriptEnabled() {
     if (scriptEnabled) {
         stepConfigTrigger.addClass('active');
         editorRow.slideDown('fast');
+        showOnlyWarnings();
     }
 
     if (scriptIsDirty && !scriptEnabled) {
@@ -576,14 +620,20 @@ function showHideTemplateList() {
 
     if (contentToggle == 0) {
         addTemplate.css("background-image", "url(images/templates.png)");
-        templates.animate({width: 25}, {duration: 50, queue: false});
-        codeMirror.animate({marginRight: 26}, {duration: 125, queue: false});
+        templates.animate({width: 25}, 10, function () {
+            $('.view-template img').hide();
+            $('.add-template img').hide();
+        });
+        codeMirror.animate({marginRight: 26}, 50);
         contentToggle = 1;
     }
     else {
         addTemplate.css("background-image", "url(images/template-close.png)");
-        codeMirror.animate({marginRight: 240}, {duration: 125, queue: false});
-        templates.animate({width: 240}, {duration: 50, queue: false});
+        templates.animate({width: 240}, 10, function () {
+            $('.view-template img').delay(400).fadeIn(10);
+            $('.add-template img').delay(400).fadeIn(10);
+        });
+        codeMirror.animate({marginRight: 240}, 500);
         contentToggle = 0;
     }
 }
@@ -941,4 +991,13 @@ function diffArray(arrUI, arrScript) {
     });
 
     return difference;
+}
+
+function readOnlyCodeMirror() {
+    var readOnlyCodeMirror = CodeMirror.fromTextArea(document.getElementById('codesnippet_readonly'), {
+        mode: "javascript",
+        theme: "mdn-like",
+        lineNumbers: true,
+        readOnly: true
+    });
 }
