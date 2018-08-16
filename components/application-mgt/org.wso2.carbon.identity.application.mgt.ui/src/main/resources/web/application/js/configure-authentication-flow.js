@@ -320,11 +320,11 @@ function populateTemplates() {
             var details = '<ul class="normal details">';
 
             $.each(sortedCategoryTempArr[i].templates, function (i, template) {
-                details += '<li class="name"><span class="templateName" title="' + template.name + '">' +
+                details += '<li class="name"><span class="templateName">' +
                     '<span class="truncate-content">' + template.name + '</span></span>' +
-                    '<a  href="#" data-toggle="template-link" data-type-name="' + template.name + '"title="' +
-                    template.name + '" class="view-template"><img  style="float:right;" src="./images/template-view.png"/></a>' +
-                    '<a  href="#" data-type-name="' + template.name + '" title="' + template.name + '"class="add-template">' +
+                    '<a  href="#" data-toggle="template-link" data-type-name="' + template.name + '"title="View ' +
+                    template.name + ' Template Information" class="view-template"><img  style="float:right;" src="./images/template-view.png"/></a>' +
+                    '<a  href="#" data-type-name="' + template.name + '" title="Add ' + template.name + ' Template"class="add-template">' +
                     '<img  style="float:right;" src="./images/add.png"/></a></li>';
             });
             details += '</ul>';
