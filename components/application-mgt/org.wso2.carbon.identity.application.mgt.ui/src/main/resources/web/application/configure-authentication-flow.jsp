@@ -424,7 +424,7 @@
                         <div class="disable_status">
                             <img src="images/disabled.png"><span class="disable_text">Disabled</span>
                             <span class="show_errors_toggle_buttons">
-                                <a href="#">[+] See Errors</a>
+                                <a href="#">[+] Show Errors</a>
                                 <a href="#" style="display: none;">[-] Hide Errors</a>
                             </span>
                         </div>
@@ -439,6 +439,18 @@
                             </div>
                         </div>
                         <div class="instruction">Correct errors and update to enable the script.</div>
+                    </div>
+                    <div class="warning_container">
+                        <span class="show_errors_toggle_buttons">
+                            <a href="#">[+] Show Warnings</a>
+                            <a href="#" style="display: none;">[-] Hide Warnings</a>
+                        </span>
+                    </div>
+                    <div class="warning_content">
+                        <div class="warning_container">
+                            <img src="images/warning.gif" class="editor_warn_img"/><span class="err_head">Warnings</span>
+                            <ul class="warning_list"></ul>
+                        </div>
                     </div>
                     <div style="position: relative;">
                         <div class="sectionSub step_contents" id="codeMirror">
@@ -489,10 +501,6 @@
 </fmt:bundle>
 
 <script id="template-info" type="text/x-handlebars-template">
-    <div id="template-replace-warn" class="error-msg">
-        <p>The template code will replace the existing scripts in the editor. Any of your current
-            changes will be lost. Click "OK" to continue.</p>
-    </div>
     <div id='messagebox-template-summary' class="messagebox-info-custom">
         <h2>{{title}}</h2>
         <br/>
@@ -535,6 +543,14 @@
         {{#if helpLink}}
         <h3>Help/Reference</h3>
         <a href="{{helpLink}}" target="_blank">{{helpLink}}</a>
+        <br/>
+        {{/if}}
+        {{#if code}}
+        <br/>
+        <h3>Code</h3>
+        <br/>
+        <textarea  id="codesnippet_readonly" name="codesnippet_readonly"></textarea>
+        <br/>
         {{/if}}
     </div>
 </script>
