@@ -50,7 +50,41 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
+<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="codemirror/theme/mdn-like.css">
+<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
+<link rel="stylesheet" href="codemirror/addon/fold/foldgutter.css">
+<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
+<link rel="stylesheet" href="codemirror/addon/lint/lint.css">
+<link rel="stylesheet" href="css/idpmgt.css">
+<link rel="stylesheet" href="css/conditional-authentication.css">
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/keymap/sublime.js"></script>
+<script src="codemirror/mode/javascript/javascript.js"></script>
+<script src="codemirror/addon/lint/jshint.min.js"></script>
+<script src="codemirror/addon/lint/lint.js"></script>
+<script src="codemirror/addon/lint/javascript-lint.js"></script>
+<script src="codemirror/addon/hint/anyword-hint.js"></script>
+<script src="codemirror/addon/hint/show-hint.js"></script>
+<script src="codemirror/addon/hint/javascript-hint.js"></script>
+<script src="codemirror/addon/hint/wso2-hints.js"></script>
+<script src="codemirror/addon/edit/closebrackets.js"></script>
+<script src="codemirror/addon/edit/matchbrackets.js"></script>
+<script src="codemirror/addon/fold/brace-fold.js"></script>
+<script src="codemirror/addon/fold/foldcode.js"></script>
+<script src="codemirror/addon/fold/foldgutter.js"></script>
+<script src="codemirror/addon/display/fullscreen.js"></script>
+<script src="codemirror/addon/display/placeholder.js"></script>
+<script src="codemirror/addon/comment/comment.js"></script>
+<script src="codemirror/addon/selection/active-line.js"></script>
+<script src="codemirror/addon/dialog/dialog.js"></script>
+<script src="codemirror/addon/display/panel.js"></script>
+<script src="codemirror/util/formatting.js"></script>
+<script src="js/handlebars.min-v4.0.11.js"></script>
+<script src="../admin/js/main.js" type="text/javascript"></script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
 <carbon:breadcrumb label="breadcrumb.service.provider"
@@ -93,6 +127,7 @@
     String action = request.getParameter("action");
     String operation = request.getParameter("operation");
     String[] userStoreDomains = null;
+    StringBuilder spTemplateNames = new StringBuilder();
     boolean isNeedToUpdate = false;
     boolean isAdvanceConsentManagementEnabled = false;
     
@@ -300,6 +335,10 @@
             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
+
+        for (SpTemplate spTemplate : serviceClient.getAllApplicationTemplateInfo()) {
+            spTemplateNames.append(spTemplate.getName()).append(",");
+        }
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
     }
@@ -338,6 +377,54 @@
     <% } else { %>
     var roleMappinRowID = -1;
     <% } %>
+
+    function saveAsTemplate() {
+        showPopupConfirm($(".editor-error-warn-container").html(), "Save Service Provider Template", 250, 550, "Save", "Cancel",
+            saveTemplate, null);
+    }
+
+    function saveTemplate() {
+        var templateName = "";
+        var templateDesc = "";
+        var templateNames = "";
+        $(".template-name").each(function() {
+            if(this.value != "") {
+                templateName  = this.value;
+            }
+        });
+        $(".template-description").each(function() {
+            if(this.value != "") {
+                templateDesc  = this.value;
+            }
+        });
+        if (templateName === null || templateName === "") {
+            CARBON.showWarningDialog('Please specify service provider template name.');
+            return;
+        }
+
+        templateNames = document.getElementById('templateNames').value.split(",");
+        for (var i = 0; i < templateNames.length; i++) {
+            if (templateNames[i] == templateName) {
+                CARBON.showWarningDialog('Service provider template name is already taken. Please pick a different name.');
+                return;
+            }
+        }
+
+        document.getElementById('templateName').value = templateName;
+        document.getElementById('templateDesc').value = templateDesc;
+
+        var error_msg = $("#error-msg");
+        $.ajax({
+            type: "POST",
+            url: 'add-service-provider-as-template.jsp',
+            data: $("#configure-sp-form").serialize(),
+            success: function () {
+            },
+            error: function(e) {
+            },
+            async: false
+        });
+    }
     
     function createAppOnclick() {
         var spName = document.getElementById("spName").value;
@@ -2744,6 +2831,11 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
+                                            <input type="button"
+                                                   value="<fmt:message key='button.save.service.provider.template'/>"
+                                                   onclick="saveAsTemplate();"/>
+                                            <input type="hidden" name="templateName" id="templateName"/>
+                                            <input type="hidden" name="templateDesc" id="templateDesc"/>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"
                                                    onclick="javascript:location.href='list-service-providers.jsp'"/>
                                         </div>
@@ -2810,4 +2902,33 @@
             </tr>
         </table>
     </div>
+    <div class="editor-error-warn-container">
+        <br/>
+        <br/>
+        <div class="sectionSub">
+            <table class="carbonFormTable">
+                <tr>
+                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.name'/>:<span class="required">*</span></td>
+                    <td>
+                        <input type="text" class="template-name" name="template-name"  white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                        <div class="sectionHelp">
+                            <fmt:message key='help.template.name'/>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
+                    <td>
+                        <textarea style="width:50%" type="text" name="template-description" class="template-description" class="text-box-big"></textarea>
+                        <div class="sectionHelp">
+                            <fmt:message key='help.template.desc'/>
+                        </div>
+                    </td>
+                </tr>
+                <input type="hidden" id="templateNames" name="templateNames"
+                       value="<%=spTemplateNames.length() > 0 ? Encode.forHtmlAttribute(spTemplateNames.toString()) : ""%>">
+            </table>
+        </div>
+    </div>
 </fmt:bundle>
+<script src="js/configure-sp-template-flow.js"></script>

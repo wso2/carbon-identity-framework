@@ -25,7 +25,6 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 
-
 <%
     String httpMethod = request.getMethod();
     if (!"post".equalsIgnoreCase(httpMethod)) {
@@ -35,6 +34,7 @@
     
     String appid = request.getParameter("spName");
     String description = request.getParameter("sp-description");
+    String templateName = request.getParameter("sp-template");
     
     if (appid != null && !"".equals(appid)) {
         
@@ -49,8 +49,9 @@
             ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-            ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-            serviceClient.createApplication(serviceProvider);
+            ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(
+                    cookie, backendServerURL, configContext);
+            serviceClient.createApplication(serviceProvider, templateName);
 %>
 <script>
     location.href = 'load-service-provider.jsp?spName=<%=Encode.forUriComponent(appid)%>';

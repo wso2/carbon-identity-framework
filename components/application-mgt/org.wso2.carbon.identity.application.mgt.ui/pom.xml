@@ -108,6 +108,7 @@
 
                             org.wso2.carbon.identity.application.authentication.framework.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.dto.xsd.*; version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.claim.metadata.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.xsd; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
