@@ -1,0 +1,1395 @@
+swagger: '2.0'
+######################################################
+# Prolog
+######################################################
+info:
+  version: "0.13.0"
+  title: "WSO2 IS - IdP API"
+  description: |
+    This specifies a **RESTful API** for WSO2 **IdP Manager** - IdP.
+
+  contact:
+    name: "WSO2"
+    url: "http://wso2.com/products/identity-server/"
+    email: "architecture@wso2.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
+schemes:
+  - https
+
+# The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+host: apis.wso2.com
+
+# The base path of the API.
+# Will be prefixed to all paths.
+basePath: /t/{tenant-domain}/api/identity/idp-mgt/v1.0
+
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
+consumes:
+  - application/json
+
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requestor is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specfied in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
+produces:
+  - application/json
+
+######################################################
+# The "API Collection" resource APIs
+######################################################
+paths:
+  /idps:
+
+#-----------------------------------------------------
+# Create a new API -API (Individual)
+#-----------------------------------------------------
+    post:
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/idp-mgt/v1.0/idps" -H "Authorization: Basic Base64Encoded<username:password>" -H "accept: application/json" -d @data.json -H "Content-Type:application/json"
+      x-wso2-response: |
+      summary: Create a new IdP
+      description: |
+        This operation can be used to create a new IdP specifying the details of the API in the payload.
+
+      parameters:
+        - in: body
+          name: body
+          description: |
+            IdP object that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/IdPDetail'
+      tags:
+        - IdP (Individual)
+      responses:
+        201:
+          description: |
+            Created.
+            Successful response with the newly created object as entity in the body.
+            Location header contains URL of newly created entity.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location of the newly created idp'
+
+        400:
+          description: |
+            Bad Request.
+            Invalid request or validation error.
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        415:
+          description: |
+            Unsupported Media Type.
+            The entity of the request was in a not supported format.
+          schema:
+            $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the list of all APIs
+#-----------------------------------------------------
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: |
+        curl -K -X GET "https://localhost:9443/api/identity/idp-mgt/v1.0/idps" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/idp-mgt/v1.0/idps?limit=25&offset=0" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-response: |
+      summary: |
+        List all IdPs
+      description: |
+        This operation provides you a list of available IdPs
+
+      parameters:
+        - $ref : '#/parameters/limit'
+        - $ref : '#/parameters/offset'
+        - $ref : '#/parameters/spTenantDomain'
+      tags:
+        - IdP (Collection)
+      responses:
+        200:
+          description: |
+            OK.
+            List of IdP returned.
+          schema:
+            $ref: '#/definitions/IdPList'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the IdP with given IdP name
+#-----------------------------------------------------
+  /idps/{name}:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/idp-mgt/v1.0/idps/{name}" -H "Authorization: Basic Base64Encoded<username:password>" -H "accept: application/json"
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/idp-mgt/v1.0/idps/{name}" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-response: |
+      summary: |
+        Retrieve/Search IdPs
+      description: |
+        This operation provides you a list of available IdPs
+
+      parameters:
+        - $ref: '#/parameters/name'
+      tags:
+        - IdP (Individual)
+      responses:
+        200:
+          description: |
+            OK.
+            List of IdP returned.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+            ETag:
+              description: |
+                Entity Tag of the response resource. Used by caches, or in conditional requests (Will be supported in future).
+              type: string
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the IdP with given IdP name
+#-----------------------------------------------------
+    delete:
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/idp-mgt/v1.0/idps/{name}" -H "Authorization: Basic Base64Encoded<username:password>" -H "accept: application/json"
+      x-wso2-request: |
+        curl -k -X DELETE "https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}" -H "Authorization: Basic Base64Encoded<username:password>" -H "accept: application/json"
+      x-wso2-response: |
+      summary: |
+        Delete specified IdP from the IS
+      description: |
+        This operation deletes an existing IdP
+
+      parameters:
+        - $ref: '#/parameters/name'
+      tags:
+        - IdP (Individual)
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+
+#-----------------------------------------------------
+# Retrieving the IdP with given IdP name
+#-----------------------------------------------------
+    put:
+      x-wso2-curl: |
+        curl -K -X GET https://apis.wso2.com/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name} -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json" -H "Content-Type:application/json"
+      x-wso2-request: |
+        curl -K -X GET "https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json" -H "Content-Type:application/json"
+      x-wso2-response: |
+      summary: |
+        Update an existing IdP
+      description: |
+        This operation updates an existing IdP
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - in: body
+          name: body
+          description: |
+            IdP object that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/IdPDetail'
+
+      tags:
+        - IdP (Individual)
+      responses:
+        200:
+          description: |
+            OK. updated IdP successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the Authenticators for a given IdP name
+#-----------------------------------------------------
+  /idps/{name}/authenticators/:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: |
+        curl -K -X GET "https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/authenticators" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-request: |
+        curl -K -X GET "https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/authenticators" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-response: |
+      summary: |
+        Listing authenticators for a given identity provider
+      description: |
+        This operation lists authenticators for an identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - $ref : '#/parameters/limit'
+        - $ref : '#/parameters/offset'
+
+      tags:
+        - IdP (Authenticators)
+      responses:
+        200:
+          description: |
+            OK.
+            List of authenticators for the IdP returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/FederatedAuthenticatorConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+  /idps/{name}/authenticators/{authName}:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: |
+        curl -K -X GET "https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/authenticators/{authName}" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-request: |
+        curl -K -X GET "https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/authenticators/{authName}" -H "Authorization: Basic Base64Encoded<username:password>" -H "Accept: application/json"
+      x-wso2-response: |
+      summary: |
+        Listing authenticators for a given identity provider
+      description: |
+        This operation lists authenticators for an identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - $ref : '#/parameters/authName'
+
+      tags:
+        - IdP (Authenticators)
+      responses:
+        200:
+          description: |
+            OK.
+            Requested authenticator for the IdP returned.
+          schema:
+            $ref: '#/definitions/FederatedAuthenticatorConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the Authenticators for a given IdP name
+#-----------------------------------------------------
+    put:
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/authenticators/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/authenticators/ -H
+        \"Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H Content-Type:application/json
+      x-wso2-response: |
+      summary: |
+        Update an authenticator in a given identity provider
+      description: |
+        This operation updates an authenticator for a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - $ref : '#/parameters/authName'
+        - in: body
+          name: body
+          description: |
+            authenticator object that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/FederatedAuthenticatorConfig'
+
+      tags:
+        - IdP (Authenticators)
+      responses:
+        200:
+          description: |
+            OK. updated Authenticator successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the Authenticators for a given IdP name
+#-----------------------------------------------------
+  /idps/{name}/claim-config/:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/claim-config/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept: application/json"
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/claim-config/ -H \"Authorization:
+        Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        List claim configuration for a given identity provider
+      description: |
+        This operation lists claim configuration for a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+      tags:
+        - IdP (Claims)
+      responses:
+        200:
+          description: |
+            OK.
+            List of claim configurations for the IdP returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ClaimConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Update the Claim for a given IdP name
+#-----------------------------------------------------
+    put:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/claim-config/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/claim-config/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H \"Content-Type:application/json\"
+      x-wso2-response: |
+      summary: |
+        Update an existing claim configuration in a given identity provider
+      description: |
+        This operation updates an existing claim configuration in a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - in: body
+          name: body
+          description: |
+            claim object that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/ClaimConfig'
+
+      tags:
+        - IdP (Claims)
+      responses:
+        200:
+          description: |
+            OK. updated Authenticator successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the Roles for a given IdP name
+#-----------------------------------------------------
+  /idps/{name}/permission-and-role-config/:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/permission-and-role-config/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json"
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/permission-and-role-config/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        List permission-and-role-config for a given identity provider
+      description: |
+        This operation lists permission-and-role-config for a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+      tags:
+        - IdP (Roles)
+      responses:
+        200:
+          description: |
+            OK.
+            List of permission-and-role-config for the IdP returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PermissionsAndRoleConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Update the role for a given IdP name
+#-----------------------------------------------------
+    put:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/permission-and-role-config/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/permission-and-role-config/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H Content-Type:application/json
+      x-wso2-response: |
+      summary: |
+        Update role configuration in a given identity provider
+      description: |
+        This operation updates role configuration in a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - in: body
+          name: body
+          description: |
+            role object that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/PermissionsAndRoleConfig'
+
+      tags:
+        - IdP (Roles)
+      responses:
+        200:
+          description: |
+            OK. updated Role successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the jit provisioning for a given IdP name
+#-----------------------------------------------------
+  /idps/{name}/jit-provisioning/:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/jit-provisioning/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/jit-provisioning/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H Content-Type:application/json
+      x-wso2-response: |
+      summary: |
+        List jit provisioning for a given identity provider
+      description: |
+        This operation lists jit provisioning for a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+      tags:
+        - IdP (JIT)
+      responses:
+        200:
+          description: |
+            OK.
+            List of jit provisioning for the IdP returned.
+          schema:
+              $ref: '#/definitions/JustInTimeProvisioningConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Update the JIT for a given IdP name
+#-----------------------------------------------------
+    put:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/jit-provisioning/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/jit-provisioning/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H Content-Type:application/json
+      x-wso2-response: |
+      summary: |
+        Update jit provisioning in a given identity provider
+      description: |
+        This operation updates jit provisioning in a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - in: body
+          name: body
+          description: |
+            role object that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/JustInTimeProvisioningConfig'
+
+      tags:
+        - IdP (JIT)
+      responses:
+        200:
+          description: |
+            OK. updated Role successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Retrieving the jit provisioning for a given IdP name
+#-----------------------------------------------------
+  /idps/{name}/outbound-provisioning-connector-configs/:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/outbound-provisioning-connector-configs/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept: application/json"
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/outbound-provisioning-connector-configs/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        List out bound connectors for a given identity provider
+      description: |
+        This operation lists outbound connectors for a given identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - $ref : '#/parameters/limit'
+        - $ref : '#/parameters/offset'
+
+      tags:
+        - IdP (Outbound Connectors)
+      responses:
+        200:
+          description: |
+            OK.
+            List of outbound connectors for the IdP returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ProvisioningConnectorConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+    post:
+      x-wso2-curl: "curl -K -X POST https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/outbound-provisioning-connector-configs -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept: application/json"
+      x-wso2-request: |
+        POST https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/outbound-provisioning-connector-configs?connectorName=\name\ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        Add an outbound connector for a given identity provider
+      description: |
+        This operation adds a given outbound connector for a given identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - in: body
+          name: body
+          description: |
+            role object that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/ProvisioningConnectorConfig'
+
+      tags:
+        - IdP (Outbound Connectors)
+      responses:
+        200:
+          description: |
+            OK.
+            add a new outbound connector for the IdP.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+  /idps/{name}/outbound-provisioning-connector-configs/{connectorName}:
+    get:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/outbound-provisioning-connector-configs/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept: application/json"
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/outbound-provisioning-connector-configs/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        Outbound connector for a given identity provider
+      description: |
+        This operation lists outbound connector for a given identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - $ref : '#/parameters/connectorName'
+
+      tags:
+        - IdP (Outbound Connectors)
+      responses:
+        200:
+          description: |
+            OK.
+            List of outbound connectors for the IdP returned.
+          schema:
+            $ref: '#/definitions/ProvisioningConnectorConfig'
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              type: string
+
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+    delete:
+      x-wso2-curl: "curl -K -X DELETE https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/outbound-provisioning-connector-configs?connectorName=\name\ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept: application/json"
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/outbound-provisioning-connector-configs?connectorName=\name\ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json
+      x-wso2-response: |
+      summary: |
+        Delete out bound connector for a given identity provider
+      description: |
+        This operation delete given outbound connector for a given identity provider
+
+      parameters:
+        - $ref : '#/parameters/name'
+        - $ref : '#/parameters/connectorName'
+
+      tags:
+        - IdP (Outbound Connectors)
+      responses:
+        200:
+          description: |
+            OK.
+            delete outbound connector for the IdP.
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+#-----------------------------------------------------
+# Update the outbound connector for a given IdP name
+#-----------------------------------------------------
+    put:
+      produces:
+        - application/json
+      x-wso2-curl: "curl -K -X GET https://apis.wso2.com//t/{tenant-domain}/api/identity/idp-mgt/v1
+      .0/idps/{name}/outbound-provisioning-connector-configs/ -H \"Authorization: Basic Base64Encoded<username:password>\ -H Accept:
+      application/json -H \"Content-Type:application/json\""
+      x-wso2-request: |
+        GET https://localhost:9443/t/{tenant-domain}/api/identity/idp-mgt/v1.0/idps/{name}/outbound-provisioning-connector-configs/ -H
+        Authorization: Basic YWRtaW46YWRtaW4K -H Accept: application/json -H \"Content-Type:application/json\"
+      x-wso2-response: |
+      summary: |
+        Update outbound connector in a given identity provider
+      description: |
+        This operation updates outbound connector for a given identity provider
+
+      parameters:
+        - $ref: '#/parameters/name'
+        - $ref: '#/parameters/connectorName'
+        - in: body
+          name: body
+          description: |
+            outbound connector that needs to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/ProvisioningConnectorConfig'
+
+      tags:
+        - IdP (Outbound Connectors)
+      responses:
+        200:
+          description: |
+            OK. updated Role successfully.
+          schema:
+            $ref: '#/definitions/IdPDetail'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+
+parameters:
+  name:
+    name: name
+    in: path
+    description: The unique identifier of a receipt
+    type: string
+    required: true
+
+# Used for pagination:
+# The maximum number of resoures to be returned by a GET
+  limit:
+    name: limit
+    in: query
+    description: |
+      Maximum size of resource array to return.
+    default: 25
+    type: integer
+
+# Used for pagination:
+# The order number of an instance in a qualified set of resoures
+# at which to start to return the next batch of qualified resources
+  offset:
+    name: offset
+    in: query
+    description: |
+      Starting point within the complete list of items qualified.
+    default: 0
+    type: integer
+
+# The HTTP Authorization header
+  Authorization:
+    name: Authorization
+    in: header
+    description: |
+      Holds the bearer token for apis that require authentication.
+    required: true
+    type : string
+
+  spTenantDomain:
+    name: spTenantDomain
+    in: query
+    description: Service provider tenant domain
+    required: false
+    type: string
+
+  authName:
+    name: authName
+    in: path
+    description: Authenticator Name
+    required: true
+    type: string
+
+  connectorName:
+    name: connectorName
+    in: path
+    description: Connector Name
+    required: true
+    type: string
+
+######################################################
+# The resources used by some of the APIs above within the message body
+######################################################
+definitions:
+
+  IdPList:
+    title: IdP List
+    required:
+      - name
+    properties:
+      IdPs:
+        type: array
+        description: list of IdPs
+        items:
+          $ref: '#/definitions/IdPDetail'
+
+  IdPDetail:
+    title: IdP Detail
+    required:
+      - name
+      - enabled
+      - federationHub
+      - displayName
+    properties:
+      alias:
+        type: string
+        description: alias
+        example: alias
+      certificate:
+        type: string
+        description: certificate
+        example: certificate
+      claimConfig:
+        $ref: '#/definitions/ClaimConfig'
+      defaultAuthenticatorConfig:
+        $ref: '#/definitions/FederatedAuthenticatorConfig'
+      defaultProvisioningConnectorConfig:
+        $ref: '#/definitions/ProvisioningConnectorConfig'
+      displayName:
+        type: string
+        description: displayName
+        example: displayName
+      enable:
+        type: boolean
+        description: enable
+        example: false
+      federatedAuthenticatorConfigs:
+        type: array
+        description: federatedAuthenticatorConfigs
+        items:
+          $ref: '#/definitions/FederatedAuthenticatorConfig'
+      federationHub:
+        type: boolean
+        description: federationHub
+        example: false
+      homeRealmId:
+        type: string
+        description: homeRealmId
+        example: homeRealmId
+      id:
+        type: string
+        description: id
+        example: id
+      identityProviderDescription:
+        type: string
+        description: identityProviderDescription
+        example: identityProviderDescription
+      identityProviderName:
+        type: string
+        description: identityProviderName
+        example: identityProviderName
+      idpProperties:
+        type: array
+        description: idpProperties
+        items:
+          $ref: '#/definitions/IdentityProviderProperty'
+      justInTimeProvisioningConfig:
+        $ref: '#/definitions/JustInTimeProvisioningConfig'
+      permissionAndRoleConfig:
+          $ref: '#/definitions/PermissionsAndRoleConfig'
+      primary:
+        type: boolean
+        description: primary
+        example: false
+      provisioningConnectorConfigs:
+        type: array
+        description: provisioningConnectorConfigs
+        items:
+          $ref: '#/definitions/ProvisioningConnectorConfig'
+      provisioningRole:
+        type: string
+        description: provisioningRole
+        example: provisioningRole
+
+  ApplicationPermission:
+    title: ApplicationPermission
+    required:
+      - value
+    properties:
+      value:
+        type: string
+        description: value
+        example: value
+
+  PermissionsAndRoleConfig:
+    title: PermissionsAndRoleConfig
+    required:
+      - idpRoles
+      - permissions
+      - roleMappings
+    properties:
+      idpRoles:
+        type: array
+        items:
+          type: string
+      permissions:
+        type: array
+        items:
+          $ref: '#/definitions/ApplicationPermission'
+      roleMappings:
+        type: array
+        items:
+          $ref: '#/definitions/RoleMapping'
+
+  RoleMapping:
+    title: RoleMapping
+    properties:
+      localRole:
+        $ref: '#/definitions/LocalRole'
+      remoteRole:
+        type: string
+        example: remoteRole
+
+  LocalRole:
+    title: LocalRole
+    required:
+      - localRoleName
+      - userStoreId
+    properties:
+      localRoleName:
+        type: string
+        example: localRoleName
+      userStoreId:
+        type: string
+        example: userStoreId
+
+  JustInTimeProvisioningConfig:
+    title: JustInTimeProvisioningConfig
+    properties:
+      modifyUserNameAllowed:
+        type: boolean
+        description: modifyUserNameAllowed
+        example: false
+      passwordProvisioningEnabled:
+        type: boolean
+        description: passwordProvisioningEnabled
+        example: false
+      promptConsent:
+        type: boolean
+        description: promptConsent
+        example: false
+      userStoreClaimUri:
+        type: string
+        description: userStoreClaimUri
+        example: userStoreClaimUri
+
+  IdentityProviderProperty:
+    title: IdentityProviderProperty
+    required:
+      - displayName
+      - name
+      - value
+    properties:
+      displayName:
+        type: string
+        description: displayName
+        example: displayName
+      name:
+        type: string
+        description: name
+        example: name
+      value:
+        type: string
+        description: value
+        example: value
+
+  ProvisioningConnectorConfig:
+    title: ProvisioningConnectorConfig
+    properties:
+      blocking:
+        type: boolean
+        description: claimId
+        example: false
+      enabled:
+        type: boolean
+        description: enabled
+        example: false
+      name:
+        type: string
+        description: object
+        example:
+      provisioningProperties:
+        type: array
+        description: provisioningProperties
+        items:
+          $ref: '#/definitions/Property'
+      rulesEnabled:
+        type: boolean
+        description: rulesEnabled
+        example: false
+      valid:
+        type: boolean
+        description: valid
+        example: false
+
+  Claim:
+    title: Claim
+    required:
+      - claimId
+      - claimUri
+    properties:
+      claimId:
+        type: integer
+        description: claimId
+        example: 1
+      claimUri:
+        type: string
+        description: claimUri
+        example: claimUri
+
+  ClaimMapping:
+    title: ClaimMapping
+    properties:
+      defaultValue:
+        type: string
+        description: defaultValue
+        example: defaultValue
+      localClaim:
+        $ref: '#/definitions/Claim'
+      mandatory:
+        type: boolean
+        description: mandatory
+        example: false
+      remoteClaim:
+        $ref: '#/definitions/Claim'
+      required:
+        type: boolean
+        description: required
+        example: false
+
+  ClaimConfig:
+    title: Claim Configuration
+    properties:
+      alwaysSendMappedLocalSubjectId:
+        type: boolean
+        description: alwaysSendMappedLocalSubjectId
+        example: false
+      claimMappings:
+        type: array
+        description: claimMappings
+        items:
+          $ref: '#/definitions/ClaimMapping'
+      idpClaims:
+        type: array
+        description: claimMappings
+        items:
+          $ref: '#/definitions/Claim'
+      localClaimDialect:
+        type: boolean
+        description: localClaimDialect
+        example: false
+      roleClaimURI:
+        type: string
+        description: roleClaimURI
+        example: roleClaimURI
+      spClaimDialects:
+        type: array
+        description: spClaimDialects
+        items:
+          type: string
+      userClaimURI:
+        type: string
+        description: userClaimURI
+        example: userClaimURI
+
+  FederatedAuthenticatorConfig:
+    title: FederatedAuthenticatorConfig
+    properties:
+      displayName:
+        type: string
+        description: displayName
+        example: "displayName"
+      enabled:
+        type: boolean
+        description: enabled
+        example: false
+      name:
+        type: string
+        description: name
+        example: "name"
+      propertyList:
+        type: array
+        description: properties
+        items:
+          $ref: '#/definitions/Property'
+
+  Property:
+    title: Property
+    properties:
+      advanced:
+        type: boolean
+        description: advanced
+        example: false
+      confidential:
+        type: boolean
+        description: confidential
+        example: false
+      defaultValue:
+        type: string
+        description: defaultValue
+        example: "defaultValue"
+      description:
+        type: string
+        description: description
+        example: "description"
+      displayName:
+        type: string
+        description: displayName
+        example: "displayName"
+      displayOrder:
+        type: integer
+        description: displayOrder
+        example: 1
+      name:
+        type: string
+        description: name
+        example: "name"
+      required:
+        type: boolean
+        description: required
+        example: false
+      type:
+        type: string
+        description: type
+        example: "type"
+      value:
+        type: string
+        description: value
+        example: "value"
+
+#-----------------------------------------------------
+# The Error resource
+#-----------------------------------------------------
+  Error:
+    title: Error object returned with 4XX HTTP status
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+        description: error code
+      message:
+        type: string
+        description: Error message.
+      description:
+        type: string
+        description: |
+          A detail description about the error message.
+
+#-----------------------------------------------------
+# Idp Add response object
+#-----------------------------------------------------
+  IdPAddResponse:
+    type: object
+    required:
+      - IdPID
+      - IdPName
+      - tenantDomain
+    properties:
+      IdPID:
+        type: 'string'
+      language:
+        type: 'string'
+      IdPName:
+        type: 'string'
+      tenantDomain:
+        type: 'string'
