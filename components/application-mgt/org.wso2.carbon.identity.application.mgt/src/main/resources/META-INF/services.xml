@@ -30,6 +30,11 @@
                 /permission/admin/manage/identity/applicationmgt/create
             </parameter>
         </operation>
+        <operation name="addApplication">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/applicationmgt/create
+            </parameter>
+        </operation>
         <operation name="deleteApplication">
             <parameter name="AuthorizationAction" locked="true">
                 /permission/admin/manage/identity/applicationmgt/delete
@@ -80,7 +85,44 @@
             <parameter name="AuthorizationAction" locked="true">
                 /permission/admin/manage/identity/applicationmgt/view
             </parameter>
-        </operation>        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt</parameter>
+        </operation>
+        <operation name="createApplicationTemplate">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/create
+            </parameter>
+        </operation>
+        <operation name="createApplicationTemplateFromSP">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/create
+            </parameter>
+        </operation>
+        <operation name="getApplicationTemplate">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/view
+            </parameter>
+        </operation>
+        <operation name="deleteApplicationTemplate">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/delete
+            </parameter>
+        </operation>
+        <operation name="updateApplicationTemplate">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/update
+            </parameter>
+        </operation>
+        <operation name="isExistingApplicationTemplate">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/view
+            </parameter>
+        </operation>
+        <operation name="getAllApplicationTemplateInfo">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/apptemplatemgt/view
+            </parameter>
+        </operation>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt,
+            /permission/admin/manage/identity/apptemplatemgt/</parameter>
         <parameter name="adminService" locked="true">true</parameter>
     </service>
 

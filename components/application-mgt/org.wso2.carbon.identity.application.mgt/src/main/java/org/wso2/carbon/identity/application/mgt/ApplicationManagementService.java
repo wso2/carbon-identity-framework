@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileStream;
+import org.wso2.carbon.identity.application.common.model.SpTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +50,7 @@ public abstract class ApplicationManagementService {
      * application name. Only the users in this role will be able to edit/update
      * the application.The
      * user will assigned to the created role.Internal roles used.
+     *
      * @param serviceProvider Service Provider Name
      * @param tenantDomain Tenant Domain
      * @param username User Name
@@ -65,14 +66,32 @@ public abstract class ApplicationManagementService {
      * Creates a service provider with basic information and returns the created service provider. First we need to
      * create an internal role with the application name. Only the users in this role will be able to edit/update
      * the application.Then the user will assigned to the created role.
+     *
      * @param serviceProvider Service Provider Name
      * @param tenantDomain Tenant Domain
      * @param username User Name
      * @return created service provider
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     public abstract ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String
             username) throws IdentityApplicationManagementException;
+
+    /**
+     * Creates a service provider with basic information and returns the created service provider. First we need to
+     * create an internal role with the application name. Only the users in this role will be able to edit/update
+     * the application.Then the user will assigned to the created role.
+     *
+     * @param serviceProvider Service Provider Name
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param templateName SP template name
+     * @return created service provider
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                                   String username, String templateName)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get Application for given application name
@@ -242,4 +261,78 @@ public abstract class ApplicationManagementService {
      */
     public abstract ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String
             username, boolean isUpdate) throws IdentityApplicationManagementException;
+
+    /**
+     * Create Service provider template.
+     *
+     * @param spTemplate service provider template info
+     * @param tenantDomain  tenant domain
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Add configured service provider as a template.
+     *
+     * @param serviceProvider Service provider to be configured as a template
+     * @param spTemplate   service provider template basic info
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
+                                                         String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get Service provider template.
+     *
+     * @param templateName template name
+     * @param tenantDomain tenant domain
+     * @return service provider template info
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract SpTemplate getApplicationTemplate(String templateName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Delete a application template.
+     *
+     * @param templateName name of the template
+     * @param tenantDomain tenant domain
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void deleteApplicationTemplate(String templateName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Update an application template.
+     *
+     * @param spTemplate SP template info to be updated
+     * @param tenantDomain  tenant domain
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void updateApplicationTemplate(String templateName, SpTemplate spTemplate,
+                                                   String tenantDomain) throws IdentityApplicationManagementException;
+
+    /**
+     * Check existence of a application template.
+     *
+     * @param templateName template name
+     * @param tenantDomain tenant domain
+     * @return true if a template with the specified name exists
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract boolean isExistingApplicationTemplate(String templateName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get template info of all the service provider templates.
+     *
+     * @param tenantDomain tenant domain
+     * @return list of all application template info
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
+            throws IdentityApplicationManagementException;
+
 }

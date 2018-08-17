@@ -3911,8 +3911,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (serviceProviderProperties != null) {
             for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
                 if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
-                    serviceProviderProperty.setValue(String.valueOf(serviceProvider.
-                            getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
+                    if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+                        serviceProviderProperty.setValue(String.valueOf(serviceProvider.
+                                getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
+                    }
                 }
             }
         }

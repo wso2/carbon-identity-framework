@@ -210,4 +210,15 @@ public class ApplicationMgtDBQueries {
     public static final String UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED = "UPDATE SP_APP SET IS_CONSENT_MGT_ENABLED" +
                                                                             " = ? WHERE TENANT_ID= ? AND ID = ?";
 
+    public static final String ADD_SP_TEMPLATE = "INSERT INTO SP_TEMPLATE (TENANT_ID, NAME, DESCRIPTION, " +
+            "CONTENT) VALUES (?, ?, ?, ?)";
+    public static final String GET_SP_TEMPLATE = "SELECT DESCRIPTION, CONTENT FROM SP_TEMPLATE WHERE NAME = ? AND " +
+            "TENANT_ID = ?";
+    public static final String IS_SP_TEMPLATE_EXISTS = "SELECT COUNT(*) FROM SP_TEMPLATE WHERE NAME = ? AND " +
+            "TENANT_ID = ?";
+    public static final String GET_ALL_SP_TEMPLATES_BASIC_INFO = "SELECT NAME, DESCRIPTION FROM SP_TEMPLATE WHERE " +
+            "TENANT_ID = ?";
+    public static final String DELETE_SP_TEMPLATE_BY_NAME = "DELETE FROM SP_TEMPLATE WHERE NAME = ? AND TENANT_ID= ?";
+    public static final String UPDATE_SP_TEMPLATE_BY_NAME = "UPDATE SP_TEMPLATE SET NAME= ?,DESCRIPTION = ?," +
+            "CONTENT = ? WHERE NAME = ? AND TENANT_ID = ?";
 }
