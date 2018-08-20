@@ -2649,14 +2649,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                     try {
                         boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
-                        StringBuilder sb = new StringBuilder();
-                        BufferedReader br = new BufferedReader(
-                                localAndOutboundConfigScriptResultSet.getCharacterStream(1));
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            sb.append(line).append("\r\n");
-                        }
-                        String targetString = sb.toString();
+                        String targetString = org.apache.commons.io.IOUtils.
+                                toString(localAndOutboundConfigScriptResultSet.getBinaryStream(1));
                         authenticationScriptConfig.setContent(targetString);
                         authenticationScriptConfig.setEnabled(isEnabled);
                     } catch (IOException e) {
@@ -3832,10 +3826,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 storeAuthScriptPrepStmt.setInt(1, tenantID);
                 storeAuthScriptPrepStmt.setInt(2, applicationId);
                 storeAuthScriptPrepStmt.setString(3, authenticationScriptConfig.getLanguage());
-                storeAuthScriptPrepStmt
-                        .setCharacterStream(4, new StringReader(authenticationScriptConfig.getContent()));
+                setBlobValue(authenticationScriptConfig.getContent(), storeAuthScriptPrepStmt, 4);
                 storeAuthScriptPrepStmt.setString(5, authenticationScriptConfig.isEnabled() ? "1" : "0");
                 storeAuthScriptPrepStmt.execute();
+            } catch (IOException ex) {
+                log.error("Error occurred while updating authentication script configuration.", ex);
             }
         }
     }
