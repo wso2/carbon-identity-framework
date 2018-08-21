@@ -267,6 +267,10 @@ public class IdentityConstants {
         public static final String CLOCK_SKEW = "ClockSkew";
         public static final String CLOCK_SKEW_DEFAULT = "300";
 
+        //Enabling federated user association through dashboard
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION = "EnableFederatedUserAssociation";
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
+
     }
 
     /**
