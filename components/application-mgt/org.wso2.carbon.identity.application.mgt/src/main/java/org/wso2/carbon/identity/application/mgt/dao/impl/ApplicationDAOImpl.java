@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.io.IOUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -2649,7 +2650,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                     try {
                         boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
-                        String targetString = org.apache.commons.io.IOUtils.
+                        String targetString = IOUtils.
                                 toString(localAndOutboundConfigScriptResultSet.getBinaryStream(1));
                         authenticationScriptConfig.setContent(targetString);
                         authenticationScriptConfig.setEnabled(isEnabled);
