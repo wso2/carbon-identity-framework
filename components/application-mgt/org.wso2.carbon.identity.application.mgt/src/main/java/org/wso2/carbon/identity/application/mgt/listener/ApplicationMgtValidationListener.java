@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 
 public class ApplicationMgtValidationListener extends AbstractApplicationMgtListener {
 
-    private static Log log = LogFactory.getLog(ApplicationMgtValidationListener.class);
-
     private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server";
     private static final String AUTHENTICATOR_NOT_CONFIGURED =
             "Authenticator %s is not configured for %s identity Provider";
@@ -59,6 +57,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             "Federated Identity Provider %s is not available in the server";
     private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s";
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s";
+    private static Log log = LogFactory.getLog(ApplicationMgtValidationListener.class);
 
     @Override
     public int getDefaultOrderId() {
@@ -99,7 +98,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
-     * authenticator params
+     *                                                authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(
             LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
@@ -183,7 +182,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 if (savedIdp == null) {
                     validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                             idp.getIdentityProviderName()));
-                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null) {
+                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null &&
+                        savedIdp.getProvisioningConnectorConfigs() == null) {
                     validationMsg.add(String.format(PROVISIONING_CONNECTOR_NOT_CONFIGURED,
                             idp.getIdentityProviderName()));
                 }
@@ -200,8 +200,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
     /**
      * Validate claim related configurations and append to the validation msg list.
      *
-     * @param claimConfig   claim config
-     * @param tenantDomain  tenant domain
+     * @param claimConfig  claim config
+     * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain) throws
