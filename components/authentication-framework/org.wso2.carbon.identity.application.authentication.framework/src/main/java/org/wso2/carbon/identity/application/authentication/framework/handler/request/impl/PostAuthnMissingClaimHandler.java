@@ -38,6 +38,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.user.api.Claim;
+import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -139,8 +141,19 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
-
             try {
+                // If there are read only claims marked as mandatory and they are missing, we cannot proceed further.
+                // We have to end the flow and show an error message to user.
+                ClaimManager claimManager = getUserRealm(context.getTenantDomain()).getClaimManager();
+                for (String claim : missingClaims[0].split(",")) {
+                    Claim claimObj = claimManager.getClaim(claim);
+                    if (claimObj.isReadOnly()) {
+                        throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
+                                "requested claim set. Please contact your administrator for more information about " +
+                                "this issue.", "One or more read-only claim is missing in the requested claim set");
+                    }
+                }
+
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
@@ -161,6 +174,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (URISyntaxException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while building redirect URI", e);
+            } catch (org.wso2.carbon.user.api.UserStoreException e) {
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while retrieving claim from claim URI.", e);
             }
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
