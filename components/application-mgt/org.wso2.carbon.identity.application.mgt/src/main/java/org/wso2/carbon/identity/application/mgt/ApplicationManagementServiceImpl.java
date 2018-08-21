@@ -97,6 +97,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
+    private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
     private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
 
 
@@ -217,6 +218,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        if (applicationMgtValidator.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
+            throw new IdentityApplicationManagementException("There are application management validation errors");
+        }
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -1091,6 +1095,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationMgtListeners();
 
+        if (!applicationMgtValidator.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+            return serviceProvider;
+        }
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
                 return serviceProvider;
