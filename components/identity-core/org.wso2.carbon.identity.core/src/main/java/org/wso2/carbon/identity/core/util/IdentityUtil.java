@@ -1051,6 +1051,23 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the server config for enabling federated user association
+     *
+     * @return isFederatedUserAssociationEnabled value
+     */
+    public static boolean isFederatedUserAssociationEnabled() {
+
+        String enableFedUserAssocicationConfigValue = IdentityUtil.getProperty(
+                IdentityConstants.ServerConfig.ENABLE_FEDERATED_USER_ASSOCIATION);
+        if (StringUtils.isBlank(enableFedUserAssocicationConfigValue)) {
+            enableFedUserAssocicationConfigValue =
+                    IdentityConstants.ServerConfig.ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT;
+        }
+
+        return Boolean.parseBoolean(enableFedUserAssocicationConfigValue);
+    }
+
+    /**
      * Returns whether the passed operation is supported by userstore or not
      *
      * @param userStoreManager User Store
