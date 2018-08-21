@@ -145,8 +145,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 // If there are read only claims marked as mandatory and they are missing, we cannot proceed further.
                 // We have to end the flow and show an error message to user.
                 ClaimManager claimManager = getUserRealm(context.getTenantDomain()).getClaimManager();
-                for (String claim : missingClaims[0].split(",")) {
-                    Claim claimObj = claimManager.getClaim(claim);
+                Map<String, String> missingClaimMap = FrameworkUtils.getMissingClaimsMap(context);
+
+                for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
+                    Claim claimObj = claimManager.getClaim(missingClaim.getKey());
                     if (claimObj.isReadOnly()) {
                         throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
                                 "requested claim set. Please contact your administrator for more information about " +
