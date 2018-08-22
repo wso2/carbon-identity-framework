@@ -25,6 +25,7 @@
 <%@ page
         import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%! public static final String BYTES = "bytes";
     private static final String CONTENT_LENGTH = "Content-Length";
     private static final String ACCEPT_RANGES = "Accept-Ranges";
@@ -51,7 +52,12 @@
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             ApplicationManagementServiceClient serviceClient = new
                     ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-            String templateData = serviceClient.getApplicationTemplate(templateName).getContent();
+            SpTemplate spTemplate = serviceClient.getApplicationTemplate(templateName);
+            if (spTemplate == null) {
+                CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
+                        request);
+            }
+            String templateData = spTemplate.getContent();
             out.clearBuffer();
             response.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + templateName + XML + "\"");
             response.setHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM);

@@ -143,27 +143,29 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        addApplication(serviceProvider, tenantDomain, username, null);
+        createApplicationWithTemplate(serviceProvider, tenantDomain, username, null);
     }
 
     @Override
     public ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        return addApplication(serviceProvider, tenantDomain, username, null);
+        return createApplicationWithTemplate(serviceProvider, tenantDomain, username, null);
     }
 
     @Override
-    public ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                          String templateName)
+    public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                                         String templateName)
             throws IdentityApplicationManagementException {
 
-        String spTemplateContent = this.getApplicationTemplate(templateName, tenantDomain).getContent();
-        ServiceProvider updatedSpFromTemplate = getSPFromTemplate(serviceProvider, tenantDomain, spTemplateContent);
+        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
+        ServiceProvider updatedSpFromTemplate = getSPFromTemplate(serviceProvider, tenantDomain, spTemplate);
+
         ServiceProvider addedSP = doAddApplication(updatedSpFromTemplate, tenantDomain, username);
         updatedSpFromTemplate.setApplicationID(addedSP.getApplicationID());
         updatedSpFromTemplate.setOwner(getUser(tenantDomain, username));
-        if (spTemplateContent != null) {
+
+        if (spTemplate != null && spTemplate.getContent() != null) {
             updateApplication(updatedSpFromTemplate, tenantDomain, username);
         }
         return updatedSpFromTemplate;
@@ -1004,7 +1006,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ServiceProvider basicApplication = new ServiceProvider();
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
-                savedSP = addApplication(basicApplication, tenantDomain, username, null);
+                savedSP = createApplicationWithTemplate(basicApplication, tenantDomain, username, null);
             }
             serviceProvider.setApplicationID(savedSP.getApplicationID());
             serviceProvider.setOwner(getUser(tenantDomain, username));
@@ -1122,7 +1124,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if(StringUtils.isBlank(templateName)) {
                 return null;
             } else {
-                throw new IdentityApplicationManagementException(String.format("Template with name: %s, is not " +
+                throw new IdentityApplicationManagementException(String.format("Template with name: %s is not " +
                         "registered for tenant: %s.", templateName, tenantDomain));
             }
         }
@@ -1142,7 +1144,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (StringUtils.isNotBlank(spTemplate.getName()) && !templateName.equals(spTemplate.getName())
                 && isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException(String.format("Template with name: %s, is already " +
+            throw new IdentityApplicationManagementException(String.format("Template with name: %s is already " +
                     "configured for tenant: %s.", spTemplate.getName(), tenantDomain));
         }
 
@@ -1354,7 +1356,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         SpTemplate spTemplate = applicationTemplateDAO.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Template with name: %s, is taken from database for tenant: %s ",
+                log.debug(String.format("Template with name: %s is taken from database for tenant: %s ",
                         templateName, tenantDomain));
             }
             ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
@@ -1368,7 +1370,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         SpTemplate spTemplate = ServiceProviderTemplateCache.getInstance().getValueFromCache(templateCacheKey);
         if (spTemplate != null) {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Template with name: %s, is taken from cache of tenant: %s ",
+                log.debug(String.format("Template with name: %s is taken from cache of tenant: %s ",
                         templateCacheKey.getTemplateName(), templateCacheKey.getTenantDomain()));
             }
             return spTemplate;
@@ -1457,10 +1459,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private ServiceProvider getSPFromTemplate(ServiceProvider serviceProvider, String tenantDomain,
-                                              String spTemplateContent) throws IdentityApplicationManagementException {
+                                              SpTemplate spTemplate) throws IdentityApplicationManagementException {
 
-       if (spTemplateContent != null) {
-            ServiceProvider spConfigFromTemplate = unmarshalSP(spTemplateContent, tenantDomain);
+       if (spTemplate != null && spTemplate.getContent() != null) {
+            ServiceProvider spConfigFromTemplate = unmarshalSP(spTemplate.getContent(), tenantDomain);
             Field[] fieldsSpTemplate = spConfigFromTemplate.getClass().getDeclaredFields();
             for (Field field : fieldsSpTemplate) {
                 try {

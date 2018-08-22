@@ -164,7 +164,7 @@
                 <tr>
                     <div style="height:30px;">
                         <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
-                           style="background-image:url(../admin/images/add.gif);">View service provider templates</a>
+                           style="background-image:url(../application/images/list.png);">View service provider templates</a>
                     </div>
                 </tr>
                 <tr>

@@ -25,6 +25,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.apache.log4j.Logger"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
@@ -101,6 +102,7 @@
                 }
             </script>
             <%
+                Logger logger = Logger.getLogger(this.getClass());
                 SpTemplate[] spTemplates = null;
                 String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -113,8 +115,8 @@
                 if (pageNumber != null) {
                     try {
                         pageNumberInt = Integer.parseInt(pageNumber);
-                    } catch (NumberFormatException ignored) {
-                        //not needed here since it's defaulted to 0
+                    } catch (NumberFormatException e) {
+                        logger.error("Error while paginating SP templates.", e);
                     }
                 }
                 try {
@@ -182,7 +184,7 @@
                                        onclick="editSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>',
                                                '<%=Encode.forJavaScriptAttribute(template.getDescription())%>');return false;" href="#"
                                        class="icon-link"
-                                       style="background-image: url(../application-template/images/edit.gif)"><fmt:message key="sp.template.edit"/>
+                                       style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
                                     </a>
                                     <%
                                         }
@@ -191,7 +193,7 @@
                                     <a title="Export Service Provider Template"
                                        onclick="exportSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
                                        class="icon-link"
-                                       style="background-image: url(../application-template/images/publish.gif)">
+                                       style="background-image: url(../application/images/publish.gif)">
                                         <fmt:message key="sp.template.export"/>
                                     </a>
                                     <%
@@ -201,7 +203,7 @@
                                     <a title="Remove Service Provider Template"
                                        onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
                                        class="icon-link"
-                                       style="background-image: url(../application-template/images/delete.gif)"><fmt:message key="sp.template.delete"/>
+                                       style="background-image: url(../application/images/delete.gif)"><fmt:message key="sp.template.delete"/>
                                     </a>
                                 </td>
                             </tr>

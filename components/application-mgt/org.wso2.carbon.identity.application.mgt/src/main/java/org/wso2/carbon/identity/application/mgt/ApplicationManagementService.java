@@ -56,7 +56,7 @@ public abstract class ApplicationManagementService {
      * @param username User Name
      * @return
      * @throws IdentityApplicationManagementException
-     * @deprecated  This method is replaced by {@link #addApplication}
+     * @deprecated  This method is replaced by {@link #createApplicationWithTemplate}
      */
     @Deprecated
     public abstract void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
@@ -78,9 +78,7 @@ public abstract class ApplicationManagementService {
             username) throws IdentityApplicationManagementException;
 
     /**
-     * Creates a service provider with basic information and returns the created service provider. First we need to
-     * create an internal role with the application name. Only the users in this role will be able to edit/update
-     * the application.Then the user will assigned to the created role.
+     * Creates a service provider with the provided service provider template.
      *
      * @param serviceProvider Service Provider Name
      * @param tenantDomain Tenant Domain
@@ -89,8 +87,8 @@ public abstract class ApplicationManagementService {
      * @return created service provider
      * @throws IdentityApplicationManagementException
      */
-    public abstract ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain,
-                                                   String username, String templateName)
+    public abstract ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain,
+                                                                  String username, String templateName)
             throws IdentityApplicationManagementException;
 
     /**

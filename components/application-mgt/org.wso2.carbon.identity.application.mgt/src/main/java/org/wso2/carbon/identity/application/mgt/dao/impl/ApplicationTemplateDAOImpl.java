@@ -49,10 +49,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
  * operations.
  */
 public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
-    private static final Log log = LogFactory.getLog(ApplicationTemplateDAOImpl.class);
 
-    public ApplicationTemplateDAOImpl() {
-    }
+    private static final Log log = LogFactory.getLog(ApplicationTemplateDAOImpl.class);
 
     @Override
     public void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
@@ -189,7 +187,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
             return (count > 0);
         } catch (DataAccessException e) {
             throw new IdentityApplicationManagementException(String.format("Error while checking existence of " +
-                    "application template: %s", templateName), e);
+                    "application template: %s in tenant: %s", templateName, tenantDomain), e);
         }
     }
 
@@ -198,7 +196,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Getting all the application template basic info of tenant: %s", tenantDomain));
+            log.debug("Getting all the application template basic info of tenant: " + tenantDomain);
         }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -209,8 +207,8 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
                     preparedStatement -> preparedStatement.setInt(1, getTenantID(tenantDomain)));
             return spTemplateList;
         } catch (DataAccessException e) {
-            throw new IdentityApplicationManagementException(String.format("Error while Loading all the application " +
-                    "template basic info of tenant: %s", tenantDomain), e);
+            throw new IdentityApplicationManagementException("Error while Loading all the application template basic " +
+                    "info of tenant: " + tenantDomain, e);
         }
     }
 

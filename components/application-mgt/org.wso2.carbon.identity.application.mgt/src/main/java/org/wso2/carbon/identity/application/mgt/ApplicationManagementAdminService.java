@@ -56,7 +56,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public void createApplication(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
-            addApplication(serviceProvider, null);
+            createApplicationWithTemplate(serviceProvider, null);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
                     getTenantDomain(), idpException);
@@ -65,21 +65,17 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Creates a service provider with basic information.First we need to create
-     * a role with the
-     * application name. Only the users in this role will be able to edit/update
-     * the application.The
-     * user will assigned to the created role.Internal roles used.
+     * Creates a service provider with the provided service provider template.
      *
      * @param serviceProvider Service provider
      * @param templateName SP template name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ServiceProvider addApplication(ServiceProvider serviceProvider, String templateName)
+    public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String templateName)
             throws IdentityApplicationManagementException {
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.addApplication(serviceProvider, getTenantDomain(), getUsername(),
+            return applicationMgtService.createApplicationWithTemplate(serviceProvider, getTenantDomain(), getUsername(),
                     templateName);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +

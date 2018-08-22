@@ -86,6 +86,10 @@
             ApplicationManagementServiceClient serviceClient = new
                     ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
             SpTemplate spTemplate = serviceClient.getApplicationTemplate(templateName);
+            if (spTemplate == null) {
+                CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
+                        request);
+            }
             templateContent = spTemplate.getContent();
         } catch (Exception e) {
             CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,

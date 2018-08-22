@@ -83,13 +83,14 @@ public class ApplicationManagementServiceClient {
      * @param serviceProvider
      * @throws AxisFault
      */
-    public void createApplication(ServiceProvider serviceProvider, String templateName) throws AxisFault {
+    public void createApplicationWithTemplate(ServiceProvider serviceProvider, String templateName) throws AxisFault {
 
         try {
             if (debugEnabled) {
-                log.debug("Registering Service Provider " + serviceProvider.getApplicationName());
+                log.debug(String.format("Registering Service Provider: %s using the SP Template: %s.",
+                        serviceProvider.getApplicationName(), templateName));
             }
-            stub.addApplication(serviceProvider, templateName);
+            stub.createApplicationWithTemplate(serviceProvider, templateName);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
@@ -286,7 +287,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Registering Service Provider template: %s", spTemplate.getName()));
+                log.debug("Registering Service Provider template: " + spTemplate.getName());
             }
             stub.createApplicationTemplate(spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -306,7 +307,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Adding Service Provider as a template with name: %s", spTemplate.getName()));
+                log.debug("Adding Service Provider as a template with name: " + spTemplate.getName());
             }
             stub.createApplicationTemplateFromSP(serviceProvider, spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -325,7 +326,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Retrieving Service Provider template: %s", templateName));
+                log.debug("Retrieving Service Provider template: " + templateName);
             }
             return stub.getApplicationTemplate(templateName);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -344,7 +345,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Deleting Service Provider template: %s", templateName));
+                log.debug("Deleting Service Provider template: " + templateName);
             }
             stub.deleteApplicationTemplate(templateName);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -362,7 +363,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Updating Service Provider template: %s", templateName));
+                log.debug("Updating Service Provider template: " + templateName);
             }
             stub.updateApplicationTemplate(templateName, spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -381,7 +382,7 @@ public class ApplicationManagementServiceClient {
 
         try {
             if (debugEnabled) {
-                log.debug(String.format("Checking existence of application template: %s.", templateName));
+                log.debug("Checking existence of application template: " + templateName);
             }
             return stub.isExistingApplicationTemplate(templateName);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {

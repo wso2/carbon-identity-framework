@@ -336,11 +336,14 @@
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
 
-        for (SpTemplate spTemplate : serviceClient.getAllApplicationTemplateInfo()) {
-            spTemplateNames.append(spTemplate.getName()).append(",");
+        SpTemplate[] spTemplates = serviceClient.getAllApplicationTemplateInfo();
+        if (spTemplates != null) {
+            for (SpTemplate spTemplate : spTemplates) {
+                spTemplateNames.append(spTemplate.getName()).append(",");
+            }
         }
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading User Store Domail", CarbonUIMessage.ERROR, request, e);
+        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
     }
     
     String certString = appBean.getServiceProvider().getCertificateContent();

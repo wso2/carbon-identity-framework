@@ -16,6 +16,44 @@
  * under the License.
  */
 
+var dummy = {
+    attrs: {
+        color: ["red", "green", "blue", "purple", "white", "black", "yellow"],
+        size: ["large", "medium", "small"],
+        description: null
+    },
+    children: []
+};
+var tags = {
+    "!top": ["top"],
+    "!attrs": {
+        id: null,
+        class: ["A", "B", "C"]
+    },
+    top: {
+        attrs: {
+            lang: ["en", "de", "fr", "nl"],
+            freeform: null
+        },
+        children: ["LocalAndOutBoundAuthenticationConfig", "ClaimConfig"]
+    },
+    LocalAndOutBoundAuthenticationConfig: {
+        attrs: {
+            name: null,
+            isduck: ["yes", "no"]
+        },
+        children: ["AuthenticationSteps", "AuthenticationStep", "LocalAuthenticatorConfigs", "FederatedIdentityProviders",
+            "SubjectStep", "AttributeStep", "StepOrder"]
+    },
+    ClaimConfig: {
+        attrs: {name: null},
+        children: ["RoleClaimURI", "LocalClaimDialect", "ClaimMappings", "AlwaysSendMappedLocalSubjectId", "IdpClaim"]
+    },
+    AuthenticationSteps: dummy, AuthenticationStep: dummy, LocalAuthenticatorConfigs: dummy, FederatedIdentityProviders: dummy,
+    SubjectStep: dummy, AttributeStep: dummy, StepOrder: dummy, RoleClaimURI: dummy, LocalClaimDialect: dummy,
+    ClaimMappings: dummy, AlwaysSendMappedLocalSubjectId: dummy, IdpClaim: dummy
+};
+
 function completeAfter(cm, pred) {
     var cur = cm.getCursor();
     if (!pred || pred()) setTimeout(function() {
@@ -73,7 +111,8 @@ var myCodeMirror = CodeMirror.fromTextArea(templateContent, {
             CodeMirror.commands["selectAll"](myCodeMirror);
             autoFormatSelection(myCodeMirror);
         }
-    }
+    },
+    hintOptions: {schemaInfo: tags}
 });
 
 var doc = myCodeMirror.getDoc();

@@ -51,7 +51,7 @@
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(
                     cookie, backendServerURL, configContext);
-            serviceClient.createApplication(serviceProvider, templateName);
+            serviceClient.createApplicationWithTemplate(serviceProvider, templateName);
 %>
 <script>
     location.href = 'load-service-provider.jsp?spName=<%=Encode.forUriComponent(appid)%>';

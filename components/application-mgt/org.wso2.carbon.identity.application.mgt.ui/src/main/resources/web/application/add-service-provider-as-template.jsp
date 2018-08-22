@@ -25,6 +25,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 
 <%
     String templateName = request.getParameter("templateName");
@@ -45,5 +46,7 @@
         ServiceProvider sp = appBean.getServiceProvider();
         serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
     } catch (Exception e) {
+        CarbonUIMessage.sendCarbonUIMessage("Error occurred while adding the Service Provider as a template",
+                CarbonUIMessage.ERROR, request, e);
     }
 %>

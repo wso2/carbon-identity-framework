@@ -24,12 +24,10 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%!
-    private static final String HTTP_POST = "post";
-%>
+
 <%
     String httpMethod = request.getMethod();
-    if (!HTTP_POST.equalsIgnoreCase(httpMethod)) {
+    if (!"post".equalsIgnoreCase(httpMethod)) {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }

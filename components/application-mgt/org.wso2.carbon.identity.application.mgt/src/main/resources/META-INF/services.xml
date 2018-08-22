@@ -30,7 +30,7 @@
                 /permission/admin/manage/identity/applicationmgt/create
             </parameter>
         </operation>
-        <operation name="addApplication">
+        <operation name="createApplicationWithTemplate">
             <parameter name="AuthorizationAction" locked="true">
                 /permission/admin/manage/identity/applicationmgt/create
             </parameter>
