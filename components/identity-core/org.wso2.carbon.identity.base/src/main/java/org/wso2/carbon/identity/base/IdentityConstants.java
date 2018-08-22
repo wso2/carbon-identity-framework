@@ -267,6 +267,10 @@ public class IdentityConstants {
         public static final String CLOCK_SKEW = "ClockSkew";
         public static final String CLOCK_SKEW_DEFAULT = "300";
 
+        //Enabling federated user association through dashboard
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION = "EnableFederatedUserAssociation";
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
+
     }
 
     /**
@@ -340,7 +344,7 @@ public class IdentityConstants {
         public static final String LOGOUT = "oidc/logout";
 
         public static final String WEBFINGER = ".well-known/webfinger";
-        public static final String DCR = "api/identity/oauth2/dcr/v1.0/register";
+        public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
     }

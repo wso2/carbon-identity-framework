@@ -18,6 +18,11 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * The response class for the import service provider method. It has the response code as "201" if the application
+ * imported successfully and "400" if there are any errors in the importing process. If created it has the
+ * application name else the list of errors.
+ */
 public class ImportResponse {
 
     public static final int CREATED = 201;

@@ -2,13 +2,14 @@
 .templateName {
     text-decoration: none;
     display: inline-table;
+    color:#555;
 }
 #template_list{
     height: 325px;
     overflow-y: scroll;
 }
 #template_list .name {
-    padding: 4px;
+    padding: 5px 4px 2px 5px;
     border: 1px solid #ccc;
     border-top: 0;
     height: 20px;
@@ -22,22 +23,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 145px;
+    width: 128px;
 }
 #template_list .type {
     margin-bottom: 4px;
 }
-#template_list .name a span{
-    display: inline-block;
-    vertical-align: top;
-    margin-left: 5px;
+.view-template {
+    float:right;
 }
-#template_list .name a {
-    margin-top: 2px;
-    float: left;
-}
-#template_list .name span {
-    float: right;
+.add-template {
+    padding-right : 8px;
+    float:right;
 }
 #template_list li h2{
     white-space: nowrap;
@@ -56,7 +52,7 @@
     margin-top: 4px;
 
 }
-.helpLink {
+.helpLink, .option-links {
     display: inline-block;
     float: right;
 }
@@ -355,18 +351,13 @@
 .editor-error-content, .editor-warning-content {
     display: none;
 }
-.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg, #template-replace-warn{
+.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg {
     margin: 10px 0px;
     margin-top: 20px;
     padding: 12px;
     color: #D8000C;
     background-color: #FFD2D2;
 }
-
-#template-replace-warn {
-    margin: 20px 10px 10px 10px;
-}
-
 .messagebox-warning-custom .stepErrorListContainer{
     padding-bottom: 10px;
 }
@@ -388,7 +379,7 @@
 .disable_status {
     padding-bottom: 12px;
 }
-.err_warn_content li {
+.err_warn_content li, .warning_content li {
     list-style-type: disc;
 }
 .editor_err_img, .editor_warn_img {
@@ -399,15 +390,18 @@
     font-weight: 600;
     padding-left: 12px;
 }
-.err_list, .warn_list {
+.err_list, .warn_list, .warning_list {
     padding-left: 47px;
 }
 
 .warn_container {
     padding: 10px 0;
 }
-
-.err_warn_content {
+.warning_container {
+    display: none;
+    padding-bottom: 10px;
+}
+.err_warn_content, .warning_content {
     padding: 10px;
     border: 1px solid #cecece;
     margin-bottom: 10px;
@@ -450,4 +444,15 @@
 }
 .category-title {
     width: 120px;
+}
+
+#messagebox-template-summary .CodeMirror {
+    height: auto !important;
+}
+#messagebox-template-summary .CodeMirror-scroll {
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+.ui-dialog-buttonpane {
+    z-index: 999;
 }

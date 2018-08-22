@@ -54,17 +54,21 @@ public class PostAuthenticationMgtService {
      * @throws FrameworkException FrameworkException.
      */
     public void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                         AuthenticationContext authenticationContext) throws FrameworkException {
+            AuthenticationContext authenticationContext) throws FrameworkException {
 
-        logDebug("Executing Post Authentication Management Service for context " +
-                authenticationContext.getContextIdentifier());
+        if (log.isDebugEnabled()) {
+            log.debug("Executing Post Authentication Management Service for context " + authenticationContext
+                    .getContextIdentifier());
+        }
 
-        List<PostAuthenticationHandler> postAuthenticationHandlers =
-                FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers();
+        List<PostAuthenticationHandler> postAuthenticationHandlers = FrameworkServiceDataHolder.getInstance()
+                .getPostAuthenticationHandlers();
 
         int currentPostHandlerIndex = authenticationContext.getCurrentPostAuthHandlerIndex();
-        logDebug("Starting from current post handler index " + currentPostHandlerIndex + " for context : " +
-                authenticationContext.getContextIdentifier());
+        if (log.isDebugEnabled()) {
+            log.debug("Starting from current post handler index " + currentPostHandlerIndex + " for context : "
+                    + authenticationContext.getContextIdentifier());
+        }
 
         if (isPostAuthenticationInProgress(authenticationContext, postAuthenticationHandlers,
                 currentPostHandlerIndex)) {
@@ -76,8 +80,8 @@ public class PostAuthenticationMgtService {
             for (; currentPostHandlerIndex < postAuthenticationHandlers.size(); currentPostHandlerIndex++) {
                 PostAuthenticationHandler currentHandler = postAuthenticationHandlers.get(currentPostHandlerIndex);
                 if (executePostAuthnHandler(request, response, authenticationContext, currentHandler)) {
-                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
-                            .INCOMPLETE);
+                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS,
+                            AuthenticatorFlowStatus.INCOMPLETE);
                     return;
                 }
             }
@@ -99,119 +103,142 @@ public class PostAuthenticationMgtService {
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private boolean executePostAuthnHandler(HttpServletRequest request, HttpServletResponse response,
-                                            AuthenticationContext authenticationContext,
-                                            PostAuthenticationHandler currentHandler) throws PostAuthenticationFailedException {
+            AuthenticationContext authenticationContext, PostAuthenticationHandler currentHandler)
+            throws PostAuthenticationFailedException {
 
         if (currentHandler.isEnabled()) {
 
-            logDebug(currentHandler.getName() + " is enabled. Hence executing for context : " + authenticationContext
-                    .getContextIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        currentHandler.getName() + " is enabled. Hence executing for context : " + authenticationContext
+                                .getContextIdentifier());
+            }
             PostAuthnHandlerFlowStatus flowStatus = currentHandler.handle(request, response, authenticationContext);
-            logDebug("Post authentication handler " + currentHandler.getName() + " returned with status : " +
-                    flowStatus + " for context identifier : " + authenticationContext.getContextIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug("Post authentication handler " + currentHandler.getName() + " returned with status : "
+                        + flowStatus + " for context identifier : " + authenticationContext.getContextIdentifier());
+            }
 
             if (isExecutionFinished(flowStatus)) {
-                logDebug("Post authentication handler " + currentHandler.getName() + " completed execution for " +
-                        "session context : " + authenticationContext.getContextIdentifier());
+                if (log.isDebugEnabled()) {
+                    log.debug("Post authentication handler " + currentHandler.getName()
+                            + " completed execution for session context : " + authenticationContext
+                            .getContextIdentifier());
+                }
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
 
             } else {
-                logDebug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence " +
-                        "returning for context : " + authenticationContext.getContextIdentifier());
+                if (log.isDebugEnabled()) {
+                    log.debug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence"
+                            + " returning for context : " + authenticationContext.getContextIdentifier());
+                }
                 return true;
             }
         } else {
-            logDebug("Post authentication handler " + currentHandler.getName() + " is disabled. Hence returning" +
-                    " without executing for context : " + authenticationContext.getContextIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug("Post authentication handler " + currentHandler.getName() + " is disabled. Hence returning"
+                        + " without executing for context : " + authenticationContext.getContextIdentifier());
+            }
         }
         return false;
     }
 
     private boolean isExecutionFinished(PostAuthnHandlerFlowStatus flowStatus) {
 
-        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED.equals(flowStatus) || PostAuthnHandlerFlowStatus
-                .UNSUCCESS_COMPLETED.equals(flowStatus);
+        return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED.equals(flowStatus)
+                || PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED.equals(flowStatus);
     }
 
     private boolean isPostAuthenticationInProgress(AuthenticationContext authenticationContext,
-                                                   List<PostAuthenticationHandler>
-                                                           postAuthenticationHandlers, int currentPostHandlerIndex) {
+            List<PostAuthenticationHandler> postAuthenticationHandlers, int currentPostHandlerIndex) {
 
-        return !LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(authenticationContext) &&
-                postAuthenticationHandlers.size() > currentPostHandlerIndex;
+        return !LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(authenticationContext)
+                && postAuthenticationHandlers.size() > currentPostHandlerIndex;
     }
 
     private void markPostAuthenticationCompleted(AuthenticationContext authenticationContext) {
 
-        logDebug("Post authentication evaluation has completed for the flow with session data key : " +
-                authenticationContext.getContextIdentifier());
+        if (log.isDebugEnabled()) {
+            log.debug("Post authentication evaluation has completed for the flow with session data key : "
+                    + authenticationContext.getContextIdentifier());
+        }
         LoginContextManagementUtil.markPostAuthenticationCompleted(authenticationContext);
     }
 
     private void setPASTRCookie(AuthenticationContext context, HttpServletRequest request,
-                                HttpServletResponse response) {
+            HttpServletResponse response) {
 
         if (context.getParameter(FrameworkConstants.PASTR_COOKIE) != null) {
-            logDebug("PASTR cookie is already set to context : " + context.getContextIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug("PASTR cookie is already set to context : " + context.getContextIdentifier());
+            }
             return;
         } else {
-            logDebug("PASTR cookie is not set to context : " + context.getContextIdentifier() + ". Hence setting the " +
-                    "cookie");
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "PASTR cookie is not set to context : " + context.getContextIdentifier() + ". Hence setting the"
+                                + " " + "cookie");
+            }
             String pastrCookieValue = UUIDGenerator.generateUUID();
-            FrameworkUtils.setCookie(request, response, FrameworkUtils.getPASTRCookieName(
-                    context.getContextIdentifier()), pastrCookieValue, -1);
+            FrameworkUtils
+                    .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
+                            pastrCookieValue, -1);
             context.addParameter(FrameworkConstants.PASTR_COOKIE, pastrCookieValue);
         }
     }
 
-    private void validatePASTRCookie(AuthenticationContext context,
-                                     HttpServletRequest request) throws PostAuthenticationFailedException {
+    private void validatePASTRCookie(AuthenticationContext context, HttpServletRequest request)
+            throws PostAuthenticationFailedException {
 
         Object pstrCookieObj = context.getParameter(FrameworkConstants.PASTR_COOKIE);
         if (pstrCookieObj != null) {
             String storedPastrCookieValue = (String) pstrCookieObj;
-            Cookie pastrCookie = FrameworkUtils.getCookie(request,
-                    FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
+            Cookie pastrCookie = FrameworkUtils
+                    .getCookie(request, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             if (pastrCookie != null && StringUtils.equals(storedPastrCookieValue, pastrCookie.getValue())) {
-                logDebug("pastr cookie validated successfully for sequence : " + context.getContextIdentifier());
+                if (log.isDebugEnabled()) {
+                    log.debug("pastr cookie validated successfully for sequence : " + context.getContextIdentifier());
+                }
                 return;
             } else {
-                throw new PostAuthenticationFailedException("Invalid Request: Your authentication flow is ended or " +
-                        "invalid. Please initiate again.", "Post authentication sequence tracking" +
-                        " cookie not found in request with context id : " + context.getContextIdentifier());
+                throw new PostAuthenticationFailedException(
+                        "Invalid Request: Your authentication flow is ended or " + "invalid. Please initiate again.",
+                        "Post authentication sequence tracking" + " cookie not found in request with context id : "
+                                + context.getContextIdentifier());
             }
         } else {
-            logDebug("No stored pastr cookie found in authentication context for : " + context.getContextIdentifier()
-                    + " . Hence returning without validating");
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "No stored pastr cookie found in authentication context for : " + context.getContextIdentifier()
+                                + " . Hence returning without validating");
+            }
         }
     }
 
     private void removePASTRCookie(HttpServletRequest request, HttpServletResponse response,
-                                   AuthenticationContext context) {
+            AuthenticationContext context) {
 
         Object pstrCookieObj = context.getParameter(FrameworkConstants.PASTR_COOKIE);
         if (pstrCookieObj != null) {
-            logDebug("Removing post authentication sequnce tracker cookie for context : " + context.getContextIdentifier
-                    ());
-            FrameworkUtils.setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
-                    pstrCookieObj.toString(), 0);
+            if (log.isDebugEnabled()) {
+                log.debug("Removing post authentication sequnce tracker cookie for context : " + context
+                        .getContextIdentifier());
+            }
+            FrameworkUtils
+                    .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
+                            pstrCookieObj.toString(), 0);
         } else {
-            logDebug("PASTR cookie is not set to context : " + context.getContextIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug("PASTR cookie is not set to context : " + context.getContextIdentifier());
+            }
         }
     }
 
-    private void endPostAuthenticationHandlerFlow(AuthenticationContext authenticationContext, HttpServletRequest
-            request, HttpServletResponse response) {
+    private void endPostAuthenticationHandlerFlow(AuthenticationContext authenticationContext,
+            HttpServletRequest request, HttpServletResponse response) {
 
         markPostAuthenticationCompleted(authenticationContext);
         // Since the post authn sequences is ended here, remove the cookie
         removePASTRCookie(request, response, authenticationContext);
-    }
-
-    private void logDebug(String message) {
-
-        if (log.isDebugEnabled()) {
-            log.debug(message);
-        }
     }
 }
