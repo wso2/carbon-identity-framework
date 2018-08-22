@@ -1127,7 +1127,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (identityProvider == null && !ignoreFileBasedIdps) {
             identityProvider = new FileBasedIdPMgtDAO()
-                    .getIdPByAuthenticatorPropertyValue(property, value, tenantDomain);
+                    .getIdPByAuthenticatorPropertyValue(property, value, tenantDomain, authenticator);
         }
 
         return identityProvider;
