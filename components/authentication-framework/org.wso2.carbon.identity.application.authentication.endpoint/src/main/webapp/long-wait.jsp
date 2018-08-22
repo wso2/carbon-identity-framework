@@ -19,10 +19,11 @@
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AdaptiveAuthUtil" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <jsp:directive.include file="init-url.jsp"/>
 
 <%
-    String sessionDataKey = request.getParameter("sessionDataKey");
+    String sessionDataKey = Encode.forHtmlAttribute(request.getParameter("sessionDataKey"));
 %>
 <html>
 <head>
