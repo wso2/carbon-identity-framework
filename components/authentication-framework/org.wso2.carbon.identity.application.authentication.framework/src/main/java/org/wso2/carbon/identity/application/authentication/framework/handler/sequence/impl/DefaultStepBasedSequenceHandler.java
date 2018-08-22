@@ -367,7 +367,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
         }
         if (!isAuthenticatorExecuted) {
-            String errorMsg = "No authenticator have been executed in the authentication flow.";
+            String errorMsg = String.format("No authenticator have been executed in the authentication flow of %s@%s",
+                    sequenceConfig.getApplicationConfig().getApplicationName(), sequenceConfig.getAuthenticatedUser()
+                            .getTenantDomain());
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
