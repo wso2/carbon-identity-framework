@@ -67,6 +67,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
