@@ -287,4 +287,32 @@ public interface ApplicationMgtListener {
      */
     void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
             IdentityApplicationManagementException;
+
+    /**
+     * Define any additional actions before creating an application template.
+     *
+     * @param serviceProvider SP template
+     * @param tenantDomain tenant domain
+     * @return true when pre import application template
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreCreateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before updating an application template.
+     *
+     * @param serviceProvider SP template
+     * @param tenantDomain tenant domain
+     * @return true when pre update application template
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreUpdateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
 }

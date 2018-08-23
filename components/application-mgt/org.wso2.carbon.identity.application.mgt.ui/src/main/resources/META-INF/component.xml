@@ -103,6 +103,35 @@
             <DisplayName>Create</DisplayName>
             <ResourceId>/permission/admin/manage/identity/applicationmgt/create</ResourceId>
         </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>Applications</DisplayName>
+            <ResourceId>/permission/applications</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Application Template Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/apptemplatemgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/apptemplatemgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/apptemplatemgt/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/apptemplatemgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/apptemplatemgt/create</ResourceId>
+        </ManagementPermission>
     </ManagementPermissions>
     <!-- framework-configuration>
         <bypass>

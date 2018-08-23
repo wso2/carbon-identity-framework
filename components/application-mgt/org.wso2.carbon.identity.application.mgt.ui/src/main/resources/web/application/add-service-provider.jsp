@@ -1,4 +1,3 @@
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <!--
 ~ Copyright (c) 2005-2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
@@ -17,6 +16,16 @@
 ~ under the License.
 -->
 
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.*" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 
@@ -33,6 +42,24 @@
     String[] importError = (String[]) request.getSession().getAttribute("importError");
     if (importError == null) {
         importError = new String[0];
+    }
+    SpTemplate[] spTemplates = null;
+    try {
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+        ConfigurationContext configContext =
+                (ConfigurationContext) config.getServletContext()
+                        .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+        ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie,
+                backendServerURL, configContext);
+        spTemplates = serviceClient.getAllApplicationTemplateInfo();
+    } catch (Exception e) {
+        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
+%>
+<script>
+    location.href = 'add-service-provider.jsp';
+</script>
+<%
     }
 %>
 <script type="text/javascript">
@@ -167,6 +194,45 @@ window.onload = function() {
                             </div>
                         </td>
                     </tr>
+                    <%
+                        if (spTemplates != null && spTemplates.length > 0) {
+                    %>
+                    <tr>
+                        <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.template'/>:</td>
+                        <td>
+                            <select style="min-width: 250px;" id="sp-template" name="sp-template">
+                                <option value="">---Select---</option>
+                                <%
+                                    for (SpTemplate spTemplate : spTemplates) {
+                                        if (spTemplate != null) {
+                                            if (spTemplate.getName().equals(
+                                                    TENANT_DEFAULT_SP_TEMPLATE_NAME)) {
+                                %>
+                                <option
+                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
+                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>" selected>
+                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
+                                </option>
+                                <%              } else { %>
+                                <option
+                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
+                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>">
+                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
+                                </option>
+                                <%
+                                                }
+                                            }
+                                        }
+                                %>
+                            </select>
+                            <div class="sectionHelp">
+                                <fmt:message key='help.template'/>
+                            </div>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                    %>
                 </table>
             </div>
             <div class="buttonRow">
