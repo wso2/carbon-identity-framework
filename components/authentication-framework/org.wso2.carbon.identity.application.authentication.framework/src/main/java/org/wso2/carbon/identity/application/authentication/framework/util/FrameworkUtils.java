@@ -1644,8 +1644,31 @@ public class FrameworkUtils {
      * @param context Authentication Context.
      * @return set of missing claims
      */
-    @SuppressWarnings("unchecked")
     public static String[] getMissingClaims(AuthenticationContext context) {
+
+        StringBuilder missingClaimsString = new StringBuilder();
+        StringBuilder missingClaimValuesString = new StringBuilder();
+
+        Map<String, String> missingClaims = getMissingClaimsMap(context);
+
+        for (Map.Entry<String, String> entry : missingClaims.entrySet()) {
+            missingClaimsString.append(entry.getKey());
+            missingClaimValuesString.append(entry.getValue());
+            missingClaimsString.append(",");
+            missingClaimValuesString.append(",");
+        }
+
+        return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
+    }
+
+    /**
+     * Get the missing mandatory claims as a hash map.
+     *
+     * @param context Authentication Context.
+     * @return Map of missing claims.
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getMissingClaimsMap(AuthenticationContext context) {
 
         Map<String, String> mappedAttrs = new HashMap<>();
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
@@ -1667,19 +1690,17 @@ public class FrameworkUtils {
                 mappedAttrs.put(localClaimUri, entry.getValue());
             }
         }
+
         Map<String, String> mandatoryClaims = context.getSequenceConfig().getApplicationConfig()
                 .getMandatoryClaimMappings();
-        StringBuilder missingClaimsString = new StringBuilder();
-        StringBuilder missingClaimValuesString = new StringBuilder();
+        Map<String, String> missingClaims = new HashMap<>();
         for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
             if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
-                missingClaimsString.append(entry.getKey());
-                missingClaimValuesString.append(entry.getValue());
-                missingClaimsString.append(",");
-                missingClaimValuesString.append(",");
+                missingClaims.put(entry.getKey(), entry.getValue());
             }
         }
-        return new String[] { missingClaimsString.toString(), missingClaimValuesString.toString() };
+
+        return missingClaims;
     }
 
     /**
