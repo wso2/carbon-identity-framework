@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -103,57 +102,64 @@ public class ApplicationMgtValidator {
 
         for (AuthenticationStep authenticationStep : authenticationSteps) {
             for (IdentityProvider idp : authenticationStep.getFederatedIdentityProviders()) {
-                try {
-                    IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
-                            .getIdentityProviderName(), tenantDomain, false);
-                    if (savedIdp.getId() == null) {
-                        validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
-                                idp.getIdentityProviderName()));
-                    } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
-                        List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
-                                .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
-                                .collect(Collectors.toList());
-                        for (FederatedAuthenticatorConfig federatedAuth : idp.getFederatedAuthenticatorConfigs()) {
-                            if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
-                                validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
-                                        federatedAuth.getName(), idp.getIdentityProviderName()));
-                            } else {
-                                isAuthenticatorIncluded.set(true);
-                            }
-                        }
-                    } else {
-                        for (FederatedAuthenticatorConfig federatedAuth : idp.getFederatedAuthenticatorConfigs()) {
-                                validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
-                                        federatedAuth.getName(), idp.getIdentityProviderName()));
-                        }
-                    }
-                } catch (IdentityProviderManagementException e) {
-                    String errorMsg = String.format(FEDERATED_IDP_NOT_AVAILABLE, idp.getIdentityProviderName());
-                    log.error(errorMsg, e);
-                    validationMsg.add(errorMsg);
-                }
+                validateFederatedIdp(idp, isAuthenticatorIncluded, validationMsg, tenantDomain);
             }
             for (LocalAuthenticatorConfig localAuth : authenticationStep.getLocalAuthenticatorConfigs()) {
                 if (!allLocalAuthenticators.keySet().contains(localAuth.getName())) {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
-                } else if (!isAuthenticatorIncluded.get()){
+                } else if (!isAuthenticatorIncluded.get()) {
                     Property[] properties = allLocalAuthenticators.get(localAuth.getName());
                     if (properties.length == 0) {
                         isAuthenticatorIncluded.set(true);
                     } else {
-                        Arrays.stream(properties).forEach(property -> {
+                        for (Property property : properties) {
                             if (!(IS_HANDLER.equals(property.getName()) && Boolean.valueOf(property.getValue()))) {
                                 isAuthenticatorIncluded.set(true);
                             }
-                        });
+                        }
                     }
                 }
             }
+        }
         if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
         }
         if (!validationMsg.isEmpty()) {
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
+    }
+
+    private void validateFederatedIdp(IdentityProvider idp, AtomicBoolean isAuthenticatorIncluded, List<String>
+            validationMsg, String tenantDomain) {
+
+        try {
+            IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
+                    .getIdentityProviderName(), tenantDomain, false);
+            if (savedIdp.getId() == null) {
+                validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
+                        idp.getIdentityProviderName()));
+            } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
+                List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
+                        .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
+                        .collect(Collectors.toList());
+                for (FederatedAuthenticatorConfig federatedAuth : idp.getFederatedAuthenticatorConfigs()) {
+                    if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
+                        validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
+                                federatedAuth.getName(), idp.getIdentityProviderName()));
+                    } else {
+                        isAuthenticatorIncluded.set(true);
+                    }
+                }
+            } else {
+                for (FederatedAuthenticatorConfig federatedAuth : idp.getFederatedAuthenticatorConfigs()) {
+                    validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
+                            federatedAuth.getName(), idp.getIdentityProviderName()));
+                }
+            }
+        } catch (IdentityProviderManagementException e) {
+            String errorMsg = String.format(FEDERATED_IDP_NOT_AVAILABLE, idp.getIdentityProviderName());
+            log.error(errorMsg, e);
+            validationMsg.add(errorMsg);
         }
     }
 
