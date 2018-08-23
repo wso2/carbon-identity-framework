@@ -116,7 +116,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
         }
 
         AuthenticationStep[] authenticationSteps = localAndOutBoundAuthenticationConfig.getAuthenticationSteps();
-        if (authenticationSteps == null) {
+        if (authenticationSteps == null || authenticationSteps.length == 0) {
             return;
         }
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
@@ -124,7 +124,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 .getAllLocalAuthenticators(tenantDomain))
                 .collect(Collectors.toMap(LocalAuthenticatorConfig::getName, LocalAuthenticatorConfig::getProperties));
 
-        AtomicBoolean isAuthenticatorExecuted = new AtomicBoolean(false);
+        AtomicBoolean isAuthenticatorIncluded = new AtomicBoolean(false);
 
         Arrays.stream(authenticationSteps).forEach(authenticationStep -> {
             Arrays.stream(authenticationStep.getFederatedIdentityProviders()).forEach(idp -> {
@@ -143,7 +143,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                                 validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
                                         federatedAuth.getName(), idp.getIdentityProviderName()));
                             } else {
-                                isAuthenticatorExecuted.set(true);
+                                isAuthenticatorIncluded.set(true);
                             }
                         });
                     } else {
@@ -160,21 +160,21 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
             Arrays.stream(authenticationStep.getLocalAuthenticatorConfigs()).forEach(localAuth -> {
                 if (!allLocalAuthenticators.keySet().contains(localAuth.getName())) {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
-                } else if (!isAuthenticatorExecuted.get()){
+                } else if (!isAuthenticatorIncluded.get()){
                     Property[] properties = allLocalAuthenticators.get(localAuth.getName());
                     if (properties.length == 0) {
-                        isAuthenticatorExecuted.set(true);
+                        isAuthenticatorIncluded.set(true);
                     } else {
                         Arrays.stream(properties).forEach(property -> {
                             if (!(IS_HANDLER.equals(property.getName()) && Boolean.valueOf(property.getValue()))) {
-                                isAuthenticatorExecuted.set(true);
+                                isAuthenticatorIncluded.set(true);
                             }
                         });
                     }
                 }
             });
         });
-        if (!isAuthenticatorExecuted.get()) {
+        if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
         }
         if (!validationMsg.isEmpty()) {
