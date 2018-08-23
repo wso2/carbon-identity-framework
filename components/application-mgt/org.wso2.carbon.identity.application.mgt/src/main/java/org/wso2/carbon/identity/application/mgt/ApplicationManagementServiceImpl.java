@@ -112,6 +112,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
+    private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
     private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
 
 
@@ -249,6 +250,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
+
+        applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain, username);
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1562,10 +1565,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        if (StringUtils.isBlank(serviceProvider.getApplicationName())) {
+            // check for required attributes.
+            throw new IdentityApplicationManagementException("Application Name is required");
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ServiceProvider savedSP = appDAO.getApplication(serviceProvider.getApplicationName(), tenantDomain);
+        if (savedSP != null) {
+            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+        }
+
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationMgtListeners();
-
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
                 return serviceProvider;
@@ -1597,7 +1610,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw e;
             }
             try {
-                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
                 int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
                 serviceProvider.setApplicationID(applicationId);
             } catch (IdentityApplicationManagementException e) {
