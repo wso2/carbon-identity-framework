@@ -1135,7 +1135,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw e;
             }
             try {
-                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
                 int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
                 serviceProvider.setApplicationID(applicationId);
             } catch (IdentityApplicationManagementException e) {
