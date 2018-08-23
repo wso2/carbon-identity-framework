@@ -103,7 +103,7 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
-     * authenticator params
+     *                                                authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(
             LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
@@ -205,8 +205,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
                 if (savedIdp == null) {
                     validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                             idp.getIdentityProviderName()));
-                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null ||
-                        savedIdp.getProvisioningConnectorConfigs().length == 0) {
+                } else if (savedIdp.getDefaultProvisioningConnectorConfig() == null &&
+                        savedIdp.getProvisioningConnectorConfigs() == null) {
                     validationMsg.add(String.format(PROVISIONING_CONNECTOR_NOT_CONFIGURED,
                             idp.getIdentityProviderName()));
                 }
@@ -223,8 +223,8 @@ public class ApplicationMgtValidationListener extends AbstractApplicationMgtList
     /**
      * Validate claim related configurations and append to the validation msg list.
      *
-     * @param claimConfig   claim config
-     * @param tenantDomain  tenant domain
+     * @param claimConfig  claim config
+     * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain) throws
