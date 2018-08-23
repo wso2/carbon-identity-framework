@@ -218,9 +218,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (applicationMgtValidator.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
-            throw new IdentityApplicationManagementException("There are application management validation errors");
-        }
+        applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain, username);
+
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {

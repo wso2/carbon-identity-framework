@@ -59,30 +59,13 @@ public class ApplicationMgtValidator {
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s";
 
 
-    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
-
-        if (StringUtils.isBlank(serviceProvider.getApplicationName())) {
-            // check for required attributes.
-            throw new IdentityApplicationManagementException("Application Name is required");
-        }
-
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider savedSP = appDAO.getApplication(serviceProvider.getApplicationName(), tenantDomain);
-        if (savedSP != null) {
-            throw new IdentityApplicationManagementException("Already an application available with the same name.");
-        }
-        return true;
-    }
-
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
-                                          String userName) throws IdentityApplicationManagementException {
+    public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
+                                            String userName) throws IdentityApplicationManagementException {
 
         validateLocalAndOutBoundAuthenticationConfig(serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
         validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain);
-        return true;
     }
 
     /**
