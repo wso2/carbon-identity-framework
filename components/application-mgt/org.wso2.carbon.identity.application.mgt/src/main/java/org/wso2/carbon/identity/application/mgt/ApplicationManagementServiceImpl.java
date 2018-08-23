@@ -1090,13 +1090,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        if (StringUtils.isBlank(serviceProvider.getApplicationName())) {
+            // check for required attributes.
+            throw new IdentityApplicationManagementException("Application Name is required");
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ServiceProvider savedSP = appDAO.getApplication(serviceProvider.getApplicationName(), tenantDomain);
+        if (savedSP != null) {
+            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+        }
+
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationMgtListeners();
-
-        if (!applicationMgtValidator.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
-            return serviceProvider;
-        }
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
                 return serviceProvider;
