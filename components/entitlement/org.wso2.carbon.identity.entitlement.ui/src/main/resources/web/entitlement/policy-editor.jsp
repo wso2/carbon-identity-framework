@@ -16,6 +16,7 @@
 */
 -->
 
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.balana.utils.Constants.PolicyConstants" %>
 <%@ page import="org.wso2.carbon.identity.entitlement.common.EntitlementConstants" %>
 <%@ page import="org.wso2.carbon.identity.entitlement.common.PolicyEditorEngine" %>
@@ -31,7 +32,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 <jsp:useBean id="entitlementPolicyBean"
@@ -498,9 +498,19 @@ function doValidationPolicyNameOnly() {
         return false;
     }
 
-    if(!value.match(new RegExp(regString))) {
-        CARBON.showWarningDialog('<fmt:message key="policy.name.is.conformance"/>');
-        return false;
+    if (!value.match(new RegExp(regString))) {
+        if (value.match(new RegExp("\\s", "g"))) {
+            CARBON.showWarningDialog('<fmt:message key="policy.name.with.space"/>');
+            return false;
+        }
+        else if (value.match(new RegExp("\\W", "g"))) {
+            CARBON.showWarningDialog('<fmt:message key="policy.name.with.special-character"/>');
+            return false;
+        }
+        else {
+            CARBON.showWarningDialog('<fmt:message key="policy.name.is.conformance"/>');
+            return false;
+        }
     }
     return true;
 }

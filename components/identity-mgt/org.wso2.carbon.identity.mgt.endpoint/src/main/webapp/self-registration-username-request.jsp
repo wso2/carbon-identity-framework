@@ -130,11 +130,11 @@
                             </div>
                             <%  Map<String, String[]> requestMap = request.getParameterMap();
                                 for (Map.Entry<String, String[]> entry : requestMap.entrySet()) {
-                                    String key = entry.getKey();
-                                    String value = entry.getValue()[0]; %>
+                                    String key = Encode.forHtmlAttribute(entry.getKey());
+                                    String value = Encode.forHtmlAttribute(entry.getValue()[0]); %>
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group ">
                                     <input id="<%= key%>" name="<%= key%>" type="hidden"
-                                           value="<%=Encode.forHtmlAttribute(value)%>" class="form-control">
+                                           value="<%=value%>" class="form-control">
                                 </div>
                             <% } %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group username-proceed">

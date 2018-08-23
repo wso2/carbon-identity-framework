@@ -895,6 +895,12 @@
         <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
     </ClientAppAuthentication>
 
+    <!--
+    This property restricts federated user association done through UserProfileAdmin admin service.
+    Would not affect associations done through provisioning
+    -->
+    <EnableFederatedUserAssociation>false</EnableFederatedUserAssociation>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v1.0/</Context>

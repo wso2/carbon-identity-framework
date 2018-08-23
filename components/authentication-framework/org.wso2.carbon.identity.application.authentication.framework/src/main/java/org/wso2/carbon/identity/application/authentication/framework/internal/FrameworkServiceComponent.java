@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -86,11 +87,13 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.servlet.Servlet;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
+import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
@@ -106,6 +109,7 @@ public class FrameworkServiceComponent {
     private static final String IDENTITY_SERVLET_URL = "/identity";
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
+    public static final String IS_HANDLER = "IS_HANDLER";
 
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
@@ -351,12 +355,22 @@ public class FrameworkServiceComponent {
 
         Property[] configProperties = null;
 
-        if (authenticator.getConfigurationProperties() != null
-            && !authenticator.getConfigurationProperties().isEmpty()) {
-            configProperties = authenticator.getConfigurationProperties().toArray(new Property[0]);
+        List<Property> configurationProperties = authenticator.getConfigurationProperties();
+        if (configurationProperties == null) {
+            configurationProperties = new ArrayList<>();
+        }
+        if (authenticator instanceof AuthenticationFlowHandler) {
+            Property handlerProperty = new Property();
+            handlerProperty.setName(IS_HANDLER);
+            handlerProperty.setValue(TRUE);
+            configurationProperties.add(handlerProperty);
+        }
+        if (!configurationProperties.isEmpty()) {
+            configProperties = configurationProperties.toArray(new Property[0]);
         }
 
-        if (authenticator instanceof LocalApplicationAuthenticator) {
+        if ((authenticator instanceof LocalApplicationAuthenticator) ||
+                (authenticator instanceof AuthenticationFlowHandler)) {
             LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
             localAuthenticatorConfig.setName(authenticator.getName());
             localAuthenticatorConfig.setProperties(configProperties);

@@ -636,6 +636,12 @@ public class UserProfileAdmin extends AbstractAdmin {
      */
     public void associateID(String idpID, String associatedID) throws UserProfileException {
 
+        if (!IdentityUtil.isFederatedUserAssociationEnabled()){
+            String errorMsg = "Federated user association is not allowed in the server";
+            log.error(errorMsg);
+            throw new UserProfileException(errorMsg);
+        }
+
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String userStoreDomainName = UserCoreUtil.extractDomainFromName(tenantAwareUsername);
