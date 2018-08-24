@@ -119,4 +119,13 @@ public interface ApplicationDAO {
      */
     List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
                                                         String tenantDomain) throws IdentityApplicationManagementException;
+
+    /**
+     * Checks whether the application already exists with the name.
+     *
+     * @param serviceProviderName Name of the service provider
+     * @param tenantName          tenant name
+     * @return whether the application exists or not
+     */
+    public abstract boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException;
 }
