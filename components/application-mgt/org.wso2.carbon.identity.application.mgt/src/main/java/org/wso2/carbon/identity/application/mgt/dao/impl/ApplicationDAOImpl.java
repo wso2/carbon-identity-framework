@@ -3573,7 +3573,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
+    public boolean isApplicationExists(String serviceProviderName, String tenantName) throws
+            IdentityApplicationManagementException {
 
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
         if (tenantName != null) {
@@ -3602,7 +3603,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"
                     + serviceProviderName, e);
-        }  finally {
+        } finally {
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
             IdentityApplicationManagementUtil.closeStatement(checkAppExistence);
             IdentityApplicationManagementUtil.closeConnection(connection);

@@ -1571,8 +1571,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider savedSP = appDAO.getApplication(serviceProvider.getApplicationName(), tenantDomain);
-        if (savedSP != null) {
+        if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
             throw new IdentityApplicationManagementException("Already an application available with the same name.");
         }
 

@@ -127,5 +127,8 @@ public interface ApplicationDAO {
      * @param tenantName          tenant name
      * @return whether the application exists or not
      */
-    public abstract boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException;
+    default boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
+
+        return false;
+    }
 }
