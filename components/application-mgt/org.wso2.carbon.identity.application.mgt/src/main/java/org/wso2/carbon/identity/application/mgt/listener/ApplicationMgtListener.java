@@ -258,7 +258,10 @@ public interface ApplicationMgtListener {
      * @param tenantDomain
      * @return
      */
-    boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain);
+    default boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+
+        return true;
+    }
 
     /**
      * Define any additional actions when importing service provider.
@@ -266,7 +269,10 @@ public interface ApplicationMgtListener {
      * @param serviceProvider service Provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException;
+    default void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        return;
+    }
 
     /**
      * Define any additional actions when exporting service provider.
@@ -275,8 +281,11 @@ public interface ApplicationMgtListener {
      * @param exportSecrets   is export secrets
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets) throws
-            IdentityApplicationManagementException;
+    default void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
 
     /**
      * Define any addition actions before creating inbound keys.
@@ -285,8 +294,11 @@ public interface ApplicationMgtListener {
      * @param isUpdate        isUpdate
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
-            IdentityApplicationManagementException;
+    default void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
 
     /**
      * Define any additional actions before creating an application template.
