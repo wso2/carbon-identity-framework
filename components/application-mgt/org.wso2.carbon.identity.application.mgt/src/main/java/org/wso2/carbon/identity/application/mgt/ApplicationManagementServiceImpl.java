@@ -1067,6 +1067,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
+            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+                    CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1090,6 +1092,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (serviceProvider != null) {
             try {
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
+                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                        CarbonContext.getThreadLocalCarbonContext().getUsername());
 
                 Collection<ApplicationMgtListener> listeners =
                         ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1153,6 +1157,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
         validateUnsupportedTemplateConfigs(serviceProvider);
+        applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+                CarbonContext.getThreadLocalCarbonContext().getUsername());
 
         Collection<ApplicationMgtListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();

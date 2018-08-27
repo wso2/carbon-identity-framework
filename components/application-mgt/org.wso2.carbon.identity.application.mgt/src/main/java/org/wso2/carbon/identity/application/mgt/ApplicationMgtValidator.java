@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -29,16 +30,21 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,14 +57,15 @@ public class ApplicationMgtValidator {
 
     private static Log log = LogFactory.getLog(ApplicationMgtValidator.class);
 
-    private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server";
+    private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server.";
     private static final String AUTHENTICATOR_NOT_CONFIGURED =
-            "Authenticator %s is not configured for %s identity Provider";
-    private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s";
+            "Authenticator %s is not configured for %s identity Provider.";
+    private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s.";
     private static final String FEDERATED_IDP_NOT_AVAILABLE =
-            "Federated Identity Provider %s is not available in the server";
-    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s";
-    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s";
+            "Federated Identity Provider %s is not available in the server.";
+    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s.";
+    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s.";
+    private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
 
@@ -69,6 +76,7 @@ public class ApplicationMgtValidator {
                 tenantDomain);
         validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain);
+        validateRoleConfigs(serviceProvider.getPermissionAndRoleConfig().getRoleMappings(), tenantDomain);
     }
 
     /**
@@ -246,6 +254,39 @@ public class ApplicationMgtValidator {
         } catch (ClaimMetadataException e) {
             validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
+    }
+
+    /**
+     * Validate local roles in role mapping configuration.
+     *
+     * @param roleMappings local to sp role mappings
+     * @param tenantDomain tenant domain
+     */
+    private void validateRoleConfigs(RoleMapping[] roleMappings, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        List<String> validationMsg = new ArrayList<>();
+
+        if (roleMappings == null) {
+            return;
+        }
+
+        try {
+            UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                    .getUserStoreManager();
+            for (RoleMapping roleMapping : roleMappings) {
+                if (!userStoreManager.isExistingRole(roleMapping.getLocalRole().getLocalRoleName())) {
+                    validationMsg.add(String.format(ROLE_NOT_AVAILABLE, roleMapping.getLocalRole().getLocalRoleName()));
+                    break;
+                }
+            }
+        } catch (UserStoreException e) {
+            validationMsg.add(String.format("Error when checking the existence of local roles in %s.", tenantDomain));
+        }
+
         if (!validationMsg.isEmpty()) {
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
