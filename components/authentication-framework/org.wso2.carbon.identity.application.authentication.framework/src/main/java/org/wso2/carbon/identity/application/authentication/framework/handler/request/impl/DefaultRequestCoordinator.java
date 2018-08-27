@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -185,6 +186,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
+            }
+        } catch (MisconfigurationException e) {
+            try {
+                URIBuilder uriBuilder = new URIBuilder(
+                        ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+                uriBuilder.addParameter("status", "misconfiguration.error");
+                uriBuilder.addParameter("statusMsg", "something.went.wrong.contact.admin");
+                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+                response.sendRedirect(FrameworkUtils.getRedirectURL(uriBuilder.build().toString(), request));
+            } catch (URISyntaxException e1) {
+                log.error("Error building redirect url for mis-configuration failure", e);
+                FrameworkUtils.sendToRetryPage(request, response);
             }
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
