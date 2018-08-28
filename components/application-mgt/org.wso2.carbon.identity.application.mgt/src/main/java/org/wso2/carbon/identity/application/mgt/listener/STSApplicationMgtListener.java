@@ -53,6 +53,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+
+/**
+ * The application listener responsible for handling "wstrust" related events in application management process.
+ */
 public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(STSApplicationMgtListener.class);

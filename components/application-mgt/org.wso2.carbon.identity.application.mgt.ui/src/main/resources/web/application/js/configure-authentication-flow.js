@@ -845,6 +845,10 @@ function addLocalRow(obj, stepId) {
     if (!validateAuthenticators('step_' + stepId + '_local_auth', selectedAuthenticatorName)) {
         return false;
     }
+    if (localHandlers.includes(selectedAuthenticatorName)) {
+        CARBON.showWarningDialog("This is a handler. Make sure you add authenticators in other steps.");
+    }
+
 
     jQuery(obj)
         .parent()

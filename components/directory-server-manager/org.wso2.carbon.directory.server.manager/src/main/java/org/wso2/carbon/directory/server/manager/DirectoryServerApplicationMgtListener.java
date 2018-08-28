@@ -28,7 +28,9 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 
-
+/**
+ * The application listener responsible for handling "kerberos" related events in application management process.
+ */
 public class DirectoryServerApplicationMgtListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(DirectoryServerApplicationMgtListener.class);

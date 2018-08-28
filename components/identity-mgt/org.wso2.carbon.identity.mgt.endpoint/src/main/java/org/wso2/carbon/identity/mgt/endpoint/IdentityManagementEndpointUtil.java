@@ -403,6 +403,7 @@ public class IdentityManagementEndpointUtil {
             for (Claim defaultClaim : defaultClaims) {
                 if (defaultClaim != null && defaultClaim.getUri() != null && piis.get(defaultClaim.getUri()) != null) {
                     piis.get(defaultClaim.getUri()).setValidationRegex(defaultClaim.getValidationRegex());
+                    piis.get(defaultClaim.getUri()).setReadOnly(defaultClaim.getReadOnly());
                 }
             }
         } else {

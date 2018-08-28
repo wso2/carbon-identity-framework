@@ -41,6 +41,7 @@
     private static final String IWA_AUTHENTICATOR = "IWAAuthenticator";
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
+    private static final String IDENTIFIER_EXECUTOR = "IdentifierExecutor";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
     private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
 %>
@@ -217,6 +218,11 @@
 
                             <%@ include file="openid.jsp" %>
                             <%
+                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(IDENTIFIER_EXECUTOR)) {
+                                hasLocalLoginOptions = true;
+                            %>
+                                <%@ include file="identifierauth.jsp" %>
+                            <%
                             } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
                                     localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
@@ -231,22 +237,21 @@
                                     }
                                 } else if (localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                     isBackChannelBasicAuth = false;
-                                    if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
-                                        includeBasicAuth = false;
-                            %>
+                                if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
+                                    includeBasicAuth = false;
+%>
                             <%@ include file="tenantauth.jsp" %>
-                            <%
+<%
+                            }
+                                }
+                            
+                            if (includeBasicAuth) {
+                                        %>
+                                            <%@ include file="basicauth.jsp" %>
+                                        <%
                                     }
                                 }
-
-                                if (includeBasicAuth) {
-
-                            %>
-                            <%@ include file="basicauth.jsp" %>
-                            <%
-                                        }
-                                    }
-                                }
+                            }
                             %>
 
                             <%if (idpAuthenticatorMapping != null &&

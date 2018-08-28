@@ -162,6 +162,12 @@
             <table style="width: 100%" class="styledLeft">
                 <tbody>
                 <tr>
+                    <div style="height:30px;">
+                        <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
+                           style="background-image:url(../application/images/list.png);">View service provider templates</a>
+                    </div>
+                </tr>
+                <tr>
                     <td style="border:none !important">
                         <table class="styledLeft" width="100%" id="ServiceProviders">
                             <thead>
