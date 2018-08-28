@@ -111,6 +111,40 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
         return true;
     }
 
+    @Override
+    public void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
+            throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public boolean doPreCreateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
     public boolean isEnable() {
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (ApplicationMgtListener.class.getName(), this.getClass().getName());
@@ -137,22 +171,5 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
             return orderId;
         }
         return getDefaultOrderId();
-    }
-
-    public void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
-
-        return;
-    }
-
-    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
-            throws IdentityApplicationManagementException {
-
-        return;
-    }
-
-    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
-            IdentityApplicationManagementException {
-
-        return;
     }
 }

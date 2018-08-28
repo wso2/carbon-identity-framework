@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -215,11 +217,16 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
+        boolean isAuthenticatorExecuted = false;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
+
+            if (!(authenticator instanceof AuthenticationFlowHandler)) {
+                isAuthenticatorExecuted = true;
+            }
 
             // build the authenticated idps JWT to send to the calling servlet.
             if (stepCount == 1) {
@@ -358,6 +365,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
                 }
             }
+        }
+        if (!isAuthenticatorExecuted) {
+            String errorMsg = String.format("No authenticator have been executed in the authentication flow of %s@%s",
+                    sequenceConfig.getApplicationConfig().getApplicationName(), sequenceConfig.getAuthenticatedUser()
+                            .getTenantDomain());
+            log.error(errorMsg);
+            throw new MisconfigurationException(errorMsg);
         }
         if (authenticatedUserAttributes != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);

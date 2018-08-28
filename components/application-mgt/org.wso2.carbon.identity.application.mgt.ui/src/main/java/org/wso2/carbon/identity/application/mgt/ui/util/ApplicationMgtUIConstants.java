@@ -30,6 +30,7 @@ public class ApplicationMgtUIConstants {
     public static final String PURPOSE_GROUP_TYPE_SP = "SP";
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final int DEFAULT_DISPLAY_ORDER = 0;
+    public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
 
     /**
      * Holds the application UI param related constants.
