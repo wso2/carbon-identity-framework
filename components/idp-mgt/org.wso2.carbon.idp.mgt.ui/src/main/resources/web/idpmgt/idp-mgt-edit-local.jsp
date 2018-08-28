@@ -729,7 +729,7 @@ function idpMgtCancel(){
                             } else {%>
                             <td colspan="2"><input
                                     <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password"
+                                    type="password" autocomplete="off"
                                     <% } else  {%>
                                     type="text" <%
                                     } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
@@ -843,7 +843,7 @@ function idpMgtCancel(){
                             <%
                             } else {%>
                             <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password"
+                                    type="password" autocomplete="off"
                                     <% } else {%>
                                     type="text" <%
                                 } %>
@@ -911,7 +911,7 @@ function idpMgtCancel(){
                             <%
                             } else {%>
                             <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password"
+                                    type="password" autocomplete="off"
                                     <% } else {%>
                                     type="text" <%
                                 } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
