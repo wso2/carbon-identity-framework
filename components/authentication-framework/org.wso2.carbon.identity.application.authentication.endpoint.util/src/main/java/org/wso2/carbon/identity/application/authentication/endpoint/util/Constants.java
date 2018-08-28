@@ -36,6 +36,7 @@ public class Constants {
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String ERROR_MESSAGE = "errorMessage";
     // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success" ;
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail" ;
