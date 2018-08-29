@@ -21,5 +21,11 @@
     "displayName": "Analytics",
     "order": 4,
     "icon": "./images/analytics-template.png"
+  },
+
+  "idp_based": {
+    "displayName": "Idp",
+    "order": 5,
+    "icon": "./images/idp-template.png"
   }
 }
