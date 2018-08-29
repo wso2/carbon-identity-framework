@@ -2,7 +2,7 @@
   "category": "idp_based",
   "name": "Office365-based",
   "title": "Office365-Based Authentication Template",
-  "summary": "Assign a given role specific for Office365 to the users if not already assigned.",
+  "summary": "Office365 integration of WSO2 IS require role based, on-demand user provisioning. Therefore assign a given role specific to office365 for successfully authenticated users if not already assigned, in order to trigger the role based user provisioning.",
   "preRequisites": [
     "Create a new role specific for Office365.",
     "Change the assigningRoles parameter to a single element array with the role specific to office365.",
