@@ -79,7 +79,8 @@ function validateAppCreation() {
     }
 
     if (!checkAuthenticators()) {
-        CARBON.showErrorDialog('No authenticators have been configured. Please add atleast one authenticator.',
+        CARBON.showErrorDialog('You cannot add identifier as the only authenticator. Add more authenticators or' +
+            ' add more authentication steps.',
             null, null);
         return false;
     }
