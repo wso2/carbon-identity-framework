@@ -23,5 +23,6 @@
     templateMap.put("genericForm", "templates/genericForm.jsp");
     templateMap.put("username", "templates/username.jsp");
     templateMap.put("verifyAge", "templates/verifyAge.jsp");
+    templateMap.put("verifyAge_old", "templates/verifyAge_old.jsp");
 
 %>
