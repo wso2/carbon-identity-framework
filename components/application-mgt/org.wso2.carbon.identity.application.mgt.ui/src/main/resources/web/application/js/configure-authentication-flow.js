@@ -78,6 +78,12 @@ function validateAppCreation() {
         return false;
     }
 
+    if (!checkAuthenticators()) {
+        CARBON.showErrorDialog('No authenticators have been configured. Please add atleast one authenticator.',
+            null, null);
+        return false;
+    }
+
     if (!scriptIsDirty) {
         submitFormWithDisabledScript();
     } else {
@@ -222,6 +228,21 @@ function checkEmptyStep() {
         }
     });
     return isEmptyStep;
+}
+
+function checkAuthenticators() {
+    var isAuthenticatorIncluded = false;
+    $.each($('.step_body'), function () {
+        $('.auth_table > tbody > tr > td').each(function(){
+            $(this).find("input").each(function() {
+                if (!localHandlers.includes(this.value)) {
+                    isAuthenticatorIncluded = true;
+                    return false;
+                }
+            });
+        });
+    });
+    return isAuthenticatorIncluded;
 }
 
 function submitFormWithDisabledScript() {
