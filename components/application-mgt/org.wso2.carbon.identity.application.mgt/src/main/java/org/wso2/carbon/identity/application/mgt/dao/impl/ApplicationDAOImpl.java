@@ -3587,26 +3587,21 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             }
         }
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement checkAppExistence = null;
-        ResultSet resultSet = null;
-        try {
-            checkAppExistence = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_NAME);
-            checkAppExistence.setString(1, serviceProviderName);
-            checkAppExistence.setInt(2, tenantID);
-            resultSet = checkAppExistence.executeQuery();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement checkAppExistence = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_NAME)) {
+                checkAppExistence.setString(1, serviceProviderName);
+                checkAppExistence.setInt(2, tenantID);
 
-            if (resultSet.next()) {
-                return true;
+                try (ResultSet resultSet = checkAppExistence.executeQuery()) {
+                    if (resultSet.next()) {
+                        return true;
+                    }
+                }
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"
                     + serviceProviderName, e);
-        } finally {
-            IdentityApplicationManagementUtil.closeResultSet(resultSet);
-            IdentityApplicationManagementUtil.closeStatement(checkAppExistence);
-            IdentityApplicationManagementUtil.closeConnection(connection);
         }
         return false;
     }
