@@ -175,5 +175,23 @@ public class AuthenticationEndpointUtil {
             return Encode.forHtml(key);
         }
     }
+
+    /**
+     * Read the value for the key from resources.properties. If there are no matching key call i18nBase64(), which
+     * was the previous implementation.
+     *
+     * @param resourceBundle Resource bundle
+     * @param key            key
+     * @return value of the key
+     */
+    public static String customi18n(ResourceBundle resourceBundle, String key) {
+
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(key)) ?
+                    resourceBundle.getString(key) : key));
+        } catch (Exception e) {
+            return i18nBase64(resourceBundle, key);
+        }
+    }
 }
 
