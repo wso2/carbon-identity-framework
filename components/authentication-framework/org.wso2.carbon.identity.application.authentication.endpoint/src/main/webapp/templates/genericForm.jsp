@@ -23,7 +23,7 @@
 
 <div>
     <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-        Welcome <c:out value='${requestScope.data["username"]}'/>
+        Hello, Welcome <c:out value='${requestScope.data["username"]}'/>
     </h2>
 </div>
 
