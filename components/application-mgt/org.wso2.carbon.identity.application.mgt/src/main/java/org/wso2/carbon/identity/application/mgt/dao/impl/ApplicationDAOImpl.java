@@ -3907,6 +3907,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     private void updateUseDomainNameInRolesAsSpProperty(ServiceProvider serviceProvider) {
 
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
+            return;
+        }
         ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
         if (serviceProviderProperties != null) {
             for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
