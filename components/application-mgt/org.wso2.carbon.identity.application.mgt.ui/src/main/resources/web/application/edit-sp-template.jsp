@@ -77,8 +77,8 @@
         String templateName = "";
         String templateDesc = "";
         try {
-            templateName = request.getParameter("templateName");
-            templateDesc = request.getParameter("templateDesc");
+            templateName = request.getParameter("templateName").trim();
+            templateDesc = request.getParameter("templateDesc").trim();
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
@@ -132,8 +132,7 @@
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
                     <td>
-                        <textarea style="width:50%" type="text" name="template-description" id="template-description" class="text-box-big">
-                            <%=templateDesc%></textarea>
+                        <textarea style="width:50%" type="text" name="template-description" id="template-description" class="text-box-big"><%=templateDesc%></textarea>
                         <div class="sectionHelp">
                             <fmt:message key='help.desc'/>
                         </div>

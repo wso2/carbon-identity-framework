@@ -1420,13 +1420,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             xr.parse(inputSource);
             inputStream.close();
             return (ServiceProvider) unmarshallerHandler.getResult();
-        } catch (JAXBException | SAXException | ParserConfigurationException e) {
+        } catch (JAXBException | SAXException | ParserConfigurationException | IOException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
                     "configuration ", e);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return null;
     }
 
     private String marshalSPTemplate(ServiceProvider serviceProvider, String tenantDomain)
