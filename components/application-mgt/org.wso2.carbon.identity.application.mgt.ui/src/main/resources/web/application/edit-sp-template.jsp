@@ -62,6 +62,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <jsp:include page="../dialog/display_messages.jsp"/>
 <fmt:bundle
@@ -123,7 +124,8 @@
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.name'/>:<span class="required">*</span></td>
                     <td>
-                        <input id="template-name" name="template-name" type="text" value=<%=templateName%> white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                        <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
+                                white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
                         <div class="sectionHelp">
                             <fmt:message key='help.name'/>
                         </div>
@@ -132,7 +134,8 @@
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
                     <td>
-                        <textarea style="width:50%" type="text" name="template-description" id="template-description" class="text-box-big"><%=templateDesc%></textarea>
+                        <textarea style="width:50%" type="text" name="template-description" id="template-description"
+                                  class="text-box-big"><%=Encode.forHtmlContent(templateDesc)%></textarea>
                         <div class="sectionHelp">
                             <fmt:message key='help.desc'/>
                         </div>
@@ -149,7 +152,7 @@
                 </div>
             </div>
             </br>
-            <textarea hidden="hidden" name="sp-template-name" id="sp-template-name"><%=templateName%></textarea>
+            <textarea hidden="hidden" name="sp-template-name" id="sp-template-name"><%=Encode.forHtmlContent(templateName)%></textarea>
             <div class="buttonRow">
                 <input id="updateTemplate" type="button" class="button" value="<fmt:message key='button.update.service.provider.template'/>"
                        onclick="updateTemplateOnclick();"/>
