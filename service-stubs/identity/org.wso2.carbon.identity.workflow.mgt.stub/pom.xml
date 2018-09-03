@@ -21,7 +21,7 @@
     <parent>
         <artifactId>carbon-service-stubs</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.12.134-SNAPSHOT</version>
+        <version>5.12.134</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
