@@ -1638,11 +1638,13 @@ public class FrameworkUtils {
     }
 
     /**
-     * To check whether Post handlers related JIT provisioning need to be executed.
+     * @deprecated This method is a temporary solution and might get changed in the future.
+     * It is recommended not use this method.
      *
      * @param context AuthenticationContext.
      * @return true if the handlers need to be executed, otherwise false.
      */
+    @Deprecated
     public static boolean isStepBasedSequenceHandlerExecuted(AuthenticationContext context) {
 
         boolean isNeeded = true;
