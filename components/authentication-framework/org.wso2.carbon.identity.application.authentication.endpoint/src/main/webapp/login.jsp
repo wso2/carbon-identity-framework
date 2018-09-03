@@ -38,7 +38,7 @@
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
-    private static final String IWA_AUTHENTICATOR = "IWAAuthenticator";
+    private static final String IWA_AUTHENTICATOR = "IwaNTLMAuthenticator";
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
