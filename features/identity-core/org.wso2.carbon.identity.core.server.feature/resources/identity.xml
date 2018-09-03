@@ -758,10 +758,10 @@
 
 
     <ResourceAccessControl>
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/user/v1.0/me" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/user/v1.0/me" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
         </Resource>
@@ -772,7 +772,7 @@
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
 
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
@@ -780,7 +780,7 @@
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
 
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
@@ -788,7 +788,7 @@
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
 
-        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
@@ -822,13 +822,13 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Users" secured="true" http-method="POST">
+        <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
         </Resource>
         <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Groups" secured="true" http-method="POST">
+        <Resource context="(.*)/scim2/Groups(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
         </Resource>
         <Resource context="(.*)/scim2/Groups" secured="true" http-method="GET">
@@ -879,7 +879,7 @@
         <Resource context="/scim2/ResourceType" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="/scim2/Bulk" secured="true"  http-method="all">
+        <Resource context="/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="all">
