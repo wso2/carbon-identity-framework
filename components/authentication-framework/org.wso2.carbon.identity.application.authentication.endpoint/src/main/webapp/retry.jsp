@@ -18,7 +18,6 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
 
     <%
@@ -29,8 +28,8 @@
             statusMessage =  AuthenticationEndpointUtil.i18n(resourceBundle,
                     "something.went.wrong.during.authentication");
         } else {
-            stat = AuthenticationEndpointUtil.i18nBase64(resourceBundle, stat);
-            statusMessage = AuthenticationEndpointUtil.i18nBase64(resourceBundle, statusMessage);
+            stat = AuthenticationEndpointUtil.customi18n(resourceBundle, stat);
+            statusMessage = AuthenticationEndpointUtil.customi18n(resourceBundle, statusMessage);
         }
         session.invalidate();
     %>

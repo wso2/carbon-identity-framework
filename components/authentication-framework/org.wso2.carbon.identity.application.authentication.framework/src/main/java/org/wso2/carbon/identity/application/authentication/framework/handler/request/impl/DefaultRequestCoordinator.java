@@ -22,12 +22,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -35,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -49,7 +47,6 @@ import org.wso2.carbon.user.api.Tenant;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -186,6 +183,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
+        } catch (MisconfigurationException e) {
+            FrameworkUtils.sendToRetryPage(request, response, "misconfiguration.error","something.went.wrong.contact.admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
@@ -193,17 +192,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             FrameworkUtils
                 .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
-            try {
-                URIBuilder uriBuilder = new URIBuilder(
-                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
-                uriBuilder.addParameter("status", "Authentication attempt failed.");
-                uriBuilder.addParameter("statusMsg", e.getErrorCode());
-                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-                response.sendRedirect(FrameworkUtils.getRedirectURL(uriBuilder.build().toString(), request));
-            } catch (URISyntaxException e1) {
-                log.error("Error building redirect url for authz failure", e);
-                FrameworkUtils.sendToRetryPage(request, response);
-            }
+            FrameworkUtils.sendToRetryPage(request, response, "Authentication attempt failed.", e.getErrorCode());
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);

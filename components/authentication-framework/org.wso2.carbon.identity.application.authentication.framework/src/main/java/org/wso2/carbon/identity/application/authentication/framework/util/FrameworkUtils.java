@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -101,6 +102,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -123,6 +125,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS_MSG;
 
 public class FrameworkUtils {
 
@@ -471,6 +475,22 @@ public class FrameworkUtils {
                 request));
     }
 
+
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
+                                       String statusMsg) throws IOException {
+
+        try {
+            URIBuilder uriBuilder = new URIBuilder(
+                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+            uriBuilder.addParameter("status", status);
+            uriBuilder.addParameter("statusMsg", statusMsg);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+        } catch (URISyntaxException e) {
+            log.error("Error building redirect url for failure", e);
+            FrameworkUtils.sendToRetryPage(request, response);
+        }
+    }
     /**
      * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
      * be fetched from request parameters or referer.
