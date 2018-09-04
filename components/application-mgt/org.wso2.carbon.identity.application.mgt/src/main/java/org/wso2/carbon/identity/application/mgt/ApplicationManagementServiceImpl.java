@@ -251,7 +251,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain, username);
+        try {
+            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain, username);
+        } catch (IdentityApplicationManagementValidationException e) {
+            log.error("Validation error when updating the application  " + serviceProvider.getApplicationName() + "@" +
+                    tenantDomain);
+            for (String msg : e.getValidationMsg()) {
+                log.error(msg);
+            }
+            throw e;
+        }
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1067,8 +1076,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
-                    CarbonContext.getThreadLocalCarbonContext().getUsername());
+            try {
+                applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+                        CarbonContext.getThreadLocalCarbonContext().getUsername());
+            } catch (IdentityApplicationManagementValidationException e) {
+                log.error("Validation error when creating the application template " +
+                        serviceProvider.getApplicationName() + "@" + tenantDomain);
+                for (String msg : e.getValidationMsg()) {
+                    log.error(msg);
+                }
+                throw e;
+            }
 
             Collection<ApplicationMgtListener> listeners =
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1092,8 +1110,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (serviceProvider != null) {
             try {
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
-                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
-                        CarbonContext.getThreadLocalCarbonContext().getUsername());
+                try {
+                    applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                            CarbonContext.getThreadLocalCarbonContext().getUsername());
+                } catch (IdentityApplicationManagementValidationException e) {
+                    log.error("Validation error when creating the application template from service provider " +
+                            serviceProvider.getApplicationName() + "@" + tenantDomain);
+                    for (String msg : e.getValidationMsg()) {
+                        log.error(msg);
+                    }
+                    throw e;
+                }
 
                 Collection<ApplicationMgtListener> listeners =
                         ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1157,8 +1184,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
         validateUnsupportedTemplateConfigs(serviceProvider);
-        applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
-                CarbonContext.getThreadLocalCarbonContext().getUsername());
+        try {
+            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+                    CarbonContext.getThreadLocalCarbonContext().getUsername());
+        } catch (IdentityApplicationManagementValidationException e) {
+            log.error("Validation error when updating the application template " +
+                    serviceProvider.getApplicationName() + "@" + tenantDomain);
+            for (String msg : e.getValidationMsg()) {
+                log.error(msg);
+            }
+            throw e;
+        }
 
         Collection<ApplicationMgtListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
