@@ -60,19 +60,6 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -86,6 +73,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
@@ -374,22 +374,22 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                     log.error("Error at creating 'userstores' directory to store configurations for super tenant");
                 }
             }
-            userStoreConfigFile = Paths.get(deploymentDirectory + File.separator + fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(deploymentDirectory + File.separator + previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + ".xml");
+            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + ".xml");
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
-            tenantFilePath = tenantFilePath + File.separator + tenantId + File.separator + USERSTORES;
-            File userStore = new File(tenantFilePath);
-            if (!userStore.exists()) {
-                if (new File(tenantFilePath).mkdir()) {
+            Path userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
+            if (!Files.exists(userStore)) {
+                try {
+                    Files.createDirectory(userStore);
                     //folder 'userstores' created
                     log.info("folder 'userstores' created for tenant " + tenantId);
-                } else {
+                } catch (IOException e) {
                     log.error("Error at creating 'userstores' directory to store configurations for tenant:" + tenantId);
                 }
             }
-            userStoreConfigFile = Paths.get(tenantFilePath + File.separator + fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(tenantFilePath + File.separator + previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), fileName + ".xml");
+            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), previousFileName + ".xml");
         }
 
         if (!Files.exists(previousUserStoreConfigFile)) {
