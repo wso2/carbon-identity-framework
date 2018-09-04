@@ -128,6 +128,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // if no request path authenticators or handler returned cannot handle
         if (!context.getSequenceConfig().isCompleted()
                 || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
+            // To keep track of whether particular request goes through the step based sequence handler.
+            context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
+
             // call step based sequence handler
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }

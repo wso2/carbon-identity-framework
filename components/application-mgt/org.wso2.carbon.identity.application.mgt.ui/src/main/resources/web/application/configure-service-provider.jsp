@@ -721,6 +721,7 @@
             $('#shared_purposes_tbl').hide();
         }
     }
+    --%>
     
     function onClickAddSpClaimDialectUri() {
         
@@ -802,7 +803,7 @@
             $('#spClaimDialectsTblRow').remove();
         }
     }
-    --%>
+
     var openFile = function (event) {
         var input = event.target;
         
