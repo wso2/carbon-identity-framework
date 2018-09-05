@@ -81,6 +81,20 @@
         <url-pattern>*</url-pattern>
     </filter-mapping>
 
+    <filter>
+        <filter-name>CharsetFilter</filter-name>
+        <filter-class>org.wso2.carbon.tomcat.ext.filter.CharacterSetFilter</filter-class>
+        <init-param>
+            <param-name>requestEncoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CharsetFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
+
     <servlet>
         <servlet-name>recoverusername.do</servlet-name>
         <jsp-file>/username-recovery.jsp</jsp-file>

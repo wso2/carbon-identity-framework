@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.InboundProvisioningConf
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -76,7 +77,7 @@ public class ApplicationMgtValidator {
                 tenantDomain);
         validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain);
-        validateRoleConfigs(serviceProvider.getPermissionAndRoleConfig().getRoleMappings(), tenantDomain);
+        validateRoleConfigs(serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
     }
 
     /**
@@ -147,6 +148,7 @@ public class ApplicationMgtValidator {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));
             } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
+                isAuthenticatorIncluded.set(true);
                 List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
                         .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
                         .collect(Collectors.toList());
@@ -154,8 +156,6 @@ public class ApplicationMgtValidator {
                     if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
                         validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
                                 federatedAuth.getName(), idp.getIdentityProviderName()));
-                    } else {
-                        isAuthenticatorIncluded.set(true);
                     }
                 }
             } else {
@@ -262,22 +262,22 @@ public class ApplicationMgtValidator {
     /**
      * Validate local roles in role mapping configuration.
      *
-     * @param roleMappings local to sp role mappings
+     * @param permissionsAndRoleConfig permission and role configurations
      * @param tenantDomain tenant domain
      */
-    private void validateRoleConfigs(RoleMapping[] roleMappings, String tenantDomain)
+    private void validateRoleConfigs(PermissionsAndRoleConfig permissionsAndRoleConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         List<String> validationMsg = new ArrayList<>();
 
-        if (roleMappings == null) {
+        if (permissionsAndRoleConfig == null || permissionsAndRoleConfig.getRoleMappings() == null) {
             return;
         }
 
         try {
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
                     .getUserStoreManager();
-            for (RoleMapping roleMapping : roleMappings) {
+            for (RoleMapping roleMapping : permissionsAndRoleConfig.getRoleMappings()) {
                 if (!userStoreManager.isExistingRole(roleMapping.getLocalRole().getLocalRoleName())) {
                     validationMsg.add(String.format(ROLE_NOT_AVAILABLE, roleMapping.getLocalRole().getLocalRoleName()));
                     break;

@@ -108,8 +108,24 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add Role", roleName, "Users : "
-                + Arrays.toString(userList) + " Permissions : " + Arrays.toString(permissions), SUCCESS));
+        StringBuilder stringBuilder = new StringBuilder();
+        String permissionsString;
+        String usersString;
+        String format = "ResourceID : %s Action : %s\n";
+        for (Permission permission : permissions) {
+            stringBuilder.append(String.format(format, permission.getResourceId(), permission.getAction()));
+        }
+        permissionsString = stringBuilder.toString();
+        // Clear buffer for reuse.
+        stringBuilder.setLength(0);
+        format = "%s\n";
+        for (String user : userList) {
+            stringBuilder.append(String.format(format, user));
+        }
+        usersString = stringBuilder.toString();
+        format = "\nUsers :\n%sPermissions :\n%s";
+        String data = String.format(format, usersString, permissionsString);
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add Role", roleName, data, SUCCESS));
         return true;
     }
 
