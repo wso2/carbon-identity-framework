@@ -992,6 +992,7 @@
                     },
                     function () {
                         $('#advanceAuthnConfRow input[name=auth_type][value=' + lastSelectedAuthType + ']').prop('checked', true);
+                        isAuthTypeClicked = false;
 
                     });
             }
