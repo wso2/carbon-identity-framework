@@ -126,9 +126,7 @@
                     <td>
                         <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
                                 white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.name'/>
-                        </div>
+                        <div class="sectionHelp"><fmt:message key='help.template.name'/></div>
                     </td>
                 </tr>
                 <tr>
@@ -136,9 +134,7 @@
                     <td>
                         <textarea style="width:50%" type="text" name="template-description" id="template-description"
                                   class="text-box-big"><%=Encode.forHtmlContent(templateDesc)%></textarea>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.desc'/>
-                        </div>
+                        <div class="sectionHelp"><fmt:message key='help.template.desc'/></div>
                     </td>
                 </tr>
             </table>
