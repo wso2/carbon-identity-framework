@@ -379,28 +379,7 @@
 
 
                             <% } %>
-    
-                            <% if (isIdentifierFirstLogin(inputType)) { %>
-                            <div class="padding-double login-form">
-                                <form action="<%=commonauthURL%>" method="post" id="changeUserForm">
-                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute(request.getParameter("sessionDataKey"))%>'/>
-                                    </div>
-                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                        <input type="hidden" name="userAbort" value='true'/>
-                                    </div>
-                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                        <div class="form-actions">
-                                            <%=AuthenticationEndpointUtil.i18n(resourceBundle, "not.me") + " " + username
-                                                    + "? "%>
-                                            <a id="changeUser" href="#" onclick="changeUsername(event)">
-                                                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login.as.different.user")%>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <% } %>
+                            
                             <div class="clearfix"></div>
 
                         </div>
