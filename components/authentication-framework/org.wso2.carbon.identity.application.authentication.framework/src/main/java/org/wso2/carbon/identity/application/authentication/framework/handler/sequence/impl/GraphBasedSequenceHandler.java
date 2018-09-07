@@ -56,15 +56,12 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Map;
-import java.util.zip.Deflater;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -532,6 +529,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     break;
                 case USER_ABORT:
                     executeFunction("onUserAbort", dynamicDecisionNode, context);
+                    dynamicDecisionNode.setDefaultEdge(null);
                     break;
             }
         }

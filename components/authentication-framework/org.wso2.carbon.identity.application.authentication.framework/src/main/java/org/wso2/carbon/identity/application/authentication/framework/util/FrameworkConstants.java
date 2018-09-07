@@ -115,6 +115,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
+    public static final String SKIP_USER_ABORT = "skipUserAbort";
 
     private FrameworkConstants() {
 
@@ -327,6 +328,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+        public static final String JS_FUNC_RESTART_FLOW = "restartFlow";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
