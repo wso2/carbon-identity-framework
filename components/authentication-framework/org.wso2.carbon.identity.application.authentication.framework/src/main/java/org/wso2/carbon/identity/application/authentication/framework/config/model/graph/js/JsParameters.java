@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.Map;
 
 /**
@@ -27,6 +30,8 @@ import java.util.Map;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
 public class JsParameters extends AbstractJSObjectWrapper<Map> {
+
+    private static final Log LOG = LogFactory.getLog(JsParameters.class);
 
     public JsParameters(Map wrapped) {
         super(wrapped);
@@ -45,13 +50,12 @@ public class JsParameters extends AbstractJSObjectWrapper<Map> {
     @Override
     public void removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
+        LOG.warn("Unsupported operation. Parameters are read only. Can't remove parameter " + name);
     }
 
     @Override
     public void setMember(String name, Object value) {
-        getWrapped().put(name, value);
+
+        LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: " + value);
     }
 }

@@ -59,7 +59,7 @@ public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWra
                         headers.put(headerName, getRequest().getHeader(headerName));
                     }
                 }
-                return new JsParameters(headers);
+                return new JsWritableParameters(headers);
             case FrameworkConstants.JSAttributes.JS_PARAMS:
                 return new JsParameters(getRequest().getParameterMap());
             case FrameworkConstants.JSAttributes.JS_COOKIES:
@@ -70,7 +70,7 @@ public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWra
                         cookies.put(cookie.getName(), new JsCookie(cookie));
                     }
                 }
-                return new JsParameters(cookies);
+                return new JsWritableParameters(cookies);
             case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
                 return IdentityUtil.getClientIpAddress(getRequest());
             default:
