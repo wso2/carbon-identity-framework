@@ -735,6 +735,12 @@ public class JsGraphBuilder {
         void prompt(String template, Object... parameterMap);
     }
 
+    @FunctionalInterface
+    public interface RestartExecutor {
+
+        void restartFlow();
+    }
+
     /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
@@ -772,6 +778,8 @@ public class JsGraphBuilder {
                         (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_RESTART_FLOW, (RestartExecutor)
+                            graphBuilder::restartFlow);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {
@@ -831,5 +839,22 @@ public class JsGraphBuilder {
             return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
                     .createEngine(authenticationContext);
         }
+    }
+
+    private void restartFlow() {
+
+        authenticationContext.setPreviousAuthenticatedIdPs(new HashMap<>());
+        authenticationContext.setCurrentAuthenticatedIdPs(new HashMap<>());
+        authenticationContext.setCurrentAuthenticator("");
+        authenticationContext.setSubject(null);
+        authenticationContext.setCurrentStep(0);
+        authenticationContext.getSequenceConfig().getStepMap().forEach((id, step) -> {
+            step.setCompleted(false);
+            step.setAuthenticatedAutenticator(null);
+            step.setAuthenticatedUser(null);
+            step.setAuthenticatedIdP("");
+        });
+        authenticationContext.getSequenceConfig().setCompleted(false);
+        authenticationContext.setProperty(FrameworkConstants.SKIP_USER_ABORT, true);
     }
 }

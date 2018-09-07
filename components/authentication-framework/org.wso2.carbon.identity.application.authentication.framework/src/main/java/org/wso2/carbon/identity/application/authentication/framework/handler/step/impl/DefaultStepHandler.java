@@ -150,12 +150,16 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
-        if (request.getParameter(FrameworkConstants.RequestParams.USER_ABORT) != null
-                && Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT))) {
-            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
-                    .USER_ABORT);
-            stepConfig.setCompleted(true);
-            return;
+        if (!(context.getProperty(FrameworkConstants.SKIP_USER_ABORT) != null && Boolean.parseBoolean(String.valueOf(context.getProperty(FrameworkConstants.SKIP_USER_ABORT))))) {
+            if (request.getParameter(FrameworkConstants.RequestParams.USER_ABORT) != null
+                    && Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT))) {
+                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                        .USER_ABORT);
+                stepConfig.setCompleted(true);
+                return;
+            }
+        } else {
+            context.removeProperty(FrameworkConstants.SKIP_USER_ABORT);
         }
 
         // if Request has fidp param and if this is the first step
