@@ -796,7 +796,9 @@
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
         </Resource>
 
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+        </Resource>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
