@@ -182,7 +182,7 @@
                                     %>
                                     <a title="Edit Service Provider Template"
                                        onclick="editSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>',
-                                               '<%=Encode.forJavaScriptAttribute(template.getDescription())%>');return false;" href="#"
+                                               '<%=template.getDescription() != null ? Encode.forJavaScriptAttribute(template.getDescription()) : ""%>');return false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
                                     </a>
