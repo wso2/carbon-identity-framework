@@ -133,7 +133,7 @@
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
                     <td>
                         <textarea style="width:50%" type="text" name="template-description" id="template-description"
-                                  class="text-box-big"><%=Encode.forHtmlContent(templateDesc)%></textarea>
+                                  class="text-box-big"><%=templateDesc != null ? Encode.forHtmlContent(templateDesc) : ""%></textarea>
                         <div class="sectionHelp"><fmt:message key='help.template.desc'/></div>
                     </td>
                 </tr>
