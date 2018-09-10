@@ -1273,6 +1273,7 @@ public class ApplicationBean {
         if (AUTH_TYPE_DEFAULT.equalsIgnoreCase(serviceProvider
                                                        .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType())) {
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(null);
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(null);
         } else if (AUTH_TYPE_LOCAL.equalsIgnoreCase(serviceProvider
                                                             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType())) {
             AuthenticationStep authStep = new AuthenticationStep();
@@ -1289,6 +1290,7 @@ public class ApplicationBean {
             authStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticator});
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     new AuthenticationStep[]{authStep});
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(null);
         } else if (AUTH_TYPE_FEDERATED.equalsIgnoreCase(serviceProvider
                                                                 .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType())) {
             AuthenticationStep authStep = new AuthenticationStep();
@@ -1297,6 +1299,7 @@ public class ApplicationBean {
             authStep.setFederatedIdentityProviders(new IdentityProvider[]{idp});
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     new AuthenticationStep[]{authStep});
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(null);
         } else if (AUTH_TYPE_FLOW.equalsIgnoreCase(serviceProvider
                                                            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType())) {
             // already updated.

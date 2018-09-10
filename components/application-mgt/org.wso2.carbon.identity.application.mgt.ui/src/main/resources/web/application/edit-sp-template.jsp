@@ -126,19 +126,15 @@
                     <td>
                         <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
                                 white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.name'/>
-                        </div>
+                        <div class="sectionHelp"><fmt:message key='help.template.name'/></div>
                     </td>
                 </tr>
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
                     <td>
                         <textarea style="width:50%" type="text" name="template-description" id="template-description"
-                                  class="text-box-big"><%=templateDesc != null ? Encode.forJavaScriptAttribute(templateDesc) : ""%></textarea>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.desc'/>
-                        </div>
+                                  class="text-box-big"><%=templateDesc != null ? Encode.forHtmlContent(templateDesc) : ""%></textarea>
+                        <div class="sectionHelp"><fmt:message key='help.template.desc'/></div>
                     </td>
                 </tr>
             </table>

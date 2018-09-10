@@ -148,6 +148,7 @@ public class ApplicationMgtValidator {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));
             } else if (savedIdp.getFederatedAuthenticatorConfigs() != null) {
+                isAuthenticatorIncluded.set(true);
                 List<String> savedIdpAuthenticators = Arrays.stream(savedIdp
                         .getFederatedAuthenticatorConfigs()).map(FederatedAuthenticatorConfig::getName)
                         .collect(Collectors.toList());
@@ -155,8 +156,6 @@ public class ApplicationMgtValidator {
                     if (!savedIdpAuthenticators.contains(federatedAuth.getName())) {
                         validationMsg.add(String.format(AUTHENTICATOR_NOT_CONFIGURED,
                                 federatedAuth.getName(), idp.getIdentityProviderName()));
-                    } else {
-                        isAuthenticatorIncluded.set(true);
                     }
                 }
             } else {

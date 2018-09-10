@@ -227,4 +227,10 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
         return requestedClaimList;
     }
 
+    @Override
+    public boolean isApplicationExists(String serviceProviderName, String tenantName) {
+
+        return ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(serviceProviderName);
+    }
+
 }

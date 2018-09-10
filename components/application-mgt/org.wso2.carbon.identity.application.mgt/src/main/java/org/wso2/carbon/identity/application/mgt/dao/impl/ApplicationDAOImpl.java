@@ -3572,6 +3572,40 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     }
 
+    @Override
+    public boolean isApplicationExists(String serviceProviderName, String tenantName) throws
+            IdentityApplicationManagementException {
+
+        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
+        if (tenantName != null) {
+            try {
+                tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                        .getTenantManager().getTenantId(tenantName);
+            } catch (UserStoreException e1) {
+                log.error("Error in reading application", e1);
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
+            }
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement checkAppExistence = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_NAME)) {
+                checkAppExistence.setString(1, serviceProviderName);
+                checkAppExistence.setInt(2, tenantID);
+
+                try (ResultSet resultSet = checkAppExistence.executeQuery()) {
+                    if (resultSet.next()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"
+                    + serviceProviderName, e);
+        }
+        return false;
+    }
+
     /**
      * @param conn
      * @param tenantId
