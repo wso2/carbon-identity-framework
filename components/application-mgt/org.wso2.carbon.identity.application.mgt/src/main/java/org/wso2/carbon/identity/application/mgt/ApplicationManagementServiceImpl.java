@@ -160,16 +160,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
-        ServiceProvider updatedSpFromTemplate = getSPFromTemplate(serviceProvider, tenantDomain, spTemplate);
 
-        ServiceProvider addedSP = doAddApplication(updatedSpFromTemplate, tenantDomain, username);
-        updatedSpFromTemplate.setApplicationID(addedSP.getApplicationID());
-        updatedSpFromTemplate.setOwner(getUser(tenantDomain, username));
+        ServiceProvider initialSP = new ServiceProvider();
+        initialSP.setApplicationName(serviceProvider.getApplicationName());
+        initialSP.setDescription(serviceProvider.getDescription());
+        updateSPFromTemplate(serviceProvider, tenantDomain, spTemplate);
 
+        ServiceProvider addedSP = doAddApplication(initialSP, tenantDomain, username);
+        serviceProvider.setApplicationID(addedSP.getApplicationID());
+        serviceProvider.setOwner(getUser(tenantDomain, username));
         if (spTemplate != null && spTemplate.getContent() != null) {
-            updateApplication(updatedSpFromTemplate, tenantDomain, username);
+            updateApplication(serviceProvider, tenantDomain, username);
         }
-        return updatedSpFromTemplate;
+
+        return serviceProvider;
     }
 
     @Override
@@ -1500,7 +1504,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return updatedSp;
     }
 
-    private ServiceProvider getSPFromTemplate(ServiceProvider serviceProvider, String tenantDomain,
+    private void updateSPFromTemplate(ServiceProvider serviceProvider, String tenantDomain,
                                               SpTemplate spTemplate) throws IdentityApplicationManagementException {
 
        if (spTemplate != null && spTemplate.getContent() != null) {
@@ -1522,7 +1526,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         }
-        return serviceProvider;
     }
 
     private ServiceProvider unmarshalSP(String spTemplateXml, String tenantDomain)
