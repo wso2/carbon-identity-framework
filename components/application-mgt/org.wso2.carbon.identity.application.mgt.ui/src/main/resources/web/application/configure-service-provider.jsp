@@ -2472,7 +2472,7 @@
                                                                             for (Property pro : props) {
                                                                                 if ((IS_HANDLER.equals(pro.getName()) && Boolean.valueOf(pro.getValue()))) {
                                                                                     isHander = true;
-                                                                                    continue;
+                                                                                    break;
                                                                                 }
                                                                             }
                                                                             if (isHander) {
