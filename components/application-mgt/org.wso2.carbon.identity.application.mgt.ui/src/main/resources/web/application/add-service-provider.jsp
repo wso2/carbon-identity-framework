@@ -194,45 +194,45 @@ window.onload = function() {
                             </div>
                         </td>
                     </tr>
-                    <%
-                        if (spTemplates != null && spTemplates.length > 0) {
-                    %>
-                    <tr>
-                        <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.template'/>:</td>
-                        <td>
-                            <select style="min-width: 250px;" id="sp-template" name="sp-template">
-                                <option value="">---Select---</option>
-                                <%
-                                    for (SpTemplate spTemplate : spTemplates) {
-                                        if (spTemplate != null) {
-                                            if (spTemplate.getName().equals(
-                                                    TENANT_DEFAULT_SP_TEMPLATE_NAME)) {
-                                %>
-                                <option
-                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
-                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>" selected>
-                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
-                                </option>
-                                <%              } else { %>
-                                <option
-                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
-                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>">
-                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
-                                </option>
-                                <%
-                                                }
-                                            }
-                                        }
-                                %>
-                            </select>
-                            <div class="sectionHelp">
-                                <fmt:message key='help.template'/>
-                            </div>
-                        </td>
-                    </tr>
-                    <%
-                        }
-                    %>
+                    <%--<%--%>
+                        <%--if (spTemplates != null && spTemplates.length > 0) {--%>
+                    <%--%>--%>
+                    <%--<tr>--%>
+                        <%--<td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.template'/>:</td>--%>
+                        <%--<td>--%>
+                            <%--<select style="min-width: 250px;" id="sp-template" name="sp-template">--%>
+                                <%--<option value="">---Select---</option>--%>
+                                <%--<%--%>
+                                    <%--for (SpTemplate spTemplate : spTemplates) {--%>
+                                        <%--if (spTemplate != null) {--%>
+                                            <%--if (spTemplate.getName().equals(--%>
+                                                    <%--TENANT_DEFAULT_SP_TEMPLATE_NAME)) {--%>
+                                <%--%>--%>
+                                <%--<option--%>
+                                        <%--value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"--%>
+                                        <%--title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>" selected>--%>
+                                    <%--<%=Encode.forHtmlContent(spTemplate.getName())%>--%>
+                                <%--</option>--%>
+                                <%--<%              } else { %>--%>
+                                <%--<option--%>
+                                        <%--value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"--%>
+                                        <%--title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>">--%>
+                                    <%--<%=Encode.forHtmlContent(spTemplate.getName())%>--%>
+                                <%--</option>--%>
+                                <%--<%--%>
+                                                <%--}--%>
+                                            <%--}--%>
+                                        <%--}--%>
+                                <%--%>--%>
+                            <%--</select>--%>
+                            <%--<div class="sectionHelp">--%>
+                                <%--<fmt:message key='help.template'/>--%>
+                            <%--</div>--%>
+                        <%--</td>--%>
+                    <%--</tr>--%>
+                    <%--<%--%>
+                        <%--}--%>
+                    <%--%>--%>
                 </table>
             </div>
             <div class="buttonRow">
