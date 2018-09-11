@@ -99,11 +99,13 @@
     %>
     <script type="text/javascript">
         function updateTemplateOnclick() {
-            if (document.getElementById('template-name').value === null || document.getElementById('template-name').value === "") {
+            var templateName = $.trim(document.getElementById('template-name').value);
+            var templateContent = $.trim(document.getElementById('templateContent').value);
+            if (templateName === null || 0 === templateName.length) {
                 CARBON.showWarningDialog('Please specify service provider template name.');
                 location.href = '#';
                 return false;
-            } else if (document.getElementById('templateContent').value === null || document.getElementById('templateContent').value === "") {
+            } else if (templateContent === null || 0 === templateContent.length) {
                 CARBON.showWarningDialog('Please specify service provider template content.');
                 location.href = '#';
                 return false;
