@@ -1084,8 +1084,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
                         CarbonContext.getThreadLocalCarbonContext().getUsername());
             } catch (IdentityApplicationManagementValidationException e) {
-                log.error("Validation error when creating the application template " +
-                        serviceProvider.getApplicationName() + "@" + tenantDomain);
+                log.error("Validation error when creating the application template: " +
+                        spTemplate.getName() + " in:" + tenantDomain);
                 for (String msg : e.getValidationMsg()) {
                     log.error(msg);
                 }
@@ -1118,8 +1118,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
                             CarbonContext.getThreadLocalCarbonContext().getUsername());
                 } catch (IdentityApplicationManagementValidationException e) {
-                    log.error("Validation error when creating the application template from service provider " +
-                            serviceProvider.getApplicationName() + "@" + tenantDomain);
+                    log.error("Validation error when creating the application template:" + spTemplate.getName() +
+                                    "from service provider: " + serviceProvider.getApplicationName() + " in:" +
+                            tenantDomain);
                     for (String msg : e.getValidationMsg()) {
                         log.error(msg);
                     }
@@ -1192,8 +1193,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
         } catch (IdentityApplicationManagementValidationException e) {
-            log.error("Validation error when updating the application template " +
-                    serviceProvider.getApplicationName() + "@" + tenantDomain);
+            log.error("Validation error when updating the application template: " + templateName + " in:" +
+                    tenantDomain);
             for (String msg : e.getValidationMsg()) {
                 log.error(msg);
             }
