@@ -392,15 +392,15 @@
         var templateNames = "";
         $(".template-name").each(function() {
             if(this.value != "") {
-                templateName  = this.value;
+                templateName  = $.trim(this.value);
             }
         });
         $(".template-description").each(function() {
             if(this.value != "") {
-                templateDesc  = this.value;
+                templateDesc  = $.trim(this.value);
             }
         });
-        if (templateName === null || templateName === "") {
+        if (templateName === null || 0 === templateName.length) {
             CARBON.showWarningDialog('Please specify service provider template name.');
             return;
         }
@@ -422,8 +422,12 @@
             url: 'add-service-provider-as-template.jsp',
             data: $("#configure-sp-form").serialize(),
             success: function () {
+                CARBON.showInfoDialog('Service provider template is added successfully.');
+                return;
             },
             error: function(e) {
+                CARBON.showErrorDialog('Error when adding service provider template.');
+                return;
             },
             async: false
         });
