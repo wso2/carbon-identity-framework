@@ -381,10 +381,10 @@
     var roleMappinRowID = -1;
     <% } %>
 
-    function saveAsTemplate() {
-        showPopupConfirm($(".editor-error-warn-container").html(), "Save Service Provider Template", 250, 550, "Save", "Cancel",
-            saveTemplate, null);
-    }
+    // function saveAsTemplate() {
+    //     showPopupConfirm($(".editor-error-warn-container").html(), "Save Service Provider Template", 250, 550, "Save", "Cancel",
+    //         saveTemplate, null);
+    // }
 
     function saveTemplate() {
         var templateName = "";
@@ -2859,11 +2859,11 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
-                                            <input type="button"
-                                                   value="<fmt:message key='button.save.service.provider.template'/>"
-                                                   onclick="saveAsTemplate();"/>
-                                            <input type="hidden" name="templateName" id="templateName"/>
-                                            <input type="hidden" name="templateDesc" id="templateDesc"/>
+                                            <%--<input type="button"--%>
+                                                   <%--value="<fmt:message key='button.save.service.provider.template'/>"--%>
+                                                   <%--onclick="saveAsTemplate();"/>--%>
+                                            <%--<input type="hidden" name="templateName" id="templateName"/>--%>
+                                            <%--<input type="hidden" name="templateDesc" id="templateDesc"/>--%>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"
                                                    onclick="javascript:location.href='list-service-providers.jsp'"/>
                                         </div>

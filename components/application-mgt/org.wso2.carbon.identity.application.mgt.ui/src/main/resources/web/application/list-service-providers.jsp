@@ -161,12 +161,12 @@
             <br/>
             <table style="width: 100%" class="styledLeft">
                 <tbody>
-                <tr>
-                    <div style="height:30px;">
-                        <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
-                           style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>
-                    </div>
-                </tr>
+                <%--<tr>--%>
+                    <%--<div style="height:30px;">--%>
+                        <%--<a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"--%>
+                           <%--style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>--%>
+                    <%--</div>--%>
+                <%--</tr>--%>
                 <tr>
                     <td style="border:none !important">
                         <table class="styledLeft" width="100%" id="ServiceProviders">
