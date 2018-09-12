@@ -18,19 +18,32 @@
 
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.claim.mgt.ClaimManagerHandler" %>
+<%@ page import="org.wso2.carbon.claim.mgt.ClaimManagementException" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
 <%
+    String missingClaims = null;
     String[] missingClaimList = null;
     String appName = null;
+    String errorMessage = null;
+    String sessionDataKey = null;
     Boolean isFederated = false;
+    ClaimManagerHandler claimManagerHandler = ClaimManagerHandler.getInstance();
     if (request.getParameter(Constants.MISSING_CLAIMS) != null) {
-        missingClaimList = request.getParameter(Constants.MISSING_CLAIMS).split(",");
+        missingClaims = request.getParameter(Constants.MISSING_CLAIMS);
+        missingClaimList = missingClaims.split(",");
     }
     if (request.getParameter(Constants.REQUEST_PARAM_SP) != null) {
         appName = request.getParameter(Constants.REQUEST_PARAM_SP);
+    }
+    if (request.getParameter(Constants.ERROR_MESSAGE) != null) {
+        errorMessage = request.getParameter(Constants.ERROR_MESSAGE);
+    }
+    if (request.getParameter(Constants.SESSION_DATA_KEY) != null) {
+        sessionDataKey = request.getParameter(Constants.SESSION_DATA_KEY);
     }
 
 %>
@@ -54,6 +67,39 @@
     <script src="js/html5shiv.min.js"></script>
     <script src="js/respond.min.js"></script>
     <![endif]-->
+    
+    <script>
+        function validate() {
+            <% if (missingClaimList == null) {%>
+            return true;
+            <% } %>
+            <%
+                for (String claim : missingClaimList) {
+                    String regExp = null;
+                    try {
+                        regExp = claimManagerHandler.getClaimMapping(claim).getClaim().getRegEx();
+                        if (regExp == null) {
+                            continue;
+                        }
+                    } catch (ClaimManagementException ex) {
+                        continue;
+                    }%>
+            var value = document.getElementsByName("claim_mand_<%=Encode.forHtmlAttribute(claim)%>")[0].value;
+            var regExp = new RegExp("<%=regExp%>");
+            var valid = regExp.test(value);
+            if (value !== '' && !valid) {
+                var errorMessage = "<%=Encode.forJavaScript("Invalid input for claim \'" + claim + "\'.")%>";
+                var url = [location.protocol, '//', location.host, location.pathname].join('');
+                url += "?<%=Constants.MISSING_CLAIMS%>=" + encodeURIComponent("<%=missingClaims%>");
+                url += "&<%=Constants.REQUEST_PARAM_SP%>=" + encodeURIComponent("<%=appName%>");
+                url += "&<%=Constants.SESSION_DATA_KEY%>=" + encodeURIComponent("<%=sessionDataKey%>");
+                url += "&<%=Constants.ERROR_MESSAGE%>=" + encodeURIComponent(errorMessage);
+                location = url;
+                return false;
+            }
+            <%   } %>
+        }
+    </script>
 </head>
 
 <body>
@@ -76,7 +122,7 @@
     <div class="row">
         <!-- content -->
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-            <form action="<%=commonauthURL%>" method="post" id="claimForm">
+            <form action="<%=commonauthURL%>" method="post" id="claimForm" name = "claimForm" onsubmit="return validate()">
                 <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "provide.mandatory.details")%>
                 </h2>
@@ -91,6 +137,9 @@
 
                     <!-- validation -->
                     <div class="padding-double">
+                        <% if (errorMessage != null) { %>
+                        <div class="alert alert-danger" id="error-msg"><%=errorMessage%></div>
+                        <% } %>
                         <% for (String claim : missingClaimList) { %>
                         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
                             <label class="control-label"><%=Encode.forHtmlContent(claim)%>
@@ -163,7 +212,6 @@
             return $("#popover-content").html();
         }
     });
-
 </script>
 
 </body>
