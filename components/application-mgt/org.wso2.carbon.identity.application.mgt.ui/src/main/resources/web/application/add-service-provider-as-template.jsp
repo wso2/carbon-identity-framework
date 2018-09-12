@@ -26,11 +26,22 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="java.util.ResourceBundle" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 
 <%
     String templateName = request.getParameter("templateName");
     String templateDesc = request.getParameter("templateDesc");
     String oldSPName = request.getParameter("oldSPName");
+
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     try {
         ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, oldSPName);
         appBean.update(request);
@@ -46,7 +57,7 @@
         ServiceProvider sp = appBean.getServiceProvider();
         serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occurred while adding the Service Provider as a template",
-                CarbonUIMessage.ERROR, request, e);
+        String message = resourceBundle.getString("alert.error.add.sp.as.template") + " : " + e.getMessage();
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
     }
 %>

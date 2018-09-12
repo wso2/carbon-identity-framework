@@ -26,6 +26,13 @@
         import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
+
 <%! public static final String BYTES = "bytes";
     private static final String CONTENT_LENGTH = "Content-Length";
     private static final String ACCEPT_RANGES = "Accept-Ranges";
@@ -42,7 +49,7 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    String templateName = request.getParameter("templateName");
+    String templateName = request.getParameter("exportTemplateName");
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     if (StringUtils.isNotEmpty(templateName)) {
         try {
@@ -65,7 +72,7 @@
             response.setHeader(CONTENT_LENGTH, String.valueOf(templateData.length()));
             out.write(templateData);
         } catch (Exception e) {
-            String message = resourceBundle.getString("template.list.error.while.exporting.template") + " : " + e.getMessage();
+            String message = resourceBundle.getString("alert.error.export.sp.template") + " : " + e.getMessage();
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     }

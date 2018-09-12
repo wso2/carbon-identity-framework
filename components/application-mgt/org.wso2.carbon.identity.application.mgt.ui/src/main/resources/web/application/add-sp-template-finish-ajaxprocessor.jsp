@@ -24,6 +24,13 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="java.util.ResourceBundle" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 
 <%
     String httpMethod = request.getMethod();
@@ -31,9 +38,12 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    String content = request.getParameter("sp-template-file-content");
-    String templateName = request.getParameter("template-name");
-    String templateDescription = request.getParameter("template-description");
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+    String content = request.getParameter("sp-template-file-content").trim();
+    String templateName = request.getParameter("template-name").trim();
+    String templateDescription = request.getParameter("template-description").trim();
     if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -53,7 +63,8 @@
 </script>
 <%
 } catch (Exception e) {
-    CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
+    String message = resourceBundle.getString("alert.error.add.sp.template") + " : " + e.getMessage();
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
 %>
 <script>
     location.href = 'add-sp-template.jsp';

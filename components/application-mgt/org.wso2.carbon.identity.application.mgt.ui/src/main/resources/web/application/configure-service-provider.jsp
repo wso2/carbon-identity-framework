@@ -386,12 +386,86 @@
             saveTemplate, null);
     }
 
+    function validateTextForIllegal(fld) {
+        var isValid = doValidateInput(fld, "Provided Service Provider Template name is invalid.");
+        if (isValid) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function validateSPConfigurations() {
+        if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
+            var isValied = true;
+            $.each($('.spClaimVal'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Claim Configuration section');
+                    return false;
+                }
+            });
+            if (!isValied) {
+                return false;
+            }
+        }
+        // number_of_claimmappings
+        var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
+        document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+
+        if ($('[name=app_permission]').length > 0) {
+            var isValied = true;
+            $.each($('[name=app_permission]'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Permission Configuration section');
+                    return false;
+                }
+            });
+            if (!isValied) {
+                return false;
+            }
+        }
+        if ($('.roleMapIdp').length > 0) {
+            var isValied = true;
+            $.each($('.roleMapIdp'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
+                    return false;
+                }
+            });
+            if (isValied) {
+                if ($('.roleMapSp').length > 0) {
+                    $.each($('.roleMapSp'), function () {
+                        if ($(this).val().length == 0) {
+                            isValied = false;
+                            CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
+                            return false;
+                        }
+                    });
+                }
+            }
+            if (!isValied) {
+                return false;
+            }
+        }
+        var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
+        document.getElementById('number_of_permissions').value = numberOfPermissions;
+
+        var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
+        document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+    }
+
     function saveTemplate() {
         var templateName = "";
         var templateDesc = "";
         var templateNames = "";
         $(".template-name").each(function() {
             if(this.value != "") {
+                if (!validateTextForIllegal(this)) {
+                    return false;
+                }
                 templateName  = $.trim(this.value);
             }
         });
@@ -416,7 +490,7 @@
         document.getElementById('templateName').value = templateName;
         document.getElementById('templateDesc').value = templateDesc;
 
-        var error_msg = $("#error-msg");
+        validateSPConfigurations();
         $.ajax({
             type: "POST",
             url: 'add-service-provider-as-template.jsp',
@@ -441,66 +515,7 @@
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
         } else {
-            if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
-                var isValied = true;
-                $.each($('.spClaimVal'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Claim Configuration section');
-                        return false;
-                    }
-                });
-                if (!isValied) {
-                    return false;
-                }
-            }
-            // number_of_claimmappings
-            var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-            document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
-            if ($('[name=app_permission]').length > 0) {
-                var isValied = true;
-                $.each($('[name=app_permission]'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Permission Configuration section');
-                        return false;
-                    }
-                });
-                if (!isValied) {
-                    return false;
-                }
-            }
-            if ($('.roleMapIdp').length > 0) {
-                var isValied = true;
-                $.each($('.roleMapIdp'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
-                        return false;
-                    }
-                });
-                if (isValied) {
-                    if ($('.roleMapSp').length > 0) {
-                        $.each($('.roleMapSp'), function () {
-                            if ($(this).val().length == 0) {
-                                isValied = false;
-                                CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
-                                return false;
-                            }
-                        });
-                    }
-                }
-                if (!isValied) {
-                    return false;
-                }
-            }
-            var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
-            document.getElementById('number_of_permissions').value = numberOfPermissions;
-
-            var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
-            document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+            validateSPConfigurations();
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';

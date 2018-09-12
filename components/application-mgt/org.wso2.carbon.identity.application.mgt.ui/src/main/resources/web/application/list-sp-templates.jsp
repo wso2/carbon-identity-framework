@@ -29,10 +29,12 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
+
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
-<jsp:include page="../dialog/display_messages.jsp"/>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 <fmt:bundle
         basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <carbon:breadcrumb label="application.mgt"
@@ -70,11 +72,6 @@
         </h2>
         <div id="workArea">
             <script type="text/javascript">
-                function editSPTemplate(templateName, templateDesc) {
-                    location.href = "edit-sp-template.jsp?templateName=" + templateName +
-                        "&templateDesc=" + templateDesc;
-                }
-
                 function removeSPTemplate(templateName) {
                     function doDelete() {
                         $.ajax({
@@ -97,7 +94,7 @@
                 }
 
                 function exportSPTemplate(templateName) {
-                    document.getElementById('templateName').value = templateName;
+                    document.getElementById('exportTemplateName').value = templateName;
                     $('#exportSPTemplateMsgDialog').dialog("open");
                 }
             </script>
@@ -137,7 +134,8 @@
                         }
                     }
                 } catch (Exception e) {
-                    String message = resourceBundle.getString("error.while.reading.template.info") + " : " + e.getMessage();
+                    String message = resourceBundle.getString("alert.error.read.sp.template.info") + " : " +
+                            "" + e.getMessage();
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
@@ -185,8 +183,8 @@
                                         if (canEdit) {
                                     %>
                                     <a title="Edit Service Provider Template"
-                                       onclick="editSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>',
-                                               '<%=template.getDescription() != null ? Encode.forJavaScriptAttribute(template.getDescription()) : ""%>');return false;" href="#"
+                                       onclick="javascript:location.href=
+                                               'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(template.getName())%>'"
                                        class="icon-link"
                                        style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
                                     </a>
@@ -195,7 +193,7 @@
                                         if (canView) {
                                     %>
                                     <a title="Export Service Provider Template"
-                                       onclick="exportSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
+                                       onclick="exportSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');"
                                        class="icon-link"
                                        style="background-image: url(../application/images/publish.gif)">
                                         <fmt:message key="sp.template.export"/>
@@ -205,7 +203,7 @@
                                         if (canDelete) {
                                     %>
                                     <a title="Remove Service Provider Template"
-                                       onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
+                                       onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');"
                                        class="icon-link"
                                        style="background-image: url(../application/images/delete.gif)"><fmt:message key="sp.template.delete"/>
                                     </a>
@@ -244,7 +242,7 @@
             <p><fmt:message key="sp.template.export.para"/></p><br>
             <form id="templateExportData" name="template-export-data" method="post"
                   action="export-sp-template-finish-ajaxprocessor.jsp">
-                <input hidden id="templateName" name="templateName"/>
+                <input hidden id="exportTemplateName" name="exportTemplateName"/>
             </form>
         </div>
     </div>
