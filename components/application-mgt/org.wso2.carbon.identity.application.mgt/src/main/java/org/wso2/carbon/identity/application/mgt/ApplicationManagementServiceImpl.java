@@ -1089,7 +1089,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 for (String msg : e.getValidationMsg()) {
                     log.error(msg);
                 }
-                throw e;
+                throw new IdentityApplicationManagementException(StringUtils.join(e.getValidationMsg(), ' '), e);
             }
 
             Collection<ApplicationMgtListener> listeners =
@@ -1124,7 +1124,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     for (String msg : e.getValidationMsg()) {
                         log.error(msg);
                     }
-                    throw e;
+                    throw new IdentityApplicationManagementException(StringUtils.join(e.getValidationMsg(), ' '), e);
                 }
 
                 Collection<ApplicationMgtListener> listeners =
@@ -1198,7 +1198,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             for (String msg : e.getValidationMsg()) {
                 log.error(msg);
             }
-            throw e;
+            throw new IdentityApplicationManagementException(StringUtils.join(e.getValidationMsg(), ' '), e);
         }
 
         Collection<ApplicationMgtListener> listeners =
