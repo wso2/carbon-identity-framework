@@ -95,6 +95,7 @@
 
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<%!public static final String IS_HANDLER = "IS_HANDLER";%>
 
 
 <%
@@ -2469,7 +2470,21 @@
                                                                 if (appBean.getLocalAuthenticatorConfigs() != null) {
                                                                     LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
                                                                     for (LocalAuthenticatorConfig authenticator : localAuthenticatorConfigs) {
+                                                                        Property[] props = authenticator.getProperties();
+                                                                        if (props != null && props.length > 0) {
+                                                                            boolean isHander = false;
+                                                                            for (Property pro : props) {
+                                                                                if ((IS_HANDLER.equals(pro.getName()) && Boolean.valueOf(pro.getValue()))) {
+                                                                                    isHander = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if (isHander) {
+                                                                                continue;
+                                                                            }
+                                                                        }
                                                             %>
+                                                            
                                                             <% if (authenticator.getName().equals(appBean.getStepZeroAuthenticatorName(ApplicationBean.AUTH_TYPE_LOCAL))) { %>
                                                             <option
                                                                 value="<%=Encode.forHtmlAttribute(authenticator.getName())%>"

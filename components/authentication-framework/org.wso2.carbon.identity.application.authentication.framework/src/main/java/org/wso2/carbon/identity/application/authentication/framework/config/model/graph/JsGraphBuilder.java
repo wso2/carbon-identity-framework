@@ -134,11 +134,14 @@ public class JsGraphBuilder {
         try {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
+            Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                 this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
+            engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
+            engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -733,6 +736,22 @@ public class JsGraphBuilder {
     public interface PromptExecutor {
 
         void prompt(String template, Object... parameterMap);
+    }
+
+    @FunctionalInterface
+    public interface RestrictedFunction {
+
+        void exit(Object... arg);
+    }
+
+    public void exitFunction(Object... arg) {
+
+        log.error("Exit function is restricted.");
+    }
+
+    public void quitFunction(Object... arg) {
+
+        log.error("Quit function is restricted.");
     }
 
     /**
