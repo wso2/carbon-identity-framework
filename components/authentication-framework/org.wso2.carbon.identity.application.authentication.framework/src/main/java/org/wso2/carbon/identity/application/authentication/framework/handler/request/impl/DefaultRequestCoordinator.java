@@ -51,6 +51,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         AuthenticationContext context = null;
+
         try {
             AuthenticationRequestCacheEntry authRequest = null;
             String sessionDataKey = request.getParameter("sessionDataKey");
@@ -150,6 +152,27 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+
+                // Monitor should be context itself as we need to synchronize only if the same context is used by two
+                // different threads.
+                synchronized (context) {
+                    if (!context.isActiveInAThread()) {
+                        context.setActiveInAThread(true);
+                    } else {
+                        log.error("Same context is currently in used by a different thread. Possible double submit.");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Same context is currently in used by a different thread. Possible double submit."
+                                    +  "\n" +
+                                    "Context id: " + context.getContextIdentifier() + "\n" +
+                                    "Originating address: " + request.getRemoteAddr() + "\n" +
+                                    "Request Headers: " + getHeaderString(request) + "\n" +
+                                    "Thread Id: " + Thread.currentThread().getId());
+                        }
+                        FrameworkUtils.sendToRetryPage(request, response);
+                        return;
+                    }
+                }
+
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
@@ -196,7 +219,28 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);
+        } finally {
+            if (context != null) {
+                context.setActiveInAThread(false);
+            }
         }
+    }
+
+    /**
+     * Print the request headers as a one string with header names and respective values.
+     * @param request HTTP request to retrieve headers.
+     * @return Headers and values as a single string.
+     */
+    private String getHeaderString(HttpServletRequest request) {
+
+        Enumeration<String> headerNames = request.getHeaderNames();
+        StringBuilder stringBuilder = new StringBuilder();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            stringBuilder.append("Header Name: ").append(headerName).append(", ")
+                    .append("Value: ").append(request.getHeader(headerName)).append(". ");
+        }
+        return stringBuilder.toString();
     }
 
     /**
