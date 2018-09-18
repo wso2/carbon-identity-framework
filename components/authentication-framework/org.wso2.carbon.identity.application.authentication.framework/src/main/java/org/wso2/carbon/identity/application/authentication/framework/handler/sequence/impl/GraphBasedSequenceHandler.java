@@ -521,7 +521,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     executeFunction("onSuccess", dynamicDecisionNode, context);
                     break;
                 case FAIL_COMPLETED:
-                    executeFunction("onFail", dynamicDecisionNode, context);
+                    if (dynamicDecisionNode.getFunctionMap().get("onFail") != null) {
+                        executeFunction("onFail", dynamicDecisionNode, context);
+                    } else {
+                        if (context.isRetrying()) {
+                            AuthGraphNode nextNode = dynamicDecisionNode.gerParent();
+                            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+                            return;
+                        }
+                    }
                     if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
                         dynamicDecisionNode.setDefaultEdge(new FailNode());
                     }
