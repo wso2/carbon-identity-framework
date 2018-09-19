@@ -99,11 +99,13 @@
     %>
     <script type="text/javascript">
         function updateTemplateOnclick() {
-            if (document.getElementById('template-name').value === null || document.getElementById('template-name').value === "") {
+            var templateName = $.trim(document.getElementById('template-name').value);
+            var templateContent = $.trim(document.getElementById('templateContent').value);
+            if (templateName === null || 0 === templateName.length) {
                 CARBON.showWarningDialog('Please specify service provider template name.');
                 location.href = '#';
                 return false;
-            } else if (document.getElementById('templateContent').value === null || document.getElementById('templateContent').value === "") {
+            } else if (templateContent === null || 0 === templateContent.length) {
                 CARBON.showWarningDialog('Please specify service provider template content.');
                 location.href = '#';
                 return false;
@@ -126,19 +128,15 @@
                     <td>
                         <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
                                 white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.name'/>
-                        </div>
+                        <div class="sectionHelp"><fmt:message key='help.template.name'/></div>
                     </td>
                 </tr>
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
                     <td>
                         <textarea style="width:50%" type="text" name="template-description" id="template-description"
-                                  class="text-box-big"><%=Encode.forHtmlContent(templateDesc)%></textarea>
-                        <div class="sectionHelp">
-                            <fmt:message key='help.desc'/>
-                        </div>
+                                  class="text-box-big"><%=templateDesc != null ? Encode.forHtmlContent(templateDesc) : ""%></textarea>
+                        <div class="sectionHelp"><fmt:message key='help.template.desc'/></div>
                     </td>
                 </tr>
             </table>

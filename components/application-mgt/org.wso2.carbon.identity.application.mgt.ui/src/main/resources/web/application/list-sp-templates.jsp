@@ -92,7 +92,7 @@
                             }
                         });
                     }
-                    CARBON.showConfirmationDialog('Are you sure you want to delete "' + templateName + '" SP Template information?',
+                    CARBON.showConfirmationDialog('Are you sure you want to delete service provider template ' + templateName + ' ?',
                         doDelete, null);
                 }
 
@@ -143,6 +143,10 @@
             %>
             <br/>
             <table style="width: 100%" class="styledLeft">
+                <div style="height:30px;">
+                    <a href="javascript:document.location.href='add-sp-template.jsp'" class="icon-link"
+                       style="background-image:url(../admin/images/add.gif);"><fmt:message key="sp.template.add.link"/></a>
+                </div>
                 <tbody>
                 <tr>
                     <td style="border:none !important">
@@ -182,7 +186,7 @@
                                     %>
                                     <a title="Edit Service Provider Template"
                                        onclick="editSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>',
-                                               '<%=Encode.forJavaScriptAttribute(template.getDescription())%>');return false;" href="#"
+                                               '<%=template.getDescription() != null ? Encode.forJavaScriptAttribute(template.getDescription()) : ""%>');return false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
                                     </a>
@@ -232,10 +236,6 @@
                               resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                               parameters="<%=paginationValue%>"
                               prevKey="prev" nextKey="next"/>
-            <div style="height:30px;">
-                <a href="javascript:document.location.href='add-sp-template.jsp'" class="icon-link"
-                   style="background-image:url(../admin/images/add.gif);">Add new service provider template</a>
-            </div>
         </div>
     </div>
     </div>

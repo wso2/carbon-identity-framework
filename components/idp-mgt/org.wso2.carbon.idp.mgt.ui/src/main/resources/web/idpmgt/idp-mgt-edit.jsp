@@ -3741,7 +3741,7 @@
                                                 }
                                             %>
                                             <input type="text"
-                                                   value="<%=roleName%>"
+                                                   value="<%=Encode.forHtmlAttribute(roleName)%>"
                                                    id="localrowname_<%=i%>" name="localrowname_<%=i%>"/>
                                         </td>
                                         <td>
