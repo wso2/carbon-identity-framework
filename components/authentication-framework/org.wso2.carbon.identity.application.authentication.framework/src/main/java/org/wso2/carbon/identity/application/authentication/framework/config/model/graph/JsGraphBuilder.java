@@ -134,11 +134,14 @@ public class JsGraphBuilder {
         try {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
+            Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                 this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
+            engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
+            engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -687,18 +690,22 @@ public class JsGraphBuilder {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
             if (stepConfigGraphNode.getNext() == null) {
                 stepConfigGraphNode.setNext(nodeToAttach);
+                nodeToAttach.setParent(stepConfigGraphNode);
             } else {
                 attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
             }
         } else if (baseNode instanceof LongWaitNode) {
             LongWaitNode longWaitNode = (LongWaitNode) baseNode;
             longWaitNode.setDefaultEdge(nodeToAttach);
+            nodeToAttach.setParent(longWaitNode);
         } else if (baseNode instanceof ShowPromptNode) {
             ShowPromptNode showPromptNode = (ShowPromptNode) baseNode;
             showPromptNode.setDefaultEdge(nodeToAttach);
+            nodeToAttach.setParent(showPromptNode);
         } else if (baseNode instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
             dynamicDecisionNode.setDefaultEdge(nodeToAttach);
+            nodeToAttach.setParent(dynamicDecisionNode);
         } else if (baseNode instanceof EndStep) {
             if (log.isDebugEnabled()) {
                 log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);
@@ -733,6 +740,22 @@ public class JsGraphBuilder {
     public interface PromptExecutor {
 
         void prompt(String template, Object... parameterMap);
+    }
+
+    @FunctionalInterface
+    public interface RestrictedFunction {
+
+        void exit(Object... arg);
+    }
+
+    public void exitFunction(Object... arg) {
+
+        log.error("Exit function is restricted.");
+    }
+
+    public void quitFunction(Object... arg) {
+
+        log.error("Quit function is restricted.");
     }
 
     /**

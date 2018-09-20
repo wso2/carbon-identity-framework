@@ -31,11 +31,22 @@ public class DynamicDecisionNode implements AuthGraphNode {
     private static final long serialVersionUID = -2151385170280964420L;
     private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
+    private AuthGraphNode parentNode;
 
     @Override
     public String getName() {
         //TODO: Implement this.
         return null;
+    }
+
+    @Override
+    public AuthGraphNode gerParent() {
+        return parentNode;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+        this.parentNode = parentNode;
     }
 
     public Map<String, SerializableJsFunction> getFunctionMap() {
