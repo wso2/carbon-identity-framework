@@ -23,7 +23,7 @@
 <jsp:directive.include file="init-url.jsp"/>
 
 <%
-    String sessionDataKey = Encode.forHtmlAttribute(request.getParameter("sessionDataKey"));
+    String sessionDataKey = request.getParameter("sessionDataKey");
 %>
 <html>
 <head>
@@ -53,12 +53,12 @@
 <div id="loader-wrapper">
     <div id="loader"></div>
     <form id="toCommonAuth" action="<%=commonauthURL%>" method="POST" style="display:none;">
-        <input id="sessionDataKey" type="hidden" name="sessionDataKey" value="<%=sessionDataKey%>">
+        <input id="sessionDataKey" type="hidden" name="sessionDataKey" value="<%=Encode.forHtmlAttribute(sessionDataKey)%>">
     </form>
 </div>
 
 <script type="text/javascript">
-    var sessionDataKey = '<%=sessionDataKey%>';
+    var sessionDataKey = '<%=Encode.forJavaScriptBlock(sessionDataKey)%>';
     var refreshInterval = '<%=AdaptiveAuthUtil.getRefreshInterval()%>';
     var timeout = '<%=AdaptiveAuthUtil.getRequestTimeout()%>';
     $(document).ready(function () {
