@@ -39,9 +39,9 @@
 <jsp:include page="../dialog/display_messages.jsp" />
 
 <%
-    String[] importError = (String[]) request.getSession().getAttribute("importError");
-    if (importError == null) {
-        importError = new String[0];
+    String[] clientError = (String[]) request.getSession().getAttribute("clientError");
+    if (clientError == null) {
+        clientError = new String[0];
     }
     SpTemplate[] spTemplates = null;
     try {
@@ -117,25 +117,25 @@ function showFile() {
     $("#upload-sp-form").show();
 }
 $(function() {
-    $( "#importErrorMsgDialog" ).dialog({
+    $( "#clientErrorMsgDialog" ).dialog({
         autoOpen: false,
         modal: true,
         buttons: {
-            OK: closeImportErrorDialog
+            OK: closeClientErrorDialog
         },
         width: "fit-content"
     });
 });
-function closeImportErrorDialog() {
+function closeClientErrorDialog() {
    $(this).dialog("close");
    <%
-    request.getSession().removeAttribute("importError");
+    request.getSession().removeAttribute("clientError");
    %>
 }
 window.onload = function() {
     showManual();
-    <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
-        $( "#importErrorMsgDialog" ).dialog( "open" );
+    <% if (Boolean.valueOf(request.getParameter("clientError")) && clientError.length > 0) { %>
+        $( "#clientErrorMsgDialog" ).dialog( "open" );
     <% } %>
 };
 </script>
@@ -268,14 +268,14 @@ window.onload = function() {
             </form>
         </div>
     </div>
-    <div id="importErrorMsgDialog"  title='WSO2 Carbon'>
+    <div id="clientErrorMsgDialog"  title='WSO2 Carbon'>
         <div id="messagebox-error">
             <h3>
-                <fmt:message key="error.while.importing.sp"/>
+                <fmt:message key="alert.error.add.sp.template"/>
             </h3>
             <table style="margin-top:10px;">
                 <%
-                    for (String error : importError){
+                    for (String error : clientError){
                 %>
                 <tr>
                     <td><%=error%></td>

@@ -52,7 +52,7 @@
                     new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
             serviceClient.deleteApplicationTemplate(templateName);
         } catch (Exception e) {
-            String message = resourceBundle.getString("alert.error.remove.sp.template") + " : " + e.getMessage();
+            String message = resourceBundle.getString("alert.error.remove.sp.template");
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     }

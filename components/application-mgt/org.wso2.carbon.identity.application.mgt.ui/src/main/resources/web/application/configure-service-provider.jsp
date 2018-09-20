@@ -86,15 +86,16 @@
 <script src="js/handlebars.min-v4.0.11.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
 
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
+
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
-<jsp:include page="../dialog/display_messages.jsp"/>
-
-
-<script type="text/javascript" src="../admin/js/main.js"></script>
-<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <%!public static final String IS_HANDLER = "IS_HANDLER";%>
 
 
@@ -496,7 +497,7 @@
             type: "POST",
             url: 'add-service-provider-as-template.jsp',
             data: $("#configure-sp-form").serialize(),
-            success: function () {
+            success: function (response) {
                 CARBON.showInfoDialog('Service provider template is added successfully.');
                 return;
             },

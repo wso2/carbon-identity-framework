@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ClientResponse" %>
+<%@ page import="org.apache.commons.httpclient.HttpStatus" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -55,9 +57,19 @@
         spTemplate.setName(templateName);
         spTemplate.setDescription(templateDesc);
         ServiceProvider sp = appBean.getServiceProvider();
-        serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
+        ClientResponse clientResponse = serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
+        if (clientResponse.getResponseCode() != HttpStatus.SC_CREATED) {
+            String[] errors = clientResponse.getErrors();
+            session.setAttribute("clientError", errors);
+%>
+            <script>
+                location.href = 'add-service-provider.jsp?clientError=true';
+            </script>
+<%
+        }
     } catch (Exception e) {
-        String message = resourceBundle.getString("alert.error.add.sp.as.template") + " : " + e.getMessage();
+        String message = resourceBundle.getString("alert.error.add.sp.as.template");
+        out.print(message);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
     }
 %>

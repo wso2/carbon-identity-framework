@@ -72,7 +72,7 @@
             response.setHeader(CONTENT_LENGTH, String.valueOf(templateData.length()));
             out.write(templateData);
         } catch (Exception e) {
-            String message = resourceBundle.getString("alert.error.export.sp.template") + " : " + e.getMessage();
+            String message = resourceBundle.getString("alert.error.export.sp.template");
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     }

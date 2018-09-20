@@ -80,6 +80,11 @@
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
     <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
     <%
+        String[] clientError = (String[]) request.getSession().getAttribute("clientError");
+        if (clientError == null) {
+            clientError = new String[0];
+        }
+
         String templateContent = "";
         String templateName = "";
         String templateDesc = "";
@@ -103,7 +108,7 @@
             templateDesc = spTemplate.getDescription();
             templateContent = spTemplate.getContent();
         } catch (Exception e) {
-            String message = resourceBundle.getString("alert.error.load.sp.template") + " : " + e.getMessage();
+            String message = resourceBundle.getString("alert.error.load.sp.template");
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     %>
@@ -134,6 +139,32 @@
                 $("#update-sp-template-form").submit();
                 return true;
             }
+        }
+
+        $(function() {
+            $( "#clientErrorMsgDialog" ).dialog({
+                autoOpen: false,
+                modal: true,
+                buttons: {
+                    OK: closeClientErrorDialog
+                },
+                width: "fit-content"
+            });
+        });
+        function closeClientErrorDialog() {
+            $(this).dialog("close");
+            <%
+             request.getSession().removeAttribute("clientError");
+            %>
+        }
+        window.onload = function() {
+            showManual();
+            <% if (Boolean.valueOf(request.getParameter("clientError")) && clientError.length > 0) { %>
+            $( "#clientErrorMsgDialog" ).dialog( "open" );
+            <% } %>
+        };
+        function showManual() {
+            $("#update-sp-template-form").show();
         }
     </script>
     <div id="middle">
@@ -180,6 +211,24 @@
                        value="<fmt:message key='button.cancel'/>"/>
             </div>
         </form>
+    </div>
+    <div id="clientErrorMsgDialog"  title='WSO2 Carbon'>
+        <div id="messagebox-error">
+            <h3>
+                <fmt:message key="alert.error.update.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : clientError){
+                %>
+                <tr>
+                    <td><%=error%></td>
+                </tr>
+                <%
+                    }
+                %>
+            </table>
+        </div>
     </div>
 </fmt:bundle>
 <script src="js/list-sp-templates-flow.js"></script>

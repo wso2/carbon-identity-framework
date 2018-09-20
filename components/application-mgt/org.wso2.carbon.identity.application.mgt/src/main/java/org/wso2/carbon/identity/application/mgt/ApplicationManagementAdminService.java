@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ClientResponse;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -345,12 +346,13 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Create Service provider template.
      *
      * @param spTemplate service provider template info
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public void createApplicationTemplate(SpTemplate spTemplate) throws IdentityApplicationManagementException {
+    public ClientResponse createApplicationTemplate(SpTemplate spTemplate) throws IdentityApplicationManagementException {
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            applicationMgtService.createApplicationTemplate(spTemplate, getTenantDomain());
+            return applicationMgtService.createApplicationTemplate(spTemplate, getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
             log.error(String.format("Error while creating application template: %s for tenant: %s.",
                     spTemplate.getName(), getTenantDomain()), idpException);
@@ -363,13 +365,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate   service provider template basic info
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
+    public ClientResponse createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
             throws IdentityApplicationManagementException {
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            applicationMgtService.createApplicationTemplateFromSP(serviceProvider, spTemplate,
+            return applicationMgtService.createApplicationTemplateFromSP(serviceProvider, spTemplate,
                     getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
             log.error(String.format("Error while creating service provider template for the configured SP: %s for " +
@@ -417,13 +420,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Update an application template.
      *
      * @param spTemplate SP template info to be updated
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate)
+    public ClientResponse updateApplicationTemplate(String templateName, SpTemplate spTemplate)
             throws IdentityApplicationManagementException {
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            applicationMgtService.updateApplicationTemplate(templateName, spTemplate, getTenantDomain());
+            return applicationMgtService.updateApplicationTemplate(templateName, spTemplate, getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
             log.error(String.format("Error while updating application template: %s in tenant: %s.",
                     spTemplate.getName(), getTenantDomain()), idpException);

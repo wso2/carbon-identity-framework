@@ -25,6 +25,8 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ClientResponse" %>
+<%@ page import="org.apache.commons.httpclient.HttpStatus" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -56,22 +58,34 @@
             spTemplate.setName(templateName);
             spTemplate.setDescription(templateDescription);
             spTemplate.setContent(content);
-            serviceClient.createApplicationTemplate(spTemplate);
+            ClientResponse clientResponse = serviceClient.createApplicationTemplate(spTemplate);
+            if (clientResponse.getResponseCode() == HttpStatus.SC_CREATED) {
+                String message = resourceBundle.getString("alert.success.add.sp.template");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 %>
-<script>
-    location.href = 'list-sp-templates.jsp';
-</script>
+                <script>
+                    location.href = 'list-sp-templates.jsp';
+                </script>
 <%
-} catch (Exception e) {
-    String message = resourceBundle.getString("alert.error.add.sp.template") + " : " + e.getMessage();
-    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+            } else {
+                String[] errors = clientResponse.getErrors();
+                session.setAttribute("clientError", errors);
+%>
+                <script>
+                    location.href = 'add-sp-template.jsp?clientError=true';
+                </script>
+<%
+            }
+        } catch (Exception e) {
+            String message = resourceBundle.getString("alert.error.add.sp.template");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
 %>
 <script>
     location.href = 'add-sp-template.jsp';
 </script>
 <%
-    }
-} else {
+        }
+    } else {
 %>
 <script>
     location.href = 'add-sp-template.jsp';

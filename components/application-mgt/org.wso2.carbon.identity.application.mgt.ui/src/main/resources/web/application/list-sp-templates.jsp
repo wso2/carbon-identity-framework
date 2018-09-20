@@ -134,8 +134,7 @@
                         }
                     }
                 } catch (Exception e) {
-                    String message = resourceBundle.getString("alert.error.read.sp.template.info") + " : " +
-                            "" + e.getMessage();
+                    String message = resourceBundle.getString("alert.error.read.sp.template.info");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>

@@ -28,9 +28,9 @@
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp" />
 <%
-    String[] importError = (String[]) request.getSession().getAttribute("importError");
-    if (importError == null) {
-        importError = new String[0];
+    String[] clientError = (String[]) request.getSession().getAttribute("clientError");
+    if (clientError == null) {
+        clientError = new String[0];
     }
 %>
 <script type="text/javascript">
@@ -74,25 +74,25 @@
         $("#upload-sp-template-form").show();
     }
     $(function() {
-        $( "#importErrorMsgDialog" ).dialog({
+        $( "#clientErrorMsgDialog" ).dialog({
             autoOpen: false,
             modal: true,
             buttons: {
-                OK: closeImportErrorDialog
+                OK: closeClientErrorDialog
             },
             width: "fit-content"
         });
     });
-    function closeImportErrorDialog() {
+    function closeClientErrorDialog() {
         $(this).dialog("close");
         <%
-         request.getSession().removeAttribute("importError");
+         request.getSession().removeAttribute("clientError");
         %>
     }
     window.onload = function() {
         showManual();
-        <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
-        $( "#importErrorMsgDialog" ).dialog( "open" );
+        <% if (Boolean.valueOf(request.getParameter("clientError")) && clientError.length > 0) { %>
+        $( "#clientErrorMsgDialog" ).dialog( "open" );
         <% } %>
     };
 </script>
@@ -145,16 +145,16 @@
             </form>
         </div>
     </div>
-    <div id="importErrorMsgDialog" class="ui-dialog-container" style="position: relative; width: 100%; height: 100%;">
+    <div id="clientErrorMsgDialog"  title='WSO2 Carbon'>
         <div id="messagebox-error">
-            <h2 style="margin-top:20px;">
-                <fmt:message key="error.while.importing.sp"/>
-            </h2>
-            <table style="margin-left:20px;margin-top:25px;margin-left:20px;">
+            <h3>
+                <fmt:message key="alert.error.add.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
                 <%
-                    for (String error : importError){
+                    for (String error : clientError){
                 %>
-                <tr style="height: 25px;">
+                <tr>
                     <td><%=error%></td>
                 </tr>
                 <%

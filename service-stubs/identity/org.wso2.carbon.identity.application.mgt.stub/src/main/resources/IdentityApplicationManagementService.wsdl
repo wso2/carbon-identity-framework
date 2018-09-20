@@ -1,4 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2169="http://common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2171="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:tns="http://mgt.application.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax2173="http://script.model.common.application.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.application.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2169="http://common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2171="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:tns="http://mgt.application.identity.carbon.wso2.org" xmlns:ax2172="http://script.model.common.application.identity.carbon.wso2.org/xsd" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.application.identity.carbon.wso2.org">
     <wsdl:documentation>IdentityApplicationManagementService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://common.application.identity.carbon.wso2.org/xsd">
@@ -8,25 +8,13 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2172="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2170="http://common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+        <xs:schema xmlns:ax2174="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2170="http://common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
             <xs:import namespace="http://common.application.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:element name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="IdentityApplicationManagementException" nillable="true" type="ax2169:IdentityApplicationManagementException"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationBasicInfo">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationBasicInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -49,6 +37,18 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ServiceProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -162,11 +162,25 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="createApplicationTemplateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ClientResponse"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="createApplicationTemplateFromSP">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2171:ServiceProvider"/>
                         <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2171:SpTemplate"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="createApplicationTemplateFromSPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ClientResponse"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -196,6 +210,13 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2171:SpTemplate"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateApplicationTemplateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2171:ClientResponse"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -254,15 +275,8 @@
                 </xs:complexType>
             </xs:element>
         </xs:schema>
-        <xs:schema xmlns:ax2174="http://script.model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2173="http://script.model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://script.model.common.application.identity.carbon.wso2.org/xsd"/>
-            <xs:complexType name="ApplicationBasicInfo">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
-                    <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
-                </xs:sequence>
-            </xs:complexType>
             <xs:complexType name="ServiceProvider">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
@@ -346,7 +360,7 @@
             <xs:complexType name="LocalAndOutboundAuthenticationConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alwaysSendBackAuthenticatedListOfIdPs" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="authenticationScriptConfig" nillable="true" type="ax2173:AuthenticationScriptConfig"/>
+                    <xs:element minOccurs="0" name="authenticationScriptConfig" nillable="true" type="ax2172:AuthenticationScriptConfig"/>
                     <xs:element minOccurs="0" name="authenticationStepForAttributes" nillable="true" type="ax2171:AuthenticationStep"/>
                     <xs:element minOccurs="0" name="authenticationStepForSubject" nillable="true" type="ax2171:AuthenticationStep"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2171:AuthenticationStep"/>
@@ -495,6 +509,13 @@
                     <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
+            <xs:complexType name="ApplicationBasicInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
             <xs:complexType name="SpFileContent">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
@@ -513,6 +534,13 @@
                     <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClientResponse">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="errors" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2171:Property"/>
+                    <xs:element minOccurs="0" name="responseCode" type="xs:int"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
@@ -568,11 +596,15 @@
     <wsdl:message name="createApplicationTemplateFromSPRequest">
         <wsdl:part name="parameters" element="ns1:createApplicationTemplateFromSP"/>
     </wsdl:message>
-    <wsdl:message name="createApplicationTemplateFromSPResponse"/>
+    <wsdl:message name="createApplicationTemplateFromSPResponse">
+        <wsdl:part name="parameters" element="ns1:createApplicationTemplateFromSPResponse"/>
+    </wsdl:message>
     <wsdl:message name="createApplicationTemplateRequest">
         <wsdl:part name="parameters" element="ns1:createApplicationTemplate"/>
     </wsdl:message>
-    <wsdl:message name="createApplicationTemplateResponse"/>
+    <wsdl:message name="createApplicationTemplateResponse">
+        <wsdl:part name="parameters" element="ns1:createApplicationTemplateResponse"/>
+    </wsdl:message>
     <wsdl:message name="exportApplicationRequest">
         <wsdl:part name="parameters" element="ns1:exportApplication"/>
     </wsdl:message>
@@ -586,7 +618,9 @@
     <wsdl:message name="updateApplicationTemplateRequest">
         <wsdl:part name="parameters" element="ns1:updateApplicationTemplate"/>
     </wsdl:message>
-    <wsdl:message name="updateApplicationTemplateResponse"/>
+    <wsdl:message name="updateApplicationTemplateResponse">
+        <wsdl:part name="parameters" element="ns1:updateApplicationTemplateResponse"/>
+    </wsdl:message>
     <wsdl:message name="updateApplicationRequest">
         <wsdl:part name="parameters" element="ns1:updateApplication"/>
     </wsdl:message>

@@ -74,28 +74,32 @@ public class ApplicationMgtValidator {
     public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
                                             String userName) throws IdentityApplicationManagementException {
 
-        validateLocalAndOutBoundAuthenticationConfig(serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
+        List<String> validationMsg = new ArrayList<>();
+        validateLocalAndOutBoundAuthenticationConfig(validationMsg, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
-        validateRequestPathAuthenticationConfig(serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
-        validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
-        validateClaimsConfigs(serviceProvider.getClaimConfig(),
+        validateRequestPathAuthenticationConfig(validationMsg, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
+        validateOutBoundProvisioning(validationMsg, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
+        validateClaimsConfigs(validationMsg, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri(), tenantDomain);
-        validateRoleConfigs(serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+        validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
     }
 
     /**
      * Validate local and outbound authenticator related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
-    private void validateLocalAndOutBoundAuthenticationConfig(
+    private void validateLocalAndOutBoundAuthenticationConfig(List<String> validationMsg,
             LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
 
         if (localAndOutBoundAuthenticationConfig == null) {
             return;
@@ -106,7 +110,7 @@ public class ApplicationMgtValidator {
             return;
         }
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
-        Map<String, Property[]> allLocalAuthenticators = Arrays.stream( applicationMgtService
+        Map<String, Property[]> allLocalAuthenticators = Arrays.stream(applicationMgtService
                 .getAllLocalAuthenticators(tenantDomain))
                 .collect(Collectors.toMap(LocalAuthenticatorConfig::getName, LocalAuthenticatorConfig::getProperties));
 
@@ -136,24 +140,21 @@ public class ApplicationMgtValidator {
         if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 
     /**
      * Validate request path authenticator related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param requestPathAuthenticatorConfigs request path authentication config
      * @param tenantDomain                         tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
-    private void validateRequestPathAuthenticationConfig(RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs,
+    private void validateRequestPathAuthenticationConfig(List<String> validationMsg,
+                                                         RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs,
                                                          String tenantDomain)
             throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
 
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
         Map<String, Property[]> allRequestPathAuthenticators = Arrays.stream(applicationMgtService
@@ -167,10 +168,6 @@ public class ApplicationMgtValidator {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, config.getName()));
                 }
             }
-        }
-
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
     }
 
@@ -210,13 +207,13 @@ public class ApplicationMgtValidator {
     /**
      * Validate outbound provisioning related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param outboundProvisioningConfig Outbound provisioning config
      * @param tenantDomain               tenant domain
      */
-    private void validateOutBoundProvisioning(OutboundProvisioningConfig outboundProvisioningConfig, String
-            tenantDomain) throws IdentityApplicationManagementValidationException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateOutBoundProvisioning(List<String> validationMsg,
+                                              OutboundProvisioningConfig outboundProvisioningConfig,
+                                              String tenantDomain) {
 
         if (outboundProvisioningConfig == null
                 || outboundProvisioningConfig.getProvisioningIdentityProviders() == null) {
@@ -240,23 +237,19 @@ public class ApplicationMgtValidator {
                         idp.getIdentityProviderName()));
             }
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 
     /**
      * Validate claim related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param claimConfig  claim config
      * @param subjectClaimUri Subject claim Uri
      * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    private void validateClaimsConfigs(ClaimConfig claimConfig, String subjectClaimUri, String tenantDomain) throws
-            IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateClaimsConfigs(List<String> validationMsg, ClaimConfig claimConfig, String subjectClaimUri,
+                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         if (claimConfig == null) {
             return;
@@ -305,21 +298,17 @@ public class ApplicationMgtValidator {
         } catch (ClaimMetadataException e) {
             validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 
     /**
      * Validate local roles in role mapping configuration.
      *
+     * @param validationMsg                        validation error messages
      * @param permissionsAndRoleConfig permission and role configurations
      * @param tenantDomain tenant domain
      */
-    private void validateRoleConfigs(PermissionsAndRoleConfig permissionsAndRoleConfig, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateRoleConfigs(List<String> validationMsg, PermissionsAndRoleConfig permissionsAndRoleConfig,
+                                     String tenantDomain) {
 
         if (permissionsAndRoleConfig == null || permissionsAndRoleConfig.getRoleMappings() == null) {
             return;
@@ -336,10 +325,6 @@ public class ApplicationMgtValidator {
             }
         } catch (UserStoreException e) {
             validationMsg.add(String.format("Error when checking the existence of local roles in %s.", tenantDomain));
-        }
-
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
     }
 }
