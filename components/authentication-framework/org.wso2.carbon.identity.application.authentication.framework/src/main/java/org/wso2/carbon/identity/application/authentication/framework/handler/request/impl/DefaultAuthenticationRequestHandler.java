@@ -139,15 +139,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // if flow completed, send response back
         if (canConcludeFlow(context)) {
             concludeFlow(request, response, context);
-        } else {
-            // persisting context before redirecting to outside.
-            persistCurrentContext(context);
         }
-    }
-
-    private void persistCurrentContext(AuthenticationContext context) {
-
-        FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
     }
 
     private boolean canConcludeFlow(AuthenticationContext context) {

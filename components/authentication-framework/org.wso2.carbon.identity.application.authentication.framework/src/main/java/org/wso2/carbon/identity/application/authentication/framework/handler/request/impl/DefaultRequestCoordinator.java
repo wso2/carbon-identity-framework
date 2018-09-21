@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -157,7 +158,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 // different threads.
                 synchronized (context) {
                     if (!context.isActiveInAThread()) {
+                        // Marks this context is active in a thread. We only allow at a single instance, a context
+                        // to be active in only a single thread. In other words, same context cannot active in two
+                        // different threads at the same time.
                         context.setActiveInAThread(true);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Context id: " + context.getContextIdentifier() + " is active in the thread " +
+                                    "with id: " + Thread.currentThread().getId());
+                        }
                     } else {
                         log.error("Same context is currently in used by a different thread. Possible double submit.");
                         if (log.isDebugEnabled()) {
@@ -221,7 +229,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             FrameworkUtils.sendToRetryPage(request, response);
         } finally {
             if (context != null) {
+                // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
+                if (log.isDebugEnabled()) {
+                    log.debug("Context id: " + context.getContextIdentifier() + " left the thread with id: " +
+                            Thread.currentThread().getId());
+                }
+                // If flow is not about to conclude.
+                if (!LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context) ||
+                        context.isLogoutRequest()) {
+                    // Persist the context.
+                    FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
+                    }
+                }
             }
         }
     }
