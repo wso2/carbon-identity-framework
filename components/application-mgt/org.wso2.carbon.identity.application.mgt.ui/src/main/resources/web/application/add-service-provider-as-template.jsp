@@ -26,11 +26,24 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ClientResponse" %>
+<%@ page import="org.apache.commons.httpclient.HttpStatus" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 
 <%
     String templateName = request.getParameter("templateName");
     String templateDesc = request.getParameter("templateDesc");
     String oldSPName = request.getParameter("oldSPName");
+
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     try {
         ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, oldSPName);
         appBean.update(request);
@@ -44,9 +57,19 @@
         spTemplate.setName(templateName);
         spTemplate.setDescription(templateDesc);
         ServiceProvider sp = appBean.getServiceProvider();
-        serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
+        ClientResponse clientResponse = serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
+        if (clientResponse.getResponseCode() != HttpStatus.SC_CREATED) {
+            String[] errors = clientResponse.getErrors();
+            session.setAttribute("clientError", errors);
+%>
+            <script>
+                location.href = 'add-service-provider.jsp?clientError=true';
+            </script>
+<%
+        }
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occurred while adding the Service Provider as a template",
-                CarbonUIMessage.ERROR, request, e);
+        String message = resourceBundle.getString("alert.error.add.sp.as.template");
+        out.print(message);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
     }
 %>

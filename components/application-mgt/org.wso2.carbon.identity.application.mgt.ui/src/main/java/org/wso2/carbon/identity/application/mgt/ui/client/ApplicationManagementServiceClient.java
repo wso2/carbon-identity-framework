@@ -25,6 +25,7 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.xsd.ClientResponse;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
@@ -283,16 +284,17 @@ public class ApplicationManagementServiceClient {
      * @param spTemplate service provider template info
      * @throws AxisFault
      */
-    public void createApplicationTemplate(SpTemplate spTemplate) throws AxisFault {
+    public ClientResponse createApplicationTemplate(SpTemplate spTemplate) throws AxisFault {
 
         try {
             if (debugEnabled) {
                 log.debug("Registering Service Provider template: " + spTemplate.getName());
             }
-            stub.createApplicationTemplate(spTemplate);
+            return stub.createApplicationTemplate(spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
+        return new ClientResponse();
     }
 
     /**
@@ -302,17 +304,18 @@ public class ApplicationManagementServiceClient {
      * @param spTemplate service provider template basic info
      * @throws AxisFault
      */
-    public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
+    public ClientResponse createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
             throws AxisFault {
 
         try {
             if (debugEnabled) {
                 log.debug("Adding Service Provider as a template with name: " + spTemplate.getName());
             }
-            stub.createApplicationTemplateFromSP(serviceProvider, spTemplate);
+            return stub.createApplicationTemplateFromSP(serviceProvider, spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
+        return new ClientResponse();
     }
 
     /**
@@ -359,16 +362,17 @@ public class ApplicationManagementServiceClient {
      * @param spTemplate SP template info to be updated
      * @throws AxisFault
      */
-    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate) throws AxisFault {
+    public ClientResponse updateApplicationTemplate(String templateName, SpTemplate spTemplate) throws AxisFault {
 
         try {
             if (debugEnabled) {
                 log.debug("Updating Service Provider template: " + templateName);
             }
-            stub.updateApplicationTemplate(templateName, spTemplate);
+            return stub.updateApplicationTemplate(templateName, spTemplate);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
+        return new ClientResponse();
     }
 
     /**

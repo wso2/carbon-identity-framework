@@ -63,8 +63,13 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.util.ResourceBundle" %>
 
-<jsp:include page="../dialog/display_messages.jsp"/>
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 <fmt:bundle
         basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <carbon:breadcrumb label="application.mgt"
@@ -73,13 +78,22 @@
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
     <%
+        String[] clientError = (String[]) request.getSession().getAttribute("clientError");
+        if (clientError == null) {
+            clientError = new String[0];
+        }
+
         String templateContent = "";
         String templateName = "";
         String templateDesc = "";
+
+        String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
         try {
             templateName = request.getParameter("templateName").trim();
-            templateDesc = request.getParameter("templateDesc").trim();
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
@@ -88,16 +102,26 @@
                     ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
             SpTemplate spTemplate = serviceClient.getApplicationTemplate(templateName);
             if (spTemplate == null) {
-                CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
-                        request);
+                String message = resourceBundle.getString("alert.error.load.sp.template");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
             }
+            templateDesc = spTemplate.getDescription();
             templateContent = spTemplate.getContent();
         } catch (Exception e) {
-            CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
-                    request, e);
+            String message = resourceBundle.getString("alert.error.load.sp.template");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     %>
     <script type="text/javascript">
+        function validateTextForIllegal(fld) {
+            var isValid = doValidateInput(fld, "Provided Service Provider Template name is invalid.");
+            if (isValid) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         function updateTemplateOnclick() {
             var templateName = $.trim(document.getElementById('template-name').value);
             var templateContent = $.trim(document.getElementById('templateContent').value);
@@ -109,10 +133,38 @@
                 CARBON.showWarningDialog('Please specify service provider template content.');
                 location.href = '#';
                 return false;
+            } else if (!validateTextForIllegal(document.getElementById("template-name"))) {
+                return false;
             } else {
                 $("#update-sp-template-form").submit();
                 return true;
             }
+        }
+
+        $(function() {
+            $( "#clientErrorMsgDialog" ).dialog({
+                autoOpen: false,
+                modal: true,
+                buttons: {
+                    OK: closeClientErrorDialog
+                },
+                width: "fit-content"
+            });
+        });
+        function closeClientErrorDialog() {
+            $(this).dialog("close");
+            <%
+             request.getSession().removeAttribute("clientError");
+            %>
+        }
+        window.onload = function() {
+            showManual();
+            <% if (Boolean.valueOf(request.getParameter("clientError")) && clientError.length > 0) { %>
+            $( "#clientErrorMsgDialog" ).dialog( "open" );
+            <% } %>
+        };
+        function showManual() {
+            $("#update-sp-template-form").show();
         }
     </script>
     <div id="middle">
@@ -126,8 +178,9 @@
                 <tr>
                     <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.name'/>:<span class="required">*</span></td>
                     <td>
-                        <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
-                                white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                        <input style="width:50%" id="template-name" name="template-name" type="text"
+                               value="<%=Encode.forHtmlAttribute(templateName)%>"
+                               white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
                         <div class="sectionHelp"><fmt:message key='help.template.name'/></div>
                     </td>
                 </tr>
@@ -145,7 +198,7 @@
                     <div class="sectionSub step_contents" id="codeMirror">
                         <textarea id="templateContent" name="templateContent"
                                   placeholder="Write custom JavaScript or select from templates that match a scenario..."
-                                  style="height: 500px;width: 100%; display: none;"><%out.print(templateContent);%></textarea>
+                                  style="height: 500px;width: 100%; display: none;"><%out.print(Encode.forHtmlContent(templateContent));%></textarea>
                     </div>
                 </div>
             </div>
@@ -158,6 +211,24 @@
                        value="<fmt:message key='button.cancel'/>"/>
             </div>
         </form>
+    </div>
+    <div id="clientErrorMsgDialog"  title='WSO2 Carbon'>
+        <div id="messagebox-error">
+            <h3>
+                <fmt:message key="alert.error.update.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : clientError){
+                %>
+                <tr>
+                    <td><%=error%></td>
+                </tr>
+                <%
+                    }
+                %>
+            </table>
+        </div>
     </div>
 </fmt:bundle>
 <script src="js/list-sp-templates-flow.js"></script>

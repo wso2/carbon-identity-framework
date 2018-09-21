@@ -24,6 +24,17 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ClientResponse" %>
+<%@ page import="org.apache.commons.httpclient.HttpStatus" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
 
 <%
     String httpMethod = request.getMethod();
@@ -31,10 +42,13 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    String content = request.getParameter("templateContent");
-    String templateName = request.getParameter("sp-template-name");
-    String modifiedTemplateName = request.getParameter("template-name");
-    String modifiedTemplateDesc = request.getParameter("template-description");
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+    String content = request.getParameter("templateContent").trim();
+    String templateName = request.getParameter("sp-template-name").trim();
+    String modifiedTemplateName = request.getParameter("template-name").trim();
+    String modifiedTemplateDesc = request.getParameter("template-description").trim();
     if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -47,22 +61,47 @@
             spTemplate.setName(modifiedTemplateName);
             spTemplate.setDescription(modifiedTemplateDesc);
             spTemplate.setContent(content);
-            serviceClient.updateApplicationTemplate(templateName, spTemplate);
+            ClientResponse clientResponse = serviceClient.updateApplicationTemplate(templateName, spTemplate);
+
+            if (clientResponse.getResponseCode() == HttpStatus.SC_CREATED) {
+                String message = resourceBundle.getString("alert.success.update.sp.template");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+%>
+                <script>
+                    location.href = 'list-sp-templates.jsp';
+                </script>
+<%
+            } else {
+                Property[] properties = clientResponse.getProperties();
+                String templateNameInResponse = "";
+                if (properties != null && properties.length != 0) {
+                    for (Property property : properties) {
+                        if (property.getName().equals("template_name")) {
+                            templateNameInResponse = property.getValue();
+                        }
+                    }
+                }
+
+                String[] errors = clientResponse.getErrors();
+                session.setAttribute("clientError", errors);
+%>
+                <script>
+                    location.href = 'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(templateNameInResponse)%>&clientError=true';
+                </script>
+<%
+            }
+        } catch (Exception e) {
+            String message = resourceBundle.getString("alert.error.update.sp.template");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
 %>
 <script>
     location.href = 'list-sp-templates.jsp';
 </script>
 <%
-} catch (Exception e) {
-    CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
-%>
-<script>
-    location.href = 'list-sp-templates.jsp';
-</script>
-<%
-    }
-} else {
-    CarbonUIMessage.sendCarbonUIMessage("Template content should be available.", CarbonUIMessage.ERROR, request);
+        }
+    } else {
+        String message = resourceBundle.getString("alert.error.sp.template.content");
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
 %>
 <script>
     location.href = 'list-sp-templates.jsp';

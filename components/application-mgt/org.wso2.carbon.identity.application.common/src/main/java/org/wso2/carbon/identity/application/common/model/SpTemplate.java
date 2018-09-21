@@ -19,13 +19,25 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Data transfer representation for Service Provider Template.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "SpTemplate")
 public class SpTemplate implements Serializable {
+
+    @XmlElement(name = "Name", required = true)
     private String name;
+
+    @XmlElement(name = "Description")
     private String description;
+
+    @XmlElement(name = "Content", required = true)
     private String content;
 
     public SpTemplate() {

@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ClientResponse;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -265,9 +266,10 @@ public abstract class ApplicationManagementService {
      *
      * @param spTemplate service provider template info
      * @param tenantDomain  tenant domain
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public abstract void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
+    public abstract ClientResponse createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -275,10 +277,11 @@ public abstract class ApplicationManagementService {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate   service provider template basic info
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public abstract void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
-                                                         String tenantDomain)
+    public abstract ClientResponse createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
+                                                                   String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -307,10 +310,11 @@ public abstract class ApplicationManagementService {
      *
      * @param spTemplate SP template info to be updated
      * @param tenantDomain  tenant domain
+     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
-    public abstract void updateApplicationTemplate(String templateName, SpTemplate spTemplate,
-                                                   String tenantDomain) throws IdentityApplicationManagementException;
+    public abstract ClientResponse updateApplicationTemplate(String templateName, SpTemplate spTemplate,
+                                                             String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
      * Check existence of a application template.
