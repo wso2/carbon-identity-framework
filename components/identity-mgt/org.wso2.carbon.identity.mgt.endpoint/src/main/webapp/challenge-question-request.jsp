@@ -28,6 +28,8 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -44,9 +46,14 @@
             User user = IdentityManagementServiceUtil.getInstance().getUser(username);
 
             try {
+                Map<String, String> requestHeaders = new HashedMap();
+                if (request.getParameter("g-recaptcha-response") != null) {
+                    requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+                }
+                
                 SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
-                InitiateAllQuestionResponse initiateAllQuestionResponse = securityQuestionApi.securityQuestionsGet(user.getUsername(),
-                        user.getRealm(), user.getTenantDomain());
+                InitiateAllQuestionResponse initiateAllQuestionResponse = securityQuestionApi.securityQuestionsGet(
+                        user.getUsername(), user.getRealm(), user.getTenantDomain(), requestHeaders);
                 IdentityManagementEndpointUtil.addReCaptchaHeaders(request, securityQuestionApi.getApiClient().getResponseHeaders());
                 session.setAttribute("initiateAllQuestionResponse", initiateAllQuestionResponse);
 
