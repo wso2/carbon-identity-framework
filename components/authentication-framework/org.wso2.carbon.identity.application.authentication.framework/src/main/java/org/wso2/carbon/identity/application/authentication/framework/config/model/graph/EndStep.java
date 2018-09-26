@@ -24,9 +24,20 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 public class EndStep implements AuthGraphNode {
 
     private static final long serialVersionUID = -8969107833064916187L;
+    private AuthGraphNode parentNode;
 
     @Override
     public String getName() {
         return null;
+    }
+
+    @Override
+    public AuthGraphNode gerParent() {
+        return parentNode;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+        this.parentNode = parentNode;
     }
 }

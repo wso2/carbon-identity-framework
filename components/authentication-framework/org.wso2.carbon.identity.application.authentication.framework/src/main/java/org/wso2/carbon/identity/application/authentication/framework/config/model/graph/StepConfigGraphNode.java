@@ -29,6 +29,7 @@ public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
     private static final long serialVersionUID = -5648175409277330725L;
     private AuthGraphNode nextLink;
     private StepConfig stepConfig;
+    private AuthGraphNode parentNode;
 
 
     public StepConfigGraphNode(StepConfig stepConfig) {
@@ -51,5 +52,15 @@ public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
     public String getName() {
         //todo:need to more name generation
         return stepConfig == null ? null : "Step: " + stepConfig.getOrder();
+    }
+
+    @Override
+    public AuthGraphNode gerParent() {
+        return parentNode;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+        this.parentNode = parentNode;
     }
 }

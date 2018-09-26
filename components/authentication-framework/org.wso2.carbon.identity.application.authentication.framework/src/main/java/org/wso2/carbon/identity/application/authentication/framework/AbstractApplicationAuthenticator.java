@@ -96,9 +96,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
+                    context.setRetrying(retryAuthenticationEnabled());
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         // The Authenticator will re-initiate the authentication and retry.
-                        context.setRetrying(true);
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
                         return AuthenticatorFlowStatus.INCOMPLETE;

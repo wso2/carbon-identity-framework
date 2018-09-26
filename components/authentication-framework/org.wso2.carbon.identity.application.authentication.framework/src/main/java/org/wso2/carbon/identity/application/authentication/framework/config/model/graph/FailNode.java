@@ -54,6 +54,16 @@ public class FailNode implements AuthGraphNode {
         return null;
     }
 
+    @Override
+    public AuthGraphNode gerParent() {
+        return null;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+        //no usage of a parent at the moment
+    }
+
     public Map<String, String> getFailureData() {
 
         if (failureData == null) {
