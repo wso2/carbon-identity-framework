@@ -86,19 +86,25 @@
 <script src="js/handlebars.min-v4.0.11.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
 
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp" />
+
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
 <carbon:breadcrumb label="breadcrumb.service.provider"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
-<jsp:include page="../dialog/display_messages.jsp"/>
-
-
-<script type="text/javascript" src="../admin/js/main.js"></script>
-<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <%!public static final String IS_HANDLER = "IS_HANDLER";%>
 
 
 <%
+    String[] createTemplateError = (String[]) request.getSession().getAttribute("createTemplateError");
+    if (createTemplateError == null) {
+        createTemplateError = new String[0];
+    }
+
     String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
@@ -387,12 +393,86 @@
             saveTemplate, null);
     }
 
+    function validateTextForIllegal(fld) {
+        var isValid = doValidateInput(fld, "Provided Service Provider Template name is invalid.");
+        if (isValid) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function validateSPConfigurations() {
+        if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
+            var isValied = true;
+            $.each($('.spClaimVal'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Claim Configuration section');
+                    return false;
+                }
+            });
+            if (!isValied) {
+                return false;
+            }
+        }
+        // number_of_claimmappings
+        var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
+        document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+
+        if ($('[name=app_permission]').length > 0) {
+            var isValied = true;
+            $.each($('[name=app_permission]'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Permission Configuration section');
+                    return false;
+                }
+            });
+            if (!isValied) {
+                return false;
+            }
+        }
+        if ($('.roleMapIdp').length > 0) {
+            var isValied = true;
+            $.each($('.roleMapIdp'), function () {
+                if ($(this).val().length == 0) {
+                    isValied = false;
+                    CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
+                    return false;
+                }
+            });
+            if (isValied) {
+                if ($('.roleMapSp').length > 0) {
+                    $.each($('.roleMapSp'), function () {
+                        if ($(this).val().length == 0) {
+                            isValied = false;
+                            CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
+                            return false;
+                        }
+                    });
+                }
+            }
+            if (!isValied) {
+                return false;
+            }
+        }
+        var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
+        document.getElementById('number_of_permissions').value = numberOfPermissions;
+
+        var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
+        document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+    }
+
     function saveTemplate() {
         var templateName = "";
         var templateDesc = "";
         var templateNames = "";
         $(".template-name").each(function() {
             if(this.value != "") {
+                if (!validateTextForIllegal(this)) {
+                    return false;
+                }
                 templateName  = $.trim(this.value);
             }
         });
@@ -417,14 +497,19 @@
         document.getElementById('templateName').value = templateName;
         document.getElementById('templateDesc').value = templateDesc;
 
-        var error_msg = $("#error-msg");
+        validateSPConfigurations();
         $.ajax({
             type: "POST",
             url: 'add-service-provider-as-template.jsp',
             data: $("#configure-sp-form").serialize(),
-            success: function () {
-                CARBON.showInfoDialog('Service provider template is added successfully.');
-                return;
+            success: function (responseText, status) {
+                if (status == "success") {
+                    CARBON.showInfoDialog('Service provider template is added successfully.');
+                    return;
+                } else {
+                    CARBON.showErrorDialog('Error when adding service provider template.');
+                    return;
+                }
             },
             error: function(e) {
                 CARBON.showErrorDialog('Error when adding service provider template.');
@@ -442,66 +527,7 @@
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
         } else {
-            if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
-                var isValied = true;
-                $.each($('.spClaimVal'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Claim Configuration section');
-                        return false;
-                    }
-                });
-                if (!isValied) {
-                    return false;
-                }
-            }
-            // number_of_claimmappings
-            var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-            document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
-
-            if ($('[name=app_permission]').length > 0) {
-                var isValied = true;
-                $.each($('[name=app_permission]'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Permission Configuration section');
-                        return false;
-                    }
-                });
-                if (!isValied) {
-                    return false;
-                }
-            }
-            if ($('.roleMapIdp').length > 0) {
-                var isValied = true;
-                $.each($('.roleMapIdp'), function () {
-                    if ($(this).val().length == 0) {
-                        isValied = false;
-                        CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
-                        return false;
-                    }
-                });
-                if (isValied) {
-                    if ($('.roleMapSp').length > 0) {
-                        $.each($('.roleMapSp'), function () {
-                            if ($(this).val().length == 0) {
-                                isValied = false;
-                                CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
-                                return false;
-                            }
-                        });
-                    }
-                }
-                if (!isValied) {
-                    return false;
-                }
-            }
-            var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
-            document.getElementById('number_of_permissions').value = numberOfPermissions;
-
-            var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
-            document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
-
+            validateSPConfigurations();
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';
@@ -849,9 +875,13 @@
     });
 
     window.onload = function (e) {
+        showManual();
         <% if(isHashDisabled != null && "false".equals(isHashDisabled) && appBean.getOIDCClientId() != null &&
            appBean.getOauthConsumerSecret() != null && ((operation != null && "add".equals(operation)) || "regenerate".equals(action))) { %>
         $("#showDialog").dialog("open");
+        <% } %>
+        <% if (createTemplateError.length > 0) { %>
+        $( "#createTemplateErrorMsgDialog" ).dialog( "open" );
         <% } %>
     }
 
@@ -1191,6 +1221,28 @@
         } else {
             return false;
         }
+    }
+
+    function showManual() {
+        $("#configure-sp-form").show();
+    }
+
+    $(function() {
+        $( "#createTemplateErrorMsgDialog" ).dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+                OK: closeCreateTemplateErrorDialog
+            },
+            width: "fit-content"
+        });
+    });
+
+    function closeCreateTemplateErrorDialog() {
+        $(this).dialog("close");
+        <%
+         request.getSession().removeAttribute("createTemplateError");
+        %>
     }
 
 </script>
@@ -2974,6 +3026,24 @@
                 </tr>
                 <input type="hidden" id="templateNames" name="templateNames"
                        value="<%=spTemplateNames.length() > 0 ? Encode.forHtmlAttribute(spTemplateNames.toString()) : ""%>">
+            </table>
+        </div>
+    </div>
+    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
+        <div id="messagebox-error">
+            <h3>
+                <fmt:message key="alert.error.add.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : createTemplateError){
+                %>
+                <tr>
+                    <td><%=error%></td>
+                </tr>
+                <%
+                    }
+                %>
             </table>
         </div>
     </div>

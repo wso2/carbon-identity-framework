@@ -22,16 +22,15 @@
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true"
                    request="<%=request%>" />
-<jsp:include page="../dialog/display_messages.jsp"/>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp" />
 <%
-    String[] importError = (String[]) request.getSession().getAttribute("importError");
-    if (importError == null) {
-        importError = new String[0];
+    String[] createTemplateError = (String[]) request.getSession().getAttribute("createTemplateError");
+    if (createTemplateError == null) {
+        createTemplateError = new String[0];
     }
 %>
 <script type="text/javascript">
@@ -53,7 +52,7 @@
         document.getElementById('sp-template-file-name').value = input.files[0].name;
         reader.readAsText(input.files[0]);
     };
-    function importAppOnclick() {
+    function addSPTemplate() {
         var templateName = $.trim(document.getElementById('template-name').value);
         var templateContent = $.trim(document.getElementById('sp-template-file-content').value);
         if (templateName === null || 0 === templateName.length) {
@@ -64,6 +63,8 @@
             CARBON.showWarningDialog('Please specify service provider template configuration file.');
             location.href = '#';
             return false;
+        } else if (!validateTextForIllegal(document.getElementById("template-name"))) {
+            return false;
         } else {
             $("#upload-sp-template-form").submit();
             return true;
@@ -73,25 +74,25 @@
         $("#upload-sp-template-form").show();
     }
     $(function() {
-        $( "#importErrorMsgDialog" ).dialog({
+        $( "#createTemplateErrorMsgDialog" ).dialog({
             autoOpen: false,
             modal: true,
             buttons: {
-                OK: closeImportErrorDialog
+                OK: closeCreateTemplateErrorDialog
             },
             width: "fit-content"
         });
     });
-    function closeImportErrorDialog() {
+    function closeCreateTemplateErrorDialog() {
         $(this).dialog("close");
         <%
-         request.getSession().removeAttribute("importError");
+         request.getSession().removeAttribute("createTemplateError");
         %>
     }
     window.onload = function() {
         showManual();
-        <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
-        $( "#importErrorMsgDialog" ).dialog( "open" );
+        <% if (createTemplateError.length > 0) { %>
+        $( "#createTemplateErrorMsgDialog" ).dialog( "open" );
         <% } %>
     };
 </script>
@@ -138,22 +139,22 @@
                     </table>
                 </div>
                 <div class="buttonRow">
-                    <input type="button" class="button"  value="<fmt:message key='button.import.service.provider.template'/>" onclick="importAppOnclick();"/>
+                    <input type="button" class="button"  value="<fmt:message key='button.add.service.provider.template'/>" onclick="addSPTemplate();"/>
                     <input type="button" class="button" onclick="javascript:location.href='list-sp-templates.jsp'" value="<fmt:message key='button.cancel'/>"/>
                 </div>
             </form>
         </div>
     </div>
-    <div id="importErrorMsgDialog" class="ui-dialog-container" style="position: relative; width: 100%; height: 100%;">
+    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
         <div id="messagebox-error">
-            <h2 style="margin-top:20px;">
-                <fmt:message key="error.while.importing.sp"/>
-            </h2>
-            <table style="margin-left:20px;margin-top:25px;margin-left:20px;">
+            <h3>
+                <fmt:message key="alert.error.add.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
                 <%
-                    for (String error : importError){
+                    for (String error : createTemplateError){
                 %>
-                <tr style="height: 25px;">
+                <tr>
                     <td><%=error%></td>
                 </tr>
                 <%

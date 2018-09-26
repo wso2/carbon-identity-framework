@@ -31,7 +31,6 @@
 <%@ page
         import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -67,16 +66,17 @@
         if (ArrayUtils.isNotEmpty(errorMessages)) {
             session.setAttribute("createTemplateError", errorMessages);
 %>
-    <script>
-        location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>&createTemplateError=true';
-    </script>
+<script>
+    location.href = 'add-default-authSeq.jsp?createTemplateError=true';
+</script>
 <%
-        } else {
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-%>
-    <script>
-        location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>';
-    </script>
+} else {
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);%>
+
+<script>
+    location.href = 'add-default-authSeq.jsp';
+</script>
+
 <%
         }
     }
