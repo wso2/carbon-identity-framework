@@ -29,6 +29,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -74,6 +75,16 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -91,16 +102,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
@@ -155,8 +156,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                                         String templateName)
+    public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain,
+                                                         String username, String templateName)
             throws IdentityApplicationManagementException {
 
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
@@ -1077,20 +1078,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
         try {
-            ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            validateSPTemplateExists(spTemplate.getName(), spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
-            try {
-                applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
-                        CarbonContext.getThreadLocalCarbonContext().getUsername());
-            } catch (IdentityApplicationManagementValidationException e) {
-                log.error("Validation error when creating the application template: " +
-                        spTemplate.getName() + " in:" + tenantDomain);
-                for (String msg : e.getValidationMsg()) {
-                    log.error(msg);
-                }
-                throw e;
-            }
+            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+                    CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
@@ -1101,32 +1094,31 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             doAddApplicationTemplate(spTemplate, tenantDomain);
         } catch (IdentityApplicationManagementValidationException e) {
-            throw new IdentityApplicationManagementException(String.format("Error when creating SP template: %s." +
-                    "\n" + "%s", spTemplate.getName(), String.join("\n", e.getValidationMsg())), e);
+            log.error("Validation error when creating the application template: " + spTemplate.getName() + " in:" +
+                    tenantDomain);
+            for (String msg : e.getValidationMsg()) {
+                log.error(msg);
+            }
+            throw new IdentityApplicationManagementClientException(e.getValidationMsg());
+        } catch (IdentityApplicationManagementException e) {
+            String errorMsg = String.format("Error when creating the application template: %s in tenant: %s",
+                    spTemplate.getName(), tenantDomain);
+            throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }
 
     @Override
     public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
-                                                String tenantDomain)
+                                                          String tenantDomain)
             throws IdentityApplicationManagementException {
 
         if (serviceProvider != null) {
             try {
-                ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
-                try {
-                    applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
-                            CarbonContext.getThreadLocalCarbonContext().getUsername());
-                } catch (IdentityApplicationManagementValidationException e) {
-                    log.error("Validation error when creating the application template:" + spTemplate.getName() +
-                                    "from service provider: " + serviceProvider.getApplicationName() + " in:" +
-                            tenantDomain);
-                    for (String msg : e.getValidationMsg()) {
-                        log.error(msg);
-                    }
-                    throw e;
-                }
+                validateSPTemplateExists(spTemplate.getName(), spTemplate, tenantDomain);
 
+                ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
+                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                        CarbonContext.getThreadLocalCarbonContext().getUsername());
                 Collection<ApplicationMgtListener> listeners =
                         ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
@@ -1139,13 +1131,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 spTemplate.setContent(serviceProviderTemplateXml);
                 doAddApplicationTemplate(spTemplate, tenantDomain);
             } catch (IdentityApplicationManagementValidationException e) {
-                throw new IdentityApplicationManagementException(String.format("Error when creating SP template: %s." +
-                                "\n" + "%s", spTemplate.getName(), String.join("\\n", e.getValidationMsg())), e);
+                log.error("Validation error when creating the application template:" + spTemplate.getName() +
+                        "from service provider: " + serviceProvider.getApplicationName() + " in:" + tenantDomain);
+                for (String msg : e.getValidationMsg()) {
+                    log.error(msg);
+                }
+                throw new IdentityApplicationManagementClientException(e.getValidationMsg());
+            } catch (IdentityApplicationManagementException e) {
+                String errorMsg = String.format("Error when creating the application template: %s from " +
+                                "service provider: %s in: ", spTemplate.getName(), serviceProvider.getApplicationName(),
+                        tenantDomain);
+                throw new IdentityApplicationManagementException(errorMsg, e);
             }
         } else {
             createApplicationTemplate(spTemplate, tenantDomain);
         }
-
     }
 
     @Override
@@ -1160,11 +1160,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         SpTemplate spTemplate = doGetApplicationTemplate(retrievedTemplateName, tenantDomain);
 
         if (spTemplate == null) {
-            if(StringUtils.isBlank(templateName)) {
+            if (StringUtils.isBlank(templateName)) {
                 return null;
             } else {
-                throw new IdentityApplicationManagementException(String.format("Template with name: %s is not " +
-                        "registered for tenant: %s.", templateName, tenantDomain));
+                throw new IdentityApplicationManagementClientException(new String[] {
+                        String.format("Template with name: %s is not " + "registered for tenant: %s.",
+                                templateName, tenantDomain)});
             }
         }
         return spTemplate;
@@ -1181,35 +1182,35 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplicationTemplate(String templateName, SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (StringUtils.isNotBlank(spTemplate.getName()) && !templateName.equals(spTemplate.getName())
-                && isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException(String.format("Template with name: %s is already " +
-                    "configured for tenant: %s.", spTemplate.getName(), tenantDomain));
-        }
-
-        ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
-        validateUnsupportedTemplateConfigs(serviceProvider);
         try {
+            validateSPTemplateExists(templateName, spTemplate, tenantDomain);
+
+            ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            validateUnsupportedTemplateConfigs(serviceProvider);
+
             applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
+
+            Collection<ApplicationMgtListener> listeners =
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+            for (ApplicationMgtListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.doPreUpdateApplicationTemplate(serviceProvider, tenantDomain);
+                }
+            }
+            doUpdateApplicationTemplate(templateName, spTemplate, tenantDomain);
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when updating the application template: " + templateName + " in:" +
                     tenantDomain);
             for (String msg : e.getValidationMsg()) {
                 log.error(msg);
             }
-            throw e;
+            throw new IdentityApplicationManagementClientException(e.getValidationMsg());
+        } catch (IdentityApplicationManagementException e) {
+            String errorMsg = String.format("Error in updating the application template: %s in tenant: %s",
+                    spTemplate.getName(), tenantDomain);
+            throw new IdentityApplicationManagementException(errorMsg, e);
         }
-
-        Collection<ApplicationMgtListener> listeners =
-                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.doPreUpdateApplicationTemplate(serviceProvider, tenantDomain);
-            }
-        }
-
-        doUpdateApplicationTemplate(templateName, spTemplate, tenantDomain);
     }
 
     @Override
@@ -1229,19 +1230,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Add SP template to database and cache.
      *
-     * @param spTemplate SP template info
+     * @param spTemplate   SP template info
      * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException
      */
     private void doAddApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
-        if (isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
-            validationMsg.add(String.format("Template with name: %s is already configured for tenant: %s.",
-                    spTemplate.getName(), tenantDomain));
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
 
         // Add application template to database
         ApplicationTemplateDAO applicationTemplateDAO = ApplicationMgtSystemConfig.getInstance()
@@ -1302,7 +1296,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * Update SP template from database and cache.
      *
      * @param templateName template name
-     * @param spTemplate template info
+     * @param spTemplate   template info
      * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException
      */
@@ -1377,7 +1371,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         List<String> validationMsg = new ArrayList<>();
 
         if (serviceProvider.getInboundAuthenticationConfig() != null) {
-            validationMsg.add("Inbound configuration is not supported.");
+            validationMsg.add("Inbound configurations are not supported.");
         }
         if (serviceProvider.getApplicationID() != 0) {
             validationMsg.add("Application ID is not supported.");
@@ -1393,6 +1387,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
+    }
+
+    private void validateSPTemplateExists(String templateName, SpTemplate spTemplate, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        List<String> validationMsg = new ArrayList<>();
+        if (StringUtils.isNotBlank(spTemplate.getName()) && !templateName.equals(spTemplate.getName())
+                && isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
+            validationMsg.add(String.format("Template with name: %s is already configured for tenant: %s.",
+                    spTemplate.getName(), tenantDomain));
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
     }
@@ -1445,9 +1451,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 
             } catch (SAXException | ParserConfigurationException e) {
-                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
-                        Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
-                        " or secure-processing.");
+                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE +
+                        " or " + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " +
+                        Constants.LOAD_EXTERNAL_DTD_FEATURE + " or secure-processing.");
             }
 
             JAXBContext jc = JAXBContext.newInstance(ServiceProvider.class);
@@ -1506,9 +1512,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private void updateSPFromTemplate(ServiceProvider serviceProvider, String tenantDomain,
-                                              SpTemplate spTemplate) throws IdentityApplicationManagementException {
+                                      SpTemplate spTemplate) throws IdentityApplicationManagementException {
 
-       if (spTemplate != null && spTemplate.getContent() != null) {
+        if (spTemplate != null && spTemplate.getContent() != null) {
             ServiceProvider spConfigFromTemplate = unmarshalSP(spTemplate.getContent(), tenantDomain);
             Field[] fieldsSpTemplate = spConfigFromTemplate.getClass().getDeclaredFields();
             for (Field field : fieldsSpTemplate) {
@@ -1533,7 +1539,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isEmpty(spTemplateXml)) {
-            throw new IdentityApplicationManagementException("Empty SP template configuration is provided to unmarshal");
+            throw new IdentityApplicationManagementException("Empty SP template configuration is provided to " +
+                    "unmarshal");
         }
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
@@ -1541,8 +1548,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return (ServiceProvider) unmarshaller.unmarshal(new ByteArrayInputStream(
                     spTemplateXml.getBytes(StandardCharsets.UTF_8)));
         } catch (JAXBException e) {
-            throw new IdentityApplicationManagementException("Error in reading Service Provider template configuration ",
-                    e);
+            throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
+                    "configuration ", e);
         }
     }
 
@@ -1714,7 +1721,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * Convert xml file of service provider to object.
      *
      * @param spFileContent xml string of the SP and file name
-     * @param tenantDomain tenant domain name
+     * @param tenantDomain  tenant domain name
      * @return Service Provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
