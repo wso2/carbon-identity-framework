@@ -54,16 +54,24 @@
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page
+        import="org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page
+        import="java.util.ResourceBundle" %>
 
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 <fmt:bundle
         basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -73,13 +81,22 @@
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
     <%
+        String[] updateTemplateError = (String[]) request.getSession().getAttribute("updateTemplateError");
+        if (updateTemplateError == null) {
+            updateTemplateError = new String[0];
+        }
+
         String templateContent = "";
         String templateName = "";
         String templateDesc = "";
+
+        String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
         try {
-            templateName = request.getParameter("templateName").trim();
-            templateDesc = request.getParameter("templateDesc").trim();
+            templateName = request.getParameter("templateName") != null ? request.getParameter("templateName").trim() : "";
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
@@ -88,31 +105,82 @@
                     ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
             SpTemplate spTemplate = serviceClient.getApplicationTemplate(templateName);
             if (spTemplate == null) {
-                CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
-                        request);
+                String message = resourceBundle.getString("alert.error.load.sp.template");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
             }
+            templateDesc = spTemplate.getDescription();
             templateContent = spTemplate.getContent();
-        } catch (Exception e) {
-            CarbonUIMessage.sendCarbonUIMessage("Error occurred while loading SP template", CarbonUIMessage.ERROR,
-                    request, e);
+        } catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
+            String message = resourceBundle.getString("alert.error.load.sp.template");
+            if (e.getFaultMessage() != null && e.getFaultMessage().getIdentityApplicationManagementClientException() != null
+                    && e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages() != null) {
+                String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
+                session.setAttribute("retrieveTemplateError", errorMessages);
+            } else {
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+            }
+    %>
+    <script>
+        location.href = 'list-sp-templates.jsp';
+    </script>
+    <%
         }
     %>
     <script type="text/javascript">
+        function validateTextForIllegal(fld) {
+            var isValid = doValidateInput(fld, '<%=resourceBundle.getString("alert.error.sp.template.not.available")%>');
+            if (isValid) {
+                return true;
+            }
+            return false;
+        }
+
         function updateTemplateOnclick() {
             var templateName = $.trim(document.getElementById('template-name').value);
             var templateContent = $.trim(document.getElementById('templateContent').value);
             if (templateName === null || 0 === templateName.length) {
-                CARBON.showWarningDialog('Please specify service provider template name.');
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.not.available")%>');
                 location.href = '#';
                 return false;
             } else if (templateContent === null || 0 === templateContent.length) {
-                CARBON.showWarningDialog('Please specify service provider template content.');
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.content.not.available")%>');
                 location.href = '#';
+                return false;
+            } else if (!validateTextForIllegal(document.getElementById("template-name"))) {
                 return false;
             } else {
                 $("#update-sp-template-form").submit();
                 return true;
             }
+        }
+
+        $(function () {
+            $("#updateTemplateErrorMsgDialog").dialog({
+                autoOpen: false,
+                modal: true,
+                buttons: {
+                    OK: closeUpdateTemplateErrorDialog
+                },
+                width: "fit-content"
+            });
+        });
+
+        function closeUpdateTemplateErrorDialog() {
+            $(this).dialog("close");
+            <%
+             request.getSession().removeAttribute("updateTemplateError");
+            %>
+        }
+
+        window.onload = function () {
+            showManual();
+            <% if (updateTemplateError.length > 0) { %>
+            $("#updateTemplateErrorMsgDialog").dialog("open");
+            <% } %>
+        };
+
+        function showManual() {
+            $("#update-sp-template-form").show();
         }
     </script>
     <div id="middle">
@@ -124,15 +192,19 @@
               action="edit-sp-template-finish-ajaxprocessor.jsp">
             <table class="carbonFormTable">
                 <tr>
-                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.name'/>:<span class="required">*</span></td>
+                    <td style="width:15%" class="leftCol-med labelField"><fmt:message
+                            key='config.application.template.name'/>:<span class="required">*</span></td>
                     <td>
-                        <input id="template-name" name="template-name" type="text" value=<%=Encode.forHtmlAttribute(templateName)%>
-                                white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                        <input style="width:50%" id="template-name" name="template-name" type="text"
+                               value="<%=Encode.forHtmlAttribute(templateName)%>"
+                               white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
                         <div class="sectionHelp"><fmt:message key='help.template.name'/></div>
                     </td>
                 </tr>
                 <tr>
-                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.template.description'/>:</td>
+                    <td style="width:15%" class="leftCol-med labelField"><fmt:message
+                            key='config.application.template.description'/>:
+                    </td>
                     <td>
                         <textarea style="width:50%" type="text" name="template-description" id="template-description"
                                   class="text-box-big"><%=templateDesc != null ? Encode.forHtmlContent(templateDesc) : ""%></textarea>
@@ -144,20 +216,42 @@
                 <div style="position: relative;">
                     <div class="sectionSub step_contents" id="codeMirror">
                         <textarea id="templateContent" name="templateContent"
-                                  placeholder="Write custom JavaScript or select from templates that match a scenario..."
-                                  style="height: 500px;width: 100%; display: none;"><%out.print(templateContent);%></textarea>
+                                  placeholder="Configure service provider template.."
+                                  style="height: 500px;width: 100%; display: none;"><%out.print(Encode.forHtmlContent(templateContent));%></textarea>
                     </div>
                 </div>
             </div>
             </br>
-            <textarea hidden="hidden" name="sp-template-name" id="sp-template-name"><%=Encode.forHtmlContent(templateName)%></textarea>
+            <textarea hidden="hidden" name="sp-template-name"
+                      id="sp-template-name"><%=Encode.forHtmlContent(templateName)%></textarea>
             <div class="buttonRow">
-                <input id="updateTemplate" type="button" class="button" value="<fmt:message key='button.update.service.provider.template'/>"
+                <input id="updateTemplate" type="button" class="button"
+                       value="<fmt:message key='button.update.service.provider.template'/>"
                        onclick="updateTemplateOnclick();"/>
                 <input type="button" class="button" onclick="javascript:location.href='list-sp-templates.jsp'"
                        value="<fmt:message key='button.cancel'/>"/>
             </div>
         </form>
     </div>
+    <div id="updateTemplateErrorMsgDialog" title='WSO2 Carbon'>
+        <div id="messagebox-error">
+            <h3>
+                <fmt:message key="alert.error.update.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : updateTemplateError) {
+                %>
+                <tr>
+                    <td><%=error%>
+                    </td>
+                </tr>
+                <%
+                    }
+                %>
+            </table>
+        </div>
+    </div>
 </fmt:bundle>
 <script src="js/list-sp-templates-flow.js"></script>
+

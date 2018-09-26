@@ -222,3 +222,4 @@ public class ApplicationMgtDBQueries {
     public static final String UPDATE_SP_TEMPLATE_BY_NAME = "UPDATE SP_TEMPLATE SET NAME= ?,DESCRIPTION = ?," +
             "CONTENT = ? WHERE NAME = ? AND TENANT_ID = ?";
 }
+
