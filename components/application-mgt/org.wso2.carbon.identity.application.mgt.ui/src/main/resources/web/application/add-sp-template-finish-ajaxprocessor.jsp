@@ -16,25 +16,23 @@
   ~ under the License.
   --%>
 
-<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
-<%@ page import="org.wso2.carbon.CarbonConstants"%>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
-<%@ page import="org.wso2.carbon.utils.ServerConstants"%>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.apache.commons.httpclient.HttpStatus" %>
 <%@ page
         import="org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException" %>
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
-<jsp:include page="../dialog/display_messages.jsp" />
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String httpMethod = request.getMethod();
@@ -45,9 +43,9 @@
     String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
-    String content = request.getParameter("sp-template-file-content").trim();
-    String templateName = request.getParameter("template-name").trim();
-    String templateDescription = request.getParameter("template-description").trim();
+    String content = request.getParameter("sp-template-file-content") != null ? request.getParameter("sp-template-file-content").trim() : "";
+    String templateName = request.getParameter("template-name") != null ? request.getParameter("template-name").trim() : "";
+    String templateDescription = request.getParameter("template-description") != null ? request.getParameter("template-description").trim() : "";
     if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -65,31 +63,32 @@
             String message = resourceBundle.getString("alert.success.add.sp.template");
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 %>
-    <script>
-        location.href = 'list-sp-templates.jsp';
-    </script>
+<script>
+    location.href = 'list-sp-templates.jsp';
+</script>
 <%
-        } catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
-            String message = resourceBundle.getString("alert.error.add.sp.template");
-            String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
-            if (ArrayUtils.isNotEmpty(errorMessages)) {
-                session.setAttribute("createTemplateError", errorMessages);
-            } else {
-                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-            }
-%>
-    <script>
-        location.href = 'add-sp-template.jsp';
-    </script>
-<%
-        }
+} catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
+    String message = resourceBundle.getString("alert.error.add.sp.template");
+    if (e.getFaultMessage() != null && e.getFaultMessage().getIdentityApplicationManagementClientException() != null
+            && e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages() != null) {
+        String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
+        session.setAttribute("createTemplateError", errorMessages);
     } else {
-        String message = resourceBundle.getString("alert.error.add.sp.template");
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+    }
 %>
-    <script>
-        location.href = 'add-sp-template.jsp';
-    </script>
+<script>
+    location.href = 'add-sp-template.jsp';
+</script>
+<%
+    }
+} else {
+    String message = resourceBundle.getString("alert.error.add.sp.template");
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+%>
+<script>
+    location.href = 'add-sp-template.jsp';
+</script>
 <%
     }
 %>

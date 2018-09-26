@@ -347,7 +347,6 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Create Service provider template.
      *
      * @param spTemplate service provider template info
-     * @return SP template response
      * @throws IdentityApplicationManagementClientException
      */
     public void createApplicationTemplate(SpTemplate spTemplate) throws IdentityApplicationManagementClientException {
@@ -368,7 +367,6 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate   service provider template basic info
-     * @return SP template response
      * @throws IdentityApplicationManagementClientException
      */
     public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
@@ -428,8 +426,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     /**
      * Update an application template.
      *
+     * @param templateName name of the template
      * @param spTemplate SP template info to be updated
-     * @return SP template response
      * @throws IdentityApplicationManagementClientException
      */
     public void updateApplicationTemplate(String templateName, SpTemplate spTemplate)

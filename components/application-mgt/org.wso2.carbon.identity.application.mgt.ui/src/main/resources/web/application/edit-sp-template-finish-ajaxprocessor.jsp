@@ -17,14 +17,13 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+        import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -45,10 +44,10 @@
     String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
-    String content = request.getParameter("templateContent").trim();
-    String templateName = request.getParameter("sp-template-name").trim();
-    String modifiedTemplateName = request.getParameter("template-name").trim();
-    String modifiedTemplateDesc = request.getParameter("template-description").trim();
+    String content = request.getParameter("templateContent") != null ? request.getParameter("templateContent").trim() : "";
+    String templateName = request.getParameter("sp-template-name") != null ? request.getParameter("sp-template-name").trim() : "";
+    String modifiedTemplateName = request.getParameter("template-name") != null ? request.getParameter("template-name").trim() : "";
+    String modifiedTemplateDesc = request.getParameter("template-description") != null ? request.getParameter("template-description").trim() : "";
     if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -73,21 +72,22 @@
 <%
         } catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
             String message = resourceBundle.getString("alert.error.update.sp.template");
-            String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
-            if (ArrayUtils.isNotEmpty(errorMessages)) {
+            if (e.getFaultMessage() != null && e.getFaultMessage().getIdentityApplicationManagementClientException() != null
+                    && e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages() != null) {
+                String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
                 session.setAttribute("updateTemplateError", errorMessages);
 
 %>
-    <script>
-        location.href = 'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(templateName)%>&updateTemplateError=true';
-    </script>
+<script>
+    location.href = 'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(templateName)%>&updateTemplateError=true';
+</script>
 <%
-            } else {
-                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);%>
+} else {
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);%>
 
-    <script>
-        location.href = 'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(templateName)%>';
-    </script>
+<script>
+    location.href = 'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(templateName)%>';
+</script>
 
 <%
             }
@@ -102,3 +102,4 @@
 <%
     }
 %>
+

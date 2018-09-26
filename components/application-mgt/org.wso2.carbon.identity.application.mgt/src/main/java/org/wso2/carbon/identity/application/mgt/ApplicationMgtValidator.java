@@ -80,7 +80,8 @@ public class ApplicationMgtValidator {
         validateRequestPathAuthenticationConfig(validationMsg, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
         validateOutBoundProvisioning(validationMsg, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationMsg, serviceProvider.getClaimConfig(),
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri(), tenantDomain);
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
+                        .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null, tenantDomain);
         validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
         if (!validationMsg.isEmpty()) {
@@ -328,3 +329,4 @@ public class ApplicationMgtValidator {
         }
     }
 }
+

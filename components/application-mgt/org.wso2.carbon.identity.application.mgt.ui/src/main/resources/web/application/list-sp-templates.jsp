@@ -17,15 +17,15 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@page import="org.wso2.carbon.CarbonConstants" %>
+<%@page import="org.apache.log4j.Logger" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%@ page import="org.apache.log4j.Logger"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
@@ -34,7 +34,7 @@
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
-<jsp:include page="../dialog/display_messages.jsp" />
+<jsp:include page="../dialog/display_messages.jsp"/>
 <fmt:bundle
         basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <carbon:breadcrumb label="application.mgt"
@@ -49,6 +49,9 @@
         if (retrieveTemplateError == null) {
             retrieveTemplateError = new String[0];
         }
+
+        String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     %>
 
     <script>
@@ -56,26 +59,28 @@
             jQuery('#templateExportData').submit();
             jQuery(this).dialog("close");
         }
+
         function closeSP() {
             jQuery(this).dialog("close");
         }
-        $(function() {
-            $( "#exportSPTemplateMsgDialog" ).dialog({
+
+        $(function () {
+            $("#exportSPTemplateMsgDialog").dialog({
                 autoOpen: false,
                 buttons: {
                     OK: exportSPTemplateClick,
                     Cancel: closeSP
                 },
-                height:160,
-                width:450,
-                minHeight:160,
-                minWidth:330,
-                modal:true
+                height: 160,
+                width: 450,
+                minHeight: 160,
+                minWidth: 330,
+                modal: true
             });
         });
 
-        $(function() {
-            $( "#retrieveTemplateErrorMsgDialog" ).dialog({
+        $(function () {
+            $("#retrieveTemplateErrorMsgDialog").dialog({
                 autoOpen: false,
                 modal: true,
                 buttons: {
@@ -84,15 +89,17 @@
                 width: "fit-content"
             });
         });
+
         function closeRetrieveTemplateErrorDialog() {
             $(this).dialog("close");
             <%
              request.getSession().removeAttribute("retrieveTemplateError");
             %>
         }
-        window.onload = function() {
+
+        window.onload = function () {
             <% if (retrieveTemplateError.length > 0) { %>
-            $( "#retrieveTemplateErrorMsgDialog" ).dialog( "open" );
+            $("#retrieveTemplateErrorMsgDialog").dialog("open");
             <% } %>
         };
     </script>
@@ -119,7 +126,8 @@
                             }
                         });
                     }
-                    CARBON.showConfirmationDialog('Are you sure you want to delete service provider template ' + templateName + ' ?',
+
+                    CARBON.showConfirmationDialog('<%=resourceBundle.getString("alert.confirm.sp.template.delete")%>' + templateName + ' ?',
                         doDelete, null);
                 }
 
@@ -131,8 +139,6 @@
             <%
                 Logger logger = Logger.getLogger(this.getClass());
                 SpTemplate[] spTemplates = null;
-                String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
-                ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 SpTemplate[] templatesToDisplay = new SpTemplate[0];
                 String paginationValue = "region=region1&item=sp_template_list";
                 String pageNumber = request.getParameter("pageNumber");
@@ -154,7 +160,7 @@
                     ApplicationManagementServiceClient serviceClient = new
                             ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
                     spTemplates = serviceClient.getAllApplicationTemplateInfo();
-                    if (spTemplates != null) {
+                    if (spTemplates != null && spTemplates.length > 0) {
                         numberOfPages = (int) Math.ceil((double) spTemplates.length / resultsPerPage);
                         int startIndex = pageNumberInt * resultsPerPage;
                         int endIndex = (pageNumberInt + 1) * resultsPerPage;
@@ -172,7 +178,8 @@
             <table style="width: 100%" class="styledLeft">
                 <div style="height:30px;">
                     <a href="javascript:document.location.href='add-sp-template.jsp'" class="icon-link"
-                       style="background-image:url(../admin/images/add.gif);"><fmt:message key="sp.template.add.link"/></a>
+                       style="background-image:url(../admin/images/add.gif);"><fmt:message
+                            key="sp.template.add.link"/></a>
                 </div>
                 <tbody>
                 <tr>
@@ -215,7 +222,8 @@
                                        onclick="javascript:location.href=
                                                'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(template.getName())%>'"
                                        class="icon-link"
-                                       style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
+                                       style="background-image: url(../application/images/edit.gif)"><fmt:message
+                                            key="sp.template.edit"/>
                                     </a>
                                     <%
                                         }
@@ -234,7 +242,8 @@
                                     <a title="Remove Service Provider Template"
                                        onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');"
                                        class="icon-link"
-                                       style="background-image: url(../application/images/delete.gif)"><fmt:message key="sp.template.delete"/>
+                                       style="background-image: url(../application/images/delete.gif)"><fmt:message
+                                            key="sp.template.delete"/>
                                     </a>
                                 </td>
                             </tr>
@@ -275,17 +284,18 @@
             </form>
         </div>
     </div>
-    <div id="retrieveTemplateErrorMsgDialog"  title='WSO2 Carbon'>
+    <div id="retrieveTemplateErrorMsgDialog" title='WSO2 Carbon'>
         <div id="messagebox-error">
             <h3>
                 <fmt:message key="alert.error.load.sp.template"/>
             </h3>
             <table style="margin-top:10px;">
                 <%
-                    for (String error : retrieveTemplateError){
+                    for (String error : retrieveTemplateError) {
                 %>
                 <tr>
-                    <td><%=error%></td>
+                    <td><%=error%>
+                    </td>
                 </tr>
                 <%
                     }
@@ -294,3 +304,4 @@
         </div>
     </div>
 </fmt:bundle>
+

@@ -394,67 +394,49 @@
     }
 
     function validateTextForIllegal(fld) {
-        var isValid = doValidateInput(fld, "Provided Service Provider Template name is invalid.");
+        var isValid = doValidateInput(fld, '<%=resourceBundle.getString("alert.error.sp.template.not.available")%>');
         if (isValid) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     function validateSPConfigurations() {
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
-            var isValied = true;
             $.each($('.spClaimVal'), function () {
                 if ($(this).val().length == 0) {
-                    isValied = false;
-                    CARBON.showWarningDialog('Please complete Claim Configuration section');
+                    CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.claim.config")%>');
                     return false;
                 }
             });
-            if (!isValied) {
-                return false;
-            }
         }
-        // number_of_claimmappings
+        // number_of_claim_mappings
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-        document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+        document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         if ($('[name=app_permission]').length > 0) {
-            var isValied = true;
             $.each($('[name=app_permission]'), function () {
                 if ($(this).val().length == 0) {
-                    isValied = false;
-                    CARBON.showWarningDialog('Please complete Permission Configuration section');
+                    CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.permission.config")%>');
                     return false;
                 }
             });
-            if (!isValied) {
-                return false;
-            }
         }
         if ($('.roleMapIdp').length > 0) {
-            var isValied = true;
             $.each($('.roleMapIdp'), function () {
                 if ($(this).val().length == 0) {
-                    isValied = false;
-                    CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
+                    CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
                     return false;
                 }
             });
-            if (isValied) {
-                if ($('.roleMapSp').length > 0) {
-                    $.each($('.roleMapSp'), function () {
-                        if ($(this).val().length == 0) {
-                            isValied = false;
-                            CARBON.showWarningDialog('Please complete Role Mapping Configuration section');
-                            return false;
-                        }
-                    });
-                }
-            }
-            if (!isValied) {
-                return false;
+
+            if ($('.roleMapSp').length > 0) {
+                $.each($('.roleMapSp'), function () {
+                    if ($(this).val().length == 0) {
+                        CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
+                        return false;
+                    }
+                });
             }
         }
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
@@ -482,14 +464,14 @@
             }
         });
         if (templateName === null || 0 === templateName.length) {
-            CARBON.showWarningDialog('Please specify service provider template name.');
+            CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.not.available")%>');
             return;
         }
 
         templateNames = document.getElementById('templateNames').value.split(",");
         for (var i = 0; i < templateNames.length; i++) {
             if (templateNames[i] == templateName) {
-                CARBON.showWarningDialog('Service provider template name is already taken. Please pick a different name.');
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.name.taken")%>');
                 return;
             }
         }
@@ -504,15 +486,15 @@
             data: $("#configure-sp-form").serialize(),
             success: function (responseText, status) {
                 if (status == "success") {
-                    CARBON.showInfoDialog('Service provider template is added successfully.');
+                    CARBON.showInfoDialog('<%=resourceBundle.getString("alert.success.add.sp.template")%>');
                     return;
                 } else {
-                    CARBON.showErrorDialog('Error when adding service provider template.');
+                    CARBON.showErrorDialog('<%=resourceBundle.getString("alert.error.sp.template.add")%>');
                     return;
                 }
             },
             error: function(e) {
-                CARBON.showErrorDialog('Error when adding service provider template.');
+                CARBON.showErrorDialog('<%=resourceBundle.getString("alert.error.sp.template.add")%>');
                 return;
             },
             async: false
@@ -549,7 +531,7 @@
 
     function updateBeanAndRedirect(redirectURL) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-        document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+        document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
         document.getElementById('number_of_permissions').value = numberOfPermissions;
@@ -569,7 +551,7 @@
 
     function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-        document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+        document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
         document.getElementById('number_of_permissions').value = numberOfPermissions;
@@ -1037,7 +1019,7 @@
         if ($('#isNeedToUpdate').val() == 'true') {
             $('#isNeedToUpdate').val('false');
             var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
-            document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+            document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
             var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
             document.getElementById('number_of_permissions').value = numberOfPermissions;
@@ -1538,7 +1520,7 @@
                         </tr>
                     </table>
 
-                    <input type="hidden" name="number_of_claimmappings" id="number_of_claimmappings" value="1">
+                    <input type="hidden" name="number_of_claim_mappings" id="number_of_claim_mappings" value="1">
                     <div id="localClaimsList" style="display: none;">
                         <select style="float:left; width: 100%">
                             <% String[] localClaims = appBean.getClaimUris();

@@ -1078,9 +1078,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
         try {
-            validateSPTemplateExists(spTemplate.getName(), spTemplate, tenantDomain);
+            ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
@@ -1114,7 +1114,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (serviceProvider != null) {
             try {
-                validateSPTemplateExists(spTemplate.getName(), spTemplate, tenantDomain);
+                validateSPTemplateExists(spTemplate, tenantDomain);
 
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
                 applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
@@ -1179,11 +1179,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate, String tenantDomain)
+    public void updateApplicationTemplate(String oldTemplateName, SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         try {
-            validateSPTemplateExists(templateName, spTemplate, tenantDomain);
+            validateSPTemplateExists(oldTemplateName, spTemplate, tenantDomain);
 
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
@@ -1198,9 +1198,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     listener.doPreUpdateApplicationTemplate(serviceProvider, tenantDomain);
                 }
             }
-            doUpdateApplicationTemplate(templateName, spTemplate, tenantDomain);
+            doUpdateApplicationTemplate(oldTemplateName, spTemplate, tenantDomain);
         } catch (IdentityApplicationManagementValidationException e) {
-            log.error("Validation error when updating the application template: " + templateName + " in:" +
+            log.error("Validation error when updating the application template: " + oldTemplateName + " in:" +
                     tenantDomain);
             for (String msg : e.getValidationMsg()) {
                 log.error(msg);
@@ -1208,7 +1208,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw new IdentityApplicationManagementClientException(e.getValidationMsg());
         } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format("Error in updating the application template: %s in tenant: %s",
-                    spTemplate.getName(), tenantDomain);
+                    oldTemplateName, tenantDomain);
             throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }
@@ -1391,15 +1391,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void validateSPTemplateExists(String templateName, SpTemplate spTemplate, String tenantDomain)
+    private void validateSPTemplateExists(SpTemplate spTemplate, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         List<String> validationMsg = new ArrayList<>();
-        if (StringUtils.isNotBlank(spTemplate.getName()) && !templateName.equals(spTemplate.getName())
-                && isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
+        if (StringUtils.isNotBlank(spTemplate.getName()) &&
+                isExistingApplicationTemplate(spTemplate.getName(), tenantDomain)) {
             validationMsg.add(String.format("Template with name: %s is already configured for tenant: %s.",
                     spTemplate.getName(), tenantDomain));
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
+    }
+
+    private void validateSPTemplateExists(String oldTemplateName, SpTemplate spTemplate, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (!oldTemplateName.equals(spTemplate.getName())) {
+            validateSPTemplateExists(spTemplate, tenantDomain);
         }
     }
 
@@ -1434,11 +1442,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return null;
     }
 
-    private ServiceProvider unmarshalSPTemplate(String spTemplateXml) throws IdentityApplicationManagementException {
+    private ServiceProvider unmarshalSPTemplate(String spTemplateXml)
+            throws IdentityApplicationManagementValidationException {
 
         if (StringUtils.isEmpty(spTemplateXml)) {
-            throw new IdentityApplicationManagementException("Empty SP template configuration is provided to " +
-                    "unmarshal");
+            throw new IdentityApplicationManagementValidationException(new String[] {"Empty SP template configuration" +
+                    " is provided."});
         }
         try {
             SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -1468,8 +1477,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             inputStream.close();
             return (ServiceProvider) unmarshallerHandler.getResult();
         } catch (JAXBException | SAXException | ParserConfigurationException | IOException e) {
-            throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
-                    "configuration ", e);
+            String msg = "Error in reading Service Provider template configuration.";
+            log.error(msg, e);
+            throw new IdentityApplicationManagementValidationException(new String[] {msg});
         }
     }
 

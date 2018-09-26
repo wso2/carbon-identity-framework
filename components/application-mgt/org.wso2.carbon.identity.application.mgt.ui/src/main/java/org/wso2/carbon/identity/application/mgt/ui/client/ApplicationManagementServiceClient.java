@@ -293,9 +293,7 @@ public class ApplicationManagementServiceClient {
             }
             stub.createApplicationTemplate(spTemplate);
         } catch (RemoteException e) {
-            log.error("Error occurred when creating Service Provider template: " + spTemplate.getName(), e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when creating Service Provider template: " + spTemplate.getName());
         }
     }
 
@@ -316,10 +314,8 @@ public class ApplicationManagementServiceClient {
             }
             stub.createApplicationTemplateFromSP(serviceProvider, spTemplate);
         } catch (RemoteException e) {
-            log.error("Error occurred when creating Service Provider template: " + spTemplate.getName() +
-                    " from service provider: " + serviceProvider.getApplicationName(), e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when creating Service Provider template: " + spTemplate.getName() +
+                            " from service provider: " + serviceProvider.getApplicationName());
         }
     }
 
@@ -339,10 +335,9 @@ public class ApplicationManagementServiceClient {
             }
             return stub.getApplicationTemplate(templateName);
         } catch (RemoteException e) {
-            log.error("Error occurred when retrieving Service Provider template: " + templateName, e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when retrieving Service Provider template: " + templateName);
         }
+        return null;
     }
 
     /**
@@ -360,9 +355,7 @@ public class ApplicationManagementServiceClient {
             }
             stub.deleteApplicationTemplate(templateName);
         } catch (RemoteException e) {
-            log.error("Error occurred when deleting Service Provider template: " + templateName, e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when deleting Service Provider template: " + templateName);
         }
     }
 
@@ -381,9 +374,7 @@ public class ApplicationManagementServiceClient {
             }
             stub.updateApplicationTemplate(templateName, spTemplate);
         } catch (RemoteException e) {
-            log.error("Error occurred when updating Service Provider template: " + templateName, e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when updating Service Provider template: " + templateName);
         }
     }
 
@@ -403,10 +394,9 @@ public class ApplicationManagementServiceClient {
             }
             return stub.isExistingApplicationTemplate(templateName);
         } catch (RemoteException e) {
-            log.error("Error occurred when checking existence of Service Provider template: " + templateName, e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when checking existence of Service Provider template: " + templateName);
         }
+        return false;
     }
 
     /**
@@ -424,10 +414,9 @@ public class ApplicationManagementServiceClient {
             }
             return stub.getAllApplicationTemplateInfo();
         } catch (RemoteException e) {
-            log.error("Error occurred when retrieving service provider template basic info", e);
-            throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
-                    "Server error occurred.");
+            handleException(e, "Error occurred when retrieving service provider template basic info");
         }
+        return new SpTemplate[0];
     }
 
     private void handleException(Exception e) throws AxisFault {
@@ -446,4 +435,12 @@ public class ApplicationManagementServiceClient {
         throw new AxisFault(errorMessage, e);
     }
 
+    private void handleException(RemoteException e, String msg)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
+        log.error(msg, e);
+        throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
+                "Server error occurred.");
+    }
+
 }
+

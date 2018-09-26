@@ -265,7 +265,6 @@ public abstract class ApplicationManagementService {
      *
      * @param spTemplate service provider template info
      * @param tenantDomain  tenant domain
-     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
     public abstract void createApplicationTemplate(SpTemplate spTemplate, String tenantDomain)
@@ -276,7 +275,7 @@ public abstract class ApplicationManagementService {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate   service provider template basic info
-     * @return SP template response
+     * @param tenantDomain  tenant domain
      * @throws IdentityApplicationManagementException
      */
     public abstract void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
@@ -307,9 +306,9 @@ public abstract class ApplicationManagementService {
     /**
      * Update an application template.
      *
+     * @param templateName name of the template
      * @param spTemplate SP template info to be updated
      * @param tenantDomain  tenant domain
-     * @return SP template response
      * @throws IdentityApplicationManagementException
      */
     public abstract void updateApplicationTemplate(String templateName, SpTemplate spTemplate,
@@ -338,3 +337,4 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
 }
+

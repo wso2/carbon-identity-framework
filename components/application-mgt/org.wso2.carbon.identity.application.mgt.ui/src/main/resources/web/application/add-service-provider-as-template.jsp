@@ -17,7 +17,7 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
@@ -28,10 +28,8 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-<%@ page
-        import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -63,21 +61,23 @@
         serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
     } catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
         String message = resourceBundle.getString("alert.error.add.sp.as.template");
-        String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
-        if (ArrayUtils.isNotEmpty(errorMessages)) {
+        if (e.getFaultMessage() != null && e.getFaultMessage().getIdentityApplicationManagementClientException() != null
+                && e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages() != null) {
+            String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
             session.setAttribute("createTemplateError", errorMessages);
 %>
-    <script>
-        location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>&createTemplateError=true';
-    </script>
+<script>
+    location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>&createTemplateError=true';
+</script>
 <%
-        } else {
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+} else {
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
 %>
-    <script>
-        location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>';
-    </script>
+<script>
+    location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>';
+</script>
 <%
         }
     }
 %>
+
