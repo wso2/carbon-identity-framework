@@ -1388,7 +1388,7 @@ public class ApplicationBean {
         }
 
         // update claim configuration.
-        int claimCount = Integer.parseInt(request.getParameter("number_of_claimmappings"));
+        int claimCount = Integer.parseInt(request.getParameter("number_of_claim_mappings"));
         List<ClaimMapping> claimMappingList = new ArrayList<ClaimMapping>();
 
         for (int i = 0; i < claimCount; i++) {
