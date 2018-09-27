@@ -32,12 +32,12 @@
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-    
+    String tenantDomain = request.getParameter("tenantDomain");
     ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
     
     try {
-        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(null, true,
-                "ReCaptcha", "password-recovery");
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(tenantDomain, true, "ReCaptcha",
+                "password-recovery");
         
         if (reCaptchaProperties.getReCaptchaEnabled()) {
             Map<String, List<String>> headers = new HashMap<>();
