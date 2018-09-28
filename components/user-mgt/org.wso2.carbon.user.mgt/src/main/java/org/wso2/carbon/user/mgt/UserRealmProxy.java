@@ -41,11 +41,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserOperationEventListener;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.constants.UserCoreErrorConstants;
-import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.bulkimport.BulkImportConfig;
 import org.wso2.carbon.user.mgt.bulkimport.CSVUserBulkImport;
@@ -620,7 +616,7 @@ public class UserRealmProxy {
                 itemsPerPage = Integer.parseInt(itemsPerPageString);
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
-                    log.info("Error parsing number of items per page, using default value", e);
+                    log.debug("Error parsing number of items per page, using default value", e);
                 }
             }
             userRealmInfo.setMaxItemsPerUIPage(itemsPerPage);
@@ -631,7 +627,7 @@ public class UserRealmProxy {
                 maxPagesInCache = Integer.parseInt(maxPageInCacheString);
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
-                    log.info("Error parsing number of maximum pages in cache, using default value", e);
+                    log.debug("Error parsing number of maximum pages in cache, using default value", e);
                 }
             }
             userRealmInfo.setMaxUIPagesInCache(maxPagesInCache);
@@ -1089,10 +1085,11 @@ public class UserRealmProxy {
                 List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
                 for (String anUsersOfRole : usersOfRole) {
                     //check if display name is present in the user name
-                    int combinerIndex = anUsersOfRole.indexOf("|");
+                    int combinerIndex = anUsersOfRole.indexOf(UserCoreConstants.NAME_COMBINER);
                     Matcher matcher;
                     if (combinerIndex > 0) {
-                        matcher = pattern.matcher(anUsersOfRole.substring(combinerIndex + 1));
+                        matcher = pattern.matcher(anUsersOfRole.substring(combinerIndex +
+                                UserCoreConstants.NAME_COMBINER.length()));
                     } else {
                         matcher = pattern.matcher(anUsersOfRole);
                     }
@@ -1185,10 +1182,11 @@ public class UserRealmProxy {
                     fName.setSelected(true);
                 }
                 //check if display name is present in the user name
-                int combinerIndex = userNames[i].indexOf("|");
+                int combinerIndex = userNames[i].indexOf(UserCoreConstants.NAME_COMBINER);
                 if (combinerIndex > 0) { //if display name is appended
                     fName.setItemName(userNames[i].substring(0, combinerIndex));
-                    fName.setItemDisplayName(userNames[i].substring(combinerIndex + 1));
+                    fName.setItemDisplayName(userNames[i].substring(combinerIndex +
+                            UserCoreConstants.NAME_COMBINER.length()));
                 } else {
                     //if only user name is present
                     fName.setItemName(userNames[i]);
@@ -1569,7 +1567,7 @@ public class UserRealmProxy {
             List<String> list = new ArrayList<String>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
-                    int combinerIndex = value.indexOf("|");
+                    int combinerIndex = value.indexOf(UserCoreConstants.NAME_COMBINER);
                     if (combinerIndex > 0) {
                         list.add(value.substring(0, combinerIndex));
                     } else {
@@ -1804,7 +1802,7 @@ public class UserRealmProxy {
             List<String> list = new ArrayList<String>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
-                    int combinerIndex = value.indexOf("|");
+                    int combinerIndex = value.indexOf(UserCoreConstants.NAME_COMBINER);
                     if (combinerIndex > 0) {
                         list.add(value.substring(0, combinerIndex));
                     } else {
