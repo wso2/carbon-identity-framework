@@ -39,11 +39,10 @@
         return;
     }
     
-    String tenantDomain = request.getParameter("tenantDomain");
     ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
     
     try {
-        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(tenantDomain, true, "ReCaptcha",
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(null, true, "ReCaptcha",
                 "username-recovery");
         
         if (reCaptchaProperties.getReCaptchaEnabled()) {
