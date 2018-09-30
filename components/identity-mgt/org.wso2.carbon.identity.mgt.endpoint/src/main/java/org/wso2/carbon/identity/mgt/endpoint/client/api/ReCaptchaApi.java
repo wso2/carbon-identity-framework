@@ -85,9 +85,9 @@ public class ReCaptchaApi {
         Map<String, String> localVarHeaderParams = new HashMap<>();
         Map<String, Object> localVarFormParams = new HashMap<>();
 
-        localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
-        localVarQueryParams.addAll(apiClient.parameterToPairs("", "captcha-type", captchaType));
-        localVarQueryParams.addAll(apiClient.parameterToPairs("", "recovery-type", recoveryType));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "tenant-domain", tenantDomain));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "captcha-type", captchaType));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "recovery-type", recoveryType));
 
         final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
         final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);

@@ -21,6 +21,7 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
@@ -120,7 +121,7 @@ public class NotificationApi {
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
-        if (headers != null) {
+        if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
 
