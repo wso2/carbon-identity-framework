@@ -261,7 +261,12 @@ public class SecurityQuestionApi {
 
         // query params
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = headers;
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>() ;
+
+        if (MapUtils.isNotEmpty(headers)) {
+            localVarHeaderParams.putAll(headers);
+        }
+
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
         final String[] localVarAccepts = {

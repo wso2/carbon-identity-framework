@@ -180,8 +180,9 @@
         } catch (ApiException e) {
             RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
             if (retryError != null && "20008".equals(retryError.getCode())) {
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("errorResponse", retryError);
-                request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+                request.getRequestDispatcher("challenge-questions-view-all.jsp").forward(request, response);
                 return;
             }
 
