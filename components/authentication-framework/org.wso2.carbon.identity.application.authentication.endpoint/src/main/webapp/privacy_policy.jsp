@@ -163,7 +163,7 @@
                     <div class="margin-bottom"></div>
                     <h3 id="changes-to-this-policy">Changes to this policy</h3>
                     <p>Upgraded versions of WSO2 IS 5.5.0 may contain changes to this policy and revisions to this policy will be packaged within such upgrades. Such changes would only apply to users who choose to use upgraded versions.</p>
-                    <p>The organization running WSO2 IS 5.5.0 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running WSO2 IS 5.5. The organization will notify any changes to the privacy policy over our oficial public channels.</p>
+                    <p>The organization running WSO2 IS 5.5.0 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running WSO2 IS 5.5. The organization will notify any changes to the privacy policy over our official public channels.</p>
                     <div class="margin-bottom"></div>
                     <h3 id="your-choices">Your choices</h3>
                     <p>If you are already have a user account within WSO2 IS 5.5.0, you have the right to deactivate your account if you find that this privacy policy is unacceptable to you.</p>
