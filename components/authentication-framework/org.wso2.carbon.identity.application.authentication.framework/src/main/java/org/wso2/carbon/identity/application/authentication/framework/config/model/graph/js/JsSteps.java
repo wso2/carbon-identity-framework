@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -27,41 +26,48 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 /**
  * Returns when context.steps[<step_number] is called
  */
-public class JsSteps extends AbstractJSObject {
+public class JsSteps extends AbstractJSContextMemberObject {
 
     private static final Log LOG = LogFactory.getLog(JsSteps.class);
 
-    private AuthenticationContext wrappedContext;
+    public JsSteps() {
 
-    public JsSteps(AuthenticationContext wrappedContext) {
+    }
 
-        this.wrappedContext = wrappedContext;
+    public JsSteps(AuthenticationContext context) {
+
+        initializeContext(context);
     }
 
     @Override
     public boolean hasSlot(int step) {
 
-        if (wrappedContext == null) {
+        if (getContext() == null) {
             return false;
         } else {
-            return wrappedContext.getSequenceConfig().getStepMap().containsKey(step);
+            return getContext().getSequenceConfig().getStepMap().containsKey(step);
         }
     }
 
     @Override
     public Object getSlot(int step) {
 
-        if (wrappedContext == null) {
+        if (getContext() == null) {
             return super.getSlot(step);
         } else {
-            return new JsStep(wrappedContext, step, getAuthenticatedIdPOfStep(step));
+            return new JsStep(getContext(), step, getAuthenticatedIdPOfStep(step));
         }
     }
 
 
     private String getAuthenticatedIdPOfStep(int step) {
 
-        StepConfig stepConfig = wrappedContext.getSequenceConfig().getStepMap().get(step);
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
         if (stepConfig != null) {
             return stepConfig.getAuthenticatedIdP();
         }

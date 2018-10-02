@@ -18,7 +18,6 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
 
     <%
@@ -29,14 +28,15 @@
             statusMessage =  AuthenticationEndpointUtil.i18n(resourceBundle,
                     "something.went.wrong.during.authentication");
         } else {
-            stat = AuthenticationEndpointUtil.i18nBase64(resourceBundle, stat);
-            statusMessage = AuthenticationEndpointUtil.i18nBase64(resourceBundle, statusMessage);
+            stat = AuthenticationEndpointUtil.customi18n(resourceBundle, stat);
+            statusMessage = AuthenticationEndpointUtil.customi18n(resourceBundle, statusMessage);
         }
         session.invalidate();
     %>
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>

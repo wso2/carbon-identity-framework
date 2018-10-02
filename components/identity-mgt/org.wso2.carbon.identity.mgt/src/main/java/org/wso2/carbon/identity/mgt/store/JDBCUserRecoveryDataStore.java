@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.store;
 
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -47,21 +48,8 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      */
     @Override
     public void invalidate(UserRecoveryDataDO recoveryDataDO) throws IdentityException {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
-        try {
-            prepStmt = connection.prepareStatement(SQLQuery.INVALIDATE_METADATA); // TODO Delete entry
-            prepStmt.setString(1, recoveryDataDO.getUserName());
-            prepStmt.setInt(2, recoveryDataDO.getTenantId());
-            prepStmt.setString(3, recoveryDataDO.getCode());
-            prepStmt.execute();
-            connection.commit();
-        } catch (SQLException e) {
-            throw IdentityException.error("Error while storing user identity data", e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
-            IdentityDatabaseUtil.closeConnection(connection);
-        }
+
+        invalidate(recoveryDataDO.getCode());
     }
 
     /**
@@ -71,12 +59,15 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      */
     @Override
     public void invalidate(String userId, int tenant) throws IdentityException {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+
         PreparedStatement prepStmt = null;
+        Connection connection = null;
         try {
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(SQLQuery.INVALIDATE_METADATA);
-            prepStmt.setString(1, userId);
+            prepStmt.setString(1, userId.toLowerCase());
             prepStmt.setInt(2, tenant);
+            prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
             throw IdentityException.error("Error while invalidating user identity data", e);
@@ -87,6 +78,24 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
 
     }
 
+    @Override
+    public void invalidate(String code) throws IdentityException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement prepStmt = null;
+        try {
+            prepStmt = connection.prepareStatement(SQLQuery.INVALIDATE_METADATA_FROM_CODE);
+            prepStmt.setString(1, code.toLowerCase());
+            prepStmt.execute();
+            connection.commit();
+        } catch (SQLException e) {
+            throw IdentityException.error("Error while invalidating user identity data for code: " + code, e);
+        } finally {
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
     /**
      * Stores identity data.
      *
@@ -94,14 +103,16 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      */
     @Override
     public void store(UserRecoveryDataDO recoveryDataDO) throws IdentityException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.STORE_META_DATA);
-            prepStmt.setString(1, recoveryDataDO.getUserName());
-            prepStmt.setInt(2, recoveryDataDO.getTenantId());
-            prepStmt.setString(3, recoveryDataDO.getCode());
+            prepStmt.setString(1, recoveryDataDO.getUserName().toLowerCase());
+            prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+            prepStmt.setString(3, recoveryDataDO.getCode().toLowerCase());
             prepStmt.setString(4, recoveryDataDO.getSecret());
+            prepStmt.setString(5, recoveryDataDO.getExpireTime());
             prepStmt.execute();
             connection.setAutoCommit(false);
             connection.commit();
@@ -119,17 +130,20 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      * @throws IdentityException
      */
     @Override
+    @Deprecated
     public void store(UserRecoveryDataDO[] recoveryDataDOs) throws IdentityException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         try {
             connection.setAutoCommit(false);
             prepStmt = connection.prepareStatement(SQLQuery.STORE_META_DATA);
             for (UserRecoveryDataDO dataDO : recoveryDataDOs) {
-                prepStmt.setString(1, dataDO.getUserName());
-                prepStmt.setInt(2, dataDO.getTenantId());
-                prepStmt.setString(3, dataDO.getCode());
+                prepStmt.setString(1, dataDO.getUserName().toLowerCase());
+                prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                prepStmt.setString(3, dataDO.getCode().toLowerCase());
                 prepStmt.setString(4, dataDO.getSecret());
+                prepStmt.setString(5, dataDO.getExpireTime());
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
@@ -152,7 +166,6 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      * @throws IdentityException
      */
 
-
     /**
      * @param userName
      * @param tenantId
@@ -160,13 +173,15 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
      * @throws IdentityException
      */
     @Override
+    @Deprecated
     public UserRecoveryDataDO[] load(String userName, int tenantId) throws IdentityException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
             prepStmt = connection.prepareStatement(SQLQuery.LOAD_USER_METADATA);
-            prepStmt.setString(1, userName);
+            prepStmt.setString(1, userName.toLowerCase());
             prepStmt.setInt(2, IdentityTenantUtil.getTenantIdOfUser(userName));
 
             results = prepStmt.executeQuery();
@@ -189,12 +204,36 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
 
     @Override
     public UserRecoveryDataDO load(String code) throws IdentityException {
-        return null;
-    }
 
-    @Override
-    public void invalidate(String code) throws IdentityException {
-        //todo
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement prepStmt = null;
+        ResultSet results = null;
+        try {
+            prepStmt = connection.prepareStatement(SQLQuery.LOAD_USER_METADATA_FROM_CODE);
+            prepStmt.setString(1, code.toLowerCase());
+
+            results = prepStmt.executeQuery();
+            if (results.next()) {
+                UserRecoveryDataDO userRecoveryDataDO = new UserRecoveryDataDO(results.getString(1), results.getInt
+                        (2), results.getString(3), results.getString(4));
+                String time = results.getString(5);
+                userRecoveryDataDO.setExpireTime(time);
+                if (System.currentTimeMillis() > Long.parseLong(time)) {
+                    userRecoveryDataDO.setValid(false);
+                } else {
+                    userRecoveryDataDO.setValid(true);
+                }
+                return userRecoveryDataDO;
+            }
+            return null;
+
+        } catch (SQLException e) {
+            throw IdentityException.error("Error while reading user identity data", e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(results);
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
     }
 
     /**
@@ -203,45 +242,32 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
     private static class SQLQuery {
 
         /**
-         * Query to load temporary passwords and confirmation codes
-         */
-        public static final String LOAD_META_DATA =
-                "SELECT "
-                        + "USER_NAME, TENANT_ID, METADATA_TYPE, METADATA, VALID "
-                        + "FROM IDN_IDENTITY_META_DATA "
-                        + "WHERE USER_NAME = ? AND TENANT_ID = ? AND METADATA_TYPE = ? AND METADATA = ?";
-
-        /**
          * Query to load user metadata
          */
-        public static final String LOAD_USER_METADATA =
+        static final String LOAD_USER_METADATA =
                 "SELECT "
                         + "USER_NAME, TENANT_ID, METADATA_TYPE, METADATA, VALID "
                         + "FROM IDN_IDENTITY_META_DATA "
                         + "WHERE USER_NAME = ? AND TENANT_ID = ? ";
 
-        /**
-         * Query to load security questions
-         */
-        public static final String LOAD_TENANT_METADATA =
-                "SELECT "
-                        + "USER_NAME, TENANT_ID, METADATA_TYPE, METADATA, VALID "
-                        + "FROM IDN_IDENTITY_META_DATA "
-                        + "WHERE TENANT_ID = ? AND METADATA_TYPE = ?";
+        static final String LOAD_USER_METADATA_FROM_CODE =
+                "SELECT USER_NAME, TENANT_ID, METADATA_TYPE, METADATA, VALID FROM IDN_IDENTITY_META_DATA "
+                        + "WHERE METADATA_TYPE = ? ";
 
-        public static final String STORE_META_DATA =
+
+        static final String STORE_META_DATA =
                 "INSERT "
                         + "INTO IDN_IDENTITY_META_DATA "
                         + "(USER_NAME, TENANT_ID, METADATA_TYPE, METADATA, VALID)"
                         + "VALUES (?,?,?,?,?)";
 
-        public static final String INVALIDATE_METADATA =
-                "UPDATE "
-                        + "IDN_IDENTITY_META_DATA "
-                        + "SET VALID = 'false' "
-                        + "WHERE USER_NAME = ? AND TENANT_ID = ? AND METADATA_TYPE = ? AND METADATA = ?";
+        static final String INVALIDATE_METADATA = "DELETE FROM IDN_IDENTITY_META_DATA WHERE USER_NAME = ? AND" +
+                " TENANT_ID= ?";
+
+        static final String INVALIDATE_METADATA_FROM_CODE = "DELETE FROM IDN_IDENTITY_META_DATA WHERE  METADATA_TYPE = ?";
 
         private SQLQuery() {
+
         }
     }
 

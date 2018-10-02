@@ -30,25 +30,14 @@ import java.io.Serializable;
  */
 public class SerializableJsFunction implements Serializable {
 
-    private String name;
+    private static final long serialVersionUID = -7605388897997019588L;
     private String source;
     private boolean isFunction;
 
-    public SerializableJsFunction(String name, String source, boolean isFunction) {
+    public SerializableJsFunction(String source, boolean isFunction) {
 
-        this.name = name;
         this.source = source;
         this.isFunction = isFunction;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
     }
 
     public String getSource() {
@@ -73,11 +62,10 @@ public class SerializableJsFunction implements Serializable {
 
     /**
      * This will return the converted SerializableJsFunction if the given  ScriptObjectMirror is a function.
-     * @param name
      * @param scriptObjectMirror
      * @return null if the ScriptObjectMirror is not a function.
      */
-    public static SerializableJsFunction toSerializableForm(String name, ScriptObjectMirror scriptObjectMirror) {
+    public static SerializableJsFunction toSerializableForm(ScriptObjectMirror scriptObjectMirror) {
 
         if (!scriptObjectMirror.isFunction()) {
             return null;
@@ -90,9 +78,9 @@ public class SerializableJsFunction implements Serializable {
             boolean isFunction = scriptObjectMirror.isFunction();
             String source = scriptFunction.toSource();
 
-            return new SerializableJsFunction(name, source, isFunction);
+            return new SerializableJsFunction(source, isFunction);
         } else {
-            return new SerializableJsFunction(name, unwrapped.toString(), true);
+            return new SerializableJsFunction(unwrapped.toString(), true);
         }
     }
 }

@@ -20,6 +20,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
@@ -162,7 +163,7 @@
                     <div class="margin-bottom"></div>
                     <h3 id="changes-to-this-policy">Changes to this policy</h3>
                     <p>Upgraded versions of WSO2 IS 5.5.0 may contain changes to this policy and revisions to this policy will be packaged within such upgrades. Such changes would only apply to users who choose to use upgraded versions.</p>
-                    <p>The organization running WSO2 IS 5.5.0 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running WSO2 IS 5.5. The organization will notify any changes to the privacy policy over our oficial public channels.</p>
+                    <p>The organization running WSO2 IS 5.5.0 may revise the Privacy Policy from time to time. You can find the most recent governing policy with the respective link provided by the organization running WSO2 IS 5.5. The organization will notify any changes to the privacy policy over our official public channels.</p>
                     <div class="margin-bottom"></div>
                     <h3 id="your-choices">Your choices</h3>
                     <p>If you are already have a user account within WSO2 IS 5.5.0, you have the right to deactivate your account if you find that this privacy policy is unacceptable to you.</p>
@@ -176,7 +177,7 @@
                     <ol>
                       <li>WSO2, its employees, partners, and affiliates do not have access to and do not require, store, process or control any of the data, including personal data contained in WSO2 IS 5.5.0. All data, including personal data is controlled and processed by the entity or individual running WSO2 IS 5.5.0.  WSO2, its employees partners and affiliates are not a data processor or a data controller within the meaning of any data privacy regulations.  WSO2 does not provide any warranties or undertake any responsibility or liability in connection with the lawfulness or the manner and purposes for which WSO2 IS 5.5.0 is used by such entities or persons. </li>  
                       </br>
-                      <li>This privacy policy is for the informational purposes of the entity or persons  running WOS2 IS 5.5.0 and sets out the processes and functionality contained within WSO2 IS 5.5.0 regarding personal data protection. It is the responsibility of entities and persons running WSO2 IS 5.5.0 to create and administer its own rules and processes governing users’ personal data, and such  rules and processes may change the use, storage and disclosure policies contained herein. Therefore users should consult the entity or persons running WSO2 IS 5.5.0 for its own privacy policy for details governing users’ personal data. </li>
+                      <li>This privacy policy is for the informational purposes of the entity or persons  running WSO2 IS 5.5.0 and sets out the processes and functionality contained within WSO2 IS 5.5.0 regarding personal data protection. It is the responsibility of entities and persons running WSO2 IS 5.5.0 to create and administer its own rules and processes governing users’ personal data, and such  rules and processes may change the use, storage and disclosure policies contained herein. Therefore users should consult the entity or persons running WSO2 IS 5.5.0 for its own privacy policy for details governing users’ personal data. </li>
                     </ol>
                 </div>
                 <%-- /Costomizable content --%>

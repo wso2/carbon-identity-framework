@@ -145,9 +145,19 @@
             return false;
         }
 
-        if(!value.match(new RegExp(regString))) {
-            CARBON.showWarningDialog('<fmt:message key="policy.name.is.conformance"/>');
-            return false;
+        if (!value.match(new RegExp(regString))) {
+            if (value.match(new RegExp("\\s", "g"))) {
+                CARBON.showWarningDialog('<fmt:message key="policy.name.with.space"/>');
+                return false;
+            }
+            else if (value.match(new RegExp("\\W", "g"))) {
+                CARBON.showWarningDialog('<fmt:message key="policy.name.with.special-character"/>');
+                return false;
+            }
+            else {
+                CARBON.showWarningDialog('<fmt:message key="policy.name.is.conformance"/>');
+                return false;
+            }
         }
         return true;
     }

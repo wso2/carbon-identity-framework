@@ -19,14 +19,18 @@
 package org.wso2.carbon.identity.core;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Tenant;
 
-import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,6 +42,7 @@ import java.sql.SQLException;
  */
 public class DatabaseCertificateRetriever implements CertificateRetriever {
 
+    private static final Log log = LogFactory.getLog(DatabaseCertificateRetriever.class);
 
     private static String QUERY_TO_GET_APPLICATION_CERTIFICATE = "SELECT CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE " +
             "WHERE ID = ?";
@@ -71,24 +76,61 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
 
             String certificateContent = null;
             while (queryResults.next()) {
-                certificateContent = queryResults.getString(1);
+                certificateContent = getBlobValue(queryResults.getBinaryStream(1));
             }
 
             if (StringUtils.isNotBlank(certificateContent)) {
                 return (X509Certificate) IdentityUtil.convertPEMEncodedContentToCertificate(certificateContent);
             }
         } catch (SQLException e) {
-            String errorMessage = String.format("An error occurred while retrieving the certificate content form the " +
-                    "database for the ID '%s'", certificateId);
+            String errorMessage = String.format("An error occurred while retrieving the certificate content from " +
+                    "the database for the ID '%s'", certificateId);
             throw new CertificateRetrievingException(errorMessage, e);
         } catch (CertificateException e) {
             String errorMessage = String.format("An error occurred while build a certificate using the certificate " +
-                    "content form the database for the ID '%s'", certificateId);
+                    "content from the database for the ID '%s'", certificateId);
+            throw new CertificateRetrievingException(errorMessage, e);
+        } catch (IOException e) {
+            String errorMessage = String.format("An error occurred while reading the certificate blob from the " +
+                    "database for the ID '%s'", certificateId);
             throw new CertificateRetrievingException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, queryResults, statementToGetApplicationCertificate);
         }
 
+        return null;
+    }
+
+    /**
+     * Get string from inputStream of a blob.
+     *
+     * @param is input stream.
+     * @return String result.
+     * @throws IOException
+     */
+    private String getBlobValue(InputStream is) throws IOException {
+
+        if (is != null) {
+            BufferedReader br = null;
+            StringBuilder sb = new StringBuilder();
+            String line;
+            try {
+                br = new BufferedReader(new InputStreamReader(is));
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.error("Error in retrieving the Blob value", e);
+                    }
+                }
+            }
+
+            return sb.toString();
+        }
         return null;
     }
 }

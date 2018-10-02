@@ -1,0 +1,51 @@
+{
+  "category": "user_based",
+  "name": "User Store-Based",
+  "title": "User Store-Based Authentication Template",
+  "summary": "Prompts 2FA to the users who are from one of the given user store domains.",
+  "preRequisites": [
+    "Change the userStoresToStepUp parameter to an array of user store domains that should require 2FA.",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "userStoresToStepUp": "An array of user store domains of which users are required to use 2FA"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+User+Store-Based+Adaptive+Authentication",
+  "code": [
+    "// This script will prompt 2FA to the app only for a selected set of user stores.",
+    "// If the user is in one of the following user stores, user will be prompted 2FA",
+    "var userStoresToStepUp = ['EMPLOYEES', 'CONTRACTORS'];",
+    "",
+    "function onLoginRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting user store domain of authenticated subject from the first step",
+    "            var userStoreDomain = context.currentKnownSubject.userStoreDomain;",
+    "            // Checking if the user is from whitelisted tenant domain",
+    "            if (userStoresToStepUp.indexOf(userStoreDomain) >= 0) {",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "}"
+  ]
+}

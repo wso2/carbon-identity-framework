@@ -48,21 +48,23 @@ public class FileBasedIdPMgtDAO {
      */
     public IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain) {
 
+        return getIdPByAuthenticatorPropertyValue(property, value, tenantDomain, IdentityApplicationConstants
+                .Authenticator.SAML2SSO.NAME);
+    }
+
+    public IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain,
+                                                               String authenticatorName) {
+
         Map<String, IdentityProvider> identityProviders = IdPManagementServiceComponent.getFileBasedIdPs();
-        for (Iterator<Entry<String, IdentityProvider>> iterator = identityProviders.entrySet().iterator(); iterator
-                .hasNext(); ) {
-            Entry<String, IdentityProvider> entry = iterator.next();
+        for (Entry<String, IdentityProvider> entry : identityProviders.entrySet()) {
             FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = entry.getValue().
                     getFederatedAuthenticatorConfigs();
             // Get SAML2 Web SSO authenticator
             FederatedAuthenticatorConfig samlAuthenticatorConfig = IdentityApplicationManagementUtil.
-                    getFederatedAuthenticator(
-                            federatedAuthenticatorConfigs, IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
-
+                    getFederatedAuthenticator(federatedAuthenticatorConfigs, authenticatorName);
             if (samlAuthenticatorConfig != null) {
                 Property samlProperty = IdentityApplicationManagementUtil.getProperty(samlAuthenticatorConfig.
-                                getProperties(),
-                        property);
+                        getProperties(), property);
                 if (samlProperty != null) {
                     if (value.equalsIgnoreCase(samlProperty.getValue())) {
                         return entry.getValue();

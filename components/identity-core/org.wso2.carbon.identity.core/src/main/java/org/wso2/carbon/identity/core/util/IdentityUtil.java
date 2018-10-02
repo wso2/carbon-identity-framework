@@ -21,7 +21,6 @@ import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,6 +53,7 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -130,6 +130,8 @@ public class IdentityUtil {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
+    private static final String APPLICATION_DOMAIN = "Application";
+    private static final String WORKFLOW_DOMAIN = "Workflow";
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -578,12 +580,13 @@ public class IdentityUtil {
             return true;
         }
         try {
-            org.wso2.carbon.user.core.UserStoreManager userStoreManager = (org.wso2.carbon.user.core
-                    .UserStoreManager) IdentityTenantUtil.getRealmService()
-                    .getTenantUserRealm(tenantId).getUserStoreManager();
-            org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager = userStoreManager
-                    .getSecondaryUserStoreManager(userStoreDomain);
-            return isUserStoreCaseSensitive(userAvailableUserStoreManager);
+            UserRealm tenantUserRealm = IdentityTenantUtil.getRealmService().getTenantUserRealm(tenantId);
+            if (tenantUserRealm != null) {
+                org.wso2.carbon.user.core.UserStoreManager userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) tenantUserRealm
+                        .getUserStoreManager();
+                org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+                return isUserStoreCaseSensitive(userAvailableUserStoreManager);
+            }
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while reading user store property CaseInsensitiveUsername. Considering as case " +
@@ -613,6 +616,31 @@ public class IdentityUtil {
                     ".");
         }
         return !Boolean.parseBoolean(caseInsensitiveUsername);
+    }
+
+    /**
+     * This returns whether case sensitive user name can be used as the cache key.
+     *
+     * @param userStoreManager user-store manager
+     * @return true if case sensitive username can be use as cache key
+     */
+    public static boolean isUseCaseSensitiveUsernameForCacheKeys(UserStoreManager userStoreManager) {
+
+        if (userStoreManager == null) {
+            //this is done to handle federated scenarios. For federated scenarios, there is no user store manager for
+            // the user
+            return true;
+        }
+        String useCaseSensitiveUsernameForCacheKeys = userStoreManager.getRealmConfiguration()
+                .getUserStoreProperty(IdentityCoreConstants.USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS);
+        if (StringUtils.isBlank(useCaseSensitiveUsernameForCacheKeys)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to read user store property UseCaseSensitiveUsernameForCacheKeys. Considering as "
+                        + "case sensitive.");
+            }
+            return true;
+        }
+        return Boolean.parseBoolean(useCaseSensitiveUsernameForCacheKeys);
     }
 
     public static boolean isNotBlank(String input) {
@@ -664,6 +692,17 @@ public class IdentityUtil {
         return Long.parseLong(cleanUpTimeout);
     }
 
+    public static long getTempDataCleanUpTimeout() {
+
+        String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT);
+        if (StringUtils.isBlank(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT;
+        }
+        return Long.parseLong(cleanUpTimeout);
+    }
+
     public static long getOperationCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);
@@ -679,6 +718,10 @@ public class IdentityUtil {
 
         if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
             String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
+            if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) || WORKFLOW_DOMAIN.equalsIgnoreCase(domain)
+                    || APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+                return domain.substring(0, 1).toUpperCase() + domain.substring(1).toLowerCase();
+            }
             return domain.toUpperCase();
         } else {
             return getPrimaryDomainName();
@@ -693,11 +736,13 @@ public class IdentityUtil {
      * @return application name with domain name
      */
     public static String addDomainToName(String name, String domainName) {
+
         if (domainName != null && name != null && !name.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
             if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(domainName)) {
                 if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domainName) ||
-                        "Workflow".equalsIgnoreCase(domainName) || "Application".equalsIgnoreCase(domainName)) {
-                    name = domainName + UserCoreConstants.DOMAIN_SEPARATOR + name;
+                        WORKFLOW_DOMAIN.equalsIgnoreCase(domainName) || APPLICATION_DOMAIN.equalsIgnoreCase(domainName)) {
+                    name = domainName.substring(0, 1).toUpperCase() + domainName.substring(1).toLowerCase() +
+                            UserCoreConstants.DOMAIN_SEPARATOR + name;
                 } else {
                     name = domainName.toUpperCase() + UserCoreConstants.DOMAIN_SEPARATOR + name;
                 }
@@ -1003,6 +1048,23 @@ public class IdentityUtil {
             clockSkewConfigValue = IdentityConstants.ServerConfig.CLOCK_SKEW_DEFAULT;
         }
         return Integer.parseInt(clockSkewConfigValue);
+    }
+
+    /**
+     * Get the server config for enabling federated user association
+     *
+     * @return isFederatedUserAssociationEnabled value
+     */
+    public static boolean isFederatedUserAssociationEnabled() {
+
+        String enableFedUserAssocicationConfigValue = IdentityUtil.getProperty(
+                IdentityConstants.ServerConfig.ENABLE_FEDERATED_USER_ASSOCIATION);
+        if (StringUtils.isBlank(enableFedUserAssocicationConfigValue)) {
+            enableFedUserAssocicationConfigValue =
+                    IdentityConstants.ServerConfig.ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT;
+        }
+
+        return Boolean.parseBoolean(enableFedUserAssocicationConfigValue);
     }
 
     /**

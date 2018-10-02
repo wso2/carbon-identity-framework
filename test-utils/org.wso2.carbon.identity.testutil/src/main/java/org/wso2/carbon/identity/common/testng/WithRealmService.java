@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface WithRealmService {
     int tenantId() default MultitenantConstants.SUPER_TENANT_ID;
     String tenantDomain() default MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;

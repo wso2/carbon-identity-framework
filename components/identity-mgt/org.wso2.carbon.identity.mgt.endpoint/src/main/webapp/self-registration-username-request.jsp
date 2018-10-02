@@ -1,8 +1,10 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %><%--
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="java.util.Map" %><%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
@@ -20,6 +22,7 @@
   ~ under the License.
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -45,14 +48,16 @@
     } else if (errorMsgObj != null) {
         errorMsg = errorMsgObj.toString();
     }
+    boolean skipSignUpEnableCheck = Boolean.parseBoolean(request.getParameter("skipsignupenablecheck"));
 %>
 
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -73,9 +78,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -86,10 +93,11 @@
     
         <div class="row">
             <!-- content -->
-            <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
+            <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 col-centered wr-login">
                 <form action="signup.do" method="post" id="register">
                     <h2
-                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Start Signing Up
+                            class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                            <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Start.signing.up")%>
                     </h2>
                 
                     <div class="clearfix"></div>
@@ -98,28 +106,48 @@
                         </div>
                         <% if (error) { %>
                         <div class="alert alert-danger margin-left-double margin-right-double margin-top-double" id="server-error-msg">
-                            <%= Encode.forHtmlContent(errorMsg) %>
+                            <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
                         </div>
                         <% } %>
                         <!-- validation -->
                         <div class="padding-double">
                         
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <div class="font-large margin-bottom-double">Enter your username here</div>
-                                <label class="control-label">Username</label>
+                                <div class="margin-bottom-double">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.your.username.here")%>
+                                </div>
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%></label>
                                 
                                 <input id="username" name="username" type="text"
-                                       class="form-control required usrName usrNameLength" required>
-                                <div class="font-small">If you do not specify a tenant domain, you will be registered under super tenant</div>
+                                       class="form-control required usrName usrNameLength" required
+                                    <% if(skipSignUpEnableCheck) {%> value="<%=Encode.forHtmlAttribute(username)%>" <%}%>>
+                                <div class="font-small help-block">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                            "If.you.specify.tenant.domain.you.registered.under.super.tenant")%></div>
                                 <input id="callback" name="callback" type="hidden" value="<%=callback%>"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <br/>
+                            <%  Map<String, String[]> requestMap = request.getParameterMap();
+                                for (Map.Entry<String, String[]> entry : requestMap.entrySet()) {
+                                    String key = Encode.forHtmlAttribute(entry.getKey());
+                                    String value = Encode.forHtmlAttribute(entry.getValue()[0]); %>
+                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group ">
+                                    <input id="<%= key%>" name="<%= key%>" type="hidden"
+                                           value="<%=value%>" class="form-control">
+                                </div>
+                            <% } %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group username-proceed">
                                 <button id="registrationSubmit"
-                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Proceed to Self Register
+                                        class="wr-btn grey-bg uppercase font-large full-width-xs"
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Proceed.to.self.register")%>
                                 </button>
+                                <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
+                                    application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
+                                   class="light-btn uppercase font-large full-width-xs">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
+                                </a>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -133,9 +161,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>

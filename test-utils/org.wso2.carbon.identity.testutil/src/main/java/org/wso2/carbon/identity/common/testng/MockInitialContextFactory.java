@@ -26,7 +26,15 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,11 +55,13 @@ public class MockInitialContextFactory implements InitialContextFactory {
 
     @Override
     public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
+
         Context context = Mockito.mock(Context.class);
         Mockito.doAnswer(new Answer() {
 
             @Override
             public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+
                 String name = (String) invocationOnMock.getArguments()[0];
                 return getDatasource(name);
             }
@@ -64,6 +74,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
      * Destroy the initial context.
      */
     public static void destroy() {
+
         Map<String, Object> jndiObjectsMap = jndiContextData.get();
         if (jndiObjectsMap != null) {
             for (Map.Entry entry : jndiObjectsMap.entrySet()) {
@@ -81,6 +92,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
     }
 
     private static BasicDataSource getDatasource(String name) {
+
         Map context = jndiContextData.get();
         if (context == null) {
             return null;
@@ -90,9 +102,11 @@ public class MockInitialContextFactory implements InitialContextFactory {
 
     /**
      * Closes the datasource, given the JNDI name.
+     *
      * @param name
      */
     public static void closeDatasource(String name) {
+
         Map context = jndiContextData.get();
         if (context == null) {
             return;
@@ -108,6 +122,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
     }
 
     private static void addContextLookup(String name, BasicDataSource object) {
+
         Map context = jndiContextData.get();
         if (context == null) {
             context = new HashMap();
@@ -131,7 +146,9 @@ public class MockInitialContextFactory implements InitialContextFactory {
      * @param clazz
      * @param files
      */
-    public static BasicDataSource initializeDatasource(String datasourceName, Class clazz, String[] files) {
+    public static BasicDataSource initializeDatasource(String datasourceName, Class clazz, String[] files) throws
+            TestCreationException {
+
         Map<String, Object> jndiObjectsMap = jndiContextData.get();
         if (jndiObjectsMap != null) {
             BasicDataSource basicDataSource = (BasicDataSource) jndiObjectsMap.get(datasourceName);
@@ -139,13 +156,14 @@ public class MockInitialContextFactory implements InitialContextFactory {
                 return basicDataSource;
             }
         }
-        String basePath = clazz.getResource("/").getFile();
-        BasicDataSource dataSource = createDb(datasourceName, basePath, files);
+        BasicDataSource dataSource = createDb(datasourceName, clazz, files);
         addContextLookup(datasourceName, dataSource);
         return dataSource;
     }
 
-    private static BasicDataSource createDb(String dbName, String basePath, String[] files) {
+    private static BasicDataSource createDb(String dbName, Class clazz, String[] files) throws
+            TestCreationException {
+
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUsername("username");
@@ -153,16 +171,90 @@ public class MockInitialContextFactory implements InitialContextFactory {
         dataSource.setUrl("jdbc:h2:mem:test" + dbName);
         try (Connection connection = dataSource.getConnection()) {
             for (String f : files) {
-                String scriptPath = Paths.get(basePath, f).toString();
-                try (Statement statement = connection.createStatement()  ) {
-                    statement.executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");   //NOSONAR
+                File fileFromClasspathResource = getClasspathAccessibleFile(f, clazz);
+                String scriptPath = null;
+                File tempFile = null;
+                if (fileFromClasspathResource != null && fileFromClasspathResource.exists()) {
+                    scriptPath = fileFromClasspathResource.getAbsolutePath();
+                } else {
+                    //This may be from jar.
+                    tempFile = copyTempFile(f, clazz);
+                    scriptPath = tempFile.getAbsolutePath();
+                }
+                if (scriptPath != null) {
+                    try (Statement statement = connection.createStatement()) {
+                        statement.executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");   //NOSONAR
+                    } catch (SQLException e) {
+                        throw new TestCreationException(
+                                "Error while loading data to the in-memory H2 Database located from resource : " +
+                                        fileFromClasspathResource + "\nabsolute path : " + scriptPath, e);
+                    }
+                }
+                if (tempFile != null) {
+                    tempFile.delete();
                 }
             }
+            return dataSource;
         } catch (SQLException e) {
-            log.error("Error while creating the in-memory H2 Database.", e);
+            throw new TestCreationException(
+                    "Error while creating the in-memory H2 Database : ", e);
         }
-        return dataSource;
+    }
+
+    /**
+     * Returns a file in current classpath in a directory.
+     * Returns null if the resource is within a jar.
+     *
+     * @param relativeFilePath
+     * @param clazz
+     * @return
+     */
+    private static File getClasspathAccessibleFile(String relativeFilePath, Class clazz) {
+
+        URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        if(url == null) {
+            return null;
+        }
+        File fileInClassloader = new File(url.getPath());
+        if (fileInClassloader.isFile()) {
+            return fileInClassloader;
+        }
+        return null;
+    }
+
+    /**
+     * Copies a resource inside a jar to external file within a directory.
+     * Then returns the created file.
+     *
+     * @param relativeFilePath
+     * @param clazz
+     * @return
+     * @throws TestCreationException
+     */
+    private static File copyTempFile(String relativeFilePath, Class clazz) throws TestCreationException {
+
+        URL url = clazz.getClassLoader().getResource(relativeFilePath);
+        if(url == null) {
+            throw new TestCreationException("Could not find a resource on the classpath : " + relativeFilePath);
+        }
+        InputStream inputStream;
+        try {
+            inputStream = url.openStream();
+            ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
+            File tempFile = File.createTempFile("tmp_", "_registry.sql");
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            WritableByteChannel targetChannel = fos.getChannel();
+            //Transfer data from input channel to output channel
+            ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Short.MAX_VALUE);
+            inputStream.close();
+            targetChannel.close();
+            fos.close();
+            return tempFile;
+        } catch (IOException e) {
+            throw new TestCreationException("Could not copy the file content to temp file from : " + relativeFilePath);
+        }
     }
 }
+
 
 

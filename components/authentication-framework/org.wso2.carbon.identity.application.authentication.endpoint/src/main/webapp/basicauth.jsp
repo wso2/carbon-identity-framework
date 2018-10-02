@@ -22,20 +22,20 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="java.net.HttpURLConnection" %>
-<%@ page import="java.net.URL" %>
-<%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
 
+<jsp:directive.include file="init-loginform-action-url.jsp"/>
+
 
 <script>
-        function submitCredentials () {
+        function submitCredentials (e) {
+            e.preventDefault();
             var userName = document.getElementById("username");
             userName.value = userName.value.trim();
             if(userName.value){
@@ -87,25 +87,12 @@
     }
 %>
 
+<form action="<%=loginFormActionURL%>" method="post" id="loginForm">
 
-<%
-    String type = request.getParameter("type");
-    if ("samlsso".equals(type)) {
-%>
-<form action="../samlsso" method="post" id="loginForm">
+    <%
+        if (loginFormActionURL.equals(samlssoURL) || loginFormActionURL.equals(oauth2AuthorizeURL)) {
+    %>
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-<%
-    } else if ("oauth2".equals(type)){
-%>
-    <form action="../oauth2/authorize" method="post" id="loginForm">
-        <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-
-<%
-    } else {
-%>
-
-<form action="../commonauth" method="post" id="loginForm">
-
     <%
         }
     %>
@@ -119,10 +106,14 @@
     </div>
     <%}%>
 
+    <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
         <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
     </div>
+    <% } else {%>
+        <input id="username" name="username" type="hidden" value="<%=username%>">
+    <% }%>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="password"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%></label>
         <input id="password" name="password" type="password" class="form-control" placeholder="" autocomplete="off">
@@ -173,14 +164,30 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
-                    type="submit" onclick="submitCredentials()">
+                    type="submit" onclick="submitCredentials(event)">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
     </div>
         <%
+            String recoveryEPAvailable = application.getInitParameter("EnableRecoveryEndpoint");
+            String enableSelfSignUpEndpoint = application.getInitParameter("EnableSelfSignUpEndpoint");
+            Boolean isRecoveryEPAvailable;
+            Boolean isSelfSignUpEPAvailable;
 
-            if (isRecoveryEPAvailable() || isSelfSignUpEPAvailable()) {
+            if (StringUtils.isNotBlank(recoveryEPAvailable)) {
+                isRecoveryEPAvailable = Boolean.valueOf(recoveryEPAvailable);
+            } else {
+                isRecoveryEPAvailable = isRecoveryEPAvailable();
+            }
+
+            if (StringUtils.isNotBlank(enableSelfSignUpEndpoint)) {
+                isSelfSignUpEPAvailable = Boolean.valueOf(enableSelfSignUpEndpoint);
+            } else {
+                isSelfSignUpEPAvailable = isSelfSignUpEPAvailable();
+            }
+
+            if (isRecoveryEPAvailable || isSelfSignUpEPAvailable) {
                 String scheme = request.getScheme();
                 String serverName = request.getServerName();
                 int serverPort = request.getServerPort();
@@ -195,15 +202,17 @@
                     identityMgtEndpointContext = getServerURL("/accountrecoveryendpoint", true, true);
                 }
 
-                if (isRecoveryEPAvailable()) {
+                if (isRecoveryEPAvailable) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password")%>
-                <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
-                </a>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <% if (!isIdentifierFirstLogin(inputType)) { %>
+                    <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
+                    </a>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <% } %>
                 <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
                 </a>
@@ -212,7 +221,7 @@
         </div>
         <%
                 }
-                if (isSelfSignUpEPAvailable()) {
+                if (isSelfSignUpEPAvailable && !isIdentifierFirstLogin(inputType)) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">

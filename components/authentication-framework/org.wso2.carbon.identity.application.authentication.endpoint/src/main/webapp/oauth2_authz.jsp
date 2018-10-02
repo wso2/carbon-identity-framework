@@ -24,6 +24,7 @@
 <%@ page import="java.util.stream.Collectors" %>
 <%@ page import="java.util.stream.Stream" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String app = request.getParameter("application");
@@ -33,6 +34,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
@@ -104,7 +106,7 @@
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
                     <div class="padding-double login-form">
-                        <form action="../oauth2/authorize" method="post" id="profile" name="oauth2_authz"
+                        <form action="<%=oauth2AuthorizeURL%>" method="post" id="profile" name="oauth2_authz"
                               class="form-horizontal" >
                             
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">

@@ -21,14 +21,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
+import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Application management admin service
@@ -46,14 +53,32 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * user will assigned to the created role.Internal roles used.
      *
      * @param serviceProvider Service provider
-     * @return application id
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public void createApplication(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
+            createApplicationWithTemplate(serviceProvider, null);
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
+                    getTenantDomain(), idpException);
+            throw idpException;
+        }
+    }
+
+    /**
+     * Creates a service provider with the provided service provider template.
+     *
+     * @param serviceProvider Service provider
+     * @param templateName SP template name
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String templateName)
+            throws IdentityApplicationManagementException {
+        try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            applicationMgtService.createApplication(serviceProvider, getTenantDomain(), getUsername());
+            return applicationMgtService.createApplicationWithTemplate(serviceProvider, getTenantDomain(), getUsername(),
+                    templateName);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
                     getTenantDomain(), idpException);
@@ -259,6 +284,204 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             log.error("Error while retrieving all local claim URIs for tenant: " + getTenantDomain(), idpException);
             throw idpException;
 
+        }
+    }
+
+    /**
+     * Retrieve the set of authentication templates configured from file system in JSON format
+     * @return Authentication templates.
+     */
+    public String getAuthenticationTemplatesJSON() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+    }
+
+    /**
+     * Import application from XML file from UI.
+     *
+     * @param spFileContent xml string of the SP and file name
+     * @return Created application name
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public ImportResponse importApplication(SpFileContent spFileContent) throws IdentityApplicationManagementException {
+
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.importSPApplication(spFileContent, getTenantDomain(), getUsername(), false);
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while importing application for tenant: " + getTenantDomain(), idpException);
+            throw idpException;
+        }
+    }
+
+    /**
+     * Export service provider as XML.
+     *
+     * @param applicationName Name of the application to be exported
+     * @return XML content of the service provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public String exportApplication(String applicationName, boolean exportSecrets) throws
+            IdentityApplicationManagementException {
+
+        try {
+            if (ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+                log.warn("Illegal access! Local service provider can't be exported");
+                throw new IdentityApplicationManagementException("Local service provider can't be exported");
+            }
+            if (!ApplicationMgtUtil.isUserAuthorized(applicationName, getUsername())) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have export the application " + applicationName);
+                throw new IdentityApplicationManagementException("User not authorized");
+            }
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.exportSPApplication(applicationName, exportSecrets, getTenantDomain());
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while exporting application: " + applicationName + " for tenant: " + getTenantDomain(),
+                    idpException);
+            throw idpException;
+        }
+    }
+
+    /**
+     * Create Service provider template.
+     *
+     * @param spTemplate service provider template info
+     * @throws IdentityApplicationManagementClientException
+     */
+    public void createApplicationTemplate(SpTemplate spTemplate) throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.createApplicationTemplate(spTemplate, getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while creating application template: %s for tenant: %s.",
+                    spTemplate.getName(), getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Add configured service provider as a template.
+     *
+     * @param serviceProvider Service provider to be configured as a template
+     * @param spTemplate   service provider template basic info
+     * @throws IdentityApplicationManagementClientException
+     */
+    public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
+            throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.createApplicationTemplateFromSP(serviceProvider, spTemplate,
+                    getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while creating service provider template for the configured SP: %s for " +
+                    "tenant: %s.", serviceProvider.getApplicationName(), getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Get Service provider template.
+     *
+     * @param templateName template name
+     * @return service provider template info
+     * @throws IdentityApplicationManagementClientException
+     */
+    public SpTemplate getApplicationTemplate(String templateName) throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getApplicationTemplate(templateName, getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while retrieving application template: %s for tenant: %s.",
+                    templateName, getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Delete an application template.
+     *
+     * @param templateName name of the template
+     * @throws IdentityApplicationManagementClientException
+     */
+    public void deleteApplicationTemplate(String templateName) throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.deleteApplicationTemplate(templateName, getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while deleting application template: %s in tenant: %s.",
+                    templateName, getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Update an application template.
+     *
+     * @param templateName name of the template
+     * @param spTemplate SP template info to be updated
+     * @throws IdentityApplicationManagementClientException
+     */
+    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate)
+            throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            applicationMgtService.updateApplicationTemplate(templateName, spTemplate, getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while updating application template: %s in tenant: %s.",
+                    spTemplate.getName(), getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Check existence of a application template.
+     *
+     * @param templateName template name
+     * @return true if a template with the specified name exists
+     * @throws IdentityApplicationManagementClientException
+     */
+    public boolean isExistingApplicationTemplate(String templateName)
+            throws IdentityApplicationManagementClientException {
+
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.isExistingApplicationTemplate(templateName, getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while checking existence of application template: %s in tenant: %s.",
+                            templateName, getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+        }
+    }
+
+    /**
+     * Get template info of all the service provider templates.
+     *
+     * @return list of all application template info
+     * @throws IdentityApplicationManagementClientException
+     */
+    public List<SpTemplate> getAllApplicationTemplateInfo() throws IdentityApplicationManagementClientException {
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            return applicationMgtService.getAllApplicationTemplateInfo(getTenantDomain());
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            log.error(String.format("Error while getting all the application template basic info for tenant: %s.",
+                    getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
         }
     }
 }

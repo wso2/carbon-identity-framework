@@ -57,7 +57,7 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
@@ -75,13 +75,13 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest(context) {
+function onLoginRequest(context) {
 
     var variable1 = 'internal_val_1';
     variable2 = 'internal_val_2';
@@ -89,21 +89,21 @@ function onInitialRequest(context) {
         Log.info('Some Function prints and return '+s);
         return true;
     }
-    executeStep({id :'1',
-            on : {
-                success : function(context) {
-                    //Log.info('VA1 '+variable1);
-                    Log.info('VA2 '+variable2);
-                    var isAdmin = fn2(context, 'admin');
-                    Log.info("--------------- Has Admin " + isAdmin);
-                    if (isAdmin) {
-                        executeStep({id :'2'});
-                    }
-                }
+    executeStep(1, {
+        onSuccess : function(context) {
+            //Log.info('VA1 '+variable1);
+            Log.info('VA2 '+variable2);
+            var isAdmin = fn2(context, 'admin');
+            Log.info("--------------- Has Admin " + isAdmin);
+            if (isAdmin) {
+                executeStep(2);
             }
-        });
+        }
+
+    });
 }
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

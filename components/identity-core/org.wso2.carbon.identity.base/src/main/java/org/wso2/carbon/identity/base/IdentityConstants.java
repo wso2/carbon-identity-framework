@@ -226,6 +226,7 @@ public class IdentityConstants {
         public static final String SSO_TENANT_PARTITIONING_ENABLED = "SSOService.TenantPartitioningEnabled";
         public static final String ACCEPT_OPENID_LOGIN = "SSOService.AcceptOpenIDLogin";
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
+        public static final String SAML2_ARTIFACT_VALIDITY_PERIOD = "SSOService.SAML2ArtifactValidityPeriodInMinutes";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
@@ -248,6 +249,8 @@ public class IdentityConstants {
                                                          ".OperationDataCleanUp.CleanUpPeriod";
         public static final String OPERATION_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
                                                                 ".OperationDataCleanUp.CleanUpTimeout";
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist" +
+                                                                ".TempDataCleanup.CleanUpTimeout";
 
         public static final String CLEAN_UP_TIMEOUT_DEFAULT = "20160";
         public static final String CLEAN_UP_PERIOD_DEFAULT = "1140";
@@ -255,12 +258,18 @@ public class IdentityConstants {
         public static final String OPERATION_CLEAN_UP_TIMEOUT_DEFAULT = "1";
         public static final String OPERATION_CLEAN_UP_PERIOD_DEFAULT = "720";
 
+        public static final String TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT = "1";
+
         //PassiveSTS
         public static final String PASSIVE_STS_RETRY = "PassiveSTS.RetryURL";
 
         // Server Synchronization Tolerance Configurations
         public static final String CLOCK_SKEW = "ClockSkew";
         public static final String CLOCK_SKEW_DEFAULT = "300";
+
+        //Enabling federated user association through dashboard
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION = "EnableFederatedUserAssociation";
+        public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
 
     }
 
@@ -335,7 +344,7 @@ public class IdentityConstants {
         public static final String LOGOUT = "oidc/logout";
 
         public static final String WEBFINGER = ".well-known/webfinger";
-        public static final String DCR = "api/identity/oauth2/dcr/v1.0/register";
+        public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
     }

@@ -31,6 +31,7 @@
     -->
     <AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
+    <AuthenticationEndpointMissingClaimsURL>/authenticationendpoint/claims.do</AuthenticationEndpointMissingClaimsURL>
 
     <!--
         Extensions allow extending the default behaviour of the authentication
@@ -79,6 +80,9 @@
 			<!--Parameter name="UserNameAttributeClaimUri">http://wso2.org/claims/emailaddress</Parameter-->
 			<!--Parameter name="showAuthFailureReason">true</Parameter-->	
 		</AuthenticatorConfig>
+        <AuthenticatorConfig name="IdentifierExecutor" enabled="true">
+            <Parameter name="ValidateUsername">false</Parameter>
+        </AuthenticatorConfig>
 		<AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true" />
 		<AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true" />
  		<AuthenticatorConfig name="SAMLSSOAuthenticator" enabled="true">
@@ -151,6 +155,9 @@
         </AuthenticatorConfig>
         <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
             <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
+            <Parameter name="username">CN</Parameter>
+            <!--<Parameter name="setClaimURI">http://wso2.org/claims/identity/userCertificate</Parameter>-->
+            <!--<Parameter name="EnforceSelfRegistration">true</Parameter>-->
         </AuthenticatorConfig>
         <!--AuthenticatorConfig name="totp" enabled="true">
             <Parameter name="encodingMethod">Base32</Parameter>

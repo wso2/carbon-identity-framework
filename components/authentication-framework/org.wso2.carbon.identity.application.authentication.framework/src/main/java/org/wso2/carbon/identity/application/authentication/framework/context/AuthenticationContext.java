@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.io.Serializable;
@@ -56,10 +59,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String tenantDomain;
     private int retryCount;
     private int currentPostAuthHandlerIndex = 0;
-    private Map<String, String> authenticatorProperties = new HashMap<String, String>();
+    private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
+    private Map<String, Serializable> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
     private boolean reAuthenticate;
@@ -67,8 +71,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean previousAuthTime;
     private AuthenticationRequest authenticationRequest;
 
-    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
-    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
+    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<>();
+    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<>();
+
+    // Authentication context thread status flag.
+    private volatile boolean activeInAThread;
 
     //flow controller flags
     private boolean requestAuthenticated = true;
@@ -90,10 +97,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     /* Holds any (state) information that would be required by the authenticator
      * for later processing.
-	 * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
-	 * Each authenticator should have an internal DTO that extends the
-	 * AuthenticatorStateInfoDTO and set all the required state info in it.
-	 */
+     * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
+     * Each authenticator should have an internal DTO that extends the
+     * AuthenticatorStateInfoDTO and set all the required state info in it.
+     */
     private AuthenticatorStateInfo stateInfo;
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();
@@ -211,6 +218,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setProperty(String key, Object value) {
         parameters.put(key, value);
+    }
+
+    public void removeProperty(String key) {
+        parameters.remove(key);
     }
 
     public Object getProperty(String key) {
@@ -447,4 +458,98 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         currentPostAuthHandlerIndex++;
     }
 
+    /**
+     * Add authentication params to the message context parameters Map.
+     *
+     * @param authenticatorParams Map of authenticator and params.
+     */
+    public void addAuthenticatorParams(Map<String, Map<String, String>> authenticatorParams) {
+
+        if (MapUtils.isEmpty(authenticatorParams)) {
+            return;
+        }
+        Object runtimeParamsObj = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (runtimeParamsObj == null) {
+            addParameter(FrameworkConstants.RUNTIME_PARAMS, authenticatorParams);
+            return;
+        }
+        if (runtimeParamsObj instanceof Map) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) runtimeParamsObj;
+            for (Map.Entry<String, Map<String, String>> params : authenticatorParams.entrySet()) {
+                if (runtimeParams.get(params.getKey()) != null) {
+                    runtimeParams.get(params.getKey()).putAll(params.getValue());
+                } else {
+                    runtimeParams.put(params.getKey(), params.getValue());
+                }
+            }
+        } else {
+            throw IdentityRuntimeException.error("There is already a object set with RUNTIME_PARAMS key in the " +
+                    "message context.");
+        }
+    }
+
+    /**
+     * Get parameter map for a specific authenticator
+     *
+     * @param authenticatorName Authenticator name
+     * @return Parameter map
+     */
+    public Map<String, String> getAuthenticatorParams(String authenticatorName) {
+
+        Object parameter = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (parameters != null && (parameter instanceof Map)) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) parameter;
+            Map<String, String> authenticatorParams = runtimeParams.get(authenticatorName);
+            if (MapUtils.isNotEmpty(authenticatorParams)) {
+                return authenticatorParams;
+            }
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Add an API parameter to the context. This can be used to pass sensitive values to the endpoints, without
+     * sending them as query parameters.
+     * @param key parameter key
+     * @param value parameter value
+     */
+    public void addEndpointParam(String key, Serializable value) {
+
+        endpointParams.put(key, value);
+    }
+
+    /**
+     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters at once.
+     * @param params Map of parameters to add
+     */
+    public void addEndpointParams(Map<String, Serializable> params) {
+
+        endpointParams.putAll(params);
+    }
+
+    /**
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)} for more details.
+     * @return
+     */
+    public Map<String, Serializable> getEndpointParams() {
+
+        return endpointParams;
+    }
+
+    /**
+     * Checks whether this context is in use in a active flow.
+     * @return True if this context is being used by an active thread.
+     */
+    public boolean isActiveInAThread() {
+        return activeInAThread;
+    }
+
+    /**
+     * This flag is used to mark when this authentication context is used by an active thread. This is to prevent same
+     * context is used by two different threads at the same time.
+     * @param activeInAThread True when this context started to being used by a thread.
+     */
+    public void setActiveInAThread(boolean activeInAThread) {
+        this.activeInAThread = activeInAThread;
+    }
 }

@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -41,10 +45,13 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -80,19 +87,24 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -105,9 +117,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS_MSG;
 
 public class FrameworkUtils {
 
@@ -117,7 +136,12 @@ public class FrameworkUtils {
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
-            .asList(new String[] { FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2 });
+            .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
+
+    private static final String QUERY_SEPARATOR = "&";
+    private static final String EQUAL = "=";
+    private static final String REQUEST_PARAM_APPLICATION = "application";
+
 
     private FrameworkUtils() {
     }
@@ -253,7 +277,14 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) {
 
         AuthenticationContext context = null;
-
+        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
+            String promptId = request.getParameter("promptId");
+            context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
+            if (context != null) {
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                return context;
+            }
+        }
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
@@ -332,16 +363,14 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        StepBasedSequenceHandler stepBasedSequenceHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
-
         if (obj instanceof StepBasedSequenceHandler) {
             stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
         } else {
             stepBasedSequenceHandler = new GraphBasedSequenceHandler();
         }
-
         return stepBasedSequenceHandler;
     }
 
@@ -368,16 +397,14 @@ public class FrameworkUtils {
      */
     public static StepHandler getStepHandler() {
 
-        StepHandler stepHandler = null;
+        StepHandler stepHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-
         if (obj instanceof StepHandler) {
             stepHandler = (StepHandler) obj;
         } else {
             stepHandler = new GraphBasedStepHandler();
         }
-
         return stepHandler;
     }
 
@@ -444,7 +471,107 @@ public class FrameworkUtils {
             throws IOException {
         // TODO read the URL from framework config file rather than carbon.xml
         request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        response.sendRedirect(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+        response.sendRedirect(getRedirectURL(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(),
+                request));
+    }
+
+
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
+                                       String statusMsg) throws IOException {
+
+        try {
+            URIBuilder uriBuilder = new URIBuilder(
+                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+            uriBuilder.addParameter("status", status);
+            uriBuilder.addParameter("statusMsg", statusMsg);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+        } catch (URISyntaxException e) {
+            log.error("Error building redirect url for failure", e);
+            FrameworkUtils.sendToRetryPage(request, response);
+        }
+    }
+    /**
+     * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
+     * be fetched from request parameters or referer.
+     *
+     * @param redirectURL Redirect URL.
+     * @param request     HttpServlet Request.
+     * @return sp information appended redirect URL.
+     */
+    public static String getRedirectURL(String redirectURL, HttpServletRequest request) {
+
+        String spName = (String) request.getAttribute(REQUEST_PARAM_SP);
+        String tenantDomain = (String) request.getAttribute(TENANT_DOMAIN);
+        if (StringUtils.isBlank(spName)) {
+            spName = getServiceProviderNameByReferer(request);
+        }
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = getTenantDomainByReferer(request);
+        }
+
+        try {
+            if (StringUtils.isNotBlank(spName)) {
+                redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                redirectURL = appendUri(redirectURL, TENANT_DOMAIN, tenantDomain);
+            }
+        } catch (UnsupportedEncodingException e) {
+            log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            return redirectURL;
+        }
+
+        return redirectURL;
+    }
+
+    private static String getServiceProviderNameByReferer(HttpServletRequest request) {
+
+        String serviceProviderName = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(REQUEST_PARAM_SP + EQUAL) || queryParam.contains(REQUEST_PARAM_APPLICATION +
+                        EQUAL)) {
+                    serviceProviderName = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+
+        return serviceProviderName;
+    }
+
+    private static String getTenantDomainByReferer(HttpServletRequest request) {
+
+        String tenantDomain = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(TENANT_DOMAIN + EQUAL)) {
+                    tenantDomain = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+        return tenantDomain;
+    }
+
+    private static String appendUri(String uri, String key, String value) throws UnsupportedEncodingException {
+
+        if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+
+            if (uri.contains("?")) {
+                uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
+            } else {
+                uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
+            }
+        }
+        return uri;
     }
 
     /**
@@ -584,6 +711,7 @@ public class FrameworkUtils {
 
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
         AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout()));
         AuthenticationContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -596,6 +724,7 @@ public class FrameworkUtils {
         AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
         AuthenticationResultCacheEntry cacheEntry = new AuthenticationResultCacheEntry();
         cacheEntry.setResult(authenticationResult);
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         AuthenticationResultCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -622,10 +751,14 @@ public class FrameworkUtils {
     }
 
     /**
+     * @deprecated Use the {@link #addSessionContextToCache(String, SessionContext, String)}
+     *
      * @param key
      * @param sessionContext
      */
+    @Deprecated
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
@@ -634,15 +767,53 @@ public class FrameworkUtils {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
                     entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                    entry.getValue().setAuthenticationGraph(null);
                 }
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
         cacheEntry.setContext(sessionContext);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+
+        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        if (seqData != null) {
+            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
+                if (entry.getValue() != null) {
+                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+
+                    // AuthenticationGraph in the SequenceConfig is used during the authentication flow and is not
+                    // needed after the whole authentication flow is completed. Hense removed from the SessionContext.
+                    entry.getValue().setAuthenticationGraph(null);
+                }
+            }
+        }
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
+
+        long timeoutPeriod;
+        if (sessionContext.isRememberMe()) {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+        } else {
+            timeoutPeriod = TimeUnit.SECONDS.toNanos(
+                    IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        }
+
+        cacheEntry.setContext(sessionContext);
+        cacheEntry.setValidityPeriod(timeoutPeriod);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -1244,6 +1415,35 @@ public class FrameworkUtils {
         return queryAppendedUrl;
     }
 
+    /**
+     * Append a query param map to the URL (URL may already contain query params)
+     *
+     * @param url         URL string to append the params.
+     * @param queryParams Map of query params to be append.
+     * @return Built URL with query params.
+     * @throws UnsupportedEncodingException Throws when trying to encode the query params.
+     */
+    public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams)
+            throws UnsupportedEncodingException {
+
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Passed URL is empty.");
+        }
+        if (queryParams == null) {
+            throw new IllegalArgumentException("Passed query param map is empty.");
+        }
+
+        List<String> queryParam1 = new ArrayList<>();
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name());
+            queryParam1.add(entry.getKey() + "=" + encodedValue);
+        }
+
+        String queryString = StringUtils.join(queryParam1, "&");
+
+        return appendQueryParamsStringToUrl(url, queryString);
+    }
+
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user, String status) {
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
@@ -1291,13 +1491,9 @@ public class FrameworkUtils {
             cookieBuilder.setVersion(cookieConfig.getVersion());
         }
 
-        if (cookieConfig.isHttpOnly()) {
-            cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
-        }
+        cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
 
-        if (cookieConfig.isSecure()) {
-            cookieBuilder.setSecure(cookieConfig.isSecure());
-        }
+        cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
     public static String getMultiAttributeSeparator() {
@@ -1325,6 +1521,349 @@ public class FrameworkUtils {
 
     public static String getPASTRCookieName (String sessionDataKey) {
         return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
+    }
+
+    /**
+     * Map the external IDP roles to local roles.
+     * If excludeUnmapped is true exclude unmapped roles.
+     * Otherwise include unmapped roles as well.
+     *
+     * @param externalIdPConfig     Relevant external IDP Config.
+     * @param extAttributesValueMap Attributes map.
+     * @param idpRoleClaimUri       IDP role claim URI.
+     * @param excludeUnmapped       to indicate whether to exclude unmapped.
+     * @return ArrayList<string> list of roles.
+     */
+    public static List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
+            Map<String, String> extAttributesValueMap, String idpRoleClaimUri, Boolean excludeUnmapped) {
+
+        if (idpRoleClaimUri == null) {
+            // Since idpRoleCalimUri is not defined cannot do role mapping.
+            if (log.isDebugEnabled()) {
+                log.debug("Role claim uri is not configured for the external IDP: " + externalIdPConfig.getIdPName()
+                        + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+        String idpRoleAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
+        }
+        String[] idpRoles;
+        if (idpRoleAttrValue != null) {
+            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
+        } else {
+            // No identity provider role values found.
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "No role attribute value has received from the external IDP: " + externalIdPConfig.getIdPName()
+                                + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+        Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
+        List<String> idpMappedUserRoles = new ArrayList<>();
+        // If no role mapping is configured in the identity provider.
+        if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No role mapping is configured in the external IDP: " + externalIdPConfig.getIdPName()
+                        + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            if (excludeUnmapped) {
+                return new ArrayList<>();
+            }
+            idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
+            return idpMappedUserRoles;
+        }
+        for (String idpRole : idpRoles) {
+            if (idpToLocalRoleMapping.containsKey(idpRole)) {
+                idpMappedUserRoles.add(idpToLocalRoleMapping.get(idpRole));
+            } else if (!excludeUnmapped) {
+                idpMappedUserRoles.add(idpRole);
+            }
+        }
+        return idpMappedUserRoles;
+    }
+
+    /**
+     * To get the role claim uri of an IDP.
+     *
+     * @param externalIdPConfig Relevant external IDP Config.
+     * @return idp role claim URI.
+     */
+    public static String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) {
+        // get external identity provider role claim uri.
+        String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
+        if (idpRoleClaimUri == null || idpRoleClaimUri.isEmpty()) {
+            // no role claim uri defined
+            // we can still try to find it out - lets have a look at the claim
+            // mapping.
+            ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
+            if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
+                for (ClaimMapping mapping : idpToLocalClaimMapping) {
+                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
+                            && mapping.getRemoteClaim() != null) {
+                        return mapping.getRemoteClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+        return idpRoleClaimUri;
+    }
+
+    /**
+     * Returns the local claim uri that is mapped for the IdP role claim uri configured.
+     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
+     *
+     * @param externalIdPConfig IdP configurations
+     * @return local claim uri mapped for the IdP role claim uri.
+     */
+    public static String getLocalClaimUriMappedForIdPRoleClaim(ExternalIdPConfig externalIdPConfig) {
+        // get external identity provider role claim uri.
+        String idpRoleClaimUri = externalIdPConfig.getRoleClaimUri();
+        if (StringUtils.isNotBlank(idpRoleClaimUri)) {
+            // Iterate over IdP claim mappings and check for the local claim that is mapped for the remote IdP role
+            // claim uri configured.
+            ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
+            if (!ArrayUtils.isEmpty(idpToLocalClaimMapping)) {
+                for (ClaimMapping mapping : idpToLocalClaimMapping) {
+                    if (mapping.getRemoteClaim() != null && idpRoleClaimUri
+                            .equals(mapping.getRemoteClaim().getClaimUri())) {
+                        return mapping.getLocalClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+    }
+
+    /**
+     * @deprecated This method is a temporary solution and might get changed in the future.
+     * It is recommended not use this method.
+     *
+     * @param context AuthenticationContext.
+     * @return true if the handlers need to be executed, otherwise false.
+     */
+    @Deprecated
+    public static boolean isStepBasedSequenceHandlerExecuted(AuthenticationContext context) {
+
+        boolean isNeeded = true;
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+        Object isDefaultStepBasedSequenceHandlerTriggered = context
+                .getProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED);
+        // If authenticated user is null or if step based sequence handler is not trigged, exit the flow.
+        if (authenticatedUser == null || isDefaultStepBasedSequenceHandlerTriggered == null
+                || !(boolean) isDefaultStepBasedSequenceHandlerTriggered) {
+            isNeeded = false;
+        }
+        return isNeeded;
+    }
+
+    /**
+     * To get the missing mandatory claims from SP side.
+     *
+     * @param context Authentication Context.
+     * @return set of missing claims
+     */
+    public static String[] getMissingClaims(AuthenticationContext context) {
+
+        StringBuilder missingClaimsString = new StringBuilder();
+        StringBuilder missingClaimValuesString = new StringBuilder();
+
+        Map<String, String> missingClaims = getMissingClaimsMap(context);
+
+        for (Map.Entry<String, String> entry : missingClaims.entrySet()) {
+            missingClaimsString.append(entry.getKey());
+            missingClaimValuesString.append(entry.getValue());
+            missingClaimsString.append(",");
+            missingClaimValuesString.append(",");
+        }
+
+        return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
+    }
+
+    /**
+     * Get the missing mandatory claims as a hash map.
+     *
+     * @param context Authentication Context.
+     * @return Map of missing claims.
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getMissingClaimsMap(AuthenticationContext context) {
+
+        Map<String, String> mappedAttrs = new HashMap<>();
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+        if (userAttributes != null) {
+            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
+            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+
+            if (object instanceof Map) {
+                spToCarbonClaimMapping = (Map<String, String>) object;
+            }
+            for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+                String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
+
+                //getting the carbon claim uri mapping for other claim dialects
+                if (MapUtils.isNotEmpty(spToCarbonClaimMapping) && spToCarbonClaimMapping.get(localClaimUri) != null) {
+                    localClaimUri = spToCarbonClaimMapping.get(localClaimUri);
+                }
+                mappedAttrs.put(localClaimUri, entry.getValue());
+            }
+        }
+
+        Map<String, String> mandatoryClaims = context.getSequenceConfig().getApplicationConfig()
+                .getMandatoryClaimMappings();
+        Map<String, String> missingClaims = new HashMap<>();
+        for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
+            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
+                missingClaims.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return missingClaims;
+    }
+
+    /**
+     * To get the password provisioning url from the configuration file.
+     *
+     * @return relevant password provisioning url.
+     */
+    public static String getPasswordProvisioningUIUrl() {
+
+        String passwordProvisioningUrl = IdentityUtil.getProperty("JITProvisioning.PasswordProvisioningUI");
+        if (StringUtils.isEmpty(passwordProvisioningUrl)) {
+            passwordProvisioningUrl = FrameworkConstants.SIGN_UP_ENDPOINT;
+        }
+        return passwordProvisioningUrl;
+    }
+
+    /**
+     * To get the username provisioning url from the configuration file.
+     *
+     * @return relevant username provisioning url.
+     */
+    public static String getUserNameProvisioningUIUrl() {
+
+        String userNamePrvisioningUrl = IdentityUtil.getProperty("JITProvisioning.UserNameProvisioningUI");
+        if (StringUtils.isEmpty(userNamePrvisioningUrl)) {
+            userNamePrvisioningUrl = FrameworkConstants.REGISTRATION_ENDPOINT;
+        }
+        return userNamePrvisioningUrl;
+    }
+
+    public static boolean promptOnLongWait() {
+
+        boolean promptOnLongWait = false;
+        String promptOnLongWaitString = IdentityUtil.getProperty("AdaptiveAuth.PromptOnLongWait");
+        if (promptOnLongWaitString != null) {
+            promptOnLongWait = Boolean.parseBoolean(promptOnLongWaitString);
+        }
+        return promptOnLongWait;
+    }
+
+    /**
+     * This util is used to get the standard claim dialect of an Application based on the SP configuration.
+     *
+     * @param clientType Client Type.
+     * @param appConfig  Application config.
+     * @return standard dialect if exists.
+     */
+    public static String getStandardDialect(String clientType, ApplicationConfig appConfig) {
+
+        Map<String, String> claimMappings = appConfig.getClaimMappings();
+        if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType)) {
+            return "http://wso2.org/oidc/claim";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType)) {
+            return "http://schemas.xmlsoap.org/ws/2005/05/identity";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType)) {
+            return "http://axschema.org";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
+            return "urn:scim:schemas:core:1.0";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else if (claimMappings == null || claimMappings.isEmpty()) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        } else {
+            boolean isAtLeastOneNotEqual = false;
+            for (Map.Entry<String, String> entry : claimMappings.entrySet()) {
+                if (!entry.getKey().equals(entry.getValue())) {
+                    isAtLeastOneNotEqual = true;
+                    break;
+                }
+            }
+            if (!isAtLeastOneNotEqual) {
+                return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            }
+        }
+        return null;
+    }
+
+    public static Object toJsSerializable(Object value) {
+
+        if (value instanceof Serializable) {
+            return value;
+        } else if (value instanceof ScriptObjectMirror) {
+            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
+            if (scriptObjectMirror.isFunction()) {
+                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+            } else if (scriptObjectMirror.isArray()) {
+                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
+                scriptObjectMirror.values().forEach(v -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        arrayItems.add((Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value of array item as : " + serializedObj);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
+                                serializedObj));
+                    }
+                });
+                return arrayItems;
+            } else if (!scriptObjectMirror.isEmpty()) {
+                Map<String, Serializable> serializedMap = new HashMap<>();
+                scriptObjectMirror.forEach((k, v) -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        serializedMap.put(k, (Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value for key : " + k);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
+                    }
+
+                });
+                return serializedMap;
+            } else {
+                return Collections.EMPTY_MAP;
+            }
+        }
+        return value;
+    }
+
+    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
+
+        if (value instanceof SerializableJsFunction) {
+            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
+            try {
+                return engine.eval(serializableJsFunction.getSource());
+            } catch (ScriptException e) {
+                throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
+            }
+
+        } else if (value instanceof Map) {
+            Map<String, Object> deserializedMap = new HashMap<>();
+            for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
+                deserializedMap.put(entry.getKey(), deserializedObj);
+            }
+            return deserializedMap;
+        }
+        return value;
     }
 }
 

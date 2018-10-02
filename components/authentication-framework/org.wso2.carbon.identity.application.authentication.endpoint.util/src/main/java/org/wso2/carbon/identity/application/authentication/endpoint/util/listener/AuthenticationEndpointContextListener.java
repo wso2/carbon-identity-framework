@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.listen
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.AdaptiveAuthUtil;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.MutualSSLManager;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager;
 
 import javax.servlet.ServletContextEvent;
@@ -45,6 +47,8 @@ public class AuthenticationEndpointContextListener implements ServletContextList
             log.debug("Initializing TenantDataManager for tenant domains dropdown");
         }
         TenantDataManager.init();
+        MutualSSLManager.init();
+        AdaptiveAuthUtil.init();
     }
 
     /**

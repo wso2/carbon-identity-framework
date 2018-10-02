@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.11.189-SNAPSHOT</version>
+        <version>5.12.166-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -41,6 +41,10 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
         </dependency>
     </dependencies>
     <packaging>bundle</packaging>
@@ -69,7 +73,7 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
-
+                            javax.xml.bind.annotation,
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -77,6 +81,7 @@
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
 
+                            org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",

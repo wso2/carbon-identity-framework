@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
+import java.io.File;
+
 public class ApplicationConstants {
 
     private ApplicationConstants() {
@@ -44,4 +48,29 @@ public class ApplicationConstants {
     public static final String APPLICATION_DOMAIN = "Application";
     // Regex for validating application name.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+
+    public static final String TEMPLATE_CATEGORY = "category";
+    public static final String CATEGORY_DISPLAY_NAME = "displayName";
+    public static final String CATEGORY_ORDER = "order";
+    public static final String CATEGORY_TEMPLATES = "templates";
+    public static final String UNCATEGORIZED = "uncategorized";
+    public static final String DISPLAY_NAME_FOR_UNCATEGORIZED = "Uncategorized";
+    public static final int ORDER_FOR_UNCATEGORIZED = 10000;
+    public static final String FILE_EXT_JSON = ".json";
+    public static final String CATEGORIES_METADATA_FILE = "categories.json";
+    public static final String TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
+        + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
+        .separator;
+    public static final String PURPOSE_GROUP_TYPE_SP = "SP";
+    public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final String PURPOSE_GROUP_SHARED = "SHARED";
+    
+    public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
+    public static final String MY_SQL = "MySQL";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
 }

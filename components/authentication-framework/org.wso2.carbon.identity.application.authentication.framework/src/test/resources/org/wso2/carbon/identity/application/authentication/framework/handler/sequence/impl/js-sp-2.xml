@@ -57,7 +57,7 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
             <AuthenticationStep>
@@ -75,13 +75,13 @@
                         </FederatedAuthenticatorConfigs>
                     </IdentityProvider>
                 </FederatedIdentityProviders>
-                <SubjectStep>fales</SubjectStep>
+                <SubjectStep>false</SubjectStep>
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest(context) {
+function onLoginRequest(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 
@@ -90,24 +90,23 @@ function onInitialRequest(context) {
     context.selectedAcr = acr;
 
     switch(acr) {
-        case "acr1" : executeStep({id :'1',
-            on : {
-                success : function(context) {
-                    var isAdmin = hasRole(context, 'admin');
-                    Log.info("--------------- Has Admin " + isAdmin);
-                    if (isAdmin) {
-                        executeStep({id :'2'});
-                    }
+        case "acr1" : executeStep(1, {
+            onSuccess : function(context) {
+                var isAdmin = hasRole(context, 'admin');
+                Log.info("--------------- Has Admin " + isAdmin);
+                if (isAdmin) {
+                    executeStep(2);
                 }
             }
         });
-	    break;
-        case "acr2" : executeStep({id :'1'}); executeStep({id :'2'});  break;
-        case "acr3" : executeStep({id :'1'}); executeStep({id :'3'});  break;
-        default :  executeStep({id :'1'});  executeStep({id :'2'});  executeStep({id :'3'});
+        break;
+        case "acr2" : executeStep(1); executeStep(2);  break;
+        case "acr3" : executeStep(1); executeStep(3);  break;
+        default :  executeStep(1);  executeStep(2);  executeStep(3);
     }
 }
 ]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>

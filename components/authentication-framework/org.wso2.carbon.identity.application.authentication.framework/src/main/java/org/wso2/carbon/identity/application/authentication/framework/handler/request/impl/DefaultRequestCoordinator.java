@@ -22,18 +22,17 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -41,16 +40,19 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams
+        .TENANT_DOMAIN;
 
 /**
  * Request Coordinator
@@ -67,6 +73,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
+    private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -96,6 +103,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         AuthenticationContext context = null;
+
         try {
             AuthenticationRequestCacheEntry authRequest = null;
             String sessionDataKey = request.getParameter("sessionDataKey");
@@ -145,6 +153,35 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+
+                // Monitor should be context itself as we need to synchronize only if the same context is used by two
+                // different threads.
+                synchronized (context) {
+                    if (!context.isActiveInAThread()) {
+                        // Marks this context is active in a thread. We only allow at a single instance, a context
+                        // to be active in only a single thread. In other words, same context cannot active in two
+                        // different threads at the same time.
+                        context.setActiveInAThread(true);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Context id: " + context.getContextIdentifier() + " is active in the thread " +
+                                    "with id: " + Thread.currentThread().getId());
+                        }
+                    } else {
+                        log.error("Same context is currently in used by a different thread. Possible double submit.");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Same context is currently in used by a different thread. Possible double submit."
+                                    +  "\n" +
+                                    "Context id: " + context.getContextIdentifier() + "\n" +
+                                    "Originating address: " + request.getRemoteAddr() + "\n" +
+                                    "Request Headers: " + getHeaderString(request) + "\n" +
+                                    "Thread Id: " + Thread.currentThread().getId());
+                        }
+                        FrameworkUtils.sendToRetryPage(request, response);
+                        return;
+                    }
+                }
+
+                setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
                 // if this is the flow start, store the original request in the context
@@ -169,28 +206,63 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.error("Context does not exist. Probably due to invalidated cache");
                 FrameworkUtils.sendToRetryPage(request, response);
             }
+        } catch (JsFailureException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Script initiated Exception occured.", e);
+            }
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
+            if (log.isDebugEnabled()) {
+                log.debug("User will be redirected to retry page or the error page provided by script.");
+            }
+        } catch (MisconfigurationException e) {
+            FrameworkUtils.sendToRetryPage(request, response, "misconfiguration.error","something.went.wrong.contact.admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
-                log.error("Error occurred while evaluating post authentication", e);
+                log.debug("Error occurred while evaluating post authentication", e);
             }
             FrameworkUtils
-                    .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
+                .removeCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
-            try {
-                URIBuilder uriBuilder = new URIBuilder(
-                        ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
-                uriBuilder.addParameter("status", "Authentication attempt failed.");
-                uriBuilder.addParameter("statusMsg", e.getErrorCode());
-                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-                response.sendRedirect(uriBuilder.build().toString());
-            } catch (URISyntaxException e1) {
-                log.error("Error building redirect url for authz failure", e);
-                FrameworkUtils.sendToRetryPage(request, response);
-            }
+            FrameworkUtils.sendToRetryPage(request, response, "Authentication attempt failed.", e.getErrorCode());
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);
+        } finally {
+            if (context != null) {
+                // Mark this context left the thread. Now another thread can use this context.
+                context.setActiveInAThread(false);
+                if (log.isDebugEnabled()) {
+                    log.debug("Context id: " + context.getContextIdentifier() + " left the thread with id: " +
+                            Thread.currentThread().getId());
+                }
+                // If flow is not about to conclude.
+                if (!LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context) ||
+                        context.isLogoutRequest()) {
+                    // Persist the context.
+                    FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * Print the request headers as a one string with header names and respective values.
+     * @param request HTTP request to retrieve headers.
+     * @return Headers and values as a single string.
+     */
+    private String getHeaderString(HttpServletRequest request) {
+
+        Enumeration<String> headerNames = request.getHeaderNames();
+        StringBuilder stringBuilder = new StringBuilder();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            stringBuilder.append("Header Name: ").append(headerName).append(", ")
+                    .append("Value: ").append(request.getHeader(headerName)).append(". ");
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -318,6 +390,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
+        List<ClaimMapping> requestedClaimsInRequest = (List<ClaimMapping>) request.getAttribute(REQUESTED_ATTRIBUTES);
+        context.setProperty(FrameworkConstants.SP_REQUESTED_CLAIMS_IN_REQUEST, requestedClaimsInRequest);
+
         associateTransientRequestData(request, response, context);
         findPreviousAuthenticatedSession(request, context);
         buildOutboundQueryString(request, context);
@@ -429,17 +504,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                     context.setPreviousSessionFound(true);
 
-                    if (!isReinitialize(previousAuthenticatedSeq, effectiveSequence, request, context)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Previous Sequence should be used without change");
-                        }
-                        try {
-                            effectiveSequence = (SequenceConfig) previousAuthenticatedSeq.clone();
-                        } catch (CloneNotSupportedException e) {
-                            throw new FrameworkException("Exception when trying to clone the Previous Authentication "
-                                    + "Sequence object of SP:" + appName, e);
-                        }
-                    }
+                    effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
+                    effectiveSequence.setReqPathAuthenticators(new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
+                    effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
+                    effectiveSequence.setAuthenticatedIdPs(previousAuthenticatedSeq.getAuthenticatedIdPs());
+                    effectiveSequence.setAuthenticatedReqPathAuthenticator(previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
 
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
@@ -579,4 +648,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             authnDataPublisherProxy.publishAuthenticationFailure(request, context, unmodifiableParamMap);
         }
     }
+
+    private void setSPAttributeToRequest(HttpServletRequest req, AuthenticationContext context) {
+
+        req.setAttribute(REQUEST_PARAM_SP, context.getServiceProviderName());
+        req.setAttribute(TENANT_DOMAIN, context.getTenantDomain());
+    }
+
 }

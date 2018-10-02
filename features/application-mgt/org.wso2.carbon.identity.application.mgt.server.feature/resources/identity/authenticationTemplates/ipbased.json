@@ -1,0 +1,87 @@
+{
+  "category": "environment_based",
+  "name": "IP-Based",
+  "title": "IP-Based Authentication Template",
+  "summary": "Prompts 2FA to the users who are logging outside of the given ip range.",
+  "preRequisites": [
+    "Change the corpNetwork parameter to an array of ip ranges that should bypass 2FA",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "corpNetwork": "An array of ip ranges which should bypass 2FA"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps": 2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+IP-Based+Adaptive+Authentication",
+  "code": [
+    "// This script will step up authentication for any user who are trying to log in outside from the configured network",
+    "",
+    "// Configure the network ranges here",
+    "var corpNetwork = ['192.168.1.0/24', '10.100.0.0/16'];",
+    "",
+    "function onLoginRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            var user = context.currentKnownSubject;",
+    "            // Extracting the origin IP of the request",
+    "            var loginIp = context.request.ip;",
+    "            Log.info('User: ' + user.username + ' logged in from IP: ' + loginIp);",
+    "            // Checking if the IP is within the allowed range",
+    "            if (!isCorporateIP(loginIp, corpNetwork)) {",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "}",
+    "",
+    "// Function to convert ip address string to long value",
+    "function convertIpToLong(ip) {",
+    "    var components = ip.split('.');",
+    "    if (components) {",
+    "        var ipAddr = 0, pow = 1;",
+    "        for (var i = 3; i >= 0; i -= 1) {",
+    "            ipAddr += pow * parseInt(components[i]);",
+    "            pow *= 256;",
+    "        }",
+    "        return ipAddr;",
+    "    } else {",
+    "        return -1;",
+    "    }",
+    "}",
+    "",
+    "// Function to check if the ip address is within the given subnet",
+    "function isCorporateIP(ip, subnets) {",
+    "    var subnetLength = subnets.length;",
+    "    for (var i = 0; i < subnetLength; i++) {",
+    "        var subnetComponents = subnets[i].split('/');",
+    "        var minHost = convertIpToLong(subnetComponents[0]);",
+    "        var ipAddr = convertIpToLong(ip);",
+    "        var mask = subnetComponents[1];",
+    "        if (subnetComponents && minHost >= 0) {",
+    "            var numHosts = Math.pow(2, 32 - parseInt(mask));",
+    "            if ((ipAddr >= minHost) && (ipAddr <= minHost + numHosts - 1)) {",
+    "                return true;",
+    "            }",
+    "        }",
+    "    }",
+    "    return false;",
+    "}"
+  ]
+}

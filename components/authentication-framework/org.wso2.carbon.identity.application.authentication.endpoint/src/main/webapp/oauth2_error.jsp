@@ -18,6 +18,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String errorCode = request.getParameter("oauthErrorCode");
@@ -34,6 +35,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
@@ -95,7 +97,7 @@
 
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../commonauth" method="post" id="oauth2_authz" name="oauth2_authz" class="form-horizontal" >
+                    <form action="<%=commonauthURL%> method="post" id="oauth2_authz" name="oauth2_authz" class="form-horizontal" >
                         <div class="padding-double login-form">
                             <div id="workArea">
                                 <table>

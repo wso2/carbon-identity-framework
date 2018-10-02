@@ -24,6 +24,7 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.user.profile.stub.types.UserFieldDTO;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 
@@ -38,6 +39,7 @@ public class UserProfileUIUtil {
 
     private static final String ENCRYPT_USERNAME_IN_URL = "encryptUsernameInUrl";
 
+    private static final String bypassRoleName = "Internal/system";
     /**
      * Encrypt and Base64 encode the username with Carbon server's public key, if usernameEncryptionInUrl property is
      * set to true in user-mgt.xml, else return the username without encrypting.
@@ -104,5 +106,27 @@ public class UserProfileUIUtil {
     private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
         return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
                 .getRealmProperties().get(ENCRYPT_USERNAME_IN_URL));
+    }
+    /**
+     * Check whether the account is attached with account lock bypassable role.
+     *
+     * @param userName user name whos roles needs to be listed
+     * @return true or false based on user roles
+     * @throws CarbonException, UserStoreException
+     */
+    public static boolean isAccountLockable(String userName)
+            throws CarbonException, UserStoreException {
+        boolean isLockable = true;
+        String[] roleList = AdminServicesUtil.getUserRealm().getUserStoreManager().getRoleListOfUser(userName);
+        if (roleList != null) {
+            for (String roleName : roleList) {
+                if (roleName.equals(bypassRoleName)) {
+                    isLockable = false;
+                    break;
+                }
+            }
+
+        }
+        return isLockable;
     }
 }

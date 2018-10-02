@@ -28,6 +28,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
@@ -56,7 +57,8 @@
                     //No questions found
                     request.setAttribute("error", true);
                     request.setAttribute("errorMsg",
-                            "No Security Questions Found to recover password. Please contact your system Administrator");
+                            IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                    "No.security.questions.found.to.recover.password.contact.system.administrator"));
                     request.setAttribute("errorCode", "18017");
                     request.getRequestDispatcher("error.jsp").forward(request, response);
                     return;
@@ -79,7 +81,7 @@
         }
     } else {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", "Username is missing.");
+        request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username.missing"));
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
@@ -92,9 +94,10 @@
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -123,9 +126,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -141,7 +146,7 @@
                     if (errorResponse != null) {
                 %>
                 <div class="alert alert-danger" id="server-error-msg">
-                    <%=errorResponse.getDescription()%>
+                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorResponse.getDescription())%>
                 </div>
                 <%
                     }
@@ -184,7 +189,7 @@
                             <div class="form-actions">
                                 <button id="answerSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Submit
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Submit")%>
                                 </button>
                             </div>
                             <div class="clearfix"></div>
@@ -204,10 +209,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
-            </p>
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%></p>
         </div>
     </footer>
     </body>

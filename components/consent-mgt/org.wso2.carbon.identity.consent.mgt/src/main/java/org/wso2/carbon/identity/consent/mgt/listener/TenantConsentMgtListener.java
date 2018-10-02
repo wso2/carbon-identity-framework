@@ -60,7 +60,7 @@ public class TenantConsentMgtListener extends AbstractIdentityTenantMgtListener 
                 }
             } catch (ConsentManagementException e) {
                 throw new StratosException("Error while adding default purpose category for tenant:" + tenantInfoBean
-                        .getTenantDomain());
+                        .getTenantDomain(), e);
             }
         } finally {
             FrameworkUtils.endTenantFlow();

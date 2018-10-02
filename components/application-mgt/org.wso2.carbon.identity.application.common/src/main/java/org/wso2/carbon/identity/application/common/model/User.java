@@ -37,6 +37,7 @@ public class User implements Serializable {
     protected String tenantDomain;
     protected String userStoreDomain;
     protected String userName;
+    protected boolean isUsernameCaseSensitive = true;
 
     /**
      * Returns a User instance populated from the given OMElement
@@ -90,6 +91,7 @@ public class User implements Serializable {
      */
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
+        updateCaseSensitivity();
     }
 
     /**
@@ -108,6 +110,7 @@ public class User implements Serializable {
      */
     public void setUserStoreDomain(String userStoreDomain) {
         this.userStoreDomain = userStoreDomain.toUpperCase();
+        updateCaseSensitivity();
     }
 
     /**
@@ -206,12 +209,24 @@ public class User implements Serializable {
         return username;
     }
 
+    /**
+     * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that value.
+     */
+    protected void updateCaseSensitivity() {
+
+        if (StringUtils.isNotEmpty(tenantDomain) && StringUtils.isNotEmpty(userStoreDomain)
+                && IdentityTenantUtil.getRealmService() != null) {
+            this.isUsernameCaseSensitive = IdentityUtil
+                    .isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain));
+        }
+    }
+
 
     @Override
     public int hashCode() {
         int result = tenantDomain.hashCode();
         result = 31 * result + userStoreDomain.hashCode();
-        if(IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
+        if (isUsernameCaseSensitive) {
             result = 31 * result + userName.hashCode();
         } else {
             result = 31 * result + userName.toLowerCase().hashCode();

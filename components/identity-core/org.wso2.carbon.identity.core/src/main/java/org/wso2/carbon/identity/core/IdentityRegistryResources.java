@@ -148,6 +148,8 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_IDP_INIT_SLO_RETURN_URLS = "IdPInitiatedSLOReturnToURLs";
     public static final String PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
     public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
+    public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE =
+            "doValidateSignatureInArtifactResolve";
     public static final String PROP_SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String PROP_SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
     public static final String PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM = "assertionEncryptionAlgorithm";
@@ -156,6 +158,7 @@ public class IdentityRegistryResources {
             "AssertionQueryRequestProfileEnabled";
     public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
             "SupportedAssertionQueryRequestTypes";
+    public static final String PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";

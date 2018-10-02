@@ -44,6 +44,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.KEY;
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.SKIP_SIGN_UP_ENABLE_CHECK;
+import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants.VALUE;
 
 /**
  * Client which invokes consent mgt remote operations.
@@ -64,6 +69,7 @@ public class SelfRegistrationMgtClient {
     private static final String PURPOSE_CATEGORY_ID = "purposeCategoryId";
     private static final String DEFAULT = "DEFAULT";
     private static final String USERNAME = "username";
+    private static final String PROPERTIES = "properties";
 
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
@@ -72,12 +78,14 @@ public class SelfRegistrationMgtClient {
      * @return A JSON string which contains purposes.
      * @throws SelfRegistrationMgtClientException SelfRegistrationMgtClientException
      */
-    public String getPurposes(String tenantDomain) throws SelfRegistrationMgtClientException {
+    public String getPurposes(String tenantDomain, String group, String groupType) throws
+            SelfRegistrationMgtClientException {
 
         String purposesEndpoint;
         String purposesJsonString = "";
 
         purposesEndpoint = getPurposesEndpoint(tenantDomain);
+        purposesEndpoint = purposesEndpoint + "?group=" + group + "&groupType=" + groupType;
         try {
             String purposesResponse = executeGet(purposesEndpoint);
             JSONArray purposes = new JSONArray(purposesResponse);
@@ -193,13 +201,27 @@ public class SelfRegistrationMgtClient {
     }
 
     /**
+     * To check the validity of the user name.
+     *
+     * @param username Name of the user.
+     * @return the status code of user name validity check.
+     * @throws SelfRegistrationMgtClientException SelfRegistrationMgtClientException will be thrown.
+     */
+    public Integer checkUsernameValidity(String username) throws SelfRegistrationMgtClientException {
+        return checkUsernameValidity(username, false);
+    }
+
+    /**
      * Checks whether a given username is valid or not.
      *
      * @param username Username.
+     * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
+     *                        tenant.
      * @return An integer with status code.
      * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
      */
-    public Integer checkUsernameValidity(String username) throws SelfRegistrationMgtClientException {
+    public Integer checkUsernameValidity(String username, boolean skipSignUpCheck) throws
+            SelfRegistrationMgtClientException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
 
@@ -207,11 +229,18 @@ public class SelfRegistrationMgtClient {
             JSONObject user = new JSONObject();
             user.put(USERNAME, username);
 
+            JSONArray properties = new JSONArray();
+            JSONObject property = new JSONObject();
+            property.put(KEY, SKIP_SIGN_UP_ENABLE_CHECK);
+            property.put(VALUE, skipSignUpCheck);
+            properties.put(property);
+            user.put(PROPERTIES, properties);
+
             HttpPost post = new HttpPost(getUserAPIEndpoint());
             setAuthorizationHeader(post);
 
-            post.setEntity(new StringEntity(user.toString(),
-                    ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON)));
+            post.setEntity(new StringEntity(user.toString(), ContentType.create(HTTPConstants
+                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
             try (CloseableHttpResponse response = httpclient.execute(post)) {
 

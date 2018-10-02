@@ -217,6 +217,10 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 (IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES)), "Query request " +
                 "type mismatch");
 
+        assertEquals(serviceProviderDO.isEnableSAML2ArtifactBinding(), Boolean.parseBoolean(dummyResource
+                        .getProperty((IdentityRegistryResources.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING))),
+                "SAML2 artifact binding enable mismatch");
+
         String digestAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM);
         if (StringUtils.isBlank(digestAlg)) {
             digestAlg = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
@@ -254,6 +258,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 (IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION))), "Assertion encrypted mismatch");
         assertEquals(serviceProviderDO.isDoValidateSignatureInRequests(), Boolean.parseBoolean(dummyResource
                 .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS))));
+        assertEquals(serviceProviderDO.isDoValidateSignatureInArtifactResolve(), Boolean.parseBoolean(dummyResource
+                .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE))));
         assertEquals(serviceProviderDO.getNameIDFormat(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SSO_NAMEID_FORMAT), "Name id format Mismatch.");
         assertEquals(serviceProviderDO.getNameIdClaimUri(), dummyResource.getProperty(IdentityRegistryResources

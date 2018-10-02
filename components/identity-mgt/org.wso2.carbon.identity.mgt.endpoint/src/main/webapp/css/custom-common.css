@@ -104,7 +104,7 @@ footer a, footer a:hover {
 	padding-bottom: 50px;
 }
 
-.wr-login input[type=text], .wr-login input[type=password] {
+.wr-login input[type=text], .wr-login input[type=password], .wr-login input[type=email] {
 	border: 1px #d2d2d2 solid;
 	width: 100%;
 	padding: 6px 10px;
@@ -122,6 +122,22 @@ footer a, footer a:hover {
 	padding: 10px 10px;
 	display: inline-block;
 	border: none;
+}
+
+.light-btn {
+	font-weight: normal;
+	font-size: 13px;
+	color: #555;
+	background: #eee;
+	padding: 10px 10px;
+	display: inline-block;
+	text-align: center;
+}
+
+.light-btn:hover {
+	text-decoration: none;
+	color: #555;
+	background: #d4d3d3;
 }
 
 button.grey-bg:hover {
@@ -259,12 +275,12 @@ img.idp-image {
 	color: red;
 }
 
-#consent-mgt-container p span {
+#consent-mgt-tree-container p span, #consent-mgt-template-container p span {
 	margin-top: 4px;
 	display: block;
 }
 
-#consent-mgt-container #tree-table {
+#consent-mgt-tree-container #tree-table {
 	background: #fff;
 	padding: 10px;
 	color: #333;
@@ -280,6 +296,7 @@ img.idp-image {
 	display: block;
 	background: #d9edf7;
 	border: 1px solid #bce8f1;
+	border-radius: 4px;
 }
 
 .agreement-checkbox input {
@@ -305,4 +322,172 @@ img.idp-image {
 span.required {
 	color: red;
 	vertical-align: middle;
+}
+span.required_consent{
+	color: red;
+	font-size: 16px;
+	margin: 0px 4px;
+}
+strong span.required_consent{
+	color: red;
+	font-size: 16px;
+	margin: 0px 0px 0px 4px;
+}
+
+.truncate {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 120ch;
+}
+
+.jstree-anchor {
+	width: 95%;
+	white-space : normal !important;
+	height : auto !important;
+	padding-right : 24px;
+}
+.alert-consent{
+	background: none;
+}
+
+.consent-container-1 span label,.consent-container-2 span label{
+	font-weight: normal;
+	padding: 2px 6px;
+	background: #dcdcdc7a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+.consent-container-3 {
+	padding-left: 0;
+	border-top: 1px solid #eee;
+}
+.consent-ul {
+	padding-left: 12px!important;
+	color: #3a9ecf;
+}
+
+.consent-ul li {
+	list-style-type: square!important;
+	font-size: 16px;
+	padding-bottom: 10px;
+}
+
+.consent-ul li span{
+	font-size: 14px;
+	font-weight: 600;
+	color: #6b6b6b
+}
+
+.consent-container-3 label{
+	font-weight: normal;
+	padding: 5px 10px;
+	background: #dcdcdc7a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	width: 92%;
+	margin: 4px 8px;
+}
+.consent-container-1 strong label,.consent-container-2 strong label{
+	padding: 2px 6px;
+	background: none;
+	border: 1px solid #dcdcdc7a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.consent-container-1 span label input,.consent-container-2 span label input, .consent-container-3 label input{
+	margin-right: 5px;
+}
+.consent-container-1 div,.consent-container p{
+	margin-bottom: 12px;
+	line-height: 18px;
+	text-align: justify;
+}
+.consent-container-2 .box{
+	padding:15px;
+	border: 2px solid #dcdcdc7a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	min-height: 220px;
+	text-align: justify;
+}
+.consent-container-2 .box ul{
+	margin: 0;
+	margin-top: 20px;
+	padding: 0;
+}
+.consent-container-2 .box ul li{
+	list-style: none;
+}
+.consent-section {
+	padding: 11px 40px 20px 40px;
+}
+.consent-border {
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+}
+#row-container .box{
+	padding: 10px;
+	margin-bottom: 4px;
+}
+#row-container .box p{
+	display: list-item;
+	margin: 0;
+	margin-bottom: 4px;
+	margin-left: 8px;
+}
+#row-container .box ul{
+	margin: 0;
+	padding: 0;
+}
+#row-container .box ul li{
+	list-style: none;
+}
+#row-container .box table td{
+	font-size: 13px;
+	padding: 4px;
+}
+#row-container .box table td:first-child{
+	width: 200px;
+}
+.border-consent{
+	border: 1px solid #41c0f97a;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+.remove-padding-left {
+	padding-left: 0;
+}
+.remove-padding-right {
+	padding-right: 0;
+}
+.full-width {
+	width: 100%;
+}
+.consent-section {
+	color: #6b6b6b;
+}
+.form-info {
+	height: 12px;
+}
+.username-proceed button, .username-proceed a {
+	padding: 10px 18px;
+}
+.username-proceed a {
+	margin-left: 7px;
+}
+@media screen and (max-width: 528px) {
+	.full-width-xs {
+		width: 100%;
+		margin: 5px 0;
+	}
+	.username-proceed a {
+		margin-left: 0;
+	}
 }

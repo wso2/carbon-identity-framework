@@ -25,13 +25,28 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "PermissionsAndRoleConfig")
 public class PermissionsAndRoleConfig implements Serializable {
 
     private static final long serialVersionUID = 784509684062361809L;
 
+    @XmlElementWrapper(name="Permissions")
+    @XmlElement(name = "ApplicationPermission")
     private ApplicationPermission[] permissions = new ApplicationPermission[0];
+
+    @XmlElementWrapper(name="RoleMappings")
+    @XmlElement(name = "RoleMapping")
     private RoleMapping[] roleMappings = new RoleMapping[0];
+
+    @XmlElementWrapper(name="IdpRoles")
+    @XmlElement(name = "IdpRole")
     private String[] idpRoles = new String[0];
 
     /*

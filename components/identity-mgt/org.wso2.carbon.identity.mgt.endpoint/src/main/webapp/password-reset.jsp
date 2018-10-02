@@ -20,6 +20,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -34,9 +35,10 @@
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -57,9 +59,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -71,8 +75,8 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Reset
-                    Password
+                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Reset.Password")%>
                 </h2>
 
                 <div class="clearfix"></div>
@@ -80,7 +84,7 @@
 
                     <% if (error) { %>
                     <div class="alert alert-danger" id="server-error-msg">
-                        <%= Encode.forHtmlContent(errorMsg) %>
+                        <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
                     </div>
                     <% } %>
                     <div class="alert alert-danger" id="error-msg" hidden="hidden"></div>
@@ -88,7 +92,9 @@
                     <div class="padding-double">
                         <form method="post" action="completepasswordreset.do" id="passwordResetForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Enter New Password</label>
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.new.password")%>
+                                </label>
                                 <input id="reset-password" name="reset-password" type="password"
                                        class="form-control" required="">
                             </div>
@@ -112,7 +118,9 @@
                                 }
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Confirm Password</label>
+                                <label class="control-label">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Confirm.password")%>
+                                </label>
                                 <input id="reset-password2" name="reset-password2" type="password" class="form-control"
                                        data-match="reset-password" required="">
                             </div>
@@ -120,7 +128,7 @@
                             <div class="form-actions">
                                 <button id="submit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Submit
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Submit")%>
                                 </button>
                             </div>
                             <div class="clearfix"></div>
@@ -136,9 +144,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>
@@ -151,19 +161,22 @@
 
             $("#passwordResetForm").submit(function (e) {
 
+                $("#server-error-msg").remove();
                 var password = $("#reset-password").val();
                 var password2 = $("#reset-password2").val();
                 var error_msg = $("#error-msg");
 
                 if (!password || 0 === password.length) {
-                    error_msg.text("Password cannot be empty.");
+                    error_msg.text("<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                "Password.cannot.be.empty")%>");
                     error_msg.show();
                     $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                     return false;
                 }
 
                 if (password != password2) {
-                    error_msg.text("Passwords did not match. Please try again.");
+                    error_msg.text("<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Passwords.did.not.match.please.try.again")%>");
                     error_msg.show();
                     $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                     return false;

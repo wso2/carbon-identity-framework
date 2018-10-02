@@ -49,7 +49,7 @@ import static org.testng.Assert.assertEquals;
 @Test
 public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequenceHandlerAbstractTest {
 
-    public void testHandle_ClaimHandling() throws Exception {
+    public void testHandleClaimHandling() throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-4-claim.xml");
 

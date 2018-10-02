@@ -17,9 +17,11 @@
   --%>
 
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
@@ -80,7 +82,7 @@
 
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../oidc/logout" method="post" id="oidc_logout_consent_form"
+                    <form action="<%=oidcLogoutURL%>" method="post" id="oidc_logout_consent_form"
                           name="oidc_logout_consent_form"
                           class="form-horizontal">
                         <div class="padding-double login-form">

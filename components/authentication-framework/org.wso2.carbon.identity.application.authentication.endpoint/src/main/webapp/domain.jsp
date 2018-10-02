@@ -18,6 +18,7 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String domainUnknown = AuthenticationEndpointUtil.i18n(resourceBundle, "domain.unknown");
@@ -43,6 +44,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
@@ -90,7 +92,7 @@
                 </div>
                 <div class="boarder-all ">
                     <div class="clearfix"></div>
-                    <form action="../commonauth" method="post" id="loginForm" class="form-horizontal" >
+                    <form action="<%=commonauthURL%>" method="post" id="loginForm" class="form-horizontal" >
                         <div class="padding-double login-form">
                             <% if (loginFailed) { %>
                             <div class="alert alert-erro" id="error-msg" ><%=Encode.forHtml(errorMessage)%></div>

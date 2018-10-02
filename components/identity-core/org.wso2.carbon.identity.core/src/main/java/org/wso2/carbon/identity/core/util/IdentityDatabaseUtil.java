@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
 /**
  * Utility class for database operations.
@@ -44,6 +45,16 @@ public class IdentityDatabaseUtil {
      */
     public static Connection getDBConnection() throws IdentityRuntimeException {
         return JDBCPersistenceManager.getInstance().getDBConnection();
+    }
+
+    /**
+     * Get database source instance from the Identity Persistence Manager
+     *
+     * @return Database Source
+     */
+    public static DataSource getDataSource() {
+
+        return JDBCPersistenceManager.getInstance().getDataSource();
     }
 
     public static void closeAllConnections(Connection dbConnection, ResultSet rs, PreparedStatement prepStmt) {
