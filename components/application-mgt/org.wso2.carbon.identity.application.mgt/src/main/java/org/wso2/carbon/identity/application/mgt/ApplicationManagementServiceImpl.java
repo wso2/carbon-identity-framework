@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -57,6 +58,9 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
@@ -107,7 +111,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRege
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
- * Application management service implementation
+ * Application management service implementation.
  */
 public class ApplicationManagementServiceImpl extends ApplicationManagementService {
 
@@ -917,19 +921,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
                 if (serviceProvider != null) {
-                    // if "Authentication Type" is "Default" we must get the steps from the default SP
                     AuthenticationStep[] authenticationSteps = serviceProvider
                             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
 
                     loadApplicationPermissions(serviceProviderName, serviceProvider);
 
                     if (authenticationSteps == null || authenticationSteps.length == 0) {
-                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                                .getAuthenticationSteps();
-                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                                .setAuthenticationSteps(authenticationSteps);
+                        setDefaultAuthenticationSeq(tenantDomain, serviceProvider);
                     }
                 }
             }
@@ -1831,4 +1829,29 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
     }
+
+    private void setDefaultAuthenticationSeq(String tenantDomain, ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        // if "Authentication Type" is "Default", get the tenant wise default authentication sequence if
+        // available, otherwise the default local and outbound authentication configuration in default SP
+        DefaultAuthSeqMgtService seqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+        DefaultAuthenticationSequence sequence;
+        try {
+            sequence = seqMgtService.getDefaultAuthenticationSeq(tenantDomain);
+        } catch (DefaultAuthSeqMgtException e) {
+            throw new IdentityApplicationManagementException("Error when retrieving default " +
+                    "authentication sequence in tenant: " + tenantDomain, e);
+        }
+
+        if (sequence != null && sequence.getContent() != null) {
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(sequence.getContent());
+        } else {
+            ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                    .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(
+                    defaultSP.getLocalAndOutBoundAuthenticationConfig());
+        }
+    }
+
 }
