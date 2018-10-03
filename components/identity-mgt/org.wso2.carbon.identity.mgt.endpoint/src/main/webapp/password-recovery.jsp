@@ -17,12 +17,15 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.ReCaptchaApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ReCaptchaProperties" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
@@ -32,10 +35,16 @@
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-    ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
+    String username = request.getParameter("username");
+    String tenantDomain = null;
     
+    if (StringUtils.isNotEmpty(username)) {
+        User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+        tenantDomain = user.getTenantDomain();
+    }
+    ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
     try {
-        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(null, true, "ReCaptcha",
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(tenantDomain, true, "ReCaptcha",
                 "password-recovery");
         
         if (reCaptchaProperties.getReCaptchaEnabled()) {
@@ -135,7 +144,8 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input id="username" name="username" type="text" class="form-control" tabindex="0"
                                        placeholder=
-                                           <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%> required>
+                                           <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%> required
+                                    <% if (username != null) { %> value="<%=username%>" readonly<%}%>>
                             </div>
                             <%
                                 if (isEmailNotificationEnabled) {

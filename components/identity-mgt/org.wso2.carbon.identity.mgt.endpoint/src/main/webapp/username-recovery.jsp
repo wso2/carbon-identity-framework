@@ -19,6 +19,9 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
@@ -40,12 +43,29 @@
     }
     
     ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
+    String tenantOption = request.getParameter("tenantOption");
+    String tenantDomain = null;
+    
+    if (tenantOption != null && IdentityManagementEndpointConstants.TenantOption.TENANT_KNOWN.equals(tenantOption)) {
+        tenantDomain = request.getParameter("tenantDomain");
+        if (tenantDomain.isEmpty()) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        try {
+            IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", e.getMessage());
+            request.getRequestDispatcher("username-recovery-tenant-request.jsp").forward(request, response);
+            return;
+        }
+    }
     
     try {
-        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(null, true, "ReCaptcha",
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(tenantDomain, true, "ReCaptcha",
                 "username-recovery");
         
-        if (reCaptchaProperties.getReCaptchaEnabled()) {
+        if (reCaptchaProperties != null && reCaptchaProperties.getReCaptchaEnabled()) {
             Map<String, List<String>> headers = new HashMap<>();
             headers.put("reCaptcha", Arrays.asList(String.valueOf(true)));
             headers.put("reCaptchaAPI", Arrays.asList(reCaptchaProperties.getReCaptchaAPI()));
@@ -224,7 +244,8 @@
                                 <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
                                         "Tenant.domain")%></label>
                                 <input id="tenant-domain" type="text" name="tenantDomain"
-                                       class="form-control ">
+                                       class="form-control " <%
+                                       if (tenantDomain != null) { %> value="<%=tenantDomain%>" readonly<%}%>>
                             </div>
 
                             <td>&nbsp;&nbsp;</td>

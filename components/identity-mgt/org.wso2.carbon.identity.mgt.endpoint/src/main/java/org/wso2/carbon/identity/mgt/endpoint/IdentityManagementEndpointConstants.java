@@ -75,6 +75,12 @@ public class IdentityManagementEndpointConstants {
         public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
     }
 
+    public static final class TenantOption {
+
+        public static final String TENANT_KNOWN = "TENANT_KNOWN";
+        public static final String TENANT_NOT_KNOWN = "TENANT_NOT_KNOWN";
+    }
+
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
     public static final String TENANT_DOMAIN = "tenantdomain";

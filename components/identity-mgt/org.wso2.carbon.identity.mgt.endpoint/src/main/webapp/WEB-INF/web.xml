@@ -101,6 +101,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>recoverusernametenantrequest.do</servlet-name>
+        <jsp-file>/username-recovery-tenant-request.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>recoverusernamecomplete.do</servlet-name>
         <jsp-file>/username-recovery-complete.jsp</jsp-file>
     </servlet>
@@ -108,6 +113,11 @@
     <servlet>
         <servlet-name>recoverpassword.do</servlet-name>
         <jsp-file>/password-recovery.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>recoverpasswordusernamerequest.do</servlet-name>
+        <jsp-file>/password-recovery-username-request.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -172,6 +182,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>recoverusernametenantrequest.do</servlet-name>
+        <url-pattern>/recoverusernametenantrequest.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>recoverusernamecomplete.do</servlet-name>
         <url-pattern>/recoverusernamecomplete.do</url-pattern>
     </servlet-mapping>
@@ -179,6 +194,11 @@
     <servlet-mapping>
         <servlet-name>recoverpassword.do</servlet-name>
         <url-pattern>/recoverpassword.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>recoverpasswordusernamerequest.do</servlet-name>
+        <url-pattern>/recoverpasswordusernamerequest.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

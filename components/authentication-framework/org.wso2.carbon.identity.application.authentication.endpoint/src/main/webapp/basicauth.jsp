@@ -250,14 +250,35 @@
 
     <div class="clearfix"></div>
     <%!
-    private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
-    private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/recoverusername.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
-    private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
+        private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        
+            boolean multiTenancyAccountRecoveryEnabled = Boolean.parseBoolean(IdentityUtil.
+                    getProperty("EnableMultiTenancyAccountRecovery"));
+            if (multiTenancyAccountRecoveryEnabled) {
+                return identityMgtEndpointContext + "/recoverpasswordusernamerequest.do?callback=" +
+                        Encode.forHtmlAttribute(urlEncodedURL);
+            } else {
+                return identityMgtEndpointContext + "/recoverpassword.do?callback=" +
+                        Encode.forHtmlAttribute(urlEncodedURL);
+            }
+        }
+    
+        private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        
+            boolean multiTenancyAccountRecoveryEnabled = Boolean.parseBoolean(IdentityUtil.
+                    getProperty("EnableMultiTenancyAccountRecovery"));
+            if (multiTenancyAccountRecoveryEnabled) {
+                return identityMgtEndpointContext + "/recoverusernametenantrequest.do?callback=" +
+                        Encode.forHtmlAttribute(urlEncodedURL);
+            } else {
+                return identityMgtEndpointContext + "/recoverusername.do?callback=" +
+                        Encode.forHtmlAttribute(urlEncodedURL);
+            }
+        }
+    
+        private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        
+            return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+        }
     %>
 </form>
