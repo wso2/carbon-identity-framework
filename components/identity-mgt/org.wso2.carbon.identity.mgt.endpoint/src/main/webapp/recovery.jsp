@@ -17,16 +17,19 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.UserClaim" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="java.util.Map" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -56,7 +59,7 @@
         List<Claim> claims;
         UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
         try {
-            claims = usernameRecoveryApi.claimsGet(null);
+            claims = usernameRecoveryApi.getClaimsForUsernameRecovery(null, true);
         } catch (ApiException e) {
 
             Error error = new Gson().fromJson(e.getMessage(), Error.class);
@@ -88,7 +91,12 @@
         }
 
         try {
-            usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null);
+            Map<String, String> requestHeaders = new HashedMap();
+            if (request.getParameter("g-recaptcha-response") != null) {
+                requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+            }
+    
+            usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null, requestHeaders);
             request.setAttribute("callback", callback);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } catch (ApiException e) {

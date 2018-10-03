@@ -20,16 +20,49 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.ReCaptchaApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ReCaptchaProperties" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
-
+    ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
+    
+    try {
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(null, true, "ReCaptcha",
+                "password-recovery");
+        
+        if (reCaptchaProperties.getReCaptchaEnabled()) {
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("reCaptcha", Arrays.asList(String.valueOf(true)));
+            headers.put("reCaptchaAPI", Arrays.asList(reCaptchaProperties.getReCaptchaAPI()));
+            headers.put("reCaptchaKey", Arrays.asList(reCaptchaProperties.getReCaptchaKey()));
+            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, headers);
+        }
+    } catch (ApiException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+    
     boolean isEmailNotificationEnabled = false;
 
     isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION));
+%>
+<%
+    boolean reCaptchaEnabled = true;
+    if (request.getAttribute("reCaptcha") != null &&
+            "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
+    }
 %>
 
     <html>
@@ -48,6 +81,13 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+        <%
+            if (reCaptchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -129,6 +169,20 @@
                             <%
                                 }
                             %>
+    
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey=
+                                             "<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
+                            
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">
                                     <tbody>
@@ -176,5 +230,40 @@
 
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $("#recoverDetailsForm").submit(function (e) {
+                var errorMessage = $("#error-msg");
+                errorMessage.hide();
+
+                var firstName = $("#username").val();
+                if (firstName == '') {
+                    errorMessage.text("Please fill the first name.");
+                    errorMessage.show();
+                    $("html, body").animate({scrollTop: errorMessage.offset().top}, 'slow');
+                    return false;
+                }
+
+                <%
+                if(reCaptchaEnabled) {
+                %>
+                var reCaptchaResponse = $("[name='g-recaptcha-response']")[0].value;
+                if (reCaptchaResponse.trim() == '') {
+                    errorMessage.text("Please select reCaptcha.");
+                    errorMessage.show();
+                    $("html, body").animate({scrollTop: errorMessage.offset().top}, 'slow');
+                    return false;
+                }
+                <%
+                }
+                %>
+
+                return true;
+            });
+        });
+
+    </script>
     </body>
     </html>
