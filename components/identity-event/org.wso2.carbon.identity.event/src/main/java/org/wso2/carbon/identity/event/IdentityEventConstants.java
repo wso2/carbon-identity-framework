@@ -86,6 +86,9 @@ public class IdentityEventConstants {
 
     }
 
+    /**
+     * Data Publishing Event Handler related constants triggered when a session is changed.
+     */
     public enum EventName {
 
         AUTHENTICATION_STEP_SUCCESS,
