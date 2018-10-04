@@ -24,12 +24,12 @@
         import="org.wso2.carbon.identity.application.mgt.defaultsequence.stub.IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.DefaultAuthenticationSeqMgtServiceClient" %>
 <%@ page
-        import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+        import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page
-        import="org.wso2.carbon.utils.ServerConstants" %>
+        import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
@@ -46,20 +46,64 @@
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
+    String seqDesc = request.getParameter("sequence-description") != null ? request.getParameter("sequence-description").trim() : "";
+    String selectedMode = request.getParameter("selected-mode");
+
+    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+    String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+    ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
+            .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+    DefaultAuthenticationSeqMgtServiceClient serviceClient = new DefaultAuthenticationSeqMgtServiceClient(
+            cookie, backendServerURL, configContext);
+    DefaultAuthenticationSequence sequence = new DefaultAuthenticationSequence();
+    sequence.setName(IdPManagementUIUtil.DEFAULT_AUTH_SEQ);
+    sequence.setDescription(seqDesc);
+
+    if (selectedMode.equals("file")) {
+        String seqContent = request.getParameter("sequence-file-content") != null ? request.getParameter("sequence-file-content").trim() : "";
+        if (StringUtils.isNotEmpty(seqContent)) {
+            try {
+                sequence.setContentXml(seqContent);
+                serviceClient.createDefaultAuthenticationSeq(sequence);
+
+                String message = resourceBundle.getString("alert.info.add.default.seq");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+%>
+<script>
+    location.href = 'idp-mgt-edit-local.jsp?selectDefaultSeq=true';
+</script>
+<%
+} catch (IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException e) {
+    if (e.getFaultMessage() != null && e.getFaultMessage().getDefaultAuthSeqMgtClientException() != null &&
+            ArrayUtils.isNotEmpty(e.getFaultMessage().getDefaultAuthSeqMgtClientException().getMessages())) {
+        session.setAttribute("createError", e.getFaultMessage().getDefaultAuthSeqMgtClientException().getMessages());
+%>
+<script>
+    location.href = 'add-default-authSeq.jsp?mode=file';
+</script>
+<%
+} else {
+    String message = resourceBundle.getString("alert.error.add.default.seq");
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);%>
+
+<script>
+    location.href = 'add-default-authSeq.jsp?mode=file';
+</script>
+
+<%
+        }
+    }
+} else {
+%>
+<script>
+    location.href = 'add-default-authSeq.jsp?mode=file';
+</script>
+<%
+    }
+} else {
     String seqContent = request.getParameter("seqContent") != null ? request.getParameter("seqContent").trim() : "";
-    String seqDesc = request.getParameter("sequence-desc-add") != null ? request.getParameter("sequence-desc-add").trim() : "";
     if (StringUtils.isNotEmpty(seqContent)) {
         try {
-            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-            ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
-                    .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-            DefaultAuthenticationSeqMgtServiceClient serviceClient = new DefaultAuthenticationSeqMgtServiceClient(
-                    cookie, backendServerURL, configContext);
-
-            DefaultAuthenticationSequence sequence = new DefaultAuthenticationSequence();
-            sequence.setName(IdPManagementUIUtil.DEFAULT_AUTH_SEQ);
-            sequence.setDescription(seqDesc);
             sequence.setContentXml(seqContent);
             serviceClient.createDefaultAuthenticationSeq(sequence);
 
@@ -76,7 +120,7 @@
         session.setAttribute("createError", e.getFaultMessage().getDefaultAuthSeqMgtClientException().getMessages());
 %>
 <script>
-    location.href = 'add-default-authSeq.jsp';
+    location.href = 'add-default-authSeq.jsp?mode=inline';
 </script>
 <%
 } else {
@@ -84,7 +128,7 @@
     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);%>
 
 <script>
-    location.href = 'add-default-authSeq.jsp';
+    location.href = 'add-default-authSeq.jsp?mode=inline';
 </script>
 
 <%
@@ -93,8 +137,10 @@
 } else {
 %>
 <script>
-    location.href = 'add-default-authSeq.jsp';
+    location.href = 'add-default-authSeq.jsp?mode=inline';
 </script>
 <%
+        }
     }
 %>
+

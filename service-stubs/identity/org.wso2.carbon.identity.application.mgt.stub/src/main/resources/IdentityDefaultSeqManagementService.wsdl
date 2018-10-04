@@ -11,18 +11,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="isExistingDefaultAuthenticationSequence">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isExistingDefaultAuthenticationSequenceResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="createDefaultAuthenticationSeq">
                 <xs:complexType>
                     <xs:sequence>
@@ -32,7 +20,9 @@
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeq">
                 <xs:complexType>
-                    <xs:sequence/>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeqResponse">
@@ -44,7 +34,9 @@
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeqInXML">
                 <xs:complexType>
-                    <xs:sequence/>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeqInXMLResponse">
@@ -56,7 +48,9 @@
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeqInfo">
                 <xs:complexType>
-                    <xs:sequence/>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="getDefaultAuthenticationSeqInfoResponse">
@@ -68,13 +62,30 @@
             </xs:element>
             <xs:element name="deleteDefaultAuthenticationSeq">
                 <xs:complexType>
-                    <xs:sequence/>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="updateDefaultAuthenticationSeq">
                 <xs:complexType>
                     <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="sequence" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingDefaultAuthenticationSequence">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingDefaultAuthenticationSequenceResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

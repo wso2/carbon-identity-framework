@@ -37,48 +37,53 @@ public interface DefaultAuthSeqMgtDAO {
     /**
      * Check existence of default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtServerException
      */
-    boolean isDefaultAuthSeqExists(String tenantDomain) throws DefaultAuthSeqMgtServerException;
+    boolean isDefaultAuthSeqExists(String sequenceName, String tenantDomain) throws DefaultAuthSeqMgtServerException;
 
     /**
      * Retrieve default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtServerException
      */
-    DefaultAuthenticationSequence getDefaultAuthenticationSeq(String tenantDomain)
+    DefaultAuthenticationSequence getDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtServerException;
 
     /**
      * Retrieve default authentication sequence basic info.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtServerException
      */
-    DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String tenantDomain)
+    DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtServerException;
 
     /**
      * Update default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param sequence default authentication sequence
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtServerException
      */
-    void updateDefaultAuthenticationSeq(DefaultAuthenticationSequence sequence, String tenantDomain)
+    void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence, String tenantDomain)
             throws DefaultAuthSeqMgtServerException;
 
     /**
      * Delete default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtServerException
      */
-    void deleteDefaultAuthenticationSeq(String tenantDomain)
+    void deleteDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtServerException;
 }

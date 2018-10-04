@@ -66,7 +66,7 @@ import javax.xml.transform.stream.StreamSource;
 /**
  * This service provides the services needed to manage tenant wise default authentication sequences.
  */
-public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
+public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
     private static final Log log = LogFactory.getLog(DefaultAuthSeqMgtServiceImpl.class);
     private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server.";
@@ -102,7 +102,7 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
             log.debug(String.format("Creating default authentication sequence in tenant: %s", tenantDomain));
         }
 
-        validateDefaultAuthSeqExists(tenantDomain);
+        validateDefaultAuthSeqExists(sequence.getName(), tenantDomain);
         unmarshalDefaultAuthSeq(sequence, tenantDomain);
         validateAuthSeqConfiguration(sequence, tenantDomain, "Validation error when creating default " +
                 "authentication sequence in : ");
@@ -111,70 +111,72 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
     }
 
     @Override
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeq(String tenantDomain)
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving default authentication sequence of tenant: " + tenantDomain);
         }
-        return doGetDefaultAuthSeq(tenantDomain);
+        return doGetDefaultAuthSeq(sequenceName, tenantDomain);
     }
 
     @Override
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML(String tenantDomain)
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving default authentication sequence of tenant: " + tenantDomain);
         }
 
-        return doGetDefaultAuthSeqInXml(tenantDomain);
+        return doGetDefaultAuthSeqInXml(sequenceName, tenantDomain);
     }
 
     @Override
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String tenantDomain)
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving basic info of default authentication sequence of tenant: " + tenantDomain);
         }
 
-        return doGetDefaultAuthenticationSeqInfo(tenantDomain);
+        return doGetDefaultAuthenticationSeqInfo(sequenceName, tenantDomain);
     }
 
     @Override
-    public boolean isExistingDefaultAuthenticationSequence(String tenantDomain) throws DefaultAuthSeqMgtException {
+    public boolean isExistingDefaultAuthenticationSequence(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Checking existence of default authentication sequence in tenant: " + tenantDomain);
         }
-        return doCheckDefaultAuthSeq(tenantDomain);
+        return doCheckDefaultAuthSeq(sequenceName, tenantDomain);
     }
 
     @Override
-    public void deleteDefaultAuthenticationSeq(String tenantDomain) throws DefaultAuthSeqMgtException {
+    public void deleteDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Deleting default authentication sequence of tenant: " + tenantDomain);
         }
 
-        doDeleteDefaultAuthSeq(tenantDomain);
+        doDeleteDefaultAuthSeq(sequenceName, tenantDomain);
         clearServiceProviderCache(tenantDomain);
     }
 
     @Override
-    public void updateDefaultAuthenticationSeq(DefaultAuthenticationSequence sequence, String tenantDomain)
-            throws DefaultAuthSeqMgtException {
+    public void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence,
+                                               String tenantDomain) throws DefaultAuthSeqMgtException {
 
         if (log.isDebugEnabled()) {
             log.debug("Updating default authentication sequence of tenant: " + tenantDomain);
         }
 
-        validateDefaultAuthSeqNotExists(tenantDomain);
+        validateDefaultAuthSeqNotExists(sequenceName, tenantDomain);
         unmarshalDefaultAuthSeq(sequence, tenantDomain);
         validateAuthSeqConfiguration(sequence, tenantDomain, "Validation error when updating default " +
                 "authentication sequence in : ");
-        doUpdateDefaultAuthSeq(sequence, tenantDomain);
+        doUpdateDefaultAuthSeq(sequenceName, sequence, tenantDomain);
         clearServiceProviderCache(tenantDomain);
     }
 
@@ -182,19 +184,15 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
             throws DefaultAuthSeqMgtException {
 
         DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-        if (seqMgtDAO.isDefaultAuthSeqExists(tenantDomain)) {
-            throw new DefaultAuthSeqMgtClientException(new String[]{"Default auth sequence is already exists in " +
-                    "tenant: " + tenantDomain});
-        }
-
         seqMgtDAO.createDefaultAuthenticationSeq(sequence, tenantDomain);
         addDefaultAuthSeqToCache(sequence, tenantDomain);
     }
 
-    private DefaultAuthenticationSequence doGetDefaultAuthSeq(String tenantDomain) throws DefaultAuthSeqMgtException {
+    private DefaultAuthenticationSequence doGetDefaultAuthSeq(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtException {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(tenantDomain);
+            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(sequenceName);
             if (entry != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Default authentication sequence of tenant: " + tenantDomain +
@@ -205,7 +203,7 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
         }
 
         DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-        DefaultAuthenticationSequence sequence = seqMgtDAO.getDefaultAuthenticationSeq(tenantDomain);
+        DefaultAuthenticationSequence sequence = seqMgtDAO.getDefaultAuthenticationSeq(sequenceName, tenantDomain);
 
         if (sequence != null) {
             addDefaultAuthSeqToCache(sequence, tenantDomain);
@@ -213,13 +211,13 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
         return sequence;
     }
 
-    private DefaultAuthenticationSequence doGetDefaultAuthSeqInXml(String tenantDomain)
+    private DefaultAuthenticationSequence doGetDefaultAuthSeqInXml(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException {
 
-        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(tenantDomain);
+        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(sequenceName, tenantDomain);
         if (sequence == null) {
             DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-            sequence = seqMgtDAO.getDefaultAuthenticationSeq(tenantDomain);
+            sequence = seqMgtDAO.getDefaultAuthenticationSeq(sequenceName, tenantDomain);
             addDefaultAuthSeqToCache(sequence, tenantDomain);
         }
 
@@ -232,43 +230,43 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
         return sequence;
     }
 
-    private DefaultAuthenticationSequence doGetDefaultAuthenticationSeqInfo(String tenantDomain)
+    private DefaultAuthenticationSequence doGetDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException {
 
-        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(tenantDomain);
+        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(sequenceName, tenantDomain);
         if (sequence == null) {
             DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-            sequence = seqMgtDAO.getDefaultAuthenticationSeqInfo(tenantDomain);
+            sequence = seqMgtDAO.getDefaultAuthenticationSeqInfo(sequenceName, tenantDomain);
         }
         return sequence;
     }
 
-    private boolean doCheckDefaultAuthSeq(String tenantDomain) throws DefaultAuthSeqMgtException {
+    private boolean doCheckDefaultAuthSeq(String sequenceName, String tenantDomain) throws DefaultAuthSeqMgtException {
 
         // Check existence in cache
-        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(tenantDomain);
+        DefaultAuthenticationSequence sequence = getDefaultAuthSeqFromCache(sequenceName, tenantDomain);
 
         if (sequence == null) {
             // Check existence in database
             DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-            return seqMgtDAO.isDefaultAuthSeqExists(tenantDomain);
+            return seqMgtDAO.isDefaultAuthSeqExists(sequenceName, tenantDomain);
         }
         return true;
     }
 
-    private void doDeleteDefaultAuthSeq(String tenantDomain) throws DefaultAuthSeqMgtServerException {
+    private void doDeleteDefaultAuthSeq(String sequenceName, String tenantDomain) throws DefaultAuthSeqMgtServerException {
 
         DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-        seqMgtDAO.deleteDefaultAuthenticationSeq(tenantDomain);
+        seqMgtDAO.deleteDefaultAuthenticationSeq(sequenceName, tenantDomain);
 
-        removeDefaultAuthSeqFromCache(tenantDomain);
+        removeDefaultAuthSeqFromCache(sequenceName, tenantDomain);
     }
 
-    private void doUpdateDefaultAuthSeq(DefaultAuthenticationSequence sequence, String tenantDomain)
-            throws DefaultAuthSeqMgtServerException {
+    private void doUpdateDefaultAuthSeq(String sequenceName, DefaultAuthenticationSequence sequence,
+                                        String tenantDomain) throws DefaultAuthSeqMgtServerException {
 
         DefaultAuthSeqMgtDAO seqMgtDAO = new DefaultAuthSeqMgtDAOImpl();
-        seqMgtDAO.updateDefaultAuthenticationSeq(sequence, tenantDomain);
+        seqMgtDAO.updateDefaultAuthenticationSeq(sequenceName, sequence, tenantDomain);
 
         addDefaultAuthSeqToCache(sequence, tenantDomain);
     }
@@ -281,20 +279,22 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
         }
     }
 
-    private void validateDefaultAuthSeqExists(String tenantDomain) throws DefaultAuthSeqMgtException {
+    private void validateDefaultAuthSeqExists(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtException {
 
         List<String> validationMsg = new ArrayList<>();
-        if (doCheckDefaultAuthSeq(tenantDomain)) {
+        if (doCheckDefaultAuthSeq(sequenceName, tenantDomain)) {
             validationMsg.add(String.format("Default authentication sequence is already configured for tenant: %s.",
                     tenantDomain));
             throw new DefaultAuthSeqMgtClientException(validationMsg.toArray(new String[0]));
         }
     }
 
-    private void validateDefaultAuthSeqNotExists(String tenantDomain) throws DefaultAuthSeqMgtException {
+    private void validateDefaultAuthSeqNotExists(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtException {
 
         List<String> validationMsg = new ArrayList<>();
-        if (!doCheckDefaultAuthSeq(tenantDomain)) {
+        if (!doCheckDefaultAuthSeq(sequenceName, tenantDomain)) {
             validationMsg.add(String.format("Default authentication sequence is not configured for tenant: %s.",
                     tenantDomain));
             throw new DefaultAuthSeqMgtClientException(validationMsg.toArray(new String[0]));
@@ -305,27 +305,27 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
             DefaultAuthSeqMgtCacheEntry entry = new DefaultAuthSeqMgtCacheEntry(sequence);
-            DefaultAuthSeqMgtCache.getInstance().addToCache(tenantDomain, entry);
+            DefaultAuthSeqMgtCache.getInstance().addToCache(sequence.getName(), entry);
             if (log.isDebugEnabled()) {
                 log.debug("Default authentication sequence for tenant: " + tenantDomain + " is added to cache.");
             }
         }
     }
 
-    private void removeDefaultAuthSeqFromCache(String tenantDomain) {
+    private void removeDefaultAuthSeqFromCache(String sequenceName, String tenantDomain) {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCache.getInstance().clearCacheEntry(tenantDomain);
+            DefaultAuthSeqMgtCache.getInstance().clearCacheEntry(sequenceName);
             if (log.isDebugEnabled()) {
                 log.debug("Default authentication sequence for tenant: " + tenantDomain + " is removed from cache.");
             }
         }
     }
 
-    private DefaultAuthenticationSequence getDefaultAuthSeqFromCache(String tenantDomain) {
+    private DefaultAuthenticationSequence getDefaultAuthSeqFromCache(String sequenceName, String tenantDomain) {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(tenantDomain);
+            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(sequenceName);
             if (entry != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Default authentication sequence of tenant: " + tenantDomain +
@@ -370,6 +370,11 @@ public class DefaultAuthSeqMgtServiceImpl extends DefaultAuthSeqMgtService {
         AtomicBoolean isAuthenticatorIncluded = new AtomicBoolean(false);
 
         for (AuthenticationStep authenticationStep : authenticationSteps) {
+            if (authenticationStep == null || (authenticationStep.getFederatedIdentityProviders() == null &&
+                    authenticationStep.getLocalAuthenticatorConfigs() == null)) {
+                validationMsg.add("Some authentication steps do not have authenticators.");
+                break;
+            }
             for (IdentityProvider idp : authenticationStep.getFederatedIdentityProviders()) {
                 validateFederatedIdp(idp, isAuthenticatorIncluded, validationMsg, tenantDomain);
             }

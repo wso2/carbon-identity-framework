@@ -1064,9 +1064,11 @@ window.onload = function () {
                                     </table>
                                 </td>
                                 <% } else { %>
+
                                 <td>
-                                    <a href="javascript:document.location.href='add-default-authSeq.jsp'"
-                                       class="icon-link" margin-left: 0px; display: block; float:none style="background-image:url(../application/images/add.png);"><fmt:message key='field.default.seq.add'/></a>
+                                    <a class="icon-link"
+                                       style="background-image:url(../application/images/add.png); margin-left: 0px; display: block; float:none"
+                                       href="javascript:document.location.href='add-default-authSeq.jsp'">Add</a>
                                     <div class="sectionHelp">
                                         <fmt:message key='help.add.default.seq'/>
                                     </div>
@@ -1081,10 +1083,11 @@ window.onload = function () {
                 </div>
             </div>
     </div>
-    <div id='exportDefaultAuthSeqMsgDialog' title='WSO2 Carbon'>
+    <div id='exportDefaultAuthSeqMsgDialog' title='WSO2 Carbon' style="display: none">
         <div id='messagebox-confirm'>
             <p><fmt:message key="default.seq.export.para"/></p><br>
             <form id="defaultAuthSeqExportData" name="defaultAuthSeqExportData" method="post" action="export-default-authSeq-finish-ajaxprocessor.jsp">
+                <input hidden id="exportTemplateName" name="exportTemplateName"/>
             </form>
         </div>
     </div>

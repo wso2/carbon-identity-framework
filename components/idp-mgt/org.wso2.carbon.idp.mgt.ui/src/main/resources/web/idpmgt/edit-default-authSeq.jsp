@@ -115,8 +115,7 @@
 
     <script>
         function updateDefaultAuthSeq() {
-            var seqContent = $.trim(document.getElementById('seqContent').value);
-            if (seqContent === null || 0 === seqContent.length) {
+            if (checkEmptyEditorContent()) {
                 CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.default.seq.content.available")%>');
                 location.href = '#';
                 return false;
@@ -198,7 +197,7 @@
             </div>
         </form>
     </div>
-    <div id="updateErrorMsgDialog" title='WSO2 Carbon'>
+    <div id="updateErrorMsgDialog" title='WSO2 Carbon' style="display: none">
         <div id="messagebox-error">
             <h3>
                 <fmt:message key="alert.error.update.default.seq"/>

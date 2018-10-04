@@ -58,31 +58,31 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
         try {
             doCreateDefaultAuthSeq(sequence, tenantDomain, jdbcTemplate);
         } catch (DataAccessException e) {
-            throw new DefaultAuthSeqMgtServerException("Error while creating default authentication sequence in tenant: " +
-                    tenantDomain, e);
+            throw new DefaultAuthSeqMgtServerException("Error while creating default authentication sequence in " +
+                    "tenant: " + tenantDomain, e);
         }
     }
 
     @Override
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeq(String tenantDomain)
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return doGetDefaultAuthSeq(tenantDomain, jdbcTemplate);
+            return doGetDefaultAuthSeq(sequenceName, tenantDomain, jdbcTemplate);
         } catch (DataAccessException e) {
-            throw new DefaultAuthSeqMgtServerException("Error while retrieving default authentication sequence in tenant: " +
-                    tenantDomain, e);
+            throw new DefaultAuthSeqMgtServerException("Error while retrieving default authentication sequence in " +
+                    "tenant: " + tenantDomain, e);
         }
     }
 
     @Override
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String tenantDomain)
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return doGetDefaultAuthenticationSeqInfo(tenantDomain, jdbcTemplate);
+            return doGetDefaultAuthenticationSeqInfo(sequenceName, tenantDomain, jdbcTemplate);
         } catch (DataAccessException e) {
             throw new DefaultAuthSeqMgtServerException("Error while retrieving default authentication sequence info " +
                     "in tenant: " + tenantDomain, e);
@@ -90,10 +90,11 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     }
 
     @Override
-    public boolean isDefaultAuthSeqExists(String tenantDomain) throws DefaultAuthSeqMgtServerException {
+    public boolean isDefaultAuthSeqExists(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtServerException {
 
         try {
-            int sequenceID = doGetSequenceID(tenantDomain, JdbcUtils.getNewTemplate());
+            int sequenceID = doGetSequenceID(sequenceName, tenantDomain, JdbcUtils.getNewTemplate());
             if (sequenceID != 0) {
                 return true;
             }
@@ -105,11 +106,12 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     }
 
     @Override
-    public void deleteDefaultAuthenticationSeq(String tenantDomain) throws DefaultAuthSeqMgtServerException {
+    public void deleteDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
+            throws DefaultAuthSeqMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            doDeleteDefaultAuthSeq(tenantDomain, jdbcTemplate);
+            doDeleteDefaultAuthSeq(sequenceName, tenantDomain, jdbcTemplate);
         } catch (DataAccessException e) {
             throw new DefaultAuthSeqMgtServerException("Error while deleting default authentication sequence in tenant: " +
                     tenantDomain, e);
@@ -117,12 +119,12 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     }
 
     @Override
-    public void updateDefaultAuthenticationSeq(DefaultAuthenticationSequence sequence, String tenantDomain)
-            throws DefaultAuthSeqMgtServerException {
+    public void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence,
+                                               String tenantDomain) throws DefaultAuthSeqMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            doUpdateDefaultAuthSeq(sequence, tenantDomain, jdbcTemplate);
+            doUpdateDefaultAuthSeq(sequenceName, sequence, tenantDomain, jdbcTemplate);
         } catch (DataAccessException e) {
             throw new DefaultAuthSeqMgtServerException("Error while deleting default authentication sequence in tenant: " +
                     tenantDomain, e);
@@ -145,8 +147,8 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     }
 
 
-    private DefaultAuthenticationSequence doGetDefaultAuthSeq(String tenantDomain, JdbcTemplate jdbcTemplate)
-            throws DataAccessException {
+    private DefaultAuthenticationSequence doGetDefaultAuthSeq(String sequenceName, String tenantDomain,
+                                                              JdbcTemplate jdbcTemplate) throws DataAccessException {
 
         return jdbcTemplate.fetchSingleRecord(GET_DEFAULT_SEQ,
                 (resultSet, rowNumber) -> {
@@ -167,11 +169,13 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
                     }
                     return sequence;
                 },
-                (PreparedStatement preparedStatement) ->
-                        preparedStatement.setInt(1, getTenantID(tenantDomain)));
+                (PreparedStatement preparedStatement) -> {
+                    preparedStatement.setString(1, sequenceName);
+                    preparedStatement.setInt(2, getTenantID(tenantDomain));
+                });
     }
 
-    private DefaultAuthenticationSequence doGetDefaultAuthenticationSeqInfo(String tenantDomain,
+    private DefaultAuthenticationSequence doGetDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain,
                                                                             JdbcTemplate jdbcTemplate)
             throws DataAccessException {
 
@@ -182,27 +186,31 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
                     sequence.setDescription(resultSet.getString(2));
                     return sequence;
                 },
-                (PreparedStatement preparedStatement) ->
-                        preparedStatement.setInt(1, getTenantID(tenantDomain)));
+                (PreparedStatement preparedStatement) -> {
+                    preparedStatement.setString(1, sequenceName);
+                    preparedStatement.setInt(2, getTenantID(tenantDomain));
+                });
     }
 
-    private int doGetSequenceID(String tenantDomain, JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private int doGetSequenceID(String sequenceName, String tenantDomain, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
 
         int sequenceID = 0;
         String sequenceIDExists;
         sequenceIDExists = jdbcTemplate.fetchSingleRecord(GET_DEFAULT_SEQ_ID,
                 (resultSet, rowNumber) -> Integer.toString(resultSet.getInt(1)),
-                (PreparedStatement preparedStatement) ->
-                        preparedStatement.setInt(1, getTenantID(tenantDomain)));
-
+                (PreparedStatement preparedStatement) -> {
+                        preparedStatement.setString(1, sequenceName);
+                        preparedStatement.setInt(2, getTenantID(tenantDomain));
+                });
         if (sequenceIDExists != null) {
             sequenceID = Integer.parseInt(sequenceIDExists);
         }
         return sequenceID;
     }
 
-    private void doUpdateDefaultAuthSeq(DefaultAuthenticationSequence sequence, String tenantDomain,
-                                        JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private void doUpdateDefaultAuthSeq(String sequenceName, DefaultAuthenticationSequence sequence,
+                                        String tenantDomain, JdbcTemplate jdbcTemplate) throws DataAccessException {
 
         jdbcTemplate.executeUpdate(UPDATE_DEFAULT_SEQ,
                 preparedStatement -> {
@@ -213,15 +221,19 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
                     } catch (IOException e) {
                         throw new SQLException("Could not set default authentication sequence as a Blob.", e);
                     }
-                    preparedStatement.setInt(4, getTenantID(tenantDomain));
+                    preparedStatement.setString(4, sequenceName);
+                    preparedStatement.setInt(5, getTenantID(tenantDomain));
                 });
     }
 
-    private void doDeleteDefaultAuthSeq(String tenantDomain, JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private void doDeleteDefaultAuthSeq(String sequenceName, String tenantDomain, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
 
         jdbcTemplate.executeUpdate(DELETE_DEFAULT_SEQ,
-                preparedStatement ->
-                    preparedStatement.setInt(1, getTenantID(tenantDomain)));
+                preparedStatement -> {
+                    preparedStatement.setString(1, sequenceName);
+                    preparedStatement.setInt(2, getTenantID(tenantDomain));
+                });
     }
 
     /**

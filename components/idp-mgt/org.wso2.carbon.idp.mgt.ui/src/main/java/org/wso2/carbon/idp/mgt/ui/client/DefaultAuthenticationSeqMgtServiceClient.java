@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.stub.IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.stub.IdentityDefaultSeqManagementServiceStub;
+import org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil;
 
 import java.rmi.RemoteException;
 
@@ -86,7 +87,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             if (debugEnabled) {
                 log.debug("Retrieving default authentication sequence.");
             }
-            return stub.getDefaultAuthenticationSeqInXML();
+            return stub.getDefaultAuthenticationSeqInXML(IdPManagementUIUtil.DEFAULT_AUTH_SEQ);
         } catch (RemoteException e) {
             log.error("Error occurred when retrieving default authentication sequence.", e);
             throw new IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException("Server error occurred.");
@@ -106,7 +107,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             if (debugEnabled) {
                 log.debug("Retrieving default authentication sequence info.");
             }
-            return stub.getDefaultAuthenticationSeqInfo();
+            return stub.getDefaultAuthenticationSeqInfo(IdPManagementUIUtil.DEFAULT_AUTH_SEQ);
         } catch (RemoteException e) {
             log.error("Error occurred when retrieving default authentication sequence info.", e);
             throw new IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException("Server error occurred.");
@@ -125,7 +126,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             if (debugEnabled) {
                 log.debug("Deleting default authentication sequence.");
             }
-            stub.deleteDefaultAuthenticationSeq();
+            stub.deleteDefaultAuthenticationSeq(IdPManagementUIUtil.DEFAULT_AUTH_SEQ);
         } catch (RemoteException e) {
             log.error("Error occurred when deleting default authentication sequence.", e);
             throw new IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException("Server error occurred.");
@@ -144,7 +145,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             if (debugEnabled) {
                 log.debug("Updating default authentication sequence.");
             }
-            stub.updateDefaultAuthenticationSeq(sequence);
+            stub.updateDefaultAuthenticationSeq(IdPManagementUIUtil.DEFAULT_AUTH_SEQ, sequence);
         } catch (RemoteException e) {
             log.error("Error occurred when updating default authentication sequence.", e);
             throw new IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtClientException("Server error occurred.");

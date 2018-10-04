@@ -927,7 +927,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     loadApplicationPermissions(serviceProviderName, serviceProvider);
 
                     if (authenticationSteps == null || authenticationSteps.length == 0) {
-                        setDefaultAuthenticationSeq(tenantDomain, serviceProvider);
+                        setDefaultAuthenticationSeq(ApplicationConstants.DEFAULT_AUTH_SEQ, tenantDomain,
+                                serviceProvider);
                     }
                 }
             }
@@ -1830,7 +1831,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void setDefaultAuthenticationSeq(String tenantDomain, ServiceProvider serviceProvider)
+    private void setDefaultAuthenticationSeq(String sequenceName, String tenantDomain, ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
 
         // if "Authentication Type" is "Default", get the tenant wise default authentication sequence if
@@ -1838,7 +1839,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         DefaultAuthSeqMgtService seqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
         DefaultAuthenticationSequence sequence;
         try {
-            sequence = seqMgtService.getDefaultAuthenticationSeq(tenantDomain);
+            sequence = seqMgtService.getDefaultAuthenticationSeq(sequenceName, tenantDomain);
         } catch (DefaultAuthSeqMgtException e) {
             throw new IdentityApplicationManagementException("Error when retrieving default " +
                     "authentication sequence in tenant: " + tenantDomain, e);

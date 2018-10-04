@@ -19,19 +19,9 @@ package org.wso2.carbon.identity.application.mgt.defaultsequence;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 
 /**
- * Tenant wise default authentication sequence management service abstract class.
+ * Tenant wise default authentication sequence management service interface.
  */
-public abstract class DefaultAuthSeqMgtService {
-
-    /**
-     * Get DefaultAuthSeqMgtService instance.
-     *
-     * @return DefaultAuthSeqMgtService instance
-     */
-    public static DefaultAuthSeqMgtService getInstance() {
-
-        return DefaultAuthSeqMgtServiceImpl.getInstance();
-    }
+public interface DefaultAuthSeqMgtService {
 
     /**
      * Create default authentication sequence.
@@ -40,65 +30,71 @@ public abstract class DefaultAuthSeqMgtService {
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract void createDefaultAuthenticationSeq(DefaultAuthenticationSequence authenticationSequence,
+    void createDefaultAuthenticationSeq(DefaultAuthenticationSequence authenticationSequence,
                                                         String tenantDomain) throws DefaultAuthSeqMgtException;
 
     /**
      * Retrieve default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract DefaultAuthenticationSequence getDefaultAuthenticationSeq(String tenantDomain)
+    DefaultAuthenticationSequence getDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 
     /**
      * Retrieve default authentication sequence in XML format.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML(String tenantDomain)
+    DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 
     /**
      * Retrieve default authentication sequence basic info.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtServerException
      */
-    public abstract DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String tenantDomain)
+    DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 
     /**
      * Check existence of default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @return true if a default authentication sequence exists for the tenant
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract boolean isExistingDefaultAuthenticationSequence(String tenantDomain)
+    boolean isExistingDefaultAuthenticationSequence(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 
     /**
      * Delete default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract void deleteDefaultAuthenticationSeq(String tenantDomain)
+    void deleteDefaultAuthenticationSeq(String sequenceName, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 
     /**
      * Update default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @param sequence default authentication sequence
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtException
      */
-    public abstract void updateDefaultAuthenticationSeq(DefaultAuthenticationSequence sequence, String tenantDomain)
+    void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence, String tenantDomain)
             throws DefaultAuthSeqMgtException;
 }

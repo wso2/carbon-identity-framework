@@ -39,7 +39,7 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
             throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
             authenticationSeqMgtService.createDefaultAuthenticationSeq(authenticationSequence, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while creating default authentication sequence of tenant: " + getTenantDomain(), e);
@@ -52,14 +52,16 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Retrieve default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtClientException
      */
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeq() throws DefaultAuthSeqMgtClientException {
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeq(String sequenceName)
+            throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            return authenticationSeqMgtService.getDefaultAuthenticationSeq(getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            return authenticationSeqMgtService.getDefaultAuthenticationSeq(sequenceName, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while retrieving default authentication sequence of tenant: " + getTenantDomain(), e);
             throw new DefaultAuthSeqMgtClientException("Server error occurred.");
@@ -71,14 +73,16 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Retrieve default authentication sequence in XML.
      *
+     * @param sequenceName name of the default authentication sequence
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtClientException
      */
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML() throws DefaultAuthSeqMgtClientException {
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInXML(String sequenceName)
+            throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            return authenticationSeqMgtService.getDefaultAuthenticationSeqInXML(getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            return authenticationSeqMgtService.getDefaultAuthenticationSeqInXML(sequenceName, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while retrieving default authentication sequence of tenant: " + getTenantDomain() +
                     " in XML format", e);
@@ -91,14 +95,16 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Check existence of default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @return true if a default authentication sequence exists for the tenant
      * @throws DefaultAuthSeqMgtClientException
      */
-    public boolean isExistingDefaultAuthenticationSequence() throws DefaultAuthSeqMgtClientException {
+    public boolean isExistingDefaultAuthenticationSequence(String sequenceName)
+            throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            return authenticationSeqMgtService.isExistingDefaultAuthenticationSequence(getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            return authenticationSeqMgtService.isExistingDefaultAuthenticationSequence(sequenceName, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while checking existence of default authentication sequence in tenant: " +
                     getTenantDomain(), e);
@@ -111,15 +117,16 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Retrieve default authentication sequence basic info.
      *
+     * @param sequenceName name of the default authentication sequence
      * @return default authentication sequence
      * @throws DefaultAuthSeqMgtServerException
      */
-    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo()
+    public DefaultAuthenticationSequence getDefaultAuthenticationSeqInfo(String sequenceName)
             throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            return authenticationSeqMgtService.getDefaultAuthenticationSeqInfo(getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            return authenticationSeqMgtService.getDefaultAuthenticationSeqInfo(sequenceName, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while retrieving default authentication sequence info of tenant: " + getTenantDomain(),
                     e);
@@ -132,13 +139,14 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Delete default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @throws DefaultAuthSeqMgtClientException
      */
-    public void deleteDefaultAuthenticationSeq() throws DefaultAuthSeqMgtClientException {
+    public void deleteDefaultAuthenticationSeq(String sequenceName) throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            authenticationSeqMgtService.deleteDefaultAuthenticationSeq(getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            authenticationSeqMgtService.deleteDefaultAuthenticationSeq(sequenceName, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while deleting default authentication sequence of tenant: " + getTenantDomain(), e);
             throw new DefaultAuthSeqMgtClientException("Server error occurred.");
@@ -150,14 +158,15 @@ public class DefaultAuthSeqMgtAdminService extends AbstractAdmin {
     /**
      * Update default authentication sequence.
      *
+     * @param sequenceName name of the default authentication sequence
      * @throws DefaultAuthSeqMgtClientException
      */
-    public void updateDefaultAuthenticationSeq(DefaultAuthenticationSequence sequence)
+    public void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence)
             throws DefaultAuthSeqMgtClientException {
 
         try {
-            authenticationSeqMgtService = DefaultAuthSeqMgtService.getInstance();
-            authenticationSeqMgtService.updateDefaultAuthenticationSeq(sequence, getTenantDomain());
+            authenticationSeqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+            authenticationSeqMgtService.updateDefaultAuthenticationSeq(sequenceName, sequence, getTenantDomain());
         } catch (DefaultAuthSeqMgtServerException e) {
             log.error("Error while updating default authentication sequence of tenant: " + getTenantDomain(), e);
             throw new DefaultAuthSeqMgtClientException("Server error occurred.");

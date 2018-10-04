@@ -135,6 +135,14 @@ $("#toggleEditorSize").click(function () {
     }
 });
 
+function checkEmptyEditorContent() {
+    var editorContent = doc.getValue();
+    if (editorContent.length === 0) {
+        return true;
+    }
+    return false;
+}
+
 function getSelectedRange() {
     return {from: myCodeMirror.getCursor(true), to: myCodeMirror.getCursor(false)};
 }
