@@ -257,7 +257,7 @@
                 }
 
                 <%
-                if(reCaptchaEnabled) {
+                if (reCaptchaEnabled) {
                 %>
                 var reCaptchaResponse = $("[name='g-recaptcha-response']")[0].value;
                 if (reCaptchaResponse.trim() == '') {

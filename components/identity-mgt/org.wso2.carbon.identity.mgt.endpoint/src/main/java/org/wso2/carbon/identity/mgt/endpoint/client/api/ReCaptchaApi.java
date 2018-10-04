@@ -40,6 +40,9 @@ import java.util.Map;
  */
 public class ReCaptchaApi {
 
+    private static final String TENANTDOMAIN = "tenant-domain";
+    private static final String CAPTCHA_TYPE = "captcha-type";
+    private static final String RECOVERY_TYPE = "recovery-type";
     private final String[] localVarAccepts = {"application/json"};
     private final String[] localVarContentTypes = {"application/json"};
     private String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
@@ -85,9 +88,9 @@ public class ReCaptchaApi {
         Map<String, String> localVarHeaderParams = new HashMap<>();
         Map<String, Object> localVarFormParams = new HashMap<>();
 
-        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "tenant-domain", tenantDomain));
-        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "captcha-type", captchaType));
-        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, "recovery-type", recoveryType));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, TENANTDOMAIN, tenantDomain));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, CAPTCHA_TYPE, captchaType));
+        localVarQueryParams.addAll(apiClient.parameterToPairs(StringUtils.EMPTY, RECOVERY_TYPE, recoveryType));
 
         final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
         final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
