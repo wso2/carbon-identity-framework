@@ -558,6 +558,14 @@
     </SCIM2>
 
     <!--Recovery>
+        <ReCaptcha>
+            <Password>
+                <Enable>false</Enable>
+            </Password>
+            <Username>
+                <Enable>false</Enable>
+            </Username>
+        </ReCaptcha>
         <Notification>
             <Password>
                 <Enable>false</Enable>
