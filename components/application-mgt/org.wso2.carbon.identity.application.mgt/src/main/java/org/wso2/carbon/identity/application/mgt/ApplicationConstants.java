@@ -73,4 +73,5 @@ public class ApplicationConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 }

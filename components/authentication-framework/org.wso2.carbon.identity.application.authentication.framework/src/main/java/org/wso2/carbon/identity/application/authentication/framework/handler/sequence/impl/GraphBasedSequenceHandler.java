@@ -92,7 +92,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled() || !ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType)) {
+        if (graph == null || !graph.isEnabled() || (!ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType) &&
+                !ApplicationConstants.AUTH_TYPE_DEFAULT.equals(authenticationType))) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "
