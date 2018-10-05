@@ -67,6 +67,8 @@ public class IdPManagementUIUtil {
 
     private static final String META_DATA_SAML = "meta_data_saml";
 
+    public static final String DEFAULT_AUTH_SEQ = "default_sequence";
+
     /**
      * Validates an URI.
      *
