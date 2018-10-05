@@ -19,7 +19,6 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 <%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
@@ -43,14 +42,9 @@
     }
     
     ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
-    String tenantOption = request.getParameter("tenantOption");
-    String tenantDomain = null;
+    String tenantDomain = request.getParameter("tenantDomain");
     
-    if (tenantOption != null && IdentityManagementEndpointConstants.TenantOption.TENANT_KNOWN.equals(tenantOption)) {
-        tenantDomain = request.getParameter("tenantDomain");
-        if (tenantDomain.isEmpty()) {
-            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
+    if (StringUtils.isNotEmpty(tenantDomain)) {
         try {
             IdentityTenantUtil.getTenantId(tenantDomain);
         } catch (IdentityRuntimeException e) {
@@ -239,17 +233,29 @@
                                        data-validate="email">
                             </div>
                             <%}%>
-
+    
+                            <%
+                                if (StringUtils.isNotEmpty(tenantDomain) && !error) {
+                            %>
+                            <div>
+                                <input type="hidden" name="tenantDomain" value="<%=tenantDomain %>"/>
+                            </div>
+                            <%
+                            } else {
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 ">
                                 <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                        "Tenant.domain")%></label>
+                                        "Tenant.domain")%>
+                                </label>
                                 <input id="tenant-domain" type="text" name="tenantDomain"
-                                       class="form-control " <%
-                                       if (tenantDomain != null) { %> value="<%=tenantDomain%>" readonly<%}%>>
+                                       class="form-control ">
                             </div>
-
+                            <%
+                                }
+                            %>
+                            
                             <td>&nbsp;&nbsp;</td>
-                            <input type="hidden" , id="isUsernameRecovery" , name="isUsernameRecovery" value="true">
+                            <input type="hidden" id="isUsernameRecovery" name="isUsernameRecovery" value="true">
 
                             <% for (Claim claim : claims) {
                                 if (claim.getRequired() &&

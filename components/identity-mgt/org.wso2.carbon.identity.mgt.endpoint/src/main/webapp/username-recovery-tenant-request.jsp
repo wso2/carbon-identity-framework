@@ -95,17 +95,8 @@
                                 <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.tenant.here")%>
                             </div>
                             
-                            <div class="form-group">
-                                <input type="radio" name="tenantOption" value="TENANT_KNOWN" checked>
-                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Tenant.known")%>
-                                
-                                <input id="tenant-domain" type="text" name="tenantDomain"
-                                       class="form-control ">
-                                <div class="font-small help-block">
-                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                            "If.you.do.not.specify.tenant.domain.consider.as.super.tenant")%>
-                                </div>
-                            </div>
+                            <input id="tenant-domain" type="text" name="tenantDomain"
+                                   class="form-control ">
                             
                             <%
                                 String callback = Encode.forHtmlAttribute
@@ -118,12 +109,6 @@
                             <%
                                 }
                             %>
-                            
-                            
-                            <div class="form-group">
-                                <input type="radio" name="tenantOption" value="TENANT_NOT_KNOWN">
-                                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Tenant.not.known")%>
-                            </div>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group username-proceed">
                             <button id="recoverSubmit"
@@ -161,7 +146,23 @@
 
 <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript">
 
+    $(document).ready(function () {
+        $("#tenantBasedRecovery").submit(function (e) {
+            var errorMessage = $("#error-msg");
+            errorMessage.hide();
+            var tenantDomain = $("#tenant-domain").val();
 
+            if (tenantDomain == '') {
+                errorMessage.text("Please enter your tenant domain.");
+                errorMessage.show();
+                $("html, body").animate({scrollTop: errorMessage.offset().top}, 'slow');
+                return false;
+            }
+            return true;
+        });
+    });
+</script>
 </body>
 </html>

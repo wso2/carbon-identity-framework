@@ -32,6 +32,10 @@
         <param-name>EnableCaptchaVerification</param-name>
         <param-value>false</param-value>
     </context-param>
+    <context-param>
+        <param-name>EnableMultiTenancy</param-name>
+        <param-value>false</param-value>
+    </context-param>
     <!--context-param>
         <param-name>UserPortalUrl</param-name>
         <param-value>https://localhost:9443/dashboard/index.jag</param-value>
@@ -96,13 +100,13 @@
     </filter-mapping>
 
     <servlet>
-        <servlet-name>recoverusername.do</servlet-name>
-        <jsp-file>/username-recovery.jsp</jsp-file>
+        <servlet-name>recoveraccountrouter.do</servlet-name>
+        <jsp-file>/account-recovery-router.jsp</jsp-file>
     </servlet>
 
     <servlet>
-        <servlet-name>recoverusernametenantrequest.do</servlet-name>
-        <jsp-file>/username-recovery-tenant-request.jsp</jsp-file>
+        <servlet-name>recoverusername.do</servlet-name>
+        <jsp-file>/username-recovery.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -113,11 +117,6 @@
     <servlet>
         <servlet-name>recoverpassword.do</servlet-name>
         <jsp-file>/password-recovery.jsp</jsp-file>
-    </servlet>
-
-    <servlet>
-        <servlet-name>recoverpasswordusernamerequest.do</servlet-name>
-        <jsp-file>/password-recovery-username-request.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -177,13 +176,13 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>recoverusername.do</servlet-name>
-        <url-pattern>/recoverusername.do</url-pattern>
+        <servlet-name>recoveraccountrouter.do</servlet-name>
+        <url-pattern>/recoveraccountrouter.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>recoverusernametenantrequest.do</servlet-name>
-        <url-pattern>/recoverusernametenantrequest.do</url-pattern>
+        <servlet-name>recoverusername.do</servlet-name>
+        <url-pattern>/recoverusername.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -194,11 +193,6 @@
     <servlet-mapping>
         <servlet-name>recoverpassword.do</servlet-name>
         <url-pattern>/recoverpassword.do</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>recoverpasswordusernamerequest.do</servlet-name>
-        <url-pattern>/recoverpasswordusernamerequest.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

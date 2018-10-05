@@ -104,7 +104,7 @@
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
                         "No.valid.user.found"));
-                request.getRequestDispatcher("recoverusername.do").forward(request, response);
+                request.getRequestDispatcher("recoveraccountrouter.do").forward(request, response);
                 return;
             }
 
@@ -114,7 +114,7 @@
                 request.setAttribute("errorMsg", error.getDescription());
                 request.setAttribute("errorCode", error.getCode());
             }
-            request.getRequestDispatcher("recoverusername.do").forward(request, response);
+            request.getRequestDispatcher("recoveraccountrouter.do").forward(request, response);
             return;
         }
 

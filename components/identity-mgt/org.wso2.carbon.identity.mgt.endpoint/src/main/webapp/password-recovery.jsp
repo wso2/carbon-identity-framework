@@ -141,12 +141,26 @@
                         <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.detail.to.recover.pwd")%></div>
                     <div class="padding-double">
                         <form method="post" action="verify.do" id="recoverDetailsForm">
+    
+                            <%
+                                if (StringUtils.isNotEmpty(username) && !error) {
+                            %>
+                            <div>
+                                <input type="hidden" name="username" value="<%=username %>"/>
+                            </div>
+                            <%
+                            } else {
+                            %>
+    
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input id="username" name="username" type="text" class="form-control" tabindex="0"
                                        placeholder=
-                                           <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%> required
-                                    <% if (username != null) { %> value="<%=username%>" readonly<%}%>>
+                                           <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Username")%> required>
                             </div>
+    
+                            <%
+                                }
+                            %>
                             <%
                                 if (isEmailNotificationEnabled) {
                             %>

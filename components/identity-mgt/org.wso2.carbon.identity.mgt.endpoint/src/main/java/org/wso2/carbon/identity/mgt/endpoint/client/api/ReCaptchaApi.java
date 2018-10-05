@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class generating and invoking the Captcha api to display and the Recaptcha.
+ * This class generating and invoking the Captcha api to display and the ReCaptcha.
  */
 public class ReCaptchaApi {
 
