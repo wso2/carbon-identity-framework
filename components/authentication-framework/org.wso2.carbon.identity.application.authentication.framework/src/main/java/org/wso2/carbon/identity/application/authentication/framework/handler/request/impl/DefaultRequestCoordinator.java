@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -51,6 +52,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +103,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         AuthenticationContext context = null;
+
         try {
             AuthenticationRequestCacheEntry authRequest = null;
             String sessionDataKey = request.getParameter("sessionDataKey");
@@ -150,6 +153,34 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+
+                // Monitor should be context itself as we need to synchronize only if the same context is used by two
+                // different threads.
+                synchronized (context) {
+                    if (!context.isActiveInAThread()) {
+                        // Marks this context is active in a thread. We only allow at a single instance, a context
+                        // to be active in only a single thread. In other words, same context cannot active in two
+                        // different threads at the same time.
+                        context.setActiveInAThread(true);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Context id: " + context.getContextIdentifier() + " is active in the thread " +
+                                    "with id: " + Thread.currentThread().getId());
+                        }
+                    } else {
+                        log.error("Same context is currently in used by a different thread. Possible double submit.");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Same context is currently in used by a different thread. Possible double submit."
+                                    +  "\n" +
+                                    "Context id: " + context.getContextIdentifier() + "\n" +
+                                    "Originating address: " + request.getRemoteAddr() + "\n" +
+                                    "Request Headers: " + getHeaderString(request) + "\n" +
+                                    "Thread Id: " + Thread.currentThread().getId());
+                        }
+                        FrameworkUtils.sendToRetryPage(request, response);
+                        return;
+                    }
+                }
+
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
@@ -196,7 +227,42 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, response);
+        } finally {
+            if (context != null) {
+                // Mark this context left the thread. Now another thread can use this context.
+                context.setActiveInAThread(false);
+                if (log.isDebugEnabled()) {
+                    log.debug("Context id: " + context.getContextIdentifier() + " left the thread with id: " +
+                            Thread.currentThread().getId());
+                }
+                // If flow is not about to conclude.
+                if (!LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context) ||
+                        context.isLogoutRequest()) {
+                    // Persist the context.
+                    FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * Print the request headers as a one string with header names and respective values.
+     * @param request HTTP request to retrieve headers.
+     * @return Headers and values as a single string.
+     */
+    private String getHeaderString(HttpServletRequest request) {
+
+        Enumeration<String> headerNames = request.getHeaderNames();
+        StringBuilder stringBuilder = new StringBuilder();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            stringBuilder.append("Header Name: ").append(headerName).append(", ")
+                    .append("Value: ").append(request.getHeader(headerName)).append(". ");
+        }
+        return stringBuilder.toString();
     }
 
     /**

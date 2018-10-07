@@ -68,8 +68,6 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    private static final List<String> paths = new ArrayList<String>();
-    private static String applicationNode;
     // Regex for validating application name
     public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
@@ -233,9 +231,10 @@ public class ApplicationMgtUtil {
             Collection permissionNode = tenantGovReg.newCollection();
             permissionNode.setProperty("name", newName);
             newApplicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + PATH_CONSTANT + newName;
-            ApplicationMgtUtil.applicationNode = newApplicationNode;
+            String applicationNode = newApplicationNode;
             tenantGovReg.put(newApplicationNode, permissionNode);
-            addPermission(loadPermissions.toArray(new ApplicationPermission[loadPermissions.size()]), tenantGovReg);
+            addPermission(applicationNode, loadPermissions.toArray(new ApplicationPermission[loadPermissions.size()]),
+                    tenantGovReg);
         } catch (RegistryException e) {
             throw new IdentityApplicationManagementException("Error while renaming permission node "
                     + oldName + "to " + newName, e);
@@ -326,7 +325,7 @@ public class ApplicationMgtUtil {
     public static void updatePermissions(String applicationName, ApplicationPermission[] permissions)
             throws IdentityApplicationManagementException {
 
-        applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
+        String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
 
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
@@ -356,14 +355,14 @@ public class ApplicationMgtUtil {
             // no permission exist for the application, create new
             if (childern == null || appNodeCollec.getChildCount() < 1) {
 
-                addPermission(permissions, tenantGovReg);
+                addPermission(applicationNode, permissions, tenantGovReg);
 
             } else { // there are permission
                 List<ApplicationPermission> loadPermissions = loadPermissions(applicationName);
                 for (ApplicationPermission applicationPermission : loadPermissions) {
                     tenantGovReg.delete(applicationNode + PATH_CONSTANT + applicationPermission.getValue());
                 }
-                addPermission(permissions, tenantGovReg);
+                addPermission(applicationNode, permissions, tenantGovReg);
             }
 
         } catch (RegistryException e) {
@@ -372,8 +371,8 @@ public class ApplicationMgtUtil {
 
     }
 
-    private static void addPermission(ApplicationPermission[] permissions, Registry tenantGovReg) throws
-            RegistryException {
+    private static void addPermission(String applicationNode, ApplicationPermission[] permissions, Registry
+            tenantGovReg) throws RegistryException {
         for (ApplicationPermission permission : permissions) {
             String permissionValue = permission.getValue();
 
@@ -402,9 +401,10 @@ public class ApplicationMgtUtil {
      */
     public static List<ApplicationPermission> loadPermissions(String applicationName)
             throws IdentityApplicationManagementException {
-        applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
+        String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
+        List<String> paths = new ArrayList<>();
 
         try {
             boolean exist = tenantGovReg.resourceExists(applicationNode);
@@ -433,7 +433,8 @@ public class ApplicationMgtUtil {
             List<ApplicationPermission> permissions = new ArrayList<ApplicationPermission>();
 
 
-            permissionPath(tenantGovReg, applicationNode);      //get permission paths recursively
+            permissionPath(tenantGovReg, applicationNode, paths, applicationNode);      //get permission paths
+            // recursively
 
             for (String permissionPath : paths) {
                 ApplicationPermission permission;
@@ -453,7 +454,8 @@ public class ApplicationMgtUtil {
         }
     }
 
-    private static void permissionPath(Registry tenantGovReg, String permissionPath) throws RegistryException {
+    private static void permissionPath(Registry tenantGovReg, String permissionPath, List<String> paths, String
+            applicationNode) throws RegistryException {
 
         Collection appCollection = (Collection) tenantGovReg.get(permissionPath);
         String[] childern = appCollection.getChildren();
@@ -464,7 +466,7 @@ public class ApplicationMgtUtil {
 
         while (childern != null && childern.length != 0) {
             for (int i = 0; i < childern.length; i++) {
-                permissionPath(tenantGovReg, childern[i]);
+                permissionPath(tenantGovReg, childern[i], paths, applicationNode);
             }
             break;
 

@@ -31,7 +31,14 @@ import org.wso2.carbon.identity.mgt.IdentityMgtServiceException;
 import org.wso2.carbon.identity.mgt.beans.UserIdentityMgtBean;
 import org.wso2.carbon.identity.mgt.beans.VerificationBean;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
-import org.wso2.carbon.identity.mgt.dto.*;
+import org.wso2.carbon.identity.mgt.dto.ChallengeQuestionDTO;
+import org.wso2.carbon.identity.mgt.dto.ChallengeQuestionIdsDTO;
+import org.wso2.carbon.identity.mgt.dto.UserChallengesCollectionDTO;
+import org.wso2.carbon.identity.mgt.dto.UserChallengesDTO;
+import org.wso2.carbon.identity.mgt.dto.UserIdentityClaimDTO;
+import org.wso2.carbon.identity.mgt.dto.UserIdentityClaimsDO;
+import org.wso2.carbon.identity.mgt.dto.UserRecoveryDTO;
+import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.store.JDBCUserRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
@@ -44,7 +51,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the Utility class used by the admin service to read and write
@@ -120,22 +129,14 @@ public class UserIdentityManagementUtil {
                 log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
+
+            Map<String, String> claims = new HashMap<>();
+            claims.put(UserIdentityDataStore.ACCOUNT_LOCK, "true");
+            claims.put(UserIdentityDataStore.UNLOCKING_TIME, "0");
+            userStoreManager.setUserClaimValues(userName, claims, null);
         } catch (UserStoreException e) {
-            log.error("Error while reading user identity data", e);
+            log.error("Error while reading/storing user identity data", e);
             throw IdentityException.error("Error while lock user account : " + userName);
-
-        }
-
-        UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
-        UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
-        if (userIdentityDO != null) {
-            userIdentityDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON,
-                    IdentityMgtConstants.LockedReason.ADMIN_INITIATED.toString());
-            userIdentityDO.setAccountLock(true);
-            userIdentityDO.setUnlockTime(0);
-            store.store(userIdentityDO, userStoreManager);
-        } else {
-            throw IdentityException.error("No user account found for user " + userName);
         }
     }
 
@@ -261,23 +262,14 @@ public class UserIdentityManagementUtil {
                 log.error("User " + userName + " does not exist in tenant " + userStoreManager.getTenantId());
                 throw IdentityException.error("No user account found for user " + userName);
             }
+            Map<String, String> claims = new HashMap<>();
+            claims.put(UserIdentityDataStore.ACCOUNT_LOCK, "false");
+            claims.put(UserIdentityDataStore.UNLOCKING_TIME, "0");
+            userStoreManager.setUserClaimValues(userName, claims, null);
         } catch (UserStoreException e) {
-            log.error("Error while reading user identity data", e);
+            log.error("Error while reading/storing user identity data", e);
             throw IdentityException.error("Error while unlock user account " + userName);
-
         }
-
-        UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
-        UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
-        if (userIdentityDO != null) {
-            userIdentityDO.getUserDataMap().put(UserIdentityDataStore.ACCOUNT_LOCKED_REASON, null);
-            userIdentityDO.setAccountLock(false);
-            userIdentityDO.setUnlockTime(0);
-            store.store(userIdentityDO, userStoreManager);
-        } else {
-            throw IdentityException.error("No user account found for user " + userName);
-        }
-
     }
 
     /**

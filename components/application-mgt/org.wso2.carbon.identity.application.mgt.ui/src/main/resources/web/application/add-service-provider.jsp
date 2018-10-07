@@ -39,9 +39,9 @@
 <jsp:include page="../dialog/display_messages.jsp" />
 
 <%
-    String[] importError = (String[]) request.getSession().getAttribute("importError");
-    if (importError == null) {
-        importError = new String[0];
+    String[] createTemplateError = (String[]) request.getSession().getAttribute("createTemplateError");
+    if (createTemplateError == null) {
+        createTemplateError = new String[0];
     }
     SpTemplate[] spTemplates = null;
     try {
@@ -116,26 +116,29 @@ function showFile() {
     $("#add-sp-form").hide();
     $("#upload-sp-form").show();
 }
+
 $(function() {
-    $( "#importErrorMsgDialog" ).dialog({
+    $( "#createTemplateErrorMsgDialog" ).dialog({
         autoOpen: false,
         modal: true,
         buttons: {
-            OK: closeImportErrorDialog
+            OK: closeCreateTemplateErrorDialog
         },
         width: "fit-content"
     });
 });
-function closeImportErrorDialog() {
+
+function closeCreateTemplateErrorDialog() {
    $(this).dialog("close");
    <%
-    request.getSession().removeAttribute("importError");
+    request.getSession().removeAttribute("createTemplateError");
    %>
 }
+
 window.onload = function() {
     showManual();
-    <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
-        $( "#importErrorMsgDialog" ).dialog( "open" );
+    <% if (createTemplateError.length > 0) { %>
+        $( "#createTemplateErrorMsgDialog" ).dialog( "open" );
     <% } %>
 };
 </script>
@@ -194,45 +197,45 @@ window.onload = function() {
                             </div>
                         </td>
                     </tr>
-                    <%--<%--%>
-                        <%--if (spTemplates != null && spTemplates.length > 0) {--%>
-                    <%--%>--%>
-                    <%--<tr>--%>
-                        <%--<td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.template'/>:</td>--%>
-                        <%--<td>--%>
-                            <%--<select style="min-width: 250px;" id="sp-template" name="sp-template">--%>
-                                <%--<option value="">---Select---</option>--%>
-                                <%--<%--%>
-                                    <%--for (SpTemplate spTemplate : spTemplates) {--%>
-                                        <%--if (spTemplate != null) {--%>
-                                            <%--if (spTemplate.getName().equals(--%>
-                                                    <%--TENANT_DEFAULT_SP_TEMPLATE_NAME)) {--%>
-                                <%--%>--%>
-                                <%--<option--%>
-                                        <%--value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"--%>
-                                        <%--title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>" selected>--%>
-                                    <%--<%=Encode.forHtmlContent(spTemplate.getName())%>--%>
-                                <%--</option>--%>
-                                <%--<%              } else { %>--%>
-                                <%--<option--%>
-                                        <%--value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"--%>
-                                        <%--title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>">--%>
-                                    <%--<%=Encode.forHtmlContent(spTemplate.getName())%>--%>
-                                <%--</option>--%>
-                                <%--<%--%>
-                                                <%--}--%>
-                                            <%--}--%>
-                                        <%--}--%>
-                                <%--%>--%>
-                            <%--</select>--%>
-                            <%--<div class="sectionHelp">--%>
-                                <%--<fmt:message key='help.template'/>--%>
-                            <%--</div>--%>
-                        <%--</td>--%>
-                    <%--</tr>--%>
-                    <%--<%--%>
-                        <%--}--%>
-                    <%--%>--%>
+                    <%
+                        if (spTemplates != null && spTemplates.length > 0) {
+                    %>
+                    <tr>
+                        <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.template'/>:</td>
+                        <td>
+                            <select style="min-width: 250px;" id="sp-template" name="sp-template">
+                                <option value="">---Select---</option>
+                                <%
+                                    for (SpTemplate spTemplate : spTemplates) {
+                                        if (spTemplate != null) {
+                                            if (spTemplate.getName().equals(
+                                                    TENANT_DEFAULT_SP_TEMPLATE_NAME)) {
+                                %>
+                                <option
+                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
+                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>" selected>
+                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
+                                </option>
+                                <%              } else { %>
+                                <option
+                                        value="<%=Encode.forHtmlAttribute(spTemplate.getName())%>"
+                                        title="<%=Encode.forHtmlAttribute(spTemplate.getDescription())%>">
+                                    <%=Encode.forHtmlContent(spTemplate.getName())%>
+                                </option>
+                                <%
+                                                }
+                                            }
+                                        }
+                                %>
+                            </select>
+                            <div class="sectionHelp">
+                                <fmt:message key='help.template'/>
+                            </div>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                    %>
                 </table>
             </div>
             <div class="buttonRow">
@@ -268,14 +271,14 @@ window.onload = function() {
             </form>
         </div>
     </div>
-    <div id="importErrorMsgDialog"  title='WSO2 Carbon'>
+    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
         <div id="messagebox-error">
             <h3>
-                <fmt:message key="error.while.importing.sp"/>
+                <fmt:message key="alert.error.add.sp.template"/>
             </h3>
             <table style="margin-top:10px;">
                 <%
-                    for (String error : importError){
+                    for (String error : createTemplateError){
                 %>
                 <tr>
                     <td><%=error%></td>

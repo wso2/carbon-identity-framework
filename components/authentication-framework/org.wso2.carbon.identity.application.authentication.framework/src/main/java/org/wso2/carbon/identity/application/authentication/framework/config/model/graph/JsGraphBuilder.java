@@ -690,18 +690,30 @@ public class JsGraphBuilder {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
             if (stepConfigGraphNode.getNext() == null) {
                 stepConfigGraphNode.setNext(nodeToAttach);
+                if (nodeToAttach != null) {
+                    nodeToAttach.setParent(stepConfigGraphNode);
+                }
             } else {
                 attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
             }
         } else if (baseNode instanceof LongWaitNode) {
             LongWaitNode longWaitNode = (LongWaitNode) baseNode;
             longWaitNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(longWaitNode);
+            }
         } else if (baseNode instanceof ShowPromptNode) {
             ShowPromptNode showPromptNode = (ShowPromptNode) baseNode;
             showPromptNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(showPromptNode);
+            }
         } else if (baseNode instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
             dynamicDecisionNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(dynamicDecisionNode);
+            }
         } else if (baseNode instanceof EndStep) {
             if (log.isDebugEnabled()) {
                 log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);

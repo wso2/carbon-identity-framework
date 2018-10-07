@@ -17,21 +17,23 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@page import="org.wso2.carbon.CarbonConstants" %>
+<%@page import="org.apache.log4j.Logger" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%@ page import="org.apache.log4j.Logger"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
+
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 <fmt:bundle
         basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
@@ -41,28 +43,65 @@
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+
+    <%
+        String[] retrieveTemplateError = (String[]) request.getSession().getAttribute("retrieveTemplateError");
+        if (retrieveTemplateError == null) {
+            retrieveTemplateError = new String[0];
+        }
+
+        String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    %>
+
     <script>
         function exportSPTemplateClick() {
             jQuery('#templateExportData').submit();
             jQuery(this).dialog("close");
         }
+
         function closeSP() {
             jQuery(this).dialog("close");
         }
-        $(function() {
-            $( "#exportSPTemplateMsgDialog" ).dialog({
+
+        $(function () {
+            $("#exportSPTemplateMsgDialog").dialog({
                 autoOpen: false,
                 buttons: {
                     OK: exportSPTemplateClick,
                     Cancel: closeSP
                 },
-                height:160,
-                width:450,
-                minHeight:160,
-                minWidth:330,
-                modal:true
+                height: 160,
+                width: 450,
+                minHeight: 160,
+                minWidth: 330,
+                modal: true
             });
         });
+
+        $(function () {
+            $("#retrieveTemplateErrorMsgDialog").dialog({
+                autoOpen: false,
+                modal: true,
+                buttons: {
+                    OK: closeRetrieveTemplateErrorDialog
+                },
+                width: "fit-content"
+            });
+        });
+
+        function closeRetrieveTemplateErrorDialog() {
+            $(this).dialog("close");
+            <%
+             request.getSession().removeAttribute("retrieveTemplateError");
+            %>
+        }
+
+        window.onload = function () {
+            <% if (retrieveTemplateError.length > 0) { %>
+            $("#retrieveTemplateErrorMsgDialog").dialog("open");
+            <% } %>
+        };
     </script>
     <div id="middle">
         <h2>
@@ -70,11 +109,6 @@
         </h2>
         <div id="workArea">
             <script type="text/javascript">
-                function editSPTemplate(templateName, templateDesc) {
-                    location.href = "edit-sp-template.jsp?templateName=" + templateName +
-                        "&templateDesc=" + templateDesc;
-                }
-
                 function removeSPTemplate(templateName) {
                     function doDelete() {
                         $.ajax({
@@ -92,20 +126,19 @@
                             }
                         });
                     }
-                    CARBON.showConfirmationDialog('Are you sure you want to delete service provider template ' + templateName + ' ?',
+
+                    CARBON.showConfirmationDialog('<%=resourceBundle.getString("alert.confirm.sp.template.delete")%>' + templateName + ' ?',
                         doDelete, null);
                 }
 
                 function exportSPTemplate(templateName) {
-                    document.getElementById('templateName').value = templateName;
+                    document.getElementById('exportTemplateName').value = templateName;
                     $('#exportSPTemplateMsgDialog').dialog("open");
                 }
             </script>
             <%
                 Logger logger = Logger.getLogger(this.getClass());
                 SpTemplate[] spTemplates = null;
-                String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
-                ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 SpTemplate[] templatesToDisplay = new SpTemplate[0];
                 String paginationValue = "region=region1&item=sp_template_list";
                 String pageNumber = request.getParameter("pageNumber");
@@ -127,7 +160,7 @@
                     ApplicationManagementServiceClient serviceClient = new
                             ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
                     spTemplates = serviceClient.getAllApplicationTemplateInfo();
-                    if (spTemplates != null) {
+                    if (spTemplates != null && spTemplates.length > 0) {
                         numberOfPages = (int) Math.ceil((double) spTemplates.length / resultsPerPage);
                         int startIndex = pageNumberInt * resultsPerPage;
                         int endIndex = (pageNumberInt + 1) * resultsPerPage;
@@ -137,7 +170,7 @@
                         }
                     }
                 } catch (Exception e) {
-                    String message = resourceBundle.getString("error.while.reading.template.info") + " : " + e.getMessage();
+                    String message = resourceBundle.getString("alert.error.read.sp.template.info");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
@@ -145,7 +178,8 @@
             <table style="width: 100%" class="styledLeft">
                 <div style="height:30px;">
                     <a href="javascript:document.location.href='add-sp-template.jsp'" class="icon-link"
-                       style="background-image:url(../admin/images/add.gif);"><fmt:message key="sp.template.add.link"/></a>
+                       style="background-image:url(../admin/images/add.gif);"><fmt:message
+                            key="sp.template.add.link"/></a>
                 </div>
                 <tbody>
                 <tr>
@@ -185,17 +219,18 @@
                                         if (canEdit) {
                                     %>
                                     <a title="Edit Service Provider Template"
-                                       onclick="editSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>',
-                                               '<%=template.getDescription() != null ? Encode.forJavaScriptAttribute(template.getDescription()) : ""%>');return false;" href="#"
+                                       onclick="javascript:location.href=
+                                               'edit-sp-template.jsp?templateName=<%=Encode.forUriComponent(template.getName())%>'"
                                        class="icon-link"
-                                       style="background-image: url(../application/images/edit.gif)"><fmt:message key="sp.template.edit"/>
+                                       style="background-image: url(../application/images/edit.gif)"><fmt:message
+                                            key="sp.template.edit"/>
                                     </a>
                                     <%
                                         }
                                         if (canView) {
                                     %>
                                     <a title="Export Service Provider Template"
-                                       onclick="exportSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
+                                       onclick="exportSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');"
                                        class="icon-link"
                                        style="background-image: url(../application/images/publish.gif)">
                                         <fmt:message key="sp.template.export"/>
@@ -205,9 +240,10 @@
                                         if (canDelete) {
                                     %>
                                     <a title="Remove Service Provider Template"
-                                       onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');return false;" href="#"
+                                       onclick="removeSPTemplate('<%=Encode.forJavaScriptAttribute(template.getName())%>');"
                                        class="icon-link"
-                                       style="background-image: url(../application/images/delete.gif)"><fmt:message key="sp.template.delete"/>
+                                       style="background-image: url(../application/images/delete.gif)"><fmt:message
+                                            key="sp.template.delete"/>
                                     </a>
                                 </td>
                             </tr>
@@ -244,8 +280,28 @@
             <p><fmt:message key="sp.template.export.para"/></p><br>
             <form id="templateExportData" name="template-export-data" method="post"
                   action="export-sp-template-finish-ajaxprocessor.jsp">
-                <input hidden id="templateName" name="templateName"/>
+                <input hidden id="exportTemplateName" name="exportTemplateName"/>
             </form>
         </div>
     </div>
+    <div id="retrieveTemplateErrorMsgDialog" title='WSO2 Carbon'>
+        <div id="messagebox-error">
+            <h3>
+                <fmt:message key="alert.error.load.sp.template"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : retrieveTemplateError) {
+                %>
+                <tr>
+                    <td><%=error%>
+                    </td>
+                </tr>
+                <%
+                    }
+                %>
+            </table>
+        </div>
+    </div>
 </fmt:bundle>
+
