@@ -31,6 +31,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -57,7 +59,11 @@
     recoveryInitiatingRequest.setProperties(properties);
 
     try {
-        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null);
+        Map<String, String> requestHeaders = new HashedMap();
+        if (request.getParameter("g-recaptcha-response") != null) {
+            requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
+        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null, requestHeaders);
     } catch (ApiException e) {
         Error error = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
