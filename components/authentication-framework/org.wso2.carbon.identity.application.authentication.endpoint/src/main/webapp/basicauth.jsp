@@ -251,25 +251,15 @@
     <div class="clearfix"></div>
     <%!
     
-        private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        private String getRecoverAccountUrl(String identityMgtEndpointContext, String urlEncodedURL, boolean isUsernameRecovery) {
         
-            return identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-        }
-    
-        private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        
-            return identityMgtEndpointContext + "/recoverusername.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+            return identityMgtEndpointContext + "/recoveraccountrouter.do?callback=" +
+                    Encode.forHtmlAttribute(urlEncodedURL) + "&isUsernameRecovery=" + isUsernameRecovery;
         }
     
         private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
         
             return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-        }
-    
-        private String getRecoverAccountUrl(String identityMgtEndpointContext, String urlEncodedURL, boolean isUsernameRecovery) {
-        
-            return identityMgtEndpointContext + "/recoveraccountrouter.do?callback=" +
-                    Encode.forHtmlAttribute(urlEncodedURL) + "&isUsernameRecovery=" + isUsernameRecovery;
         }
     %>
 </form>
