@@ -874,7 +874,7 @@
         <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="/scim2/ResourceType" secured="false" http-method="all">
+        <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
         <Resource context="/scim2/Bulk(.*)" secured="true"  http-method="all">
