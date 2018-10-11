@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
@@ -215,7 +216,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
             String redirectUrl = promptPage + "?templateId=" +
-                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" + context.getContextIdentifier();
+                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" + context.getContextIdentifier()+ "&tenantId=" + PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             if (promptNode.getData() != null) {
                 context.addEndpointParams(promptNode.getData());
             }
