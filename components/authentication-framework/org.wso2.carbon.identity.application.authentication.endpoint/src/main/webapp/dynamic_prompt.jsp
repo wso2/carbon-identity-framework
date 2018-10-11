@@ -23,6 +23,8 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.*" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.model.Template" %>
+<%@ page import="java.io.File" %>
+<%@ page import="org.apache.commons.io.FileUtils" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
@@ -33,6 +35,7 @@
 <%
     String templateId = request.getParameter("templateId");
     String promptId = request.getParameter("promptId");
+    File templateJSP = new File("templates/template.jsp");
     String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
     if (StringUtils.isBlank(authAPIURL)) {
         authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
@@ -47,7 +50,6 @@
     String templatePath = templateMap.get(templateId);
 
 
-
     Integer tenantId = Integer.parseInt(request.getParameter("tenantId"));
     String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
     String templateAPIURL = IdentityUtil.getServerURL("/t/"+tenantDomain+"/api/identity/template/mgt/v1.0/templates/",true,true);
@@ -59,6 +61,12 @@
 
     String templateJSON = TemplateMgtAPIClient.getTemplateData(templateAPIURL);
     Template templateData = gson.fromJson(templateJSON,Template.class);
+//    System.out.println("================================================== Template name: "+templateData.getTemplateName());
+//    System.out.println("================================================== Tenant Id: "+templateData.getTenantId());
+//    System.out.println("================================================== Template description: "+templateData.getDescription());
+//    System.out.println("================================================== Template data: "+templateData.getTemplateScript());
+//    FileUtils.writeStringToFile(templateJSP,templateData.getTemplateScript());
+
 
 %>
 
