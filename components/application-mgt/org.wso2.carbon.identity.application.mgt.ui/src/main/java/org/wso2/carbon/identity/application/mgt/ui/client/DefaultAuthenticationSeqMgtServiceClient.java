@@ -35,7 +35,6 @@ public class DefaultAuthenticationSeqMgtServiceClient {
 
     private IdentityDefaultSeqManagementServiceStub stub;
     private static final Log log = LogFactory.getLog(DefaultAuthenticationSeqMgtServiceClient.class);
-    private final boolean debugEnabled = log.isDebugEnabled();
 
     public DefaultAuthenticationSeqMgtServiceClient(String cookie, String backendServerURL,
                                                     ConfigurationContext configCtx) throws Exception {
@@ -48,7 +47,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
         option.setManageSession(true);
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
 
-        if (debugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug("Invoking service " + serviceURL);
         }
     }
@@ -63,7 +62,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             throws IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException {
 
         try {
-            if (debugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug("Creating default authentication sequence.");
             }
             stub.createDefaultAuthenticationSeq(authenticationSequence);
@@ -83,7 +82,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             throws IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException {
 
         try {
-            if (debugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug("Checking existence of default authentication sequence.");
             }
             return stub.isExistingDefaultAuthenticationSequence(ApplicationMgtUIConstants.DEFAULT_AUTH_SEQ);
@@ -102,7 +101,7 @@ public class DefaultAuthenticationSeqMgtServiceClient {
             IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException {
 
         try {
-            if (debugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug("Updating default authentication sequence.");
             }
             stub.updateDefaultAuthenticationSeq(ApplicationMgtUIConstants.DEFAULT_AUTH_SEQ, sequence);

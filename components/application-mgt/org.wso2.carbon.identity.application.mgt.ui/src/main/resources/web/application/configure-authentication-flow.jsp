@@ -280,14 +280,6 @@
             "<%=resourceBundle.getString("button.cancel.default.seq")%>", saveSequence, null);
     }
 
-    function validateTextForIllegal(fld) {
-        var isValid = doValidateInput(fld, '<%=resourceBundle.getString("alert.error.default.seq.name.invalid")%>');
-        if (isValid) {
-            return true;
-        }
-        return false;
-    }
-
     function saveSequence() {
         var seqDesc = "";
         $(".sequence-desc").each(function () {

@@ -479,7 +479,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
         if (seqConfigXml != null) {
             try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                DocumentBuilder builder = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
                 InputSource src = new InputSource();
                 src.setCharacterStream(new StringReader(seqConfigXml));
                 Document doc = builder.parse(src);
@@ -518,7 +518,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
         String updatedSeqConfigXml = null;
         if (seqConfigXml != null) {
             try {
-                DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                DocumentBuilder builder = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
                 InputSource src = new InputSource();
                 src.setCharacterStream(new StringReader(seqConfigXml));
                 Document doc = builder.parse(src);
@@ -533,7 +533,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
                 }
 
                 StringWriter stringWriter = new StringWriter();
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                Transformer transformer = IdentityUtil.getSecuredTransformerFactory().newTransformer();
                 transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "true");
                 transformer.transform(new DOMSource(doc), new StreamResult(stringWriter));
                 updatedSeqConfigXml = stringWriter.toString().replaceAll("(?m)^[ \t]*\r?\n", "");
@@ -553,7 +553,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
             DocumentBuilderFactory docBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(sequence, document);
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            TransformerFactory transformerFactory = IdentityUtil.getSecuredTransformerFactory();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
