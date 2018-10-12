@@ -102,7 +102,9 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
                                                             localAndOutboundAuthenticationConfig) {
 
-        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
+                ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
+                        localAndOutboundAuthenticationConfig.getAuthenticationType())) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
                 .getAuthenticationScriptConfig();
             return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();

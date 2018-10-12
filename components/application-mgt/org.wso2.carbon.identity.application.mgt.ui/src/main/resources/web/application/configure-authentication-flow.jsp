@@ -53,7 +53,7 @@
 <script src="js/handlebars.min-v4.0.11.js"></script>
 
 <script src="../admin/js/main.js" type="text/javascript"></script>
-
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 
 <%@ page import="com.google.gson.JsonArray" %>
 
@@ -67,17 +67,19 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.DefaultAuthenticationSeqMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.util.ResourceBundle" %>
 
 <%!public static final String IS_HANDLER = "IS_HANDLER";%>
 <carbon:breadcrumb label="breadcrumb.advanced.auth.step.config"
@@ -85,7 +87,9 @@
                    topPage="true" request="<%=request%>"/>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
-<%
+<% String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     String spName = appBean.getServiceProvider().getApplicationName();
     Map<String, String> claimMapping = appBean.getClaimMapping();
@@ -223,6 +227,109 @@
     }
 
 %>
+
+<script>
+    function saveAsDefaultAuthSeq() {
+        checkEmptyEditorContentForDefaultSeq();
+        if (checkEmptyStep()) {
+            CARBON.showErrorDialog('Some authentication steps do not have authenticators. Add missing authenticators ' +
+                'or delete the empty step.',
+                null, null);
+            return false;
+        }
+
+        if (!checkAuthenticators()) {
+            CARBON.showErrorDialog('You cannot add identifier as the only authenticator. Add more authenticators or' +
+                ' add more authentication steps.',
+                null, null);
+            return false;
+        }
+
+        var showErr = false;
+        var showWarn = false;
+
+        getStepErrorsWarnings($(".stepWarningListContainer"), $(".stepErrorListContainer"));
+        getEditorErrorsWarnings($(".warningListContainer"), $(".errorListContainer"));
+
+        if ($(".messagebox-error-custom li").length > 0) {
+            $(".editor-error-content").show();
+            showErr = true;
+        }
+
+        if ($(".messagebox-warning-custom li").length > 0) {
+            $(".editor-warning-content").show();
+            showWarn = true;
+        }
+
+        if (showErr) {
+            $(".err_warn_text").text('Update script with errors?');
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                showAddDefaultSeqConfirm, removeHtmlContent);
+        } else if (showWarn) {
+            $(".err_warn_text").text('Update script with warnings?');
+            showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550, "OK", "Cancel",
+                showAddDefaultSeqConfirm, removeHtmlContent);
+        } else {
+            showAddDefaultSeqConfirm();
+        }
+    }
+
+    function showAddDefaultSeqConfirm() {
+        showPopupConfirmForDefaultAuthSeq($("#add_default_AuthSeq").html(), "<%=resourceBundle.getString("save.default.seq")%>",
+            250, 550, "<%=resourceBundle.getString("button.save.default.seq")%>",
+            "<%=resourceBundle.getString("button.cancel.default.seq")%>", saveSequence, null);
+    }
+
+    function saveSequence() {
+        var seqDesc = "";
+        $(".sequence-desc").each(function () {
+            if (this.value != "") {
+                seqDesc = $.trim(this.value);
+            }
+        });
+        document.getElementById('seqDesc').value = seqDesc;
+
+        <%
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+        ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
+                .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+         DefaultAuthenticationSeqMgtServiceClient serviceClient = new DefaultAuthenticationSeqMgtServiceClient(cookie,
+                backendServerURL, configContext);
+         boolean isSeqExists = serviceClient.isExistingDefaultAuthenticationSequence();
+         if (isSeqExists) { %>
+        CARBON.showConfirmationDialog('<%=resourceBundle.getString("alert.confirm.override.default.seq")%>', saveSeq,
+            null);
+        <% } else {
+        %>
+        saveSeq();
+        <%
+        }
+        %>
+    }
+
+    function saveSeq() {
+        $.ajax({
+            type: "POST",
+            url: 'add-as-default-authSeq.jsp?isSeqExists=<%=isSeqExists%>',
+            data: $("#configure-auth-flow-form").serialize(),
+            success: function (data, response, status) {
+                if (data.match("createError") != null) {
+                    CARBON.showErrorDialog('<%=resourceBundle.getString("alert.error.add.default.seq")%>');
+                    return;
+                } else {
+                    CARBON.showInfoDialog('<%=resourceBundle.getString("alert.info.add.default.seq")%>');
+                    return;
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                CARBON.showErrorDialog('<%=resourceBundle.getString("alert.error.add.default.seq")%>' + xhr.status +
+                    thrownError);
+            },
+            async: false
+        });
+    }
+</script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
     <div id="middle">
@@ -478,6 +585,10 @@
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>"/>
+                    <input type="button"
+                           value="<fmt:message key='button.save.as.default.seq'/>"
+                           onclick="saveAsDefaultAuthSeq();"/>
+                    <input type="hidden" name="seqDesc" id="seqDesc"/>
                     <input type="button" value="<fmt:message key='button.cancel'/>"
                            onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
                 </div>
@@ -497,6 +608,23 @@
                 <ul class="warningListContainer"></ul>
                 <ul class="stepWarningListContainer"></ul>
             </div>
+        </div>
+    </div>
+    <div id="add_default_AuthSeq" class="editor-error-warn-container" style="display: none">
+        <br/>
+        <br/>
+        <div class="sectionSub">
+            <table class="carbonFormTable">
+                <tr>
+                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.default.seq.desc'/>:
+                    </td>
+                    <td>
+                        <textarea style="width:50%" type="text" class="sequence-desc" name="sequence-desc"
+                                  id="sequence-desc" class="text-box-big"></textarea>
+                        <div class="sectionHelp"><fmt:message key='help.default.seq.desc'/></div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </fmt:bundle>
