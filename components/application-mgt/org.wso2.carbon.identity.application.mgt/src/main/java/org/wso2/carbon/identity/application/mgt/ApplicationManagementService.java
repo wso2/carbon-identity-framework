@@ -114,6 +114,18 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
     /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Update Application
      *
      * @param tenantDomain Tenant Domain

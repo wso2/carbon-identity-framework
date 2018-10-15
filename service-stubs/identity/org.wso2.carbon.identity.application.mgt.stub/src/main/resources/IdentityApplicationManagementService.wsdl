@@ -84,6 +84,21 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true"
+                                    type="ax2171:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="createApplicationWithTemplate">
                 <xs:complexType>
                     <xs:sequence>
@@ -632,6 +647,12 @@
     <wsdl:message name="getAllApplicationBasicInfoResponse">
         <wsdl:part name="parameters" element="ns1:getAllApplicationBasicInfoResponse"/>
     </wsdl:message>
+    <wsdl:message name="getApplicationBasicInfoRequest">
+        <wsdl:part name="parameters" element="ns1:getApplicationBasicInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getApplicationBasicInfoResponse">
+        <wsdl:part name="parameters" element="ns1:getApplicationBasicInfoResponse"/>
+    </wsdl:message>
     <wsdl:message name="createApplicationWithTemplateRequest">
         <wsdl:part name="parameters" element="ns1:createApplicationWithTemplate"/>
     </wsdl:message>
@@ -739,6 +760,14 @@
             <wsdl:input message="tns:getAllApplicationBasicInfoRequest" wsaw:Action="urn:getAllApplicationBasicInfo"/>
             <wsdl:output message="tns:getAllApplicationBasicInfoResponse" wsaw:Action="urn:getAllApplicationBasicInfoResponse"/>
             <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getApplicationBasicInfo">
+            <wsdl:input message="tns:getApplicationBasicInfoRequest" wsaw:Action="urn:getApplicationBasicInfo"/>
+            <wsdl:output message="tns:getApplicationBasicInfoResponse"
+                         wsaw:Action="urn:getApplicationBasicInfoResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException"
+                        name="IdentityApplicationManagementServiceIdentityApplicationManagementException"
+                        wsaw:Action="urn:getApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
             <wsdl:input message="tns:createApplicationWithTemplateRequest" wsaw:Action="urn:createApplicationWithTemplate"/>
@@ -955,6 +984,19 @@
             </wsdl:output>
             <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
                 <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getApplicationBasicInfo">
+            <soap:operation soapAction="urn:getApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal"
+                            name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
@@ -1209,6 +1251,19 @@
                 <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getApplicationBasicInfo">
+            <soap12:operation soapAction="urn:getApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal"
+                              name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
             <soap12:operation soapAction="urn:createApplicationWithTemplate" style="document"/>
             <wsdl:input>
@@ -1409,6 +1464,15 @@
         </wsdl:operation>
         <wsdl:operation name="getAllApplicationBasicInfo">
             <http:operation location="getAllApplicationBasicInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getApplicationBasicInfo">
+            <http:operation location="getApplicationBasicInfo"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

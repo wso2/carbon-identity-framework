@@ -33,6 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileBasedApplicationDAO implements ApplicationDAO {
 
@@ -69,6 +71,35 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
             basicInfo.setDescription(entry.getValue().getDescription());
             appInfo.add(basicInfo);
 
+        }
+
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter)
+            throws IdentityApplicationManagementException {
+
+        Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent.getFileBasedSPs();
+        List<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
+        if (filter != null && filter.trim().length() != 0) {
+            filter = filter.replace("*", ".*");
+        } else {
+            filter = ".*";
+        }
+        Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
+
+        for (Iterator<Entry<String, ServiceProvider>> iterator = spMap.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<String, ServiceProvider> entry = iterator.next();
+            Matcher matcher = pattern.matcher(entry.getValue().getApplicationName());
+            if (!matcher.matches()) {
+                continue;
+            }
+            ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+            basicInfo.setApplicationName(entry.getValue().getApplicationName());
+            basicInfo.setDescription(entry.getValue().getDescription());
+            appInfo.add(basicInfo);
         }
 
         return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);

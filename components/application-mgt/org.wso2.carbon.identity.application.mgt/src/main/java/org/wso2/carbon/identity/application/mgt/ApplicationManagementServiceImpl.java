@@ -226,11 +226,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(tenantDomain, username, "*");
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
         ApplicationDAO appDAO = null;
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetAllApplicationBasicInfo(tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreGetApplicationBasicInfo(tenantDomain, username, filter)) {
                 return null;
             }
         }
@@ -238,22 +246,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-
-        } catch (Exception e) {
-            String error = "Error occurred while retrieving all the applications";
-            throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
         }
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetAllApplicationBasicInfo(appDAO, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostGetApplicationBasicInfo(appDAO, tenantDomain, username,
+                    filter)) {
                 return null;
             }
         }
 
-        return appDAO.getAllApplicationBasicInfo();
+        return appDAO.getApplicationBasicInfo(filter);
     }
 
     @Override
