@@ -183,7 +183,7 @@ public class JSONRequestParser {
                     throw new JsonParseException("DOM of request element can not be created from String.", e);
                 }
                 if (doc != null) {
-                    content = doc;
+                    content = doc.getDocumentElement();
                 }
             }
 
