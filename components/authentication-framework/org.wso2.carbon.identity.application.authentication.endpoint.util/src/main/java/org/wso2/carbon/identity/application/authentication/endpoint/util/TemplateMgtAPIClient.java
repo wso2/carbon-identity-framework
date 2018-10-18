@@ -27,7 +27,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Client for calling /api/identity/template/mgt/v1.0/templates/ with mutual ssl authentication
+ * Client for calling /api/identity/template/mgt/v1.0.0/templates/ with mutual ssl authentication
  */
 public class TemplateMgtAPIClient {
     private static final Log log = LogFactory.getLog(TemplateMgtAPIClient.class);
