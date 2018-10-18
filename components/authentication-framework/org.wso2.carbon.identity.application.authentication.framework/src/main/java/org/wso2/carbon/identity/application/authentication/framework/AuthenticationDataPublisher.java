@@ -22,9 +22,15 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.core.handler.IdentityMessageHandler;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
+/**
+ * The data publishing changed to publish data through event handling. {@link AuthenticationDataPublisher} interface is
+ * not to be used to register data publishing services from this release.
+ * {@link org.wso2.carbon.identity.event.event.Event} can be used to create a event and use
+ * {@link org.wso2.carbon.identity.event.handler.IdentityEventServiceImpl} \} to handle the event.
+ */
 public interface AuthenticationDataPublisher extends IdentityMessageHandler {
 
     /**

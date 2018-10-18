@@ -555,9 +555,18 @@
         -->
         <!--UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Users</UserEPUrl-->
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
+        <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
     </SCIM2>
 
     <!--Recovery>
+        <ReCaptcha>
+            <Password>
+                <Enable>false</Enable>
+            </Password>
+            <Username>
+                <Enable>false</Enable>
+            </Username>
+        </ReCaptcha>
         <Notification>
             <Password>
                 <Enable>false</Enable>
@@ -666,14 +675,11 @@
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
         </EventListener>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
-                       name="org.wso2.carbon.identity.data.publisher.application.authentication.impl.DASLoginDataPublisherImpl"
-                       orderId="10" enable="false"/>
-        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
-                       name="org.wso2.carbon.identity.data.publisher.application.authentication.impl.DASSessionDataPublisherImpl"
-                       orderId="11" enable="false"/>
-        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.data.publisher.oauth.listener.OAuthTokenIssuanceLogPublisher"
+                       orderId="12" enable="false"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -880,7 +886,7 @@
         <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="/scim2/ResourceType" secured="false" http-method="all">
+        <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
         <Resource context="/scim2/Bulk(.*)" secured="true"  http-method="all">

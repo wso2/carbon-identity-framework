@@ -25,6 +25,9 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.AttributeMappingDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
@@ -39,6 +42,64 @@
         display: inline-block;
         color: #555;
     }
+    .messagebox-warning-custom {
+        background-image: url(../../dialog/img/warning.gif);
+        background-position: 15px 15px;
+        background-repeat: no-repeat;
+        background-attachment: scroll;
+        padding: 15px 15px 15px 90px;
+        width: auto;
+        height: auto;
+        overflow: auto;
+        min-height: 50px;
+    }
+    .messagebox-warning-custom p,.messagebox-error-custom p {
+        text-align: justify;
+    }
+    .messagebox-warning-custom table,.messagebox-error-custom table {
+        border-spacing: 0px;
+    }
+    .messagebox-warning-custom table td,.messagebox-error-custom table td {
+        border: solid 1px #cccccc;
+        height: 25px;
+        padding: 2px 8px;
+        vertical-align: middle;
+    }
+    .messagebox-warning-custom p, .messagebox-warning-custom ul li, .messagebox-warning-custom table td, .messagebox-warning-custom a,
+    .messagebox-error-custom p, .messagebox-error-custom ul li, .messagebox-error-custom table td, .messagebox-error-custom a {
+        font-size: 12.65px;
+        margin: 0px;
+    }
+    .editor-warning-content li, .editor-error-content li{
+        list-style-type: disc;
+    }
+    .editor-error-content, .editor-warning-content {
+        display: none;
+    }
+    .messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg {
+        margin: 10px 0px;
+        margin-top: 20px;
+        padding: 12px;
+        color: #D8000C;
+        background-color: #FFD2D2;
+    }
+    .messagebox-warning-custom .stepErrorListContainer{
+        padding-bottom: 10px;
+    }
+    .messagebox-warning-custom .stepErrorListContainer span,
+    .messagebox-warning-custom .stepWarningListContainer span{
+        font-weight: bold;
+    }
+    .messagebox-warning-custom .warningListContainer span{
+        font-weight: bold;
+    }
+    .editor-error-warn-container {
+        display: none;
+    }
+    .err_warn_text, .err_warn_proceed_text {
+        padding: 20px 0 0 16px;
+        font-size: 12.65px;
+    }
 </style>
 
 <%
@@ -48,6 +109,7 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String localClaimURI = request.getParameter("localClaimURI");
+    LocalClaimDTO[] localClaims = (LocalClaimDTO[])session.getAttribute("localClaims");
 
     String[] domainNames = null;
     UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
@@ -57,6 +119,12 @@
         if (userRealmInfo == null) {
             userRealmInfo = userAdminClient.getUserRealmInfo();
             session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
+
+            if (localClaims == null) {
+                ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+                localClaims = client.getLocalClaims();
+                session.setAttribute("localClaims", localClaims);
+            }
         }
 
         if (userRealmInfo != null) {
@@ -90,6 +158,7 @@
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="./js/claim-metadata-mgt.js"></script>
 
     <div id="middle">
         <h2><fmt:message key='add.local.claim'/></h2>
@@ -97,6 +166,22 @@
         <div id="workArea">
 
             <script type="text/javascript">
+
+                var claimData = [];
+                <%
+                       for (int i = 0; i < localClaims.length; i++) {
+                            if (!localClaims[i].getLocalClaimURI().equals(localClaimURI)) {
+
+                                AttributeMappingDTO[] attributeMap = localClaims[i].getAttributeMappings();
+                                for (int j = 0; j < attributeMap.length; j++) {
+                                    %>
+                                    claimData.push("<%=Encode.forJavaScript(localClaims[i].getLocalClaimURI())
+                                    %>_<%=Encode.forJavaScript(attributeMap[j].getUserStoreDomain()) %>/<%=Encode.forJavaScript(attributeMap[j].getAttributeName()) %>");
+                                    <%
+                                }
+                            }
+                        }
+                %>
 
                 var attributeMappingRowID = 0;
 
@@ -250,7 +335,58 @@
                     var numberOfClaimProperties = claimPropertyRowID + 1;
                     document.getElementById('number_of_ClaimProperties').value=numberOfClaimProperties;
 
-                    document.addclaim.submit();
+                    var duplicatedClaimUris = [];
+                    var attributeArr = [];
+
+                    var attributeAddTable = document.getElementById('attributeAddTable').tBodies[0];
+                    var attributeAddTableRowCount = attributeAddTable.rows.length;
+
+                    if (attributeAddTableRowCount > 0) {
+
+                        for (var i = 0; i < attributeAddTableRowCount; i++) {
+                            var row = attributeAddTable.rows[i];
+                            var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
+                            var userstoreElem = document.getElementById("userstore_" + i);
+                            var userstoreValue = userstoreElem.options[userstoreElem.selectedIndex].value;
+                            var combinedValue = userstoreValue + "/" + mappedAttributeValue;
+
+                            for (var j = 0; j < claimData.length; j++) {
+                                var claimDataElements = claimData[j].split("_");
+                                if (claimDataElements.length == 2 && claimDataElements[1] === combinedValue) {
+                                    duplicatedClaimUris.push(claimDataElements[0]);
+                                    if (!attributeArr.includes(combinedValue)) {
+                                         attributeArr.push(combinedValue);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (duplicatedClaimUris.length > 0) {
+
+                        var warnText = 'Mapped Attribute (s) "' + attributeArr + '" has also been used for the claim uris : ';
+                        var proceedText = 'Updating the specified attribute (s) will affect the listed claims. Do you want to proceed?'
+
+                        $(".err_warn_text").text(warnText);
+                        $(".err_warn_proceed_text").text(proceedText);
+                        $("#warningListContainer").empty();
+                        var ul = document.getElementById("warningListContainer");
+                        for (var i = 0; i<duplicatedClaimUris.length; i++) {
+                            var li = document.createElement("li");
+                            li.appendChild(document.createTextNode(duplicatedClaimUris[i]));
+                            ul.appendChild(li);
+                        }
+                        $( ".editor-warning-content" ).show();
+                        showPopupConfirm($(".editor-error-warn-container").html(), "WSO2 Carbon", 250, 550,
+                        "OK", "Cancel",
+                        function() {
+                               document.addclaim.submit();
+                           }, function() {
+                            return false;
+                        });
+                    } else {
+                        document.addclaim.submit();
+                    }
                 }
 
                 function isEmpty(value){
@@ -457,5 +593,15 @@
                 </table>
             </form>
         </div>
+    </div>
+        <div class="editor-error-warn-container">
+        <div class="err_warn_text"></div>
+        <div class="editor-warning-content">
+            <div class="messagebox-warning-custom">
+                <ul id="warningListContainer" class="warningListContainer"></ul>
+                <ul class="stepWarningListContainer"></ul>
+            </div>
+        </div>
+        <div class="err_warn_proceed_text"></div>
     </div>
 </fmt:bundle>

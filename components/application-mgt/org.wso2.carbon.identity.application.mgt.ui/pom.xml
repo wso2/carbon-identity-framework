@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.12.165-SNAPSHOT</version>
+        <version>5.12.176-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -117,6 +117,12 @@
                             org.wso2.carbon.identity.application.common.xsd;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub.types.axis2;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.stub.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.xsd.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.stub.types.axis2.*;
                             version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>org.wso2.carbon.identity.application.mgt.ui.*</Export-Package>
