@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -82,7 +83,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
 
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent.getFileBasedSPs();
         List<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
-        if (filter != null && filter.trim().length() != 0) {
+        if (StringUtils.isNotBlank(filter)) {
             filter = filter.replace("*", ".*");
         } else {
             filter = ".*";

@@ -141,7 +141,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                 if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {
                     appInfo.add(applicationBasicInfo);
                     if (log.isDebugEnabled()) {
-                        log.debug("Application Name:" + applicationBasicInfo.getApplicationName());
+                        log.debug("Retrieving basic information of application: " +
+                                applicationBasicInfo.getApplicationName());
                     }
                 }
             }

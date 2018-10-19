@@ -3001,7 +3001,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
-            if (filter != null && filter.trim().length() != 0) {
+            if (StringUtils.isNotBlank(filter)) {
                 filter = filter.trim();
                 filter = filter.replace("*", "%");
                 filter = filter.replace("?", "_");
