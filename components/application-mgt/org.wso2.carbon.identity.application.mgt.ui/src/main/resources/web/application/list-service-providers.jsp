@@ -110,10 +110,20 @@
             <%
                 ApplicationBasicInfo[] applications = null;
 
+                final String SP_NAME_FILTER = "filterString";
+                final String DEFAULT_FILTER = "*";
                 String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 ApplicationBasicInfo[] applicationsToDisplay = new ApplicationBasicInfo[0];
-                String paginationValue = "region=region1&item=service_providers_list";
+                String filterString = request.getParameter(SP_NAME_FILTER);
+
+                if (filterString == null) {
+                    filterString = DEFAULT_FILTER;
+                } else {
+                    filterString = filterString.trim();
+                }
+                
+                String paginationValue = "region=region1&item=service_providers_list&filterString=" + filterString;
                 String pageNumber = request.getParameter("pageNumber");
 
                 int pageNumberInt = 0;
@@ -136,7 +146,7 @@
 
                     ApplicationManagementServiceClient serviceClient = new
                             ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-                    applications = serviceClient.getAllApplicationBasicInfo();
+                    applications = serviceClient.getApplicationBasicInfo(filterString);
 
                     if (applications != null) {
                         numberOfPages = (int) Math.ceil((double) applications.length / resultsPerPage);
@@ -158,13 +168,26 @@
                 <%--<a href="load-service-provider.jsp?spName=wso2carbon-local-sp" class="icon-link"--%>
                    <%--style="background-image:url(images/local-sp.png);"><fmt:message key='local.sp'/></a>--%>
             <%--</div>--%>
-            <br/>
             <table style="width: 100%" class="styledLeft">
                 <tbody>
                 <tr>
                     <div style="height:30px;">
                         <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
                            style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>
+                    </div>
+                </tr>
+                <tr>
+                    <div style="height:30px; margin-top: 15px; margin-bottom: 4px; margin-left:12px">
+                        <form action="list-service-providers.jsp" name="searchForm" method="post">
+                            <fmt:message key="enter.service.provider.name.pattern"/>
+                            <input style="margin-left:30px; !important"
+                                   type="text" name="<%=SP_NAME_FILTER%>"
+                                   value="<%=filterString != null ?
+                                                       Encode.forHtmlAttribute(filterString) : "" %>"/>&nbsp;
+        
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="service.provider.search"/>"/>
+                        </form>
                     </div>
                 </tr>
                 <tr>

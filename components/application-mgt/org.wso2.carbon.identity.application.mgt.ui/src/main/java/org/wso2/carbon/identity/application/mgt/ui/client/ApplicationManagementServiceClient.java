@@ -119,9 +119,22 @@ public class ApplicationManagementServiceClient {
      * @return
      * @throws AxisFault
      */
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws Exception {
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws AxisFault {
+
+        return getApplicationBasicInfo("*");
+    }
+
+    /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws AxisFault
+     */
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws AxisFault {
+
         try {
-            return stub.getAllApplicationBasicInfo();
+            return stub.getApplicationBasicInfo(filter);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
