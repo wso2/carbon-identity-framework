@@ -115,6 +115,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
+    public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
 
     private FrameworkConstants() {
 
@@ -158,6 +159,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL = "IdentifierFirstConfirmationURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
@@ -219,6 +221,9 @@ public abstract class FrameworkConstants {
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
         public static final String REMEMBER_ME = "chkRemember";
         public static final String INPUT_TYPE = "inputType";
+        public static final String AUTH_TYPE = "authType";
+        public static final String IDF = "idf";
+        public static final String IDENTIFIER_CONSENT = "identifier_consent";
 
         private RequestParams() {
         }
@@ -256,6 +261,7 @@ public abstract class FrameworkConstants {
         public static final String AUTH_REQUEST = "authRequest";
         public static final String HTTP_REQUEST = "HttpServletRequest";
         public static final String HTTP_RESPONSE = "HttpServletResponse";
+        public static final String IDENTIFIER_FIRST_AUTHENTICATOR = "IdentifierExecutor";
 
         private RequestAttribute() {
         }

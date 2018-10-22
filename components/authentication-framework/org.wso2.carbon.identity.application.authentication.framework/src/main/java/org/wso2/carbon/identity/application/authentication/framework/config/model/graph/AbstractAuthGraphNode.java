@@ -19,14 +19,22 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 /**
- * A virtual authentication step signifying it is an end node for an authentication graph.
+ * Abstract implementation of Authentication step or decision point node.
  */
-public class EndStep extends AbstractAuthGraphNode implements AuthGraphNode {
+public abstract class AbstractAuthGraphNode implements AuthGraphNode {
 
-    private static final long serialVersionUID = -8969107833064916187L;
+    private static final long serialVersionUID = -445608731320313104L;
+    private AuthGraphNode parentNode;
 
     @Override
-    public String getName() {
-        return null;
+    public AuthGraphNode gerParent() {
+
+        return parentNode;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+
+        this.parentNode = parentNode;
     }
 }
