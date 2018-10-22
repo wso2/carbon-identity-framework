@@ -573,8 +573,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
 
         AuthGraphNode nextNode = dynamicDecisionNode.getDefaultEdge();
-        //TODO check why this is not setting while creating the defaultEdge
-//        nextNode.setParent(dynamicDecisionNode);
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
     }
 

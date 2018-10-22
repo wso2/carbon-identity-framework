@@ -1,4 +1,4 @@
-<%@ page import="org.owasp.encoder.Encode" %><%--
+<%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~  WSO2 Inc. licenses this file to you under the Apache License,
@@ -15,7 +15,7 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
@@ -60,7 +60,8 @@
             <a href="#">
                 <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
                 
-                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
+                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
+                </em></h1>
             </a>
         </div>
     </div>
@@ -88,7 +89,7 @@
                         <div class="padding-double login-form">
                             <div class="form-group">
                                 <p><strong>
-                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "do.you.want.to.continue").replace("{0}", Encode.forHtml(request.getParameter("username")))%>
+                                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "log.in.as").replace("{0}", Encode.forHtml(request.getParameter("username")))%>
                                 </strong>
                                 </p>
                             </div>

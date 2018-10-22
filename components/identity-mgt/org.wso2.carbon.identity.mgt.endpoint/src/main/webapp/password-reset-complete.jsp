@@ -31,8 +31,8 @@
 <jsp:directive.include file="localize.jsp"/>
 
 <%
-    String passwordHistoryErrorCode = "20035";
-    String passwordPatternErrorCode = "22001";
+    String passwordHistoryErrorCode = "22001";
+    String passwordPatternErrorCode = "20035";
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
     String newPassword = request.getParameter("reset-password");

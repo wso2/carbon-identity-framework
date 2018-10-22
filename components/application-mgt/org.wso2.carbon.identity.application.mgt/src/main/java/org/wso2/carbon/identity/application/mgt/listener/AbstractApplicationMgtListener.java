@@ -92,6 +92,20 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
+    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                 String filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
     public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
         return true;
     }

@@ -212,6 +212,37 @@ public interface ApplicationMgtListener {
                                                       String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
+     * Define any additional actions before getting all applications' basic information for matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Boolean based on pre processing
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter.
+     *
+     * @param appDAO Application Data Access Object
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Boolean based on post processing
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                 String filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
      *  Define any additional actions before getting service provider name by client id.
      *
      * @param clientId

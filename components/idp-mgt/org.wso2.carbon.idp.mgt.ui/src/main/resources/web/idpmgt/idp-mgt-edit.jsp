@@ -4089,7 +4089,7 @@
                                     <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                                     <td>
                                         <input id="logoutUrl" name="logoutUrl" type="text"
-                                               value=<%=Encode.forHtmlAttribute(logoutUrl) %>>
+                                               value="<%=Encode.forHtmlAttribute(logoutUrl) %>"/>
 
                                         <div class="sectionHelp">
                                             <fmt:message key='logout.url.help'/>
