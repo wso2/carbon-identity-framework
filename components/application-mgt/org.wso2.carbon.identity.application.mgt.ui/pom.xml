@@ -98,6 +98,7 @@
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
