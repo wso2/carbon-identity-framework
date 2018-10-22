@@ -59,15 +59,8 @@
 
     String templateJSON = TemplateMgtAPIClient.getTemplateData(templateAPIURL);
     Template templateData = gson.fromJson(templateJSON,Template.class);
-    System.out.println("================================================== Template name: "+templateData.getTemplateName());
-    System.out.println("================================================== Tenant Id: "+templateData.getTenantId());
-    System.out.println("================================================== Template description: "+templateData.getDescription());
-    System.out.println("================================================== Template data: "+templateData.getTemplateScript());
-//    FileUtils.writeStringToFile(templateJSP,templateData.getTemplateScript());
-
 
 %>
-
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -75,7 +68,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%>
     </title>
-    <script src="handlebars-v4.0.11.js"></script>
+    <script src="js/handlebars-v4.0.11.js"></script>
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
@@ -87,9 +80,11 @@
     <![endif]-->
 </head>
 <body>
+<script type="text/javascript">
+    var data = JSON.parse("<%=Encode.forJavaScript(contextProperties)%>");
+    var prompt_id = "<%=promptId%>";
+</script>
 
-
-<!-- header -->
 <header class="header header-default">
     <div class="container-fluid"><br></div>
     <div class="container-fluid">
@@ -113,11 +108,8 @@
                 if (templatePath != null) {
             %>
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
-                <c:set var="data" value="<%=data%>" scope="request"/>
-                <c:set var="promptId" value="<%=URLEncoder.encode(promptId, StandardCharsets.UTF_8.name())%>" scope="request"/>
-                <jsp:include page="<%=templatePath%>"/>
+                <%out.write(templateData.getTemplateScript());%>
             </div>
-    
             <%
             } else {
             %>
@@ -142,7 +134,6 @@
             %>
             
         </div>
-    
     </div>
 </div>
 

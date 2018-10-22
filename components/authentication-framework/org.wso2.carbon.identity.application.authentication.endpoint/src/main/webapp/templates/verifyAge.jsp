@@ -41,25 +41,21 @@
         <div class="clearfix"></div>
         <div class="padding-double login-form">
 
-            <form action="<%=commonauthURL%>" method="POST">
+            <%--<form action="<%=commonauthURL%>" method="POST">--%>
             <form action="../commonauth" method="POST">
-
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                     <label for="dob" class="control-label"/>birth date</label>
                     <input type="text" id="dob" name="dob" class="form-control" placeholder="yyyy-mm-dd" />
                 </div>
-
                 <input type="hidden" id="promptResp" name="promptResp" value="true">
-                <input type="hidden" id="promptId" name="promptId" value="${requestScope.promptId}">
+                <input type="hidden" id="promptId" name="promptId">
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                     <input type="submit" class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large" value="Submit">
                 </div>
             </form>
-
             <div class="clearfix"></div>
         </div>
     </div>
-
     <br/>
 
     {{makeLink "Home" "http://localhost.com:8080/saml2-web-app-dispatch.com/"}}<br/><br/>
@@ -67,6 +63,8 @@
 </script>
 
 <script type="text/javascript">
+
+    document.getElementById("promptId").value= promptID;
 
     Handlebars.registerHelper("makeLink",function (text, url) {
         text = Handlebars.Utils.escapeExpression(text);
@@ -77,7 +75,7 @@
 
     });
 
-    var userName = '${requestScope.data["username"]}';
+    var userName = dataJS.get("username");
     var quoteInfo = document.getElementById("quote-template").innerHTML;
     var template = Handlebars.compile(quoteInfo);
 
