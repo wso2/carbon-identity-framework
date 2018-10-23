@@ -66,7 +66,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestAttribute.IDENTIFIER_FIRST_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
@@ -269,6 +268,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         boolean isIDFAuthenticatorFound = false;
         int currentStep = context.getCurrentStep();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Started to handle the IDF request as previous steps since the current steps cannot handle the" +
+                    " IDF request");
+        }
         while (currentStep > 1 && !isIDFAuthenticatorFound) {
             currentStep = currentStep - 1;
             isIDFAuthenticatorFound = isIDFAuthenticatorFoundInStep(context.getSequenceConfig().getStepMap().get(currentStep));
@@ -282,6 +285,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setProperty(BACK_TO_PREVIOUS_STEP, true);
             //IDF should be the first step.
             context.getCurrentAuthenticatedIdPs().clear();
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("IDF requests cannot handle in any of the previous steps.");
+            }
         }
     }
 

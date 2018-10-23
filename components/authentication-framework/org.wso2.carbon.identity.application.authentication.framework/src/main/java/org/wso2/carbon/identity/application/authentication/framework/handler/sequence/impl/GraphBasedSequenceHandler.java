@@ -25,6 +25,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -72,7 +73,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.Auth
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestAttribute.IDENTIFIER_FIRST_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
@@ -140,6 +140,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 parentNode = parentNode.gerParent();
             }
             context.setProperty(PROP_CURRENT_NODE, parentNode);
+            if (log.isDebugEnabled()) {
+                log.debug("Modified current node a parent node which can handle the Identifier First requests.");
+            }
         }
     }
 
@@ -667,7 +670,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (authGraphNode instanceof StepConfigGraphNode) {
             StepConfig stepConfig = ((StepConfigGraphNode) authGraphNode).getStepConfig();
             for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
-                if (IDENTIFIER_FIRST_AUTHENTICATOR.equals(authenticatorConfig.getName())) {
+                if (authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
                     return true;
                 }
             }
