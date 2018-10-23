@@ -314,7 +314,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
 
         String authType = request.getParameter(AUTH_TYPE);
-        return authType != null && IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
+        return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
     }
 
     /**
