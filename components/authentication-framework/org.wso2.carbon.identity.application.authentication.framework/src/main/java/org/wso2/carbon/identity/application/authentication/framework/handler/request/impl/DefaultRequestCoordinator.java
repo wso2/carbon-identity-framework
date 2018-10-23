@@ -278,9 +278,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
 
         if (isIDFAuthenticatorFound) {
-            for (int i = currentStep; i < context.getCurrentStep(); i++) {
-                context.getSequenceConfig().getStepMap().remove(i + 1);
-            }
             context.setCurrentStep(currentStep);
             context.setProperty(BACK_TO_PREVIOUS_STEP, true);
             //IDF should be the first step.

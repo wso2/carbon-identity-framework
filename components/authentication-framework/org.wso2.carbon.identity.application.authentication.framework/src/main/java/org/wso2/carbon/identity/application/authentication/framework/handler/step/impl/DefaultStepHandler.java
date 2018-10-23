@@ -535,7 +535,7 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-            if (context.getExternalIdP() != null) {
+            if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
                 idpName = context.getExternalIdP().getIdPName();
             }
 

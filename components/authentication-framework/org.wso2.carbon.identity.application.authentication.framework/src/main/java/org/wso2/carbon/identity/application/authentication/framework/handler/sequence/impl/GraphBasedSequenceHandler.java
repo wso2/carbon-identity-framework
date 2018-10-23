@@ -132,6 +132,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         context.removeProperty(BACK_TO_PREVIOUS_STEP);
         if (context.getProperty(PROP_CURRENT_NODE) != null) {
+            //Identifier first should be the first step. Other steps will be determine dynamically.
+            for (int i = 2; i <= context.getSequenceConfig().getStepMap().size(); i++) {
+                context.getSequenceConfig().getStepMap().remove(i);
+            }
             AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).gerParent();
             while (parentNode != null && !isIdentifierFirstStep((parentNode))) {
                 if (parentNode instanceof DynamicDecisionNode) {
