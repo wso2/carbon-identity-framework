@@ -64,6 +64,7 @@
     
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
         <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
+        <input id="authType" name="authType" type="hidden" value="idf">
     </div>
     <%
         if (reCaptchaEnabled) {
