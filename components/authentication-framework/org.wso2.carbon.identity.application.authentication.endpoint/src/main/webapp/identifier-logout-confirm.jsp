@@ -15,7 +15,7 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
