@@ -52,7 +52,7 @@
 		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 		}
 	    else {
-	        String message = resourceBundle.getString("error.while.ordering.policies"); 
+	        String message = resourceBundle.getString("error.while.ordering.invalid.policy.value"); 
 		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
 		} 
 		}        
