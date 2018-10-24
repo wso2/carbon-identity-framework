@@ -3256,7 +3256,7 @@
 
                         <tr>
                             <td class="leftCol-med labelField">
-                                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
+                                <label for="federationHub"><fmt:message key='federation.hub.identity.provider'/></label>
                             </td>
                             <td>
                                 <div class="sectionCheckbox">
