@@ -46,9 +46,16 @@
                     new EntitlementPolicyAdminServiceClient(cookie, serverURL, configContext);
             order = Integer.parseInt(orderSting);
             client.orderPolicy(policyId, order);
-            String message = resourceBundle.getString("ordered.successfully");
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-        }
+            if(order>0){
+				client.orderPolicy(policyId, order);
+				String message = resourceBundle.getString("ordered.successfully");
+				CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+				}
+				else {
+			    String message = resourceBundle.getString("error.while.ordering.policies"); 
+				CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+					} 
+				}        
     } catch (Exception e) {
         String message = resourceBundle.getString("error.while.ordering.policy") + " " + e.getMessage();
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
