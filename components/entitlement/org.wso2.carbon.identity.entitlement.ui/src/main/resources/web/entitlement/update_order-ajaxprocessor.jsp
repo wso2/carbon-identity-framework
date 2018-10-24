@@ -51,7 +51,7 @@
 		String message = resourceBundle.getString("ordered.successfully");
 		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 		}
-	   else {
+	    else {
 	        String message = resourceBundle.getString("error.while.ordering.policies"); 
 		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
 		} 
