@@ -52,6 +52,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
+            <UserSessionMapping>
+                <Enable>true</Enable>
+            </UserSessionMapping>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
