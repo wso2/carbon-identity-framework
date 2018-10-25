@@ -32,6 +32,7 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailedException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -57,6 +58,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
@@ -233,7 +235,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
             throws IdentityApplicationManagementException {
 
-        ApplicationDAO appDAO = null;
+        AbstractApplicationDAOImpl appDAO = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationMgtListeners();
@@ -1634,9 +1636,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw new IdentityApplicationManagementException("Application Name is required");
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        AbstractApplicationDAOImpl appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+            String errorMsg = "Application registration failed. An application with name \'" + serviceProvider.
+                    getApplicationName() + "\' already exists.";
+            log.error(errorMsg);
+            throw new IdentityApplicationRegistrationFailedException(errorMsg);
         }
 
         // Invoking the listeners.

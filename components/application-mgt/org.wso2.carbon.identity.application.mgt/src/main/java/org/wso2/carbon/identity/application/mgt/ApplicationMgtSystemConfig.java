@@ -27,11 +27,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationTemplateDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.IdentityProviderDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.OAuthApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.SAMLApplicationDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.*;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -141,9 +137,9 @@ public class ApplicationMgtSystemConfig {
      *
      * @return
      */
-    public ApplicationDAO getApplicationDAO() {
+    public AbstractApplicationDAOImpl getApplicationDAO() {
 
-        ApplicationDAO applicationDAO = null;
+        AbstractApplicationDAOImpl applicationDAO = null;
 
         if (appDAOClassName != null) {
 
@@ -152,7 +148,7 @@ public class ApplicationMgtSystemConfig {
                 // the already loaded instance, hence calling this method
                 // multiple times doesn't cost.
                 Class clazz = Class.forName(appDAOClassName);
-                applicationDAO = (ApplicationDAO) clazz.newInstance();
+                applicationDAO = (AbstractApplicationDAOImpl) clazz.newInstance();
 
             } catch (ClassNotFoundException e) {
                 log.error("Error while instantiating the ApplicationDAO ", e);
