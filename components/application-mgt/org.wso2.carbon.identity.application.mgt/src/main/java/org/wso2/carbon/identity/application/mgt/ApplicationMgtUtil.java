@@ -28,6 +28,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -159,6 +160,13 @@ public class ApplicationMgtUtil {
             if (log.isDebugEnabled()) {
                 log.debug("Creating application role : " + roleName + " and assign the user : "
                         + Arrays.toString(usernames) + " to that role");
+            }
+            if (CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager().
+                    isExistingRole(roleName)) {
+                String errorMsg = "Application registration failed. The application role \'" + roleName +
+                        "\' already exists.";
+                log.error(errorMsg);
+                throw new IdentityApplicationRegistrationFailureException(errorMsg);
             }
             CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
                     .addRole(roleName, usernames, null);
