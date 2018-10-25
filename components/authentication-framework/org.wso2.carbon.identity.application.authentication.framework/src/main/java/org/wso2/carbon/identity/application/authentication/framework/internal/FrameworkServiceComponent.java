@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
@@ -218,6 +220,8 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+        bundleContext.registerService(UserSessionManagementService.class.getName(),
+                new UserSessionManagementServiceImpl(), null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
