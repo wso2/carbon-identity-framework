@@ -253,8 +253,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
-            log.error("Class \'" + appDAO.getClass() + "\' is not an instance of AbstractApplicationDAOImpl.");
-            return null;
+            log.error("Get application basic info service is not supported.");
+            throw new IdentityApplicationManagementException("This service is not supported.");
         }
 
         // invoking the listeners

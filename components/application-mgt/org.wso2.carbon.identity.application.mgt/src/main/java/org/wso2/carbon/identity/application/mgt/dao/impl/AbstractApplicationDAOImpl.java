@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 
 /**
- * Implements ApplicationDAO
+ * This is an abstract implementation of ApplicationDAO interface
  */
 public abstract class AbstractApplicationDAOImpl implements ApplicationDAO {
 
