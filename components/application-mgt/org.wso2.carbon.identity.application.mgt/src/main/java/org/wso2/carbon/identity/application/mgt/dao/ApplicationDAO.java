@@ -59,15 +59,6 @@ public interface ApplicationDAO {
     ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException;
 
     /**
-     * Get all basic application information for a matching filter.
-     *
-     * @param filter Application name filter
-     * @return Application Basic Information array
-     * @throws IdentityApplicationManagementException
-     */
-    ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException;
-
-    /**
      * @param applicationDTO
      * @throws IdentityApplicationManagementException
      */
