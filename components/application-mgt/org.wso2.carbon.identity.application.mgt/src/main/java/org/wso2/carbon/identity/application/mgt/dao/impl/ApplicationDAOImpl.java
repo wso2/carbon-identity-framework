@@ -113,7 +113,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
  * <li>IDN_APPMGT_ROLE_MAPPING</li>
  * </ul>
  */
-public class ApplicationDAOImpl implements ApplicationDAO {
+public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
 
