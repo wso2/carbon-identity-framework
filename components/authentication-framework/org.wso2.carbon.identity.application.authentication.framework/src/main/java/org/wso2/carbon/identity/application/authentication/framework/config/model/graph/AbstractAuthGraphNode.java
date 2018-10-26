@@ -27,7 +27,7 @@ public abstract class AbstractAuthGraphNode implements AuthGraphNode {
     private AuthGraphNode parentNode;
 
     @Override
-    public AuthGraphNode gerParent() {
+    public AuthGraphNode getParent() {
 
         return parentNode;
     }
