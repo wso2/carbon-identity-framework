@@ -33,7 +33,7 @@ $("#createApp").click(function () {
 });
 
 var addTemplate = $("#addTemplate");
-var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
+var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("scriptTextArea"), {
     theme: "mdn-like",
     keyMap: "sublime",
     mode: "javascript",
