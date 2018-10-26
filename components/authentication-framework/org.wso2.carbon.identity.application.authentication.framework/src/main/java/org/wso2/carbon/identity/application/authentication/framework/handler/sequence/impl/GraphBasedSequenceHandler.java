@@ -136,12 +136,12 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             for (int i = 2; i <= context.getSequenceConfig().getStepMap().size(); i++) {
                 context.getSequenceConfig().getStepMap().remove(i);
             }
-            AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).gerParent();
+            AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).getParent();
             while (parentNode != null && !isIdentifierFirstStep((parentNode))) {
                 if (parentNode instanceof DynamicDecisionNode) {
                     ((DynamicDecisionNode) parentNode).setDefaultEdge(new EndStep());
                 }
-                parentNode = parentNode.gerParent();
+                parentNode = parentNode.getParent();
             }
             context.setProperty(PROP_CURRENT_NODE, parentNode);
             if (log.isDebugEnabled()) {
@@ -561,7 +561,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                         executeFunction("onFail", dynamicDecisionNode, context);
                     } else {
                         if (context.isRetrying()) {
-                            AuthGraphNode nextNode = dynamicDecisionNode.gerParent();
+                            AuthGraphNode nextNode = dynamicDecisionNode.getParent();
                             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
                             return;
                         }
