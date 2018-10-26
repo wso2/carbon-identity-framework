@@ -24,19 +24,6 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>wso2-nexus</id>
-            <name>WSO2 internal Repository</name>
-            <url>https://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>
-    </repositories>
-
     <build>
         <plugins>
             <plugin>
@@ -53,9 +40,9 @@
                         <configuration>
                             <tasks>
                                 <path id="wsdl2java.classpath">
-                                    <pathelement location="${settings.localRepository}/org/apache/ws/commons/axiom/wso2/axiom/1.2.11.wso2v4/axiom-1.2.11.wso2v4.jar"/>
-                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2-client/1.6.1.wso2v10/axis2-client-1.6.1.wso2v10.jar" />
-                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2/1.6.1.wso2v10/axis2-1.6.1.wso2v10.jar" />
+                                    <pathelement location="${settings.localRepository}/org/apache/ws/commons/axiom/wso2/axiom/${axiom.wso2.version}/axiom-${axiom.wso2.version}.jar" />
+                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2-client/${axis2.wso2.version}/axis2-client-${axis2.wso2.version}.jar" />
+                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2/${axis2.wso2.version}/axis2-${axis2.wso2.version}.jar" />
                                 </path>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <classpath refid="wsdl2java.classpath" />
@@ -106,41 +93,41 @@
                 </configuration>
             </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>
-                                            org.codehaus.mojo
-                                        </groupId>
-                                        <artifactId>
-                                            build-helper-maven-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [1.9.1,)
-                                        </versionRange>
-                                        <goals>
-                                            <goal>add-source</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore></ignore>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <!--<pluginManagement>-->
+            <!--<plugins>-->
+                <!--&lt;!&ndash;This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.&ndash;&gt;-->
+                <!--<plugin>-->
+                    <!--<groupId>org.eclipse.m2e</groupId>-->
+                    <!--<artifactId>lifecycle-mapping</artifactId>-->
+                    <!--<version>1.0.0</version>-->
+                    <!--<configuration>-->
+                        <!--<lifecycleMappingMetadata>-->
+                            <!--<pluginExecutions>-->
+                                <!--<pluginExecution>-->
+                                    <!--<pluginExecutionFilter>-->
+                                        <!--<groupId>-->
+                                            <!--org.codehaus.mojo-->
+                                        <!--</groupId>-->
+                                        <!--<artifactId>-->
+                                            <!--build-helper-maven-plugin-->
+                                        <!--</artifactId>-->
+                                        <!--<versionRange>-->
+                                            <!--[1.9.1,)-->
+                                        <!--</versionRange>-->
+                                        <!--<goals>-->
+                                            <!--<goal>add-source</goal>-->
+                                        <!--</goals>-->
+                                    <!--</pluginExecutionFilter>-->
+                                    <!--<action>-->
+                                        <!--<ignore></ignore>-->
+                                    <!--</action>-->
+                                <!--</pluginExecution>-->
+                            <!--</pluginExecutions>-->
+                        <!--</lifecycleMappingMetadata>-->
+                    <!--</configuration>-->
+                <!--</plugin>-->
+            <!--</plugins>-->
+        <!--</pluginManagement>-->
     </build>
 
 
