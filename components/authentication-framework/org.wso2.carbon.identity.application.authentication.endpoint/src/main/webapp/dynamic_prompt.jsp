@@ -15,7 +15,6 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
@@ -23,7 +22,6 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.*" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.model.Template" %>
-<%@ page import="java.io.File" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
@@ -34,6 +32,8 @@
 <%
     String templateId = request.getParameter("templateId");
     String promptId = request.getParameter("promptId");
+    String tenantDomain = request.getParameter("tenantDomain");
+
     String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
     if (StringUtils.isBlank(authAPIURL)) {
         authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
@@ -43,13 +43,7 @@
     }
     authAPIURL += "context/" + request.getParameter("promptId");
     String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
-    Gson gson = new Gson();
-    Map data = gson.fromJson(contextProperties, Map.class);
-    String templatePath = templateMap.get(templateId);
 
-
-    Integer tenantId = Integer.parseInt(request.getParameter("tenantId"));
-    String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
     String templateAPIURL = IdentityUtil.getServerURL("/t/"+tenantDomain+"/api/identity/template/mgt/v1.0.0/templates/",true,true);
 
     if (!templateAPIURL.endsWith("/")) {
@@ -58,8 +52,8 @@
     templateAPIURL += templateId;
 
     String templateJSON = TemplateMgtAPIClient.getTemplateData(templateAPIURL);
+    Gson gson = new Gson();
     Template templateData = gson.fromJson(templateJSON,Template.class);
-
 %>
 <html>
 <head>
@@ -78,6 +72,8 @@
     <script src="js/html5shiv.min.js"></script>
     <script src="js/respond.min.js"></script>
     <![endif]-->
+
+
 </head>
 <body>
 <script type="text/javascript">
@@ -103,13 +99,32 @@
     
     <div class="row">
         <div class="col-md-12">
-    
+
             <%
-                if (templatePath != null) {
+                if (templateData.getTemplateScript() != null) {
             %>
+            <div id="template-holder"></div>
+            <script id="template-handlebars" type="text/x-handlebars-template">
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                 <%out.write(templateData.getTemplateScript());%>
             </div>
+            </script>
+
+            <script type="text/javascript">
+                var templateInfo = document.getElementById("template-handlebars").innerHTML;
+                var template = Handlebars.compile(templateInfo);
+
+                var template_data = template(data);
+                document.getElementById("template-holder").innerHTML += template_data;
+                document.getElementById("promptId").value= prompt_id;
+                document.getElementById("template-form").action="../commonauth";
+
+            </script>
+
+
+
+
+
             <%
             } else {
             %>
