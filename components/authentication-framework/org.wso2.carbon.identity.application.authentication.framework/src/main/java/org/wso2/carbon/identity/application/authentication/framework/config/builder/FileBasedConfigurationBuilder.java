@@ -71,6 +71,7 @@ public class FileBasedConfigurationBuilder {
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
     private String authenticationEndpointWaitURL;
+    private String identifierFirstConfirmationURL;
     private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
 
@@ -168,6 +169,7 @@ public class FileBasedConfigurationBuilder {
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
             readAuthenticationEndpointWaitURL(rootElement);
+            readIdentifierFirstConfirmationURL(rootElement);
             readAuthenticationEndpointPromptURL(rootElement);
             readAuthenticationEndpointMissingClaimsURL(rootElement);
 
@@ -512,6 +514,15 @@ public class FileBasedConfigurationBuilder {
 
         if (authEndpointWaitURLElem != null) {
             authenticationEndpointWaitURL = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
+        }
+    }
+
+    private void readIdentifierFirstConfirmationURL(OMElement documentElement) {
+        OMElement readIDFConfirmationElement = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL));
+
+        if (readIDFConfirmationElement != null) {
+            identifierFirstConfirmationURL = IdentityUtil.fillURLPlaceholders(readIDFConfirmationElement.getText());
         }
     }
 
@@ -880,6 +891,14 @@ public class FileBasedConfigurationBuilder {
 
     public void setAuthenticationEndpointWaitURL(String authenticationEndpointWaitURL) {
         this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
+    }
+
+    public String getIdentifierFirstConfirmationURL() {
+        return identifierFirstConfirmationURL;
+    }
+
+    public void setIdentifierFirstConfirmationURL(String identifierFirstConfirmationURL) {
+        this.identifierFirstConfirmationURL = identifierFirstConfirmationURL;
     }
 
     public String getAuthenticationEndpointPromptURL() {

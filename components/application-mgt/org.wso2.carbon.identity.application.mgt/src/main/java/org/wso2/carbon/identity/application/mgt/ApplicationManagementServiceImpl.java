@@ -32,6 +32,7 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -57,6 +58,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
@@ -250,6 +252,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             endTenantFlow();
         }
 
+        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+            log.error("Get application basic info service is not supported.");
+            throw new IdentityApplicationManagementException("This service is not supported.");
+        }
+
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostGetApplicationBasicInfo(appDAO, tenantDomain, username,
@@ -258,7 +265,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        return appDAO.getApplicationBasicInfo(filter);
+        return ((AbstractApplicationDAOImpl)appDAO).getApplicationBasicInfo(filter);
     }
 
     @Override
@@ -1636,7 +1643,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+            String errorMsg = "Application registration failed. An application with name \'" + serviceProvider.
+                    getApplicationName() + "\' already exists.";
+            log.error(errorMsg);
+            throw new IdentityApplicationRegistrationFailureException(errorMsg);
         }
 
         // Invoking the listeners.

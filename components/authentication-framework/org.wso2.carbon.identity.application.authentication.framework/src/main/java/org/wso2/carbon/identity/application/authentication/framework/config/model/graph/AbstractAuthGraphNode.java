@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,14 +19,22 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 /**
- * A virtual authentication step signifying it is an end node for an authentication graph.
+ * Abstract implementation of Authentication step or decision point node.
  */
-public class EndStep extends AbstractAuthGraphNode implements AuthGraphNode {
+public abstract class AbstractAuthGraphNode implements AuthGraphNode {
 
-    private static final long serialVersionUID = -8969107833064916187L;
+    private static final long serialVersionUID = -445608731320313104L;
+    private AuthGraphNode parentNode;
 
     @Override
-    public String getName() {
-        return null;
+    public AuthGraphNode getParent() {
+
+        return parentNode;
+    }
+
+    @Override
+    public void setParent(AuthGraphNode parentNode) {
+
+        this.parentNode = parentNode;
     }
 }

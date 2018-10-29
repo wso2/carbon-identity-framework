@@ -665,9 +665,11 @@ public class JsGraphBuilder {
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
             attachToLeaf(newNode, stepConfigGraphNode.getNext());
+            newNode.setParent(destination);
             stepConfigGraphNode.setNext(newNode);
         } else if (destination instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
+            newNode.setParent(destination);
             attachToLeaf(newNode, dynamicDecisionNode.getDefaultEdge());
             dynamicDecisionNode.setDefaultEdge(newNode);
         } else {

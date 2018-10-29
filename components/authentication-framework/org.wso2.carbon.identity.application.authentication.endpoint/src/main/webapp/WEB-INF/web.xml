@@ -157,6 +157,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>idf-confirm.do</servlet-name>
+        <jsp-file>/identifier-logout-confirm.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>dynamic_prompt.do</servlet-name>
         <jsp-file>/dynamic_prompt.jsp</jsp-file>
     </servlet>
@@ -274,6 +279,11 @@
     <servlet-mapping>
         <servlet-name>wait.do</servlet-name>
         <url-pattern>/wait.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>idf-confirm.do</servlet-name>
+        <url-pattern>/idf-confirm.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
