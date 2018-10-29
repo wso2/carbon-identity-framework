@@ -122,34 +122,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         }
                     }
 
-                    Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
-                    claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
-                    claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
-                    claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
-
-                    if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
-                        claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
-                        }
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
-                        }
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
-                        }
-                    }
-
-                    LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
+                    LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes,
+                            fillClaimProperties(claimConfig, claimKey));
 
                     try {
                         // As this is at the initial server startup or tenant creation time, no need go through the
@@ -190,7 +164,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
                     String mappedLocalClaimURI = claimConfig.getPropertyHolderMap().get(claimKey).get(ClaimConstants
                             .MAPPED_LOCAL_CLAIM_PROPERTY);
-                    ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
+                    ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI,
+                            fillClaimProperties(claimConfig, claimKey));
 
                     try {
                         // As this is at the initial server startup or tenant creation time, no need go through the
@@ -206,6 +181,36 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
         }
 
+    }
+
+    private Map<String, String> fillClaimProperties(ClaimConfig claimConfig, ClaimKey claimKey) {
+        Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
+        claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
+        claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
+        claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
+
+        if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+            claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
+                claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+            }
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
+                claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
+            }
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
+                claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
+            }
+        }
+        return claimProperties;
     }
 
     @Override
