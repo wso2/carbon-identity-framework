@@ -62,7 +62,7 @@
     <bean id="exceptionMapper"
           class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper"/>
     <bean id="jacksonJsonProvider"
-          class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
+          class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
 
     <!-- Swagger writers -->
     <bean id="swaggerWriter" class="io.swagger.jaxrs.listing.SwaggerSerializers"/>

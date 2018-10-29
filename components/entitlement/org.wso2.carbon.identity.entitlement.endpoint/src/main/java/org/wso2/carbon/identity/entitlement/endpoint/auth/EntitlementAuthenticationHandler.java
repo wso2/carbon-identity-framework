@@ -18,17 +18,15 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.auth;
 
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
-
 import java.util.Map;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * Interface to be implemented by any type of authentication handlers that will be registered
  * to authenticate Entitlement requests coming to Entitlement REST endpoints.
  */
 public interface EntitlementAuthenticationHandler {
-
+//TODO: check if needed
     /**
      * Returns the priority of the particular authentication handler implementation.
      *
@@ -46,19 +44,17 @@ public interface EntitlementAuthenticationHandler {
      * including headers.
      *
      * @param message
-     * @param classResourceInfo
      * @return
      */
-    boolean canHandle(Message message, ClassResourceInfo classResourceInfo);
+    boolean canHandle(ContainerRequestContext message);
 
     /**
      * If the authenticator can handle the request, decide whether the request is authenticated.
      *
      * @param message
-     * @param classResourceInfo
      * @return
      */
-    boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo);
+    boolean isAuthenticated(ContainerRequestContext message);
 
     /**
      * To set the properties specific to each authenticator

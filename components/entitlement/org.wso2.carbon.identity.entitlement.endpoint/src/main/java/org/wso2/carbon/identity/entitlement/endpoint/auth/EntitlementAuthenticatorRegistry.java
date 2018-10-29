@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.auth;
 
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
-
 import java.util.Map;
 import java.util.TreeMap;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * This stores the authenticators registered for Entitlement REST endpoints and returns the appropriate
@@ -57,15 +55,13 @@ public class EntitlementAuthenticatorRegistry {
      * Given the RESTful message and other info, returns the authenticator which can handle the request.
      *
      * @param message
-     * @param classResourceInfo
      * @return
      */
-    public EntitlementAuthenticationHandler getAuthenticator(Message message,
-                                                             ClassResourceInfo classResourceInfo) {
+    public EntitlementAuthenticationHandler getAuthenticator(ContainerRequestContext message) {
         //since we use a tree map to store authenticators, they are ordered based on the priority.
         //therefore, we iterate over the authenticators and check the can handle method
         for (EntitlementAuthenticationHandler entitlementAuthenticationHandler : EntitlementAuthHandlers.values()) {
-            if (entitlementAuthenticationHandler.canHandle(message, classResourceInfo)) {
+            if (entitlementAuthenticationHandler.canHandle(message)) {
                 return entitlementAuthenticationHandler;
             }
         }
