@@ -610,15 +610,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                 if (log.isDebugEnabled()) {
                                     log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
                                 }
-                            } else {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(String.format("User %s is not allowed to authenticate from previous session.",
-                                            authenticatedUser.toString()));
-                                }
-                                context.setPreviousSessionFound(false);
-                                FrameworkUtils.removeSessionContextFromCache(sessionContextKey);
-                                sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                             }
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("User %s is not allowed to authenticate from previous session.",
+                                        authenticatedUser.toString()));
+                            }
+                            context.setPreviousSessionFound(false);
+                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey);
+                            sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }
                     // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
