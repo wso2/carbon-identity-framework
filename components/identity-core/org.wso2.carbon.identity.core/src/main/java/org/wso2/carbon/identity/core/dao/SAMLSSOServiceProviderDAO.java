@@ -159,7 +159,6 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_ENABLE_ECP).trim()));
         }
 
-
         if (resource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX) != null) {
             serviceProviderDO
