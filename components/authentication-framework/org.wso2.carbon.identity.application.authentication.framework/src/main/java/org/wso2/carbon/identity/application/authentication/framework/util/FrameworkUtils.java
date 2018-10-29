@@ -247,8 +247,9 @@ public class FrameworkUtils {
 
                 log.debug("\nInbound Request parameters: " + queryStringBuilder.toString());
             }
+
             return new AuthenticationFrameworkWrapper(request, modifiableParameters,
-                                                        authenticationRequest.getRequestHeaders());
+                                                      authenticationRequest.getRequestHeaders());
         }
         return request;
     }
