@@ -52,6 +52,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -65,18 +67,21 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.*;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING;
 
 /**
  * This is post authentication handler responsible for JIT provisioning.
@@ -187,7 +192,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
-                    callDefaultProvisioniningHandler(username, context, externalIdPConfig, combinedLocalClaims,
+                    callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                    handleConstents(request, stepConfig, context.getTenantDomain());
                 }
@@ -272,16 +277,26 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
-                Map<String, String> localClaimValues;
-                localClaimValues = (Map<String, String>) context
+                Map<String, String> localClaimValues = (Map<String, String>) context
                         .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                if (localClaimValues == null || localClaimValues.size() == 0) {
+                    Map<ClaimMapping, String> userAttributes = stepConfig.getAuthenticatedUser().getUserAttributes();
+                    localClaimValues = FrameworkUtils.getClaimMappings
+                            (userAttributes, false);
+                }
 
                 if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
                     if (localClaimValues == null) {
                         localClaimValues = new HashMap<>();
                     }
-                    String username = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                            stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    String username;
+                    String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
+                    if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
+                        username = localClaimValues.get(userIdClaimUriInLocalDialect);
+                    } else {
+                        username = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
+                                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    }
 
                     // If username is null, that means relevant assication not exist already.
                     if (StringUtils.isEmpty(username) && !isUserCreated) {
@@ -310,12 +325,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 + externalIdPConfig.getIdPName() + " do have a local account, with the username "
                                 + username);
                     }
-                    callDefaultProvisioniningHandler(username, context, externalIdPConfig, localClaimValues,
+                    callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
                 }
             }
         }
         return SUCCESS_COMPLETED;
+    }
+
+    private boolean isUserNameFoundFromUserIDClaimURI(Map<String, String> localClaimValues, String
+            userIdClaimUriInLocalDialect) {
+
+        return StringUtils.isNotBlank(userIdClaimUriInLocalDialect) && StringUtils.isNotBlank
+                (localClaimValues.get(userIdClaimUriInLocalDialect));
     }
 
     /**
@@ -606,13 +628,35 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param stepConfig        Step Config.
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
-    private void callDefaultProvisioniningHandler(String username, AuthenticationContext context,
-            ExternalIdPConfig externalIdPConfig, Map<String, String> localClaimValues, StepConfig stepConfig)
+    private void callDefaultProvisioningHandler(String username, AuthenticationContext context,
+                                                ExternalIdPConfig externalIdPConfig, Map<String, String> localClaimValues, StepConfig stepConfig)
             throws PostAuthenticationFailedException {
 
+        boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
+        ApplicationAuthenticator authenticator = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
+        String idPStandardDialect = authenticator.getClaimDialectURI();
         String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
         Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
+        Map<String, String> claimMapping = null;
+        if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
+            try {
+                claimMapping = ClaimMetadataHandler.getInstance()
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
+                                true);
+            } catch (ClaimMetadataException e) {
+                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode
+                        (), ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
+            }
+        }
+
+        if (claimMapping != null) {
+            //Ex. Standard dialects like OIDC.
+            idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+        } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
+            //Ex. SAML custom claims.
+            idpRoleClaimUri = getRoleClaimUriInLocalDialect(externalIdPConfig);
+        }
 
         /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
          returned list.
@@ -734,5 +778,55 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 receiptServiceInput.setSpDisplayName(resideIdpDescription);
             }
         }
+    }
+
+    private String getUserIdClaimUriInLocalDialect(ExternalIdPConfig idPConfig) {
+        // get external identity provider user id claim URI.
+        String userIdClaimUri = idPConfig.getUserIdClaimUri();
+
+        if (StringUtils.isBlank(userIdClaimUri)) {
+            return null;
+        }
+
+        boolean useDefaultLocalIdpDialect = idPConfig.useDefaultLocalIdpDialect();
+        if (useDefaultLocalIdpDialect) {
+            return userIdClaimUri;
+        } else {
+            ClaimMapping[] claimMappings = idPConfig.getClaimMappings();
+            if (!ArrayUtils.isEmpty(claimMappings)) {
+                for (ClaimMapping claimMapping : claimMappings) {
+                    if (userIdClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                        return claimMapping.getLocalClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String getRoleClaimUriInLocalDialect(ExternalIdPConfig idPConfig) {
+        // get external identity provider role claim URI.
+        String roleClaimUri = idPConfig.getRoleClaimUri();
+
+        if (StringUtils.isBlank(roleClaimUri)) {
+            return null;
+        }
+
+        boolean useDefaultLocalIdpDialect = idPConfig.useDefaultLocalIdpDialect();
+        if (useDefaultLocalIdpDialect) {
+            return roleClaimUri;
+        } else {
+            ClaimMapping[] claimMappings = idPConfig.getClaimMappings();
+            if (!ArrayUtils.isEmpty(claimMappings)) {
+                for (ClaimMapping claimMapping : claimMappings) {
+                    if (roleClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                        return claimMapping.getLocalClaim().getClaimUri();
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
