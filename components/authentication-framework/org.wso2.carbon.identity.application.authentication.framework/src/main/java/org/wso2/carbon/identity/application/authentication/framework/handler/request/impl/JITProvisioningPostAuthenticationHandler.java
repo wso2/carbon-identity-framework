@@ -260,6 +260,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
+            if (authenticatorConfig == null) {
+                //May have skipped from the script
+                //ex: Different authentication sequences evaluated by the script
+                continue;
+            }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
