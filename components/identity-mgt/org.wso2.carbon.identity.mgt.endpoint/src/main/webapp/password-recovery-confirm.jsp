@@ -17,14 +17,18 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -33,8 +37,15 @@
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
     NotificationApi notificationApi = new NotificationApi();
     try {
+        List<Property> properties = new ArrayList<>();
+        Property tenantDomainProperty = new Property();
+        tenantDomainProperty.setKey(MultitenantConstants.TENANT_DOMAIN);
+        tenantDomainProperty.setValue(tenantDomain);
+        properties.add(tenantDomainProperty);
+        
         CodeValidationRequest validationRequest = new CodeValidationRequest();
         validationRequest.setCode(confirmationKey);
+        validationRequest.setProperties(properties);
         notificationApi.validateCodePostCall(validationRequest);
         
     } catch (ApiException e) {
@@ -56,7 +67,7 @@
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
     
-    if ( StringUtils.isNotBlank(confirmationKey)) {
+    if (StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.setAttribute("callback", callback);
         request.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, tenantDomain);
