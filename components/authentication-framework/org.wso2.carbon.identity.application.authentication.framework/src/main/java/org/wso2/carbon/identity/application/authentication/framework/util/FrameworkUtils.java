@@ -50,7 +50,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -70,10 +69,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -86,6 +83,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
@@ -94,6 +92,9 @@ import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -125,8 +126,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS_MSG;
 
 public class FrameworkUtils {
 
@@ -141,6 +140,7 @@ public class FrameworkUtils {
     private static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
     private static final String REQUEST_PARAM_APPLICATION = "application";
+    private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
 
     private FrameworkUtils() {
@@ -1864,6 +1864,62 @@ public class FrameworkUtils {
             return deserializedMap;
         }
         return value;
+    }
+
+    /**
+     * Get the configurations of a tenant from cache or database
+     *
+     * @param tenantDomain Domain name of the tenant
+     * @return Configurations belong to the tenant
+     */
+    private static Property[] getResidentIdpConfiguration(String tenantDomain) throws FrameworkException {
+
+        IdpManager identityProviderManager = IdentityProviderManager.getInstance();
+        IdentityProvider residentIdp = null;
+        try {
+            residentIdp = identityProviderManager.getResidentIdP(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            String errorMsg = String.format("Error while retrieving resident Idp for %s tenant.", tenantDomain);
+            throw new FrameworkException(errorMsg, e);
+        }
+        IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
+        Property[] configMap = new Property[identityMgtProperties.length];
+        int index = 0;
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ALREADY_WRITTEN_PROPERTY.equals(identityMgtProperty.getName())) {
+                continue;
+            }
+            Property property = new Property();
+            property.setName(identityMgtProperty.getName());
+            property.setValue(identityMgtProperty.getValue());
+            configMap[index] = property;
+            index++;
+        }
+        return configMap;
+    }
+
+    /**
+     * This method is used to get the requested resident Idp configuration details.
+     *
+     * @param propertyName
+     * @param tenantDomain
+     * @return Property
+     * @throws FrameworkException
+     */
+    public static Property getResidentIdpConfiguration(String propertyName, String tenantDomain) throws
+            FrameworkException {
+
+        Property requestedProperty = null;
+        Property[] allProperties = getResidentIdpConfiguration(tenantDomain);
+        for (int i = 0; i < allProperties.length; i++) {
+            if (propertyName.equals(allProperties[i].getName())) {
+                requestedProperty = allProperties[i];
+                break;
+            }
+        }
+
+        return requestedProperty;
+
     }
 }
 
