@@ -476,6 +476,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
+        <SAMLECPEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/ecp</SAMLECPEndpoint>
     </SSOService>
 
     <Consent>
