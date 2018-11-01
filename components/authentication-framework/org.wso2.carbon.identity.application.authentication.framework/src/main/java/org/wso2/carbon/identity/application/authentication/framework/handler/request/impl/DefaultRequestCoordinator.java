@@ -90,6 +90,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
+    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
@@ -605,7 +606,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                             if (authenticatedUserTenantDomain != null) {
                                 // set the user tenant domain for the current authentication/logout flow
-                                context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+                                context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
 
                                 if (log.isDebugEnabled()) {
                                     log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
@@ -771,10 +772,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         isUserLocked(userStoreManager, user));
 
             } else {
-                log.error("Trying to authenticate non existing user");
+                log.error("Trying to authenticate non existing user: " + user.getUserName());
             }
         } catch (UserStoreException e) {
-            log.error("Error while checking existance of user: " + user.getUserName(), e);
+            log.error("Error while checking existence of user: " + user.getUserName(), e);
         } catch (FrameworkException e) {
             log.error("Error while validating user: " + user.getUserName(), e);
         }
