@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.functions.library.mgt;
 
 import org.powermock.api.mockito.PowerMockito;
@@ -25,7 +43,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
     private static final String DB_NAME = "FUNCTIONLIB_DB";
 
-
     @DataProvider(name = "createFunctionLibraryDataProvider")
     public Object[][] createFunctionLibraryData() {
         FunctionLibrary functionLibrary1 = new FunctionLibrary();
@@ -52,7 +69,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         functionLibrary5.setFunctionLibraryName("sample5");
         functionLibrary5.setDescription("sample5");
         functionLibrary5.setFunctionLibraryScript("samplefunction5");
-
 
         return new Object[][]{
                 {
@@ -99,7 +115,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
             assertEquals(functionLibraryManagementService.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain).getFunctionLibraryName(), ((FunctionLibrary) functionLibrary).getFunctionLibraryName());
 
-
             // Clean after test
             functionLibraryManagementService.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         } catch (FunctionLibraryManagementException e) {
@@ -123,8 +138,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
 
@@ -175,8 +188,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
     @DataProvider(name = "listFunctionLibraryDataProvider")
     public Object[][] listFunctionLibrariesData() {
-
-
         FunctionLibrary functionLibrary6 = new FunctionLibrary();
         functionLibrary6.setFunctionLibraryName("sample6");
         functionLibrary6.setDescription("sample6");
@@ -192,7 +203,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         functionLibrary8.setDescription("sample8");
         functionLibrary8.setFunctionLibraryScript("samplefunction8");
 
-
         return new Object[][]{
                 {
                         Arrays.asList(
@@ -203,7 +213,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                         SAMPLE_TENANT_DOMAIN
                 }
         };
-
     }
 
     @Test(dataProvider = "listFunctionLibraryDataProvider")
@@ -229,7 +238,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
         // Clean after test
         deleteFunctionLibraries(functionLibraryManagementService, functionLibraries, tenantDomain);
-
     }
 
     @DataProvider(name = "updateFunctionLibraryDataProvider")
@@ -254,7 +262,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         functionLibrary14.setFunctionLibraryName("sample14");
         functionLibrary14.setDescription("sample14");
         functionLibrary14.setFunctionLibraryScript("samplefunction14");
-
 
         return new Object[][]{
                 {
@@ -298,15 +305,12 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             else{
                 funLib.setFunctionLibraryName("updated");
             }
-            //FunctionLibrary updatedfunctionLibrary = (FunctionLibrary) functionLibrary;
-            //updatedfunctionLibrary.setFunctionLibraryName("updateFunctionLibraryName");
         try {
             when(functionLibraryDAO.isFunctionLibraryExists("sample",tenantDomain)).thenReturn(true);
             when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(),tenantDomain)).thenReturn(funLib);
             functionLibraryManagementService.updateFunctionLibrary(funLib, tenantDomain, oldName);
 
             assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain), "Failed to update function library.");
-            //assertEquals(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(),tenantDomain).getFunctionLibraryName(),"updatedName");
 
             // Clean after test
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
@@ -322,9 +326,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
-
 
     private void addFunctionLibraries(FunctionLibraryManagementService functionLibraryManagementService, List<Object> functionLibraries, String tenantDomain) {
         for (Object functionLibrary : functionLibraries) {
@@ -335,7 +337,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                     assertEquals(e.getMessage(), "Function Library Name is required");
                 }
             }
-
         }
     }
 
@@ -344,5 +345,4 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             functionLibraryManagementService.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         }
     }
-
 }

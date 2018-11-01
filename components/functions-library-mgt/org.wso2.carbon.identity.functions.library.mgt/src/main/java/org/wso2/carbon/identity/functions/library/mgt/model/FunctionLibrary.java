@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.functions.library.mgt.model;
 
 /**
@@ -13,7 +31,7 @@ public class FunctionLibrary {
     /**
      * Get function library name.
      *
-     * @return function library name
+     * @return Function library name
      */
     public String getFunctionLibraryName() {
         return functionLibraryName;
@@ -22,7 +40,7 @@ public class FunctionLibrary {
     /**
      * Set function library name.
      *
-     * @param functionLibraryName function library name
+     * @param functionLibraryName Function library name
      */
     public void setFunctionLibraryName(String functionLibraryName) {
         this.functionLibraryName = functionLibraryName;
@@ -31,7 +49,7 @@ public class FunctionLibrary {
     /**
      * Get function library description.
      *
-     * @return function library description
+     * @return Function library description
      */
     public String getDescription() {
         return description; }
@@ -39,7 +57,7 @@ public class FunctionLibrary {
     /**
      * Set function library description.
      *
-     * @param description function library description
+     * @param description Function library description
      */
     public void setDescription(String description) {
         this.description = description;
@@ -48,7 +66,7 @@ public class FunctionLibrary {
     /**
      * Get function library script.
      *
-     * @return content
+     * @return Content
      */
     public String getFunctionLibraryScript() {
         return content;
@@ -57,7 +75,7 @@ public class FunctionLibrary {
     /**
      * Set function library script.
      *
-     * @param content content
+     * @param content Content
      */
     public void setFunctionLibraryScript(String content) {
         this.content = content;

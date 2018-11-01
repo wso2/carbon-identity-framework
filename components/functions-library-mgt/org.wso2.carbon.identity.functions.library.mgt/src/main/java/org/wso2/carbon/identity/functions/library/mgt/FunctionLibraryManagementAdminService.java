@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.functions.library.mgt;
 
 
@@ -17,8 +35,9 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     private FunctionLibraryManagementService functionLibMgtService;
 
     /**
+     *Create a function library with function library name, description and script.
      *
-     * @param functionLibrary
+     * @param functionLibrary   Function library
      * @throws FunctionLibraryManagementException
      */
     public void createFunctionLibrary (FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
@@ -34,8 +53,9 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
+     *Get all function libraries in a tenant.
      *
-     * @return
+     * @return  A list of function libraries
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary[] listFunctionLibraries() throws FunctionLibraryManagementException {
@@ -50,9 +70,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
+     *Get a function library using function library name.
      *
-     * @param functionLibraryName
-     * @return
+     * @param functionLibraryName Name of the function library
+     * @return                    Function library
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary getFunctionLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
@@ -70,8 +91,9 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
+     *Delete an existing function library using the function library name.
      *
-     * @param functionLibraryName
+     * @param functionLibraryName Name of the function library
      * @throws FunctionLibraryManagementException
      */
     public void deleteFunctionLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
@@ -86,9 +108,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
+     *Update the details of a function library.
      *
-     * @param functionLibrary
-     * @param oldFunctionLibraryName
+     * @param functionLibrary           Function library with new details
+     * @param oldFunctionLibraryName    Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
     public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)
