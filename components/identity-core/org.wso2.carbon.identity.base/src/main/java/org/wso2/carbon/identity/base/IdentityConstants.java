@@ -218,6 +218,7 @@ public class IdentityConstants {
         public final static String SAMLSSO = "samlsso";
         public final static String ENTITY_ID = "SSOService.EntityID";
         public final static String SSO_IDP_URL = "SSOService.IdentityProviderURL";
+        public final static String SSO_ARTIFACT_URL = "SSOService.ArtifactResolutionEndpoint";
         public final static String DEFAULT_LOGOUT_ENDPOINT = "SSOService.DefaultLogoutEndpoint";
         public final static String NOTIFICATION_ENDPOINT = "SSOService.NotificationEndpoint";
         public final static String SSO_ATTRIB_CLAIM_DIALECT = "SSOService.AttributesClaimDialect";

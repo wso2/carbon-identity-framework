@@ -117,6 +117,7 @@ public class IdentityProviderManager implements IdpManager {
         String openIdUrl;
         String samlSSOUrl;
         String samlLogoutUrl;
+        String samlArtifactUrl;
         String oauth1RequestTokenUrl;
         String oauth1AuthorizeUrl;
         String oauth1AccessTokenUrl;
@@ -141,6 +142,7 @@ public class IdentityProviderManager implements IdpManager {
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
         samlLogoutUrl = samlSSOUrl;
+        samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
@@ -173,6 +175,9 @@ public class IdentityProviderManager implements IdpManager {
 
         if (StringUtils.isBlank(samlLogoutUrl)) {
             samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        if (StringUtils.isBlank(samlArtifactUrl)) {
+            samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
@@ -411,6 +416,15 @@ public class IdentityProviderManager implements IdpManager {
             idPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
         }
         propertiesList.add(idPEntityIdProperty);
+
+        Property samlArtifactUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        if (samlArtifactUrlProperty == null) {
+            samlArtifactUrlProperty = new Property();
+            samlArtifactUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        }
+        samlArtifactUrlProperty.setValue(samlArtifactUrl);
+        propertiesList.add(samlArtifactUrlProperty);
 
         for (Property property : saml2SSOFedAuthn.getProperties()) {
             if (property != null &&
