@@ -76,6 +76,7 @@
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
         <module>features/consent-mgt</module>
+        <module>features/functions-library-mgt</module>
     </modules>
 
     <repositories>
