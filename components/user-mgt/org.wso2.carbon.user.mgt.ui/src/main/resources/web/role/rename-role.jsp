@@ -48,8 +48,8 @@
 
     String regEx = userStoreInfo.getRoleNameRegEx();
 
-    if (roleName.indexOf("/") > 0) {
-        String domain = roleName.substring(0, roleName.indexOf("/"));
+    if (roleName.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR) > 0) {
+        String domain = roleName.substring(0, roleName.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR));
         allUserStoreInfo = userRealmInfo.getUserStoresInfo();
         if (allUserStoreInfo != null && allUserStoreInfo.length > 0) {
             for (int i = 0; i < allUserStoreInfo.length; i++) {
@@ -121,13 +121,15 @@
                 var oldRoleName = "<%=Encode.forJavaScriptBlock(roleName)%>";
                 var newRoleName = document.getElementById("roleName").value;
 
-                if (newRoleName.indexOf("/") != -1) {
-                    if (oldRoleName.indexOf("/") == -1) {
+                if (newRoleName.indexOf("<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>") != -1) {
+                    if (oldRoleName.indexOf("<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>") == -1) {
                         CARBON.showWarningDialog("<fmt:message key="oldrole.no.domain"/>");
                         return false;
                     } else {
-                        var oldDomain = oldRoleName.substring(0, oldRoleName.indexOf("/"))
-                        var newDomain = newRoleName.substring(0, newRoleName.indexOf("/"))
+                        var oldDomain = oldRoleName.substring(0, oldRoleName.indexOf(
+                        "<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>"));
+                        var newDomain = newRoleName.substring(0, newRoleName.indexOf(
+                        "<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>"));
 
                         if (oldDomain.toUpperCase() != newDomain.toUpperCase()) {
                             CARBON.showWarningDialog("<fmt:message key="invalid.domain"/>");

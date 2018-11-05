@@ -47,9 +47,10 @@
                 .getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
         // if old role name contains a domain, it would be appended to new role nme
-        if(oldRoleName.contains("/") && !newRoleName.contains("/")){
-            String domain = oldRoleName.substring(0, oldRoleName.indexOf("/"));
-            newRoleName = domain + "/" + newRoleName;
+        if(oldRoleName.contains(UserAdminUIConstants.DOMAIN_SEPARATOR) &&
+        !newRoleName.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)){
+            String domain = oldRoleName.substring(0, oldRoleName.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR));
+            newRoleName = domain + UserAdminUIConstants.DOMAIN_SEPARATOR + newRoleName;
         }
 
         client.updateRoleName(oldRoleName ,newRoleName);

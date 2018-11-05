@@ -148,8 +148,8 @@ public class Util {
 
     public static UserStoreInfo getUserStoreInfoForUser(String userName, UserRealmInfo realmInfo) {
 
-        if (userName.contains("/")) {
-            String domainName = userName.substring(0, userName.indexOf("/"));
+        if (userName != null && userName.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
+            String domainName = userName.substring(0, userName.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR));
             for (UserStoreInfo info : realmInfo.getUserStoresInfo()) {
                 if (domainName != null && domainName.equalsIgnoreCase(info.getDomainName())) {
                     return info;

@@ -22,6 +22,7 @@ import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -309,8 +310,12 @@ public class UserAdmin {
      */
     private boolean isAllowedRoleName(String roleName, UserRealm realm) throws UserAdminException {
 
+        if (roleName == null) {
+            return false;
+        }
+
         int index;
-        index = roleName.indexOf("/");
+        index = roleName.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
 
         if (index > 0) {
             roleName = roleName.substring(index + 1);
