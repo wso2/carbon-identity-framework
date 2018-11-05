@@ -120,6 +120,8 @@ public abstract class FrameworkConstants {
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
     public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
 
+    public static final String AUTH_MECHANISM = "AuthMechanism";
+
     private FrameworkConstants() {
 
     }

@@ -1089,7 +1089,8 @@ public class FrameworkUtils {
                             authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
 
                         if (FrameworkConstants.LOCAL.equals(authenticatedIdPData.getIdpName())) {
-                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName,
+                                    authenticatorConfig.getApplicationAuthenticator().getAuthMechanism())) {
                                 idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
 
                                 if (log.isDebugEnabled()) {
