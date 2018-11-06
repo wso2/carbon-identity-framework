@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.functions.library.mgt.dao.impl;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -119,7 +120,8 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     FunctionLibrary functionlib = new FunctionLibrary();
                     functionlib.setFunctionLibraryName(resultSet.getString("NAME"));
                     functionlib.setDescription(resultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(getBlobValue(resultSet.getBinaryStream("DATA")));
+                    functionlib.setFunctionLibraryScript(IOUtils.
+                            toString(resultSet.getBinaryStream("DATA")));
                     return functionlib;
                 } else {
                     return null;
@@ -163,7 +165,8 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     FunctionLibrary functionlib = new FunctionLibrary();
                     functionlib.setFunctionLibraryName(functionLibsResultSet.getString("NAME"));
                     functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(getBlobValue(functionLibsResultSet.getBinaryStream("DATA")));
+                    functionlib.setFunctionLibraryScript(IOUtils.
+                            toString(functionLibsResultSet.getBinaryStream("DATA")));
                     functionLibraries.add(functionlib);
                 }
                 connection.commit();
@@ -302,38 +305,5 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         } else {
             prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);
         }
-    }
-
-    /**
-     * Get string from inputStream of a blob
-     *
-     * @param is input stream
-     * @return
-     * @throws IOException
-     */
-    private String getBlobValue(InputStream is) throws IOException {
-
-        if (is != null) {
-            BufferedReader br = null;
-            StringBuilder sb = new StringBuilder();
-            String line;
-            try {
-                br = new BufferedReader(new InputStreamReader(is));
-                while ((line = br.readLine()) != null) {
-                    sb.append(line);
-                }
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        log.error("Error in retrieving the Blob value", e);
-                    }
-                }
-            }
-
-            return sb.toString();
-        }
-        return null;
     }
 }
