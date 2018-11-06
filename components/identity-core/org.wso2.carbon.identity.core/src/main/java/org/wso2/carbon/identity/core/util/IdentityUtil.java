@@ -91,6 +91,8 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -529,6 +531,25 @@ public class IdentityUtil {
 
         return dbf;
 
+    }
+
+    /**
+     * Create TransformerFactory with the XXE and XEE prevention measurements.
+     *
+     * @return TransformerFactory instance
+     */
+    public static TransformerFactory getSecuredTransformerFactory() {
+
+        TransformerFactory trfactory = TransformerFactory.newInstance();
+        try {
+            trfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (TransformerConfigurationException e) {
+            log.error("Failed to load XML Processor Feature " + XMLConstants.FEATURE_SECURE_PROCESSING +
+                    " for secure-processing.");
+        }
+        trfactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        trfactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        return trfactory;
     }
 
     /**

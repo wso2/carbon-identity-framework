@@ -196,6 +196,15 @@ public class ConfigurationFacade {
         return authenticationEndpointWaitURL;
     }
 
+    public String getIdentifierFirstConfirmationURL() {
+        String identifierFirstConfirmationURL = FileBasedConfigurationBuilder.getInstance()
+                .getIdentifierFirstConfirmationURL();
+        if (StringUtils.isBlank(identifierFirstConfirmationURL)) {
+            identifierFirstConfirmationURL = "/authenticationendpoint/idf-confirm.do";
+        }
+        return identifierFirstConfirmationURL;
+    }
+
     public String getAuthenticationEndpointPromptURL() {
         String authenticationEndpointPromptURL = FileBasedConfigurationBuilder.getInstance()
                 .getAuthenticationEndpointPromptURL();

@@ -32,9 +32,11 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -56,7 +58,11 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
+import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
@@ -107,7 +113,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRege
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
- * Application management service implementation
+ * Application management service implementation.
  */
 public class ApplicationManagementServiceImpl extends ApplicationManagementService {
 
@@ -222,11 +228,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(tenantDomain, username, "*");
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
         ApplicationDAO appDAO = null;
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetAllApplicationBasicInfo(tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreGetApplicationBasicInfo(tenantDomain, username, filter)) {
                 return null;
             }
         }
@@ -234,22 +248,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-
-        } catch (Exception e) {
-            String error = "Error occurred while retrieving all the applications";
-            throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
         }
 
+        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+            log.error("Get application basic info service is not supported.");
+            throw new IdentityApplicationManagementException("This service is not supported.");
+        }
+
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetAllApplicationBasicInfo(appDAO, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostGetApplicationBasicInfo(appDAO, tenantDomain, username,
+                    filter)) {
                 return null;
             }
         }
 
-        return appDAO.getAllApplicationBasicInfo();
+        return ((AbstractApplicationDAOImpl)appDAO).getApplicationBasicInfo(filter);
     }
 
     @Override
@@ -917,19 +933,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
                 if (serviceProvider != null) {
-                    // if "Authentication Type" is "Default" we must get the steps from the default SP
                     AuthenticationStep[] authenticationSteps = serviceProvider
                             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
 
                     loadApplicationPermissions(serviceProviderName, serviceProvider);
 
                     if (authenticationSteps == null || authenticationSteps.length == 0) {
-                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                                .getAuthenticationSteps();
-                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                                .setAuthenticationSteps(authenticationSteps);
+                        setDefaultAuthenticationSeq(ApplicationConstants.DEFAULT_AUTH_SEQ, tenantDomain,
+                                serviceProvider);
                     }
                 }
             }
@@ -1632,7 +1643,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+            String errorMsg = "Application registration failed. An application with name \'" + serviceProvider.
+                    getApplicationName() + "\' already exists.";
+            log.error(errorMsg);
+            throw new IdentityApplicationRegistrationFailureException(errorMsg);
         }
 
         // Invoking the listeners.
@@ -1831,4 +1845,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
     }
+
+    private void setDefaultAuthenticationSeq(String sequenceName, String tenantDomain, ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        // if "Authentication Type" is "Default", get the tenant wise default authentication sequence if
+        // available, otherwise the authentication sequence and adaptive script configuration in default SP
+        DefaultAuthSeqMgtService seqMgtService = DefaultAuthSeqMgtServiceImpl.getInstance();
+        DefaultAuthenticationSequence sequence;
+        try {
+            sequence = seqMgtService.getDefaultAuthenticationSeq(sequenceName, tenantDomain);
+        } catch (DefaultAuthSeqMgtException e) {
+            throw new IdentityApplicationManagementException("Error when retrieving default " +
+                    "authentication sequence in tenant: " + tenantDomain, e);
+        }
+
+        if (sequence != null && sequence.getContent() != null) {
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
+                    sequence.getContent().getAuthenticationSteps());
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(
+                    sequence.getContent().getAuthenticationScriptConfig());
+        } else {
+            ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                    .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
+                    defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps());
+            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(
+                    defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
+        }
+    }
 }
+

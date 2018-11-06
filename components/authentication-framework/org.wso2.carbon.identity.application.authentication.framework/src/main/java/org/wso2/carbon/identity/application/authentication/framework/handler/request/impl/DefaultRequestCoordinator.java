@@ -20,13 +20,17 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -37,14 +41,21 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -61,9 +72,17 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams
-        .TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
 
 /**
  * Request Coordinator
@@ -71,6 +90,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
+    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
@@ -181,6 +201,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
 
+                if (isIdentifierFirstRequest(request)) {
+                    StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+                    boolean isIDFAuthenticatorInCurrentStep = isIDFAuthenticatorFoundInStep(stepConfig);
+                    //Current step cannot handle the IDF request. This is probably user has clicked on the back button.
+                    if (!isIDFAuthenticatorInCurrentStep) {
+                        handleIdentifierRequestInPreviousSteps(context);
+                    }
+                }
+
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
@@ -246,6 +275,57 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
             }
         }
+    }
+
+    private void handleIdentifierRequestInPreviousSteps(AuthenticationContext context) {
+
+        boolean isIDFAuthenticatorFound = false;
+        int currentStep = context.getCurrentStep();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Started to handle the IDF request as previous steps since the current steps cannot handle the" +
+                    " IDF request");
+        }
+        while (currentStep > 1 && !isIDFAuthenticatorFound) {
+            currentStep = currentStep - 1;
+            isIDFAuthenticatorFound = isIDFAuthenticatorFoundInStep(context.getSequenceConfig().getStepMap().get(currentStep));
+        }
+
+        if (isIDFAuthenticatorFound) {
+            context.setCurrentStep(currentStep);
+            context.setProperty(BACK_TO_PREVIOUS_STEP, true);
+            //IDF should be the first step.
+            context.getCurrentAuthenticatedIdPs().clear();
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("IDF requests cannot handle in any of the previous steps.");
+            }
+        }
+    }
+
+    private boolean isIDFAuthenticatorFoundInStep( StepConfig stepConfig) {
+
+        boolean isIDFAuthenticatorInCurrentStep = false;
+        if (stepConfig != null) {
+            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+            for (AuthenticatorConfig config : authenticatorList) {
+                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
+                    isIDFAuthenticatorInCurrentStep = true;
+                }
+            }
+        }
+        return isIDFAuthenticatorInCurrentStep;
+    }
+
+    /**
+     * This method is used to identify the Identifier First requests.
+     * @param request HttpServletRequest
+     * @return true or false.
+     */
+    private boolean isIdentifierFirstRequest(HttpServletRequest request) {
+
+        String authType = request.getParameter(AUTH_TYPE);
+        return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
     }
 
     /**
@@ -513,22 +593,33 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
                     if (authenticatedUser != null) {
-                        String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
-                        // set the user for the current authentication/logout flow
-                        context.setSubject(authenticatedUser);
 
-                        if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " + authenticatedUser
-                                    .getAuthenticatedSubjectIdentifier());
-                        }
-
-                        if (authenticatedUserTenantDomain != null) {
-                            // set the user tenant domain for the current authentication/logout flow
-                            context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+                        if (isUserAllowedToLogin(authenticatedUser)) {
+                            String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
+                            // set the user for the current authentication/logout flow
+                            context.setSubject(authenticatedUser);
 
                             if (log.isDebugEnabled()) {
-                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                                log.debug("Already authenticated by username: " + authenticatedUser
+                                        .getAuthenticatedSubjectIdentifier());
                             }
+
+                            if (authenticatedUserTenantDomain != null) {
+                                // set the user tenant domain for the current authentication/logout flow
+                                context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
+
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                                }
+                            }
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("User %s is not allowed to authenticate from previous session.",
+                                        authenticatedUser.toString()));
+                            }
+                            context.setPreviousSessionFound(false);
+                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey);
+                            sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }
                     // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
@@ -655,4 +746,134 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         req.setAttribute(TENANT_DOMAIN, context.getTenantDomain());
     }
 
+    /**
+     * Checks whether AuthenticatedUser object contains a valid user for authentication.
+     * Returns false if user verification is failed.
+     *
+     * @param user
+     * @return boolean
+     * @throws FrameworkException
+     */
+    private boolean isUserAllowedToLogin(AuthenticatedUser user) {
+
+        if (user.isFederatedUser()) {
+            return true;
+        }
+
+        int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
+        try {
+            UserRealm userRealm = (UserRealm) FrameworkServiceComponent.getRealmService().
+                    getTenantUserRealm(tenantId);
+            UserStoreManager userStoreManager = userRealm.getUserStoreManager().
+                    getSecondaryUserStoreManager(user.getUserStoreDomain());
+
+            if (userStoreManager.isExistingUser(user.getUserName())) {
+                return !(isUserDisabled(userStoreManager, user) ||
+                        isUserLocked(userStoreManager, user));
+
+            } else {
+                log.error("Trying to authenticate non existing user: " + user.getUserName());
+            }
+        } catch (UserStoreException e) {
+            log.error("Error while checking existence of user: " + user.getUserName(), e);
+        } catch (FrameworkException e) {
+            log.error("Error while validating user: " + user.getUserName(), e);
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether the given user is locked and returns true for locked users
+     *
+     * @param userStoreManager
+     * @param user
+     * @return boolean
+     * @throws FrameworkException
+     */
+    private boolean isUserLocked(UserStoreManager userStoreManager, AuthenticatedUser user) throws FrameworkException {
+
+        if (!isAccountLockingEnabled(user.getTenantDomain())) {
+            return false;
+        }
+
+        String accountLockedClaimValue = getClaimValue(user.getUserName(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
+        boolean accountLocked = Boolean.parseBoolean(accountLockedClaimValue);
+
+        if (accountLocked) {
+            long unlockTime = 0;
+            String accountUnlockTimeClaimValue = getClaimValue(
+                    user.getUserName(), userStoreManager, ACCOUNT_UNLOCK_TIME_CLAIM);
+
+            if (NumberUtils.isNumber(accountUnlockTimeClaimValue)) {
+                unlockTime = Long.parseLong(accountUnlockTimeClaimValue);
+            }
+
+            if (unlockTime != 0 && System.currentTimeMillis() >= unlockTime) {
+                return false;
+            }
+        }
+        return accountLocked;
+    }
+
+    /**
+     * Checks whether the given user is disabled and returns true for disabled users
+     * @param userStoreManager
+     * @param user
+     * @return boolean
+     * @throws FrameworkException
+     */
+    private boolean isUserDisabled(UserStoreManager userStoreManager, AuthenticatedUser user)
+            throws FrameworkException {
+
+        if (!isAccountDisablingEnabled(user.getTenantDomain())) {
+            return false;
+        }
+
+        String accountDisabledClaimValue = getClaimValue(
+                user.getUserName(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
+        return Boolean.parseBoolean(accountDisabledClaimValue);
+
+    }
+
+    private boolean isAccountLockingEnabled(String tenantDomain) throws FrameworkException {
+
+        Property accountLockConfigProperty = FrameworkUtils.getResidentIdpConfiguration(
+                ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY, tenantDomain);
+
+        return accountLockConfigProperty != null && Boolean.parseBoolean(accountLockConfigProperty.getValue());
+    }
+
+    private boolean isAccountDisablingEnabled(String tenantDomain) throws FrameworkException {
+
+        Property accountDisableConfigProperty = FrameworkUtils.getResidentIdpConfiguration(
+                ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY, tenantDomain);
+
+        return accountDisableConfigProperty != null && Boolean.parseBoolean(accountDisableConfigProperty.getValue());
+    }
+
+    /**
+     * This method retrieves requested claim value from the user store
+     *
+     * @param username
+     * @param userStoreManager
+     * @param claimURI
+     * @return claim value as a String
+     * @throws FrameworkException
+     */
+    private String getClaimValue(String username, UserStoreManager userStoreManager, String claimURI) throws
+            FrameworkException {
+
+        try {
+            Map<String, String> values = userStoreManager.getUserClaimValues(username, new String[]{claimURI},
+                    UserCoreConstants.DEFAULT_PROFILE);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("%s claim value of user %s is set to: " + values.get(claimURI),
+                        claimURI, username));
+            }
+            return values.get(claimURI);
+
+        } catch (UserStoreException e) {
+            throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
+        }
+    }
 }

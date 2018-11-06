@@ -113,7 +113,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
  * <li>IDN_APPMGT_ROLE_MAPPING</li>
  * </ul>
  */
-public class ApplicationDAOImpl implements ApplicationDAO {
+public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
 
@@ -2981,6 +2981,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public ApplicationBasicInfo[] getAllApplicationBasicInfo()
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo("*");
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter)
+            throws IdentityApplicationManagementException {
+
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         if (log.isDebugEnabled()) {
@@ -2994,9 +3001,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
+            if (StringUtils.isNotBlank(filter)) {
+                filter = filter.trim();
+                filter = filter.replace("*", "%");
+                filter = filter.replace("?", "_");
+            } else {
+                filter = "%";
+            }
             getAppNamesStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT);
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
+            getAppNamesStmt.setString(2, filter);
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
@@ -3011,7 +3026,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             }
             connection.commit();
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while Reading all Applications");
+            throw new IdentityApplicationManagementException("Error while Reading all Applications", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);

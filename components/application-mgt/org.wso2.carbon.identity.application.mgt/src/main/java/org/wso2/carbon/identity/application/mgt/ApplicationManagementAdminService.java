@@ -119,10 +119,23 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo("*");
+    }
+
+    /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter)
+            throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            ApplicationBasicInfo[] applicationBasicInfos =
-                    applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
+            ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.
+                    getApplicationBasicInfo(getTenantDomain(), getUsername(), filter);
             ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
             for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
                 if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {

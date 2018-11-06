@@ -33,6 +33,9 @@ public abstract class FrameworkConstants {
     public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
     public static final String LOCAL_ROLE_CLAIM_URI = "http://wso2.org/claims/role";
+    public static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
+    public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+    public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
@@ -115,6 +118,9 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
+    public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
+
+    public static final String AUTH_MECHANISM = "AuthMechanism";
 
     private FrameworkConstants() {
 
@@ -158,6 +164,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL = "IdentifierFirstConfirmationURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
@@ -219,6 +226,9 @@ public abstract class FrameworkConstants {
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
         public static final String REMEMBER_ME = "chkRemember";
         public static final String INPUT_TYPE = "inputType";
+        public static final String AUTH_TYPE = "authType";
+        public static final String IDF = "idf";
+        public static final String IDENTIFIER_CONSENT = "identifier_consent";
 
         private RequestParams() {
         }
@@ -256,6 +266,7 @@ public abstract class FrameworkConstants {
         public static final String AUTH_REQUEST = "authRequest";
         public static final String HTTP_REQUEST = "HttpServletRequest";
         public static final String HTTP_RESPONSE = "HttpServletResponse";
+        public static final String IDENTIFIER_FIRST_AUTHENTICATOR = "IdentifierExecutor";
 
         private RequestAttribute() {
         }
@@ -366,5 +377,11 @@ public abstract class FrameworkConstants {
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+    }
+
+    public static class ResidentIdpPropertyName {
+
+        public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
+        public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
     }
 }

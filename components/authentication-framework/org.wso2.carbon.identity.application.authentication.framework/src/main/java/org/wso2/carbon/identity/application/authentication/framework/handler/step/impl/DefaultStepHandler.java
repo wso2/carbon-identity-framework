@@ -123,7 +123,8 @@ public class DefaultStepHandler implements StepHandler {
             } else {
                 String authenticatedIdP = authenticatedStepIdps.entrySet().iterator().next().getKey();
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
-                populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData);
+                populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
+                        .get(authenticatedIdP));
             }
 
             stepConfig.setCompleted(true);
@@ -221,7 +222,8 @@ public class DefaultStepHandler implements StepHandler {
 
                     // skip the step if this is a normal request
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
-                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData);
+                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
+                            authenticatedStepIdps.get(idp));
                     stepConfig.setCompleted(true);
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
@@ -365,7 +367,8 @@ public class DefaultStepHandler implements StepHandler {
                     .isReAuthenticate()) {
                 // skip the step if this is a normal request
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idpName);
-                populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData);
+                populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
+                        .get(idpName));
                 stepConfig.setCompleted(true);
                 return;
             }
@@ -532,7 +535,7 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-            if (context.getExternalIdP() != null) {
+            if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
                 idpName = context.getExternalIdP().getIdPName();
             }
 
@@ -577,12 +580,21 @@ public class DefaultStepHandler implements StepHandler {
         context.setRequestAuthenticated(false);
     }
 
+    @Deprecated
     protected void populateStepConfigWithAuthenticationDetails(StepConfig stepConfig,
                                                                AuthenticatedIdPData authenticatedIdPData) {
 
         stepConfig.setAuthenticatedUser(authenticatedIdPData.getUser());
         stepConfig.setAuthenticatedIdP(authenticatedIdPData.getIdpName());
         stepConfig.setAuthenticatedAutenticator(authenticatedIdPData.getAuthenticator());
+    }
+
+    protected void populateStepConfigWithAuthenticationDetails(StepConfig stepConfig, AuthenticatedIdPData
+            authenticatedIdPData, AuthenticatorConfig authenticatedStepIdp) {
+
+        stepConfig.setAuthenticatedUser(authenticatedIdPData.getUser());
+        stepConfig.setAuthenticatedIdP(authenticatedIdPData.getIdpName());
+        stepConfig.setAuthenticatedAutenticator(authenticatedStepIdp);
     }
 
     /**

@@ -81,6 +81,8 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_ID_BY_APP_NAME = "SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
     public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
             "TENANT_ID = ?";
+    public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP " +
+            "WHERE TENANT_ID = ? AND APP_NAME LIKE ?";
     public static final String LOAD_APP_ID_BY_CLIENT_ID_AND_TYPE = "SELECT APP_ID FROM SP_AUTH_STEP WHERE CLIENT_ID = ? "
                                                                    + "AND CLIENT_TYPE= ? AND TENANT_ID = ?";
     public static final String LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE = "SELECT APP_NAME "
@@ -221,5 +223,21 @@ public class ApplicationMgtDBQueries {
     public static final String DELETE_SP_TEMPLATE_BY_NAME = "DELETE FROM SP_TEMPLATE WHERE NAME = ? AND TENANT_ID= ?";
     public static final String UPDATE_SP_TEMPLATE_BY_NAME = "UPDATE SP_TEMPLATE SET NAME= ?,DESCRIPTION = ?," +
             "CONTENT = ? WHERE NAME = ? AND TENANT_ID = ?";
+
+    /**
+     * DB Queries for default authentication sequence management.
+     */
+    public static final String ADD_DEFAULT_SEQ = "INSERT INTO SP_DEFAULT_AUTH_SEQ(NAME, DESCRIPTION, SEQ_CONTENT, " +
+            "TENANT_ID) VALUES (?, ?, ?, ?)";
+    public static final String GET_DEFAULT_SEQ = "SELECT NAME, DESCRIPTION, SEQ_CONTENT FROM SP_DEFAULT_AUTH_SEQ " +
+            "WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String GET_DEFAULT_SEQ_INFO = "SELECT NAME, DESCRIPTION FROM SP_DEFAULT_AUTH_SEQ WHERE " +
+            "NAME = ? AND TENANT_ID = ?";
+    public static final String GET_DEFAULT_SEQ_ID = "SELECT ID FROM SP_DEFAULT_AUTH_SEQ WHERE NAME = ? AND " +
+            "TENANT_ID = ?";
+    public static final String UPDATE_DEFAULT_SEQ = "UPDATE SP_DEFAULT_AUTH_SEQ SET NAME = ?,DESCRIPTION = ?," +
+            "SEQ_CONTENT = ? WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String DELETE_DEFAULT_SEQ = "DELETE FROM SP_DEFAULT_AUTH_SEQ WHERE NAME = ? AND TENANT_ID = ?";
 }
+
 

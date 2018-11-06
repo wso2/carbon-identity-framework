@@ -25,8 +25,10 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -69,6 +71,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.Auth
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
@@ -88,11 +92,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Executing the Step Based Authentication...");
         }
 
+        if (isBackToPreviousStep(context)) {
+            modifyCurrentNodeAsPreviousStep(context);
+        }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled() || !ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType)) {
+        if (graph == null || !graph.isEnabled() || (!ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType) &&
+                !ApplicationConstants.AUTH_TYPE_DEFAULT.equals(authenticationType))) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "
@@ -118,6 +126,34 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 isInterrupted = handleNode(request, response, context, sequenceConfig, currentNode);
             }
         }
+    }
+
+    private void modifyCurrentNodeAsPreviousStep(AuthenticationContext context) {
+
+        context.removeProperty(BACK_TO_PREVIOUS_STEP);
+        if (context.getProperty(PROP_CURRENT_NODE) != null) {
+            //Identifier first should be the first step. Other steps will be determine dynamically.
+            for (int i = 2; i <= context.getSequenceConfig().getStepMap().size(); i++) {
+                context.getSequenceConfig().getStepMap().remove(i);
+            }
+            AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).getParent();
+            while (parentNode != null && !isIdentifierFirstStep((parentNode))) {
+                if (parentNode instanceof DynamicDecisionNode) {
+                    ((DynamicDecisionNode) parentNode).setDefaultEdge(new EndStep());
+                }
+                parentNode = parentNode.getParent();
+            }
+            context.setProperty(PROP_CURRENT_NODE, parentNode);
+            if (log.isDebugEnabled()) {
+                log.debug("Modified current node a parent node which can handle the Identifier First requests.");
+            }
+        }
+    }
+
+    private boolean isBackToPreviousStep(AuthenticationContext context) {
+
+        return context.getProperty(BACK_TO_PREVIOUS_STEP) != null && Boolean.parseBoolean(context.getProperty
+                (BACK_TO_PREVIOUS_STEP).toString());
     }
 
     private boolean handleNode(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
@@ -383,8 +419,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
 
         if (flowStatus == FAIL_COMPLETED) {
-            if (stepConfigGraphNode.getNext() instanceof EndStep) {
-                stepConfigGraphNode.setNext(new FailNode());
+            if (!(stepConfigGraphNode.getNext() instanceof DynamicDecisionNode)) {
+                if (context.isRetrying()) {
+                    StepConfigGraphNode newNextNode = new StepConfigGraphNode(stepConfigGraphNode.getStepConfig());
+                    newNextNode.setNext(stepConfigGraphNode.getNext());
+                    AuthGraphNode parentNode = stepConfigGraphNode.getParent();
+                    if (parentNode == null) {
+                        parentNode = sequenceConfig.getAuthenticationGraph().getStartNode();
+                    }
+                    if (parentNode instanceof DynamicDecisionNode) {
+                        ((DynamicDecisionNode) parentNode).setDefaultEdge(newNextNode);
+                    } else if (parentNode instanceof StepConfigGraphNode) {
+                        ((StepConfigGraphNode) parentNode).setNext(newNextNode);
+                    }
+                    stepConfigGraphNode.setNext(newNextNode);
+                } else {
+                    stepConfigGraphNode.setNext(new FailNode());
+                }
             }
         }
         // if step is not completed, that means step wants to redirect to outside
@@ -525,7 +576,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                         executeFunction("onFail", dynamicDecisionNode, context);
                     } else {
                         if (context.isRetrying()) {
-                            AuthGraphNode nextNode = dynamicDecisionNode.gerParent();
+                            AuthGraphNode nextNode = dynamicDecisionNode.getParent();
                             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
                             return;
                         }
@@ -629,5 +680,20 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
 
         throw (E) exception;
+    }
+
+    private boolean isIdentifierFirstStep(AuthGraphNode authGraphNode) {
+
+        if (authGraphNode instanceof DynamicDecisionNode) {
+            return false;
+        } else if (authGraphNode instanceof StepConfigGraphNode) {
+            StepConfig stepConfig = ((StepConfigGraphNode) authGraphNode).getStepConfig();
+            for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+                if (authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

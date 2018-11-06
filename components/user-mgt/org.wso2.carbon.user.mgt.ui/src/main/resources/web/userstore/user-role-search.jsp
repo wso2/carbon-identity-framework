@@ -38,6 +38,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 
 <%
     String isAJAXRequest = request.getParameter("ajax");
@@ -286,7 +287,8 @@
             if (doValidateForm($("#id_search")[0], '<fmt:message key="error.input.validation.msg"/>')) {
                 var category = $("input[name=radio_user_role]:checked").val();
                 $.ajax({
-                    url: "/userandrolemgtservice?category=" + category + "&pageNumber=" + pageNumber,
+                    url: "<%=IdentityUtil.getServerURL("/userandrolemgtservice", true, true)%>?category=" + category
+                    + "&pageNumber=" + pageNumber,
                     type: "POST",
                     data: $("#id_search").serialize(),
                     success: function (data, textStatus, jqXHR) {
