@@ -1,4 +1,3 @@
-
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
@@ -45,7 +44,7 @@
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
 
-             FunctionLibraryManagementServiceClient serviceClient =
+            FunctionLibraryManagementServiceClient serviceClient =
                     new FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
             serviceClient.deleteFunctionLibrary(functionLibraryName);
 

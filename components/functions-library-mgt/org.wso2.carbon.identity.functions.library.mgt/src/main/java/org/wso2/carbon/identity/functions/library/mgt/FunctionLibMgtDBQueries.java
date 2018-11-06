@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.functions.library.mgt;
 
 /**
  * This class contains default SQL queries.
- * */
+ */
 public class FunctionLibMgtDBQueries {
 
     // STORE Queries

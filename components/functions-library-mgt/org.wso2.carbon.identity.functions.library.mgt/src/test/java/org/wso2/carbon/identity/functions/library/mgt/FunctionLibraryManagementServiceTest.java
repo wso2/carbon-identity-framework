@@ -286,28 +286,25 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
     @Test(dataProvider = "updateFunctionLibraryDataProvider")
     public void updateFunctionLibrary(Object functionLibrary, String tenantDomain) throws Exception {
 
-            FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
-            FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
-            PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
+        FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
+        FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
+        PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
 
-            addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
-            FunctionLibrary funLib = (FunctionLibrary) functionLibrary;
-            String oldName = funLib.getFunctionLibraryName();
-            if(oldName=="sample11"){
-                funLib.setFunctionLibraryName("");
-            }
-            else if(oldName=="sample12"){
-                funLib.setFunctionLibraryName("#$%^%^");
-            }
-            else if(oldName=="sample13"){
-                funLib.setFunctionLibraryName("sample");
-            }
-            else{
-                funLib.setFunctionLibraryName("updated");
-            }
+        addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
+        FunctionLibrary funLib = (FunctionLibrary) functionLibrary;
+        String oldName = funLib.getFunctionLibraryName();
+        if (oldName == "sample11") {
+            funLib.setFunctionLibraryName("");
+        } else if (oldName == "sample12") {
+            funLib.setFunctionLibraryName("#$%^%^");
+        } else if (oldName == "sample13") {
+            funLib.setFunctionLibraryName("sample");
+        } else {
+            funLib.setFunctionLibraryName("updated");
+        }
         try {
-            when(functionLibraryDAO.isFunctionLibraryExists("sample",tenantDomain)).thenReturn(true);
-            when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(),tenantDomain)).thenReturn(funLib);
+            when(functionLibraryDAO.isFunctionLibraryExists("sample", tenantDomain)).thenReturn(true);
+            when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain)).thenReturn(funLib);
             functionLibraryManagementService.updateFunctionLibrary(funLib, tenantDomain, oldName);
 
             assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain), "Failed to update function library.");
@@ -315,13 +312,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             // Clean after test
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
         } catch (FunctionLibraryManagementException e) {
-            if ( !funLib.getFunctionLibraryName().equals(oldName) && functionLibraryDAO.isFunctionLibraryExists(funLib.getFunctionLibraryName(), tenantDomain)){
-                assertEquals(e.getMessage(),"Already a function library available with the same name.");
+            if (!funLib.getFunctionLibraryName().equals(oldName) && functionLibraryDAO.isFunctionLibraryExists(funLib.getFunctionLibraryName(), tenantDomain)) {
+                assertEquals(e.getMessage(), "Already a function library available with the same name.");
             }
-            if(!isRegexValidated(funLib.getFunctionLibraryName())){
-                assertEquals(e.getMessage(),"The function library name " +
+            if (!isRegexValidated(funLib.getFunctionLibraryName())) {
+                assertEquals(e.getMessage(), "The function library name " +
                         funLib.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                                "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
+                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
             }
         } catch (Exception e) {
             e.printStackTrace();

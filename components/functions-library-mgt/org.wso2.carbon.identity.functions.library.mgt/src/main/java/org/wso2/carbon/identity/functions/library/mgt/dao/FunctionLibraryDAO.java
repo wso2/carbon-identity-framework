@@ -27,65 +27,65 @@ import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 public interface FunctionLibraryDAO {
 
     /**
-     *Add a new function library.
+     * Add a new function library.
      *
-     * @param functionLibrary   Function library
-     * @param tenantDomain      Tenant domain
+     * @param functionLibrary Function library
+     * @param tenantDomain    Tenant domain
      * @throws FunctionLibraryManagementException
      */
-    void createFunctionLibrary (FunctionLibrary functionLibrary, String tenantDomain)
+    void createFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
-     *Retrieve a function library.
+     * Retrieve a function library.
      *
      * @param functionLibraryName Name of the function library
      * @param tenantDomain        Tenant domain
-     * @return                    Function library
+     * @return Function library
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary getFunctionLibrary (String functionLibraryName, String tenantDomain)
+    FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
-     *Retrieve a list of function libraries in the given tenant domain.
+     * Retrieve a list of function libraries in the given tenant domain.
      *
-     * @param tenantDomain      Tenant domain
-     * @return                  A list of function libraries
+     * @param tenantDomain Tenant domain
+     * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary[] listFunctionLibraries (String tenantDomain)
+    FunctionLibrary[] listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
-     *Update an existing function library.
+     * Update an existing function library.
      *
-     * @param functionLibrary       Function library
-     * @param tenantDomain          Tenant domain
-     * @param oldFunctionLibName    Previous name of the function library
+     * @param functionLibrary    Function library
+     * @param tenantDomain       Tenant domain
+     * @param oldFunctionLibName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
-    void updateFunctionLibrary (FunctionLibrary functionLibrary, String tenantDomain, String oldFunctionLibName)
+    void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain, String oldFunctionLibName)
             throws FunctionLibraryManagementException;
 
     /**
-     *Delete an existing function library.
+     * Delete an existing function library.
      *
-     * @param functionLibraryName   Name of the function library
-     * @param tenantDomain          Tenant domain
+     * @param functionLibraryName Name of the function library
+     * @param tenantDomain        Tenant domain
      * @throws FunctionLibraryManagementException
      */
-    void deleteFunctionLibrary (String functionLibraryName, String tenantDomain)
+    void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
      * Checks whether the function library already exists with the name.
      *
-     * @param functionLibraryName   Name of the function library
-     * @param tenantDomain          Tenant domain
-     * @return                      Whether the function library exists or not
+     * @param functionLibraryName Name of the function library
+     * @param tenantDomain        Tenant domain
+     * @return Whether the function library exists or not
      */
-    boolean isFunctionLibraryExists (String functionLibraryName, String tenantDomain)
+    boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException;
 
 }

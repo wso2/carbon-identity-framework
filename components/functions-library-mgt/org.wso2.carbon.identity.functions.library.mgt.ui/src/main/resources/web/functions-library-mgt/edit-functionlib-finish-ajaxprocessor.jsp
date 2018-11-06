@@ -1,4 +1,3 @@
-
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
@@ -47,7 +46,7 @@
 
         FunctionLibrary functionLibrary = new FunctionLibrary();
 
-        functionLibrary.setFunctionLibraryName(functionLibraryName+".js");
+        functionLibrary.setFunctionLibraryName(functionLibraryName + ".js");
         functionLibrary.setDescription(description);
         functionLibrary.setFunctionLibraryScript(content);
 

@@ -45,7 +45,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     /**
      * Get FunctionLibraryManagementServiceImpl instance.
      *
-     * @return  FunctionLibraryManagementServiceImpl instance
+     * @return FunctionLibraryManagementServiceImpl instance
      */
     public static FunctionLibraryManagementServiceImpl getInstance() {
 
@@ -91,7 +91,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     }
 
     @Override
-    public FunctionLibrary  getFunctionLibrary(String functionLibraryName, String tenantDomain)
+    public FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         return functionLibraryDAO.getFunctionLibrary(functionLibraryName, tenantDomain);

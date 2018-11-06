@@ -29,20 +29,20 @@ public class FunctionLibraryTest {
     private final FunctionLibrary functionLibrary = new FunctionLibrary();
 
     @Test
-    public void getFunctionLibraryname(){
+    public void getFunctionLibraryname() {
         functionLibrary.setFunctionLibraryName("sampleLib1.js");
-        assertEquals("sampleLib1.js",functionLibrary.getFunctionLibraryName());
+        assertEquals("sampleLib1.js", functionLibrary.getFunctionLibraryName());
     }
 
     @Test
-    public void getDescription(){
+    public void getDescription() {
         functionLibrary.setDescription("sampleLib1Description");
-        assertEquals("sampleLib1Description",functionLibrary.getDescription());
+        assertEquals("sampleLib1Description", functionLibrary.getDescription());
     }
 
     @Test
-    public void getFunctionLibraryScript(){
+    public void getFunctionLibraryScript() {
         functionLibrary.setFunctionLibraryScript("function sample1 ()");
-        assertEquals("function sample1 ()",functionLibrary.getFunctionLibraryScript());
+        assertEquals("function sample1 ()", functionLibrary.getFunctionLibraryScript());
     }
 }

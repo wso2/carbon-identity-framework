@@ -26,11 +26,11 @@ public class FunctionLibraryManagementException extends Exception {
 
 
     /**
-     *FunctionLibraryManagementException.
+     * FunctionLibraryManagementException.
      *
      * @param message Error message
      */
-    public  FunctionLibraryManagementException (String message) {
+    public FunctionLibraryManagementException(String message) {
         super(message);
         this.message = message;
     }
@@ -41,7 +41,7 @@ public class FunctionLibraryManagementException extends Exception {
      * @param message Error message
      * @param e       Error
      */
-    public  FunctionLibraryManagementException (String message, Throwable e) {
+    public FunctionLibraryManagementException(String message, Throwable e) {
         super(message, e);
         this.message = message;
     }

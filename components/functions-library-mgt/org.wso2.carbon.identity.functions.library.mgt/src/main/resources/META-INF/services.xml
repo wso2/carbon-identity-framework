@@ -21,12 +21,14 @@
         <transports>
             <transport>https</transport>
         </transports>
-        <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true" />
+        <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
         <description>Function library related functionality</description>
-        <parameter name="ServiceClass">org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementAdminService</parameter>
+        <parameter name="ServiceClass">
+            org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementAdminService
+        </parameter>
 
         <operation name="createFunctionLibrary">
-           <parameter name="AuthorizationAction" locked="true">/permission/protected/manage</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/protected/manage</parameter>
         </operation>
 
         <operation name="listFunctionLibraries">
@@ -47,7 +49,7 @@
         </operation>
 
 
-    <parameter name="adminService" locked="true">true</parameter>
+        <parameter name="adminService" locked="true">true</parameter>
     </service>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>

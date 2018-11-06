@@ -37,11 +37,11 @@ public class FunctionLibraryManagementServiceClient {
     FunctionLibraryManagementAdminServiceStub stub;
 
     /**
-     *Instantiates FunctionLibraryManagementServiceClient.
+     * Instantiates FunctionLibraryManagementServiceClient.
      *
-     * @param cookie            For session management
-     * @param backendServerURL  URL of the back end server where FunctionLibraryManagementAdminServiceStub is running
-     * @param configCtx         ConfigurationContext
+     * @param cookie           For session management
+     * @param backendServerURL URL of the back end server where FunctionLibraryManagementAdminServiceStub is running
+     * @param configCtx        ConfigurationContext
      * @throws AxisFault
      */
     public FunctionLibraryManagementServiceClient(String cookie, String backendServerURL,
@@ -57,12 +57,12 @@ public class FunctionLibraryManagementServiceClient {
     }
 
     /**
-     *Create a new function library.
+     * Create a new function library.
      *
-     * @param functionLibrary   Function library
+     * @param functionLibrary Function library
      * @throws AxisFault
      */
-    public void createFunctionLibrary (FunctionLibrary functionLibrary) throws AxisFault {
+    public void createFunctionLibrary(FunctionLibrary functionLibrary) throws AxisFault {
 
         try {
             stub.createFunctionLibrary(functionLibrary);
@@ -72,12 +72,12 @@ public class FunctionLibraryManagementServiceClient {
     }
 
     /**
-     *Retrieve a list of function libraries.
+     * Retrieve a list of function libraries.
      *
-     * @return  A list of function library
+     * @return A list of function library
      * @throws AxisFault
      */
-    public FunctionLibrary[] listFunctionLibraries () throws AxisFault {
+    public FunctionLibrary[] listFunctionLibraries() throws AxisFault {
 
         try {
             return stub.listFunctionLibraries();
@@ -88,65 +88,65 @@ public class FunctionLibraryManagementServiceClient {
     }
 
     /**
-     *Retrieve a function library using the given name.
+     * Retrieve a function library using the given name.
      *
-     * @param functionLibraryName   Function library name
-     * @return                      A function library
+     * @param functionLibraryName Function library name
+     * @return A function library
      * @throws AxisFault
      */
-    public FunctionLibrary getFunctionLibrary (String functionLibraryName) throws AxisFault {
+    public FunctionLibrary getFunctionLibrary(String functionLibraryName) throws AxisFault {
 
         try {
             return stub.getFunctionLibrary(functionLibraryName);
         } catch (RemoteException | FunctionLibraryManagementAdminServiceFunctionLibraryManagementException e) {
-           handleException(e);
+            handleException(e);
         }
         return null;
     }
 
     /**
-     *Delete an existing function library.
+     * Delete an existing function library.
      *
-     * @param functionLibraryName       Function library name
+     * @param functionLibraryName Function library name
      * @throws AxisFault
      */
-    public void deleteFunctionLibrary (String functionLibraryName) throws AxisFault {
+    public void deleteFunctionLibrary(String functionLibraryName) throws AxisFault {
 
         try {
             stub.deleteFunctionLibrary(functionLibraryName);
         } catch (RemoteException | FunctionLibraryManagementAdminServiceFunctionLibraryManagementException e) {
-           handleException(e);
+            handleException(e);
         }
     }
 
     /**
-     *Update an existing function library.
+     * Update an existing function library.
      *
-     * @param functionLibrary           Function library
-     * @param oldFunctionLibraryName    Previous name of function library
+     * @param functionLibrary        Function library
+     * @param oldFunctionLibraryName Previous name of function library
      * @throws AxisFault
      */
-    public void updateFunctionLibrary (FunctionLibrary functionLibrary, String oldFunctionLibraryName)
+    public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)
             throws AxisFault {
         try {
             stub.updateFunctionLibrary(functionLibrary, oldFunctionLibraryName);
         } catch (RemoteException | FunctionLibraryManagementAdminServiceFunctionLibraryManagementException e) {
-           handleException(e);
+            handleException(e);
         }
     }
 
     /**
-     *Handles the exception.
+     * Handles the exception.
      *
-     * @param e  Exception
+     * @param e Exception
      * @throws AxisFault
      */
     private void handleException(Exception e) throws AxisFault {
         String errorMessage = "Unknown error occurred.";
 
-        if (e instanceof  FunctionLibraryManagementAdminServiceFunctionLibraryManagementException) {
-            FunctionLibraryManagementAdminServiceFunctionLibraryManagementException  exception =
-                    ( FunctionLibraryManagementAdminServiceFunctionLibraryManagementException ) e;
+        if (e instanceof FunctionLibraryManagementAdminServiceFunctionLibraryManagementException) {
+            FunctionLibraryManagementAdminServiceFunctionLibraryManagementException exception =
+                    (FunctionLibraryManagementAdminServiceFunctionLibraryManagementException) e;
             if (exception.getFaultMessage().getFunctionLibraryManagementException() != null) {
                 errorMessage = exception.getFaultMessage().getFunctionLibraryManagementException().getMessage();
             }

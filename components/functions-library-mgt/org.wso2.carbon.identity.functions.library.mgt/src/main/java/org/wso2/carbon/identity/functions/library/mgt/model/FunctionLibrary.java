@@ -52,7 +52,8 @@ public class FunctionLibrary {
      * @return Function library description
      */
     public String getDescription() {
-        return description; }
+        return description;
+    }
 
     /**
      * Set function library description.

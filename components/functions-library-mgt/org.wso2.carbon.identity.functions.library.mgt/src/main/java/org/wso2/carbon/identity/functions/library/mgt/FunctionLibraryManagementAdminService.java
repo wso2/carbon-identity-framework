@@ -35,12 +35,12 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     private FunctionLibraryManagementService functionLibMgtService;
 
     /**
-     *Create a function library with function library name, description and script.
+     * Create a function library with function library name, description and script.
      *
-     * @param functionLibrary   Function library
+     * @param functionLibrary Function library
      * @throws FunctionLibraryManagementException
      */
-    public void createFunctionLibrary (FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
+    public void createFunctionLibrary(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.createFunctionLibrary(functionLibrary, getTenantDomain());
@@ -53,9 +53,9 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     *Get all function libraries in a tenant.
+     * Get all function libraries in a tenant.
      *
-     * @return  A list of function libraries
+     * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary[] listFunctionLibraries() throws FunctionLibraryManagementException {
@@ -70,10 +70,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     *Get a function library using function library name.
+     * Get a function library using function library name.
      *
      * @param functionLibraryName Name of the function library
-     * @return                    Function library
+     * @return Function library
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary getFunctionLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
@@ -91,15 +91,15 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     *Delete an existing function library using the function library name.
+     * Delete an existing function library using the function library name.
      *
      * @param functionLibraryName Name of the function library
      * @throws FunctionLibraryManagementException
      */
     public void deleteFunctionLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
         try {
-        functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
-        functionLibMgtService.deleteFunctionLibrary(functionLibraryName, getTenantDomain());
+            functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
+            functionLibMgtService.deleteFunctionLibrary(functionLibraryName, getTenantDomain());
         } catch (FunctionLibraryManagementException flException) {
             log.error("Error while deleting function library " + functionLibraryName +
                     " for tenant domain " + getTenantDomain(), flException);
@@ -108,10 +108,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     *Update the details of a function library.
+     * Update the details of a function library.
      *
-     * @param functionLibrary           Function library with new details
-     * @param oldFunctionLibraryName    Previous name of the function library
+     * @param functionLibrary        Function library with new details
+     * @param oldFunctionLibraryName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
     public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)

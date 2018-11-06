@@ -29,9 +29,12 @@ import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryM
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,16 +43,16 @@ import java.util.ArrayList;
 
 /**
  * This class access the IDN_FUNCTION_LIBRARY database table to store, update retrieve and delete function libraries.
- * */
+ */
 public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
     private static Log log = LogFactory.getLog(FunctionLibraryDAOImpl.class);
 
     /**
-     *Create a function library.
+     * Create a function library.
      *
-     * @param functionLibrary   Function library
-     * @param tenantDomain      Tenant domain
+     * @param functionLibrary Function library
+     * @param tenantDomain    Tenant domain
      * @throws FunctionLibraryManagementException
      */
     public void createFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain)
@@ -88,11 +91,11 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     }
 
     /**
-     *Retrieve a function library from the given name.
+     * Retrieve a function library from the given name.
      *
-     * @param functionLibraryName   Function library name
-     * @param tenantDomain          Tenant domain
-     * @return                      Function library
+     * @param functionLibraryName Function library name
+     * @param tenantDomain        Tenant domain
+     * @return Function library
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
@@ -106,7 +109,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
              PreparedStatement getFunctionLibStmt = connection.prepareStatement(
-                FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
+                     FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
 
             getFunctionLibStmt.setInt(1, tenantID);
             getFunctionLibStmt.setString(2, functionLibraryName);
@@ -116,11 +119,14 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     FunctionLibrary functionlib = new FunctionLibrary();
                     functionlib.setFunctionLibraryName(resultSet.getString("NAME"));
                     functionlib.setDescription(resultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(resultSet.getString("DATA"));
+                    functionlib.setFunctionLibraryScript(getBlobValue(resultSet.getBinaryStream("DATA")));
                     return functionlib;
                 } else {
                     return null;
                 }
+            } catch (IOException e) {
+                throw new FunctionLibraryManagementException
+                        ("Error while reading function library" + functionLibraryName, e);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException
@@ -131,10 +137,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     }
 
     /**
-     *Retrieve function library list in the tenant domain.
+     * Retrieve function library list in the tenant domain.
      *
-     * @param tenantDomain      Tenant domain
-     * @return                  A list of function libraries
+     * @param tenantDomain Tenant domain
+     * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary[] listFunctionLibraries(String tenantDomain)
@@ -149,7 +155,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
              PreparedStatement getFunctionLibrariesStmt = connection.prepareStatement
-                (FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID)) {
+                     (FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID)) {
             getFunctionLibrariesStmt.setInt(1, tenantID);
 
             try (ResultSet functionLibsResultSet = getFunctionLibrariesStmt.executeQuery()) {
@@ -157,10 +163,12 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     FunctionLibrary functionlib = new FunctionLibrary();
                     functionlib.setFunctionLibraryName(functionLibsResultSet.getString("NAME"));
                     functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(functionLibsResultSet.getString("DATA"));
+                    functionlib.setFunctionLibraryScript(getBlobValue(functionLibsResultSet.getBinaryStream("DATA")));
                     functionLibraries.add(functionlib);
                 }
                 connection.commit();
+            } catch (IOException e) {
+                throw new FunctionLibraryManagementException("Error while reading function libraries", e);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException("Error while reading function libraries", e);
@@ -171,11 +179,11 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     }
 
     /**
-     *Update an existing function library.
+     * Update an existing function library.
      *
-     * @param functionLibrary       Function library
-     * @param tenantDomain          Tenant domain
-     * @param oldFunctionLibName    Previous name of the function library
+     * @param functionLibrary    Function library
+     * @param tenantDomain       Tenant domain
+     * @param oldFunctionLibName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
     public void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain, String oldFunctionLibName)
@@ -210,10 +218,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     }
 
     /**
-     *Delete an existing function library.
+     * Delete an existing function library.
      *
-     * @param functionLibraryName   Function library name
-     * @param tenantDomain          Tenant domain
+     * @param functionLibraryName Function library name
+     * @param tenantDomain        Tenant domain
      * @throws FunctionLibraryManagementException
      */
     public void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
@@ -225,8 +233,8 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-              PreparedStatement deleteFunctionLibStmt =
-                      connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB);) {
+             PreparedStatement deleteFunctionLibStmt =
+                     connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB);) {
 
             deleteFunctionLibStmt.setInt(1, tenantID);
             deleteFunctionLibStmt.setString(2, functionLibraryName);
@@ -244,14 +252,14 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     }
 
     /**
-     *Checks whether the function library already exists with the name.
+     * Checks whether the function library already exists with the name.
      *
-     * @param functionLibraryName       Name of the function library
-     * @param tenantDomain              Tenant domain
-     * @return                          Existence of the function library
+     * @param functionLibraryName Name of the function library
+     * @param tenantDomain        Tenant domain
+     * @return Existence of the function library
      * @throws FunctionLibraryManagementException
      */
-    public boolean isFunctionLibraryExists (String functionLibraryName, String tenantDomain)
+    public boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
         boolean isFunctionLibraryExists = false;
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
@@ -296,4 +304,36 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         }
     }
 
+    /**
+     * Get string from inputStream of a blob
+     *
+     * @param is input stream
+     * @return
+     * @throws IOException
+     */
+    private String getBlobValue(InputStream is) throws IOException {
+
+        if (is != null) {
+            BufferedReader br = null;
+            StringBuilder sb = new StringBuilder();
+            String line;
+            try {
+                br = new BufferedReader(new InputStreamReader(is));
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.error("Error in retrieving the Blob value", e);
+                    }
+                }
+            }
+
+            return sb.toString();
+        }
+        return null;
+    }
 }

@@ -1,6 +1,5 @@
-
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -10,8 +9,6 @@
 <%@ page import="org.wso2.carbon.identity.functions.library.mgt.model.xsd.FunctionLibrary" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-
-
 
 
 <%--
@@ -129,7 +126,7 @@
                 <tbody>
                 <tr>
                     <td style="border:none !important">
-                        <table class="styledLeft"width="100%" id="FunctionLibraries">
+                        <table class="styledLeft" width="100%" id="FunctionLibraries">
                             <thead>
                             <tr style="white-space: nowrap">
                                 <th class="leftCol-med"><fmt:message
@@ -142,19 +139,21 @@
                             </thead>
 
                             <%
-                                if (functionLibraries != null && functionLibraries.length > 0){
+                                if (functionLibraries != null && functionLibraries.length > 0) {
 
                             %>
                             <tbody>
                             <%
-                                for(FunctionLibrary functionLib:functionLibraries){
-                                    if(functionLib !=null){
+                                for (FunctionLibrary functionLib : functionLibraries) {
+                                    if (functionLib != null) {
 
                             %>
                             <tr>
 
-                                <td><%=Encode.forHtml(functionLib.getFunctionLibraryName())%></td>
-                                <td><%=functionLib.getDescription() != null ? Encode.forHtml(functionLib.getDescription()) : ""%></td>
+                                <td><%=Encode.forHtml(functionLib.getFunctionLibraryName())%>
+                                </td>
+                                <td><%=functionLib.getDescription() != null ? Encode.forHtml(functionLib.getDescription()) : ""%>
+                                </td>
                                 <td>
                                     <a title="<fmt:message key='edit.functionlib.info'/>"
                                        onclick=""
@@ -187,7 +186,7 @@
                                 }
                             %>
                             </tbody>
-                            <%} else{ %>
+                            <%} else { %>
                             <tbody>
                             <tr>
                                 <td colspan="3"><i>No Function Library created</i></td>

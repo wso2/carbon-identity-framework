@@ -1,4 +1,3 @@
-
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -33,7 +32,6 @@
     <carbon:breadcrumb label="functionlib.mgt"
                        resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-
 
 
     <%

@@ -30,18 +30,19 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
     lineWrapping: true,
     lineWiseCopyCut: true,
     pasteLinesPerSelection: true,
-     extraKeys: {
+    extraKeys: {
         "Ctrl-Space": "autocomplete",
         "F11": function (myCodeMirror) {
-           myCodeMirror.setOption("fullScreen", !myCodeMirror.getOption("fullScreen")); },
-       "Esc": function (myCodeMirror) {
+            myCodeMirror.setOption("fullScreen", !myCodeMirror.getOption("fullScreen"));
+        },
+        "Esc": function (myCodeMirror) {
             if (myCodeMirror.getOption("fullScreen")) myCodeMirror.setOption("fullScreen", false);
-         },
-         "Shift-Ctrl-F": function (myCodeMirror) {
+        },
+        "Shift-Ctrl-F": function (myCodeMirror) {
             CodeMirror.commands["selectAll"](myCodeMirror);
             autoFormatSelection(myCodeMirror);
-         }
-     },
+        }
+    },
     indentWithTabs: true,
     autoCloseBrackets: true,
     matchBrackets: true,
@@ -55,11 +56,11 @@ var doc = myCodeMirror.getDoc();
 var editorContent = doc.getValue();
 
 
-
 function autoFormatSelection(cm) {
     var range = getSelectedRange();
     cm.autoFormatRange(range.from, range.to);
 }
+
 $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
 $("#toggleEditorSize").click(function () {
     if (myCodeMirror.getOption("fullScreen")) {

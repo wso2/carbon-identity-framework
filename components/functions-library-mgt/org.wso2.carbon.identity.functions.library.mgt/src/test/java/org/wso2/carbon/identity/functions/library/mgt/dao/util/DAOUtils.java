@@ -27,9 +27,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
- /**
-  * DB Utils.
-  */
+/**
+ * DB Utils.
+ */
 public class DAOUtils {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 

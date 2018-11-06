@@ -1,4 +1,3 @@
-
 <%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
@@ -54,7 +53,7 @@
 
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.util.ResourceBundle" %>
@@ -65,34 +64,36 @@
 <%@ page import="org.wso2.carbon.identity.functions.library.mgt.ui.client.FunctionLibraryManagementServiceClient" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
-<jsp:include page="../dialog/display_messages.jsp" />
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <script type="text/javascript">
     function UpdateFunctionLibOnclick() {
         var functionLibName = document.getElementById("functionLibraryName").value.trim();
         var oldFunctionLibName = document.getElementById("oldFunctionLibraryName").value.trim();
         console.log(functionLibName);
-        if( functionLibName == '') {
+        if (functionLibName == '') {
             CARBON.showWarningDialog('Please provide function library Name');
             location.href = '#';
-        /*} else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
-                 return false;*/
-        }else {
-            functionLibName = functionLibName+".js";
-            if(functionLibName != oldFunctionLibName){
+            /*} else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
+                     return false;*/
+        } else {
+            functionLibName = functionLibName + ".js";
+            if (functionLibName != oldFunctionLibName) {
                 CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldFunctionLibName + '" Function Library name ? \n WARN: If you edit this library name, ' +
                     'the authentication scripts which used this will no longer function properly !',
-                    doEdit,null);
+                    doEdit, null);
             }
-            else{
+            else {
                 doEdit();
             }
-            function doEdit(){
+
+            function doEdit() {
                 $("#update-functionlib-form").submit();
                 return true;
             }
         }
     }
+
     function validateTextForIllegal(fild) {
         var isValid = doValidateInput(fild, "Provided function library name is invalid.");
         if (isValid) {
@@ -101,8 +102,9 @@
             return false;
         }
     }
+
     function removeJsSufix(functionLibName) {
-       return functionLibName.substring(0, str.length - 3);
+        return functionLibName.substring(0, str.length - 3);
     }
 </script>
 <fmt:bundle
@@ -112,12 +114,11 @@
                        topPage="true" request="<%=request%>"/>
 
 
-
     <%
         String functionLibraryName = request.getParameter("functionLibraryName");
         String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-        FunctionLibrary functionLibrary =null;
+        FunctionLibrary functionLibrary = null;
         if (functionLibraryName != null && !"".equals(functionLibraryName)) {
 
             try {
@@ -143,15 +144,20 @@
             <form id="update-functionlib-form" name="update-functionlib-form" method="post"
                   action="edit-functionlib-finish-ajaxprocessor.jsp">
 
-                <input type="hidden" name="oldFunctionLibraryName" id="oldFunctionLibraryName" value="<%=Encode.forHtmlAttribute(functionLibraryName)%>"/>
+                <input type="hidden" name="oldFunctionLibraryName" id="oldFunctionLibraryName"
+                       value="<%=Encode.forHtmlAttribute(functionLibraryName)%>"/>
 
-                <div class="sectionSeperator togglebleTitle"><fmt:message key='title.config.function.basic.config'/></div>
+                <div class="sectionSeperator togglebleTitle"><fmt:message
+                        key='title.config.function.basic.config'/></div>
                 <div class="sectionSub">
                     <table class="carbonFormTable">
                         <tr>
-                            <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.function.info.basic.name'/>:<span class="required">*</span></td>
+                            <td style="width:15%" class="leftCol-med labelField"><fmt:message
+                                    key='config.function.info.basic.name'/>:<span class="required">*</span></td>
                             <td>
-                                <input id="functionLibraryName" name="functionLibraryName" type="text" value="<%=Encode.forHtmlAttribute(functionLibraryName.substring(0, functionLibraryName.length()-3))%>" white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                                <input id="functionLibraryName" name="functionLibraryName" type="text"
+                                       value="<%=Encode.forHtmlAttribute(functionLibraryName.substring(0, functionLibraryName.length()-3))%>"
+                                       white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
                                 <span>.js</span>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
@@ -162,7 +168,9 @@
 
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea maxlength="1020" style=" width:50%" type="text" name="functionLib-description" id="functionLib-description" class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()):""%>
+                                <textarea maxlength="1020" style=" width:50%" type="text" name="functionLib-description"
+                                          id="functionLib-description"
+                                          class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()) : ""%>
                                 </textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
@@ -190,8 +198,9 @@
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input id="update" type="button" value="<fmt:message key='button.update.function.manager'/>"
-                        onclick="UpdateFunctionLibOnclick()"/>
-                    <input type="button" onclick="javascript:location.href='functions-library-mgt-list.jsp'" value="<fmt:message key='button.cancel'/>" />
+                           onclick="UpdateFunctionLibOnclick()"/>
+                    <input type="button" onclick="javascript:location.href='functions-library-mgt-list.jsp'"
+                           value="<fmt:message key='button.cancel'/>"/>
                 </div>
             </form>
         </div>

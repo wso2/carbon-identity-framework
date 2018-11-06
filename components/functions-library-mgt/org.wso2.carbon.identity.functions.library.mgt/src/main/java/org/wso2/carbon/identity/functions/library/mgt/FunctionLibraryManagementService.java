@@ -30,8 +30,8 @@ public interface FunctionLibraryManagementService {
     /**
      * Create a function library.
      *
-     * @param functionLibrary   Function library
-     * @param tenantDomain      Tenant domain
+     * @param functionLibrary Function library
+     * @param tenantDomain    Tenant domain
      * @throws FunctionLibraryManagementException
      */
     void createFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain)
@@ -40,43 +40,43 @@ public interface FunctionLibraryManagementService {
     /**
      * Retrieve function library list in the tenant domain.
      *
-     * @param tenantDomain  Tenant domain
-     * @return              A list of function libraries
+     * @param tenantDomain Tenant domain
+     * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary[] listFunctionLibraries (String tenantDomain)
+    FunctionLibrary[] listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
      * Retrieve a function library.
      *
-     * @param functionLibraryName   Name of a function library
-     * @param tenantDomain          Tenant domain
-     * @return                      Function library
+     * @param functionLibraryName Name of a function library
+     * @param tenantDomain        Tenant domain
+     * @return Function library
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary getFunctionLibrary (String functionLibraryName, String tenantDomain)
+    FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
      * Delete a function library using the function library name.
      *
-     * @param functionLibraryName   Name of the function library
-     * @param tenantDomain          Tenant domain
+     * @param functionLibraryName Name of the function library
+     * @param tenantDomain        Tenant domain
      * @throws FunctionLibraryManagementException
      */
-    void deleteFunctionLibrary (String functionLibraryName, String tenantDomain)
+    void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**
      * Update a function library.
      *
-     * @param functionLibrary           Function library with new details
-     * @param tenatDomain               Tenant domain
-     * @param oldFunctionLibraryName    Previous name of the function library
+     * @param functionLibrary        Function library with new details
+     * @param tenatDomain            Tenant domain
+     * @param oldFunctionLibraryName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
-    void updateFunctionLibrary (FunctionLibrary functionLibrary, String tenatDomain, String oldFunctionLibraryName)
+    void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenatDomain, String oldFunctionLibraryName)
             throws FunctionLibraryManagementException;
 
 }
