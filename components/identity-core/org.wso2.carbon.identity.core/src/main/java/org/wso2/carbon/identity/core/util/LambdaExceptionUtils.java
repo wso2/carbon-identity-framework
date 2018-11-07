@@ -17,7 +17,11 @@
  */
 package org.wso2.carbon.identity.core.util;
 
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 
 /**
  * A Utility which provides a way to throw checked exceptions from the lambda expressions.
