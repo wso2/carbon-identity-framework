@@ -139,8 +139,11 @@ public abstract class FrameworkConstants {
         public static final String ELEM_IDP_CONFIG = "IdPConfig";
         public static final String ELEM_PARAMETER = "Parameter";
         public static final String ELEM_REQ_PATH_AUTHENTICATOR = "RequestPathAuthenticators";
+        public static final String ELEM_AUTH_ENDPOINT_REDIRECT_PARAM = "AuthenticationEndpointRedirectParam";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
+        public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
          */
@@ -177,6 +180,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_IDP_CONFIGS = "IdPConfigs";
         public static final String QNAME_SEQUENCES = "Sequences";
         public static final String QNAME_AUTH_ENDPOINT_QUERY_PARAMS = "AuthenticationEndpointQueryParams";
+        public static final String QNAME_AUTH_ENDPOINT_REDIRECT_PARAMS = "AuthenticationEndpointRedirectParams";
         /**
          * Configuration name for the collection of urls for receiving tenant list
          */

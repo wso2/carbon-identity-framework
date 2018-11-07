@@ -26,12 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
-        .SSOConsentDisabledException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
-        .SSOConsentServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentDisabledException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
