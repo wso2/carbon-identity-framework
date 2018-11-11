@@ -974,4 +974,16 @@
         <LongWaitTimeout>10000</LongWaitTimeout>
     </AdaptiveAuth>
 
+    <!--Intermediate certificate validation for certificate based requests-->
+    <IntermediateCertValidation enable="false">
+        <IntermediateCerts>
+            <!--Add intermediate certificate CN. Multiple <CertCN> elements can be used for multiple certificates.-->
+            <CertCN>localhost</CertCN>
+        </IntermediateCerts>
+        <ExemptContext>
+            <!--Add exemptable context paths. Multiple <Context> elements can be used for multiple contexts.-->
+            <Context>scim2</Context>
+        </ExemptContext>
+    </IntermediateCertValidation>
+
 </Server>

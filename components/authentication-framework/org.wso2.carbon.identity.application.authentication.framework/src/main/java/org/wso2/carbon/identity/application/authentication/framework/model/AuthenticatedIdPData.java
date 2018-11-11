@@ -149,10 +149,12 @@ public class AuthenticatedIdPData implements Serializable {
 
     /**
      * Checks whether the the given authenticator is an authenticator which the user has already authenticated with.
+     * @deprecated use {@link #isAlreadyAuthenticatedUsing(String, String)} instead.
      *
      * @param authenticatorName Name of the authenticator to be verified.
      * @return true if the user has been authenticated with the given authenticator.
      */
+    @Deprecated
     public boolean isAlreadyAuthenticatedUsing(String authenticatorName) {
 
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
@@ -166,7 +168,39 @@ public class AuthenticatedIdPData implements Serializable {
             }
         }
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("User '%s' was not authenticated using the " +
+                            "IDP : '%s'and the authenticator : '%s' before.",
+                    user.getUserName(), idpName, authenticatorName));
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks whether user has already authenticated with the give authenticator or the authentication mechanism.
+     *
+     * @param authenticatorName Name of the authenticator to be verified.
+     * @param authMechanism     Authentication mechanism.
+     * @return true if the user has been authenticated with the given authenticator or the given authentication
+     * mechanism.
+     */
+    public boolean isAlreadyAuthenticatedUsing(String authenticatorName, String authMechanism) {
+
+        for (AuthenticatorConfig authenticator : getAuthenticators()) {
+            if (authenticator.getName().equals(authenticatorName)
+                    || (authenticator.getApplicationAuthenticator() != null
+                            && authenticator.getApplicationAuthenticator().getAuthMechanism().equals(authMechanism))) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("User '%s' is already authenticated using the " +
+                                    "IDP : '%s'and the authenticator : '%s'.",
+                            user.getUserName(), idpName, authenticator.getName()));
+                }
+                return true;
+            }
+        }
+
+        if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
                     user.getUserName(), idpName, authenticatorName));

@@ -278,4 +278,14 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         return Collections.emptyMap();
     }
+
+    @Override
+    public String getAuthMechanism() {
+
+        String authMechanism = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.AUTH_MECHANISM);
+        if (StringUtils.isEmpty(authMechanism)) {
+            authMechanism = getName();
+        }
+        return authMechanism;
+    }
 }

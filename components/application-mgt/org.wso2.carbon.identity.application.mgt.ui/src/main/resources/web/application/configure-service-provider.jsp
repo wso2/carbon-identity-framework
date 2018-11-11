@@ -2048,7 +2048,7 @@
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
-                                                            <% if (!((isHashDisabled != null && !isHashDisabled.isEmpty() && isHashDisabled.equals("false")) || appBean.getOauthConsumerSecret() == null)) { %>
+                                                            <% if (!(appBean.getOauthConsumerSecret() == null || "false".equals(isHashDisabled))) { %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
                                                                        type="password" autocomplete="off"
