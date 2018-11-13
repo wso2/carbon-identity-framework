@@ -51,7 +51,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <!--<version>2.4.0</version>-->
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -95,27 +94,22 @@
         <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
-            <!--<version>${equinox.osgi.services.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-            <!--<version>${apache.felix.scr.ds.annotations.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.axis2.wso2</groupId>
             <artifactId>axis2</artifactId>
-            <!--<version>${axis2.osgi.version.range}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.ui</artifactId>
-            <!--<version>${carbon.kernel.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
-            <!--<version>${encoder.wso2.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -126,12 +120,10 @@
         <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <!--<version>${httpcomponents-httpclient.wso2.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
-            <!--<version>${json.wso2.version}</version>-->
         </dependency>
     </dependencies>
 
