@@ -336,7 +336,7 @@
         <commons-logging.version>1.2</commons-logging.version>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
         <json.wso2.version>[3.0.0.wso2v1, 4.0.0)</json.wso2.version>
-        <httpcomponents-httpclient.wso2.version>4.5.6</httpcomponents-httpclient.wso2.version>
+        <httpcomponents-httpclient.wso2.version>4.3.1.wso2v2</httpcomponents-httpclient.wso2.version>
 
 
         <!-- Test Dependency Versions -->

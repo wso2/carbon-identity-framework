@@ -69,7 +69,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <!--<version>${maven.surefire.plugin.version}</version>-->
                 <configuration>
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
@@ -80,7 +79,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <!--<version>${maven.compiler.plugin}</version>-->
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -89,7 +87,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <!--<version>${jacoco.version}</version>-->
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -128,7 +125,6 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <!--<minimum>0.60</minimum>-->
                                         </limit>
                                     </limits>
                                 </rule>
@@ -143,80 +139,51 @@
         <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
-            <!--<version>${equinox.osgi.services.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.core</artifactId>
-            <!--<version>${carbon.kernel.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
-            <!--<version>${project.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <!--<version>${project.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
-            <!--<version>${org.wso2.carbon.database.utils.version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-            <!--<version>${commons-logging.osgi.version.range}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-            <!--<version>${apache.felix.scr.ds.annotations.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <!--<version>${testng.version}</version>-->
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
-            <!--<version>${org.powermock.version}</version>-->
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
-            <!--<version>${org.powermock.version}</version>-->
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <!--<version>${h2database.version}</version>-->
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>org.jmockit</groupId>-->
-        <!--<artifactId>jmockit</artifactId>-->
-        <!--<scope>test</scope>-->
-        <!--<version>${jmockit.version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>org.jacoco</groupId>-->
-        <!--<artifactId>org.jacoco.agent</artifactId>-->
-        <!--<classifier>runtime</classifier>-->
-        <!--<version>${jacoco.version}</version>-->
-        <!--</dependency>-->
-
-        <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon.identity.framework</groupId>-->
-        <!--<artifactId>org.wso2.carbon.identity.testutil</artifactId>-->
-        <!--<version>${carbon.identity.core.version}</version>-->
-        <!--</dependency>-->
     </dependencies>
 </project>
