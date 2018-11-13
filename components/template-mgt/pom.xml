@@ -302,8 +302,8 @@
         <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
 
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
-        <carbon.core.version.range>[4.4.0, 5.0.0)</carbon.core.version.range>
-        <carbon.api.version.range>[1.0.1, 2.0.0)</carbon.api.version.range>
+        <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
+        <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <springframework.spring-web.version>4.1.6.RELEASE</springframework.spring-web.version>
         <io.swagger.version>1.5.2</io.swagger.version>
 
@@ -327,16 +327,16 @@
 
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.version>5.2.7</carbon.kernel.version>
-        <carbon.ui.version>4.4.34</carbon.ui.version>
-        <orbit.owasp.encoder.version>1.2.0.wso2v2</orbit.owasp.encoder.version>
+        <carbon.kernel.version>4.4.34</carbon.kernel.version>
+        <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
         <!--<carbon.identity.application.common>5.12.134</carbon.identity.application.common>-->
         <!--<carbon.identity.core.version>5.12.134</carbon.identity.core.version>-->
         <org.wso2.carbon.database.utils.version>2.0.8</org.wso2.carbon.database.utils.version>
         <carbon.kernel.version>4.4.34</carbon.kernel.version>
         <commons-logging.version>1.2</commons-logging.version>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <org.json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</org.json.wso2.version.range>
-        <apache.httpclient.version>4.5.6</apache.httpclient.version>
+        <json.wso2.version>[3.0.0.wso2v1, 4.0.0)</json.wso2.version>
+        <httpcomponents-httpclient.wso2.version>4.5.6</httpcomponents-httpclient.wso2.version>
 
 
         <!-- Test Dependency Versions -->

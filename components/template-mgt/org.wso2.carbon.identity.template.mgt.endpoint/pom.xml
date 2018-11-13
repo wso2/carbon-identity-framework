@@ -35,7 +35,7 @@
             <plugin>
                 <groupId>org.wso2.maven.plugins</groupId>
                 <artifactId>swagger2cxf-maven-plugin</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${swagger2cxf-maven-plugin.version}</version>
                 <configuration>
                     <inputSpec>
                         /home/chamath/IdeaProjects/template-mgt/org.wso2.carbon.identity.template.mgt.endpoint/src/main/resources/org.wso2.carbon.identity.template.mgt.api.yaml
@@ -46,7 +46,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.2</version>
+                <version>1.7</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -84,78 +84,77 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
+            <!--<version>${apache.cxf-rt-frontend-jaxrs.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description</artifactId>
-            <version>${apache.cxf-rt-rs-service-description.version}</version>
+            <!--<version>${apache.cxf-rt-rs-service-description.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
-            <version>${codehaus.jackson-core-asl.version}</version>
+            <!--<version>${codehaus.jackson-core-asl.version}</version>-->
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
-            <version>${codehaus.jackson-mapper-asl.version}</version>
+            <!--<version>${codehaus.jackson-mapper-asl.version}</version>-->
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-jaxrs</artifactId>
-            <version>${codehaus.jackson-jaxrs.version}</version>
+            <!--<version>${codehaus.jackson-jaxrs.version}</version>-->
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>${springframework.spring-web.version}</version>
+            <!--<version>${springframework.spring-web.version}</version>-->
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-jaxrs</artifactId>
-            <version>${io.swagger.version}</version>
+            <!--<version>${io.swagger.version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <version>${project.version}</version>
+            <!--<version>${project.version}</version>-->
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
-            <version>${org.wso2.carbon.database.utils.version}</version>
+            <!--<version>${org.wso2.carbon.database.utils.version}</version>-->
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-            <version>${commons-logging.version}</version>
+            <!--<version>${commons-logging.version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-catalina</artifactId>
-            <version>${apache.tomcat-catalina.version}</version>
+            <!--<version>${apache.tomcat-catalina.version}</version>-->
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
-            <version>${carbon.kernel.version}</version>
+            <!--<version>${carbon.kernel.version}</version>-->
             <scope>provided</scope>
         </dependency>
 
