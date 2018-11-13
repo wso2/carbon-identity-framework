@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -118,6 +119,26 @@ public class FrameworkServiceComponent {
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
+    }
+
+    @Reference(
+            name = "carbon.identity.template.mgt.component",
+            service = TemplateManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetTemplateManagerService"
+    )
+    protected void setTemplateManagerService(TemplateManager templateManagerService){
+        if (log.isDebugEnabled()){
+            log.debug("Template Manager Service is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(templateManagerService);
+    }
+    protected void unsetTemplateManagerService(TemplateManager templateManagerService){
+        if (log.isDebugEnabled()){
+            log.debug("Template Manager Service is unset in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(null);
     }
 
     @Reference(
