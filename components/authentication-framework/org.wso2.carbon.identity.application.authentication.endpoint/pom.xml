@@ -37,10 +37,10 @@
             <version>1.3.2</version>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>5.12.199-SNAPSHOT</version>
+            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>commons-lang.wso2</groupId>
