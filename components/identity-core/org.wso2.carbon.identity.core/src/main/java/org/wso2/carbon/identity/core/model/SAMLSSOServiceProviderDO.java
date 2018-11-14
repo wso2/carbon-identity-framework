@@ -582,11 +582,11 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.x509Certificate = x509Certificate;
     }
 
-    public  void setSamlECP(boolean samlECP) {
+    public void setSamlECP(boolean samlECP) {
         this.samlECP = samlECP;
     }
 
-    public boolean isSamlECP(){
+    public boolean isSamlECP() {
         return samlECP;
     }
 

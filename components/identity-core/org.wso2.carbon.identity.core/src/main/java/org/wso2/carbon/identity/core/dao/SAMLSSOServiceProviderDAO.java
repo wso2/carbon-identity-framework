@@ -154,7 +154,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
         }
 
-        if(resource.getProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP) != null){
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP) != null) {
             serviceProviderDO.setSamlECP(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_ENABLE_ECP).trim()));
         }
