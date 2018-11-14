@@ -21,10 +21,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt.endpoint</artifactId>
+            <version>${project.version}</version>
             <type>war</type>
         </dependency>
     </dependencies>
@@ -47,6 +49,7 @@
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.framework</groupId>
                                     <artifactId>org.wso2.carbon.identity.template.mgt.endpoint</artifactId>
+                                    <version>${project.version}</version>
                                     <type>war</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
@@ -73,9 +76,7 @@
                                     <directory>resources</directory>
                                     <includes>
                                         <include>p2.inf</include>
-                                        <include>build.properties</include>
                                         <include>api#identity#template#mgt#v1.0.0.war</include>
-                                        <include>identity-template-mgt.properties</include>
                                     </includes>
                                 </resource>
                             </resources>
@@ -97,14 +98,8 @@
                         <configuration>
                             <id>org.wso2.carbon.identity.template.mgt.server</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
-                            <adviceFile>
-                                <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                </properties>
-                            </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt</bundleDef>
-
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>

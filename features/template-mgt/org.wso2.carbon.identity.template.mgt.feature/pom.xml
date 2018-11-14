@@ -11,7 +11,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.template.mgt.feature</artifactId>
-    <packaging>pom</packaging>
     <name>Template Management Feature</name>
     <url>http://wso2.org</url>
     <description>This feature contains the bundles required for the template management aggregated functionality
@@ -21,11 +20,13 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt.server.feature</artifactId>
+            <version>${project.version}</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt.ui.feature</artifactId>
+            <version>${project.version}</version>
             <type>zip</type>
         </dependency>
     </dependencies>
@@ -44,7 +45,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.idp.mgt</id>
+                            <id>org.wso2.carbon.identity.template.mgt</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <includedFeatures>
                                 <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.server.feature
@@ -53,6 +54,27 @@
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>clean_target</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <tasks>
+                                <delete dir="src/main/resources" />
+                                <delete dir="src/main" />
+                                <delete dir="src" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
