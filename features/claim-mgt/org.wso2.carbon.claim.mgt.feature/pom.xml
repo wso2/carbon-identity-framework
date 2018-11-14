@@ -59,7 +59,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.identity.template.mgt</id>
+                            <id>org.wso2.carbon.claim.mgt</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <includedFeatures>
                                 <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt.server.feature
