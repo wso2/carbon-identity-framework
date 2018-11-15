@@ -77,8 +77,8 @@ public interface TemplateManagerDAO {
      *
      * @param templateName name of the {@link Template} to be deleted.the tenant
      * @param tenantId     tenant Id of the tenant which the {@link Template} resides.
-     * @return Name of the deleted {@link Template}.
+     * @return TemplateInfo of the deleted {@link Template}.
      * @throws TemplateManagementException If error occurs while deleting the {@link Template}
      */
-    String deleteTemplate(String templateName, Integer tenantId) throws TemplateManagementException;
+    TemplateInfo deleteTemplate(String templateName, Integer tenantId) throws TemplateManagementException;
 }

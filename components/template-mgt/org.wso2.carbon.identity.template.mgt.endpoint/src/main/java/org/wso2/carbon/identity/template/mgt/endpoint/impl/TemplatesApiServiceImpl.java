@@ -108,8 +108,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response deleteTemplate(String templateName) {
 
         try {
-            TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
+            TemplateInfo deleteTemplateResponse = TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
             return Response.ok()
+                    .entity(deleteTemplateResponse)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
