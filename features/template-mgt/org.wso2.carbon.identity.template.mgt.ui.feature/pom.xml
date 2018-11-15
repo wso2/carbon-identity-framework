@@ -53,7 +53,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.ui</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt</bundleDef>
+                                <!--<bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt</bundleDef>-->
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>

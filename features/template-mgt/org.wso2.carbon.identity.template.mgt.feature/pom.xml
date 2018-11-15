@@ -48,10 +48,8 @@
                             <id>org.wso2.carbon.identity.template.mgt</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <includedFeatures>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.server.feature
-                                </includedFeatureDef>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.ui.feature
-                                </includedFeatureDef>
+                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.server.feature</includedFeatureDef>
+                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.template.mgt.ui.feature</includedFeatureDef>
                             </includedFeatures>
                         </configuration>
                     </execution>
