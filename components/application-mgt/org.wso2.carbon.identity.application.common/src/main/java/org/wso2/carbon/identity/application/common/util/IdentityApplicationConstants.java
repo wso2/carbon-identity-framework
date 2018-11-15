@@ -146,6 +146,10 @@ public class IdentityApplicationConstants {
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
             public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
+            public static final String SAML_METADATA_VALIDITY_PERIOD = "SAMLMetadataValidityPeriod";
+            public static final String SAML_METADATA_VALIDITY_PERIOD_DEFAULT = "60";
+            public static final String SAML_METADATA_SIGNING_ENABLED = "SAMLMetadataSigningEnabled";
+            public static final String SAML_METADATA_SIGNING_ENABLED_DEFAULT = "false";
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
