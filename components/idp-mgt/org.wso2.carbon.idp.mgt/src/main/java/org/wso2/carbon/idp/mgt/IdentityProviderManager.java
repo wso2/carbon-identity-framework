@@ -421,6 +421,29 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
+        Property samlMetadataValidityPeriodProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.
+                getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_VALIDITY_PERIOD);
+        if (samlMetadataValidityPeriodProperty == null) {
+            samlMetadataValidityPeriodProperty = new Property();
+            samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD);
+            samlMetadataValidityPeriodProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT);
+        }
+        propertiesList.add(samlMetadataValidityPeriodProperty);
+        Property samlMetadataSigningEnabledProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.
+                getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_SIGNING_ENABLED);
+        if (samlMetadataSigningEnabledProperty == null) {
+            samlMetadataValidityPeriodProperty = new Property();
+            samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED);
+            samlMetadataValidityPeriodProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED_DEFAULT);
+        }
+        propertiesList.add(samlMetadataSigningEnabledProperty);
+
         saml2SSOFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(saml2SSOFedAuthn);
 
@@ -752,6 +775,35 @@ public class IdentityProviderManager implements IdpManager {
                 saml2SSOResidentAuthenticatorConfig.setProperties(new Property[]{property});
             }
         }
+        Property samlMetadataValidityPeriodProperty = new Property();
+        String samlMetadataValidityPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
+                SAML_METADATA_VALIDITY_PERIOD);
+        if (StringUtils.isBlank(samlMetadataValidityPeriod) || !StringUtils.isNumeric(samlMetadataValidityPeriod) ||
+                Integer.parseInt(samlMetadataValidityPeriod) <= 0) {
+            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value");
+            samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
+        }
+        samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_VALIDITY_PERIOD);
+        samlMetadataValidityPeriodProperty.setValue(samlMetadataValidityPeriod);
+        Property samlMetadataSigningEnabledProperty = new Property();
+        String samlMetadataSigningEnabled = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
+                SAML_METADATA_SIGNING_ENABLED);
+        if (StringUtils.isBlank(samlMetadataSigningEnabled)) {
+            log.warn("SAMLMetadataSigningEnabled in identity.xml should be a boolean value");
+            samlMetadataSigningEnabled = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED_DEFAULT;
+        }
+        samlMetadataSigningEnabledProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_SIGNING_ENABLED);
+        samlMetadataSigningEnabledProperty.setValue(samlMetadataSigningEnabled);
+        List<Property> propertyList = new ArrayList<>(Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties()));
+        propertyList.add(samlMetadataValidityPeriodProperty);
+        propertyList.add(samlMetadataSigningEnabledProperty);
+        Property[] properties = new Property[propertyList.size()];
+        properties = propertyList.toArray(properties);
+        saml2SSOResidentAuthenticatorConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig idpPropertiesResidentAuthenticatorConfig = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -893,6 +945,20 @@ public class IdentityProviderManager implements IdpManager {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) <= 0) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                            SAML_METADATA_VALIDITY_PERIOD + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED)) {
+                if (StringUtils.isBlank(idpProp.getValue())) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                            SAML_METADATA_SIGNING_ENABLED + " of ResidentIdP should be a boolean value ");
+                }
+
             }
         }
         // invoking the pre listeners
