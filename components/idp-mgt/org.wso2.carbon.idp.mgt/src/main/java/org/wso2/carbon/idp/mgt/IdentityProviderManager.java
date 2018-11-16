@@ -944,7 +944,8 @@ public class IdentityProviderManager implements IdpManager {
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
-                } } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD)) {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
