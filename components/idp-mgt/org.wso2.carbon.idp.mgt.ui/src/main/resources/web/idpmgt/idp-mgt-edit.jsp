@@ -290,8 +290,8 @@
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
 
-        userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
-        roleClaimURI = identityProvider.getClaimConfig().getRoleClaimURI();
+        userIdClaimURI = Encode.forHtmlContent(identityProvider.getClaimConfig().getUserClaimURI());
+        roleClaimURI = Encode.forHtmlContent(identityProvider.getClaimConfig().getRoleClaimURI());
 
         claimMappings = identityProvider.getClaimConfig().getClaimMappings();
 
