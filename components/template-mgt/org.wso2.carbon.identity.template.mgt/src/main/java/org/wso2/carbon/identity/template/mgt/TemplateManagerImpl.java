@@ -72,7 +72,7 @@ public class TemplateManagerImpl implements TemplateManager {
     public Template getTemplateByName(String templateName) throws TemplateManagementException {
 
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        return templateManagerDAO.getTemplateByName(templateName, getTenantIdFromCarbonContext());
+        return templateManagerDAO.getTemplateByName(templateName.trim(), getTenantIdFromCarbonContext());
     }
 
     /**

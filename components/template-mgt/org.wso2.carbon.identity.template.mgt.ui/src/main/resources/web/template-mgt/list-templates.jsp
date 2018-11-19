@@ -150,8 +150,7 @@
                                 <td>
                                     <a title="<fmt:message key='edit.template.info'/>"
                                        onclick=""
-                                       href="get-template.jsp?templateName=
-                                        <%=Encode.forUriComponent(template.getTemplateName())%>"
+                                       href="get-template.jsp?templateName=<%=Encode.forUriComponent(template.getTemplateName().trim())%>"
                                        class="icon-link"
                                        style="background-image: url(images/edit.gif)">
                                         <fmt:message key='edit'/>
