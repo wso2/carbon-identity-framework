@@ -211,6 +211,18 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             serviceProviderDO.setDoValidateSignatureInArtifactResolve(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE).trim()));
         }
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_ENTITY_VALUE) != null) {
+            serviceProviderDO.setIssuerEntityValue(resource
+                    .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_ENTITY_VALUE));
+        }
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS) != null) {
+            serviceProviderDO.setIdpEntityIDAliasEnabled(Boolean.valueOf(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS).trim()));
+        }
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS) != null) {
+            serviceProviderDO.setIdpEntityIDAlias(resource.getProperty(IdentityRegistryResources
+                    .PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS));
+        }
         return serviceProviderDO;
     }
 
@@ -369,6 +381,16 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 String.valueOf(serviceProviderDO.isDoValidateSignatureInArtifactResolve());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
                 validateSignatureInArtifactResolve);
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerEntityValue())) {
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_ENTITY_VALUE, serviceProviderDO
+                    .getIssuerEntityValue());
+        }
+        if (serviceProviderDO.isIdpEntityIDAliasEnabled()) {
+            String useIdpEntityIDAlias = String.valueOf(serviceProviderDO.isIdpEntityIDAliasEnabled());
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS, useIdpEntityIDAlias);
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, serviceProviderDO
+                    .getIdpEntityIDAlias());
+        }
         return resource;
     }
 

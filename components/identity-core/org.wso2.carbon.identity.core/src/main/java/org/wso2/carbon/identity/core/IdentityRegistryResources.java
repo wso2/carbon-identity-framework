@@ -122,6 +122,7 @@ public class IdentityRegistryResources {
 
     //SAML SSO
     public final static String PROP_SAML_SSO_ISSUER = "Issuer";
+    public final static String PROP_SAML_SSO_ISSUER_ENTITY_VALUE = "IssuerEntityValue";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URL = "SAMLSSOAssertionConsumerURL";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URLS = "SAMLSSOAssertionConsumerURLs";
     public final static String PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL = "DefaultSAMLSSOAssertionConsumerURL";
@@ -159,6 +160,8 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
             "SupportedAssertionQueryRequestTypes";
     public static final String PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
+    public static final String PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS = "EnableIdPEntityIDAlias";
+    public static final String PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";

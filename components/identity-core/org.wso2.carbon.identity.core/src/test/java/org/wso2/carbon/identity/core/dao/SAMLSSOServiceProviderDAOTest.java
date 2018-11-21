@@ -122,6 +122,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections.singletonList
                 ("DummyAdvIssuer"));
         dummyAdvProperties.putAll(dummyBasicProperties);
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_ENTITY_VALUE, Collections.singletonList
+                ("DummyAdvIssuerEntityValue"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM, Collections.singletonList
                 ("RSASHA1"));
         dummyAdvProperties.put(IdentityRegistryResources
@@ -170,6 +172,10 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 ("recipient1", "recipient2"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX, Collections
                 .singletonList("attribConsumingSvcIndex"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS, Collections
+                .singletonList("true"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, Collections
+                .singletonList("dummyIdPEntityAlias"));
     }
 
     @AfterMethod
@@ -310,6 +316,10 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertEquals(serviceProviderDO.getAttributeConsumingServiceIndex(), dummyResource.getProperty
                 (IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX), "Attrib consuming service " +
                 "index Mismatch.");
+        assertEquals(serviceProviderDO.isIdpEntityIDAliasEnabled(), Boolean.parseBoolean(dummyResource.getProperty(
+                (IdentityRegistryResources.PROP_SAML_SSO_USE_IDP_ENTITY_ID_ALIAS))), "Enable IdP Entity ID Alias Mismatch.");
+        assertEquals(serviceProviderDO.getIdpEntityIDAlias(), dummyResource.getProperty(IdentityRegistryResources
+                .PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS), "IdP Entity ID Alias Mismatch.");
     }
 
     @Test(dataProvider = "ResourceToObjectData")

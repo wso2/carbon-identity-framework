@@ -34,6 +34,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     String tenantDomain;
     private String issuer;
+    private String issuerEntityValue;
     private String assertionConsumerUrl;
     private String[] assertionConsumerUrls;
     private List<String> assertionConsumerUrlList;
@@ -72,6 +73,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
     private boolean enableSAML2ArtifactBinding;
+    private boolean isIdpEntityIDAliasEnabled;
+    private String idpEntityIDAlias;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -170,6 +173,16 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIssuer(String issuer) {
         if (issuer != null) {
             this.issuer = issuer.replaceAll("[\n\r]", "").trim();
+        }
+    }
+
+    public String getIssuerEntityValue() {
+        return issuerEntityValue;
+    }
+
+    public void setIssuerEntityValue(String issuerEntityValue) {
+        if (issuerEntityValue != null) {
+            this.issuerEntityValue = issuerEntityValue.replaceAll("[\n\r]", "").trim();
         }
     }
 
@@ -579,5 +592,21 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
+    }
+
+    public boolean isIdpEntityIDAliasEnabled() {
+        return isIdpEntityIDAliasEnabled;
+    }
+
+    public void setIdpEntityIDAliasEnabled(boolean isIdpEntityIDAliasEnabled) {
+        this.isIdpEntityIDAliasEnabled = isIdpEntityIDAliasEnabled;
+    }
+
+    public String getIdpEntityIDAlias() {
+        return idpEntityIDAlias;
+    }
+
+    public void setIdpEntityIDAlias(String idpEntityIDAliasEnabled) {
+        this.idpEntityIDAlias = idpEntityIDAliasEnabled;
     }
 }
