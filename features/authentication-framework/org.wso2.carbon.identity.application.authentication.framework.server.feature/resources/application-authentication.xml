@@ -75,16 +75,19 @@
 			<Parameter name="paramName2">paramValue</Parameter>
 		</AuthenticatorConfig>
     -->
-	<AuthenticatorConfigs>
-		<AuthenticatorConfig name="BasicAuthenticator" enabled="true">
-			<!--Parameter name="UserNameAttributeClaimUri">http://wso2.org/claims/emailaddress</Parameter-->
-			<!--Parameter name="showAuthFailureReason">true</Parameter-->	
-		</AuthenticatorConfig>
+    <AuthenticatorConfigs>
+        <AuthenticatorConfig name="BasicAuthenticator" enabled="true">
+            <!--Parameter name="UserNameAttributeClaimUri">http://wso2.org/claims/emailaddress</Parameter-->
+            <!--Parameter name="showAuthFailureReason">true</Parameter-->
+            <Parameter name="AuthMechanism">basic</Parameter>
+        </AuthenticatorConfig>
         <AuthenticatorConfig name="IdentifierExecutor" enabled="true">
             <Parameter name="ValidateUsername">false</Parameter>
         </AuthenticatorConfig>
-		<AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true" />
-		<AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true" />
+        <AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true"/>
+        <AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true">
+            <Parameter name="AuthMechanism">basic</Parameter>
+        </AuthenticatorConfig>
  		<AuthenticatorConfig name="SAMLSSOAuthenticator" enabled="true">
 			<!--Parameter name="SignAuth2SAMLUsingSuperTenant">true</Parameter-->
 			<!--Parameter name="SAML2SSOManager">org.wso2.carbon.identity.application.authenticator.samlsso.manager.DefaultSAML2SSOManager</Parameter-->

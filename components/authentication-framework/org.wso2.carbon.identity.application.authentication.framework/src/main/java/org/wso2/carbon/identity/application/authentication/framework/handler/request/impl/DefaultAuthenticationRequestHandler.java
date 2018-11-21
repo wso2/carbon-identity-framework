@@ -142,12 +142,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-    private boolean canConcludeFlow(AuthenticationContext context) {
+    protected boolean canConcludeFlow(AuthenticationContext context) {
 
         return LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context);
     }
 
-    private void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
+    protected void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
                                           AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {

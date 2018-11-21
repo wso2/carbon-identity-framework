@@ -89,4 +89,13 @@ public interface ApplicationAuthenticator extends Serializable {
      * @return
      */
     public List<Property> getConfigurationProperties();
+
+    /**
+     * Get Authentication Mechanism
+     *
+     * @return authentication mechanism
+     */
+    default String getAuthMechanism() {
+        return getName();
+    }
 }
