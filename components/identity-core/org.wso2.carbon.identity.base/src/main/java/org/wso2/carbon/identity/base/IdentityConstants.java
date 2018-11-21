@@ -234,6 +234,8 @@ public class IdentityConstants {
         public static final String SSO_DEFAULT_KEY_ENCRYPTION_ALGORITHM = "SSOService" +
                 ".SAMLDefaultKeyEncryptionAlgorithmURI";
         public static final String SLO_HOST_NAME_VERIFICATION_ENABLED = "SSOService.SLOHostNameVerificationEnabled";
+        public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
+        public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
 
         //Identity Persistence Manager
