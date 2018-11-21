@@ -247,4 +247,3 @@
     </div>
 </fmt:bundle>
 <script src="./js/function-lib-mgt.js"></script>
-

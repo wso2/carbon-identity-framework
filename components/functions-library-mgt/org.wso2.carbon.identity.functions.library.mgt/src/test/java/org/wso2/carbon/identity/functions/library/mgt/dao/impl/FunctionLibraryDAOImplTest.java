@@ -474,6 +474,4 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             }
         }
     }
-
-
 }
