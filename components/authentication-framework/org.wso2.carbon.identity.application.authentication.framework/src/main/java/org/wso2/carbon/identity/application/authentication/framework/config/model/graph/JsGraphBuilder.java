@@ -316,6 +316,7 @@ public class JsGraphBuilder {
             log.debug("Authenticator options: " + sb.toString());
         }
         Set<AuthenticatorConfig> authenticatorsToRemove = new HashSet<>();
+        Map<String, AuthenticatorConfig> idpsToRemove = new HashMap<>();
         stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
             .forEach((idpName, idp) -> {
                 Set<String> authenticators = filteredOptions.get(idpName);
@@ -378,10 +379,29 @@ public class JsGraphBuilder {
                     }
                 }
                 if (removeOption) {
-                    authenticatorsToRemove.add(authenticatorConfig);
+                    if (authenticatorConfig.getIdps().size() > 1) {
+                        idpsToRemove.put(idpName, authenticatorConfig);
+                    } else {
+                        authenticatorsToRemove.add(authenticatorConfig);
+                    }
                 }
             }));
         if (stepConfig.getAuthenticatorList().size() > authenticatorsToRemove.size()) {
+            idpsToRemove.forEach((idp, authenticatorConfig) -> {
+                int index = stepConfig.getAuthenticatorList().indexOf(authenticatorConfig);
+                stepConfig.getAuthenticatorList().get(index).getIdps().remove(idp);
+                stepConfig.getAuthenticatorList().get(index).getIdpNames().remove(idp);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed " + idp + " option from " + authenticatorConfig.getName() + " as it " +
+                            "doesn't match the provided authenticator options");
+                }
+            });
+            // If all idps are removed from the authenticator the authenticator should be removed.
+            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+                if (authenticatorConfig.getIdps().isEmpty()) {
+                    authenticatorsToRemove.add(authenticatorConfig);
+                }
+            });
             stepConfig.getAuthenticatorList().removeAll(authenticatorsToRemove);
             if (log.isDebugEnabled()) {
                 log.debug("Removed " + authenticatorsToRemove.size() + " options which doesn't match the " +
