@@ -280,7 +280,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new FunctionLibraryManagementException("Failed to check whether the function library exists with"
+            throw new FunctionLibraryManagementException("Failed to check whether the function library exists with "
                     + functionLibraryName, e);
         }
         return isFunctionLibraryExists;
