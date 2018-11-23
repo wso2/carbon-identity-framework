@@ -210,6 +210,9 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertEquals(serviceProviderDO.getLoginPageURL(), dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL)), "Login page url mismatch");
 
+        assertEquals(serviceProviderDO.getIssuerEntityValue(),dummyResource.getProperty(IdentityRegistryResources.
+                PROP_SAML_SSO_ISSUER_ENTITY_VALUE),"Issuer Entity Value mismatch");
+
         String sigAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM);
         if (StringUtils.isBlank(sigAlg)) {
             sigAlg = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
