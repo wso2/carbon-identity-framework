@@ -35,10 +35,9 @@ public interface TemplateManagerDAO {
      * Add a {@link Template}.
      *
      * @param template {@link Template} to insert.
-     * @return Inserted {@link TemplateInfo}.
      * @throws TemplateManagementException If error occurs while adding the {@link Template}.
      */
-    TemplateInfo addTemplate(Template template) throws TemplateManagementException;
+    void addTemplate(Template template) throws TemplateManagementException;
 
     /**
      * Retrieve {@link Template} by template name and tenant Id.

@@ -55,10 +55,8 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response addTemplate(TemplateRequestDTO template) {
 
         try {
-            AddTemplateResponseDTO response = postTemplate(template);
+            postTemplate(template);
             return Response.ok()
-                    .entity(response)
-                    .location(getTemplateLocationURI(response))
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -152,15 +150,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return TemplateEndpointUtils.getTemplatesResponseDTOList(templates);
     }
 
-    private AddTemplateResponseDTO postTemplate(TemplateRequestDTO templateDTO) throws TemplateManagementException {
-
+    private void postTemplate(TemplateRequestDTO templateDTO) throws TemplateManagementException {
         Template templateRequest = TemplateEndpointUtils.getTemplateRequest(templateDTO);
-        TemplateInfo templateResponse = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
-
-        AddTemplateResponseDTO responseDTO = new AddTemplateResponseDTO();
-        responseDTO.setTenantId(templateResponse.getTenantId().toString());
-        responseDTO.setName(templateResponse.getTemplateName());
-        return responseDTO;
+        TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
     }
 
     private UpdateSuccessResponseDTO putTemplate(String templateName, UpdateTemplateRequestDTO updateTemplateRequestDTO)

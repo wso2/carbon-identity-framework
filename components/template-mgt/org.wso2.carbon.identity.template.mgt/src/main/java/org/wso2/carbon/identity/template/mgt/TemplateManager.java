@@ -36,11 +36,10 @@ public interface TemplateManager {
      * This method is used to add a new template.
      *
      * @param template Template element.
-     * @return Return template element with template id, tenant Id and name.
      * @throws TemplateManagementException Template Management Exception.
      */
 
-    TemplateInfo addTemplate(Template template) throws TemplateManagementException;
+    void addTemplate(Template template) throws TemplateManagementException;
 
     /**
      * This method is used to get the template by template name and tenant ID.

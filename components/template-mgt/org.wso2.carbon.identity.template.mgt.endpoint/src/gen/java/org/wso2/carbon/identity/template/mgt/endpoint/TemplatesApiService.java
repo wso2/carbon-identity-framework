@@ -4,12 +4,10 @@ import org.wso2.carbon.identity.template.mgt.endpoint.*;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.*;
 
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.AddTemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateSuccessResponseDTO;
 
 import java.util.List;
 

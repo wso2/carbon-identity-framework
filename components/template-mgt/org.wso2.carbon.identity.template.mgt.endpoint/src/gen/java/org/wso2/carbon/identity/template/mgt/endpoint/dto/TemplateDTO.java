@@ -15,12 +15,6 @@ public class TemplateDTO  {
   
   
   
-  private Integer templateId = null;
-  
-  @NotNull
-  private Integer tenantId = null;
-  
-  
   private String templateName = null;
   
   
@@ -28,32 +22,6 @@ public class TemplateDTO  {
   
   
   private String templateScript = null;
-
-  
-  /**
-   * An auto-incremented unique ID for a template
-   **/
-  @ApiModelProperty(value = "An auto-incremented unique ID for a template")
-  @JsonProperty("templateId")
-  public Integer getTemplateId() {
-    return templateId;
-  }
-  public void setTemplateId(Integer templateId) {
-    this.templateId = templateId;
-  }
-
-  
-  /**
-   * A unique ID for a tenant
-   **/
-  @ApiModelProperty(required = true, value = "A unique ID for a tenant")
-  @JsonProperty("tenantId")
-  public Integer getTenantId() {
-    return tenantId;
-  }
-  public void setTenantId(Integer tenantId) {
-    this.tenantId = tenantId;
-  }
 
   
   /**
@@ -101,8 +69,6 @@ public class TemplateDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class TemplateDTO {\n");
     
-    sb.append("  templateId: ").append(templateId).append("\n");
-    sb.append("  tenantId: ").append(tenantId).append("\n");
     sb.append("  templateName: ").append(templateName).append("\n");
     sb.append("  description: ").append(description).append("\n");
     sb.append("  templateScript: ").append(templateScript).append("\n");

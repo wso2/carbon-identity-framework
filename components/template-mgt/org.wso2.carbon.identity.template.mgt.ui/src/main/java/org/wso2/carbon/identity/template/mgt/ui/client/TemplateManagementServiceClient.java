@@ -42,13 +42,12 @@ public class TemplateManagementServiceClient {
         this.loggedInUser = loggedInUser;
     }
 
-    public TemplateInfo addTemplate(TemplateRequestDTO templateRequestDTO) throws TemplateManagementException {
+    public void addTemplate(TemplateRequestDTO templateRequestDTO) throws TemplateManagementException {
 
         handleLoggedInUserAuthorization(TemplateMgtConstants.PERMISSION_TEMPLATE_MGT_ADD);
         Template template = new Template(templateRequestDTO.getTenantId(), templateRequestDTO.getTemplateName(),
                 templateRequestDTO.getDescription(), templateRequestDTO.getTemplateScript());
-        TemplateInfo templateResponse = getTemplateManager().addTemplate(template);
-        return templateResponse;
+        getTemplateManager().addTemplate(template);
     }
 
     public Template getTemplateByName(String templateName) throws TemplateManagementException {

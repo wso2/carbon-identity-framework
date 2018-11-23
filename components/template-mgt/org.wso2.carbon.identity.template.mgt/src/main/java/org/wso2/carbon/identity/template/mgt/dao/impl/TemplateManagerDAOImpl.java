@@ -60,12 +60,10 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
      * Add a {@link Template}.
      *
      * @param template {@link Template} to insert.
-     * @return Inserted {@link TemplateInfo}.
      * @throws TemplateManagementException If error occurs while adding the {@link Template}.
      */
-    public TemplateInfo addTemplate(Template template) throws TemplateManagementException {
+    public void addTemplate(Template template) throws TemplateManagementException {
 
-        TemplateInfo templateResult;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
@@ -84,8 +82,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         } catch (DataAccessException e) {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_INSERT_TEMPLATE, template.getTemplateName(), e);
         }
-        templateResult = new TemplateInfo(template.getTenantId(), template.getTemplateName());
-        return templateResult;
+
     }
 
     /**

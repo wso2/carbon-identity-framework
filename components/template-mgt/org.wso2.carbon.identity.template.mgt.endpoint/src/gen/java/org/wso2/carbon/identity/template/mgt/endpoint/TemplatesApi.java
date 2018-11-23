@@ -7,12 +7,10 @@ import org.wso2.carbon.identity.template.mgt.endpoint.factories.TemplatesApiServ
 import io.swagger.annotations.ApiParam;
 
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.AddTemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateSuccessResponseDTO;
 
 import java.util.List;
 
@@ -35,9 +33,9 @@ public class TemplatesApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add a new template\n", notes = "This API is used to store template information submitted by the user.\n", response = AddTemplateResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add a new template\n", notes = "This API is used to store template information submitted by the user.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
+        @io.swagger.annotations.ApiResponse(code = 201, message = "Created"),
         
         @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
         
@@ -45,7 +43,7 @@ public class TemplatesApi  {
         
         @io.swagger.annotations.ApiResponse(code = 409, message = "Conflict"),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error") })
 
     public Response addTemplate(@ApiParam(value = "This represents the Template object that needs to be added to the database" ,required=true ) TemplateRequestDTO template)
     {
@@ -57,7 +55,7 @@ public class TemplatesApi  {
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Delete a template", notes = "This API is used to delete a template.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 202, message = "Template deleted"),
+        @io.swagger.annotations.ApiResponse(code = 202, message = "Accepted"),
         
         @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
         
@@ -65,7 +63,7 @@ public class TemplatesApi  {
         
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error") })
 
     public Response deleteTemplate(@ApiParam(value = "Name of the template to be deleted",required=true ) @PathParam("templateName")  String templateName)
     {
@@ -77,15 +75,15 @@ public class TemplatesApi  {
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Find template by Name\n", notes = "This API is used to retrieve a specific template using the template name. \n", response = TemplateDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Successful operation"),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid request"),
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad request"),
         
         @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
         
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error") })
 
     public Response getTemplateByName(@ApiParam(value = "Name of template to return",required=true ) @PathParam("templateName")  String templateName)
     {
@@ -97,18 +95,18 @@ public class TemplatesApi  {
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Get an array of templates", notes = "", response = GetTemplatesResponseDTO.class, responseContainer = "List")
     @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Successfully returned an array of templates"),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid request"),
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad request"),
         
         @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
         
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error") })
 
-    public Response getTemplates(@ApiParam(value = "Limits the number of items on a page") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Specifies the page number of the templates to be displayed") @QueryParam("offset")  Integer offset)
+    public Response getTemplates(@ApiParam(value = "Limits the number of templates listed on a page") @QueryParam("limit")  Integer limit,
+    @ApiParam(value = "Specifies the starting point for the templates to be displayed") @QueryParam("offset")  Integer offset)
     {
     return delegate.getTemplates(limit,offset);
     }
@@ -116,9 +114,9 @@ public class TemplatesApi  {
     @Path("/{templateName}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Update an existing template      \n", notes = "This API is used to update a template. \n", response = UpdateSuccessResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Update an existing template      \n", notes = "This API is used to update a template. \n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 202, message = "Template updated"),
+        @io.swagger.annotations.ApiResponse(code = 202, message = "Accepted"),
         
         @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
         
@@ -126,7 +124,7 @@ public class TemplatesApi  {
         
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error") })
 
     public Response updateTemplate(@ApiParam(value = "Name of the template to be updated",required=true ) @PathParam("templateName")  String templateName,
     @ApiParam(value = "" ,required=true ) UpdateTemplateRequestDTO newTemplate)
