@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
+import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.exception.BadRequestException;
@@ -46,7 +47,7 @@ public class TemplateEndpointUtils {
                                                         .getOSGiService(TemplateManager.class, null);
     }
 
-    public static Template getTemplateRequest(TemplateRequestDTO templateDTO) {
+    public static Template getTemplateRequest(TemplateDTO templateDTO) {
 
         return new Template(TemplateMgtUtils.getTenantIdFromCarbonContext(),
                 templateDTO.getTemplateName(),
@@ -54,20 +55,12 @@ public class TemplateEndpointUtils {
                 templateDTO.getTemplateScript());
     }
 
-    public static Template getTemplateUpdateRequest(UpdateTemplateRequestDTO templateRequestDTO) {
-
-        return new Template(TemplateMgtUtils.getTenantIdFromCarbonContext(),
-                templateRequestDTO.getTemplateName(),
-                templateRequestDTO.getDescription(),
-                templateRequestDTO.getTemplateScript());
-    }
-
     public static List<GetTemplatesResponseDTO> getTemplatesResponseDTOList(List<TemplateInfo> templates) {
 
         return templates.stream()
                 .map(template -> {
                     GetTemplatesResponseDTO getTemplatesResponseDTO = new GetTemplatesResponseDTO();
-                    getTemplatesResponseDTO.setName(template.getTemplateName());
+                    getTemplatesResponseDTO.setTemplateName(template.getTemplateName());
                     getTemplatesResponseDTO.setDescription(template.getDescription());
                     return getTemplatesResponseDTO;
                 })

@@ -15,7 +15,7 @@ public class GetTemplatesResponseDTO  {
   
   
   
-  private String name = null;
+  private String templateName = null;
   
   
   private String description = null;
@@ -24,12 +24,12 @@ public class GetTemplatesResponseDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("name")
-  public String getName() {
-    return name;
+  @JsonProperty("templateName")
+  public String getTemplateName() {
+    return templateName;
   }
-  public void setName(String name) {
-    this.name = name;
+  public void setTemplateName(String templateName) {
+    this.templateName = templateName;
   }
 
   
@@ -51,7 +51,7 @@ public class GetTemplatesResponseDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class GetTemplatesResponseDTO {\n");
     
-    sb.append("  name: ").append(name).append("\n");
+    sb.append("  templateName: ").append(templateName).append("\n");
     sb.append("  description: ").append(description).append("\n");
     sb.append("}\n");
     return sb.toString();

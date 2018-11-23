@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.endpoint.TemplatesApiService;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.AddTemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
+import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateSuccessResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
@@ -35,6 +36,8 @@ import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import javax.ws.rs.core.Response;
 
@@ -52,13 +55,12 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     private static final Log LOG = LogFactory.getLog(TemplatesApiServiceImpl.class);
 
     @Override
-    public Response addTemplate(TemplateRequestDTO template) {
+    public Response addTemplate(TemplateDTO template) {
 
         try {
             AddTemplateResponseDTO response = postTemplate(template);
-            return Response.ok()
-                    .entity(response)
-                    .location(getTemplateLocationURI(response))
+            return Response.created(getTemplateLocationURI(response.getTenantId()))
+                    .lastModified(Calendar.getInstance().getTime())
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -70,13 +72,13 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     }
 
     @Override
-    public Response updateTemplate(String templateName, UpdateTemplateRequestDTO updateTemplateRequestDTO) {
+    public Response updateTemplate(String templateName, TemplateDTO updateTemplateRequestDTO) {
 
         try {
             UpdateSuccessResponseDTO response = putTemplate(templateName, updateTemplateRequestDTO);
             return Response.ok()
-                    .entity(response)
-                    .location(getUpdatedTemplateLocationURI(response))
+                    .location(getTemplateLocationURI(response.getTenantId()))
+                    .lastModified(Calendar.getInstance().getTime())
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -108,9 +110,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response deleteTemplate(String templateName) {
 
         try {
-            TemplateInfo deleteTemplateResponse = TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
-            return Response.ok()
-                    .entity(deleteTemplateResponse)
+            TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
+            return Response.noContent()
+                    .lastModified(Calendar.getInstance().getTime())
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -152,7 +154,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return TemplateEndpointUtils.getTemplatesResponseDTOList(templates);
     }
 
-    private AddTemplateResponseDTO postTemplate(TemplateRequestDTO templateDTO) throws TemplateManagementException {
+    private AddTemplateResponseDTO postTemplate(TemplateDTO templateDTO) throws TemplateManagementException {
 
         Template templateRequest = TemplateEndpointUtils.getTemplateRequest(templateDTO);
         TemplateInfo templateResponse = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
@@ -163,10 +165,10 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return responseDTO;
     }
 
-    private UpdateSuccessResponseDTO putTemplate(String templateName, UpdateTemplateRequestDTO updateTemplateRequestDTO)
+    private UpdateSuccessResponseDTO putTemplate(String templateName, TemplateDTO updateTemplateRequestDTO)
             throws TemplateManagementException {
 
-        Template updateTemplateRequest = TemplateEndpointUtils.getTemplateUpdateRequest(updateTemplateRequestDTO);
+        Template updateTemplateRequest = TemplateEndpointUtils.getTemplateRequest(updateTemplateRequestDTO);
         TemplateInfo updateTemplateResponse = TemplateEndpointUtils.getTemplateManager()
                                                                    .updateTemplate(templateName, updateTemplateRequest);
 
@@ -182,14 +184,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return getTemplateResponse;
     }
 
-    private URI getTemplateLocationURI(AddTemplateResponseDTO response) throws URISyntaxException {
+    private URI getTemplateLocationURI(String tenantId) throws URISyntaxException {
 
-        return new URI(TemplateMgtConstants.TEMPLATE_RESOURCE_PATH + response.getTenantId());
-    }
-
-    private URI getUpdatedTemplateLocationURI(UpdateSuccessResponseDTO response) throws URISyntaxException {
-
-        return new URI(TemplateMgtConstants.TEMPLATE_RESOURCE_PATH + response.getTenantId());
+        return new URI(TemplateMgtConstants.TEMPLATE_RESOURCE_PATH + tenantId);
     }
 
     private Response handleBadRequestResponse(TemplateManagementClientException e) {
