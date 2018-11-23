@@ -59,8 +59,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
         try {
             AddTemplateResponseDTO response = postTemplate(template);
-            return Response.created(getTemplateLocationURI(response.getTenantId()))
-                    .lastModified(Calendar.getInstance().getTime())
+            Date date = Calendar.getInstance().getTime();
+            return Response.created(getTemplateLocationURI(response.getName()))
+                    .lastModified(date)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -76,9 +77,10 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
         try {
             UpdateSuccessResponseDTO response = putTemplate(templateName, updateTemplateRequestDTO);
+            Date date = Calendar.getInstance().getTime();
             return Response.ok()
-                    .location(getTemplateLocationURI(response.getTenantId()))
-                    .lastModified(Calendar.getInstance().getTime())
+                    .location(getTemplateLocationURI(response.getName()))
+                    .lastModified(date)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -111,8 +113,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
         try {
             TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
-            return Response.noContent()
-                    .lastModified(Calendar.getInstance().getTime())
+            Date date = Calendar.getInstance().getTime();
+            return Response.ok()
+                    .lastModified(date)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -184,9 +187,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return getTemplateResponse;
     }
 
-    private URI getTemplateLocationURI(String tenantId) throws URISyntaxException {
+    private URI getTemplateLocationURI(String templateName) throws URISyntaxException {
 
-        return new URI(TemplateMgtConstants.TEMPLATE_RESOURCE_PATH + tenantId);
+        return new URI(TemplateMgtConstants.TEMPLATE_RESOURCE_PATH + "/" + templateName);
     }
 
     private Response handleBadRequestResponse(TemplateManagementClientException e) {
