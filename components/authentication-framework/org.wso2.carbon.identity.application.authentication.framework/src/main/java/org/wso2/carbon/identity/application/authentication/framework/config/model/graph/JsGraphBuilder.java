@@ -23,6 +23,7 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -30,12 +31,16 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
+import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -140,6 +145,8 @@ public class JsGraphBuilder {
                 this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                    (LoadExecutor) this::loadLocalLibrary);
             engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
             engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
@@ -149,6 +156,54 @@ public class JsGraphBuilder {
                 functionMap.forEach(globalBindings::put);
             }
             Invocable invocable = (Invocable) engine;
+            String requireScript = "var internalRequire = (function () {\n" +
+                    "\n" +
+                    "    var _require = function (libname) {\n" +
+                    "        var moduleInfo,\n" +
+                    "            head = '(function(exports,module,require){ ',\n" +
+                    "            code = '',\n" +
+                    "            tail = '})',\n" +
+                    "            line = null;\n" +
+                    "\n" +
+                    "        code = loadLocalLibrary(libname);\n" +
+                    "\n" +
+                    "\n" +
+                    "        moduleInfo = {\n" +
+                    "            exports: {},\n" +
+                    "            require: _requireWrapper()\n" +
+                    "        };\n" +
+                    "\n" +
+                    "        code = head + code + tail;\n" +
+                    "\n" +
+                    "        var compiledWrapper = null;\n" +
+                    "        try {\n" +
+                    "               compiledWrapper = eval(code);" +
+                    "        } catch (e) {\n" +
+                    "            throw new Error(\"Error evaluating module \" +libname + \" line #\" + e.lineNumber + \": \" + e.message);\n" +
+                    "        }\n" +
+                    "\n" +
+                    "        var args = [\n" +
+                    "            moduleInfo.exports, /* exports */\n" +
+                    "            moduleInfo, /* module */\n" +
+                    "            moduleInfo.require, /* require */\n" +
+                    "        ];\n" +
+                    "        try {\n" +
+                    "            compiledWrapper.apply(null, args);\n" +
+                    "        } catch (e) {\n" +
+                    "            throw new Error(\"Error executing module \" + libname + \" line #\" + e.lineNumber + \" : \" + e.message);\n" +
+                    "        }\n" +
+                    "        return moduleInfo;\n" +
+                    "    };\n" +
+                    "    var _requireWrapper = function () {\n" +
+                    "        return function (libname) {\n" +
+                    "            var module = _require(libname);\n" +
+                    "            return module.exports;\n" +
+                    "        };\n" +
+                    "    };\n" +
+                    "    return _requireWrapper();\n" +
+                    "})";
+            engine.eval(requireScript);
+            engine.eval("var require = internalRequire()");
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -573,6 +628,24 @@ public class JsGraphBuilder {
     }
 
     /**
+     * Loads the required function library from the database.
+     *
+     * @param functionLibraryName functionLibraryName
+     * @return functionLibraryScript
+     * @throws FunctionLibraryManagementException
+     */
+    public String loadLocalLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
+
+        FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
+                getFunctionLibraryManagementService();
+        FunctionLibrary functionLibrary = null;
+        functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        String libraryScript = functionLibrary.getFunctionLibraryScript();
+        return libraryScript;
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap
@@ -778,6 +851,12 @@ public class JsGraphBuilder {
         void exit(Object... arg);
     }
 
+    @FunctionalInterface
+    public interface LoadExecutor {
+
+        String loadLocalLibrary(String libname) throws FunctionLibraryManagementException;
+    }
+
     public void exitFunction(Object... arg) {
 
         log.error("Exit function is restricted.");
@@ -825,6 +904,8 @@ public class JsGraphBuilder {
                         (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
+                            graphBuilder::loadLocalLibrary);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {

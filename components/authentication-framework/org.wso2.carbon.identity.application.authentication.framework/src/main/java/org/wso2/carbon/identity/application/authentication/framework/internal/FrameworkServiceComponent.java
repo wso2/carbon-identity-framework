@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -636,6 +637,35 @@ public class FrameworkServiceComponent {
     protected void unsetIdentityEventService(IdentityEventService identityEventService) {
 
         FrameworkServiceDataHolder.getInstance().setIdentityEventService(null);
+    }
+
+    @Reference(
+            name = "function.library.management.service",
+            service = FunctionLibraryManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFunctionLibraryManagementService"
+    )
+    protected void setFunctionLibraryManagementService
+            (FunctionLibraryManagementService functionLibraryManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("FunctionLibraryManagementService is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFunctionLibraryManagementService(functionLibraryManagementService);
+    }
+
+    protected void unsetFunctionLibraryManagementService
+            (FunctionLibraryManagementService functionLibraryManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("FunctionLibraryManagementService is unset in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFunctionLibraryManagementService(null);
+    }
+
+    public static FunctionLibraryManagementService getFunctionLibraryManagementService() {
+        return FrameworkServiceDataHolder.getInstance().getFunctionLibraryManagementService();
     }
 
 }
