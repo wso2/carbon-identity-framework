@@ -84,7 +84,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         } catch (DataAccessException e) {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_INSERT_TEMPLATE, template.getTemplateName(), e);
         }
-        templateResult = new Template(template.getTemplateName(),template.getDescription(),template.getTemplateScript());
+        templateResult = new Template(template.getTenantId(),template.getTemplateName(),template.getDescription(),template.getTemplateScript());
         return templateResult;
     }
 
@@ -184,10 +184,10 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
      *
      * @param templateName name of the to be updated {@link Template}.
      * @param newTemplate  new {@link Template} to insert.
-     * @return Inserted {@link TemplateInfo}.
+     * @return Inserted {@link Template}.
      * @throws TemplateManagementException If error occurs while adding the {@link Template}.
      */
-    public TemplateInfo updateTemplate(String templateName, Template newTemplate)
+    public Template updateTemplate(String templateName, Template newTemplate)
             throws TemplateManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -208,7 +208,8 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         } catch (DataAccessException e) {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_UPDATE_TEMPLATE, newTemplate.getTemplateName(), e);
         }
-        return new TemplateInfo(newTemplate.getTenantId(), newTemplate.getTemplateName());
+        return new Template(newTemplate.getTenantId(), newTemplate.getTemplateName(),
+                            newTemplate.getDescription(),newTemplate.getTemplateScript());
     }
 
     /**

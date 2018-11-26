@@ -89,7 +89,7 @@ public class TemplateEndpointUtils {
     }
 
     /**
-     * This method is used to create an InternalServerErrorException with the known errorCode.
+     * This method is used to create an InternalServerErrorException with the known error code.
      *
      * @param code Error Code.
      * @return a new InternalServerErrorException with default details.

@@ -34,7 +34,7 @@
     
     Integer tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     
-    if (templateName != null && !"".equals(templateName)) {
+    if (templateName != null && !"".equals(templateName)) { //StringUtils
         
         TemplateRequestDTO templateRequestDTO = new TemplateRequestDTO();
         templateRequestDTO.setTenantId(tenantId);

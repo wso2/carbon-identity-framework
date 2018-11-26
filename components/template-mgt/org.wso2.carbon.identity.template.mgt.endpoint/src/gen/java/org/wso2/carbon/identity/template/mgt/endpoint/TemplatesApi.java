@@ -109,11 +109,11 @@ public class TemplatesApi  {
     {
     return delegate.getTemplates(limit,offset);
     }
-    @PUT
+    @POST
     @Path("/{templateName}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Update an existing template. \n", notes = "This API is used to update a template. \n", response = void.class)
+    @io.swagger.annotations.ApiOperation(value = "Update an existing template. \n", notes = "This API is used to update a template. \n", response = TemplateResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         

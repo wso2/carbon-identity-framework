@@ -67,10 +67,10 @@ public interface TemplateManagerDAO {
      *
      * @param templateName name of the to be updated {@link Template}.
      * @param newTemplate  new {@link Template} to insert.
-     * @return Inserted {@link TemplateInfo}.
+     * @return Inserted {@link Template}.
      * @throws TemplateManagementException If error occurs while adding the {@link Template}.
      */
-    TemplateInfo updateTemplate(String templateName, Template newTemplate) throws TemplateManagementServerException;
+    Template updateTemplate(String templateName, Template newTemplate) throws TemplateManagementServerException;
 
     /**
      * Delete {@link Template} for a given template name and a tenant Id.

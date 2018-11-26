@@ -60,9 +60,8 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
         try {
             TemplateResponseDTO response = postTemplate(template);
-            Date date = Calendar.getInstance().getTime();
             return Response.created(getTemplateLocationURI(response.getTemplateName()))
-                    .lastModified(date)
+                    .lastModified(Calendar.getInstance().getTime())
                     .entity(response)
                     .build();
         } catch (TemplateManagementClientException e) {
@@ -78,11 +77,10 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response updateTemplate(String templateName, TemplateDTO updateTemplateRequestDTO) {
 
         try {
-            UpdateSuccessResponseDTO response = putTemplate(templateName, updateTemplateRequestDTO);
-            Date date = Calendar.getInstance().getTime();
+            TemplateResponseDTO response = putTemplate(templateName, updateTemplateRequestDTO);
             return Response.ok()
-                    .location(getTemplateLocationURI(response.getName()))
-                    .lastModified(date)
+                    .location(getTemplateLocationURI(response.getTemplateName()))
+                    .lastModified(Calendar.getInstance().getTime())
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -162,26 +160,27 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     private TemplateResponseDTO postTemplate(TemplateDTO templateDTO) throws TemplateManagementException {
 
         Template templateRequest = TemplateEndpointUtils.getTemplateRequest(templateDTO);
-        Template response = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
+        Template addTemplateResponse = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
 
-        TemplateResponseDTO responseDTO = new TemplateResponseDTO();
-        responseDTO.setTenantId(response.getTenantId());
-        responseDTO.setTemplateName(response.getTemplateName());
-        responseDTO.setDescription(response.getDescription());
-        responseDTO.setTemplateScript(response.getTemplateScript());
-        return responseDTO;
+        return getResponseTemplateDTO(addTemplateResponse);
     }
 
-    private UpdateSuccessResponseDTO putTemplate(String templateName, TemplateDTO updateTemplateRequestDTO)
+    private TemplateResponseDTO putTemplate(String templateName, TemplateDTO updateTemplateRequestDTO)
             throws TemplateManagementException {
 
         Template updateTemplateRequest = TemplateEndpointUtils.getTemplateRequest(updateTemplateRequestDTO);
-        TemplateInfo updateTemplateResponse = TemplateEndpointUtils.getTemplateManager()
-                                                                   .updateTemplate(templateName, updateTemplateRequest);
+        Template updateTemplateResponse = TemplateEndpointUtils.getTemplateManager()
+                                        .updateTemplate(templateName, updateTemplateRequest);
 
-        UpdateSuccessResponseDTO responseDTO = new UpdateSuccessResponseDTO();
-        responseDTO.setName(updateTemplateResponse.getTemplateName());
-        responseDTO.setTenantId(updateTemplateResponse.getTenantId().toString());
+        return getResponseTemplateDTO(updateTemplateResponse);
+    }
+
+    private TemplateResponseDTO getResponseTemplateDTO (Template templateResponse){
+        TemplateResponseDTO responseDTO = new TemplateResponseDTO();
+        responseDTO.setTenantId(templateResponse.getTenantId());
+        responseDTO.setTemplateName(templateResponse.getTemplateName());
+        responseDTO.setDescription(templateResponse.getDescription());
+        responseDTO.setTemplateScript(templateResponse.getTemplateScript());
         return responseDTO;
     }
 

@@ -80,12 +80,12 @@ public class TemplateManagerImpl implements TemplateManager {
      *
      * @param templateName Name of the updated template.
      * @param template     Template element.
-     * @return Return the updated TemplateInfo element with tenant Id and name.
+     * @return Return the updated Template element.
      * @throws TemplateManagementException Template Management Exception.
      */
 
     @Override
-    public TemplateInfo updateTemplate(String templateName, Template template) throws TemplateManagementException {
+    public Template updateTemplate(String templateName, Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();

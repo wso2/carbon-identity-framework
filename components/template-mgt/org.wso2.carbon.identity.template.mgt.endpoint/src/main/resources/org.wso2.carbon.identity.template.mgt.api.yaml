@@ -133,7 +133,7 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/Error"
-    put:
+    post:
       summary: "Update an existing template. \n"
       description: "This API is used to update a template. \n"
       operationId: "updateTemplate"
@@ -153,6 +153,8 @@ paths:
       responses:
         200:
           description: "OK"
+          schema:
+            $ref: "#/definitions/TemplateResponse"
         400:
           description: "Bad Request"
           schema:
