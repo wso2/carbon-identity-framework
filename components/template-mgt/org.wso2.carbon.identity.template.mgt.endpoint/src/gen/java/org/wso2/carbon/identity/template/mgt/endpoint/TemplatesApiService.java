@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.template.mgt.endpoint;
 import org.wso2.carbon.identity.template.mgt.endpoint.*;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.*;
 
+import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;

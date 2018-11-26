@@ -48,12 +48,12 @@ public class TemplateManagerImpl implements TemplateManager {
      * This method is used to add a new template.
      *
      * @param template Template element.
-     * @return Return template element with template id, tenant Id and name.
+     * @return Return template element with template name, description and script.
      * @throws TemplateManagementException Template Management Exception.
      */
 
     @Override
-    public TemplateInfo addTemplate(Template template) throws TemplateManagementException {
+    public Template addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();

@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.template.mgt.endpoint.dto.AddTemplateResponseDTO
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
+import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateSuccessResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.util.TemplateEndpointUtils;
@@ -58,9 +59,9 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response addTemplate(TemplateDTO template) {
 
         try {
-            AddTemplateResponseDTO response = postTemplate(template);
+            TemplateResponseDTO response = postTemplate(template);
             Date date = Calendar.getInstance().getTime();
-            return Response.created(getTemplateLocationURI(response.getName()))
+            return Response.created(getTemplateLocationURI(response.getTemplateName()))
                     .lastModified(date)
                     .entity(response)
                     .build();
@@ -158,14 +159,16 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return TemplateEndpointUtils.getTemplatesResponseDTOList(templates);
     }
 
-    private AddTemplateResponseDTO postTemplate(TemplateDTO templateDTO) throws TemplateManagementException {
+    private TemplateResponseDTO postTemplate(TemplateDTO templateDTO) throws TemplateManagementException {
 
         Template templateRequest = TemplateEndpointUtils.getTemplateRequest(templateDTO);
-        TemplateInfo templateResponse = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
+        Template response = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
 
-        AddTemplateResponseDTO responseDTO = new AddTemplateResponseDTO();
-        responseDTO.setTenantId(templateResponse.getTenantId().toString());
-        responseDTO.setName(templateResponse.getTemplateName());
+        TemplateResponseDTO responseDTO = new TemplateResponseDTO();
+        responseDTO.setTenantId(response.getTenantId());
+        responseDTO.setTemplateName(response.getTemplateName());
+        responseDTO.setDescription(response.getDescription());
+        responseDTO.setTemplateScript(response.getTemplateScript());
         return responseDTO;
     }
 

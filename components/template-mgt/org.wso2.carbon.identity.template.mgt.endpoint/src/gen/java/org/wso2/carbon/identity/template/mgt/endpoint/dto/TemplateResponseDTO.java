@@ -11,10 +11,13 @@ import javax.validation.constraints.NotNull;
 
 
 @ApiModel(description = "")
-public class TemplateDTO  {
+public class TemplateResponseDTO  {
   
   
-  @NotNull
+  
+  private Integer tenantId = null;
+  
+  
   private String templateName = null;
   
   
@@ -25,9 +28,22 @@ public class TemplateDTO  {
 
   
   /**
+   * The Id of the tenant which the template resides in.
+   **/
+  @ApiModelProperty(value = "The Id of the tenant which the template resides in.")
+  @JsonProperty("tenantId")
+  public Integer getTenantId() {
+    return tenantId;
+  }
+  public void setTenantId(Integer tenantId) {
+    this.tenantId = tenantId;
+  }
+
+  
+  /**
    * The name of the template given by the admin.
    **/
-  @ApiModelProperty(required = true, value = "The name of the template given by the admin.")
+  @ApiModelProperty(value = "The name of the template given by the admin.")
   @JsonProperty("templateName")
   public String getTemplateName() {
     return templateName;
@@ -67,8 +83,9 @@ public class TemplateDTO  {
   @Override
   public String toString()  {
     StringBuilder sb = new StringBuilder();
-    sb.append("class TemplateDTO {\n");
+    sb.append("class TemplateResponseDTO {\n");
     
+    sb.append("  tenantId: ").append(tenantId).append("\n");
     sb.append("  templateName: ").append(templateName).append("\n");
     sb.append("  description: ").append(description).append("\n");
     sb.append("  templateScript: ").append(templateScript).append("\n");

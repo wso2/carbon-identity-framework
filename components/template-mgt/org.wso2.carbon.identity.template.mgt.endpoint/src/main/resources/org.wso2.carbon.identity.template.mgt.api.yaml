@@ -82,7 +82,7 @@ paths:
         201:
           description: "Created"
           schema:
-            $ref: "#/definitions/Template"
+            $ref: "#/definitions/TemplateResponse"
         400:
           description: "Bad Request"
           schema:
@@ -219,6 +219,26 @@ definitions:
         type: "string"
         description: "This indicates the script of the template."
     example:
+      templateName: "sample template name"
+      description: "sample description"
+      templateScript: "sample template script"
+  TemplateResponse:
+    type: "object"
+    properties:
+      tenantId:
+        type: "integer"
+        description : "The Id of the tenant which the template resides in."
+      templateName:
+        type: "string"
+        description: "The name of the template given by the admin."
+      description:
+        type: "string"
+        description: "A description for the template given by the admin."
+      templateScript:
+        type: "string"
+        description: "This indicates the script of the template."
+    example:
+      tenantId: -1234
       templateName: "sample template name"
       description: "sample description"
       templateScript: "sample template script"
