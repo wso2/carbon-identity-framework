@@ -50,7 +50,7 @@ public class TemplateInfo {
     /**
      * Get template ID.
      *
-     * @return template ID
+     * @return template ID.
      */
     public Integer getTemplateId() {
 
@@ -60,7 +60,7 @@ public class TemplateInfo {
     /**
      * Get tenant ID.
      *
-     * @return tenant ID
+     * @return tenant ID.
      */
     public Integer getTenantId() {
 
@@ -70,7 +70,7 @@ public class TemplateInfo {
     /**
      * Get template name.
      *
-     * @return template name
+     * @return template name.
      */
     public String getTemplateName() {
 
@@ -80,7 +80,7 @@ public class TemplateInfo {
     /**
      * Get template description.
      *
-     * @return template description
+     * @return template description.
      */
     public String getDescription() {
 

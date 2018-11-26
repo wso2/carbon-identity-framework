@@ -62,6 +62,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
             Date date = Calendar.getInstance().getTime();
             return Response.created(getTemplateLocationURI(response.getName()))
                     .lastModified(date)
+                    .entity(response)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);

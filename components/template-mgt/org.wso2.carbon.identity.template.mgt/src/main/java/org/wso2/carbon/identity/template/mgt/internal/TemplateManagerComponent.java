@@ -63,7 +63,7 @@ public class TemplateManagerComponent {
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
 //            bundleContext.registerService(TemplateManagerDAO.class, new TemplateManagerDAOImpl(), null);
             if (log.isDebugEnabled()) {
-                log.debug("Template Manager bundle is activated");
+                log.debug("Template Manager bundle is activated.");
             }
         } catch (Throwable e) {
             log.error("Error", e);
@@ -87,11 +87,11 @@ public class TemplateManagerComponent {
     )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+         is started. */
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+         is started. */
     }
 }

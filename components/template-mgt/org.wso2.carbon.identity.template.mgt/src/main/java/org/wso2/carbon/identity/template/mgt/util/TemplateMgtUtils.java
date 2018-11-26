@@ -30,7 +30,7 @@ public class TemplateMgtUtils {
 
     /**
      * This method can be used to generate a TemplateManagementServerException from
-     * IdentityTemplateMgtConstants.ErrorMessages
+     * IdentityTemplateMgtConstants.ErrorMessages.
      * object when no exception is thrown.
      *
      * @param error IdentityTemplateMgtConstants.ErrorMessages.

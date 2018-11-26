@@ -56,7 +56,7 @@ public class Template {
     /**
      * Get template ID.
      *
-     * @return template ID
+     * @return template ID.
      */
     public Integer getTemplateId() {
 
@@ -66,7 +66,7 @@ public class Template {
     /**
      * Set template ID.
      *
-     * @param templateId template ID
+     * @param templateId template ID.
      */
     public void setTemplateId(Integer templateId) {
 
@@ -76,7 +76,7 @@ public class Template {
     /**
      * Get tenant ID.
      *
-     * @return tenant ID
+     * @return tenant ID.
      */
     public Integer getTenantId() {
 
@@ -86,7 +86,7 @@ public class Template {
     /**
      * Set tenant ID.
      *
-     * @param tenantId tenant ID
+     * @param tenantId tenant ID.
      */
     public void setTenantId(Integer tenantId) {
 
@@ -96,7 +96,7 @@ public class Template {
     /**
      * Get template name.
      *
-     * @return template name
+     * @return template name.
      */
     public String getTemplateName() {
 
@@ -106,7 +106,7 @@ public class Template {
     /**
      * Set template name.
      *
-     * @param templateName template name
+     * @param templateName template name.
      */
     public void setTemplateName(String templateName) {
 
@@ -116,7 +116,7 @@ public class Template {
     /**
      * Get template description.
      *
-     * @return template description
+     * @return template description.
      */
     public String getDescription() {
 
@@ -126,7 +126,7 @@ public class Template {
     /**
      * Set template description.
      *
-     * @param description template description
+     * @param description template description.
      */
     public void setDescription(String description) {
 
@@ -136,7 +136,7 @@ public class Template {
     /**
      * Get template script.
      *
-     * @return templateScript
+     * @return templateScript.
      */
     public String getTemplateScript() {
 
@@ -146,7 +146,7 @@ public class Template {
     /**
      * Set template script.
      *
-     * @param content templateScript
+     * @param content templateScript.
      */
     public void setTemplateScript(String content) {
 

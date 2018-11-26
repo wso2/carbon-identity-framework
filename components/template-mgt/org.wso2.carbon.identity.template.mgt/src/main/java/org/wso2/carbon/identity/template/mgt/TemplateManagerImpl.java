@@ -111,7 +111,7 @@ public class TemplateManagerImpl implements TemplateManager {
      *
      * @param limit  Number of search results.
      * @param offset Start index of the search.
-     * @return Filtered list of TemplateInfo elements
+     * @return Filtered list of TemplateInfo elements.
      * @throws TemplateManagementException Template Management Exception.
      */
 
@@ -135,14 +135,14 @@ public class TemplateManagerImpl implements TemplateManager {
 
         if (isBlank(template.getTemplateName())) {
             if (log.isDebugEnabled()) {
-                log.debug("Template name cannot be empty");
+                log.debug("Template name cannot be empty.");
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
         }
 
         if (isBlank(template.getTemplateScript())) {
             if (log.isDebugEnabled()) {
-                log.debug("Template script cannot be empty");
+                log.debug("Template script cannot be empty.");
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED, null);
         }

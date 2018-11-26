@@ -156,8 +156,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                 offset = limit + offset;
                 limit = initialOffset + 1;
                 query = LIST_PAGINATED_TEMPLATES_MSSQL;
-            } else {
-                //oracle
+            } else { //oracle
                 query = LIST_PAGINATED_TEMPLATES_ORACLE;
                 limit = offset + limit;
             }

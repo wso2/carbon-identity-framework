@@ -75,7 +75,7 @@ public interface TemplateManager {
      *
      * @param limit  Number of search results.
      * @param offset Start index of the search.
-     * @return Filtered list of TemplateInfo elements
+     * @return Filtered list of TemplateInfo elements.
      * @throws TemplateManagementException Template Management Exception.
      */
     List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException;
