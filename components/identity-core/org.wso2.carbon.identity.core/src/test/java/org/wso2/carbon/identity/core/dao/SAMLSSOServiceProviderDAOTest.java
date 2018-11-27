@@ -170,6 +170,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 ("recipient1", "recipient2"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX, Collections
                 .singletonList("attribConsumingSvcIndex"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_ENABLE_ECP, Collections
+                .singletonList("true"));
     }
 
     @AfterMethod
@@ -268,6 +270,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 .PROP_SAML_SLO_RESPONSE_URL), "SLO response URL Mismatch.");
         assertEquals(serviceProviderDO.getSloRequestURL(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SLO_REQUEST_URL), "SLO req url Mismatch.");
+        assertEquals(serviceProviderDO.isSamlECP(), Boolean.parseBoolean(dummyResource.getProperty(IdentityRegistryResources
+                .PROP_SAML_ENABLE_ECP)), "ECP enabled mismatch");
 
         if (dummyResource.getPropertyValues
                 (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS) == null) {
