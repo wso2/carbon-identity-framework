@@ -47,11 +47,13 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -78,8 +80,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
         .SSOConsentConstants.CONFIG_ELEM_CONSENT;
@@ -121,8 +122,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     /**
      * Get consent required claims for a given service from a user considering existing user consents.
      *
-     * @param serviceProvider       Service provider requesting consent.
-     * @param authenticatedUser     Authenticated user requesting consent form.
+     * @param serviceProvider   Service provider requesting consent.
+     * @param authenticatedUser Authenticated user requesting consent form.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws SSOConsentServiceException If error occurs while building claim information.
      */
@@ -137,8 +138,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     /**
      * Get consent required claims for a given service from a user ignoring existing user consents.
      *
-     * @param serviceProvider       Service provider requesting consent.
-     * @param authenticatedUser     Authenticated user requesting consent form.
+     * @param serviceProvider   Service provider requesting consent.
+     * @param authenticatedUser Authenticated user requesting consent form.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws SSOConsentServiceException If error occurs while building claim information.
      */
@@ -153,15 +154,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     /**
      * Get consent required claims for a given service from a user.
      *
-     * @param serviceProvider   Service provider requesting consent.
-     * @param authenticatedUser Authenticated user requesting consent form.
+     * @param serviceProvider     Service provider requesting consent.
+     * @param authenticatedUser   Authenticated user requesting consent form.
      * @param useExistingConsents Use existing consent given by the user.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws SSOConsentServiceException If error occurs while building claim information.
      */
     protected ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider,
-                                                       AuthenticatedUser authenticatedUser,
-                                                       boolean useExistingConsents)
+                                                         AuthenticatedUser authenticatedUser,
+                                                         boolean useExistingConsents)
             throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
@@ -227,7 +228,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             requestedClaims.clear();
         }
         ConsentClaimsData consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims,
-                                                                          spTenantDomain);
+                spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
     }
@@ -264,7 +265,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             if (ssoConsentEnabledElem != null) {
                 String ssoConsentEnabledElemText = ssoConsentEnabledElem.getText();
                 if (isNotBlank(ssoConsentEnabledElemText)) {
-                    ssoConsentEnabled =  Boolean.parseBoolean(ssoConsentEnabledElemText);
+                    ssoConsentEnabled = Boolean.parseBoolean(ssoConsentEnabledElemText);
                     if (isDebugEnabled()) {
                         logDebug("Consent management for SSO is set to " + ssoConsentEnabled + " from configurations.");
                     }
@@ -299,15 +300,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     /**
      * Process the provided user consent and creates a consent receipt.
      *
-     * @param consentApprovedClaimIds   Consent approved claims by the user.
-     * @param serviceProvider           Service provider receiving consent.
-     * @param authenticatedUser         Authenticated user providing consent.
-     * @param consentClaimsData         Claims which the consent requested for.
+     * @param consentApprovedClaimIds Consent approved claims by the user.
+     * @param serviceProvider         Service provider receiving consent.
+     * @param authenticatedUser       Authenticated user providing consent.
+     * @param consentClaimsData       Claims which the consent requested for.
      * @throws SSOConsentServiceException If error occurs while processing user consent.
      */
     @Override
     public void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
-                                         AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
+                               AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
             throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
@@ -320,7 +321,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         UserConsent userConsent = processUserConsent(consentApprovedClaimIds, consentClaimsData);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
         List<ClaimMetaData> claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
-                                                                         userConsent);
+                userConsent);
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subjectTenantDomain = authenticatedUser.getTenantDomain();
 
@@ -366,6 +367,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
     /**
      * Specifies whether consent management for SSO is enabled or disabled.
+     *
      * @param serviceProvider Service provider to check whether consent management is enabled.
      * @return true if enabled, false otherwise.
      */
@@ -383,17 +385,17 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<ReceiptListResponse> receiptListResponses;
         try {
             receiptListResponses = getReceiptListOfUserForSP(authenticatedUser, spName, spTenantDomain, subject,
-                                                         receiptListLimit);
+                    receiptListLimit);
             if (isDebugEnabled()) {
                 String message = String.format("Retrieved %s receipts for user: %s, service provider: %s in tenant " +
-                                               "domain %s", receiptListResponses.size(), subject, serviceProvider,
-                                               spTenantDomain);
+                                "domain %s", receiptListResponses.size(), subject, serviceProvider,
+                        spTenantDomain);
                 logDebug(message);
             }
 
             if (hasUserMultipleReceipts(receiptListResponses)) {
                 throw new SSOConsentServiceException("Consent Management Error", "User cannot have more than one " +
-                                                                             "ACTIVE consent per service provider.");
+                        "ACTIVE consent per service provider.");
             } else if (hasUserSingleReceipt(receiptListResponses)) {
                 String receiptId = getFirstConsentReceiptFromList(receiptListResponses);
                 return getReceipt(authenticatedUser, receiptId);
@@ -402,7 +404,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             }
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent Management Error",
-                                                 "Error while retrieving user consents.", e);
+                    "Error while retrieving user consents.", e);
         }
     }
 
@@ -417,7 +419,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             receiptResponse = getConsentManager().addConsent(receiptInput);
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent receipt error", "Error while adding the consent " +
-                                                                                 "receipt", e);
+                    "receipt", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -435,7 +437,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String language = "us_EN";
         String consentType = "EXPLICIT";
         String termination = CONSENT_VALIDITY_TYPE_VALID_UNTIL + CONSENT_VALIDITY_TYPE_SEPARATOR +
-                             CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
+                CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
         String policyUrl = "NONE";
 
         Purpose purpose = getDefaultPurpose();
@@ -449,7 +451,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         purposeCategoryIds.add(purposeCategory.getId());
 
         ReceiptPurposeInput purposeInput = getReceiptPurposeInput(consentType, termination, purpose, piiCategoryIds,
-                                                                  purposeCategoryIds);
+                purposeCategoryIds);
         purposeInputs.add(purposeInput);
 
         ReceiptServiceInput serviceInput = getReceiptServiceInput(serviceProvider, spTenantDomain, purposeInputs);
@@ -473,7 +475,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     }
 
     private ReceiptServiceInput getReceiptServiceInput(ServiceProvider serviceProvider, String spTenantDomain,
-                                                              List<ReceiptPurposeInput> purposeInputs) {
+                                                       List<ReceiptPurposeInput> purposeInputs) {
 
         ReceiptServiceInput serviceInput = new ReceiptServiceInput();
         serviceInput.setPurposes(purposeInputs);
@@ -544,7 +546,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             piiCategory = getConsentManager().addPIICategory(piiCategoryInput);
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent PII category error", "Error while adding" +
-                                                                      " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
+                    " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return piiCategory;
     }
@@ -565,11 +567,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 purposeCategory = addDefaultPurposeCategory();
             } else {
                 throw new SSOConsentServiceException("Consent purpose category error", "Error while retrieving" +
-                                                                  " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                        " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
             }
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent purpose category error", "Error while retrieving " +
-                                                                  "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                    "purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return purposeCategory;
     }
@@ -578,12 +580,12 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         PurposeCategory purposeCategory;
         PurposeCategory defaultPurposeCategory = new PurposeCategory(DEFAULT_PURPOSE_CATEGORY,
-                                                                     "For core functionalities of the product");
+                "For core functionalities of the product");
         try {
             purposeCategory = getConsentManager().addPurposeCategory(defaultPurposeCategory);
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent purpose category error", "Error while adding" +
-                                                                  " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                    " purpose category: " + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return purposeCategory;
     }
@@ -606,11 +608,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 purpose = addDefaultPurpose();
             } else {
                 throw new SSOConsentServiceException("Consent purpose error", "Error while retrieving purpose: " +
-                                                                                     DEFAULT_PURPOSE, e);
+                        DEFAULT_PURPOSE, e);
             }
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent purpose error", "Error while retrieving purpose: " +
-                                                                                 DEFAULT_PURPOSE, e);
+                    DEFAULT_PURPOSE, e);
         }
         return purpose;
     }
@@ -624,7 +626,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent purpose error",
-                                                 "Error while adding purpose: " + DEFAULT_PURPOSE, e);
+                    "Error while adding purpose: " + DEFAULT_PURPOSE, e);
         }
         return purpose;
     }
@@ -634,7 +636,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return ERROR_CODE_PURPOSE_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 
-
     private UserConsent processUserConsent(List<Integer> consentApprovedClaimIds, ConsentClaimsData
             consentClaimsData) throws SSOConsentServiceException {
 
@@ -643,11 +644,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         List<ClaimMetaData> consentRequiredClaimMetaData = getConsentRequiredClaimMetaData(consentClaimsData);
         List<ClaimMetaData> disapprovedClaims = buildDisapprovedClaimList(consentRequiredClaimMetaData,
-                                                                          approvedClamMetaData);
+                approvedClamMetaData);
 
         if (isMandatoryClaimsDisapproved(consentClaimsData.getMandatoryClaims(), disapprovedClaims)) {
             throw new SSOConsentServiceException("Consent Denied for Mandatory Attributes",
-                                                        "User denied consent to share mandatory attributes.");
+                    "User denied consent to share mandatory attributes.");
         }
 
         userConsent.setApprovedClaims(approvedClamMetaData);
@@ -681,13 +682,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private List<ClaimMetaData> getDistinctClaims(List<ClaimMetaData> claimsWithConsent) {
 
         return claimsWithConsent.stream()
-                                .filter(distinctByKey(ClaimMetaData::getClaimUri))
-                                .collect(Collectors.toList());
+                .filter(distinctByKey(ClaimMetaData::getClaimUri))
+                .collect(Collectors.toList());
     }
 
     private Predicate<ClaimMetaData> distinctByKey(Function<ClaimMetaData, String> keyExtractor) {
 
-        final Set<String > claimUris = new HashSet<>();
+        final Set<String> claimUris = new HashSet<>();
         return claimUri -> claimUris.add(keyExtractor.apply(claimUri));
     }
 
@@ -705,7 +706,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     }
 
     private List<ClaimMetaData> buildDisapprovedClaimList(List<ClaimMetaData> consentRequiredClaims,
-                                                           List<ClaimMetaData> approvedClaims) {
+                                                          List<ClaimMetaData> approvedClaims) {
 
         List<ClaimMetaData> disapprovedClaims = new ArrayList<>();
 
@@ -770,7 +771,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
         try {
             receiptListResponses = getConsentManager().searchReceipts(limit, 0, subject, spTenantDomain,
-                                                                      serviceProvider, ACTIVE_STATE);
+                    serviceProvider, ACTIVE_STATE);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -798,8 +799,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategories);
         if (isDebugEnabled()) {
             String message = String.format("User: %s has provided consent in receipt: %s for claims: " +
-                                           claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
-                                           receipt.getConsentReceiptId());
+                            claimsFromPIICategoryValidity, receipt.getPiiPrincipalId(),
+                    receipt.getConsentReceiptId());
             logDebug(message);
         }
         return claimsFromPIICategoryValidity;
@@ -829,7 +830,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         }
 
         List<String> consentValidityEntries = Arrays.asList(consentValidity.split(SSOConsentConstants
-                                                                                          .CONSENT_VALIDITY_SEPARATOR));
+                .CONSENT_VALIDITY_SEPARATOR));
         for (String consentValidityEntry : consentValidityEntries) {
             if (isSupportedExpiryType(consentValidityEntry)) {
                 String[] validityEntry = consentValidityEntry.split(CONSENT_VALIDITY_TYPE_SEPARATOR, 2);
@@ -838,7 +839,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                         String validTime = validityEntry[1];
                         if (isDebugEnabled()) {
                             String message = String.format("Validity time for PII category: %s is %s.",
-                                                           piiCategoryValidity.getName(), validTime);
+                                    piiCategoryValidity.getName(), validTime);
                             logDebug(message);
                         }
                         if (isExpiryIndefinite(validTime)) {
@@ -850,7 +851,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     } catch (NumberFormatException e) {
                         if (isDebugEnabled()) {
                             String message = String.format("Cannot parse timestamp: %s. for PII category %s.",
-                                                           consentValidity, piiCategoryValidity.getName());
+                                    consentValidity, piiCategoryValidity.getName());
                             logDebug(message);
                         }
                     }
@@ -883,7 +884,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     }
 
     private ConsentClaimsData getConsentRequiredClaimData(List<String> mandatoryClaims, List<String>
-            requestedClaims, String tenantDomain) throws SSOConsentServiceException{
+            requestedClaims, String tenantDomain) throws SSOConsentServiceException {
 
         ConsentClaimsData consentClaimsData = new ConsentClaimsData();
 
@@ -903,7 +904,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                         ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
                         mandatoryClaimsMetaData.add(claimMetaData);
                         claimId++;
-                    } else if(requestedClaims.remove(claimURI)) {
+                    } else if (requestedClaims.remove(claimURI)) {
                         ClaimMetaData claimMetaData = buildClaimMetaData(claimId, localClaim, claimURI);
                         requestedClaimsMetaData.add(claimMetaData);
                         claimId++;
@@ -929,7 +930,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             consentClaimsData.setRequestedClaims(requestedClaimsMetaData);
         } catch (ClaimMetadataException e) {
             throw new SSOConsentServiceException("Error while retrieving local claims", "Error occurred while " +
-                                                           "retrieving local claims for tenant: " + tenantDomain, e);
+                    "retrieving local claims for tenant: " + tenantDomain, e);
         }
         return consentClaimsData;
     }
@@ -987,15 +988,27 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         Receipt currentReceipt;
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
         try {
+            initializeTenantRegistry(authenticatedUser);
             startTenantFlowWithUser(subject, authenticatedUser.getTenantDomain());
             currentReceipt = getConsentManager().getReceipt(receiptId);
         } catch (ConsentManagementException e) {
             throw new SSOConsentServiceException("Consent Management Error",
-                                                 "Error while retrieving user consents.", e);
+                    "Error while retrieving user consents.", e);
+        } catch (IdentityException e) {
+            throw new SSOConsentServiceException("Consent Management Error",
+                    "Error while initializing registry for the tenant domain: " + authenticatedUser.getTenantDomain(), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
         return currentReceipt;
+    }
+
+    private void initializeTenantRegistry(AuthenticatedUser authenticatedUser) throws IdentityException {
+
+        IdentityTenantUtil.initializeRegistry(
+                IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain()),
+                authenticatedUser.getTenantDomain()
+        );
     }
 
     private boolean hasUserSingleReceipt(List<ReceiptListResponse> receiptListResponses) {
@@ -1019,7 +1032,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
     }
-
 
     private boolean isDebugEnabled() {
 

@@ -260,8 +260,8 @@ public class JSONRequestParser {
                         if (value.isJsonPrimitive()) {
                             //check if each value's data type can be determined
                             URI dataType = stringAttributeToURI(
-                                    jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
-                            attributeValues.add(getAttributeValue(property.getValue().getAsString(), dataType, type));
+                                    jsonElementToDataType(value.getAsJsonPrimitive()));
+                            attributeValues.add(getAttributeValue(value.getAsString(), dataType, type));
                         }
                     }
                 }

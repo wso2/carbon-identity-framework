@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -1265,6 +1266,91 @@ public class FrameworkUtils {
         }
 
         return queryStrBuilder.toString();
+    }
+
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, AuthenticationContext context) {
+
+        return getRedirectURLWithFilteredParams(redirectUrl, context.getEndpointParams());
+    }
+
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, Map<String, Serializable> dataStoreMap) {
+
+        boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
+                .isAuthEndpointRedirectParamsConfigAvailable();
+
+        if (!configAvailable) {
+            return redirectUrl;
+        }
+        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParams();
+        String action = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParamsAction();
+
+        URIBuilder uriBuilder;
+        try {
+            uriBuilder = new URIBuilder(redirectUrl);
+        } catch (URISyntaxException e) {
+            log.warn("Unable to filter redirect params for url." + redirectUrl, e);
+            return redirectUrl;
+        }
+        List<NameValuePair> queryParamsList = uriBuilder.getQueryParams();
+
+        if (action != null
+                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is in exclude list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        } else {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (!queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is not in include list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        uriBuilder.clearParameters();
+        uriBuilder.setParameters(queryParamsList);
+        return uriBuilder.toString();
+    }
+
+    public static boolean isRemoveAPIParamsOnConsume() {
+
+        return FileBasedConfigurationBuilder.getInstance().isRemoveAPIParametersOnConsume();
     }
 
     public static int getMaxInactiveInterval() {
