@@ -63,8 +63,10 @@ public class ExternalClaimDAO extends ClaimDAO {
 
                 String mappedLocalClaimURI = getClaimMapping(connection, externalClaimId, tenantId);
 
+                Map<String, String> claimProperties = getClaimProperties(connection, externalClaimId, tenantId);
+
                 ExternalClaim externalClaim = new ExternalClaim(claim.getClaimDialectURI(), claim.getClaimURI(),
-                        mappedLocalClaimURI);
+                        mappedLocalClaimURI, claimProperties);
 
                 externalClaims.add(externalClaim);
             }
@@ -80,11 +82,6 @@ public class ExternalClaimDAO extends ClaimDAO {
 
         return externalClaims;
     }
-
-//    public LocalClaim getLocalClaim(String claimURI, int tenantId) throws  ClaimMetadataException {
-//
-//        return new LocalClaim(claimURI);
-//    }
 
     public void addExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
 
@@ -115,9 +112,8 @@ public class ExternalClaimDAO extends ClaimDAO {
                     tenantId);
             // TODO : Handle invalid external claim URI
 
-
             addClaimMapping(connection, externalClaimId, localClaimId, tenantId);
-
+            addClaimProperties(connection, externalClaimId, externalClaim.getClaimProperties(), tenantId);
             // End transaction
             connection.commit();
         } catch (SQLException e) {
@@ -149,6 +145,9 @@ public class ExternalClaimDAO extends ClaimDAO {
             // TODO : Handle invalid local claim URI
 
             updateClaimMapping(connection, externalClaimId, localClaimId, tenantId);
+
+            deleteClaimProperties(connection, externalClaimId, tenantId);
+            addClaimProperties(connection, externalClaimId, externalClaim.getClaimProperties(), tenantId);
 
             // End transaction
             connection.commit();
