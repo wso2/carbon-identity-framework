@@ -33,7 +33,7 @@
     String forwardTo = "my-pdp.jsp";
     String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-    try{
+    try {
         String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
@@ -41,13 +41,18 @@
         String policyId = request.getParameter("policyId");
         String orderSting = request.getParameter("order");
         int order;
-        if(orderSting != null && orderSting.trim().length() > 0){
+        if (orderSting != null && orderSting.trim().length() > 0) {
             EntitlementPolicyAdminServiceClient client =
                     new EntitlementPolicyAdminServiceClient(cookie, serverURL, configContext);
             order = Integer.parseInt(orderSting);
-            client.orderPolicy(policyId, order);
-            String message = resourceBundle.getString("ordered.successfully");
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+            if (order > 0) {
+                client.orderPolicy(policyId, order);
+                String message = resourceBundle.getString("ordered.successfully");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+            } else {
+                String message = resourceBundle.getString("error.while.ordering.invalid.policy.value");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            }
         }
     } catch (Exception e) {
         String message = resourceBundle.getString("error.while.ordering.policy") + " " + e.getMessage();
