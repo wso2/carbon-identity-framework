@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 
 public class ConflictRequestException extends WebApplicationException {
 
+    private static final long serialVersionUID = -1474335088898469669L;
     private String message;
 
     public ConflictRequestException(ErrorDTO errorDTO) {

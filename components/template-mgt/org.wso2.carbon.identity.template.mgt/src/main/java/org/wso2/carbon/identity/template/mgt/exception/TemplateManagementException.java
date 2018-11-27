@@ -23,8 +23,13 @@ package org.wso2.carbon.identity.template.mgt.exception;
  */
 public class TemplateManagementException extends Exception {
 
-    //    private static final long serialVersionUID = 2806215535431246551L;
+    private static final long serialVersionUID = -3711241843536343329L;
     private String errorCode;
+
+    public TemplateManagementException(){
+
+        super();
+    }
 
     public TemplateManagementException(String message, String errorCode) {
 
@@ -36,6 +41,11 @@ public class TemplateManagementException extends Exception {
 
         super(message, cause);
         this.errorCode = errorCode;
+    }
+
+    public TemplateManagementException (Throwable cause){
+
+        super(cause);
     }
 
     public String getErrorCode() {

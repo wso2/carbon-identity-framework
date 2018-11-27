@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 
 public class NotFoundException extends WebApplicationException {
 
+    private static final long serialVersionUID = 4691655188879913053L;
     private String message;
 
     public NotFoundException(ErrorDTO errorDTO) {

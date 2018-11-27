@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 
 public class BadRequestException extends WebApplicationException {
 
+    private static final long serialVersionUID = -7279180378938010566L;
     private String message;
 
     public BadRequestException(ErrorDTO errorDTO) {

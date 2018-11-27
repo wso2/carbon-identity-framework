@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 
 public class ForbiddenException extends WebApplicationException {
 
+    private static final long serialVersionUID = -5310557177295873234L;
     private String message;
 
     public ForbiddenException(ErrorDTO errorDTO) {
