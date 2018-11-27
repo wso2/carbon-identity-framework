@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.user.mgt.ui;
 
+import org.wso2.carbon.CarbonConstants;
+
 /**
  * 
  */
@@ -25,7 +27,7 @@ public class UserAdminUIConstants {
 
     public static final String USER_STORE_INFO = "org.wso2.carbon.userstore.info";
 
-    public static final String DOMAIN_SEPARATOR = "/";
+    public static final String DOMAIN_SEPARATOR = CarbonConstants.DOMAIN_SEPARATOR;
 
     public static final String MULTIPLE_USER_STORE = "multiple.user.store";
     public static final String USER_DISPLAY_NAME = "user.display.name";

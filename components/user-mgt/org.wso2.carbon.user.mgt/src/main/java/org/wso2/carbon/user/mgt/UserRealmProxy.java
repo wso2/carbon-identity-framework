@@ -303,7 +303,7 @@ public class UserRealmProxy {
                 fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
 
                 // setting read only or writable
-                int index = externalRole != null ? externalRole.indexOf("/") : -1;
+                int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index > 0;
                 String domain = domainProvided ? externalRole.substring(0, index) : null;
                 UserStoreManager secManager =
@@ -412,7 +412,7 @@ public class UserRealmProxy {
                 fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
 
                 // setting read only or writable
-                int index = externalRole != null ? externalRole.indexOf("/") : -1;
+                int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index > 0;
                 String domain = domainProvided ? externalRole.substring(0, index) : null;
                 UserStoreManager secManager = realm.getUserStoreManager().getSecondaryUserStoreManager(domain);
@@ -1056,7 +1056,7 @@ public class UserRealmProxy {
     public FlaggedName[] getUsersOfRole(String roleName, String filter, int limit) throws UserAdminException {
         try {
 
-            int index = roleName != null ? roleName.indexOf("/") : -1;
+            int index = roleName != null ? roleName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
             boolean domainProvided = index > 0;
 
             String domain = domainProvided ? roleName.substring(0, index) : null;
@@ -1064,12 +1064,12 @@ public class UserRealmProxy {
             if (domain != null && filter != null && !filter.toLowerCase().startsWith(domain.toLowerCase()) &&
                 !(UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain)
                   || UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain))) {
-                filter = domain + "/" + filter;
+                filter = domain + CarbonConstants.DOMAIN_SEPARATOR + filter;
             }
 
             if (domain == null && limit != 0) {
                 if (filter != null) {
-                    filter = "/" + filter;
+                    filter = CarbonConstants.DOMAIN_SEPARATOR + filter;
                 } else {
                     filter = "/*";
                 }
@@ -1265,7 +1265,7 @@ public class UserRealmProxy {
     public FlaggedName[] getRolesOfUser(String userName, String filter, int limit) throws UserAdminException {
         try {
 
-            int index = userName != null ? userName.indexOf("/") : -1;
+            int index = userName != null ? userName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
             boolean domainProvided = index > 0;
             String domain = domainProvided ? userName.substring(0, index) : null;
 
