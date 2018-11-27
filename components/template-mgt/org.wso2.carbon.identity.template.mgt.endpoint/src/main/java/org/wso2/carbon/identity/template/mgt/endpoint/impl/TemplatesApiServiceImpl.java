@@ -22,13 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.endpoint.TemplatesApiService;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.AddTemplateResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateResponseDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateSuccessResponseDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.util.TemplateEndpointUtils;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
@@ -170,12 +166,13 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
         Template updateTemplateRequest = TemplateEndpointUtils.getTemplateRequest(updateTemplateRequestDTO);
         Template updateTemplateResponse = TemplateEndpointUtils.getTemplateManager()
-                                        .updateTemplate(templateName, updateTemplateRequest);
+                .updateTemplate(templateName, updateTemplateRequest);
 
         return getResponseTemplateDTO(updateTemplateResponse);
     }
 
-    private TemplateResponseDTO getResponseTemplateDTO (Template templateResponse){
+    private TemplateResponseDTO getResponseTemplateDTO(Template templateResponse) {
+
         TemplateResponseDTO responseDTO = new TemplateResponseDTO();
         responseDTO.setTenantId(templateResponse.getTenantId());
         responseDTO.setTemplateName(templateResponse.getTemplateName());
@@ -212,8 +209,8 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     private boolean isForbiddenError(TemplateManagementClientException e) {
 
         return ERROR_CODE_NO_AUTH_USER_FOUND.getCode().equals(e.getErrorCode()) ||
-                                                                ERROR_CODE_USER_NOT_AUTHORIZED.getCode()
-                                                                .equals(e.getErrorCode());
+                ERROR_CODE_USER_NOT_AUTHORIZED.getCode()
+                        .equals(e.getErrorCode());
     }
 
     private boolean isNotFoundError(TemplateManagementClientException e) {

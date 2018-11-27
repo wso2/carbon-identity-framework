@@ -2,6 +2,8 @@
 <%@ page import="org.wso2.carbon.identity.template.mgt.ui.client.TemplateManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.ui.dto.TemplateRequestDTO" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.apache.woden.wsdl20.extensions.http.HTTPConstants" %>
 
 <%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
@@ -23,7 +25,7 @@
 
 <%
     String httpMethod = request.getMethod();
-    if (!"post".equalsIgnoreCase(httpMethod)) {
+    if (!HTTPConstants.METHOD_POST.equalsIgnoreCase(httpMethod)) {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
@@ -34,7 +36,7 @@
     
     Integer tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     
-    if (templateName != null && !"".equals(templateName)) { //StringUtils
+    if (StringUtils.isNotBlank(templateName)) {
         
         TemplateRequestDTO templateRequestDTO = new TemplateRequestDTO();
         templateRequestDTO.setTenantId(tenantId);

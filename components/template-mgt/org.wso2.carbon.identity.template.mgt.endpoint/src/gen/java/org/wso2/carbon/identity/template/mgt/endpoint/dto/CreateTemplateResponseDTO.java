@@ -30,6 +30,7 @@ public class CreateTemplateResponseDTO {
     private String createdBy = null;
 
     /**
+     *
      **/
     @ApiModelProperty(value = "")
     @JsonProperty("token")
@@ -44,6 +45,7 @@ public class CreateTemplateResponseDTO {
     }
 
     /**
+     *
      **/
     @ApiModelProperty(value = "")
     @JsonProperty("createdBy")

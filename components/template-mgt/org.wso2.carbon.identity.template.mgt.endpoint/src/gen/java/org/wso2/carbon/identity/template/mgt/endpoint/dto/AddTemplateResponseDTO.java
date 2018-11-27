@@ -1,59 +1,55 @@
 package org.wso2.carbon.identity.template.mgt.endpoint.dto;
 
-
-import io.swagger.annotations.*;
-import com.fasterxml.jackson.annotation.*;
-
-import javax.validation.constraints.NotNull;
-
-
-
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "")
-public class AddTemplateResponseDTO  {
-  
-  
-  
-  private String tenantId = null;
-  
-  
-  private String name = null;
+public class AddTemplateResponseDTO {
 
-  
-  /**
-   **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("tenantId")
-  public String getTenantId() {
-    return tenantId;
-  }
-  public void setTenantId(String tenantId) {
-    this.tenantId = tenantId;
-  }
+    private String tenantId = null;
 
-  
-  /**
-   **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("name")
-  public String getName() {
-    return name;
-  }
-  public void setName(String name) {
-    this.name = name;
-  }
+    private String name = null;
 
-  
+    /**
+     *
+     **/
+    @ApiModelProperty(value = "")
+    @JsonProperty("tenantId")
+    public String getTenantId() {
 
-  @Override
-  public String toString()  {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class AddTemplateResponseDTO {\n");
-    
-    sb.append("  tenantId: ").append(tenantId).append("\n");
-    sb.append("  name: ").append(name).append("\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+
+        this.tenantId = tenantId;
+    }
+
+    /**
+     *
+     **/
+    @ApiModelProperty(value = "")
+    @JsonProperty("name")
+    public String getName() {
+
+        return name;
+    }
+
+    public void setName(String name) {
+
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("class AddTemplateResponseDTO {\n");
+
+        sb.append("  tenantId: ").append(tenantId).append("\n");
+        sb.append("  name: ").append(name).append("\n");
+        sb.append("}\n");
+        return sb.toString();
+    }
 }

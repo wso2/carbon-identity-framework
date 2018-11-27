@@ -27,17 +27,17 @@
     <description>WSO2 Identity Server Template Management REST API</description>
 
     <!--<filter>-->
-        <!--<filter-name>HttpHeaderSecurityFilter</filter-name>-->
-        <!--<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>-->
-        <!--<init-param>-->
-            <!--<param-name>hstsEnabled</param-name>-->
-            <!--<param-value>false</param-value>-->
-        <!--</init-param>-->
+    <!--<filter-name>HttpHeaderSecurityFilter</filter-name>-->
+    <!--<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>-->
+    <!--<init-param>-->
+    <!--<param-name>hstsEnabled</param-name>-->
+    <!--<param-value>false</param-value>-->
+    <!--</init-param>-->
     <!--</filter>-->
 
     <!--<filter-mapping>-->
-        <!--<filter-name>HttpHeaderSecurityFilter</filter-name>-->
-        <!--<url-pattern>*</url-pattern>-->
+    <!--<filter-name>HttpHeaderSecurityFilter</filter-name>-->
+    <!--<url-pattern>*</url-pattern>-->
     <!--</filter-mapping>-->
 
     <context-param>

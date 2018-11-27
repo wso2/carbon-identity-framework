@@ -25,8 +25,6 @@ import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateRequestDTO;
-import org.wso2.carbon.identity.template.mgt.endpoint.dto.UpdateTemplateRequestDTO;
 import org.wso2.carbon.identity.template.mgt.endpoint.exception.BadRequestException;
 import org.wso2.carbon.identity.template.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.identity.template.mgt.endpoint.exception.ForbiddenException;
@@ -44,7 +42,7 @@ public class TemplateEndpointUtils {
     public static TemplateManager getTemplateManager() {
 
         return (TemplateManager) PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                                        .getOSGiService(TemplateManager.class, null);
+                .getOSGiService(TemplateManager.class, null);
     }
 
     public static Template getTemplateRequest(TemplateDTO templateDTO) {
