@@ -238,7 +238,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Session data key  :  " + key);
                     }
                 }
-                log.error("Context does not exist. Probably due to invalidated cache");
+
+                String userAgent = request.getHeader("User-Agent");
+                String referer = request.getHeader("Referer");
+
+                String message = "Requested client: " + request.getRemoteAddr() + ", URI :" + request.getMethod() +
+                        ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
+
+                log.error("Context does not exist. Probably due to invalidated cache. " + message);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper);
             }
         } catch (JsFailureException e) {
