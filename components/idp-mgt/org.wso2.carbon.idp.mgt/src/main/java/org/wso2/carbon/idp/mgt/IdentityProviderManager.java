@@ -117,6 +117,7 @@ public class IdentityProviderManager implements IdpManager {
         String openIdUrl;
         String samlSSOUrl;
         String samlLogoutUrl;
+        String samlECPUrl;
         String oauth1RequestTokenUrl;
         String oauth1AuthorizeUrl;
         String oauth1AccessTokenUrl;
@@ -141,6 +142,7 @@ public class IdentityProviderManager implements IdpManager {
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
         samlLogoutUrl = samlSSOUrl;
+        samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
@@ -173,6 +175,10 @@ public class IdentityProviderManager implements IdpManager {
 
         if (StringUtils.isBlank(samlLogoutUrl)) {
             samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+
+        if (StringUtils.isBlank(samlECPUrl)) {
+            samlECPUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
@@ -403,6 +409,16 @@ public class IdentityProviderManager implements IdpManager {
         samlLogoutUrlProperty.setValue(samlLogoutUrl);
         propertiesList.add(samlLogoutUrlProperty);
 
+        Property samlECPUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                 IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
+        if (samlECPUrlProperty == null) {
+            samlECPUrlProperty = new Property();
+            samlECPUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
+        }
+        //set the generated saml ecp endpoint value
+        samlECPUrlProperty.setValue(samlECPUrl);
+        propertiesList.add(samlECPUrlProperty);
+
         Property idPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
         if (idPEntityIdProperty == null) {
@@ -416,6 +432,7 @@ public class IdentityProviderManager implements IdpManager {
             if (property != null &&
                     !IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL.equals(property.getName()) &&
                     !IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL.equals(property.getName()) &&
                     !IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
                 propertiesList.add(property);
             }
