@@ -31,6 +31,7 @@ import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
@@ -131,13 +132,32 @@ public class TemplateManagerImpl implements TemplateManager {
         return templateManagerDAO.getAllTemplates(getTenantIdFromCarbonContext(), limit, offset);
     }
 
-    private void validateInputParameters(Template template) throws TemplateManagementClientException {
+    /**
+     * This method is used to check whether a template exists with given name and tenant Id.
+     *
+     * @param templateName Name of the template.
+     * @return true, if an element is found.
+     * @throws TemplateManagementException Consent Management Exception.
+     */
+    public boolean getTemplateExistence(String templateName) throws TemplateManagementException {
+
+        return getTemplateByName(templateName) != null;
+    }
+
+    private void validateInputParameters(Template template) throws TemplateManagementException {
 
         if (isBlank(template.getTemplateName())) {
             if (log.isDebugEnabled()) {
                 log.debug("Template name cannot be empty.");
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
+        }
+
+        if (getTemplateExistence(template.getTemplateName())){
+            if (log.isDebugEnabled()){
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
         }
 
         if (isBlank(template.getTemplateScript())) {

@@ -57,7 +57,7 @@ public class TemplateManagementServiceClient {
         return getTemplateManager().getTemplateByName(templateName);
     }
 
-    public TemplateInfo updateTemplate(String templateName, UpdateTemplateRequestDTO updateTemplateRequestDTO)
+    public Template updateTemplate(String templateName, UpdateTemplateRequestDTO updateTemplateRequestDTO)
             throws TemplateManagementException {
 
         handleLoggedInUserAuthorization(TemplateMgtConstants.PERMISSION_TEMPLATE_MGT_UPDATE);

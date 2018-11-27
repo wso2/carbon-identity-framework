@@ -29,7 +29,6 @@ import java.util.List;
  *
  * @since 1.0.0
  */
-
 public interface TemplateManager {
 
     /**
@@ -39,7 +38,6 @@ public interface TemplateManager {
      * @return Return template element with template name, description and script.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     Template addTemplate(Template template) throws TemplateManagementException;
 
     /**
@@ -59,7 +57,6 @@ public interface TemplateManager {
      * @return Return the updated Template element.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     Template updateTemplate(String templateName, Template template) throws TemplateManagementException;
 
     /**
