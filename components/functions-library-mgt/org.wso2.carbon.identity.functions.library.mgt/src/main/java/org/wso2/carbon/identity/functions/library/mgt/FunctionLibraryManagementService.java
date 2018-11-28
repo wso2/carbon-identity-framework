@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
  */
 public interface FunctionLibraryManagementService {
 
-
     /**
      * Create a function library.
      *

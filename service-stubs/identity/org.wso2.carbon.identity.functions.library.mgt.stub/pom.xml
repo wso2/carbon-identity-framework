@@ -58,12 +58,15 @@
                         <configuration>
                             <tasks>
                                 <path id="wsdl2java.classpath">
-                                    <pathelement location="${settings.localRepository}/org/apache/ws/commons/axiom/wso2/axiom/${axiom.wso2.version}/axiom-${axiom.wso2.version}.jar" />
-                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2-client/${axis2.wso2.version}/axis2-client-${axis2.wso2.version}.jar" />
-                                    <pathelement location="${settings.localRepository}/org/apache/axis2/wso2/axis2/${axis2.wso2.version}/axis2-${axis2.wso2.version}.jar" />
+                                    <pathelement
+                                            location="${settings.localRepository}/org/apache/ws/commons/axiom/wso2/axiom/${axiom.wso2.version}/axiom-${axiom.wso2.version}.jar"/>
+                                    <pathelement
+                                            location="${settings.localRepository}/org/apache/axis2/wso2/axis2-client/${axis2.wso2.version}/axis2-client-${axis2.wso2.version}.jar"/>
+                                    <pathelement
+                                            location="${settings.localRepository}/org/apache/axis2/wso2/axis2/${axis2.wso2.version}/axis2-${axis2.wso2.version}.jar"/>
                                 </path>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
-                                    <classpath refid="wsdl2java.classpath" />
+                                    <classpath refid="wsdl2java.classpath"/>
                                     <arg line="-uri src/main/resources/FunctionLibraryManagementAdminService.wsdl -u -uw
    									 -o target/generated-code -p org.wso2.carbon.identity.functions.library.mgt.stub -ns2p http://org.apache.axis2/xsd=org.wso2.carbon.identity.functions.library.mgt.stub.types.axis2"/>
                                 </java>
@@ -101,9 +104,12 @@
                         <Private-Package>
                         </Private-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.functions.library.mgt.stub.*; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.functions.library.mgt.exception.xsd.*; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.functions.library.mgt.model.xsd.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.functions.library.mgt.stub.*;
+                            version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.functions.library.mgt.exception.xsd.*;
+                            version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.functions.library.mgt.model.xsd.*;
+                            version="${carbon.identity.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

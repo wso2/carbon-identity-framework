@@ -37,23 +37,26 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
         immediate = true
 )
 public class FunctionLibraryManagementServiceComponent {
+
     private static Log log = LogFactory.getLog(FunctionLibraryManagementServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
+
         BundleContext bundleContext = context.getBundleContext();
-        // Registering Function library management service as a OSGIService
+        // Registering Function library management service as a OSGIService.
         bundleContext.registerService(FunctionLibraryManagementService.class,
                 FunctionLibraryManagementServiceImpl.getInstance(), null);
         if (log.isDebugEnabled()) {
-            log.debug("Function Library ManagementComponent bundle is activated");
+            log.debug("Function Library Management Component bundle is activated.");
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
         if (log.isDebugEnabled()) {
-            log.debug("Function Library ManagementComponent bundle is deactivated");
+            log.debug("Function Library Management Component bundle is deactivated.");
         }
     }
 }

@@ -665,7 +665,7 @@ public class FrameworkServiceComponent {
     }
 
     public static FunctionLibraryManagementService getFunctionLibraryManagementService() {
+
         return FrameworkServiceDataHolder.getInstance().getFunctionLibraryManagementService();
     }
-
 }

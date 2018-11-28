@@ -27,13 +27,13 @@ public class FunctionLibrary {
     private String description;
     private String content;
 
-
     /**
      * Get function library name.
      *
      * @return Function library name
      */
     public String getFunctionLibraryName() {
+
         return functionLibraryName;
     }
 
@@ -43,6 +43,7 @@ public class FunctionLibrary {
      * @param functionLibraryName Function library name
      */
     public void setFunctionLibraryName(String functionLibraryName) {
+
         this.functionLibraryName = functionLibraryName;
     }
 
@@ -52,6 +53,7 @@ public class FunctionLibrary {
      * @return Function library description
      */
     public String getDescription() {
+
         return description;
     }
 
@@ -61,6 +63,7 @@ public class FunctionLibrary {
      * @param description Function library description
      */
     public void setDescription(String description) {
+
         this.description = description;
     }
 
@@ -70,6 +73,7 @@ public class FunctionLibrary {
      * @return Content
      */
     public String getFunctionLibraryScript() {
+
         return content;
     }
 
@@ -79,6 +83,7 @@ public class FunctionLibrary {
      * @param content Content
      */
     public void setFunctionLibraryScript(String content) {
+
         this.content = content;
     }
 

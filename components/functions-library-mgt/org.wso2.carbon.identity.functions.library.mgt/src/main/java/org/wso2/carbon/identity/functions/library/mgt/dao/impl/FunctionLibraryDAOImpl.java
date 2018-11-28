@@ -144,6 +144,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      */
     public FunctionLibrary[] listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException {
+
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
         if (tenantDomain != null) {
@@ -226,6 +227,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      */
     public void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
         if (tenantDomain != null) {
@@ -234,7 +236,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
              PreparedStatement deleteFunctionLibStmt =
-                     connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB);) {
+                     connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB)) {
 
             deleteFunctionLibStmt.setInt(1, tenantID);
             deleteFunctionLibStmt.setString(2, functionLibraryName);
@@ -261,6 +263,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      */
     public boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         boolean isFunctionLibraryExists = false;
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
         if (tenantDomain != null) {
@@ -296,6 +299,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @throws IOException
      */
     private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
+
         if (value != null) {
             InputStream inputStream = new ByteArrayInputStream(value.getBytes());
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());

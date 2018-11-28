@@ -1,14 +1,14 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.functions.library.mgt.model.xsd.FunctionLibrary" %>
+<%@ page import="org.wso2.carbon.identity.functions.library.mgt.ui.client.FunctionLibraryManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.wso2.carbon.identity.functions.library.mgt.ui.client.FunctionLibraryManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.functions.library.mgt.model.xsd.FunctionLibrary" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
 
 <%--
@@ -33,18 +33,18 @@
     <carbon:breadcrumb label="functionlib.mgt"
                        resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-
+    
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
     <div id="middle">
-
+        
         <h2>
             Function Library Management
         </h2>
-
+        
         <div id="workArea">
-
+            
             <script type="text/javascript">
                 function removeItem(functionLibraryName) {
                     function doDelete() {
@@ -72,20 +72,20 @@
                         doDelete, null);
                 }
             </script>
-
+            
             <%
                 FunctionLibrary[] functionLibraries = null;
-
+                
                 String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 FunctionLibrary[] functionLibrariesToDisplay = new FunctionLibrary[0];
                 String paginationValue = "region=region1&item=function_libraries_list";
                 String pageNumber = request.getParameter("pageNumber");
-
+                
                 int pageNumberInt = 0;
                 int numberOfPages = 0;
                 int resultsPerPage = 10;
-
+                
                 if (pageNumber != null) {
                     try {
                         pageNumberInt = Integer.parseInt(pageNumber);
@@ -93,23 +93,23 @@
                         //not needed here since it's defaulted to 0
                     }
                 }
-
+                
                 try {
                     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
                     String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
                     ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
                             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-
+                    
                     FunctionLibraryManagementServiceClient serviceClient = new
                             FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
                     functionLibraries = serviceClient.listFunctionLibraries();
-
+                    
                     if (functionLibraries != null) {
                         numberOfPages = (int) Math.ceil((double) functionLibraries.length / resultsPerPage);
                         int startIndex = pageNumberInt * resultsPerPage;
                         int endIndex = (pageNumberInt + 1) * resultsPerPage;
                         functionLibrariesToDisplay = new FunctionLibrary[resultsPerPage];
-
+                        
                         for (int i = startIndex, j = 0; i < endIndex && i < functionLibraries.length; i++, j++) {
                             functionLibrariesToDisplay[j] = functionLibraries[i];
                         }
@@ -119,8 +119,8 @@
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
-
-
+            
+            
             <br/>
             <table style="width: 100%" class="styledLeft">
                 <tbody>
@@ -137,19 +137,19 @@
                                         key="functionlib.list.action"/></th>
                             </tr>
                             </thead>
-
+                            
                             <%
                                 if (functionLibraries != null && functionLibraries.length > 0) {
-
+                            
                             %>
                             <tbody>
                             <%
                                 for (FunctionLibrary functionLib : functionLibraries) {
                                     if (functionLib != null) {
-
+                            
                             %>
                             <tr>
-
+                                
                                 <td><%=Encode.forHtml(functionLib.getFunctionLibraryName())%>
                                 </td>
                                 <td><%=functionLib.getDescription() != null ? Encode.forHtml(functionLib.getDescription()) : ""%>
@@ -176,10 +176,10 @@
                                        style="background-image: url(images/delete.gif)">
                                         <fmt:message key='delete'/>
                                     </a>
-
-
+                                
+                                
                                 </td>
-
+                            
                             </tr>
                             <%
                                     }

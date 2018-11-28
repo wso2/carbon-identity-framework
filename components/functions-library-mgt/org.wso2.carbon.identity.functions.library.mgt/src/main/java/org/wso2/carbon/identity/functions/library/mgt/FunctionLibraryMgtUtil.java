@@ -21,13 +21,12 @@ package org.wso2.carbon.identity.functions.library.mgt;
 import java.util.regex.Pattern;
 
 /**
- * Holds function library utility.
+ * This class holds function library utility.
  */
 public class FunctionLibraryMgtUtil {
 
-    // Regex for validating function library name
+    // Regex for validating function library name.
     public static String FUNCTION_LIBRARY_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
-
 
     /**
      * Validate function library name according to the regex.

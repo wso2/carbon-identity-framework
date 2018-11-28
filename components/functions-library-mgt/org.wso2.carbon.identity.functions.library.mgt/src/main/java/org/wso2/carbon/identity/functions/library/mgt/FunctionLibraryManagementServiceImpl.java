@@ -40,6 +40,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
      * Private constructor which will not allow to create objects of this class from outside.
      */
     private FunctionLibraryManagementServiceImpl() {
+
     }
 
     /**
@@ -65,7 +66,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
             // check for required attributes.
-            throw new FunctionLibraryManagementException("Function Library Name is required");
+            throw new FunctionLibraryManagementException("Function Library Name is required.");
         }
 
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
@@ -78,7 +79,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
         if (!isRegexValidated(functionLibraryName)) {
             throw new FunctionLibraryManagementException("The function library name " +
                     functionLibrary.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
+                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
         }
 
         functionLibraryDAO.createFunctionLibrary(functionLibrary, tenantDomain);
@@ -86,6 +87,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
     @Override
     public FunctionLibrary[] listFunctionLibraries(String tenantDomain) throws FunctionLibraryManagementException {
+
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         return functionLibraryDAO.listFunctionLibraries(tenantDomain);
     }
@@ -93,6 +95,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     @Override
     public FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         return functionLibraryDAO.getFunctionLibrary(functionLibraryName, tenantDomain);
     }
@@ -100,6 +103,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     @Override
     public void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         functionLibraryDAO.deleteFunctionLibrary(functionLibraryName, tenantDomain);
     }
@@ -111,7 +115,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
             // check for required attributes.
-            throw new FunctionLibraryManagementException("Function Library Name is required");
+            throw new FunctionLibraryManagementException("Function Library Name is required.");
         }
 
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
@@ -125,7 +129,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
         if (!isRegexValidated(functionLibraryName)) {
             throw new FunctionLibraryManagementException("The function library name " +
                     functionLibrary.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
+                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
         }
         functionLibraryDAO.updateFunctionLibrary(functionLibrary, tenantDomain, oldFunctionLibraryName);
     }

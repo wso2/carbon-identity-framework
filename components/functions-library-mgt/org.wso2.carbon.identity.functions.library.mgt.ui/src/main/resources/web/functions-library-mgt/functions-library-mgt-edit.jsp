@@ -54,15 +54,16 @@
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.functions.library.mgt.model.xsd.FunctionLibrary" %>
 <%@ page import="org.wso2.carbon.identity.functions.library.mgt.ui.client.FunctionLibraryManagementServiceClient" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
@@ -82,8 +83,7 @@
                 CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldFunctionLibName + '" Function Library name ? \n WARN: If you edit this library name, ' +
                     'the authentication scripts which used this will no longer function properly !',
                     doEdit, null);
-            }
-            else {
+            } else {
                 doEdit();
             }
 
@@ -112,41 +112,40 @@
     <carbon:breadcrumb label="functionlib.mgt"
                        resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-
-
+    
+    
     <%
         String functionLibraryName = request.getParameter("functionLibraryName");
         String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         FunctionLibrary functionLibrary = null;
         if (functionLibraryName != null && !"".equals(functionLibraryName)) {
-
+            
             try {
                 String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
                 String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
                 ConfigurationContext configContext = (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-
+                
                 FunctionLibraryManagementServiceClient serviceClient = new FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
                 functionLibrary = serviceClient.getFunctionLibrary(functionLibraryName);
-
-
+                
             } catch (Exception e) {
                 String message = resourceBundle.getString("alert.error.while.reading.function.libraries") + " : " + e.getMessage();
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
             }
         }
-
+    
     %>
     <div id="workArea">
         <div id="middle">
             <h2>Edit Function Library</h2>
-
+            
             <form id="update-functionlib-form" name="update-functionlib-form" method="post"
                   action="edit-functionlib-finish-ajaxprocessor.jsp">
-
+                
                 <input type="hidden" name="oldFunctionLibraryName" id="oldFunctionLibraryName"
                        value="<%=Encode.forHtmlAttribute(functionLibraryName)%>"/>
-
+                
                 <div class="sectionSeperator togglebleTitle"><fmt:message
                         key='title.config.function.basic.config'/></div>
                 <div class="sectionSub">
@@ -165,7 +164,7 @@
                             </td>
                         </tr>
                         <tr>
-
+                            
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
                                 <textarea maxlength="1020" style=" width:50%" type="text" name="functionLib-description"
@@ -179,7 +178,7 @@
                         </tr>
                     </table>
                 </div>
-
+                
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Function Library Script</a>
                 </h2>
@@ -190,16 +189,16 @@
                       placeholder="Write JavaScript Function..."
                       style="height: 500px;width: 100%; display: none;"><%=functionLibrary.getFunctionLibraryScript() != null ? Encode.forHtmlContent(functionLibrary.getFunctionLibraryScript()) : "" %>
             </textarea>
-
+                        
                         </div>
-
+                    
                     </div>
                 </div>
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input id="update" type="button" value="<fmt:message key='button.update.function.manager'/>"
                            onclick="UpdateFunctionLibOnclick()"/>
-                    <input type="button" onclick="javascript:location.href='functions-library-mgt-list.jsp'"
+                    <input type="button" onclick="location.href='functions-library-mgt-list.jsp'"
                            value="<fmt:message key='button.cancel'/>"/>
                 </div>
             </form>

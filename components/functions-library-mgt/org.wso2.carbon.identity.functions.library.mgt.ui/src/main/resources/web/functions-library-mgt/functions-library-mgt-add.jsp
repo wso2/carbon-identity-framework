@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
 <link rel="stylesheet" href="codemirror/addon/lint/lint.css">
 
+
 <link rel="stylesheet" href="css/function-lib-mgt.css">
 <link rel="stylesheet" href="css/template.css">
 
@@ -64,15 +65,20 @@
 <script type="text/javascript">
     function createFunctionLibOnclick() {
         var functionLibName = document.getElementById("functionLibName").value.trim();
-        var description = document.getElementById("functionLib-description").value;
+        var content = document.getElementById("scriptTextArea").value;
         if (functionLibName == '') {
-            CARBON.showWarningDialog('Please provide function library Name');
+            CARBON.showWarningDialog('Please provide function library Name.');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
             return false;
         } else {
-            $("#add-functionlib-form").submit();
-            return true;
+            if (content == '') {
+                CARBON.showWarningDialog('Please provide a function library Script.');
+                location.href = '#';
+            } else {
+                $("#add-functionlib-form").submit();
+                return true;
+            }
         }
     }
 
@@ -117,7 +123,7 @@
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources">
-
+    
     <div id="middle">
         <h2>Add New Function Library</h2>
         <div id="workArea">
@@ -133,7 +139,7 @@
                                onclick="showManual();">
                         <label for="manual-option">Manual Configuration</label>
                     </td>
-
+                
                 </tr>
                 <tr>
                     <td>
@@ -141,7 +147,7 @@
                         <label for="file-option">File Configuration</label>
                     </td>
                 </tr>
-
+                
                 </tbody>
             </table>
             <br/>
@@ -164,8 +170,8 @@
                             </td>
                         </tr>
                         <tr>
-
-
+                            
+                            
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
                                 <textarea maxlength="1020" style="width:50%" type="text" name="functionLib-description"
@@ -177,7 +183,7 @@
                         </tr>
                     </table>
                 </div>
-
+                
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Function Library Script</a>
                 </h2>
@@ -198,20 +204,20 @@
                                  <ul id="functionlib_list"></ul>
                              </div>
                          </div>-->
-
+                    
                     </div>
-
+                
                 </div>
-
+                
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input id="createLib" type="button" value="<fmt:message key='button.reg.function.manager'/>"
                            onclick="createFunctionLibOnclick()"/>
-                    <input type="button" onclick="javascript:location.href='functions-library-mgt-list.jsp'"
+                    <input type="button" onclick="location.href='functions-library-mgt-list.jsp'"
                            value="<fmt:message key='button.cancel'/>"/>
                 </div>
             </form>
-
+            
             <form id="upload-functionlib-form" name="upload-functionlib-form" method="post"
                   action="#">
                 <table class="styledLeft" width="100%">
@@ -236,7 +242,7 @@
                                    value="<fmt:message key='button.import.function.library'/>"
                                    onclick="importFunctionLibOnclick();"/>
                             <input type="button" class="button"
-                                   onclick="javascript:location.href='functions-library-mgt-list.jsp'"
+                                   onclick="location.href='functions-library-mgt-list.jsp'"
                                    value="<fmt:message key='button.cancel'/>"/>
                         </td>
                     </tr>

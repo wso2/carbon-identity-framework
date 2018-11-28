@@ -38,7 +38,6 @@ public class FunctionLibMgtDBQueries {
     public static final String LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME =
             "SELECT NAME,DESCRIPTION,TYPE,DATA FROM IDN_FUNCTION_LIBRARY WHERE TENANT_ID = ? AND NAME= ?";
 
-
     //DELETE Queries
     public static final String REMOVE_FUNCTIONLIB =
             "DELETE FROM IDN_FUNCTION_LIBRARY WHERE TENANT_ID = ? AND NAME= ?";

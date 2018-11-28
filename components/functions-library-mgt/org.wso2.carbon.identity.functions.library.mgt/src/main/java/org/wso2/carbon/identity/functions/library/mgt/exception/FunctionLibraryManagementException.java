@@ -22,8 +22,8 @@ package org.wso2.carbon.identity.functions.library.mgt.exception;
  * Function library manager Exception.
  */
 public class FunctionLibraryManagementException extends Exception {
-    private String message;
 
+    private String message;
 
     /**
      * FunctionLibraryManagementException.
@@ -31,6 +31,7 @@ public class FunctionLibraryManagementException extends Exception {
      * @param message Error message
      */
     public FunctionLibraryManagementException(String message) {
+
         super(message);
         this.message = message;
     }
@@ -42,12 +43,14 @@ public class FunctionLibraryManagementException extends Exception {
      * @param e       Error
      */
     public FunctionLibraryManagementException(String message, Throwable e) {
+
         super(message, e);
         this.message = message;
     }
 
     @Override
     public String getMessage() {
+
         return message;
     }
 }

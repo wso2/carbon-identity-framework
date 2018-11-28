@@ -639,8 +639,10 @@ public class JsGraphBuilder {
         FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
                 getFunctionLibraryManagementService();
         FunctionLibrary functionLibrary = null;
+
         functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
                 CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+
         String libraryScript = functionLibrary.getFunctionLibraryScript();
         return libraryScript;
     }
@@ -854,7 +856,7 @@ public class JsGraphBuilder {
     @FunctionalInterface
     public interface LoadExecutor {
 
-        String loadLocalLibrary(String libname) throws FunctionLibraryManagementException;
+        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
     public void exitFunction(Object... arg) {

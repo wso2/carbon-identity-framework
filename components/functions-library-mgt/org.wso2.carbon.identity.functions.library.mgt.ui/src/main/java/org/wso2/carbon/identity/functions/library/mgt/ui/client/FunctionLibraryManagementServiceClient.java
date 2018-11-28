@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.functions.library.mgt.ui.client;
 
-
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
@@ -34,6 +33,7 @@ import java.rmi.RemoteException;
  * Function library management service client.
  */
 public class FunctionLibraryManagementServiceClient {
+
     FunctionLibraryManagementAdminServiceStub stub;
 
     /**
@@ -128,6 +128,7 @@ public class FunctionLibraryManagementServiceClient {
      */
     public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)
             throws AxisFault {
+
         try {
             stub.updateFunctionLibrary(functionLibrary, oldFunctionLibraryName);
         } catch (RemoteException | FunctionLibraryManagementAdminServiceFunctionLibraryManagementException e) {
@@ -142,6 +143,7 @@ public class FunctionLibraryManagementServiceClient {
      * @throws AxisFault
      */
     private void handleException(Exception e) throws AxisFault {
+
         String errorMessage = "Unknown error occurred.";
 
         if (e instanceof FunctionLibraryManagementAdminServiceFunctionLibraryManagementException) {
