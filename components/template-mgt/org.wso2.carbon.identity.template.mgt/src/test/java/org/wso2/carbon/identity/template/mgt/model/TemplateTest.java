@@ -28,76 +28,76 @@ public class TemplateTest {
     private static final String script = "sample Script";
     private static Integer templateId = 1;
     private static Integer tenantId = -1234;
-    Template template = new Template(templateId, tenantId, templateName, description, script);
-    Template template1 = new Template(templateName, description, script);
+    Template testTemplate1 = new Template(templateId, tenantId, templateName, description, script);
+    Template testTemplate2 = new Template(templateName, description, script);
 
     @Test
     public void testGetTemplateId() {
 
-        Assert.assertEquals(template.getTemplateId(), templateId);
+        Assert.assertEquals(testTemplate1.getTemplateId(), templateId);
     }
 
     @Test
     public void testSetTemplateId() {
 
         Integer templateId = 101;
-        template1.setTemplateId(templateId);
-        Assert.assertEquals(template1.getTemplateId(), templateId);
+        testTemplate2.setTemplateId(templateId);
+        Assert.assertEquals(testTemplate2.getTemplateId(), templateId);
     }
 
     @Test
     public void testGetTenantId() {
 
-        Assert.assertEquals(template.getTenantId(), tenantId);
+        Assert.assertEquals(testTemplate1.getTenantId(), tenantId);
     }
 
     @Test
     public void testSetTenantId() {
 
         Integer tenantId = 101;
-        template1.setTenantId(tenantId);
-        Assert.assertEquals(template1.getTenantId(), tenantId);
+        testTemplate2.setTenantId(tenantId);
+        Assert.assertEquals(testTemplate2.getTenantId(), tenantId);
     }
 
     @Test
     public void testGetTemplateName() {
 
-        Assert.assertEquals(template.getTemplateName(), templateName);
+        Assert.assertEquals(testTemplate1.getTemplateName(), templateName);
     }
 
     @Test
     public void testSetTemplateName() {
 
         String templateName = "test Name";
-        template.setTemplateName(templateName);
-        Assert.assertEquals(template.getTemplateName(), templateName);
+        testTemplate1.setTemplateName(templateName);
+        Assert.assertEquals(testTemplate1.getTemplateName(), templateName);
     }
 
     @Test
     public void testGetDescription() {
 
-        Assert.assertEquals(template.getDescription(), description);
+        Assert.assertEquals(testTemplate1.getDescription(), description);
     }
 
     @Test
     public void testSetDescription() {
 
         String description = "test description";
-        template.setDescription(description);
-        Assert.assertEquals(template.getDescription(), description);
+        testTemplate1.setDescription(description);
+        Assert.assertEquals(testTemplate1.getDescription(), description);
     }
 
     @Test
     public void testGetTemplateScript() {
 
-        Assert.assertEquals(template.getTemplateScript(), script);
+        Assert.assertEquals(testTemplate1.getTemplateScript(), script);
     }
 
     @Test
     public void testSetTemplateScript() {
 
         String script = "test script";
-        template.setTemplateScript(script);
-        Assert.assertEquals(template.getTemplateScript(), script);
+        testTemplate1.setTemplateScript(script);
+        Assert.assertEquals(testTemplate1.getTemplateScript(), script);
     }
 }

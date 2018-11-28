@@ -27,30 +27,30 @@ public class TemplateInfoTest {
     private static final String description = "sample Description";
     private static Integer templateId = 1;
     private static Integer tenantId = -1234;
-    TemplateInfo template = new TemplateInfo(templateId, tenantId, templateName);
-    TemplateInfo template1 = new TemplateInfo(templateName, description);
+    TemplateInfo testTemplateInfo1 = new TemplateInfo(templateId, tenantId, templateName);
+    TemplateInfo testTemplateInfo2 = new TemplateInfo(templateName, description);
 
     @Test
     public void testGetTemplateId() {
 
-        Assert.assertEquals(template.getTemplateId(), templateId);
+        Assert.assertEquals(testTemplateInfo1.getTemplateId(), templateId);
     }
 
     @Test
     public void testGetTenantId() {
 
-        Assert.assertEquals(template.getTenantId(), tenantId);
+        Assert.assertEquals(testTemplateInfo1.getTenantId(), tenantId);
     }
 
     @Test
     public void testGetTemplateName() {
 
-        Assert.assertEquals(template.getTemplateName(), templateName);
+        Assert.assertEquals(testTemplateInfo1.getTemplateName(), templateName);
     }
 
     @Test
     public void testGetDescription() {
 
-        Assert.assertEquals(template1.getDescription(), description);
+        Assert.assertEquals(testTemplateInfo2.getDescription(), description);
     }
 }
