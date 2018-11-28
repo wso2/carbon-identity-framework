@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
@@ -87,7 +88,14 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.CarbonUtils;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -116,6 +124,7 @@ public class FrameworkServiceComponent {
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
+    private String requireCode;
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -294,6 +303,16 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
+
+        try {
+            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
+            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
+            requireCode = IOUtils.toString(resourceStream);
+            FrameworkServiceDataHolder.getInstance().setRequireCode(requireCode);
+        } catch (IOException e) {
+            log.error("Failed to read require.js file.");
+        }
+
     }
 
     @Deactivate

@@ -142,7 +142,7 @@ public class JsGraphBuilder {
             Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                this::sendError);
+                    this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
@@ -156,54 +156,7 @@ public class JsGraphBuilder {
                 functionMap.forEach(globalBindings::put);
             }
             Invocable invocable = (Invocable) engine;
-            String requireScript = "var internalRequire = (function () {\n" +
-                    "\n" +
-                    "    var _require = function (libname) {\n" +
-                    "        var moduleInfo,\n" +
-                    "            head = '(function(exports,module,require){ ',\n" +
-                    "            code = '',\n" +
-                    "            tail = '})',\n" +
-                    "            line = null;\n" +
-                    "\n" +
-                    "        code = loadLocalLibrary(libname);\n" +
-                    "\n" +
-                    "\n" +
-                    "        moduleInfo = {\n" +
-                    "            exports: {},\n" +
-                    "            require: _requireWrapper()\n" +
-                    "        };\n" +
-                    "\n" +
-                    "        code = head + code + tail;\n" +
-                    "\n" +
-                    "        var compiledWrapper = null;\n" +
-                    "        try {\n" +
-                    "               compiledWrapper = eval(code);" +
-                    "        } catch (e) {\n" +
-                    "            throw new Error(\"Error evaluating module \" +libname + \" line #\" + e.lineNumber + \": \" + e.message);\n" +
-                    "        }\n" +
-                    "\n" +
-                    "        var args = [\n" +
-                    "            moduleInfo.exports, /* exports */\n" +
-                    "            moduleInfo, /* module */\n" +
-                    "            moduleInfo.require, /* require */\n" +
-                    "        ];\n" +
-                    "        try {\n" +
-                    "            compiledWrapper.apply(null, args);\n" +
-                    "        } catch (e) {\n" +
-                    "            throw new Error(\"Error executing module \" + libname + \" line #\" + e.lineNumber + \" : \" + e.message);\n" +
-                    "        }\n" +
-                    "        return moduleInfo;\n" +
-                    "    };\n" +
-                    "    var _requireWrapper = function () {\n" +
-                    "        return function (libname) {\n" +
-                    "            var module = _require(libname);\n" +
-                    "            return module.exports;\n" +
-                    "        };\n" +
-                    "    };\n" +
-                    "    return _requireWrapper();\n" +
-                    "})";
-            engine.eval(requireScript);
-            engine.eval("var require = internalRequire()");
+            engine.eval(FrameworkServiceDataHolder.getInstance().getRequireCode());
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -342,8 +295,9 @@ public class JsGraphBuilder {
 
     /**
      * Filter out options in the step config to retain only the options provided in authentication options
+     *
      * @param authenticationOptions Authentication options to keep
-     * @param stepConfig The step config to be modified
+     * @param stepConfig            The step config to be modified
      */
     protected void filterOptions(Map<String, Map<String, String>> authenticationOptions, StepConfig stepConfig) {
 
@@ -601,11 +555,10 @@ public class JsGraphBuilder {
     }
 
     /**
-     *
      * @param templateId Identifier of the template.
      * @param parameters Parameters.
-     * @param handlers Handlers to run before and after the prompt.
-     * @param callbacks Callbacks to run after the prompt.
+     * @param handlers   Handlers to run before and after the prompt.
+     * @param callbacks  Callbacks to run after the prompt.
      */
     @SuppressWarnings("unchecked")
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
@@ -753,7 +706,7 @@ public class JsGraphBuilder {
      * New node may be cloned if needed to attach on multiple branches.
      *
      * @param destination Current node.
-     * @param newNode New node to attach.
+     * @param newNode     New node to attach.
      */
     private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
@@ -778,7 +731,7 @@ public class JsGraphBuilder {
      * The new node is added to each leaf node of the Tree structure given in the destination node.
      * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
      *
-     * @param baseNode Base node.
+     * @param baseNode     Base node.
      * @param nodeToAttach Node to attach.
      */
     private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
@@ -901,9 +854,9 @@ public class JsGraphBuilder {
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                        (StepExecutor) graphBuilder::executeStepInAsyncEvent);
+                            (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                        (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
+                            (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)

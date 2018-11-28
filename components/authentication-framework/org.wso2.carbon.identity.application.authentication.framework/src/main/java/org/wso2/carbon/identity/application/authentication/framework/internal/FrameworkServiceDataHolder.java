@@ -79,6 +79,7 @@ public class FrameworkServiceDataHolder {
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
     private FunctionLibraryManagementService functionLibraryManagementService = null;
+    private String requireCode = null;
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
@@ -400,5 +401,25 @@ public class FrameworkServiceDataHolder {
     public void setFunctionLibraryManagementService(FunctionLibraryManagementService functionLibraryManagementService) {
 
         this.functionLibraryManagementService = functionLibraryManagementService;
+    }
+
+    /**
+     * Get require() function's code.
+     *
+     * @return code snippet of require()
+     */
+    public String getRequireCode() {
+
+        return requireCode;
+    }
+
+    /**
+     * Set require() function's code.
+     *
+     * @param requireCode code snippet of require() function
+     */
+    public void setRequireCode(String requireCode) {
+
+        this.requireCode = requireCode;
     }
 }
