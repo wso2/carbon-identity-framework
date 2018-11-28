@@ -11,16 +11,16 @@
   ~ Unless required by applicable law or agreed to in writing,
   ~ software distributed under the License is distributed on an
   ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied.  See the License for the
+  ~ KIND, either express or implied. See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TemplateMgtAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.*" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.model.Template" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
@@ -33,7 +33,7 @@
     String templateId = request.getParameter("templateId");
     String promptId = request.getParameter("promptId");
     String tenantDomain = request.getParameter("tenantDomain");
-
+    
     String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
     if (StringUtils.isBlank(authAPIURL)) {
         authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
@@ -43,17 +43,17 @@
     }
     authAPIURL += "context/" + request.getParameter("promptId");
     String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
-
-    String templateAPIURL = IdentityUtil.getServerURL("/t/"+tenantDomain+"/api/identity/template/mgt/v1.0.0/templates/",true,true);
-
+    
+    String templateAPIURL = IdentityUtil.getServerURL("/t/" + tenantDomain + "/api/identity/template/mgt/v1.0.0/templates/", true, true);
+    
     if (!templateAPIURL.endsWith("/")) {
         templateAPIURL += "/";
     }
     templateAPIURL += templateId;
-
+    
     String templateJSON = TemplateMgtAPIClient.getTemplateData(templateAPIURL);
     Gson gson = new Gson();
-    Template templateData = gson.fromJson(templateJSON,Template.class);
+    Template templateData = gson.fromJson(templateJSON, Template.class);
 %>
 <html>
 <head>
@@ -99,40 +99,37 @@
     
     <div class="row">
         <div class="col-md-12">
-
+            
             <%
                 if (templateData.getTemplateScript() != null) {
             %>
             <div id="template-holder"></div>
             <script id="template-handlebars" type="text/x-handlebars-template">
-            <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
-                <%out.write(templateData.getTemplateScript());%>
-            </div>
+                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
+                    <%out.write(templateData.getTemplateScript());%>
+                </div>
             </script>
-
+            
             <script type="text/javascript">
                 var templateInfo = document.getElementById("template-handlebars").innerHTML;
                 var template = Handlebars.compile(templateInfo);
 
                 var template_data = template(data);
                 document.getElementById("template-holder").innerHTML += template_data;
-                document.getElementById("promptId").value= prompt_id;
-                document.getElementById("template-form").action="../commonauth";
-
+                document.getElementById("promptId").value = prompt_id;
+                document.getElementById("template-form").action = "../commonauth";
+            
             </script>
-
-
-
-
-
+            
             <%
             } else {
             %>
             <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent("Incorrect Request")%> </h2>
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent("Incorrect Request")%>
+                    </h2>
                 </div>
-        
+                
                 <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
                     <div class="font-medium">
                         <strong>
@@ -147,7 +144,7 @@
             <%
                 }
             %>
-            
+        
         </div>
     </div>
 </div>

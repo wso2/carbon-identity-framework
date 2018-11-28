@@ -1,5 +1,20 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 /**
  * Supported keybindings:
@@ -580,8 +595,7 @@
                 var piece = pieces[i];
                 if (piece in modifiers) {
                     pieces[i] = modifiers[piece];
-                }
-                else {
+                } else {
                     hasCharacter = true;
                 }
                 if (piece in specialKeys) {
@@ -1078,8 +1092,7 @@
                     if (match.type == 'none') {
                         clearInputState(cm);
                         return false;
-                    }
-                    else if (match.type == 'partial') {
+                    } else if (match.type == 'partial') {
                         if (lastInsertModeKeyTimer) {
                             window.clearTimeout(lastInsertModeKeyTimer);
                         }
@@ -1129,8 +1142,7 @@
                     if (match.type == 'none') {
                         clearInputState(cm);
                         return false;
-                    }
-                    else if (match.type == 'partial') {
+                    } else if (match.type == 'partial') {
                         return true;
                     }
 
@@ -1145,8 +1157,7 @@
                 var command;
                 if (vim.insertMode) {
                     command = handleKeyInsertMode();
-                }
-                else {
+                } else {
                     command = handleKeyNonInsertMode();
                 }
                 if (command === false) {
@@ -2784,12 +2795,10 @@
                         var newIndent = indent + (whitespaceLength(wspace) - firstIndent);
                         if (newIndent < 0) {
                             return "";
-                        }
-                        else if (cm.getOption("indentWithTabs")) {
+                        } else if (cm.getOption("indentWithTabs")) {
                             var quotient = Math.floor(newIndent / tabSize);
                             return Array(quotient + 1).join('\t');
-                        }
-                        else {
+                        } else {
                             return Array(newIndent + 1).join(' ');
                         }
                     });
@@ -3921,8 +3930,7 @@
             // select boundary before paragraph for the last one
             if (i > max && !startState) {
                 startState = true;
-            }
-            else {
+            } else {
                 inclusive = false;
             }
             for (i = line; i > min; i--) {
@@ -3961,8 +3969,7 @@
                     }
                     idx.line = cm.getLine(idx.ln);
                     idx.pos = (idx.dir > 0) ? 0 : idx.line.length - 1;
-                }
-                else {
+                } else {
                     idx.pos += idx.dir;
                 }
             }
@@ -3998,11 +4005,9 @@
 
                     if (curr.line === "" && !skip_empty_lines) {
                         return {ln: curr.ln, pos: curr.pos,};
-                    }
-                    else if (stop && curr.line !== "" && !isWhiteSpaceString(curr.line[curr.pos])) {
+                    } else if (stop && curr.line !== "" && !isWhiteSpaceString(curr.line[curr.pos])) {
                         return {ln: curr.ln, pos: curr.pos,};
-                    }
-                    else if (isEndOfSentenceSymbol(curr.line[curr.pos])
+                    } else if (isEndOfSentenceSymbol(curr.line[curr.pos])
                         && !stop
                         && (curr.pos === curr.line.length - 1
                             || isWhiteSpaceString(curr.line[curr.pos + 1]))) {
@@ -4058,17 +4063,14 @@
                     if (curr.line === "" && !skip_empty_lines) {
                         if (last_valid.pos !== null) {
                             return last_valid;
-                        }
-                        else {
+                        } else {
                             return {ln: curr.ln, pos: curr.pos};
                         }
-                    }
-                    else if (isEndOfSentenceSymbol(curr.line[curr.pos])
+                    } else if (isEndOfSentenceSymbol(curr.line[curr.pos])
                         && last_valid.pos !== null
                         && !(curr.ln === last_valid.ln && curr.pos + 1 === last_valid.pos)) {
                         return last_valid;
-                    }
-                    else if (curr.line !== "" && !isWhiteSpaceString(curr.line[curr.pos])) {
+                    } else if (curr.line !== "" && !isWhiteSpaceString(curr.line[curr.pos])) {
                         skip_empty_lines = false;
                         last_valid = {ln: curr.ln, pos: curr.pos}
                     }
@@ -4099,8 +4101,7 @@
             while (repeat > 0) {
                 if (dir < 0) {
                     curr_index = reverse(cm, curr_index.ln, curr_index.pos, dir);
-                }
-                else {
+                } else {
                     curr_index = forward(cm, curr_index.ln, curr_index.pos, dir);
                 }
                 repeat--;
@@ -4262,8 +4263,7 @@
                     onKeyDown: options.onKeyDown, onKeyUp: options.onKeyUp,
                     selectValueOnOpen: false
                 });
-            }
-            else {
+            } else {
                 onClose(prompt(shortText, ''));
             }
         }

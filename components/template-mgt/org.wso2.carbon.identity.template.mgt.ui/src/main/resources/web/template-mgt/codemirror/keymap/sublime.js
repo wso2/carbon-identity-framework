@@ -1,5 +1,20 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 // A rough approximation of Sublime Text's keybindings
 // Depends on addon/search/searchcursor.js and optionally addon/dialog/dialogs.js
@@ -463,8 +478,7 @@
                 if (range.empty()) {
                     indices.push(i);
                     replacements.push("");
-                }
-                else replacements.push(mod(cm.getRange(range.from(), range.to())));
+                } else replacements.push(mod(cm.getRange(range.from(), range.to())));
             }
             cm.replaceSelections(replacements, "around", "case");
             for (var i = indices.length - 1, at; i >= 0; i--) {

@@ -1,9 +1,9 @@
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.apache.woden.wsdl20.extensions.http.HTTPConstants" %>
 <%@ page import="org.wso2.carbon.context.PrivilegedCarbonContext" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.ui.client.TemplateManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.ui.dto.TemplateRequestDTO" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.apache.woden.wsdl20.extensions.http.HTTPConstants" %>
 
 <%--
   ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.

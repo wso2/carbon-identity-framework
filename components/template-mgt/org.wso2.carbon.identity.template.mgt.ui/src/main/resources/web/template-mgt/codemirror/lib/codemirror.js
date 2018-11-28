@@ -1,5 +1,20 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 // This is CodeMirror (http://codemirror.net), a code editor
 // implemented in JavaScript on top of the browser's DOM.
@@ -87,8 +102,7 @@
         }
         if (typeof content == "string") {
             e.appendChild(document.createTextNode(content))
-        }
-        else if (content) {
+        } else if (content) {
             for (var i = 0; i < content.length; ++i) {
                 e.appendChild(content[i])
             }
@@ -111,14 +125,12 @@
             r.setStart(node, start)
             return r
         }
-    }
-    else {
+    } else {
         range = function (node, start, end) {
             var r = document.body.createTextRange()
             try {
                 r.moveToElementText(node.parentNode)
-            }
-            catch (e) {
+            } catch (e) {
                 return r
             }
             r.collapse(true)
@@ -188,8 +200,7 @@
             node.selectionStart = 0;
             node.selectionEnd = node.value.length
         }
-    }
-    else if (ie) // Suppress mysterious IE10 errors
+    } else if (ie) // Suppress mysterious IE10 errors
     {
         selectInput = function (node) {
             try {
@@ -399,8 +410,7 @@
             }
             if (pred(mid)) {
                 to = mid
-            }
-            else {
+            } else {
                 from = mid + dir
             }
         }
@@ -464,8 +474,7 @@
         if (place) {
             if (place.appendChild) {
                 place.appendChild(d.wrapper)
-            }
-            else {
+            } else {
                 place(d.wrapper)
             }
         }
@@ -684,11 +693,9 @@
         var ch = pos.ch
         if (ch == null || ch > linelen) {
             return Pos(pos.line, linelen)
-        }
-        else if (ch < 0) {
+        } else if (ch < 0) {
             return Pos(pos.line, 0)
-        }
-        else {
+        } else {
             return pos
         }
     }
@@ -817,8 +824,7 @@
                     var found = getMarkedSpanFor(last, span.marker)
                     if (!found) {
                         span.to = startCh
-                    }
-                    else if (sameLine) {
+                    } else if (sameLine) {
                         span.to = found.to == null ? null : found.to + offset
                     }
                 }
@@ -1138,8 +1144,7 @@
             var line = chunk.lines[i]
             if (line == lineObj) {
                 break
-            }
-            else {
+            } else {
                 h += line.height
             }
         }
@@ -1148,8 +1153,7 @@
                 var cur = p.children[i$1]
                 if (cur == chunk) {
                     break
-                }
-                else {
+                } else {
                     h += cur.height
                 }
             }
@@ -1227,16 +1231,14 @@
             if (cur.to == ch) {
                 if (cur.from != cur.to && sticky == "before") {
                     found = i
-                }
-                else {
+                } else {
                     bidiOther = i
                 }
             }
             if (cur.from == ch) {
                 if (cur.from != cur.to && sticky != "before") {
                     found = i
-                }
-                else {
+                } else {
                     bidiOther = i
                 }
             }
@@ -1276,23 +1278,17 @@
         function charType(code) {
             if (code <= 0xf7) {
                 return lowTypes.charAt(code)
-            }
-            else if (0x590 <= code && code <= 0x5f4) {
+            } else if (0x590 <= code && code <= 0x5f4) {
                 return "R"
-            }
-            else if (0x600 <= code && code <= 0x6f9) {
+            } else if (0x600 <= code && code <= 0x6f9) {
                 return arabicTypes.charAt(code - 0x600)
-            }
-            else if (0x6ee <= code && code <= 0x8ac) {
+            } else if (0x6ee <= code && code <= 0x8ac) {
                 return "r"
-            }
-            else if (0x2000 <= code && code <= 0x200b) {
+            } else if (0x2000 <= code && code <= 0x200b) {
                 return "w"
-            }
-            else if (code == 0x200c) {
+            } else if (code == 0x200c) {
                 return "b"
-            }
-            else {
+            } else {
                 return "L"
             }
         }
@@ -1325,8 +1321,7 @@
                 var type = types[i$1]
                 if (type == "m") {
                     types[i$1] = prev
-                }
-                else {
+                } else {
                     prev = type
                 }
             }
@@ -1340,8 +1335,7 @@
                 var type$1 = types[i$2]
                 if (type$1 == "1" && cur == "r") {
                     types[i$2] = "n"
-                }
-                else if (isStrong.test(type$1)) {
+                } else if (isStrong.test(type$1)) {
                     cur = type$1;
                     if (type$1 == "r") {
                         types[i$2] = "R"
@@ -1356,8 +1350,7 @@
                 var type$2 = types[i$3]
                 if (type$2 == "+" && prev$1 == "1" && types[i$3 + 1] == "1") {
                     types[i$3] = "1"
-                }
-                else if (type$2 == "," && prev$1 == types[i$3 + 1] &&
+                } else if (type$2 == "," && prev$1 == types[i$3 + 1] &&
                     (prev$1 == "1" || prev$1 == "n")) {
                     types[i$3] = prev$1
                 }
@@ -1372,8 +1365,7 @@
                 var type$3 = types[i$4]
                 if (type$3 == ",") {
                     types[i$4] = "N"
-                }
-                else if (type$3 == "%") {
+                } else if (type$3 == "%") {
                     var end = (void 0)
                     for (end = i$4 + 1; end < len && types[end] == "%"; ++end) {
                     }
@@ -1392,8 +1384,7 @@
                 var type$4 = types[i$5]
                 if (cur$1 == "L" && type$4 == "1") {
                     types[i$5] = "L"
-                }
-                else if (isStrong.test(type$4)) {
+                } else if (isStrong.test(type$4)) {
                     cur$1 = type$4
                 }
             }
@@ -1578,8 +1569,7 @@
     function e_preventDefault(e) {
         if (e.preventDefault) {
             e.preventDefault()
-        }
-        else {
+        } else {
             e.returnValue = false
         }
     }
@@ -1587,8 +1577,7 @@
     function e_stopPropagation(e) {
         if (e.stopPropagation) {
             e.stopPropagation()
-        }
-        else {
+        } else {
             e.cancelBubble = true
         }
     }
@@ -1611,11 +1600,9 @@
         if (b == null) {
             if (e.button & 1) {
                 b = 1
-            }
-            else if (e.button & 2) {
+            } else if (e.button & 2) {
                 b = 3
-            }
-            else if (e.button & 4) {
+            } else if (e.button & 4) {
                 b = 2
             }
         }
@@ -1696,16 +1683,14 @@
     var hasSelection = window.getSelection ? function (te) {
         try {
             return te.selectionStart != te.selectionEnd
-        }
-        catch (e) {
+        } catch (e) {
             return false
         }
     } : function (te) {
         var range
         try {
             range = te.ownerDocument.selection.createRange()
-        }
-        catch (e) {
+        } catch (e) {
         }
         if (!range || range.parentElement() != te) {
             return false
@@ -1769,8 +1754,7 @@
         }
         if (typeof spec == "string") {
             return {name: spec}
-        }
-        else {
+        } else {
             return spec || {name: "null"}
         }
     }
@@ -1888,8 +1872,7 @@
         var ok
         if (typeof match == "string") {
             ok = ch == match
-        }
-        else {
+        } else {
             ok = ch && (match.test ? match.test(ch) : match(ch))
         }
         if (ok) {
@@ -1966,8 +1949,7 @@
         this.lineStart += n
         try {
             return inner()
-        }
-        finally {
+        } finally {
             this.lineStart -= n
         }
     };
@@ -2028,8 +2010,7 @@
     Context.fromSaved = function (doc, saved, line) {
         if (saved instanceof SavedContext) {
             return new Context(doc, copyState(doc.mode, saved.state), line, saved.lookAhead)
-        }
-        else {
+        } else {
             return new Context(doc, copyState(doc.mode, saved), line)
         }
     };
@@ -2106,8 +2087,7 @@
             line.styles = result.styles
             if (result.classes) {
                 line.styleClasses = result.classes
-            }
-            else if (line.styleClasses) {
+            } else if (line.styleClasses) {
                 line.styleClasses = null
             }
             if (updateFrontier === cm.doc.highlightFrontier) {
@@ -2218,8 +2198,7 @@
                 var prop = lineClass[1] ? "bgClass" : "textClass"
                 if (output[prop] == null) {
                     output[prop] = lineClass[2]
-                }
-                else if (!(new RegExp("(?:^|\s)" + lineClass[2] + "(?:$|\s)")).test(output[prop])) {
+                } else if (!(new RegExp("(?:^|\s)" + lineClass[2] + "(?:$|\s)")).test(output[prop])) {
                     output[prop] += " " + lineClass[2]
                 }
             }
@@ -2483,8 +2462,7 @@
                     var txt = document.createTextNode(displayText.slice(pos, pos + skipped))
                     if (ie && ie_version < 9) {
                         content.appendChild(elt("span", [txt]))
-                    }
-                    else {
+                    } else {
                         content.appendChild(txt)
                     }
                     builder.map.push(builder.pos, builder.pos + skipped, txt)
@@ -2511,8 +2489,7 @@
                     txt$1.setAttribute("cm-text", m[0])
                     if (ie && ie_version < 9) {
                         content.appendChild(elt("span", [txt$1]))
-                    }
-                    else {
+                    } else {
                         content.appendChild(txt$1)
                     }
                     builder.col += 1
@@ -2767,8 +2744,7 @@
 
         try {
             fireCallbacksForOps(group)
-        }
-        finally {
+        } finally {
             operationGroup = null
             endCb(group)
         }
@@ -2823,14 +2799,11 @@
             var type = lineView.changes[j]
             if (type == "text") {
                 updateLineText(cm, lineView)
-            }
-            else if (type == "gutter") {
+            } else if (type == "gutter") {
                 updateLineGutter(cm, lineView, lineN, dims)
-            }
-            else if (type == "class") {
+            } else if (type == "class") {
                 updateLineClasses(cm, lineView)
-            }
-            else if (type == "widget") {
+            } else if (type == "widget") {
                 updateLineWidgets(cm, lineView, dims)
             }
         }
@@ -2861,8 +2834,7 @@
         if (lineView.background) {
             if (cls) {
                 lineView.background.className = cls
-            }
-            else {
+            } else {
                 lineView.background.parentNode.removeChild(lineView.background);
                 lineView.background = null
             }
@@ -2909,8 +2881,7 @@
         updateLineBackground(cm, lineView)
         if (lineView.line.wrapClass) {
             ensureLineWrapped(lineView).className = lineView.line.wrapClass
-        }
-        else if (lineView.node != lineView.text) {
+        } else if (lineView.node != lineView.text) {
             lineView.node.className = ""
         }
         var textClass = lineView.textClass ? lineView.textClass + " " + (lineView.line.textClass || "") : lineView.line.textClass
@@ -3015,8 +2986,7 @@
             cm.display.input.setUneditable(node)
             if (allowAbove && widget.above) {
                 wrap.insertBefore(node, lineView.gutter || lineView.text)
-            }
-            else {
+            } else {
                 wrap.appendChild(node)
             }
             signalLater(widget, "redraw")
@@ -3315,8 +3285,7 @@
                 }
                 if (ie && ie_version < 9 && start == 0 && end == place.coverEnd - place.coverStart) {
                     rect = node.parentNode.getBoundingClientRect()
-                }
-                else {
+                } else {
                     rect = getUsefulRect(range(node, start, end).getClientRects(), bias)
                 }
                 if (rect.left || rect.right || start == 0) {
@@ -3336,8 +3305,7 @@
             var rects
             if (cm.options.lineWrapping && (rects = node.getClientRects()).length > 1) {
                 rect = rects[bias == "right" ? rects.length - 1 : 0]
-            }
-            else {
+            } else {
                 rect = node.getBoundingClientRect()
             }
         }
@@ -3350,8 +3318,7 @@
                     top: rSpan.top,
                     bottom: rSpan.bottom
                 }
-            }
-            else {
+            } else {
                 rect = nullRect
             }
         }
@@ -3474,8 +3441,7 @@
         var yOff = heightAtLine(lineObj)
         if (context == "local") {
             yOff += paddingTop(cm.display)
-        }
-        else {
+        } else {
             yOff -= cm.display.viewOffset
         }
         if (context == "page" || context == "window") {
@@ -3627,8 +3593,7 @@
             var mergedPos = merged && merged.find(0, true)
             if (merged && (found.ch > mergedPos.from.ch || found.ch == mergedPos.from.ch && found.xRel > 0)) {
                 lineN = lineNo(lineObj = mergedPos.to.line)
-            }
-            else {
+            } else {
                 return found
             }
         }
@@ -3888,8 +3853,7 @@
 
             if (wrapping) {
                 return widgetsHeight + (Math.ceil(line.text.length / perLine) || 1) * th
-            }
-            else {
+            } else {
                 return widgetsHeight + th
             }
         }
@@ -3921,8 +3885,7 @@
         try {
             x = e.clientX - space.left;
             y = e.clientY - space.top
-        }
-        catch (e) {
+        } catch (e) {
             return null
         }
         var coords = coordsChar(cm, x, y), line
@@ -4126,8 +4089,7 @@
                     return display.cursorDiv.style.visibility = (on = !on) ? "" : "hidden";
                 },
                 cm.options.cursorBlinkRate)
-        }
-        else if (cm.options.cursorBlinkRate < 0) {
+        } else if (cm.options.cursorBlinkRate < 0) {
             display.cursorDiv.style.visibility = "hidden"
         }
     }
@@ -4333,8 +4295,7 @@
         var display = cm.display, box = display.sizer.getBoundingClientRect(), doScroll = null
         if (rect.top + box.top < 0) {
             doScroll = true
-        }
-        else if (rect.bottom + box.top > (window.innerHeight || document.documentElement.clientHeight)) {
+        } else if (rect.bottom + box.top > (window.innerHeight || document.documentElement.clientHeight)) {
             doScroll = false
         }
         if (doScroll != null && !phantom) {
@@ -4435,11 +4396,9 @@
         }
         if (rect.left < 10) {
             result.scrollLeft = 0
-        }
-        else if (rect.left < screenleft) {
+        } else if (rect.left < screenleft) {
             result.scrollLeft = Math.max(0, rect.left - (tooWide ? 0 : 10))
-        }
-        else if (rect.right > screenw + screenleft - 3) {
+        } else if (rect.right > screenw + screenleft - 3) {
             result.scrollLeft = rect.right + (tooWide ? 0 : 10) - screenw
         }
         return result
@@ -4671,8 +4630,7 @@
                 : document.elementFromPoint((box.right + box.left) / 2, box.bottom - 1)
             if (elt != bar) {
                 bar.style.pointerEvents = "none"
-            }
-            else {
+            } else {
                 delay.set(1000, maybeDisable)
             }
         }
@@ -4765,8 +4723,7 @@
         }, function (pos, axis) {
             if (axis == "horizontal") {
                 setScrollLeft(cm, pos)
-            }
-            else {
+            } else {
                 updateScrollTop(cm, pos)
             }
         }, cm)
@@ -4985,8 +4942,7 @@
         startOperation(cm)
         try {
             return f()
-        }
-        finally {
+        } finally {
             endOperation(cm)
         }
     }
@@ -5000,8 +4956,7 @@
             startOperation(cm)
             try {
                 return f.apply(cm, arguments)
-            }
-            finally {
+            } finally {
                 endOperation(cm)
             }
         }
@@ -5017,8 +4972,7 @@
             startOperation(this)
             try {
                 return f.apply(this, arguments)
-            }
-            finally {
+            } finally {
                 endOperation(this)
             }
         }
@@ -5033,8 +4987,7 @@
             startOperation(cm)
             try {
                 return f.apply(this, arguments)
-            }
-            finally {
+            } finally {
                 endOperation(cm)
             }
         }
@@ -5112,8 +5065,7 @@
         if (ext) {
             if (to < ext.lineN) {
                 ext.lineN += lendiff
-            }
-            else if (from < ext.lineN + ext.size) {
+            } else if (from < ext.lineN + ext.size) {
                 display.externalMeasured = null
             }
         }
@@ -5190,15 +5142,13 @@
         } else {
             if (display.viewFrom > from) {
                 display.view = buildViewArray(cm, from, display.viewFrom).concat(display.view)
-            }
-            else if (display.viewFrom < from) {
+            } else if (display.viewFrom < from) {
                 display.view = display.view.slice(findViewIndex(cm, from))
             }
             display.viewFrom = from
             if (display.viewTo < to) {
                 display.view = display.view.concat(buildViewArray(cm, display.viewTo, to))
-            }
-            else if (display.viewTo > to) {
+            } else if (display.viewTo > to) {
                 display.view = display.view.slice(0, findViewIndex(cm, to))
             }
         }
@@ -5247,8 +5197,7 @@
                 var oldCls = line.styleClasses, newCls = highlighted.classes
                 if (newCls) {
                     line.styleClasses = newCls
-                }
-                else if (oldCls) {
+                } else if (oldCls) {
                     line.styleClasses = null
                 }
                 var ischange = !oldStyles || oldStyles.length != line.styles.length ||
@@ -5507,8 +5456,7 @@
             // Works around a throw-scroll bug in OS X Webkit
             if (webkit && mac && cm.display.currentWheelTarget == node) {
                 node.style.display = "none"
-            }
-            else {
+            } else {
                 node.parentNode.removeChild(node)
             }
             return next
@@ -5597,14 +5545,11 @@
 // scroll (if it is large enough).
     if (ie) {
         wheelPixelsPerUnit = -.53
-    }
-    else if (gecko) {
+    } else if (gecko) {
         wheelPixelsPerUnit = 15
-    }
-    else if (chrome) {
+    } else if (chrome) {
         wheelPixelsPerUnit = -.7
-    }
-    else if (safari) {
+    } else if (safari) {
         wheelPixelsPerUnit = -1 / 3
     }
 
@@ -5615,8 +5560,7 @@
         }
         if (dy == null && e.detail && e.axis == e.VERTICAL_AXIS) {
             dy = e.detail
-        }
-        else if (dy == null) {
+        } else if (dy == null) {
             dy = e.wheelDelta
         }
         return {x: dx, y: dy}
@@ -5684,8 +5628,7 @@
             var top = cm.doc.scrollTop, bot = top + display.wrapper.clientHeight
             if (pixels < 0) {
                 top = Math.max(0, top + pixels - 50)
-            }
-            else {
+            } else {
                 bot = Math.min(cm.doc.height, bot + pixels + 50)
             }
             updateDisplaySimple(cm, {top: top, bottom: bot})
@@ -5869,8 +5812,7 @@
     function offsetPos(pos, old, nw) {
         if (pos.line == old.line) {
             return Pos(nw.line, pos.ch - old.ch + nw.ch)
-        }
-        else {
+        } else {
             return Pos(nw.line + (pos.line - old.line), pos.ch)
         }
     }
@@ -6081,8 +6023,7 @@
             var last = lst(array)
             if (last.ranges) {
                 array.pop()
-            }
-            else {
+            } else {
                 break
             }
         }
@@ -6180,8 +6121,7 @@
                 (hist.lastModTime == hist.lastSelTime && hist.lastOrigin == origin ||
                     selectionEventCanBeMerged(doc, origin, lst(hist.done), sel)))) {
             hist.done[hist.done.length - 1] = sel
-        }
-        else {
+        } else {
             pushSelectionToHistory(sel, hist.done)
         }
 
@@ -6223,8 +6163,7 @@
                 if (!out) {
                     out = spans.slice(0, i)
                 }
-            }
-            else if (out) {
+            } else if (out) {
                 out.push(spans[i])
             }
         }
@@ -6387,8 +6326,7 @@
         }
         if (obj.ranges != sel.ranges) {
             return normalizeSelection(obj.ranges, obj.ranges.length - 1)
-        }
-        else {
+        } else {
             return sel
         }
     }
@@ -6474,8 +6412,7 @@
                         if (m.explicitlyCleared) {
                             if (!line.markedSpans) {
                                 break
-                            }
-                            else {
+                            } else {
                                 --i;
                                 continue
                             }
@@ -6524,15 +6461,13 @@
         if (dir < 0 && pos.ch == 0) {
             if (pos.line > doc.first) {
                 return clipPos(doc, Pos(pos.line - 1))
-            }
-            else {
+            } else {
                 return null
             }
         } else if (dir > 0 && pos.ch == (line || getLine(doc, pos.line)).text.length) {
             if (pos.line < doc.first + doc.size - 1) {
                 return Pos(pos.line + 1, 0)
-            }
-            else {
+            } else {
                 return null
             }
         } else {
@@ -6784,8 +6719,7 @@
         }
         if (doc.cm) {
             makeChangeSingleDocInEditor(doc.cm, change, spans)
-        }
-        else {
+        } else {
             updateDoc(doc, change, spans)
         }
         setSelectionNoUndo(doc, selAfter, sel_dontScroll)
@@ -6835,11 +6769,9 @@
         // Remember that these lines changed, for updating the display
         if (change.full) {
             regChange(cm)
-        }
-        else if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm.doc, change)) {
+        } else if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm.doc, change)) {
             regLineChange(cm, from.line, "text")
-        }
-        else {
+        } else {
             regChange(cm, from.line, to.line + 1, lendiff)
         }
 
@@ -6937,8 +6869,7 @@
         var no = handle, line = handle
         if (typeof handle == "number") {
             line = getLine(doc, clipLine(doc, handle))
-        }
-        else {
+        } else {
             no = lineNo(handle)
         }
         if (no == null) {
@@ -7237,8 +7168,7 @@
             var widgets = line.widgets || (line.widgets = [])
             if (widget.insertAt == null) {
                 widgets.push(widget)
-            }
-            else {
+            } else {
                 widgets.splice(Math.min(widgets.length - 1, Math.max(0, widget.insertAt)), 0, widget)
             }
             widget.line = line
@@ -7305,8 +7235,7 @@
             var span = getMarkedSpanFor(line.markedSpans, this$1)
             if (cm && !this$1.collapsed) {
                 regLineChange(cm, lineNo(line), "text")
-            }
-            else if (cm) {
+            } else if (cm) {
                 if (span.to != null) {
                     max = lineNo(line)
                 }
@@ -7520,8 +7449,7 @@
             }
             if (marker.collapsed) {
                 regChange(cm, from.line, to.line + 1)
-            }
-            else if (marker.className || marker.title || marker.startStyle || marker.endStyle || marker.css) {
+            } else if (marker.className || marker.title || marker.startStyle || marker.endStyle || marker.css) {
                 for (var i = from.line; i <= to.line; i++) {
                     regLineChange(cm, i, "text")
                 }
@@ -7663,8 +7591,7 @@
         iter: function (from, to, op) {
             if (op) {
                 this.iterN(from - this.first, to - from, op)
-            }
-            else {
+            } else {
                 this.iterN(this.first, this.first + this.size, from)
             }
         },
@@ -7754,14 +7681,11 @@
             var range = this.sel.primary(), pos
             if (start == null || start == "head") {
                 pos = range.head
-            }
-            else if (start == "anchor") {
+            } else if (start == "anchor") {
                 pos = range.anchor
-            }
-            else if (start == "end" || start == "to" || start === false) {
+            } else if (start == "end" || start == "to" || start === false) {
                 pos = range.to()
-            }
-            else {
+            } else {
                 pos = range.from()
             }
             return pos
@@ -7821,8 +7745,7 @@
             }
             if (lineSep === false) {
                 return lines
-            }
-            else {
+            } else {
                 return lines.join(lineSep || this.lineSeparator())
             }
         },
@@ -7860,8 +7783,7 @@
             }
             if (newSel) {
                 setSelectionReplaceHistory(this, newSel)
-            }
-            else if (this.cm) {
+            } else if (this.cm) {
                 ensureCursorVisible(this.cm)
             }
         }),
@@ -7986,11 +7908,9 @@
                         : where == "gutter" ? "gutterClass" : "wrapClass"
                 if (!line[prop]) {
                     line[prop] = cls
-                }
-                else if (classTest(cls).test(line[prop])) {
+                } else if (classTest(cls).test(line[prop])) {
                     return false
-                }
-                else {
+                } else {
                     line[prop] += " " + cls
                 }
                 return true
@@ -8004,11 +7924,9 @@
                 var cur = line[prop]
                 if (!cur) {
                     return false
-                }
-                else if (cls == null) {
+                } else if (cls == null) {
                     line[prop] = null
-                }
-                else {
+                } else {
                     var found = cur.match(classTest(cls))
                     if (!found) {
                         return false
@@ -8298,8 +8216,7 @@
                     cm.replaceSelection(text$1, "around", "paste")
                     cm.display.input.focus()
                 }
-            }
-            catch (e) {
+            } catch (e) {
             }
         }
     }
@@ -8511,17 +8428,13 @@
             var mod = parts[i]
             if (/^(cmd|meta|m)$/i.test(mod)) {
                 cmd = true
-            }
-            else if (/^a(lt)?$/i.test(mod)) {
+            } else if (/^a(lt)?$/i.test(mod)) {
                 alt = true
-            }
-            else if (/^(c|ctrl|control)$/i.test(mod)) {
+            } else if (/^(c|ctrl|control)$/i.test(mod)) {
                 ctrl = true
-            }
-            else if (/^s(hift)?$/i.test(mod)) {
+            } else if (/^s(hift)?$/i.test(mod)) {
                 shift = true
-            }
-            else {
+            } else {
                 throw new Error("Unrecognized modifier name: " + mod)
             }
         }
@@ -8571,8 +8484,7 @@
                     var prev = copy[name]
                     if (!prev) {
                         copy[name] = val
-                    }
-                    else if (prev != val) {
+                    } else if (prev != val) {
                         throw new Error("Inconsistent bindings for " + name)
                     }
                 }
@@ -8823,8 +8735,7 @@
                     var len = getLine(cm.doc, range.head.line).text.length
                     if (range.head.ch == len && range.head.line < cm.lastLine()) {
                         return {from: range.head, to: Pos(range.head.line + 1, 0)}
-                    }
-                    else {
+                    } else {
                         return {from: range.head, to: Pos(range.head.line, len)}
                     }
                 } else {
@@ -9000,8 +8911,7 @@
         defaultTab: function (cm) {
             if (cm.somethingSelected()) {
                 cm.indentSelection("add")
-            }
-            else {
+            } else {
                 cm.execCommand("insertTab")
             }
         },
@@ -9146,8 +9056,7 @@
             }
             if (/\'$/.test(name)) {
                 cm.state.keySeq = null
-            }
-            else {
+            } else {
                 stopSeq.set(50, function () {
                     if (cm.state.keySeq == seq) {
                         cm.state.keySeq = null
@@ -9364,8 +9273,7 @@
         if (button == 1) {
             if (pos) {
                 leftButtonDown(cm, pos, repeat, e)
-            }
-            else if (e_target(e) == display.scroller) {
+            } else if (e_target(e) == display.scroller) {
                 e_preventDefault(e)
             }
         } else if (button == 2) {
@@ -9378,8 +9286,7 @@
         } else if (button == 3) {
             if (captureRightClick) {
                 onContextMenu(cm, e)
-            }
-            else {
+            } else {
                 delayBlurEvent(cm)
             }
         }
@@ -9389,8 +9296,7 @@
         var name = "Click"
         if (repeat == "double") {
             name = "Double" + name
-        }
-        else if (repeat == "triple") {
+        } else if (repeat == "triple") {
             name = "Triple" + name
         }
         name = (button == 1 ? "Left" : button == 2 ? "Middle" : "Right") + name
@@ -9437,8 +9343,7 @@
     function leftButtonDown(cm, pos, repeat, event) {
         if (ie) {
             setTimeout(bind(ensureFocus, cm), 0)
-        }
-        else {
+        } else {
             cm.curOp.focus = activeElt()
         }
 
@@ -9450,8 +9355,7 @@
             (cmp((contained = sel.ranges[contained]).from(), pos) < 0 || pos.xRel > 0) &&
             (cmp(contained.to(), pos) > 0 || pos.xRel < 0)) {
             leftButtonStartDrag(cm, event, pos, behavior)
-        }
-        else {
+        } else {
             leftButtonSelect(cm, event, pos, behavior)
         }
     }
@@ -9480,8 +9384,7 @@
                         display.wrapper.ownerDocument.body.focus();
                         display.input.focus()
                     }, 20)
-                }
-                else {
+                } else {
                     display.input.focus()
                 }
             }
@@ -9537,8 +9440,7 @@
             ourIndex = doc.sel.contains(start)
             if (ourIndex > -1) {
                 ourRange = ranges[ourIndex]
-            }
-            else {
+            } else {
                 ourRange = new Range(start, start)
             }
         } else {
@@ -9556,8 +9458,7 @@
             var range = rangeForUnit(cm, start, behavior.unit)
             if (behavior.extend) {
                 ourRange = extendRange(ourRange, range.anchor, range.head, behavior.extend)
-            }
-            else {
+            } else {
                 ourRange = range
             }
         }
@@ -9596,8 +9497,7 @@
                     var text = getLine(doc, line).text, leftPos = findColumn(text, left, tabSize)
                     if (left == right) {
                         ranges.push(new Range(Pos(line, leftPos), Pos(line, leftPos)))
-                    }
-                    else if (text.length > leftPos) {
+                    } else if (text.length > leftPos) {
                         ranges.push(new Range(Pos(line, leftPos), Pos(line, findColumn(text, right, tabSize))))
                     }
                 }
@@ -9675,8 +9575,7 @@
         var move = operation(cm, function (e) {
             if (!e_button(e)) {
                 done(e)
-            }
-            else {
+            } else {
                 extend(e)
             }
         })
@@ -9718,8 +9617,7 @@
             var dir = headIndex - index || (head.ch - anchor.ch) * (part.level == 1 ? -1 : 1)
             if (headIndex == boundary - 1 || headIndex == boundary) {
                 leftSide = dir < 0
-            }
-            else {
+            } else {
                 leftSide = dir > 0
             }
         }
@@ -9742,8 +9640,7 @@
             try {
                 mX = e.clientX;
                 mY = e.clientY
-            }
-            catch (e) {
+            } catch (e) {
                 return false
             }
         }
@@ -10093,8 +9990,7 @@
 
         if ((options.autofocus && !mobile) || this.hasFocus()) {
             setTimeout(bind(onFocus, this), 20)
-        }
-        else {
+        } else {
             onBlur(this)
         }
 
@@ -10142,8 +10038,7 @@
                 var word = cm.findWordAt(pos)
                 extendSelection(cm.doc, word.anchor, word.head)
             }))
-        }
-        else {
+        } else {
             on(d.scroller, "dblclick", function (e) {
                 return signalDOMEvent(cm, e) || e_preventDefault(e);
             })
@@ -10214,12 +10109,10 @@
                 if (!touch.prev || farAway(touch, touch.prev)) // Single tap
                 {
                     range = new Range(pos, pos)
-                }
-                else if (!touch.prev.prev || farAway(touch, touch.prev.prev)) // Double tap
+                } else if (!touch.prev.prev || farAway(touch, touch.prev.prev)) // Double tap
                 {
                     range = cm.findWordAt(pos)
-                }
-                else // Triple tap
+                } else // Triple tap
                 {
                     range = new Range(Pos(pos.line, 0), clipPos(cm.doc, Pos(pos.line + 1, 0)))
                 }
@@ -10311,8 +10204,7 @@
             // method.
             if (!doc.mode.indent) {
                 how = "prev"
-            }
-            else {
+            } else {
                 state = getContextBefore(cm, n).state
             }
         }
@@ -10338,8 +10230,7 @@
         if (how == "prev") {
             if (n > doc.first) {
                 indentation = countColumn(getLine(doc, n - 1).text, null, tabSize)
-            }
-            else {
+            } else {
                 indentation = 0
             }
         } else if (how == "add") {
@@ -10423,12 +10314,10 @@
                 if (deleted && deleted > 0) // Handle deletion
                 {
                     from = Pos(from.line, from.ch - deleted)
-                }
-                else if (cm.state.overwrite && !paste) // Handle overwrite
+                } else if (cm.state.overwrite && !paste) // Handle overwrite
                 {
                     to = Pos(to.line, Math.min(getLine(doc, to.line).text.length, to.ch + lst(textLines).length))
-                }
-                else if (lastCopied && lastCopied.lineWise && lastCopied.text.join("\n") == inserted) {
+                } else if (lastCopied && lastCopied.lineWise && lastCopied.text.join("\n") == inserted) {
                     from = to = Pos(from.line, 0)
                 }
             }
@@ -10521,8 +10410,7 @@
         // very slow. So make the area wide instead.
         if (webkit) {
             te.style.width = "1000px"
-        }
-        else {
+        } else {
             te.setAttribute("wrap", "off")
         }
         // If border: 0; -- iOS fails to open keyboard (issue #1287)
@@ -10620,8 +10508,7 @@
                 if (typeof dir != "string" && typeof dir != "number") {
                     if (dir == null) {
                         dir = this.options.smartIndent ? "smart" : "prev"
-                    }
-                    else {
+                    } else {
                         dir = dir ? "add" : "subtract"
                     }
                 }
@@ -10673,17 +10560,14 @@
                 var type
                 if (ch == 0) {
                     type = styles[2]
-                }
-                else {
+                } else {
                     for (; ;) {
                         var mid = (before + after) >> 1
                         if ((mid ? styles[mid * 2 - 1] : 0) >= ch) {
                             after = mid
-                        }
-                        else if (styles[mid * 2 + 1] < ch) {
+                        } else if (styles[mid * 2 + 1] < ch) {
                             before = mid + 1
-                        }
-                        else {
+                        } else {
                             type = styles[mid * 2 + 2];
                             break
                         }
@@ -10748,11 +10632,9 @@
                 var pos, range = this.doc.sel.primary()
                 if (start == null) {
                     pos = range.head
-                }
-                else if (typeof start == "object") {
+                } else if (typeof start == "object") {
                     pos = clipPos(this.doc, start)
-                }
-                else {
+                } else {
                     pos = start ? range.from() : range.to()
                 }
                 return cursorCoords(this, pos, mode || "page")
@@ -10777,8 +10659,7 @@
                     var last = this.doc.first + this.doc.size - 1
                     if (line < this.doc.first) {
                         line = this.doc.first
-                    }
-                    else if (line > last) {
+                    } else if (line > last) {
                         line = last;
                         end = true
                     }
@@ -10817,8 +10698,7 @@
                     // Default to positioning above (if specified and possible); otherwise default to positioning below
                     if ((vert == 'above' || pos.bottom + node.offsetHeight > vspace) && pos.top > node.offsetHeight) {
                         top = pos.top - node.offsetHeight
-                    }
-                    else if (pos.bottom + node.offsetHeight <= vspace) {
+                    } else if (pos.bottom + node.offsetHeight <= vspace) {
                         top = pos.bottom
                     }
                     if (left + node.offsetWidth > hspace) {
@@ -10833,8 +10713,7 @@
                 } else {
                     if (horiz == "left") {
                         left = 0
-                    }
-                    else if (horiz == "middle") {
+                    } else if (horiz == "middle") {
                         left = (display.sizer.clientWidth - node.offsetWidth) / 2
                     }
                     node.style.left = left + "px"
@@ -10888,8 +10767,7 @@
                 this.extendSelectionsBy(function (range) {
                     if (this$1.display.shift || this$1.doc.extend || range.empty()) {
                         return findPosH(this$1.doc, range.head, dir, unit, this$1.options.rtlMoveVisually)
-                    }
-                    else {
+                    } else {
                         return dir < 0 ? range.from() : range.to()
                     }
                 }, sel_move)
@@ -10899,8 +10777,7 @@
                 var sel = this.doc.sel, doc = this.doc
                 if (sel.somethingSelected()) {
                     doc.replaceSelection("", null, "+delete")
-                }
-                else {
+                } else {
                     deleteNearSelection(this, function (range) {
                         var other = findPosH(doc, range.head, dir, unit, false)
                         return dir < 0 ? {from: other, to: range.head} : {from: range.head, to: other}
@@ -10921,8 +10798,7 @@
                     var coords = cursorCoords(this$1, cur, "div")
                     if (x == null) {
                         x = coords.left
-                    }
-                    else {
+                    } else {
                         coords.left = x
                     }
                     cur = findPosV(this$1, coords, dir, unit)
@@ -10998,8 +10874,7 @@
                 }
                 if (this.state.overwrite = !this.state.overwrite) {
                     addClass(this.display.cursorDiv, "CodeMirror-overwrite")
-                }
-                else {
+                } else {
                     rmClass(this.display.cursorDiv, "CodeMirror-overwrite")
                 }
 
@@ -11174,8 +11049,7 @@
             if (next == null) {
                 if (!boundToLine && findNextLine()) {
                     pos = endOfLine(visually, doc.cm, lineObj, pos.line, dir)
-                }
-                else {
+                } else {
                     return false
                 }
             } else {
@@ -11413,8 +11287,7 @@
         var old = sel.rangeCount && sel.getRangeAt(0), rng
         try {
             rng = range(start.node, start.offset, end.offset, end.node)
-        }
-        catch (e) {
+        } catch (e) {
         } // Our model of the DOM might be outdated, in which case the range we try to set can be impossible
         if (rng) {
             if (!gecko && cm.state.focused) {
@@ -11429,8 +11302,7 @@
             }
             if (old && sel.anchorNode == null) {
                 sel.addRange(old)
-            }
-            else if (gecko) {
+            } else if (gecko) {
                 this.startGracePeriod()
             }
         }
@@ -11496,8 +11368,7 @@
         var input = this
         if (this.selectionInEditor()) {
             this.pollSelection()
-        }
-        else {
+        } else {
             runInOp(this.cm, function () {
                 return input.cm.curOp.selectionChanged = true;
             })
@@ -11598,13 +11469,11 @@
                 newText.pop();
                 oldText.pop();
                 toLine--
-            }
-            else if (newText[0] == oldText[0]) {
+            } else if (newText[0] == oldText[0]) {
                 newText.shift();
                 oldText.shift();
                 fromLine++
-            }
-            else {
+            } else {
                 break
             }
         }
@@ -11668,8 +11537,7 @@
             if (this$1.composing) {
                 if (this$1.composing.done) {
                     this$1.composing = null
-                }
-                else {
+                } else {
                     return
                 }
             }
@@ -11893,8 +11761,7 @@
             found = find(after, after.firstChild, 0)
             if (found) {
                 return badPos(Pos(found.line, found.ch - dist), bad)
-            }
-            else {
+            } else {
                 dist += after.textContent.length
             }
         }
@@ -11902,8 +11769,7 @@
             found = find(before, before.firstChild, -1)
             if (found) {
                 return badPos(Pos(found.line, found.ch + dist$1), bad)
-            }
-            else {
+            } else {
                 dist$1 += before.textContent.length
             }
         }
@@ -12091,8 +11957,7 @@
         if (this.cm.options.readOnly != "nocursor" && (!mobile || activeElt() != this.textarea)) {
             try {
                 this.textarea.focus()
-            }
-            catch (e) {
+            } catch (e) {
             } // IE8 will throw if the textarea is display: none or not in DOM
         }
     };
@@ -12137,8 +12002,7 @@
             if (!changed && !missed) {
                 missed = true;
                 input.polling.set(60, p)
-            }
-            else {
+            } else {
                 input.pollingFast = false;
                 input.slowPoll()
             }
@@ -12204,8 +12068,7 @@
             // Don't leave long text in the textarea, since it makes further polling slow
             if (text.length > 1000 || text.indexOf("\n") > -1) {
                 input.value = this$1.prevInput = ""
-            }
-            else {
+            } else {
                 this$1.prevInput = text
             }
 

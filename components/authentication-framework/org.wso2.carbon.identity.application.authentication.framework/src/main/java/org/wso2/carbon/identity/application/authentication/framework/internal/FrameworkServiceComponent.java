@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -34,11 +34,11 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -50,10 +50,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -107,38 +107,18 @@ import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
+    public static final String IS_HANDLER = "IS_HANDLER";
     private static final String IDENTITY_SERVLET_URL = "/identity";
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
-    public static final String IS_HANDLER = "IS_HANDLER";
-
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
     public static RealmService getRealmService() {
-        return FrameworkServiceDataHolder.getInstance().getRealmService();
-    }
 
-    @Reference(
-            name = "carbon.identity.template.mgt.component",
-            service = TemplateManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetTemplateManagerService"
-    )
-    protected void setTemplateManagerService(TemplateManager templateManagerService){
-        if (log.isDebugEnabled()){
-            log.debug("Template Manager Service is set in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(templateManagerService);
-    }
-    protected void unsetTemplateManagerService(TemplateManager templateManagerService){
-        if (log.isDebugEnabled()){
-            log.debug("Template Manager Service is unset in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(null);
+        return FrameworkServiceDataHolder.getInstance().getRealmService();
     }
 
     @Reference(
@@ -149,6 +129,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetRealmService"
     )
     protected void setRealmService(RealmService realmService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
         }
@@ -156,6 +137,7 @@ public class FrameworkServiceComponent {
     }
 
     public static RegistryService getRegistryService() {
+
         return FrameworkServiceDataHolder.getInstance().getRegistryService();
     }
 
@@ -167,6 +149,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetRegistryService"
     )
     protected void setRegistryService(RegistryService registryService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is set in the Application Authentication Framework bundle");
         }
@@ -174,7 +157,6 @@ public class FrameworkServiceComponent {
     }
 
     /**
-     *
      * @return
      * @throws FrameworkException
      * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
@@ -182,6 +164,7 @@ public class FrameworkServiceComponent {
      */
     @Deprecated
     public static BundleContext getBundleContext() throws FrameworkException {
+
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
         if (bundleContext == null) {
             String msg = "System has not been started properly. Bundle Context is null.";
@@ -193,12 +176,37 @@ public class FrameworkServiceComponent {
     }
 
     public static List<ApplicationAuthenticator> getAuthenticators() {
+
         return FrameworkServiceDataHolder.getInstance().getAuthenticators();
+    }
+
+    @Reference(
+            name = "carbon.identity.template.mgt.component",
+            service = TemplateManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetTemplateManagerService"
+    )
+    protected void setTemplateManagerService(TemplateManager templateManagerService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template Manager Service is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(templateManagerService);
+    }
+
+    protected void unsetTemplateManagerService(TemplateManager templateManagerService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template Manager Service is unset in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(null);
     }
 
     @SuppressWarnings("unchecked")
     @Activate
     protected void activate(ComponentContext ctxt) {
+
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
@@ -210,11 +218,11 @@ public class FrameworkServiceComponent {
         if (tenantDropdownEnabled) {
             // Register the tenant management listener for tracking changes to tenants
             bundleContext.registerService(TenantMgtListener.class.getName(),
-                                          new AuthenticationEndpointTenantActivityListener(), null);
+                    new AuthenticationEndpointTenantActivityListener(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("AuthenticationEndpointTenantActivityListener is registered. Tenant Domains Dropdown is " +
-                          "enabled.");
+                        "enabled.");
             }
         }
         AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
@@ -228,7 +236,7 @@ public class FrameworkServiceComponent {
                 COMMON_SERVLET_URL);
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                                                                 IDENTITY_SERVLET_URL);
+                IDENTITY_SERVLET_URL);
 
         Servlet loginContextServlet = new ContextPathServletAdaptor(new LoginContextServlet(),
                 LOGIN_CONTEXT_SERVLET_URL);
@@ -318,6 +326,7 @@ public class FrameworkServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
+
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is deactivated");
         }
@@ -334,6 +343,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetHttpService"
     )
     protected void setHttpService(HttpService httpService) {
+
         if (log.isDebugEnabled()) {
             log.debug("HTTP Service is set in the Application Authentication Framework bundle");
         }
@@ -342,6 +352,7 @@ public class FrameworkServiceComponent {
     }
 
     protected void unsetHttpService(HttpService httpService) {
+
         if (log.isDebugEnabled()) {
             log.debug("HTTP Service is unset in the Application Authentication Framework bundle");
         }
@@ -350,6 +361,7 @@ public class FrameworkServiceComponent {
     }
 
     protected void unsetRealmService(RealmService realmService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
@@ -357,6 +369,7 @@ public class FrameworkServiceComponent {
     }
 
     protected void unsetRegistryService(RegistryService registryService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is unset in the Application Authentication Framework bundle");
         }
@@ -453,7 +466,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getIdentityProcessors());
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
@@ -480,7 +493,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
@@ -495,7 +508,6 @@ public class FrameworkServiceComponent {
         }
     }
 
-
     @Reference(
             name = "identity.response.factory",
             service = HttpIdentityResponseFactory.class,
@@ -507,7 +519,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
@@ -526,7 +538,6 @@ public class FrameworkServiceComponent {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
-
 
     @Reference(
             name = "identityCoreInitializedEventService",
@@ -548,6 +559,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticationDataPublisher"
     )
     protected void setAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+
         if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(publisher);
@@ -555,6 +567,7 @@ public class FrameworkServiceComponent {
     }
 
     protected void unsetAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+
         if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
@@ -637,7 +650,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().addClaimFilter(claimFilter);
     }
 
-    protected void unsetClaimFilter (ClaimFilter claimFilter) {
+    protected void unsetClaimFilter(ClaimFilter claimFilter) {
 
         FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
     }

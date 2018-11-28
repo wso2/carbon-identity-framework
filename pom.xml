@@ -1599,15 +1599,14 @@
     
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <apache.cxf-rt-frontend-jaxrs.version>3.1.16</apache.cxf-rt-frontend-jaxrs.version>
-        <apache.cxf-rt-rs-service-description.version>3.1.16</apache.cxf-rt-rs-service-description.version>
+        <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
+        <apache.cxf-rt-rs-service-description.version>3.1.4</apache.cxf-rt-rs-service-description.version>
         <codehaus.jackson-core-asl.version>1.8.6</codehaus.jackson-core-asl.version>
         <codehaus.jackson-mapper-asl.version>1.8.6</codehaus.jackson-mapper-asl.version>
         <codehaus.jackson-jaxrs.version>1.8.6</codehaus.jackson-jaxrs.version>
         <springframework.spring-web.version>4.1.6.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <org.apache.cxf.version>3.1.16</org.apache.cxf.version>
-
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -1890,7 +1889,7 @@
                     <version>${swagger2cxf-maven-plugin.version}</version>
                     <configuration>
                         <inputSpec>
-                            /home/chamath/IdeaProjects/template-mgt/org.wso2.carbon.identity.template.mgt.endpoint/src/main/resources/org.wso2.carbon.identity.template.mgt.api.yaml
+                            ${project.basedir}/src/main/resources/org.wso2.carbon.identity.template.mgt.api.yaml
                         </inputSpec>
                     </configuration>
                 </plugin>

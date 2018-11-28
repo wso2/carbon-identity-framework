@@ -26,7 +26,7 @@ public class TemplateManagementException extends Exception {
     private static final long serialVersionUID = -3711241843536343329L;
     private String errorCode;
 
-    public TemplateManagementException(){
+    public TemplateManagementException() {
 
         super();
     }
@@ -43,7 +43,7 @@ public class TemplateManagementException extends Exception {
         this.errorCode = errorCode;
     }
 
-    public TemplateManagementException (Throwable cause){
+    public TemplateManagementException(Throwable cause) {
 
         super(cause);
     }

@@ -153,8 +153,8 @@ public class TemplateManagerImpl implements TemplateManager {
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
         }
 
-        if (getTemplateExistence(template.getTemplateName())){
-            if (log.isDebugEnabled()){
+        if (getTemplateExistence(template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
                 log.debug("A template already exists with the name: " + template.getTemplateName());
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());

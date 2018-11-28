@@ -84,7 +84,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         } catch (DataAccessException e) {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_INSERT_TEMPLATE, template.getTemplateName(), e);
         }
-        templateResult = new Template(template.getTenantId(),template.getTemplateName(),template.getDescription(),template.getTemplateScript());
+        templateResult = new Template(template.getTenantId(), template.getTemplateName(), template.getDescription(), template.getTemplateScript());
         return templateResult;
     }
 
@@ -209,7 +209,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_UPDATE_TEMPLATE, newTemplate.getTemplateName(), e);
         }
         return new Template(newTemplate.getTenantId(), newTemplate.getTemplateName(),
-                            newTemplate.getDescription(),newTemplate.getTemplateScript());
+                newTemplate.getDescription(), newTemplate.getTemplateScript());
     }
 
     /**

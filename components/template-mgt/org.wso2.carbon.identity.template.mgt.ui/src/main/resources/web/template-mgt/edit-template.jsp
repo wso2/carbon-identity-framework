@@ -98,8 +98,7 @@
                     'Template name ? \n WARN: If you edit this library name, ' +
                     'the authentication scripts which used this will no longer function properly!',
                     doEdit, null);
-            }
-            else {
+            } else {
                 doEdit();
             }
 

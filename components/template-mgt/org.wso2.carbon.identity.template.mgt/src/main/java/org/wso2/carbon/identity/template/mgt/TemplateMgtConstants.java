@@ -40,7 +40,7 @@ public class TemplateMgtConstants {
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
-    public static final String TEMPLATE_RESOURCE_PATH = "/" ;
+    public static final String TEMPLATE_RESOURCE_PATH = "/";
 
     public enum ErrorMessages {
         ERROR_CODE_INSERT_TEMPLATE("TM_00001", "Error occurred while adding the template: %s."),
