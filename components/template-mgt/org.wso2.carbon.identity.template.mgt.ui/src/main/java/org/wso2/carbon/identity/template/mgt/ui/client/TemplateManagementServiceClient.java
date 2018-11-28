@@ -74,7 +74,7 @@ public class TemplateManagementServiceClient {
 
     public List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException {
 
-        handleLoggedInUserAuthorization(TemplateMgtConstants.PERMISSION_TEMPLATE_MGT_UPDATE);
+        handleLoggedInUserAuthorization(TemplateMgtConstants.PERMISSION_TEMPLATE_MGT_LIST);
         return getTemplateManager().listTemplates(limit, offset);
     }
 

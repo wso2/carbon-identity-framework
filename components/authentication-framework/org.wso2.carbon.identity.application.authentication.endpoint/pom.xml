@@ -40,7 +40,6 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt</artifactId>
             <version>5.12.199-SNAPSHOT</version>
-            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>commons-lang.wso2</groupId>

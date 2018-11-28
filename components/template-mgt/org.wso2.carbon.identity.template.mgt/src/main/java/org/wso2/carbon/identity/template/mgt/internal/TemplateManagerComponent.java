@@ -61,12 +61,11 @@ public class TemplateManagerComponent {
             setDataSourceToDataHolder(dataSource);
 
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
-//            bundleContext.registerService(TemplateManagerDAO.class, new TemplateManagerDAOImpl(), null);
             if (log.isDebugEnabled()) {
                 log.debug("Template Manager bundle is activated.");
             }
         } catch (Throwable e) {
-            log.error("Error", e);
+            log.error("Error while activating TemplateManagerComponent.", e);
         }
     }
 
