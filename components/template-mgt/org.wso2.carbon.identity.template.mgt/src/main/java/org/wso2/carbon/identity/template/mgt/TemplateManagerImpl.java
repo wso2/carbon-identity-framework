@@ -195,6 +195,12 @@ public class TemplateManagerImpl implements TemplateManager {
         return fetchSingleTemplate(templateName) != null;
     }
 
+    /**
+     * This method is used to validate the input parameters.
+     *
+     * @param template Template element.
+     * @throws TemplateManagementException Consent Management Exception.
+     */
     private void validateInputParameters(Template template) throws TemplateManagementException {
 
         if (isBlank(template.getTemplateName())) {
@@ -216,6 +222,13 @@ public class TemplateManagerImpl implements TemplateManager {
         }
     }
 
+    /**
+     * This method is used to validate the pagination parameters.
+     *
+     * @param limit Limits the number of templates listed on a page.
+     * @param offset Specifies the starting point for the templates to be displayed.
+     * @throws TemplateManagementException Consent Management Exception.
+     */
     private void validatePaginationParameters(Integer limit, Integer offset) throws TemplateManagementClientException {
 
         if (limit < 0 || offset < 0) {
