@@ -3256,14 +3256,14 @@
 
                         <tr>
                             <td class="leftCol-med labelField">
-                                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
+                                <label for="federationHub"><fmt:message key='federation.hub.identity.provider'/></label>
                             </td>
                             <td>
                                 <div class="sectionCheckbox">
                                     <input type="checkbox" id="federation_hub_idp"
                                            name="federation_hub_idp" <%=federationHubIdp ? "checked" : "" %>>
                                     <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='federation.hub.identity.proider.help'/>
+                                    <fmt:message key='federation.hub.identity.provider.help'/>
                                 </span>
                                 </div>
                             </td>

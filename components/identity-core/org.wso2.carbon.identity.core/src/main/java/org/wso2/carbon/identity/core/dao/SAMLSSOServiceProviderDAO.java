@@ -154,6 +154,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
         }
 
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP) != null) {
+            serviceProviderDO.setSamlECP(Boolean.valueOf(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_ENABLE_ECP).trim()));
+        }
+
         if (resource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX) != null) {
             serviceProviderDO
@@ -327,6 +332,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String doSignAssertions = String.valueOf(serviceProviderDO.isDoSignAssertions());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);
+        String isSamlECP = String.valueOf(serviceProviderDO.isSamlECP());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP,
+                isSamlECP);
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedClaimsList())) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS,
                     serviceProviderDO.getRequestedClaimsList());

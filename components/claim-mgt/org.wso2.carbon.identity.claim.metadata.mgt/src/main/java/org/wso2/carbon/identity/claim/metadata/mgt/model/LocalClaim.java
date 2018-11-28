@@ -28,27 +28,20 @@ import java.util.Map;
  */
 public class LocalClaim extends Claim {
     private List<AttributeMapping> mappedAttributes;
-    private Map<String, String> claimProperties;
 
     public LocalClaim(String claimURI) {
         super(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, claimURI);
         mappedAttributes = new ArrayList<>();
-        claimProperties = new HashMap<>();
     }
 
     public LocalClaim(String claimURI, List<AttributeMapping> mappedAttributes, Map<String, String> claimProperties) {
-        super(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, claimURI);
+        super(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, claimURI, claimProperties);
 
         if (mappedAttributes == null) {
             mappedAttributes = new ArrayList<>();
         }
 
-        if (claimProperties == null) {
-            claimProperties = new HashMap<>();
-        }
-
         this.mappedAttributes = mappedAttributes;
-        this.claimProperties = claimProperties;
     }
 
     public List<AttributeMapping> getMappedAttributes() {
@@ -73,27 +66,5 @@ public class LocalClaim extends Claim {
 
     public void setMappedAttribute(AttributeMapping mappedAttribute) {
         this.mappedAttributes.add(mappedAttribute);
-    }
-
-    public Map<String, String> getClaimProperties() {
-        return claimProperties;
-    }
-
-    public String getClaimProperty(String propertyName) {
-        if (this.getClaimProperties().containsKey(propertyName)) {
-            this.getClaimProperties().get(propertyName);
-        }
-        return null;
-    }
-
-    public void setClaimProperties(Map<String, String> claimProperties) {
-        if (claimProperties == null) {
-            claimProperties = new HashMap<>();
-        }
-        this.claimProperties = claimProperties;
-    }
-
-    public void setClaimProperty(String propertyName, String propertyValue) {
-        this.getClaimProperties().put(propertyName, propertyValue);
     }
 }

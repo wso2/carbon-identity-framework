@@ -72,6 +72,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
     private boolean enableSAML2ArtifactBinding;
+    private boolean samlECP;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -580,4 +581,13 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
     }
+
+    public void setSamlECP(boolean samlECP) {
+        this.samlECP = samlECP;
+    }
+
+    public boolean isSamlECP() {
+        return samlECP;
+    }
+
 }

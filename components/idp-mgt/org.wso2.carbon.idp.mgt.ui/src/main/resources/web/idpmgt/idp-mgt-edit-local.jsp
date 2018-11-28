@@ -84,6 +84,7 @@
     String idPEntityId = null;
     String samlSSOUrl = null;
     String samlSLOUrl = null;
+    String samlECPUrl = null;
     String samlArtifactUrl = null;
     String oauth1RequestTokenUrl = null;
     String oauth1AuthorizeUrl = null;
@@ -124,6 +125,8 @@
                     IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL).getValue();
             samlSLOUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL).getValue();
+            samlECPUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL).getValue();
             samlArtifactUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL).getValue();
             destinationURLList = IdPManagementUIUtil.getPropertySetStartsWith(properties,
@@ -560,6 +563,10 @@ function removeDefaultAuthSeq() {
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
+                            <td><%=Encode.forHtmlContent(samlECPUrl)%></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>

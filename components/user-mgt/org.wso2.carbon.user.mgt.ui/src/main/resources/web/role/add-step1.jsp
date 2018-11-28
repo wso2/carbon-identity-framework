@@ -155,7 +155,7 @@
                 return errorMessage;
             }
 
-            if (stringValue.indexOf("/") > -1) {
+            if (stringValue.indexOf("<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>") > -1) {
                 errorMessage = "Domain";
                 return errorMessage;
             }

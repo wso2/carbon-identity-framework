@@ -56,7 +56,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -423,7 +422,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
         // authenticator in multi steps scenario. Ex. Fido
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
-                && (response instanceof CommonAuthResponseWrapper)) {
+                && (response instanceof CommonAuthResponseWrapper) &&
+                !((CommonAuthResponseWrapper) response).isWrappedByFramework()) {
             //Set the result as request attribute
             request.setAttribute("sessionDataKey", context.getCallerSessionKey());
             addAuthenticationResultToRequest(request, authenticationResult);
@@ -613,7 +613,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         AuthenticationResult authenticationResult = null;
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
-                && (response instanceof CommonAuthResponseWrapper)) {
+                && (response instanceof CommonAuthResponseWrapper) &&
+                !((CommonAuthResponseWrapper) response).isWrappedByFramework()) {
             // Get the authentication result from the request
             authenticationResult =
                     (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
