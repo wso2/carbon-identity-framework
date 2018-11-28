@@ -28,6 +28,5 @@ public class TemplateManagementServerException extends TemplateManagementExcepti
 
         super(message, errorCode, cause);
     }
-
 }
 

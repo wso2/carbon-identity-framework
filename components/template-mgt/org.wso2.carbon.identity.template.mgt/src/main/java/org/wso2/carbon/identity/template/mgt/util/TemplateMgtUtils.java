@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
+import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementSQLException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementServerException;
 
 /**
@@ -68,6 +69,27 @@ public class TemplateMgtUtils {
         }
 
         return new TemplateManagementClientException(message, error.getCode());
+    }
+
+    /**
+     * This method can be used to generate a TemplateManagementSQLException from TemplateMgtConstants.ErrorMessages
+     * object when no exception is thrown.
+     *
+     * @param error templateMgtConstants.ErrorMessages.
+     * @param data  data to replace if message needs to be replaced.
+     * @return TemplateManagementSQLException.
+     */
+    public static TemplateManagementSQLException handleSQLException(TemplateMgtConstants.ErrorMessages error,
+                                                                       String data, Throwable e) {
+
+        String message;
+        if (StringUtils.isNotBlank(data)) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+
+        return new TemplateManagementSQLException(message, error.getCode(), e);
     }
 
     /**

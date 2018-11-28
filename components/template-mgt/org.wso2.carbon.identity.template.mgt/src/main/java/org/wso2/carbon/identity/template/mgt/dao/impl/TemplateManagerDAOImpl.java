@@ -24,6 +24,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
+import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementSQLException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementServerException;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
@@ -69,22 +70,23 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            jdbcTemplate.executeUpdate(TemplateMgtConstants.SqlQueries.INSERT_TEMPLATE, (preparedStatement -> {
+            jdbcTemplate.executeUpdate(TemplateMgtConstants.SqlQueries.INSERT_TEMPLATE, preparedStatement -> {
                 preparedStatement.setInt(1, template.getTenantId());
                 preparedStatement.setString(2, template.getTemplateName());
                 preparedStatement.setString(3, template.getDescription());
+                InputStream inputStream = IOUtils.toInputStream(template.getTemplateScript());
                 try {
-                    InputStream inputStream = IOUtils.toInputStream(template.getTemplateScript());
                     preparedStatement.setBinaryStream(4, inputStream, inputStream.available());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw TemplateMgtUtils.handleSQLException(ERROR_CODE_INSERT_TEMPLATE,
+                            template.getTemplateName(), e);
                 }
-
-            }));
+            });
         } catch (DataAccessException e) {
             throw TemplateMgtUtils.handleServerException(ERROR_CODE_INSERT_TEMPLATE, template.getTemplateName(), e);
         }
-        templateResult = new Template(template.getTenantId(), template.getTemplateName(), template.getDescription(), template.getTemplateScript());
+        templateResult = new Template(template.getTenantId(), template.getTemplateName(), template.getDescription(),
+                template.getTemplateScript());
         return templateResult;
     }
 
@@ -103,17 +105,19 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         try {
             template = jdbcTemplate.fetchSingleRecord(GET_TEMPLATE_BY_NAME, ((resultSet, rowNumber) ->
                     {
-                        Template template1 = null;
+                        Template templateResult = null;
                         try {
-                            template1 = new Template(resultSet.getInt(1),
+                            templateResult = new Template(resultSet.getInt(1),
                                     resultSet.getInt(2),
                                     resultSet.getString(3),
                                     resultSet.getString(4),
                                     IOUtils.toString(resultSet.getBinaryStream(5)));
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            throw new TemplateManagementSQLException(String
+                                    .format(ERROR_CODE_SELECT_TEMPLATE_BY_NAME.getMessage(), tenantId, templateName),
+                                    ERROR_CODE_SELECT_TEMPLATE_BY_NAME.getCode(), e);
                         }
-                        return template1;
+                        return templateResult;
                     }),
                     preparedStatement -> {
                         preparedStatement.setString(1, templateName);
@@ -200,7 +204,9 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                     preparedStatement.setBinaryStream(3, inputStream, inputStream.available());
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw TemplateMgtUtils.handleSQLException(ERROR_CODE_UPDATE_TEMPLATE,
+                            newTemplate.getTemplateName(), e);
+
                 }
                 preparedStatement.setInt(4, newTemplate.getTenantId());
                 preparedStatement.setString(5, templateName);
