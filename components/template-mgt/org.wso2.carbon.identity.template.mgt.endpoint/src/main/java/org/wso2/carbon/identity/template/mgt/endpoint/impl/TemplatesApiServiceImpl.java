@@ -41,7 +41,6 @@ import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_NO_AUTH_USER_FOUND;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ID_INVALID;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_INVALID;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TENANT_ID_INVALID;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
@@ -74,10 +73,11 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response updateTemplate(String templateName, TemplateDTO updateTemplateRequestDTO) {
 
         try {
-            TemplateResponseDTO response = putTemplate(templateName, updateTemplateRequestDTO);
+            TemplateResponseDTO response = postUpdatedTemplate(templateName, updateTemplateRequestDTO);
             return Response.ok()
                     .location(getTemplateLocationURI(response.getTemplateName()))
                     .lastModified(Calendar.getInstance().getTime())
+                    .entity(response)
                     .build();
         } catch (TemplateManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -162,7 +162,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return getResponseTemplateDTO(addTemplateResponse);
     }
 
-    private TemplateResponseDTO putTemplate(String templateName, TemplateDTO updateTemplateRequestDTO)
+    private TemplateResponseDTO postUpdatedTemplate(String templateName, TemplateDTO updateTemplateRequestDTO)
             throws TemplateManagementException {
 
         Template updateTemplateRequest = TemplateEndpointUtils.getTemplateRequest(updateTemplateRequestDTO);
@@ -216,8 +216,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
 
     private boolean isNotFoundError(TemplateManagementClientException e) {
 
-        return ERROR_CODE_TEMPLATE_ID_INVALID.getCode().equals(e.getErrorCode())
-                || ERROR_CODE_TENANT_ID_INVALID.getCode().equals(e.getErrorCode())
+        return ERROR_CODE_TENANT_ID_INVALID.getCode().equals(e.getErrorCode())
                 || ERROR_CODE_TEMPLATE_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
@@ -32,6 +33,7 @@ import java.util.List;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_INVALID;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
@@ -52,44 +54,68 @@ public class TemplateManagerImpl implements TemplateManager {
      * @return Return template element with template name, description and script.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     @Override
     public Template addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
+        if (isTemplateExists(template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
+        }
+
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
         return templateManagerDAO.addTemplate(template);
     }
 
     /**
-     * This method is used to get the template by template name and tenant ID.
+     * This method is used to get the template by template Name.
      *
      * @param templateName Name of the template.
      * @return Template matching the input parameters.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     @Override
     public Template getTemplateByName(String templateName) throws TemplateManagementException {
 
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        return templateManagerDAO.getTemplateByName(templateName.trim(), getTenantIdFromCarbonContext());
+        if (!isTemplateExists(templateName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No template found for the name: " + templateName);
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_NAME_INVALID, templateName);
+        }
+        return fetchSingleTemplate(templateName);
     }
 
     /**
-     * This method is used to add a new Template.
+     * This method is used to update an existing Template.
      *
      * @param templateName Name of the updated template.
      * @param template     Template element.
      * @return Return the updated Template element.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     @Override
     public Template updateTemplate(String templateName, Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        if (!isTemplateExists(templateName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No template found for the name: " + templateName);
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_NAME_INVALID, templateName);
+        }
+
+        if (isTemplateExists(template.getTemplateName()) &&
+                !StringUtils.equals(templateName, template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
+        }
+
         return templateManagerDAO.updateTemplate(templateName, template);
     }
 
@@ -99,11 +125,24 @@ public class TemplateManagerImpl implements TemplateManager {
      * @param templateName Name of the template.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     @Override
     public TemplateInfo deleteTemplate(String templateName) throws TemplateManagementException {
 
+        if (StringUtils.isBlank(templateName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Template Name is not found in the request or invalid Template Name");
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
+        }
+
+        if (getTemplateByName(templateName) == null) {
+            throw handleClientException(ERROR_CODE_TEMPLATE_NAME_INVALID, templateName);
+        }
+
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        if (log.isDebugEnabled()) {
+            log.debug("Template deleted successfully. Name: " + templateName);
+        }
         return templateManagerDAO.deleteTemplate(templateName, getTenantIdFromCarbonContext());
     }
 
@@ -115,7 +154,6 @@ public class TemplateManagerImpl implements TemplateManager {
      * @return Filtered list of TemplateInfo elements.
      * @throws TemplateManagementException Template Management Exception.
      */
-
     @Override
     public List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException {
 
@@ -133,15 +171,28 @@ public class TemplateManagerImpl implements TemplateManager {
     }
 
     /**
+     * This method is used to get the template by template Name.
+     *
+     * @param templateName Name of the template.
+     * @return Template matching the input parameters.
+     * @throws TemplateManagementException Template Management Exception.
+     */
+    public Template fetchSingleTemplate(String templateName) throws TemplateManagementException {
+
+        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        return templateManagerDAO.getTemplateByName(templateName.trim(), getTenantIdFromCarbonContext());
+    }
+
+    /**
      * This method is used to check whether a template exists with given name and tenant Id.
      *
      * @param templateName Name of the template.
      * @return true, if an element is found.
      * @throws TemplateManagementException Consent Management Exception.
      */
-    public boolean getTemplateExistence(String templateName) throws TemplateManagementException {
+    public boolean isTemplateExists(String templateName) throws TemplateManagementException {
 
-        return getTemplateByName(templateName) != null;
+        return fetchSingleTemplate(templateName) != null;
     }
 
     private void validateInputParameters(Template template) throws TemplateManagementException {
@@ -151,13 +202,6 @@ public class TemplateManagerImpl implements TemplateManager {
                 log.debug("Template name cannot be empty.");
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
-        }
-
-        if (getTemplateExistence(template.getTemplateName())) {
-            if (log.isDebugEnabled()) {
-                log.debug("A template already exists with the name: " + template.getTemplateName());
-            }
-            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
         }
 
         if (isBlank(template.getTemplateScript())) {
@@ -170,7 +214,6 @@ public class TemplateManagerImpl implements TemplateManager {
         if (template.getTenantId() == null) {
             template.setTenantId(getTenantIdFromCarbonContext());
         }
-
     }
 
     private void validatePaginationParameters(Integer limit, Integer offset) throws TemplateManagementClientException {

@@ -50,19 +50,22 @@ public class TemplateMgtConstants {
                 "from DB for tenantID: %s, limit: %s and offset: %s."),
         ERROR_CODE_DELETE_TEMPLATE("TM_00004", "Error occurred while deleting template " +
                 "from DB for tenant ID: %s and template name: %s."),
-        ERROR_CODE_SET_BLOB("TM_00005", "Error occurred while reading from input stream of template: %s."),
+        ERROR_CODE_SET_BLOB("TM_00005", "Error occurred while reading from input stream of " +
+                "template: %s."),
         ERROR_CODE_UPDATE_TEMPLATE("TM_00006", "Error occurred while updating the template: %s."),
         ERROR_CODE_TEMPLATE_NAME_REQUIRED("TM_00007", "Template name is required."),
         ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED("TM_00008", "Template script is required."),
-        ERROR_CODE_NO_AUTH_USER_FOUND("TM_00009", "No authenticated user found to perform the operation"),
-        ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET("CM_00010", "Limit or offset values cannot be negative."),
-        ERROR_CODE_USER_NOT_AUTHORIZED("TM_00011", "User: %s is not authorized to perform this operation."),
-        ERROR_CODE_TEMPLATE_ID_INVALID("TM_00012", "Invalid template Id: %s"),
-        ERROR_CODE_TENANT_ID_INVALID("TM_00013", "Invalid tenant Id: %s"),
-        ERROR_CODE_TEMPLATE_NAME_INVALID("TM_00014", "Invalid template name: %s"),
-        ERROR_CODE_TEMPLATE_ALREADY_EXIST("TM_00015", "Template with the name: %s already exists."),
+        ERROR_CODE_NO_AUTH_USER_FOUND("TM_00009", "No authenticated user found to " +
+                "perform the operation"),
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET("CM_00010", "Limit or offset values" +
+                " cannot be negative."),
+        ERROR_CODE_USER_NOT_AUTHORIZED("TM_00011", "User: %s is not authorized to perform " +
+                "this operation."),
+        ERROR_CODE_TENANT_ID_INVALID("TM_00012", "Invalid tenant Id: %s"),
+        ERROR_CODE_TEMPLATE_NAME_INVALID("TM_00013", "Invalid template name: %s"),
+        ERROR_CODE_TEMPLATE_ALREADY_EXIST("TM_00014", "Template with the name: %s already exists."),
 
-        ERROR_CODE_UNEXPECTED("TM_0001x", "Unexpected Error");
+        ERROR_CODE_UNEXPECTED("TM_00015", "Unexpected Error");
 
         private final String code;
         private final String message;
