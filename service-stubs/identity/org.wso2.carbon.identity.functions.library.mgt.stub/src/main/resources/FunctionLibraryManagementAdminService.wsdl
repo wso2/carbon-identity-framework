@@ -54,8 +54,8 @@
             <xs:element name="updateFunctionLibrary">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="functionLibrary" nillable="true" type="ax2358:FunctionLibrary"/>
                         <xs:element minOccurs="0" name="oldFunctionLibraryName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="functionLibrary" nillable="true" type="ax2358:FunctionLibrary"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

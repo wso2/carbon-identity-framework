@@ -408,7 +408,7 @@ public class FrameworkServiceDataHolder {
      *
      * @return code snippet of require()
      */
-    public String getRequireCode() {
+    public String getCodeForRequireFunction() {
 
         return requireCode;
     }
@@ -418,7 +418,7 @@ public class FrameworkServiceDataHolder {
      *
      * @param requireCode code snippet of require() function
      */
-    public void setRequireCode(String requireCode) {
+    public void setCodeForRequireFunction(String requireCode) {
 
         this.requireCode = requireCode;
     }

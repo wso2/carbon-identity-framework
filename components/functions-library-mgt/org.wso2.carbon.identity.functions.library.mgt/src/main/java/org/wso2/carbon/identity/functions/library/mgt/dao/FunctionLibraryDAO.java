@@ -60,12 +60,12 @@ public interface FunctionLibraryDAO {
     /**
      * Update an existing function library.
      *
+     * @param oldFunctionLibName Previous name of the function library
      * @param functionLibrary    Function library
      * @param tenantDomain       Tenant domain
-     * @param oldFunctionLibName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
-    void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain, String oldFunctionLibName)
+    void updateFunctionLibrary(String oldFunctionLibName, FunctionLibrary functionLibrary, String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**

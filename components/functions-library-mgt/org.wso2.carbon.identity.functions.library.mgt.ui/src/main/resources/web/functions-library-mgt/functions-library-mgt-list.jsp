@@ -149,7 +149,6 @@
                             
                             %>
                             <tr>
-                                
                                 <td><%=Encode.forHtml(functionLib.getFunctionLibraryName())%>
                                 </td>
                                 <td><%=functionLib.getDescription() != null ? Encode.forHtml(functionLib.getDescription()) : ""%>
@@ -157,18 +156,19 @@
                                 <td>
                                     <a title="<fmt:message key='edit.functionlib.info'/>"
                                        onclick=""
-                                       href="load-function-library.jsp?functionLibraryName=<%=Encode.forUriComponent(functionLib.getFunctionLibraryName())%>"
+                                       href="functions-library-mgt-edit.jsp?functionLibraryName=<%=Encode.forUriComponent(functionLib.getFunctionLibraryName())%>"
                                        class="icon-link"
                                        style="background-image: url(images/edit.gif)">
                                         <fmt:message key='edit'/>
                                     </a>
-                                    <a title="<fmt:message key='export.functionlib.info'/>"
-                                       onclick=""
-                                       href="#"
-                                       class="icon-link"
-                                       style="background-image: url(images/export.gif)">
-                                        <fmt:message key='export'/>
-                                    </a>
+                                    <%--Uncomment the following commented section when export functionality is implemented.--%>
+                                    <%--<a title="<fmt:message key='export.functionlib.info'/>"--%>
+                                       <%--onclick=""--%>
+                                       <%--href="#"--%>
+                                       <%--class="icon-link"--%>
+                                       <%--style="background-image: url(images/export.gif)">--%>
+                                        <%--<fmt:message key='export'/>--%>
+                                    <%--</a>--%>
                                     <a title="<fmt:message key='delete.functionlib.info'/>"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(functionLib.getFunctionLibraryName())%>');return false;"
                                        href=""
@@ -176,10 +176,7 @@
                                        style="background-image: url(images/delete.gif)">
                                         <fmt:message key='delete'/>
                                     </a>
-                                
-                                
                                 </td>
-                            
                             </tr>
                             <%
                                     }

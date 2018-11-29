@@ -112,16 +112,16 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     /**
      * Update the details of a function library.
      *
-     * @param functionLibrary        Function library with new details
      * @param oldFunctionLibraryName Previous name of the function library
+     * @param functionLibrary        Function library with new details
      * @throws FunctionLibraryManagementException
      */
-    public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)
+    public void updateFunctionLibrary(String oldFunctionLibraryName, FunctionLibrary functionLibrary)
             throws FunctionLibraryManagementException {
 
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
-            functionLibMgtService.updateFunctionLibrary(functionLibrary, getTenantDomain(), oldFunctionLibraryName);
+            functionLibMgtService.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException flException) {
             log.error("Error while updating function library " + oldFunctionLibraryName +
                     "for tenant domain " + getTenantDomain(), flException);

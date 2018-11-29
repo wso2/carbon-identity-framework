@@ -33,7 +33,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
 
 @PrepareForTest({FunctionLibraryManagementServiceImpl.class})
@@ -45,6 +47,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
     @DataProvider(name = "createFunctionLibraryDataProvider")
     public Object[][] createFunctionLibraryData() {
+
         FunctionLibrary functionLibrary1 = new FunctionLibrary();
         functionLibrary1.setFunctionLibraryName("$#%%");
         functionLibrary1.setDescription("sample1");
@@ -95,40 +98,48 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         };
     }
 
-
     @Test(dataProvider = "createFunctionLibraryDataProvider")
     public void createFunctionLibrary(Object functionLibrary, String tenantDomain) {
+
         FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
         try {
 
             PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
             if (((FunctionLibrary) functionLibrary).getFunctionLibraryName() == "sample4") {
-                when(functionLibraryDAO.isFunctionLibraryExists("sample4", tenantDomain)).thenReturn(true);
+                when(functionLibraryDAO.isFunctionLibraryExists("sample4", tenantDomain)).
+                        thenReturn(true);
             } else {
-                when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn(false);
+                when(functionLibraryDAO.isFunctionLibraryExists(
+                        ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn(false);
             }
-            when(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn((FunctionLibrary) functionLibrary);
-            FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
-
+            when(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
+                    tenantDomain)).thenReturn((FunctionLibrary) functionLibrary);
+            FunctionLibraryManagementService functionLibraryManagementService =
+                    FunctionLibraryManagementServiceImpl.getInstance();
 
             functionLibraryManagementService.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
 
-            assertEquals(functionLibraryManagementService.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain).getFunctionLibraryName(), ((FunctionLibrary) functionLibrary).getFunctionLibraryName());
+            assertEquals(functionLibraryManagementService.getFunctionLibrary(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain).getFunctionLibraryName(),
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName());
 
             // Clean after test
-            functionLibraryManagementService.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
+            functionLibraryManagementService.deleteFunctionLibrary(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         } catch (FunctionLibraryManagementException e) {
             if (((FunctionLibrary) functionLibrary).getFunctionLibraryName() == null) {
                 assertEquals(e.getMessage(), "Function Library Name is required");
                 System.out.println("Function Library Name is required");
             } else if (!isRegexValidated(((FunctionLibrary) functionLibrary).getFunctionLibraryName())) {
-                assertEquals(e.getMessage(), "The function library name " +
-                        ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + " is not valid! It is not adhering " +
-                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
+                assertEquals(e.getMessage(), "The function library name " + ((FunctionLibrary) functionLibrary).
+                        getFunctionLibraryName() + " is not valid! It is not adhering " +
+                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             } else {
                 try {
-                    if (functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)) {
-                        assertEquals(e.getMessage(), "Already a function library available with the same name.");
+                    if (functionLibraryDAO.isFunctionLibraryExists(
+                            ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)) {
+                        assertEquals(e.getMessage(),
+                                "Already a function library available with the same name.");
                         System.out.println("Already a function library available with the same name.");
                     }
                 } catch (FunctionLibraryManagementException e1) {
@@ -140,9 +151,9 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         }
     }
 
-
     @DataProvider(name = "getFunctionLibraryDataProvider")
     public Object[][] getFunctionLibraryData() {
+
         FunctionLibrary functionLibrary9 = new FunctionLibrary();
         functionLibrary9.setFunctionLibraryName("sample9");
         functionLibrary9.setDescription("sample9");
@@ -167,27 +178,36 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
     @Test(dataProvider = "getFunctionLibraryDataProvider")
     public void getFunctionLibrary(Object functionLibrary, String tenantDomain) {
+
         try {
-            FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
+            FunctionLibraryManagementService functionLibraryManagementService =
+                    FunctionLibraryManagementServiceImpl.getInstance();
 
             FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
             PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
-            when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn(false);
-            when(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn((FunctionLibrary) functionLibrary);
+            when(functionLibraryDAO.isFunctionLibraryExists(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn(false);
+            when(functionLibraryDAO.getFunctionLibrary(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).
+                    thenReturn((FunctionLibrary) functionLibrary);
 
-            addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
+            addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
+                    tenantDomain);
 
-            assertTrue(functionLibraryManagementService.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null, "Failed to retrieve function library");
+            assertTrue(functionLibraryManagementService.getFunctionLibrary(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null,
+                    "Failed to retrieve function library");
             // Clean after test
-            deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
+            deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
+                    tenantDomain);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
     @DataProvider(name = "listFunctionLibraryDataProvider")
     public Object[][] listFunctionLibrariesData() {
+
         FunctionLibrary functionLibrary6 = new FunctionLibrary();
         functionLibrary6.setFunctionLibraryName("sample6");
         functionLibrary6.setDescription("sample6");
@@ -218,11 +238,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
     @Test(dataProvider = "listFunctionLibraryDataProvider")
     public void listFunctionLibraries(List<Object> functionLibraries, String tenantDomain) throws Exception {
 
-        FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
+        FunctionLibraryManagementService functionLibraryManagementService =
+                FunctionLibraryManagementServiceImpl.getInstance();
         FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
         PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
         for (Object functionLibrary : functionLibraries) {
-            when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)).thenReturn(false);
+            when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
+                    tenantDomain)).thenReturn(false);
         }
         FunctionLibrary[] functionLibraries1 = new FunctionLibrary[3];
         int i = 0;
@@ -234,7 +256,8 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         addFunctionLibraries(functionLibraryManagementService, functionLibraries, tenantDomain);
 
         FunctionLibrary[] functionLibrariesList = functionLibraryManagementService.listFunctionLibraries(tenantDomain);
-        assertTrue(functionLibrariesList != null && functionLibrariesList.length != 0, "Failed to retrieve scopes.");
+        assertTrue(functionLibrariesList != null && functionLibrariesList.length != 0,
+                "Failed to retrieve scopes.");
 
         // Clean after test
         deleteFunctionLibraries(functionLibraryManagementService, functionLibraries, tenantDomain);
@@ -286,11 +309,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
     @Test(dataProvider = "updateFunctionLibraryDataProvider")
     public void updateFunctionLibrary(Object functionLibrary, String tenantDomain) throws Exception {
 
-        FunctionLibraryManagementService functionLibraryManagementService = FunctionLibraryManagementServiceImpl.getInstance();
+        FunctionLibraryManagementService functionLibraryManagementService =
+                FunctionLibraryManagementServiceImpl.getInstance();
         FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
         PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
 
-        addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
+        addFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
+                tenantDomain);
         FunctionLibrary funLib = (FunctionLibrary) functionLibrary;
         String oldName = funLib.getFunctionLibraryName();
         if (oldName == "sample11") {
@@ -305,27 +330,32 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         try {
             when(functionLibraryDAO.isFunctionLibraryExists("sample", tenantDomain)).thenReturn(true);
             when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain)).thenReturn(funLib);
-            functionLibraryManagementService.updateFunctionLibrary(funLib, tenantDomain, oldName);
+            functionLibraryManagementService.updateFunctionLibrary(oldName, funLib, tenantDomain);
 
-            assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain), "Failed to update function library.");
+            assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(),
+                    tenantDomain), "Failed to update function library.");
 
             // Clean after test
-            deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary), tenantDomain);
+            deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
+                    tenantDomain);
         } catch (FunctionLibraryManagementException e) {
-            if (!funLib.getFunctionLibraryName().equals(oldName) && functionLibraryDAO.isFunctionLibraryExists(funLib.getFunctionLibraryName(), tenantDomain)) {
+            if (!funLib.getFunctionLibraryName().equals(oldName) && functionLibraryDAO.isFunctionLibraryExists
+                    (funLib.getFunctionLibraryName(), tenantDomain)) {
                 assertEquals(e.getMessage(), "Already a function library available with the same name.");
             }
             if (!isRegexValidated(funLib.getFunctionLibraryName())) {
                 assertEquals(e.getMessage(), "The function library name " +
                         funLib.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
+                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void addFunctionLibraries(FunctionLibraryManagementService functionLibraryManagementService, List<Object> functionLibraries, String tenantDomain) {
+    private void addFunctionLibraries(FunctionLibraryManagementService functionLibraryManagementService,
+                                      List<Object> functionLibraries, String tenantDomain) {
+
         for (Object functionLibrary : functionLibraries) {
             try {
                 functionLibraryManagementService.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
@@ -337,9 +367,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         }
     }
 
-    private void deleteFunctionLibraries(FunctionLibraryManagementService functionLibraryManagementService, List<Object> functionLibraries, String tenantDomain) throws SQLException, FunctionLibraryManagementException {
+    private void deleteFunctionLibraries(FunctionLibraryManagementService functionLibraryManagementService,
+                                         List<Object> functionLibraries, String tenantDomain)
+            throws SQLException, FunctionLibraryManagementException {
+
         for (Object functionLibrary : functionLibraries) {
-            functionLibraryManagementService.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
+            functionLibraryManagementService.deleteFunctionLibrary(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         }
     }
 }

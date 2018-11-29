@@ -70,18 +70,18 @@
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.http,
-                            org.wso2.carbon.identity.functions.library.mgt.stub.*;version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.functions.library.mgt.exception.xsd.*;version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.functions.library.mgt.model.xsd.*;version="${carbon.identity.package.export.version}",
                             javax.activation; version="${javax.activation.import.pkg.version}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.apache.axis2.*; version="${axis2.osgi.version.range}",
+                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.version.range}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
-                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}"
+                            org.wso2.carbon.identity.functions.library.mgt.stub.*;version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.functions.library.mgt.exception.xsd.*;version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.functions.library.mgt.model.xsd.*;version="${carbon.identity.package.export.version}"
                         </Import-Package>
-                        <DynamicImport-Package>*
-                        </DynamicImport-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>
                 </configuration>

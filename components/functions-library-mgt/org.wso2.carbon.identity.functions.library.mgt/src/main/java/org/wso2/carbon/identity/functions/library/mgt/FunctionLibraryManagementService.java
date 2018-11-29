@@ -70,12 +70,21 @@ public interface FunctionLibraryManagementService {
     /**
      * Update a function library.
      *
+     * @param oldFunctionLibraryName Previous name of the function library
      * @param functionLibrary        Function library with new details
      * @param tenatDomain            Tenant domain
-     * @param oldFunctionLibraryName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
-    void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenatDomain, String oldFunctionLibraryName)
+    void updateFunctionLibrary(String oldFunctionLibraryName, FunctionLibrary functionLibrary, String tenatDomain)
             throws FunctionLibraryManagementException;
 
+    /**
+     * Check the function library existence by a given name.
+     *
+     * @param functionLibraryName Function library name
+     * @param tenantDomain        Tenant domain
+     * @return Function library existence
+     * @throws FunctionLibraryManagementException
+     */
+    boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain) throws FunctionLibraryManagementException;
 }

@@ -35,11 +35,11 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -51,10 +51,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
@@ -88,14 +88,9 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.CarbonUtils;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -304,15 +299,10 @@ public class FrameworkServiceComponent {
             log.debug("Application Authentication Framework bundle is activated");
         }
 
-        try {
-            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
-            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
-            requireCode = IOUtils.toString(resourceStream);
-            FrameworkServiceDataHolder.getInstance().setRequireCode(requireCode);
-        } catch (IOException e) {
-            log.error("Failed to read require.js file.");
-        }
-
+        /**
+         * Load and reade the require.js file in resources.
+         */
+        this.loadCodeForRequire();
     }
 
     @Deactivate
@@ -686,5 +676,20 @@ public class FrameworkServiceComponent {
     public static FunctionLibraryManagementService getFunctionLibraryManagementService() {
 
         return FrameworkServiceDataHolder.getInstance().getFunctionLibraryManagementService();
+    }
+
+    /**
+     * Load and read the JS function in require.js file.
+     */
+    private void loadCodeForRequire() {
+
+        try {
+            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
+            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
+            requireCode = IOUtils.toString(resourceStream);
+            FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
+        } catch (IOException e) {
+            log.error("Failed to read require.js file.", e);
+        }
     }
 }

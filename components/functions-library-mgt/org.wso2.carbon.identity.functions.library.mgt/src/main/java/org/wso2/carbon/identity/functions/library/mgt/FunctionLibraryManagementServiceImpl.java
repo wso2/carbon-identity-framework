@@ -109,8 +109,8 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     }
 
     @Override
-    public void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain,
-                                      String oldFunctionLibraryName)
+    public void updateFunctionLibrary(String oldFunctionLibraryName,FunctionLibrary functionLibrary,
+                                      String tenantDomain)
             throws FunctionLibraryManagementException {
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
@@ -131,7 +131,14 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
                     functionLibrary.getFunctionLibraryName() + " is not valid! It is not adhering " +
                     "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
         }
-        functionLibraryDAO.updateFunctionLibrary(functionLibrary, tenantDomain, oldFunctionLibraryName);
+        functionLibraryDAO.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, tenantDomain);
+    }
+
+    @Override
+    public boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
+            throws FunctionLibraryManagementException {
+        FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
+        return functionLibraryDAO.isFunctionLibraryExists(functionLibraryName, tenantDomain);
     }
 
 }

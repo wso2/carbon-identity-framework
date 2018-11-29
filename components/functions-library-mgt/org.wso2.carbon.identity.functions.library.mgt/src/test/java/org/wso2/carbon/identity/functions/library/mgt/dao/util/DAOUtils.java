@@ -31,9 +31,11 @@ import java.util.Map;
  * DB Utils.
  */
 public class DAOUtils {
+
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     public static void initializeDataSource(String databaseName, String scriptPath) throws Exception {
+
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUsername("username");
@@ -47,6 +49,7 @@ public class DAOUtils {
     }
 
     public static Connection getConnection(String database) throws SQLException {
+
         if (dataSourceMap.get(database) != null) {
             return dataSourceMap.get(database).getConnection();
         }
@@ -54,6 +57,7 @@ public class DAOUtils {
     }
 
     public static String getFilePath(String fileName) {
+
         if (StringUtils.isNotBlank(fileName)) {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbScripts", fileName)
                     .toString();

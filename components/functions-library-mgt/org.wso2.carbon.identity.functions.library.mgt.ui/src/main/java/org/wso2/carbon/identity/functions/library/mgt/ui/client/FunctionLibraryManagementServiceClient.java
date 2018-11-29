@@ -122,15 +122,15 @@ public class FunctionLibraryManagementServiceClient {
     /**
      * Update an existing function library.
      *
-     * @param functionLibrary        Function library
      * @param oldFunctionLibraryName Previous name of function library
+     * @param functionLibrary        Function library
      * @throws AxisFault
      */
-    public void updateFunctionLibrary(FunctionLibrary functionLibrary, String oldFunctionLibraryName)
+    public void updateFunctionLibrary(String oldFunctionLibraryName, FunctionLibrary functionLibrary)
             throws AxisFault {
 
         try {
-            stub.updateFunctionLibrary(functionLibrary, oldFunctionLibraryName);
+            stub.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary);
         } catch (RemoteException | FunctionLibraryManagementAdminServiceFunctionLibraryManagementException e) {
             handleException(e);
         }

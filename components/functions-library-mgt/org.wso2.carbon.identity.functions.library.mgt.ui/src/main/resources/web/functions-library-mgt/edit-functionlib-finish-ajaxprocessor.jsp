@@ -60,7 +60,7 @@
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             
             FunctionLibraryManagementServiceClient serviceClient = new FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
-            serviceClient.updateFunctionLibrary(functionLibrary, oldFunctionLibraryName);
+            serviceClient.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary);
             
         } catch (Exception e) {
             String message = resourceBundle.getString("alert.error.while.updatinging.function.libraries") + " : " + e.getMessage();
@@ -68,7 +68,7 @@
 %>
 
 <script>
-    location.href = "load-function-library.jsp?functionLibraryName=<%=Encode.forUriComponent(oldFunctionLibraryName)%>"
+    location.href = "functions-library-mgt-edit.jsp?functionLibraryName=<%=Encode.forUriComponent(oldFunctionLibraryName)%>"
 </script>
 <%
         }

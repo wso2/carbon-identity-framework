@@ -156,7 +156,7 @@ public class JsGraphBuilder {
                 functionMap.forEach(globalBindings::put);
             }
             Invocable invocable = (Invocable) engine;
-            engine.eval(FrameworkServiceDataHolder.getInstance().getRequireCode());
+            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -591,12 +591,19 @@ public class JsGraphBuilder {
 
         FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
                 getFunctionLibraryManagementService();
-        FunctionLibrary functionLibrary = null;
-
-        functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
+        FunctionLibrary functionLibrary;
+        String libraryScript = null;
+        boolean isFunctionLibrary = false;
+        isFunctionLibrary = functionLibMgtService.isFunctionLibraryExists(functionLibraryName,
                 CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
 
-        String libraryScript = functionLibrary.getFunctionLibraryScript();
+        if (isFunctionLibrary) {
+            functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
+                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            libraryScript = functionLibrary.getFunctionLibraryScript();
+        } else {
+            log.error("No function library available with the given name.");
+        }
         return libraryScript;
     }
 

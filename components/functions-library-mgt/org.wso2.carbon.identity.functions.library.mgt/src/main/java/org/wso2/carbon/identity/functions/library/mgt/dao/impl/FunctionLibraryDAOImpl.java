@@ -182,12 +182,12 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     /**
      * Update an existing function library.
      *
+     * @param oldFunctionLibName Previous name of the function library
      * @param functionLibrary    Function library
      * @param tenantDomain       Tenant domain
-     * @param oldFunctionLibName Previous name of the function library
      * @throws FunctionLibraryManagementException
      */
-    public void updateFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain, String oldFunctionLibName)
+    public void updateFunctionLibrary(String oldFunctionLibName, FunctionLibrary functionLibrary, String tenantDomain)
             throws FunctionLibraryManagementException {
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;

@@ -91,30 +91,33 @@
         }
     }
 
-    var openFile = function (event) {
-        var input = event.target;
-        var reader = new FileReader();
-        reader.onload = function () {
-            var data = reader.result;
-            document.getElementById('functionlib-file-content').value = data;
-        };
-        document.getElementById('functionlib-file-name').value = input.files[0].name;
-        reader.readAsText(input.files[0]);
-    };
-
-    function importFunctionLibOnclick() {
-
-    }
+    // Uncomment the following commented section when export functionality is implemented.
+    // var openFile = function (event) {
+    //     var input = event.target;
+    //     var reader = new FileReader();
+    //     reader.onload = function () {
+    //         var data = reader.result;
+    //         document.getElementById('functionlib-file-content').value = data;
+    //     };
+    //     document.getElementById('functionlib-file-name').value = input.files[0].name;
+    //     reader.readAsText(input.files[0]);
+    // };
+    //
+    // function importFunctionLibOnclick() {
+    //
+    // }
 
     function showManual() {
         $("#add-functionlib-form").show();
-        $("#upload-functionlib-form").hide();
+        // Uncomment the following commented section when export functionality is implemented.
+        //$("#upload-functionlib-form").hide();
     }
 
-    function showFile() {
-        $("#add-functionlib-form").hide();
-        $("#upload-functionlib-form").show();
-    }
+    // Uncomment the following commented section when export functionality is implemented.
+    // function showFile() {
+    //     $("#add-functionlib-form").hide();
+    //     $("#upload-functionlib-form").show();
+    // }
 
     window.onload = function () {
         showManual();
@@ -141,13 +144,13 @@
                     </td>
                 
                 </tr>
-                <tr>
-                    <td>
-                        <input type="radio" id="file-option" name="upload-type-selector" onclick="showFile();">
-                        <label for="file-option">File Configuration</label>
-                    </td>
-                </tr>
-                
+                <%--Uncomment the following commented section when import functionality is implemented.--%>
+                <%--<tr>--%>
+                    <%--<td>--%>
+                        <%--<input type="radio" id="file-option" name="upload-type-selector" onclick="showFile();">--%>
+                        <%--<label for="file-option">File Configuration</label>--%>
+                    <%--</td>--%>
+                <%--</tr>--%>
                 </tbody>
             </table>
             <br/>
@@ -170,8 +173,6 @@
                             </td>
                         </tr>
                         <tr>
-                            
-                            
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
                                 <textarea maxlength="1020" style="width:50%" type="text" name="functionLib-description"
@@ -190,23 +191,11 @@
                 <div class="toggle_container" id="editorRow">
                     <div style="position: relative;">
                         <div id="codeMirror" class="sectionSub step_contents">
-            <textarea id="scriptTextArea" name="scriptTextArea"
-                      placeholder="Write JavaScript Function..."
-                      style="height: 500px;width: 100%; display: none;">
-
-            </textarea>
+                            <textarea id="scriptTextArea" name="scriptTextArea"
+                                      placeholder="Write JavaScript Function..." style="height: 500px;width: 100%; display: none;">
+                            </textarea>
                         </div>
-                        <!-- <div id="codeMirrorTemplate" class="step_contents">
-                             <div class="add-functionlib-container vertical-text">
-                                 <a id="addFunctionlib" class="icon-link noselect">Function Libraries</a>
-                             </div>
-                             <div class="functionlib-list-container">
-                                 <ul id="functionlib_list"></ul>
-                             </div>
-                         </div>-->
-                    
                     </div>
-                
                 </div>
                 
                 <div style="clear:both"></div>
@@ -217,38 +206,39 @@
                            value="<fmt:message key='button.cancel'/>"/>
                 </div>
             </form>
-            
-            <form id="upload-functionlib-form" name="upload-functionlib-form" method="post"
-                  action="#">
-                <table class="styledLeft" width="100%">
-                    <thead>
-                    <tr>
-                        <th><fmt:message key="upload.function.library.file"/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>
-                            <span>File Location: </span><input type="file" class="button" id="functionlib_file"
-                                                               name="functionlib_file" onchange='openFile(event)'/>
-                        </td>
-                        <textarea hidden="hidden" name="functionlib-file-content"
-                                  id="functionlib-file-content"></textarea>
-                        <textarea hidden="hidden" name="functionlib-file-name" id="functionlib-file-name"></textarea>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="button" class="button"
-                                   value="<fmt:message key='button.import.function.library'/>"
-                                   onclick="importFunctionLibOnclick();"/>
-                            <input type="button" class="button"
-                                   onclick="location.href='functions-library-mgt-list.jsp'"
-                                   value="<fmt:message key='button.cancel'/>"/>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </form>
+    
+            <%--Uncomment the following commented section when export functionality is implemented.--%>
+            <%--<form id="upload-functionlib-form" name="upload-functionlib-form" method="post"--%>
+                  <%--action="#">--%>
+                <%--<table class="styledLeft" width="100%">--%>
+                    <%--<thead>--%>
+                    <%--<tr>--%>
+                        <%--<th><fmt:message key="upload.function.library.file"/></th>--%>
+                    <%--</tr>--%>
+                    <%--</thead>--%>
+                    <%--<tbody>--%>
+                    <%--<tr>--%>
+                        <%--<td>--%>
+                            <%--<span>File Location: </span><input type="file" class="button" id="functionlib_file"--%>
+                                                               <%--name="functionlib_file" onchange='openFile(event)'/>--%>
+                        <%--</td>--%>
+                        <%--<textarea hidden="hidden" name="functionlib-file-content"--%>
+                                  <%--id="functionlib-file-content"></textarea>--%>
+                        <%--<textarea hidden="hidden" name="functionlib-file-name" id="functionlib-file-name"></textarea>--%>
+                    <%--</tr>--%>
+                    <%--<tr>--%>
+                        <%--<td>--%>
+                            <%--<input type="button" class="button"--%>
+                                   <%--value="<fmt:message key='button.import.function.library'/>"--%>
+                                   <%--onclick="importFunctionLibOnclick();"/>--%>
+                            <%--<input type="button" class="button"--%>
+                                   <%--onclick="location.href='functions-library-mgt-list.jsp'"--%>
+                                   <%--value="<fmt:message key='button.cancel'/>"/>--%>
+                        <%--</td>--%>
+                    <%--</tr>--%>
+                    <%--</tbody>--%>
+                <%--</table>--%>
+            <%--</form>--%>
         </div>
     </div>
 </fmt:bundle>
