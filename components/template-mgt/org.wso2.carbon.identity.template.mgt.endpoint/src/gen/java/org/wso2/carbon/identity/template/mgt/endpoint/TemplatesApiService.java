@@ -34,4 +34,3 @@ public abstract class TemplatesApiService {
 
     public abstract Response updateTemplate(String templateName, TemplateDTO newTemplate);
 }
-

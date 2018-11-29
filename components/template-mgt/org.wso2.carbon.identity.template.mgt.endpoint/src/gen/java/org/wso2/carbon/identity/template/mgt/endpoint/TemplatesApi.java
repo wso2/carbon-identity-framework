@@ -149,4 +149,3 @@ public class TemplatesApi {
         return delegate.updateTemplate(templateName, newTemplate);
     }
 }
-

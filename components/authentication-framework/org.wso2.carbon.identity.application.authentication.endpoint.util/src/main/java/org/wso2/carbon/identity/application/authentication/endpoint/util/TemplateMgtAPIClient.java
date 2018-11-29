@@ -61,7 +61,8 @@ public class TemplateMgtAPIClient {
             httpsURLConnection.setDoInput(true);
             httpsURLConnection.setRequestMethod(HTTP_METHOD_GET);
 
-            httpsURLConnection.setRequestProperty(MutualSSLManager.getUsernameHeaderName(), MutualSSLManager.getCarbonLogin());
+            httpsURLConnection.setRequestProperty(MutualSSLManager.getUsernameHeaderName(),
+                    MutualSSLManager.getCarbonLogin());
 
             inputStream = httpsURLConnection.getInputStream();
             reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
