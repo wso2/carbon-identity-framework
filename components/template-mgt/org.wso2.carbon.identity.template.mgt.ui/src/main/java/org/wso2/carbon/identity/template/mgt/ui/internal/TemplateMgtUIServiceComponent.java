@@ -99,5 +99,4 @@ public class TemplateMgtUIServiceComponent {
             log.debug("RealmService is unregistered in ConsentManager service.");
         }
     }
-
 }

@@ -47,8 +47,7 @@ public class TemplateManagementServiceClient {
         handleLoggedInUserAuthorization(TemplateMgtConstants.PERMISSION_TEMPLATE_MGT_ADD);
         Template template = new Template(templateRequestDTO.getTenantId(), templateRequestDTO.getTemplateName(),
                 templateRequestDTO.getDescription(), templateRequestDTO.getTemplateScript());
-        Template templateResponse = getTemplateManager().addTemplate(template);
-        return templateResponse;
+        return getTemplateManager().addTemplate(template);
     }
 
     public Template getTemplateByName(String templateName) throws TemplateManagementException {
@@ -108,5 +107,4 @@ public class TemplateManagementServiceClient {
                     TemplateMgtConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode());
         }
     }
-
 }

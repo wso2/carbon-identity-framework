@@ -295,5 +295,5 @@
         </div>
     </div>
 </fmt:bundle>
-<script src="./js/template-mgt.js"></script>
 
+<script src="./js/template-mgt.js"></script>

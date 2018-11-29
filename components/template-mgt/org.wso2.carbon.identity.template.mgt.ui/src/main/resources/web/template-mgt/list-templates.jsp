@@ -63,7 +63,8 @@
                         });
                     }
 
-                    CARBON.showConfirmationDialog('Are you sure you want to delete "' + templateName + '" Template? \n WARN: If you delete this template, ' +
+                    CARBON.showConfirmationDialog('Are you sure you want to delete "'
+                        + templateName + '" Template? \n WARN: If you delete this template, ' +
                         'the authentication scripts which used this will no longer function properly!',
                         doDelete, null);
                 }
@@ -203,4 +204,3 @@
         </div>
     </div>
 </fmt:bundle>
-

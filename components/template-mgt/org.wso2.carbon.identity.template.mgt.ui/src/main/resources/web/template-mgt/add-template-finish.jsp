@@ -48,8 +48,8 @@
             String currentUser = (String) session.getAttribute("logged-user");
             TemplateManagementServiceClient serviceClient = new TemplateManagementServiceClient(currentUser);
             serviceClient.addTemplate(templateRequestDTO);
-
 %>
+
 <script>
     location.href = 'list-templates.jsp';
 </script>
@@ -70,5 +70,3 @@
 </script>
 <%
     }%>
-
-
