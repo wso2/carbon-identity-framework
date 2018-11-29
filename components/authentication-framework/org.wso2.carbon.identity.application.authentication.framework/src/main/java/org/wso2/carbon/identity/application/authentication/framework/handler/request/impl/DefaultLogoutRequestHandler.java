@@ -81,6 +81,28 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         ExternalIdPConfig externalIdPConfig = null;
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
+                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
+            // Retrieve session information from cache in order to publish event
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+            if (sessionContext != null) {
+                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+                if (authenticatedUserObj != null) {
+                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                }
+                FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
+                        sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
+                                .SESSION_TERMINATE);
+            }
+        }
+
+        // remove SessionContext from the cache and auth cookie before sending logout request to federated IDP,
+        // without waiting till a logout response is received from federated IDP.
+        // remove the SessionContext from the cache
+        FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
+        // remove the cookie
+        FrameworkUtils.removeAuthCookie(request, response);
         if (context.isPreviousSessionFound()) {
             // if this is the start of the logout sequence
             if (context.getCurrentStep() == 0) {
@@ -133,26 +155,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
         }
 
-        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
-                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
-            // Retrieve session information from cache in order to publish event
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
-            if (sessionContext != null) {
-                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-                if (authenticatedUserObj != null) {
-                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-                }
-                FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
-                        sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
-                                .SESSION_TERMINATE);
-            }
-        }
-
-        // remove the SessionContext from the cache
-        FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
-        // remove the cookie
-        FrameworkUtils.removeAuthCookie(request, response);
 
         try {
             sendResponse(request, response, context, true);
