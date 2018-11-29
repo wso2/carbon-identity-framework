@@ -104,31 +104,6 @@
         }
     }
 
-    var openFile = function (event) {
-        var input = event.target;
-        var reader = new FileReader();
-        reader.onload = function () {
-            var data = reader.result;
-            document.getElementById('template-file-templateScript').value = data;
-        };
-        document.getElementById('template-file-name').value = input.files[0].name;
-        reader.readAsText(input.files[0]);
-    };
-
-    function importTemplateOnclick() {
-
-    }
-
-    function showManual() {
-        $("#add-template-form").show();
-        $("#upload-template-form").hide();
-    }
-
-    function showFile() {
-        $("#add-template-form").hide();
-        $("#upload-template-form").show();
-    }
-
     window.onload = function () {
         showManual();
     }
@@ -176,30 +151,6 @@
     <div id="middle">
         <h2>Add New Template</h2>
         <div id="workArea">
-            <table class="styledLeft" width="100%">
-                <thead>
-                <tr>
-                    <th><fmt:message key="title.template.select.mode"/></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><input type="radio" id="manual-option" name="upload-type-selector" checked="checked"
-                               onclick="showManual();">
-                        <label for="manual-option">Manual Configuration</label>
-                    </td>
-                
-                </tr>
-                <tr>
-                    <td>
-                        <input type="radio" id="file-option" name="upload-type-selector" onclick="showFile();">
-                        <label for="file-option">File Configuration</label>
-                    </td>
-                </tr>
-                
-                </tbody>
-            </table>
-            <br/>
             <form id="add-template-form" name="add-template-form" method="post"
                   action="add-template-finish.jsp">
                 <div class="sectionSeperator togglebleTitle"><fmt:message
@@ -218,7 +169,6 @@
                             </td>
                         </tr>
                         <tr>
-                            
                             
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
@@ -241,17 +191,7 @@
             <textarea id="scriptTextArea" name="scriptTextArea"
                       style="height: 500px;width: 100%; display: none;"><%=script%></textarea>
                         </div>
-                        <!-- <div id="codeMirrorTemplate" class="step_contents">
-                             <div class="add-template-container vertical-text">
-                                 <a id="addFunctionlib" class="icon-link noselect">Function Libraries</a>
-                             </div>
-                             <div class="template-list-container">
-                                 <ul id="template_list"></ul>
-                             </div>
-                         </div>-->
-                    
                     </div>
-                
                 </div>
                 
                 <div style="clear:both"></div>
@@ -261,36 +201,6 @@
                     <input type="button" onclick="javascript:location.href='list-templates.jsp'"
                            value="<fmt:message key='button.cancel'/>"/>
                 </div>
-            </form>
-            
-            <form id="upload-template-form" name="upload-template-form" method="post"
-                  action="#">
-                <table class="styledLeft" width="100%">
-                    <thead>
-                    <tr>
-                        <th><fmt:message key="upload.template.file"/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>
-                            <span>File Location: </span><input type="file" class="button" id="template_file"
-                                                               name="template_file" onchange='openFile(event)'/>
-                        </td>
-                        <textarea hidden="hidden" name="template-file-templateScript"
-                                  id="template-file-templateScript"></textarea>
-                        <textarea hidden="hidden" name="template-file-name" id="template-file-name"></textarea>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="button" class="button" value="<fmt:message key='button.import.template'/>"
-                                   onclick="importTemplateOnclick();"/>
-                            <input type="button" class="button" onclick="javascript:location.href='list-templates.jsp'"
-                                   value="<fmt:message key='button.cancel'/>"/>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
             </form>
         </div>
     </div>
