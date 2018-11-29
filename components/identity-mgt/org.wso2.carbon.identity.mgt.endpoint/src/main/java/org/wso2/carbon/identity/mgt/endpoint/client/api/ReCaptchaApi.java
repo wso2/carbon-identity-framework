@@ -46,7 +46,7 @@ public class ReCaptchaApi {
     private final String[] localVarAccepts = {"application/json"};
     private final String[] localVarContentTypes = {"application/json"};
     private String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                     "api/identity/recovery/v0.9");
     private ApiClient apiClient;
 
@@ -75,7 +75,7 @@ public class ReCaptchaApi {
 
         if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                             "t/" + tenantDomain + "/api/identity/recovery/v0.9");
         }
 

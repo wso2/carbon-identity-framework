@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
 public class UserInfoRecoveryWithNotificationClient {
 
     private static final String ENDPOINT_URL = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                     IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
     // Validate user and returns a new key through a notification

@@ -47,7 +47,7 @@ import java.util.Map;
 public class SelfRegisterApi {
 
     String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                     "api/identity/user/v1.0");
     private ApiClient apiClient;
 
@@ -89,7 +89,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                             "t/"+tenantDomain+"/api/identity/user/v1.0");
         }
         apiClient.setBasePath(basePath);
@@ -150,7 +150,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                             "t/"+tenantDomain+"/api/identity/user/v1.0");
         }
 
@@ -211,7 +211,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
                             "t/" + tenantDomain + "/api/identity/user/v1.0");
         }
 
