@@ -26,7 +26,6 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
     theme: "mdn-like",
     keyMap: "sublime",
     mode: "htmlmixed",
-    // mode: "handlebars",
     // mode: {name: "handlebars", base: "text/html"},
     lineNumbers: true,
     lineWrapping: true,

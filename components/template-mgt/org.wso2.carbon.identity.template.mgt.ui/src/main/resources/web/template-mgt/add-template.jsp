@@ -16,59 +16,58 @@
   ~ under the License.
   --%>
 
-<link rel="stylesheet" href="codemirror/lib/codemirror.css">
-<link rel="stylesheet" href="codemirror/theme/mdn-like.css">
-<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
-<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
-<link rel="stylesheet" href="codemirror/addon/fold/foldgutter.css">
-<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
-<link rel="stylesheet" href="codemirror/addon/lint/lint.css">
+<link rel="stylesheet" href="../application/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="../application/codemirror/theme/mdn-like.css">
+<link rel="stylesheet" href="../application/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="../application/codemirror/addon/display/fullscreen.css">
+<link rel="stylesheet" href="../application/codemirror/addon/fold/foldgutter.css">
+<link rel="stylesheet" href="../application/codemirror/addon/hint/show-hint.css">
+<link rel="stylesheet" href="../application/codemirror/addon/lint/lint.css">
 
 <link rel="stylesheet" href="css/template-mgt.css">
 <link rel="stylesheet" href="css/template.css">
 
-<script src="codemirror/lib/codemirror.js"></script>
-<script src="codemirror/keymap/sublime.js"></script>
-<script src="codemirror/mode/xml/xml.js"></script>
-<script src="codemirror/mode/css/css.js"></script>
-<script src="codemirror/mode/javascript/javascript.js"></script>
-<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
-<script src="codemirror/mode/handlebars/handlebars.js"></script>
+<script src="../application/codemirror/lib/codemirror.js"></script>
+<script src="../application/codemirror/keymap/sublime.js"></script>
+<script src="../application/codemirror/mode/xml/xml.js"></script>
+<script src="../application/codemirror/mode/css/css.js"></script>
+<script src="../application/codemirror/mode/javascript/javascript.js"></script>
+<script src="../application/codemirror/mode/htmlmixed/htmlmixed.js"></script>
 
-<script src="codemirror/addon/lint/jshint.min.js"></script>
-<script src="codemirror/addon/lint/lint.js"></script>
-<script src="codemirror/addon/lint/javascript-lint.js"></script>
-<script src="codemirror/addon/lint/html-lint.js"></script>
-<script src="codemirror/addon/lint/css-lint.js"></script>
+<script src="../application/codemirror/addon/lint/jshint.min.js"></script>
+<script src="../application/codemirror/addon/lint/lint.js"></script>
+<script src="../application/codemirror/addon/lint/javascript-lint.js"></script>
+<script src="../application/codemirror/addon/lint/html-lint.js"></script>
+<script src="../application/codemirror/addon/lint/css-lint.js"></script>
 
-<script src="codemirror/addon/hint/anyword-hint.js"></script>
-<script src="codemirror/addon/hint/show-hint.js"></script>
-<script src="codemirror/addon/hint/javascript-hint.js"></script>
-<script src="codemirror/addon/hint/wso2-hints.js"></script>
-<script src="codemirror/addon/hint/html-hint.js"></script>
-<script src="codemirror/addon/hint/htmlhint.js"></script>
-<script src="codemirror/addon/hint/css-hint.js"></script>
-<script src="codemirror/addon/hint/xml-hint.js"></script>
+<script src="../application/codemirror/addon/hint/anyword-hint.js"></script>
+<script src="../application/codemirror/addon/hint/show-hint.js"></script>
+<script src="../application/codemirror/addon/hint/javascript-hint.js"></script>
+<script src="../application/codemirror/addon/hint/wso2-hints.js"></script>
+<script src="../application/codemirror/addon/hint/html-hint.js"></script>
+<script src="../application/codemirror/addon/hint/htmlhint.js"></script>
+<script src="../application/codemirror/addon/hint/css-hint.js"></script>
+<script src="../application/codemirror/addon/hint/xml-hint.js"></script>
 
-<script src="../../addon/mode/simple.js"></script>
-<script src="../../addon/mode/multiplex.js"></script>
+<script src="../application/codemirror/addon/mode/simple.js"></script>
+<script src="../application/codemirror/addon/mode/multiplex.js"></script>
 
-<script src="codemirror/addon/edit/matchtags.js"></script>
-<script src="codemirror/addon/edit/closetag.js"></script>
-<script src="codemirror/addon/edit/closebrackets.js"></script>
-<script src="codemirror/addon/edit/matchbrackets.js"></script>
-<script src="codemirror/addon/fold/brace-fold.js"></script>
-<script src="codemirror/addon/fold/foldcode.js"></script>
-<script src="codemirror/addon/fold/foldgutter.js"></script>
-<script src="codemirror/addon/fold/xml-fold.js"></script>
+<script src="../application/codemirror/addon/edit/matchtags.js"></script>
+<script src="../application/codemirror/addon/edit/closetag.js"></script>
+<script src="../application/codemirror/addon/edit/closebrackets.js"></script>
+<script src="../application/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="../application/codemirror/addon/fold/brace-fold.js"></script>
+<script src="../application/codemirror/addon/fold/foldcode.js"></script>
+<script src="../application/codemirror/addon/fold/foldgutter.js"></script>
+<script src="../application/codemirror/addon/fold/xml-fold.js"></script>
 
-<script src="codemirror/addon/display/fullscreen.js"></script>
-<script src="codemirror/addon/display/placeholder.js"></script>
-<script src="codemirror/addon/comment/comment.js"></script>
-<script src="codemirror/addon/selection/active-line.js"></script>
-<script src="codemirror/addon/dialog/dialog.js"></script>
-<script src="codemirror/addon/display/panel.js"></script>
-<script src="codemirror/util/formatting.js"></script>
+<script src="../application/codemirror/addon/display/fullscreen.js"></script>
+<script src="../application/codemirror/addon/display/placeholder.js"></script>
+<script src="../application/codemirror/addon/comment/comment.js"></script>
+<script src="../application/codemirror/addon/selection/active-line.js"></script>
+<script src="../application/codemirror/addon/dialog/dialog.js"></script>
+<script src="../application/codemirror/addon/display/panel.js"></script>
+<script src="../application/codemirror/util/formatting.js"></script>
 
 
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>

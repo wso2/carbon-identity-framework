@@ -190,7 +190,7 @@ public class TemplateManagerImpl implements TemplateManager {
      * @return true, if an element is found.
      * @throws TemplateManagementException Consent Management Exception.
      */
-    public boolean isTemplateExists(String templateName) throws TemplateManagementException {
+    private boolean isTemplateExists(String templateName) throws TemplateManagementException {
 
         return fetchSingleTemplate(templateName) != null;
     }
