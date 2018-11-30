@@ -78,6 +78,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                 try {
                     preparedStatement.setBinaryStream(4, inputStream, inputStream.available());
                 } catch (IOException e) {
+                    // SQLException is thrown since the QueryFilter throws an SQLException
                     throw TemplateMgtUtils.handleSQLException(ERROR_CODE_INSERT_TEMPLATE,
                             template.getTemplateName(), e);
                 }
@@ -105,7 +106,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
         try {
             template = jdbcTemplate.fetchSingleRecord(GET_TEMPLATE_BY_NAME, ((resultSet, rowNumber) ->
                     {
-                        Template templateResult = null;
+                        Template templateResult;
                         try {
                             templateResult = new Template(resultSet.getInt(1),
                                     resultSet.getInt(2),

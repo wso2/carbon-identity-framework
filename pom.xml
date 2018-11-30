@@ -1580,11 +1580,6 @@
                 <artifactId>spring-web</artifactId>
                 <version>${springframework.spring-web.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-jaxrs</artifactId>
-                <version>${swagger.jaxrs.version}</version>
-            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1845,7 +1840,6 @@
         <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
         <io.swagger.version>1.5.20</io.swagger.version>
         <carbon.consent.mgt.version>2.0.9</carbon.consent.mgt.version>
-
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
