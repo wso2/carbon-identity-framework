@@ -34,6 +34,7 @@ import java.rmi.RemoteException;
  */
 public class FunctionLibraryManagementServiceClient {
 
+    public static final String FUNCTION_LIBRARY_MANAGEMENT_SERVICE = "FunctionLibraryManagementAdminService";
     FunctionLibraryManagementAdminServiceStub stub;
 
     /**
@@ -47,7 +48,7 @@ public class FunctionLibraryManagementServiceClient {
     public FunctionLibraryManagementServiceClient(String cookie, String backendServerURL,
                                                   ConfigurationContext configCtx) throws AxisFault {
 
-        String serviceURL = backendServerURL + "FunctionLibraryManagementAdminService";
+        String serviceURL = backendServerURL + FUNCTION_LIBRARY_MANAGEMENT_SERVICE;
         stub = new FunctionLibraryManagementAdminServiceStub(configCtx, serviceURL);
 
         ServiceClient client = stub._getServiceClient();
@@ -144,7 +145,7 @@ public class FunctionLibraryManagementServiceClient {
      */
     private void handleException(Exception e) throws AxisFault {
 
-        String errorMessage = "Unknown error occurred.";
+        String errorMessage = null;
 
         if (e instanceof FunctionLibraryManagementAdminServiceFunctionLibraryManagementException) {
             FunctionLibraryManagementAdminServiceFunctionLibraryManagementException exception =

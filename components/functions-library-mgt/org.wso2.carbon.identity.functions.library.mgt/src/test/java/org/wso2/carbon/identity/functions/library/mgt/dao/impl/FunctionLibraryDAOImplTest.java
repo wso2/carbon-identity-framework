@@ -90,10 +90,6 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         functionLibrary3.setDescription("sample3");
         functionLibrary3.setFunctionLibraryScript("samplefunction3");
 
-        FunctionLibrary functionLibrary4 = new FunctionLibrary();
-        functionLibrary4.setFunctionLibraryName("sample4");
-        functionLibrary4.setDescription("sample4");
-        functionLibrary4.setFunctionLibraryScript("samplefunction4");
 
         return new Object[][]{
                 {
@@ -108,11 +104,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
                 {
                         functionLibrary3,
                         SAMPLE_TENANT_DOMAIN2
-                },
-                {
-                        functionLibrary4,
-                        null
-                },
+                }
         };
     }
 
@@ -158,6 +150,11 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "listFunctionLibraryDataProvider")
     public Object[][] listFunctionLibrariesData() {
 
+        FunctionLibrary functionLibrary4 = new FunctionLibrary();
+        functionLibrary4.setFunctionLibraryName("sample4");
+        functionLibrary4.setDescription("sample4");
+        functionLibrary4.setFunctionLibraryScript("samplefunction4");
+
         FunctionLibrary functionLibrary5 = new FunctionLibrary();
         functionLibrary5.setFunctionLibraryName("sample5");
         functionLibrary5.setDescription("sample5");
@@ -173,25 +170,21 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         functionLibrary7.setDescription("sample7");
         functionLibrary7.setFunctionLibraryScript("samplefunction7");
 
-        FunctionLibrary functionLibrary8 = new FunctionLibrary();
-        functionLibrary8.setFunctionLibraryName("sample8");
-        functionLibrary8.setDescription("sample8");
-        functionLibrary8.setFunctionLibraryScript("samplefunction8");
 
         return new Object[][]{
                 {
                         Arrays.asList(
-                                functionLibrary5,
-                                functionLibrary6
+                                functionLibrary4,
+                                functionLibrary5
                         ),
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
                         Arrays.asList(
-                                functionLibrary7,
-                                functionLibrary8
+                                functionLibrary6,
+                                functionLibrary7
                         ),
-                        null
+                        SAMPLE_TENANT_DOMAIN2
                 },
         };
 
@@ -208,8 +201,8 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             addFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
 
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            FunctionLibrary[] functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
-            assertTrue(functionLibrariesList != null && functionLibrariesList.length != 0,
+            List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
+            assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
                     "Failed to retrieve function libraries.");
 
             // Clean after test
@@ -229,7 +222,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
         addFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
 
-        FunctionLibrary[] functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
+        List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
         Assert.fail("Expected: " + FunctionLibraryManagementException.class.getName());
 
         // Clean after test
@@ -240,24 +233,24 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "getFunctionLibraryDataProvider")
     public Object[][] getFunctionLibraryData() {
 
+        FunctionLibrary functionLibrary8 = new FunctionLibrary();
+        functionLibrary8.setFunctionLibraryName("sample8");
+        functionLibrary8.setDescription("sample8");
+        functionLibrary8.setFunctionLibraryScript("samplefunction8");
+
         FunctionLibrary functionLibrary9 = new FunctionLibrary();
         functionLibrary9.setFunctionLibraryName("sample9");
         functionLibrary9.setDescription("sample9");
         functionLibrary9.setFunctionLibraryScript("samplefunction9");
 
-        FunctionLibrary functionLibrary10 = new FunctionLibrary();
-        functionLibrary10.setFunctionLibraryName("sample10");
-        functionLibrary10.setDescription("sample10");
-        functionLibrary10.setFunctionLibraryScript("samplefunction10");
-
         return new Object[][]{
                 {
-                        functionLibrary9,
+                        functionLibrary8,
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
-                        functionLibrary10,
-                        null
+                        functionLibrary9,
+                        SAMPLE_TENANT_DOMAIN2
                 },
 
         };
@@ -301,26 +294,25 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "deleteFunctionLibraryData")
     public Object[][] deleteFunctionLibrary() {
 
+        FunctionLibrary functionLibrary10 = new FunctionLibrary();
+        functionLibrary10.setFunctionLibraryName("sample10");
+        functionLibrary10.setDescription("sample10");
+        functionLibrary10.setFunctionLibraryScript("samplefunction10");
+
         FunctionLibrary functionLibrary11 = new FunctionLibrary();
         functionLibrary11.setFunctionLibraryName("sample11");
         functionLibrary11.setDescription("sample11");
         functionLibrary11.setFunctionLibraryScript("samplefunction11");
 
-        FunctionLibrary functionLibrary12 = new FunctionLibrary();
-        functionLibrary12.setFunctionLibraryName("sample12");
-        functionLibrary12.setDescription("sample12");
-        functionLibrary12.setFunctionLibraryScript("samplefunction12");
-
         return new Object[][]{
                 {
-                        functionLibrary11,
+                        functionLibrary10,
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
-                        functionLibrary12,
-                        null
+                        functionLibrary11,
+                        SAMPLE_TENANT_DOMAIN2
                 },
-
         };
     }
 
@@ -364,23 +356,24 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "updateFunctionLibraryDataProvider")
     public Object[][] updateFunctionLibraryData() {
 
+        FunctionLibrary functionLibrary12 = new FunctionLibrary();
+        functionLibrary12.setFunctionLibraryName("sample12");
+        functionLibrary12.setDescription("sample12");
+        functionLibrary12.setFunctionLibraryScript("samplefunction12");
+
         FunctionLibrary functionLibrary13 = new FunctionLibrary();
         functionLibrary13.setFunctionLibraryName("sample13");
         functionLibrary13.setDescription("sample13");
         functionLibrary13.setFunctionLibraryScript("samplefunction13");
 
-        FunctionLibrary functionLibrary14 = new FunctionLibrary();
-        functionLibrary14.setFunctionLibraryName("sample14");
-        functionLibrary14.setDescription("sample14");
-        functionLibrary14.setFunctionLibraryScript("samplefunction14");
         return new Object[][]{
                 {
-                        functionLibrary13,
+                        functionLibrary12,
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
-                        functionLibrary14,
-                        null
+                        functionLibrary13,
+                        SAMPLE_TENANT_DOMAIN2
                 }
         };
     }
@@ -431,22 +424,23 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "isFunctionLibraryExistsDataProvider")
     public Object[][] isFunctionLibraryExistsData() {
 
+        FunctionLibrary functionLibrary14 = new FunctionLibrary();
+        functionLibrary14.setFunctionLibraryName("sample14");
+        functionLibrary14.setDescription("sample14");
+        functionLibrary14.setFunctionLibraryScript("samplefunction14");
+
         FunctionLibrary functionLibrary15 = new FunctionLibrary();
         functionLibrary15.setFunctionLibraryName("sample15");
         functionLibrary15.setDescription("sample15");
         functionLibrary15.setFunctionLibraryScript("samplefunction15");
 
-        FunctionLibrary functionLibrary16 = new FunctionLibrary();
-        functionLibrary16.setFunctionLibraryName("sample16");
-        functionLibrary16.setDescription("sample16");
-        functionLibrary16.setFunctionLibraryScript("samplefunction16");
         return new Object[][]{
                 {
-                        functionLibrary15,
+                        functionLibrary14,
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
-                        functionLibrary16,
+                        functionLibrary15,
                         SAMPLE_TENANT_DOMAIN2
                 },
         };

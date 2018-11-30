@@ -57,9 +57,10 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 
-<carbon:breadcrumb label="breadcrumb.function.library"
-                   resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources" topPage="true"
-                   request="<%=request%>"/>
+<fmt:bundle basename="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources">
+    <carbon:breadcrumb label="functionlib.mgt"
+                       resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
+                       topPage="true" request="<%=request%>"/>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <script type="text/javascript">
@@ -67,13 +68,13 @@
         var functionLibName = document.getElementById("functionLibName").value.trim();
         var content = document.getElementById("scriptTextArea").value;
         if (functionLibName == '') {
-            CARBON.showWarningDialog('Please provide function library Name.');
+            CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
             return false;
         } else {
             if (content == '') {
-                CARBON.showWarningDialog('Please provide a function library Script.');
+                CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.script"/>');
                 location.href = '#';
             } else {
                 $("#add-functionlib-form").submit();
@@ -82,13 +83,9 @@
         }
     }
 
-    function validateTextForIllegal(fild) {
-        var isValid = doValidateInput(fild, "Provided function library name is invalid.");
-        if (isValid) {
-            return true;
-        } else {
-            return false;
-        }
+    function validateTextForIllegal(field) {
+        var isValid = doValidateInput(field,'<fmt:message key="invalid.function.library.name"/>');
+        return isValid;
     }
 
     // Uncomment the following commented section when export functionality is implemented.
@@ -124,8 +121,6 @@
     }
 
 </script>
-
-<fmt:bundle basename="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources">
     
     <div id="middle">
         <h2>Add New Function Library</h2>
@@ -164,7 +159,7 @@
                             <td style="width:15%" class="leftCol-med labelField"><fmt:message
                                     key='config.function.info.basic.name'/>:<span class="required">*</span></td>
                             <td>
-                                <input id="functionLibName" name="functionLibName" type="text" value=""
+                                <input id="functionLibName" name="functionLibraryName" type="text" value=""
                                        white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
                                 <span>.js</span>
                                 <div class="sectionHelp">
@@ -175,7 +170,7 @@
                         <tr>
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea maxlength="1020" style="width:50%" type="text" name="functionLib-description"
+                                <textarea maxlength="1020" style="width:50%" type="text" name="description"
                                           id="functionLib-description" class="text-box-big"></textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
@@ -191,7 +186,7 @@
                 <div class="toggle_container" id="editorRow">
                     <div style="position: relative;">
                         <div id="codeMirror" class="sectionSub step_contents">
-                            <textarea id="scriptTextArea" name="scriptTextArea"
+                            <textarea id="scriptTextArea" name="scriptContent"
                                       placeholder="Write JavaScript Function..." style="height: 500px;width: 100%; display: none;">
                             </textarea>
                         </div>

@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.functions.library.mgt;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
+import java.util.List;
+
 /**
  * Function library management service interface.
  */
@@ -43,7 +45,7 @@ public interface FunctionLibraryManagementService {
      * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary[] listFunctionLibraries(String tenantDomain)
+    List<FunctionLibrary> listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**

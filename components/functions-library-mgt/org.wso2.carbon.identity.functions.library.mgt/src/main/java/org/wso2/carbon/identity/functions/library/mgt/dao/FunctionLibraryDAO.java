@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.functions.library.mgt.dao;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
+import java.util.List;
+
 /**
  * This interface access the data storage layer to store, update, retrieve and delete function libraries.
  */
@@ -54,7 +56,7 @@ public interface FunctionLibraryDAO {
      * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    FunctionLibrary[] listFunctionLibraries(String tenantDomain)
+    List<FunctionLibrary> listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException;
 
     /**

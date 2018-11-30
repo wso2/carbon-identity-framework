@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDA
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
+import java.util.List;
+
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
 
 /**
@@ -86,7 +88,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     }
 
     @Override
-    public FunctionLibrary[] listFunctionLibraries(String tenantDomain) throws FunctionLibraryManagementException {
+    public List<FunctionLibrary> listFunctionLibraries(String tenantDomain) throws FunctionLibraryManagementException {
 
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         return functionLibraryDAO.listFunctionLibraries(tenantDomain);

@@ -246,17 +246,17 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain)).thenReturn(false);
         }
-        FunctionLibrary[] functionLibraries1 = new FunctionLibrary[3];
+        List<FunctionLibrary> functionLibraries1 = Arrays.asList(new FunctionLibrary[3]);
         int i = 0;
         for (Object functionLibrary : functionLibraries) {
-            functionLibraries1[i] = (FunctionLibrary) functionLibrary;
+            functionLibraries1.set(i, (FunctionLibrary) functionLibrary);
             i += 1;
         }
         when(functionLibraryDAO.listFunctionLibraries(SAMPLE_TENANT_DOMAIN)).thenReturn(functionLibraries1);
         addFunctionLibraries(functionLibraryManagementService, functionLibraries, tenantDomain);
 
-        FunctionLibrary[] functionLibrariesList = functionLibraryManagementService.listFunctionLibraries(tenantDomain);
-        assertTrue(functionLibrariesList != null && functionLibrariesList.length != 0,
+        List<FunctionLibrary> functionLibrariesList = functionLibraryManagementService.listFunctionLibraries(tenantDomain);
+        assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
                 "Failed to retrieve scopes.");
 
         // Clean after test

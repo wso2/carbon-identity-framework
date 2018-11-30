@@ -24,12 +24,14 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
+import java.util.List;
+
 /**
  * Function library management admin service.
  */
 public class FunctionLibraryManagementAdminService extends AbstractAdmin {
 
-    private static Log log = LogFactory.getLog(FunctionLibraryManagementAdminService.class);
+    private static final Log log = LogFactory.getLog(FunctionLibraryManagementAdminService.class);
     private FunctionLibraryManagementService functionLibMgtService;
 
     /**
@@ -43,10 +45,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.createFunctionLibrary(functionLibrary, getTenantDomain());
-        } catch (FunctionLibraryManagementException flException) {
+        } catch (FunctionLibraryManagementException e) {
             log.error("Error while creating function library " + functionLibrary.getFunctionLibraryName() +
-                    " for tenant domain " + getTenantDomain() + ".", flException);
-            throw flException;
+                    " for tenant domain " + getTenantDomain() + ".", e);
+            throw e;
         }
 
     }
@@ -57,15 +59,15 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
      * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    public FunctionLibrary[] listFunctionLibraries() throws FunctionLibraryManagementException {
+    public List<FunctionLibrary> listFunctionLibraries() throws FunctionLibraryManagementException {
 
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
-            FunctionLibrary[] functionLibraries = functionLibMgtService.listFunctionLibraries(getTenantDomain());
+            List<FunctionLibrary> functionLibraries = functionLibMgtService.listFunctionLibraries(getTenantDomain());
             return functionLibraries;
-        } catch (FunctionLibraryManagementException flException) {
-            log.error("Error while retrieving function libraries for tenant: " + getTenantDomain() + ".", flException);
-            throw flException;
+        } catch (FunctionLibraryManagementException e) {
+            log.error("Error while retrieving function libraries for tenant: " + getTenantDomain() + ".", e);
+            throw e;
         }
     }
 
@@ -83,10 +85,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             FunctionLibrary functionLibrary = null;
             functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName, getTenantDomain());
             return functionLibrary;
-        } catch (FunctionLibraryManagementException flException) {
+        } catch (FunctionLibraryManagementException e) {
             log.error("Error while retrieving function library " + functionLibraryName +
-                    " for tenant domain " + getTenantDomain() + ".", flException);
-            throw flException;
+                    " for tenant domain " + getTenantDomain() + ".", e);
+            throw e;
         }
 
     }
@@ -102,10 +104,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.deleteFunctionLibrary(functionLibraryName, getTenantDomain());
-        } catch (FunctionLibraryManagementException flException) {
+        } catch (FunctionLibraryManagementException e) {
             log.error("Error while deleting function library " + functionLibraryName +
-                    " for tenant domain " + getTenantDomain(), flException);
-            throw flException;
+                    " for tenant domain " + getTenantDomain(), e);
+            throw e;
         }
     }
 
@@ -122,10 +124,10 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, getTenantDomain());
-        } catch (FunctionLibraryManagementException flException) {
+        } catch (FunctionLibraryManagementException e) {
             log.error("Error while updating function library " + oldFunctionLibraryName +
-                    "for tenant domain " + getTenantDomain(), flException);
-            throw flException;
+                    "for tenant domain " + getTenantDomain(), e);
+            throw e;
         }
     }
 }

@@ -9,6 +9,10 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.DESCRIPTION" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_CONTENT" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.OLD_FUNCTION_LIBRARY_NAME" %>
 
 
 <%--
@@ -36,10 +40,10 @@
         return;
     }
     
-    String functionLibraryName = request.getParameter("functionLibraryName");
-    String oldFunctionLibraryName = request.getParameter("oldFunctionLibraryName");
-    String description = request.getParameter("functionLib-description");
-    String content = request.getParameter("scriptTextArea");
+    String functionLibraryName = request.getParameter(FUNCTION_LIBRARY_NAME);
+    String oldFunctionLibraryName = request.getParameter(OLD_FUNCTION_LIBRARY_NAME);
+    String description = request.getParameter(DESCRIPTION);
+    String content = request.getParameter(SCRIPT_CONTENT);
     
     if (StringUtils.isNotBlank(functionLibraryName)) {
         

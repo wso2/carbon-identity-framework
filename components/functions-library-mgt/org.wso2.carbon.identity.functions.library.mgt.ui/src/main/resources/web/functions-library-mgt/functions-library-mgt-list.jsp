@@ -9,6 +9,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Arrays" %>
 
 
 <%--
@@ -66,15 +68,12 @@
                             }
                         });
                     }
-
-                    CARBON.showConfirmationDialog('Are you sure you want to delete "' + functionLibraryName + '" Function Library? \n WARN: If you delete this library, ' +
-                        'the authentication scripts which used this will no longer function properly !',
-                        doDelete, null);
+                    CARBON.showConfirmationDialog('<fmt:message key="remove.function.library.warn"/>', doDelete, null);
                 }
             </script>
             
             <%
-                FunctionLibrary[] functionLibraries = null;
+                List<FunctionLibrary> functionLibraries = null;
                 
                 String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -102,16 +101,16 @@
                     
                     FunctionLibraryManagementServiceClient serviceClient = new
                             FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
-                    functionLibraries = serviceClient.listFunctionLibraries();
+                    functionLibraries = Arrays.asList(serviceClient.listFunctionLibraries());
                     
                     if (functionLibraries != null) {
-                        numberOfPages = (int) Math.ceil((double) functionLibraries.length / resultsPerPage);
+                        numberOfPages = (int) Math.ceil((double) functionLibraries.size() / resultsPerPage);
                         int startIndex = pageNumberInt * resultsPerPage;
                         int endIndex = (pageNumberInt + 1) * resultsPerPage;
                         functionLibrariesToDisplay = new FunctionLibrary[resultsPerPage];
                         
-                        for (int i = startIndex, j = 0; i < endIndex && i < functionLibraries.length; i++, j++) {
-                            functionLibrariesToDisplay[j] = functionLibraries[i];
+                        for (int i = startIndex, j = 0; i < endIndex && i < functionLibraries.size(); i++, j++) {
+                            functionLibrariesToDisplay[j] = functionLibraries.get(i);
                         }
                     }
                 } catch (Exception e) {
@@ -139,7 +138,7 @@
                             </thead>
                             
                             <%
-                                if (functionLibraries != null && functionLibraries.length > 0) {
+                                if (functionLibraries != null && functionLibraries.size() > 0) {
                             
                             %>
                             <tbody>

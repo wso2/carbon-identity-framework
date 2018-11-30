@@ -55,7 +55,6 @@
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
     }
-
 %>
 
 <script>

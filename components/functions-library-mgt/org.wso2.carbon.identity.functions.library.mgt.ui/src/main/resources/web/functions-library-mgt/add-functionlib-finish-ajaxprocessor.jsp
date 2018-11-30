@@ -7,6 +7,10 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.DESCRIPTION" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_CONTENT" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_SUFFIX" %>
 
 
 <%--
@@ -34,14 +38,14 @@
         return;
     }
     
-    String functionLibName = request.getParameter("functionLibName");
-    String description = request.getParameter("functionLib-description");
-    String content = request.getParameter("scriptTextArea");
+    String functionLibName = request.getParameter(FUNCTION_LIBRARY_NAME);
+    String description = request.getParameter(DESCRIPTION);
+    String content = request.getParameter(SCRIPT_CONTENT);
     
     if (StringUtils.isNotBlank(functionLibName) && StringUtils.isNotBlank(content)) {
         
         FunctionLibrary functionLibrary = new FunctionLibrary();
-        functionLibrary.setFunctionLibraryName(functionLibName + ".js");
+        functionLibrary.setFunctionLibraryName(functionLibName + SCRIPT_SUFFIX);
         functionLibrary.setDescription(description);
         functionLibrary.setFunctionLibraryScript(content);
         

@@ -44,7 +44,7 @@ public class FunctionLibraryManagementServiceComponent {
     protected void activate(ComponentContext context) {
 
         BundleContext bundleContext = context.getBundleContext();
-        // Registering Function library management service as a OSGIService.
+        // Registering Function library management service as an OSGIService.
         bundleContext.registerService(FunctionLibraryManagementService.class,
                 FunctionLibraryManagementServiceImpl.getInstance(), null);
         if (log.isDebugEnabled()) {
@@ -58,5 +58,8 @@ public class FunctionLibraryManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Function Library Management Component bundle is deactivated.");
         }
+        // Unregistering Function library management service.
+        BundleContext bundleContext = context.getBundleContext();
+
     }
 }

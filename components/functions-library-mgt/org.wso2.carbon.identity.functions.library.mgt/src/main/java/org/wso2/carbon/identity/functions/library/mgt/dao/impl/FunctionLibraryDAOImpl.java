@@ -38,13 +38,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class access the IDN_FUNCTION_LIBRARY database table to store, update retrieve and delete function libraries.
  */
 public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
-    private static Log log = LogFactory.getLog(FunctionLibraryDAOImpl.class);
+    private static final Log log = LogFactory.getLog(FunctionLibraryDAOImpl.class);
 
     /**
      * Create a function library.
@@ -63,28 +64,33 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement addFunctionLibStmt =
-                     connection.prepareStatement(FunctionLibMgtDBQueries.STORE_FUNCTIONLIB_INFO)) {
-            connection.setAutoCommit(false);
-            addFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
-            addFunctionLibStmt.setString(2, functionLibrary.getDescription());
-            addFunctionLibStmt.setString(3, "authentication");
-            addFunctionLibStmt.setInt(4, tenantID);
-            setBlobValue(functionLibrary.getFunctionLibraryScript(), addFunctionLibStmt, 5);
-            addFunctionLibStmt.executeUpdate();
-            connection.commit();
+        if (tenantID != MultitenantConstants.INVALID_TENANT_ID) {
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+                 PreparedStatement addFunctionLibStmt =
+                         connection.prepareStatement(FunctionLibMgtDBQueries.STORE_FUNCTIONLIB_INFO)) {
+                connection.setAutoCommit(false);
+                addFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
+                addFunctionLibStmt.setString(2, functionLibrary.getDescription());
+                addFunctionLibStmt.setString(3, "authentication");
+                addFunctionLibStmt.setInt(4, tenantID);
+                setBlobValue(functionLibrary.getFunctionLibraryScript(), addFunctionLibStmt, 5);
+                addFunctionLibStmt.executeUpdate();
+                connection.commit();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Function Library Stored successfully with functionlibrary name " +
-                        functionLibrary.getFunctionLibraryName());
+                if (log.isDebugEnabled()) {
+                    log.debug("Function Library Stored successfully with functionlibrary name " +
+                            functionLibrary.getFunctionLibraryName());
+                }
+            } catch (SQLException e) {
+                throw new FunctionLibraryManagementException(
+                        "Error while creating Function Library.", e);
+            } catch (IOException e) {
+                throw new FunctionLibraryManagementException("An error occurred while processing content stream " +
+                        "of function library script.", e);
             }
-        } catch (SQLException e) {
-            throw new FunctionLibraryManagementException(
-                    "Error while creating Function Library.", e);
-        } catch (IOException e) {
-            throw new FunctionLibraryManagementException("An error occurred while processing content stream " +
-                    "of function library script.", e);
+        } else {
+            throw new FunctionLibraryManagementException("Error while creating function library due " +
+                    "to invalid tenant ID.");
         }
     }
 
@@ -98,6 +104,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      */
     public FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
@@ -142,7 +149,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @return A list of function libraries
      * @throws FunctionLibraryManagementException
      */
-    public FunctionLibrary[] listFunctionLibraries(String tenantDomain)
+    public List<FunctionLibrary> listFunctionLibraries(String tenantDomain)
             throws FunctionLibraryManagementException {
 
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -151,7 +158,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         }
 
-        ArrayList<FunctionLibrary> functionLibraries = new ArrayList<>();
+        List<FunctionLibrary> functionLibraries = new ArrayList<>();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection();
              PreparedStatement getFunctionLibrariesStmt = connection.prepareStatement
@@ -176,7 +183,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         } catch (IdentityRuntimeException e) {
             throw new FunctionLibraryManagementException("Couldn't get a database connection.", e);
         }
-        return functionLibraries.toArray(new FunctionLibrary[functionLibraries.size()]);
+        return functionLibraries;
     }
 
     /**
@@ -189,6 +196,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      */
     public void updateFunctionLibrary(String oldFunctionLibName, FunctionLibrary functionLibrary, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
