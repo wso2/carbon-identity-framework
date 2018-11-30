@@ -26,7 +26,6 @@
 
 
 <link rel="stylesheet" href="css/function-lib-mgt.css">
-<link rel="stylesheet" href="css/template.css">
 
 <script src="../application/codemirror/lib/codemirror.js"></script>
 <script src="../application/codemirror/keymap/sublime.js"></script>
@@ -237,4 +236,4 @@
         </div>
     </div>
 </fmt:bundle>
-<script src="./js/function-lib-mgt.js"></script>
+<script src="../application/js/configure-authentication-flow.js"></script>

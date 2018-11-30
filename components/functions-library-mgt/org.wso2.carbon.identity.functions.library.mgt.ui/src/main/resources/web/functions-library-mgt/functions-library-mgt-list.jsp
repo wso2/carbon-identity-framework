@@ -143,7 +143,7 @@
                             %>
                             <tbody>
                             <%
-                                for (FunctionLibrary functionLib : functionLibraries) {
+                                for (FunctionLibrary functionLib : functionLibrariesToDisplay) {
                                     if (functionLib != null) {
                             
                             %>
@@ -196,7 +196,7 @@
             </table>
             <carbon:paginator pageNumber="<%=pageNumberInt%>"
                               numberOfPages="<%=numberOfPages%>"
-                              page="function-mgt-list.jsp"
+                              page="functions-library-mgt-list.jsp"
                               pageNumberParameterName="pageNumber"
                               resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                               parameters="<%=paginationValue%>"

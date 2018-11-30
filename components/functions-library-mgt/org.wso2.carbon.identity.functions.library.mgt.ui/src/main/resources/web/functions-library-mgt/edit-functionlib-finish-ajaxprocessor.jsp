@@ -13,6 +13,7 @@
 <%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.DESCRIPTION" %>
 <%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_CONTENT" %>
 <%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.OLD_FUNCTION_LIBRARY_NAME" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_SUFFIX" %>
 
 
 <%--
@@ -52,7 +53,7 @@
         
         FunctionLibrary functionLibrary = new FunctionLibrary();
         
-        functionLibrary.setFunctionLibraryName(functionLibraryName + ".js");
+        functionLibrary.setFunctionLibraryName(functionLibraryName + SCRIPT_SUFFIX);
         functionLibrary.setDescription(description);
         functionLibrary.setFunctionLibraryScript(content);
         

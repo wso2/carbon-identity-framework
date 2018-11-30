@@ -79,8 +79,8 @@
             if (functionLibName == '') {
                 CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
                 location.href = '#';
-                /*} else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
-                         return false;*/
+            } else if (!validateTextForIllegal(document.getElementById("functionLibraryName"))) {
+                return false;
             } else {
                 functionLibName = functionLibName + ".js";
                 if (functionLibName != oldFunctionLibName) {
@@ -156,10 +156,7 @@
                         <tr>
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea maxlength="1020" style=" width:50%" type="text" name="description"
-                                          id="functionLib-description"
-                                          class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()) : ""%>
-                                </textarea>
+                                <textarea maxlength="1020" style=" width:50%" type="text" name="description" id="functionLib-description" class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()) : ""%></textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
                                 </div>
@@ -192,4 +189,4 @@
         </div>
     </div>
 </fmt:bundle>
-<script src="./js/function-lib-mgt.js"></script>
+<script src="../application/js/configure-authentication-flow.js"></script>
