@@ -89,8 +89,7 @@
         if (templateName == '') {
             CARBON.showWarningDialog('Please provide template Name');
             location.href = '#';
-            /*} else if (!validateTextForIllegal(document.getElementById("templateName"))) {
-                     return false;*/
+
         } else {
             if (templateName != oldTemplateName) {
                 CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldTemplateName + '" ' +
@@ -108,8 +107,8 @@
         }
     }
 
-    function validateTextForIllegal(fild) {
-        var isValid = doValidateInput(fild, "Provided template name is invalid.");
+    function validateText(field) {
+        var isValid = doValidateInput(field, "Provided template name is invalid.");
         if (isValid) {
             return true;
         } else {
