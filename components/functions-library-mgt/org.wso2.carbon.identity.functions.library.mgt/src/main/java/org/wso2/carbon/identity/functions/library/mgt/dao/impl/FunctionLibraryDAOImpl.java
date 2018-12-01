@@ -204,26 +204,32 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement updateFunctionLibStmt =
-                     connection.prepareStatement(FunctionLibMgtDBQueries.UPDATE_FUNCTIONLIB_INFO)) {
-            connection.setAutoCommit(false);
-            updateFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
-            updateFunctionLibStmt.setString(2, functionLibrary.getDescription());
-            setBlobValue(functionLibrary.getFunctionLibraryScript(), updateFunctionLibStmt, 3);
-            updateFunctionLibStmt.setInt(4, tenantID);
-            updateFunctionLibStmt.setString(5, oldFunctionLibName);
-            updateFunctionLibStmt.executeUpdate();
-            connection.commit();
+        if (tenantID != MultitenantConstants.INVALID_TENANT_ID) {
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+                 PreparedStatement updateFunctionLibStmt =
+                         connection.prepareStatement(FunctionLibMgtDBQueries.UPDATE_FUNCTIONLIB_INFO)) {
+                connection.setAutoCommit(false);
+                updateFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
+                updateFunctionLibStmt.setString(2, functionLibrary.getDescription());
+                setBlobValue(functionLibrary.getFunctionLibraryScript(), updateFunctionLibStmt, 3);
+                updateFunctionLibStmt.setInt(4, tenantID);
+                updateFunctionLibStmt.setString(5, oldFunctionLibName);
+                updateFunctionLibStmt.executeUpdate();
+                connection.commit();
 
-        } catch (SQLException e) {
-            throw new FunctionLibraryManagementException("Failed to update Function library" + oldFunctionLibName, e);
-        } catch (IOException e) {
-            throw new FunctionLibraryManagementException("An error occurred while processing content stream " +
-                    "of function library script.", e);
-        } catch (IdentityRuntimeException e) {
-            throw new FunctionLibraryManagementException("Couldn't get a database connection.", e);
+            } catch (SQLException e) {
+                throw new FunctionLibraryManagementException("Failed to update Function library" + oldFunctionLibName, e);
+            } catch (IOException e) {
+                throw new FunctionLibraryManagementException("An error occurred while processing content stream " +
+                        "of function library script.", e);
+            } catch (IdentityRuntimeException e) {
+                throw new FunctionLibraryManagementException("Couldn't get a database connection.", e);
+            }
+        } else {
+            throw new FunctionLibraryManagementException("Error while updating function library due " +
+                    "to invalid tenant ID.");
         }
+
     }
 
     /**

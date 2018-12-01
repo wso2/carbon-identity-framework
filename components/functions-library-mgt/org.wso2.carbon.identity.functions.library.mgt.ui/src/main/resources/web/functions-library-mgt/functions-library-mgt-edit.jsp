@@ -65,6 +65,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
@@ -104,7 +105,7 @@
     </script>
     
     <%
-        String functionLibraryName = request.getParameter("functionLibraryName");
+        String functionLibraryName = request.getParameter(FUNCTION_LIBRARY_NAME);
         String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         FunctionLibrary functionLibrary = null;

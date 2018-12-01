@@ -88,5 +88,6 @@ public interface FunctionLibraryManagementService {
      * @return Function library existence
      * @throws FunctionLibraryManagementException
      */
-    boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain) throws FunctionLibraryManagementException;
+    boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
+            throws FunctionLibraryManagementException;
 }

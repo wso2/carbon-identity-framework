@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.AbstractAdmin;
@@ -43,6 +44,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     public void createFunctionLibrary(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         try {
+            validateInputs(functionLibrary);
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.createFunctionLibrary(functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
@@ -122,12 +124,28 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             throws FunctionLibraryManagementException {
 
         try {
+            validateInputs(functionLibrary);
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
             log.error("Error while updating function library " + oldFunctionLibraryName +
                     "for tenant domain " + getTenantDomain(), e);
             throw e;
+        }
+    }
+
+    /**
+     * Check for required attributes.
+     *
+     * @param functionLibrary Function library
+     * @throws FunctionLibraryManagementException
+     */
+    private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
+
+        if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
+            throw new FunctionLibraryManagementException("Function Library Name is required.");
+        } else if (StringUtils.isBlank(functionLibrary.getFunctionLibraryScript())) {
+            throw new FunctionLibraryManagementException("Function Library Scripts is required.");
         }
     }
 }

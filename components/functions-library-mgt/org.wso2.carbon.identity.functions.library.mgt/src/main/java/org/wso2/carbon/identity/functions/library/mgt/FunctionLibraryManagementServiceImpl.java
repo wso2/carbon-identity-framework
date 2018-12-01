@@ -66,11 +66,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     public void createFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain)
             throws FunctionLibraryManagementException {
 
-        if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
-            // check for required attributes.
-            throw new FunctionLibraryManagementException("Function Library Name is required.");
-        }
-
+        validateInputs(functionLibrary);
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
 
         if (functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
@@ -111,15 +107,11 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     }
 
     @Override
-    public void updateFunctionLibrary(String oldFunctionLibraryName,FunctionLibrary functionLibrary,
+    public void updateFunctionLibrary(String oldFunctionLibraryName, FunctionLibrary functionLibrary,
                                       String tenantDomain)
             throws FunctionLibraryManagementException {
 
-        if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
-            // check for required attributes.
-            throw new FunctionLibraryManagementException("Function Library Name is required.");
-        }
-
+        validateInputs(functionLibrary);
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
 
         if (!functionLibrary.getFunctionLibraryName().equals(oldFunctionLibraryName) &&
@@ -139,8 +131,24 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     @Override
     public boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
             throws FunctionLibraryManagementException {
+
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
         return functionLibraryDAO.isFunctionLibraryExists(functionLibraryName, tenantDomain);
+    }
+
+    /**
+     * Check for required attributes.
+     *
+     * @param functionLibrary Function library
+     * @throws FunctionLibraryManagementException
+     */
+    private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
+
+        if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
+            throw new FunctionLibraryManagementException("Function Library Name is required.");
+        } else if (StringUtils.isBlank(functionLibrary.getFunctionLibraryScript())) {
+            throw new FunctionLibraryManagementException("Function Library Scripts is required.");
+        }
     }
 
 }

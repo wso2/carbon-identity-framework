@@ -60,6 +60,5 @@ public class FunctionLibraryManagementServiceComponent {
         }
         // Unregistering Function library management service.
         BundleContext bundleContext = context.getBundleContext();
-
     }
 }
