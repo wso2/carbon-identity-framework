@@ -1,3 +1,4 @@
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.axis2.transport.http.HTTPConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
@@ -42,7 +43,7 @@
     String description = request.getParameter(DESCRIPTION);
     String content = request.getParameter(SCRIPT_CONTENT);
     
-    if (StringUtils.isNotBlank(functionLibName) && StringUtils.isNotBlank(content)) {
+    if (StringUtils.isNotBlank(functionLibName)) {
         
         FunctionLibrary functionLibrary = new FunctionLibrary();
         functionLibrary.setFunctionLibraryName(functionLibName + SCRIPT_SUFFIX);

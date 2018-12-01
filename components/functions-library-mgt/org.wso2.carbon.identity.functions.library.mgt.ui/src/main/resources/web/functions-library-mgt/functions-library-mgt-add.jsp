@@ -65,20 +65,17 @@
 <script type="text/javascript">
     function createFunctionLibOnclick() {
         var functionLibName = document.getElementById("functionLibName").value.trim();
-        var content = document.getElementById("scriptTextArea").value;
+        console.log(functionLibName)
+        console.log(content)
         if (functionLibName == '') {
             CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
             return false;
         } else {
-            if (content == '') {
-                CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.script"/>');
-                location.href = '#';
-            } else {
-                $("#add-functionlib-form").submit();
-                return true;
-            }
+            $("#add-functionlib-form").submit();
+            return true;
+
         }
     }
 
@@ -136,7 +133,6 @@
                                onclick="showManual();">
                         <label for="manual-option">Manual Configuration</label>
                     </td>
-                
                 </tr>
                 <%--Uncomment the following commented section when import functionality is implemented.--%>
                 <%--<tr>--%>
@@ -186,7 +182,7 @@
                     <div style="position: relative;">
                         <div id="codeMirror" class="sectionSub step_contents">
                             <textarea id="scriptTextArea" name="scriptContent"
-                                      placeholder="Write JavaScript Function..." style="height: 500px;width: 100%; display: none;">
+                                      placeholder="Write JavaScript Function..." style="height: 500px;width: 100%; display: block">
                             </textarea>
                         </div>
                     </div>

@@ -69,7 +69,7 @@
             
         } catch (Exception e) {
             String message = resourceBundle.getString("alert.error.while.updatinging.function.libraries") + " : " + e.getMessage();
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+            CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
 %>
 
 <script>
@@ -78,9 +78,7 @@
 <%
         }
     }
-
 %>
-
 <script>
     location.href = 'functions-library-mgt-list.jsp';
 </script>

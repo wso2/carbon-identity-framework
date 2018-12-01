@@ -77,6 +77,7 @@
         function UpdateFunctionLibOnclick() {
             var functionLibName = document.getElementById("functionLibraryName").value.trim();
             var oldFunctionLibName = document.getElementById("oldFunctionLibraryName").value.trim();
+            var content = document.getElementById("scriptTextArea").value.trim();
             if (functionLibName == '') {
                 CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
                 location.href = '#';
@@ -174,7 +175,7 @@
                         <div id="codeMirror">
                             <textarea id="scriptTextArea" name="scriptContent"
                                       placeholder="Write JavaScript Function..."
-                                      style="height: 500px;width: 100%; display: none;"><%=functionLibrary.getFunctionLibraryScript() != null ? Encode.forHtmlContent(functionLibrary.getFunctionLibraryScript()) : "" %>
+                                      style="height: 500px;width: 100%; display: none;"><%=functionLibrary.getFunctionLibraryScript() != null ? Encode.forHtmlContent(functionLibrary.getFunctionLibraryScript()).trim() : "" %>
                             </textarea>
                         </div>
                     </div>

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.functions.library.mgt.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -38,17 +39,18 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 )
 public class FunctionLibraryManagementServiceComponent {
 
-    private static Log log = LogFactory.getLog(FunctionLibraryManagementServiceComponent.class);
+    private static final Log log = LogFactory.getLog(FunctionLibraryManagementServiceComponent.class);
+    private ServiceRegistration serviceRegistration = null;
 
     @Activate
     protected void activate(ComponentContext context) {
 
         BundleContext bundleContext = context.getBundleContext();
         // Registering Function library management service as an OSGIService.
-        bundleContext.registerService(FunctionLibraryManagementService.class,
+        serviceRegistration = bundleContext.registerService(FunctionLibraryManagementService.class,
                 FunctionLibraryManagementServiceImpl.getInstance(), null);
         if (log.isDebugEnabled()) {
-            log.debug("Function Library Management Component bundle is activated.");
+            log.debug("Function Library Management bundle is activated.");
         }
     }
 
@@ -56,9 +58,11 @@ public class FunctionLibraryManagementServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Function Library Management Component bundle is deactivated.");
+            log.debug("Function Library Management bundle is deactivated.");
         }
         // Unregistering Function library management service.
-        BundleContext bundleContext = context.getBundleContext();
+        if (serviceRegistration != null) {
+            serviceRegistration.unregister();
+        }
     }
 }
