@@ -51,7 +51,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary1 = new FunctionLibrary();
         functionLibrary1.setFunctionLibraryName("$#%%");
         functionLibrary1.setDescription("sample1");
-        functionLibrary1.setFunctionLibraryScript("samplefunction1");
+        functionLibrary1.setFunctionLibraryScript("function samplefunction1(){}");
 
         FunctionLibrary functionLibrary2 = new FunctionLibrary();
         functionLibrary2.setFunctionLibraryName("sample2");
@@ -66,12 +66,12 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary4 = new FunctionLibrary();
         functionLibrary4.setFunctionLibraryName("sample4");
         functionLibrary4.setDescription("sample4");
-        functionLibrary4.setFunctionLibraryScript("samplefunction4");
+        functionLibrary4.setFunctionLibraryScript("function samplefunction4(){}");
 
         FunctionLibrary functionLibrary5 = new FunctionLibrary();
         functionLibrary5.setFunctionLibraryName("sample5");
         functionLibrary5.setDescription("sample5");
-        functionLibrary5.setFunctionLibraryScript("samplefunction5");
+        functionLibrary5.setFunctionLibraryScript("function samplefunction5(){}");
 
         return new Object[][]{
                 {
@@ -157,12 +157,12 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary9 = new FunctionLibrary();
         functionLibrary9.setFunctionLibraryName("sample9");
         functionLibrary9.setDescription("sample9");
-        functionLibrary9.setFunctionLibraryScript("samplefunction9");
+        functionLibrary9.setFunctionLibraryScript("function samplefunction9(){}");
 
         FunctionLibrary functionLibrary10 = new FunctionLibrary();
         functionLibrary10.setFunctionLibraryName("sample10");
         functionLibrary10.setDescription("sample10");
-        functionLibrary10.setFunctionLibraryScript("samplefunction10");
+        functionLibrary10.setFunctionLibraryScript("function samplefunction10(){}");
 
         return new Object[][]{
                 {
@@ -211,17 +211,17 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary6 = new FunctionLibrary();
         functionLibrary6.setFunctionLibraryName("sample6");
         functionLibrary6.setDescription("sample6");
-        functionLibrary6.setFunctionLibraryScript("samplefunction6");
+        functionLibrary6.setFunctionLibraryScript("function samplefunction6(){}");
 
         FunctionLibrary functionLibrary7 = new FunctionLibrary();
         functionLibrary7.setFunctionLibraryName("sample7");
         functionLibrary7.setDescription("sample7");
-        functionLibrary7.setFunctionLibraryScript("samplefunction7");
+        functionLibrary7.setFunctionLibraryScript("function samplefunction7(){}");
 
         FunctionLibrary functionLibrary8 = new FunctionLibrary();
         functionLibrary8.setFunctionLibraryName("sample8");
         functionLibrary8.setDescription("sample8");
-        functionLibrary8.setFunctionLibraryScript("samplefunction8");
+        functionLibrary8.setFunctionLibraryScript("function samplefunction8(){}");
 
         return new Object[][]{
                 {
@@ -269,22 +269,22 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary11 = new FunctionLibrary();
         functionLibrary11.setFunctionLibraryName("sample11");
         functionLibrary11.setDescription("sample11");
-        functionLibrary11.setFunctionLibraryScript("samplefunction11");
+        functionLibrary11.setFunctionLibraryScript("function samplefunction11(){}");
 
         FunctionLibrary functionLibrary12 = new FunctionLibrary();
         functionLibrary12.setFunctionLibraryName("sample12");
         functionLibrary12.setDescription("sample12");
-        functionLibrary12.setFunctionLibraryScript("samplefunction12");
+        functionLibrary12.setFunctionLibraryScript("function samplefunction12(){}");
 
         FunctionLibrary functionLibrary13 = new FunctionLibrary();
         functionLibrary13.setFunctionLibraryName("sample13");
         functionLibrary13.setDescription("sample13");
-        functionLibrary13.setFunctionLibraryScript("samplefunction13");
+        functionLibrary13.setFunctionLibraryScript("function samplefunction13(){}");
 
         FunctionLibrary functionLibrary14 = new FunctionLibrary();
         functionLibrary14.setFunctionLibraryName("sample14");
         functionLibrary14.setDescription("sample14");
-        functionLibrary14.setFunctionLibraryScript("samplefunction14");
+        functionLibrary14.setFunctionLibraryScript("function samplefunction14(){}");
 
         return new Object[][]{
                 {

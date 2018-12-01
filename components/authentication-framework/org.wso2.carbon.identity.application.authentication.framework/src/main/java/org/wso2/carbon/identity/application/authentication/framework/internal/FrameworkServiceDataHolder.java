@@ -79,7 +79,7 @@ public class FrameworkServiceDataHolder {
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
     private FunctionLibraryManagementService functionLibraryManagementService = null;
-    private String requireCode = null;
+    private String requireCode = "";
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
