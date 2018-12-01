@@ -17,7 +17,10 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
+import org.apache.cxf.Bus;
+import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
@@ -28,6 +31,8 @@ import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerReq
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoverySecurityQuestion;
 
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +42,7 @@ public class PasswordRecoverySecurityQuestionClient {
 
     StringBuilder builder = new StringBuilder();
     String url = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                     IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
     public Response initiateUserChallengeQuestion(User user) {

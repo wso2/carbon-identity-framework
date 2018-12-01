@@ -46,7 +46,7 @@ public class NotificationApi {
     private ApiClient apiClient;
 
     String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                     "api/identity/recovery/v0.9");
 
     public NotificationApi() {
@@ -285,7 +285,7 @@ public class NotificationApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             "t/" + tenantDomain + "/api/identity/recovery/v0.9");
         }
 

@@ -44,7 +44,7 @@ public class UsernameRecoveryApi {
   final String[] localVarAccepts = {"application/json"};
   final String[] localVarContentTypes = {"application/json"};
   String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-          .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+          .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                   "api/identity/recovery/v0.9");
   private ApiClient apiClient;
 
@@ -93,7 +93,7 @@ public class UsernameRecoveryApi {
 
     if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
       basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                       "t/" + tenantDomain + API_PATH);
     }
 
@@ -160,7 +160,7 @@ public class UsernameRecoveryApi {
 
     if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
       basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                       "t/" + tenantDomain + API_PATH);
     }
 
@@ -210,7 +210,7 @@ public class UsernameRecoveryApi {
 
     if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
       basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                       "t/" + tenantDomain + API_PATH);
     }
 

@@ -134,11 +134,11 @@ public class SelfRegistrationMgtClient {
         String purposesEndpoint;
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
         } else {
             purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
         }
         return purposesEndpoint;
@@ -149,12 +149,12 @@ public class SelfRegistrationMgtClient {
         String purposesEndpoint;
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH +
                                     PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
         } else {
             purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                             CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
         }
         return purposesEndpoint;
@@ -163,7 +163,7 @@ public class SelfRegistrationMgtClient {
     private String getUserAPIEndpoint() {
 
         String purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT,
+                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                         USERNAME_VALIDATE_API_RELATIVE_PATH);
         return purposesEndpoint;
     }
