@@ -23,18 +23,9 @@ public class UpdateTemplateRequestDTO {
     private String description = null;
     private String templateScript = null;
 
-    //    private Integer tenantId = null;
     public UpdateTemplateRequestDTO() {
 
     }
-
-//    public Integer getTenantId() {
-//        return tenantId;
-//    }
-//
-//    public void setTenantId(Integer tenantId) {
-//        this.tenantId = tenantId;
-//    }
 
     public String getTemplateName() {
 

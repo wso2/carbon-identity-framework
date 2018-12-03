@@ -108,8 +108,10 @@ public class TemplateManagerImpl implements TemplateManager {
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_INVALID, templateName);
         }
 
-        if (isTemplateExists(template.getTemplateName()) &&
-                !StringUtils.equals(templateName, template.getTemplateName())) {
+        if (!StringUtils.equals(templateName, template.getTemplateName()) &&
+                isTemplateExists(template.getTemplateName())) {
+            //check if there is another template in the database(other than the template in the path param)
+            // with the name of the updated template
             if (log.isDebugEnabled()) {
                 log.debug("A template already exists with the name: " + template.getTemplateName());
             }
@@ -225,7 +227,7 @@ public class TemplateManagerImpl implements TemplateManager {
     /**
      * This method is used to validate the pagination parameters.
      *
-     * @param limit Limits the number of templates listed on a page.
+     * @param limit  Limits the number of templates listed on a page.
      * @param offset Specifies the starting point for the templates to be displayed.
      * @throws TemplateManagementException Consent Management Exception.
      */
