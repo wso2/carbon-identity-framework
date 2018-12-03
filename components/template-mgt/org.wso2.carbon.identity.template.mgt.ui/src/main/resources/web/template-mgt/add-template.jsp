@@ -112,7 +112,8 @@
 
 <fmt:bundle basename="org.wso2.carbon.identity.template.mgt.ui.i18n.Resources">
     <%
-        String script = "<!-- You can customize the user prompt template here... -->\n" +
+        String script = "<!-- You can customize the template here... -->\n" +
+                "<!-- A sample template is provided below -->\n"+
                 "\t\n" +
                 "<div class=\"uppercase\">\n" +
                 "    <h3>Welcome {{name}}</h3>\n" +
@@ -125,9 +126,10 @@
                 "        <form id=\"template-form\" method=\"POST\"> <!-- *DO NOT CHANGE THIS* -->\n" +
                 "            <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required\">\n" +
                 "\n" +
-                "                <!-- Add the required input field/s here...\n" +
-                "                It should follow the below mentioned format-->\n" +
-                "\n" +
+                
+                
+                
+                
                 "                <label for=\"sampleInput\" class=\"control-label\">sample input</label>\n" +
                 "                <input type=\"text\" id=\"sampleInput\" name=\"sample_input\" class=\"form-control\" " +
                 "placeholder=\"sample input placeholder\" />\n" +

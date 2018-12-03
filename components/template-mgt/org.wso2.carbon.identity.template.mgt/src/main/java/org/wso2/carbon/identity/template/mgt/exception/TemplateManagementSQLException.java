@@ -26,26 +26,10 @@ public class TemplateManagementSQLException extends SQLException {
 
     private String errorCode;
 
-    public TemplateManagementSQLException() {
-
-        super();
-    }
-
-    public TemplateManagementSQLException(String message, String errorCode) {
-
-        super(message);
-        this.errorCode = errorCode;
-    }
-
     public TemplateManagementSQLException(String message, String errorCode, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
-    }
-
-    public TemplateManagementSQLException(Throwable cause) {
-
-        super(cause);
     }
 
     public int getErrorCode() {

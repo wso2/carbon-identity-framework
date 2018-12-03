@@ -114,6 +114,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                                     resultSet.getString(4),
                                     IOUtils.toString(resultSet.getBinaryStream(5)));
                         } catch (IOException e) {
+                            // SQLException is thrown since the QueryFilter throws an SQLException
                             throw new TemplateManagementSQLException(String
                                     .format(ERROR_CODE_SELECT_TEMPLATE_BY_NAME.getMessage(), tenantId, templateName),
                                     ERROR_CODE_SELECT_TEMPLATE_BY_NAME.getCode(), e);
@@ -205,6 +206,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                     preparedStatement.setBinaryStream(3, inputStream, inputStream.available());
 
                 } catch (IOException e) {
+                    // SQLException is thrown since the QueryFilter throws an SQLException
                     throw TemplateMgtUtils.handleSQLException(ERROR_CODE_UPDATE_TEMPLATE,
                             newTemplate.getTemplateName(), e);
 

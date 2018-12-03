@@ -130,7 +130,7 @@ public class TemplateManagerImpl implements TemplateManager {
 
         if (StringUtils.isBlank(templateName)) {
             if (log.isDebugEnabled()) {
-                log.debug("Template Name is not found in the request or invalid Template Name");
+                log.debug("Template Name is not found in the request or invalid Template Name.");
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_NAME_REQUIRED, null);
         }
@@ -184,7 +184,7 @@ public class TemplateManagerImpl implements TemplateManager {
     }
 
     /**
-     * This method is used to check whether a template exists with given name and tenant Id.
+     * This method is used to check whether a template exists with the given name.
      *
      * @param templateName Name of the template.
      * @return true, if an element is found.
@@ -196,7 +196,7 @@ public class TemplateManagerImpl implements TemplateManager {
     }
 
     /**
-     * This method is used to validate the input parameters.
+     * This method is used to validate the input parameters of a Template.
      *
      * @param template Template element.
      * @throws TemplateManagementException Consent Management Exception.
