@@ -41,25 +41,23 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <private-package>org.wso2.carbon.identity.functions.library.mgt.internal</private-package>
+                        <Private-Package>org.wso2.carbon.identity.functions.library.mgt.internal</Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.functions.library.mgt.internal,
                             org.wso2.carbon.identity.functions.library.mgt.*
                         </Export-Package>
                         <Import-Package>
+                            javax.script,
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
-                            org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
-                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

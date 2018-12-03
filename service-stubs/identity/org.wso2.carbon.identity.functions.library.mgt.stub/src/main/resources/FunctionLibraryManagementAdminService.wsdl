@@ -11,6 +11,18 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="listFunctionLibraries">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listFunctionLibrariesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2358:FunctionLibrary"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getFunctionLibrary">
                 <xs:complexType>
                     <xs:sequence>
@@ -32,29 +44,17 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="createFunctionLibrary">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="functionLibrary" nillable="true" type="ax2358:FunctionLibrary"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="listFunctionLibraries">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="listFunctionLibrariesResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2358:FunctionLibrary"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="updateFunctionLibrary">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="oldFunctionLibraryName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="functionLibrary" nillable="true" type="ax2358:FunctionLibrary"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="createFunctionLibrary">
+                <xs:complexType>
+                    <xs:sequence>
                         <xs:element minOccurs="0" name="functionLibrary" nillable="true" type="ax2358:FunctionLibrary"/>
                     </xs:sequence>
                 </xs:complexType>

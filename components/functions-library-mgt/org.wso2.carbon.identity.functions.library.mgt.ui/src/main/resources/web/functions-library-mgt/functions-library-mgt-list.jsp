@@ -11,6 +11,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.ArrayList" %>
 
 
 <%--
@@ -35,6 +36,7 @@
     <carbon:breadcrumb label="functionlib.mgt"
                        resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
+    <jsp:include page="../dialog/display_messages.jsp"/>
     
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
@@ -73,7 +75,7 @@
             </script>
             
             <%
-                List<FunctionLibrary> functionLibraries = null;
+                FunctionLibrary[] functionLibraries = null;
                 
                 String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -101,16 +103,15 @@
                     
                     FunctionLibraryManagementServiceClient serviceClient = new
                             FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
-                    functionLibraries = Arrays.asList(serviceClient.listFunctionLibraries());
+                    functionLibraries = serviceClient.listFunctionLibraries();
                     
                     if (functionLibraries != null) {
-                        numberOfPages = (int) Math.ceil((double) functionLibraries.size() / resultsPerPage);
+                        numberOfPages = (int) Math.ceil((double) functionLibraries.length / resultsPerPage);
                         int startIndex = pageNumberInt * resultsPerPage;
                         int endIndex = (pageNumberInt + 1) * resultsPerPage;
                         functionLibrariesToDisplay = new FunctionLibrary[resultsPerPage];
-                        
-                        for (int i = startIndex, j = 0; i < endIndex && i < functionLibraries.size(); i++, j++) {
-                            functionLibrariesToDisplay[j] = functionLibraries.get(i);
+                        for (int i = startIndex, j = 0; i < endIndex && i < functionLibraries.length; i++, j++) {
+                            functionLibrariesToDisplay[j] = (FunctionLibrary) functionLibraries[i];
                         }
                     }
                 } catch (Exception e) {
@@ -118,7 +119,6 @@
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
-            
             
             <br/>
             <table style="width: 100%" class="styledLeft">
@@ -138,7 +138,7 @@
                             </thead>
                             
                             <%
-                                if (functionLibraries != null && functionLibraries.size() > 0) {
+                                if (functionLibraries != null && functionLibraries.length > 0) {
                             
                             %>
                             <tbody>

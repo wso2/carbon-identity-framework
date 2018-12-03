@@ -78,7 +78,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                 connection.commit();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Function Library Stored successfully with functionlibrary name " +
+                    log.debug("Function Library stored successfully with function library name " +
                             functionLibrary.getFunctionLibraryName());
                 }
             } catch (SQLException e) {
@@ -170,13 +170,9 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     FunctionLibrary functionlib = new FunctionLibrary();
                     functionlib.setFunctionLibraryName(functionLibsResultSet.getString("NAME"));
                     functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(IOUtils.
-                            toString(functionLibsResultSet.getBinaryStream("DATA")));
                     functionLibraries.add(functionlib);
                 }
                 connection.commit();
-            } catch (IOException e) {
-                throw new FunctionLibraryManagementException("Error while reading function libraries", e);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException("Error while reading function libraries", e);

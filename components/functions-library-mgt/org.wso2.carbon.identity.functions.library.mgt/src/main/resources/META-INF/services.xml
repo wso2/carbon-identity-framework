@@ -29,28 +29,28 @@
 
         <operation name="createFunctionLibrary">
             <parameter name="AuthorizationAction" locked="true">
-                /permission/protected/manage/functionsLibrarymgt/create
+                /permission/admin/manage/functionsLibrarymgt/create
             </parameter>
         </operation>
 
         <operation name="listFunctionLibraries">
-            <parameter name="AuthorizationAction" locked="true">/permission/protected/manage/functionsLibrarymgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/functionslibrarymgt/view
             </parameter>
         </operation>
 
         <operation name="getFunctionLibrary">
-            <parameter name="AuthorizationAction" locked="true">/permission/protected/manage/functionsLibrarymgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/functionslibrarymgt/view
             </parameter>
         </operation>
 
         <operation name="deleteFunctionLibrary">
-            <parameter name="AuthorizationAction" locked="true">/permission/protected/managefunctionsLibrarymgt/delete
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/managefunctionslibrarymgt/delete
             </parameter>
         </operation>
 
         <operation name="updateFunctionLibrary">
             <parameter name="AuthorizationAction" locked="true">
-                /permission/protected/manage/functionsLibrarymgt/update
+                /permission/admin/manage/functionslibrarymgt/update
             </parameter>
         </operation>
         <parameter name="adminService" locked="true">true</parameter>

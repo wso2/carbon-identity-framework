@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryM
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.util.List;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -40,7 +39,8 @@ import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtU
 public class FunctionLibraryManagementServiceImpl implements FunctionLibraryManagementService {
 
     private static final Log log = LogFactory.getLog(FunctionLibraryManagementServiceImpl.class);
-    private static volatile FunctionLibraryManagementServiceImpl functionLibMgtService;
+    private static FunctionLibraryManagementServiceImpl functionLibMgtService =
+            new FunctionLibraryManagementServiceImpl();
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -56,13 +56,6 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
      */
     public static FunctionLibraryManagementServiceImpl getInstance() {
 
-        if (functionLibMgtService == null) {
-            synchronized (FunctionLibraryManagementServiceImpl.class) {
-                if (functionLibMgtService == null) {
-                    functionLibMgtService = new FunctionLibraryManagementServiceImpl();
-                }
-            }
-        }
         return functionLibMgtService;
     }
 

@@ -602,7 +602,7 @@ public class JsGraphBuilder {
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
             libraryScript = functionLibrary.getFunctionLibraryScript();
         } else {
-            log.error("No function library available with the given name.");
+            log.error("No function library available with " + functionLibraryName + "name.");
         }
         return libraryScript;
     }
