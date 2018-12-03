@@ -34,7 +34,7 @@
         String BUNDLE = "org.wso2.carbon.identity.template.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         
-        if (templateName != null && !"".equals(templateName)) {
+        if (StringUtils.isNotBlank(templateName)) {
             
             try {
                 String currentUser = (String) session.getAttribute("logged-user");
