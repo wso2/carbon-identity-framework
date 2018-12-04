@@ -58,8 +58,8 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
     styleActiveLine: true,
 });
 var doc = myCodeMirror.getDoc();
-var editorContent = doc.getValue();
 
+document.getElementById("scriptTextArea").value = editorContent;
 
 function autoFormatSelection(cm) {
     var range = getSelectedRange();
@@ -83,4 +83,8 @@ $("#toggleEditorSize").click(function () {
 
 function getSelectedRange() {
     return {from: myCodeMirror.getCursor(true), to: myCodeMirror.getCursor(false)};
+}
+
+function checkEmptyEditorContent() {
+    document.getElementById('scriptTextArea').value = doc.getValue();
 }

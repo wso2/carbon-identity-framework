@@ -138,7 +138,7 @@
                             %>
                             <tbody>
                             <%
-                                for (TemplateInfo template : templateList) {
+                                for (TemplateInfo template : templateListToDisplay) {
                                     if (template != null) {
                             
                             %>

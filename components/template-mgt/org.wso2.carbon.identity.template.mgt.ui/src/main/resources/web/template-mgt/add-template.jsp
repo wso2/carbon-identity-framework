@@ -82,21 +82,26 @@
 
 <script type="text/javascript">
     function createTemplateOnclick() {
+        checkEmptyEditorContent();
         var templateName = document.getElementById("templateName").value.trim();
-        var description = document.getElementById("template-description").value;
+        var content = document.getElementById('scriptTextArea').value;
         if (templateName == '') {
-            CARBON.showWarningDialog('Template name cannot be empty');
+            CARBON.showWarningDialog('Template name cannot be empty.');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("templateName"))) {
             return false;
         } else {
+            if (content == '') {
+                CARBON.showWarningDialog('Template script cannot be empty.');
+                location.href = '#';
+            }
             $("#add-template-form").submit();
             return true;
         }
     }
 
-    function validateTextForIllegal(fild) {
-        var isValid = doValidateInput(fild, "Provided template name is invalid");
+    function validateTextForIllegal(field) {
+        var isValid = doValidateInput(field, "Provided template name is invalid.");
         if (isValid) {
             return true;
         } else {
@@ -113,7 +118,7 @@
 <fmt:bundle basename="org.wso2.carbon.identity.template.mgt.ui.i18n.Resources">
     <%
         String script = "<!-- You can customize the template here... -->\n" +
-                "<!-- A sample template is provided below -->\n"+
+                "<!-- A sample template is provided below -->\n" +
                 "\t\n" +
                 "<div class=\"uppercase\">\n" +
                 "    <h3>Welcome {{name}}</h3>\n" +
@@ -126,9 +131,6 @@
                 "        <form id=\"template-form\" method=\"POST\"> <!-- *DO NOT CHANGE THIS* -->\n" +
                 "            <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required\">\n" +
                 "\n" +
-                
-                
-                
                 
                 "                <label for=\"sampleInput\" class=\"control-label\">sample input</label>\n" +
                 "                <input type=\"text\" id=\"sampleInput\" name=\"sample_input\" class=\"form-control\" " +

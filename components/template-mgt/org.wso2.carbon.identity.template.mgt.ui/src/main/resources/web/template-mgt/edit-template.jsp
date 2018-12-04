@@ -83,23 +83,34 @@
 
 <script type="text/javascript">
     function UpdateTemplateOnclick() {
+        checkEmptyEditorContent();
         var templateName = document.getElementById("templateName").value.trim();
         var oldTemplateName = document.getElementById("oldTemplateName").value.trim();
-        console.log(templateName);
+        var content = document.getElementById('scriptTextArea').value;
         if (templateName == '') {
             CARBON.showWarningDialog('Please provide template Name');
             location.href = '#';
 
+            // CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldTemplateName + '" ' +
+            //     'Template name ? \n WARN: If you edit this library name, ' +
+            //     'the authentication scripts which used this will no longer function properly!',
+            //     doEdit, null);
+        } else if (!validateTextForIllegal(document.getElementById('templateName'))) {
+            return false;
         } else {
-            if (templateName != oldTemplateName) {
-                CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldTemplateName + '" ' +
-                    'Template name ? \n WARN: If you edit this library name, ' +
-                    'the authentication scripts which used this will no longer function properly!',
-                    doEdit, null);
+            if (content == '') {
+                CARBON.showWarningDialog('Template script cannot be empty.');
+                location.href = '#';
             } else {
-                doEdit();
+                if(templateName != oldTemplateName){
+                    CARBON.showConfirmationDialog('Are you sure you want to edit "' + oldTemplateName + '" ' +
+                        'Template name ? \n WARN: If you edit this library name, ' +
+                        'the authentication scripts which used this will no longer function properly!',
+                        doEdit, null);
+                } else {
+                    doEdit();
+                }
             }
-
             function doEdit() {
                 $("#update-template-form").submit();
                 return true;
@@ -107,7 +118,7 @@
         }
     }
 
-    function validateText(field) {
+    function validateTextForIllegal(field) {
         var isValid = doValidateInput(field, "Provided template name is invalid.");
         if (isValid) {
             return true;
@@ -121,7 +132,6 @@
     <carbon:breadcrumb label="template.mgt"
                        resourceBundle="org.wso2.carbon.identity.template.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-    
     
     <%
         String templateName = request.getParameter("templateName");

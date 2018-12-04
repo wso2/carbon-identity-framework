@@ -56,7 +56,6 @@
 <%
 } catch (Exception e) {
     CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
-    e.printStackTrace();
 %>
 <script>
     location.href = 'add-template.jsp';

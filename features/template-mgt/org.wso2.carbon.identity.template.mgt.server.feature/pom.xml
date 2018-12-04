@@ -39,12 +39,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.template.mgt.endpoint</artifactId>
-            <version>${project.version}</version>
             <type>war</type>
         </dependency>
     </dependencies>
@@ -67,7 +65,6 @@
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.framework</groupId>
                                     <artifactId>org.wso2.carbon.identity.template.mgt.endpoint</artifactId>
-                                    <version>${project.version}</version>
                                     <type>war</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
