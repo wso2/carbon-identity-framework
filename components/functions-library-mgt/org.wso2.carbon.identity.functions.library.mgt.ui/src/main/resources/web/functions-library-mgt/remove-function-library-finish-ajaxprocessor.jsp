@@ -7,7 +7,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
 
 
 <%--
@@ -41,7 +42,6 @@
     
     if (StringUtils.isNotBlank(functionLibraryName)) {
         try {
-            
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
             String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()

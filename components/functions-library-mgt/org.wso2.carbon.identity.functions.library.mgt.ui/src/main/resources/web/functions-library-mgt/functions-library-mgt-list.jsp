@@ -9,9 +9,6 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="java.util.ArrayList" %>
 
 
 <%--
@@ -70,13 +67,13 @@
                             }
                         });
                     }
+
                     CARBON.showConfirmationDialog('<fmt:message key="remove.function.library.warn"/>', doDelete, null);
                 }
             </script>
             
             <%
                 FunctionLibrary[] functionLibraries = null;
-                
                 String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 FunctionLibrary[] functionLibrariesToDisplay = new FunctionLibrary[0];
@@ -115,7 +112,8 @@
                         }
                     }
                 } catch (Exception e) {
-                    String message = resourceBundle.getString("error.while.reading.function.libraries") + " : " + e.getMessage();
+                    String message = resourceBundle.getString("error.while.reading.function.libraries") + " : " +
+                            e.getMessage();
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
@@ -160,14 +158,14 @@
                                        style="background-image: url(images/edit.gif)">
                                         <fmt:message key='edit'/>
                                     </a>
-                                    <%--Uncomment the following commented section when export functionality is implemented.--%>
-                                    <%--<a title="<fmt:message key='export.functionlib.info'/>"--%>
-                                       <%--onclick=""--%>
-                                       <%--href="#"--%>
-                                       <%--class="icon-link"--%>
-                                       <%--style="background-image: url(images/export.gif)">--%>
+                                        <%--Uncomment the following commented section when export functionality is implemented.--%>
+                                        <%--<a title="<fmt:message key='export.functionlib.info'/>"--%>
+                                        <%--onclick=""--%>
+                                        <%--href="#"--%>
+                                        <%--class="icon-link"--%>
+                                        <%--style="background-image: url(images/export.gif)">--%>
                                         <%--<fmt:message key='export'/>--%>
-                                    <%--</a>--%>
+                                        <%--</a>--%>
                                     <a title="<fmt:message key='delete.functionlib.info'/>"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(functionLib.getFunctionLibraryName())%>');return false;"
                                        href=""

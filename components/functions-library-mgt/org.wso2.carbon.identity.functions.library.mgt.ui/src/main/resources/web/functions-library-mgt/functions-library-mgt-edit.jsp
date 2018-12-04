@@ -65,7 +65,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
@@ -75,6 +76,7 @@
                        topPage="true" request="<%=request%>"/>
     <script type="text/javascript">
         function UpdateFunctionLibOnclick() {
+            checkEmptyEditorContent();
             var functionLibName = document.getElementById("functionLibraryName").value.trim();
             var oldFunctionLibName = document.getElementById("oldFunctionLibraryName").value.trim();
             var content = document.getElementById("scriptTextArea").value.trim();
@@ -84,11 +86,24 @@
             } else if (!validateTextForIllegal(document.getElementById("functionLibraryName"))) {
                 return false;
             } else {
-                functionLibName = functionLibName + ".js";
-                if (functionLibName != oldFunctionLibName) {
-                    CARBON.showConfirmationDialog('<fmt:message key="update.function.library.name.warn"/>', doEdit, null);
+                if (content == '') {
+                    CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.script"/>');
+                    location.href = '#';
                 } else {
-                    doEdit();
+                    try {
+                        eval(prepareScript(content));
+                        functionLibName = functionLibName + ".js";
+                        if (functionLibName != oldFunctionLibName) {
+                            CARBON.showConfirmationDialog('<fmt:message key="update.function.library.name.warn"/>',
+                                doEdit, null);
+                        } else {
+                            doEdit();
+                        }
+                    } catch (e) {
+                        CARBON.showWarningDialog('<fmt:message key="error.in.script"/>' + e.lineNumber + " : " +
+                            "" + e.message);
+                        location.href = '#';
+                    }
                 }
 
                 function doEdit() {
@@ -101,6 +116,13 @@
         function validateTextForIllegal(field) {
             var isValid = doValidateInput(field, '<fmt:message key="invalid.function.library.name"/>');
             return isValid;
+        }
+
+        function prepareScript(code) {
+            var module = "var module = { exports:{} };";
+            var exports = "var exports = {};";
+            code = module + exports + code;
+            return code;
         }
     
     </script>
@@ -126,8 +148,8 @@
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
             }
         }
-    
     %>
+    
     <div id="workArea">
         <div id="middle">
             <h2>Edit Function Library</h2>
@@ -158,7 +180,9 @@
                         <tr>
                             <td class="leftCol-med labelField">Description:</td>
                             <td>
-                                <textarea maxlength="1020" style=" width:50%" type="text" name="description" id="functionLib-description" class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()) : ""%></textarea>
+                                <textarea maxlength="1020" style=" width:50%" type="text" name="description"
+                                          id="functionLib-description"
+                                          class="text-box-big"><%=functionLibrary.getDescription() != null ? Encode.forHtmlContent(functionLibrary.getDescription()) : ""%></textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.desc'/>
                                 </div>
@@ -191,4 +215,4 @@
         </div>
     </div>
 </fmt:bundle>
-<script src="../application/js/configure-authentication-flow.js"></script>
+<script src="./js/function-lib-mgt.js"></script>

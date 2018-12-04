@@ -164,7 +164,11 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
 
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-            engine.eval(functionLibrary.getFunctionLibraryScript());
+            String head = "var module = { exports:{} }; \n" +
+                    "var exports = {}; \n";
+            String code = functionLibrary.getFunctionLibraryScript();
+            code = head + code;
+            engine.eval(code);
         } catch (ScriptException e) {
             log.error("Function library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);

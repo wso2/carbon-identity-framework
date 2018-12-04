@@ -160,7 +160,11 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-            engine.eval(functionLibrary.getFunctionLibraryScript());
+            String head = "var module = { exports:{} }; \n" +
+                    "var exports = {}; \n";
+            String code = functionLibrary.getFunctionLibraryScript();
+            code = head + code;
+            engine.eval(code);
         } catch (ScriptException e) {
             log.error("Function library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);
@@ -168,5 +172,4 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
                     functionLibrary.getFunctionLibraryName() + " contains errors.", e);
         }
     }
-
 }

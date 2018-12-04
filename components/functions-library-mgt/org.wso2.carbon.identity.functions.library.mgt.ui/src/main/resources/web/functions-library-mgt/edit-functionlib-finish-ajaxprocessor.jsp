@@ -9,11 +9,16 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.DESCRIPTION" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_CONTENT" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.OLD_FUNCTION_LIBRARY_NAME" %>
-<%@ page import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_SUFFIX" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.DESCRIPTION" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_CONTENT" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.OLD_FUNCTION_LIBRARY_NAME" %>
+<%@ page
+        import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.SCRIPT_SUFFIX" %>
 
 
 <%--
@@ -46,7 +51,7 @@
     String description = request.getParameter(DESCRIPTION);
     String content = request.getParameter(SCRIPT_CONTENT);
     
-    if (StringUtils.isNotBlank(functionLibraryName)) {
+    if (StringUtils.isNotBlank(functionLibraryName) && StringUtils.isNotBlank(content)) {
         
         String BUNDLE = "org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -63,11 +68,13 @@
             ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             
-            FunctionLibraryManagementServiceClient serviceClient = new FunctionLibraryManagementServiceClient(cookie, backendServerURL, configContext);
+            FunctionLibraryManagementServiceClient serviceClient = new FunctionLibraryManagementServiceClient(cookie,
+                    backendServerURL, configContext);
             serviceClient.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary);
             
         } catch (Exception e) {
-            String message = resourceBundle.getString("alert.error.while.updatinging.function.libraries") + " : " + e.getMessage();
+            String message = resourceBundle.getString("alert.error.while.updatinging.function.libraries") + " : " +
+                    e.getMessage();
             CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
 %>
 

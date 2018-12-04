@@ -60,63 +60,80 @@
     <carbon:breadcrumb label="functionlib.mgt"
                        resourceBundle="org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-<jsp:include page="../dialog/display_messages.jsp"/>
-
-<script type="text/javascript">
-    function createFunctionLibOnclick() {
-        var functionLibName = document.getElementById("functionLibName").value.trim();
-        console.log(functionLibName)
-        console.log(content)
-        if (functionLibName == '') {
-            CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
-            location.href = '#';
-        } else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
-            return false;
-        } else {
-            $("#add-functionlib-form").submit();
-            return true;
-
+    <jsp:include page="../dialog/display_messages.jsp"/>
+    
+    <script type="text/javascript">
+        function createFunctionLibOnclick() {
+            checkEmptyEditorContent();
+            var functionLibName = document.getElementById("functionLibName").value.trim();
+            var content = document.getElementById('scriptTextArea').value.trim();
+            if (functionLibName == '') {
+                CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.name"/>');
+                location.href = '#';
+            } else if (!validateTextForIllegal(document.getElementById("functionLibName"))) {
+                return false;
+            } else {
+                if (content == '') {
+                    CARBON.showWarningDialog('<fmt:message key="not.provide.function.library.script"/>');
+                    location.href = '#';
+                } else {
+                    try {
+                        eval(prepareScript(content));
+                        $("#add-functionlib-form").submit();
+                        return true;
+                    } catch (e) {
+                        CARBON.showWarningDialog('<fmt:message key="error.in.script"/>' + e.lineNumber + " : " + e.message);
+                        location.href = '#';
+                    }
+                }
+            }
         }
-    }
 
-    function validateTextForIllegal(field) {
-        var isValid = doValidateInput(field,'<fmt:message key="invalid.function.library.name"/>');
-        return isValid;
-    }
+        function validateTextForIllegal(field) {
+            var isValid = doValidateInput(field, '<fmt:message key="invalid.function.library.name"/>');
+            return isValid;
+        }
 
-    // Uncomment the following commented section when export functionality is implemented.
-    // var openFile = function (event) {
-    //     var input = event.target;
-    //     var reader = new FileReader();
-    //     reader.onload = function () {
-    //         var data = reader.result;
-    //         document.getElementById('functionlib-file-content').value = data;
-    //     };
-    //     document.getElementById('functionlib-file-name').value = input.files[0].name;
-    //     reader.readAsText(input.files[0]);
-    // };
-    //
-    // function importFunctionLibOnclick() {
-    //
-    // }
+        function prepareScript(code) {
+            var module = "var module = { exports:{} };";
+            var exports = "var exports = {};";
+            code = module + exports + code;
+            return code;
+        }
 
-    function showManual() {
-        $("#add-functionlib-form").show();
         // Uncomment the following commented section when export functionality is implemented.
-        //$("#upload-functionlib-form").hide();
-    }
+        // var openFile = function (event) {
+        //     var input = event.target;
+        //     var reader = new FileReader();
+        //     reader.onload = function () {
+        //         var data = reader.result;
+        //         document.getElementById('functionlib-file-content').value = data;
+        //     };
+        //     document.getElementById('functionlib-file-name').value = input.files[0].name;
+        //     reader.readAsText(input.files[0]);
+        // };
+        //
+        // function importFunctionLibOnclick() {
+        //
+        // }
 
-    // Uncomment the following commented section when export functionality is implemented.
-    // function showFile() {
-    //     $("#add-functionlib-form").hide();
-    //     $("#upload-functionlib-form").show();
-    // }
+        function showManual() {
+            $("#add-functionlib-form").show();
+            // Uncomment the following commented section when export functionality is implemented.
+            //$("#upload-functionlib-form").hide();
+        }
 
-    window.onload = function () {
-        showManual();
-    }
+        // Uncomment the following commented section when export functionality is implemented.
+        // function showFile() {
+        //     $("#add-functionlib-form").hide();
+        //     $("#upload-functionlib-form").show();
+        // }
 
-</script>
+        window.onload = function () {
+            showManual();
+        }
+    
+    </script>
     
     <div id="middle">
         <h2>Add New Function Library</h2>
@@ -182,7 +199,8 @@
                     <div style="position: relative;">
                         <div id="codeMirror" class="sectionSub step_contents">
                             <textarea id="scriptTextArea" name="scriptContent"
-                                      placeholder="Write JavaScript Function..." style="height: 500px;width: 100%; display: block">
+                                      placeholder="Write JavaScript Function..."
+                                      style="height: 500px;width: 100%; display: none">
                             </textarea>
                         </div>
                     </div>
@@ -232,4 +250,4 @@
         </div>
     </div>
 </fmt:bundle>
-<script src="../application/js/configure-authentication-flow.js"></script>
+<script src="./js/function-lib-mgt.js"></script>
