@@ -593,13 +593,11 @@ public class JsGraphBuilder {
                 getFunctionLibraryManagementService();
         FunctionLibrary functionLibrary;
         String libraryScript = null;
-        boolean isFunctionLibrary = false;
-        isFunctionLibrary = functionLibMgtService.isFunctionLibraryExists(functionLibraryName,
+
+        functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
                 CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
 
-        if (isFunctionLibrary) {
-            functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        if (functionLibrary != null) {
             libraryScript = functionLibrary.getFunctionLibraryScript();
         } else {
             log.error("No function library available with " + functionLibraryName + "name.");

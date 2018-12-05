@@ -56,7 +56,6 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
                     " for tenant domain " + getTenantDomain() + ".", e);
             throw e;
         }
-
     }
 
     /**
@@ -96,7 +95,6 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
                     " for tenant domain " + getTenantDomain() + ".", e);
             throw e;
         }
-
     }
 
     /**

@@ -689,7 +689,8 @@ public class FrameworkServiceComponent {
             requireCode = IOUtils.toString(resourceStream);
             FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
         } catch (IOException e) {
-            log.error("Failed to read require.js file.", e);
+            log.error("Failed to read require.js file. Therefore, require() function doesn't support in" +
+                    "adaptive authentication scripts.", e);
         }
     }
 }

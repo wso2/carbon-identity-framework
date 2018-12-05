@@ -225,7 +225,6 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             throw new FunctionLibraryManagementException("Error while updating function library due " +
                     "to invalid tenant ID.");
         }
-
     }
 
     /**
