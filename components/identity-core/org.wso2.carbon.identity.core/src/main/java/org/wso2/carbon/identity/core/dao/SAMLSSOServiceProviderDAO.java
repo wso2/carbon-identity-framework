@@ -254,11 +254,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("Service Provider already exists with the same issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
                                 + serviceProviderDO.getIssuerQualifier());
                     } else {
-                        log.debug("Service Provider already exists with the same issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + serviceProviderDO.getIssuer());
                     }
                 }
@@ -272,11 +272,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
                 if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                    log.debug("Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
                             + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
                             serviceProviderDO.getIssuerQualifier() + " is added successfully.");
                 } else {
-                    log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
                 }
             }
             return true;
@@ -284,10 +284,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             isErrorOccurred = true;
             String msg;
             if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while adding Service Provider for issuer: " + getIssuerWithoutQualifier(serviceProviderDO.getIssuer())
-                        + " and qualifier name " + serviceProviderDO.getIssuerQualifier();
+                msg = "Error while adding SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
+                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
+                        .getIssuerQualifier();
             } else {
-                msg = "Error while adding Service Provider for issuer: " + serviceProviderDO.getIssuer();
+                msg = "Error while adding SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
             }
             log.error(msg, e);
             throw IdentityException.error(msg, e);
@@ -658,11 +659,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("Service Provider already exists with the same issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
                                 + serviceProviderDO.getIssuerQualifier());
                     } else {
-                        log.debug("Service Provider already exists with the same issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + serviceProviderDO.getIssuer());
                     }
                 }
@@ -677,11 +678,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
                 if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                    log.debug("Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
                             + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
                             serviceProviderDO.getIssuerQualifier() + " is added successfully.");
                 } else {
-                    log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
                 }
             }
             return serviceProviderDO;

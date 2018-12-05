@@ -178,10 +178,10 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
 
         dummyPropertiesWithAnIssuerQualifier = new HashMap<>();
         dummyPropertiesWithAnIssuerQualifier.putAll(dummyBasicProperties);
-        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections.singletonList
-                ("DummyIssuer"));
-        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER, Collections.singletonList
-                ("DummyIssuerQualifier"));
+        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections
+                .singletonList("DummyIssuer"));
+        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER,
+                Collections.singletonList("DummyIssuerQualifier"));
     }
 
     @AfterMethod
