@@ -1,0 +1,59 @@
+<!--
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied. See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<serviceGroup>
+    <service name="FunctionLibraryManagementAdminService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
+        <description>Function library related functionality</description>
+        <parameter name="ServiceClass">
+            org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementAdminService
+        </parameter>
+
+        <operation name="createFunctionLibrary">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/functionsLibrarymgt/create
+            </parameter>
+        </operation>
+
+        <operation name="listFunctionLibraries">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/functionslibrarymgt/view
+            </parameter>
+        </operation>
+
+        <operation name="getFunctionLibrary">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/functionslibrarymgt/view
+            </parameter>
+        </operation>
+
+        <operation name="deleteFunctionLibrary">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/managefunctionslibrarymgt/delete
+            </parameter>
+        </operation>
+
+        <operation name="updateFunctionLibrary">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/functionslibrarymgt/update
+            </parameter>
+        </operation>
+        <parameter name="adminService" locked="true">true</parameter>
+    </service>
+    <parameter name="hiddenService" locked="true">true</parameter>
+</serviceGroup>

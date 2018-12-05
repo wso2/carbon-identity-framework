@@ -342,6 +342,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+        public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";

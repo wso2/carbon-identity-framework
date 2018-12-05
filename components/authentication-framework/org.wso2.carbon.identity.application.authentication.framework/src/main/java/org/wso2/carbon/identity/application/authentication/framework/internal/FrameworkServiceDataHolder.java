@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -77,6 +78,8 @@ public class FrameworkServiceDataHolder {
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
+    private FunctionLibraryManagementService functionLibraryManagementService = null;
+    private String requireCode = "";
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
 
@@ -378,5 +381,45 @@ public class FrameworkServiceDataHolder {
     public void setIdentityEventService (IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get function library management service.
+     *
+     * @return functionLibraryManagementService
+     */
+    public FunctionLibraryManagementService getFunctionLibraryManagementService() {
+
+        return functionLibraryManagementService;
+    }
+
+    /**
+     * Set function library management service.
+     *
+     * @param functionLibraryManagementService functionLibraryManagementService
+     */
+    public void setFunctionLibraryManagementService(FunctionLibraryManagementService functionLibraryManagementService) {
+
+        this.functionLibraryManagementService = functionLibraryManagementService;
+    }
+
+    /**
+     * Get require() function's code.
+     *
+     * @return code snippet of require()
+     */
+    public String getCodeForRequireFunction() {
+
+        return requireCode;
+    }
+
+    /**
+     * Set require() function's code.
+     *
+     * @param requireCode code snippet of require() function
+     */
+    public void setCodeForRequireFunction(String requireCode) {
+
+        this.requireCode = requireCode;
     }
 }
