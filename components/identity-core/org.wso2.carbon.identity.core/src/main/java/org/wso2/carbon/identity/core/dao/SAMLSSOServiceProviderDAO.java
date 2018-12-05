@@ -253,7 +253,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
-                    if (serviceProviderDO.getIssuerQualifier() != null) {
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                         log.debug("Service Provider already exists with the same issuer name "
                                 + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
                                 + serviceProviderDO.getIssuerQualifier());
@@ -271,7 +271,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
-                if (serviceProviderDO.getIssuerQualifier() != null) {
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                     log.debug("Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
                             + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
                             serviceProviderDO.getIssuerQualifier() + " is added successfully.");
@@ -283,7 +283,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         } catch (RegistryException e) {
             isErrorOccurred = true;
             String msg;
-            if (serviceProviderDO.getIssuerQualifier() != null) {
+            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                 msg = "Error while adding Service Provider for issuer: " + getIssuerWithoutQualifier(serviceProviderDO.getIssuer())
                         + " and qualifier name " + serviceProviderDO.getIssuerQualifier();
             } else {
@@ -409,7 +409,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 String.valueOf(serviceProviderDO.isDoValidateSignatureInArtifactResolve());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
                 validateSignatureInArtifactResolve);
-        if (serviceProviderDO.getIssuerQualifier() != null && StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
             resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER, serviceProviderDO
                     .getIssuerQualifier());
         }
@@ -428,8 +428,8 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
      */
     private String getIssuerWithoutQualifier(String issuerWithQualifier) {
 
-        String issuerWithoutQualifier = StringUtils.substringBeforeLast
-                (issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
+                IdentityRegistryResources.QUALIFIER_ID);
         return issuerWithoutQualifier;
     }
 
@@ -657,7 +657,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
-                    if (serviceProviderDO.getIssuerQualifier() != null) {
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                         log.debug("Service Provider already exists with the same issuer name "
                                 + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
                                 + serviceProviderDO.getIssuerQualifier());
@@ -676,7 +676,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             Resource resource = createResource(serviceProviderDO);
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
-                if (serviceProviderDO.getIssuerQualifier() != null) {
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                     log.debug("Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
                             + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
                             serviceProviderDO.getIssuerQualifier() + " is added successfully.");
