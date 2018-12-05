@@ -163,7 +163,8 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
             String head = "var module = { exports:{} }; \n" +
-                    "var exports = {}; \n";
+                    "var exports = {}; \n" +
+                    "function require(name){};";
             String code = functionLibrary.getFunctionLibraryScript();
             code = head + code;
             engine.eval(code);

@@ -121,7 +121,8 @@
         function prepareScript(code) {
             var module = "var module = { exports:{} };";
             var exports = "var exports = {};";
-            code = module + exports + code;
+            var require = "function require(name){};";
+            code = module + exports + require + code;
             return code;
         }
     

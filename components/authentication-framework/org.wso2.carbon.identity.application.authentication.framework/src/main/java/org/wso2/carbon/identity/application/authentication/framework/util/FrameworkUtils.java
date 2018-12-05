@@ -1890,7 +1890,13 @@ public class FrameworkUtils {
     public static Object toJsSerializable(Object value) {
 
         if (value instanceof Serializable) {
-            return value;
+            if (value instanceof HashMap) {
+                Map<String, Object> map = new HashMap<>();
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
+                return map;
+            } else {
+                return value;
+            }
         } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {
