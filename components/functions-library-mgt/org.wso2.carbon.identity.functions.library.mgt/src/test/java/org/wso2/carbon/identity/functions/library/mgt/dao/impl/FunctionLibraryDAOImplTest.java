@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.functions.library.mgt.dao.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -52,6 +54,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
     private static final String DB_NAME = "FUNCTIONLIB_DB";
+    private static final Log log = LogFactory.getLog(FunctionLibraryDAOImplTest.class);
 
     @BeforeClass
     public void initTest() throws Exception {
@@ -90,7 +93,6 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         functionLibrary3.setDescription("sample3");
         functionLibrary3.setFunctionLibraryScript("samplefunction3");
 
-
         return new Object[][]{
                 {
                         functionLibrary1,
@@ -124,9 +126,9 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
                 when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
                 functionLibraryDAO.createFunctionLibrary(functionLibrary1, tenantDomain);
             } catch (FunctionLibraryManagementException e) {
-                System.out.println("FunctionLibraryManagementException");
+                log.error("FunctionLibraryManagementException");
             } catch (SQLException e) {
-                System.out.println("SQLException");
+                log.error("SQLException");
             }
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
             functionLibraryDAO.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
@@ -141,7 +143,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             functionLibraryDAO.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain);
         } catch (SQLException e) {
-            System.out.println("SQLException");
+            log.error("SQLException");
         } catch (FunctionLibraryManagementException e) {
             assertEquals(e.getMessage(), "Error while creating Function Library.");
         }
@@ -169,7 +171,6 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         functionLibrary7.setFunctionLibraryName("sample7");
         functionLibrary7.setDescription("sample7");
         functionLibrary7.setFunctionLibraryScript("samplefunction7");
-
 
         return new Object[][]{
                 {
@@ -209,7 +210,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             deleteFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("SQLException");
         }
     }
 

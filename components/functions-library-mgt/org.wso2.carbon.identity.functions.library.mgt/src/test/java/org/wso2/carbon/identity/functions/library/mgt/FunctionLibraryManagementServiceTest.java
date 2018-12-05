@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.DataProvider;
@@ -43,7 +45,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
-    private static final String DB_NAME = "FUNCTIONLIB_DB";
+    private static final Log log = LogFactory.getLog(FunctionLibraryManagementServiceTest.class);
 
     @DataProvider(name = "createFunctionLibraryDataProvider")
     public Object[][] createFunctionLibraryData() {
@@ -129,7 +131,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (FunctionLibraryManagementException e) {
             if (((FunctionLibrary) functionLibrary).getFunctionLibraryName() == null) {
                 assertEquals(e.getMessage(), "Function Library Name is required");
-                System.out.println("Function Library Name is required");
             } else if (!isRegexValidated(((FunctionLibrary) functionLibrary).getFunctionLibraryName())) {
                 assertEquals(e.getMessage(), "The function library name " + ((FunctionLibrary) functionLibrary).
                         getFunctionLibraryName() + " is not valid! It is not adhering " +
@@ -140,14 +141,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                             ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)) {
                         assertEquals(e.getMessage(),
                                 "Already a function library available with the same name.");
-                        System.out.println("Already a function library available with the same name.");
                     }
                 } catch (FunctionLibraryManagementException e1) {
-                    e1.printStackTrace();
+                    log.error("Function Library Management Exception");
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception");
         }
     }
 
@@ -201,7 +201,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
                     tenantDomain);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception");
         }
     }
 
@@ -349,7 +349,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                         "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception");
         }
     }
 

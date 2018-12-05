@@ -51,7 +51,6 @@
                     function doDelete() {
 
                         var functionLibName = functionLibraryName;
-                        console.log(functionLibName);
                         $.ajax({
                             type: 'POST',
                             url: 'remove-function-library-finish-ajaxprocessor.jsp',
