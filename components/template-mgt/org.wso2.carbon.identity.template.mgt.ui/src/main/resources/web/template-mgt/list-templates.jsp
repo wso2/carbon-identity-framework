@@ -156,13 +156,6 @@
                                        style="background-image: url(images/edit.gif)">
                                         <fmt:message key='edit'/>
                                     </a>
-                                    <a title="<fmt:message key='export.template.info'/>"
-                                       onclick=""
-                                       href="#"
-                                       class="icon-link"
-                                       style="background-image: url(images/export.gif)">
-                                        <fmt:message key='export'/>
-                                    </a>
                                     <a title="<fmt:message key='delete.template.info'/>"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(template
                                                                 .getTemplateName())%>'); return false;"
