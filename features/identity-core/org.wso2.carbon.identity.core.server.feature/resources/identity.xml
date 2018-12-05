@@ -454,6 +454,7 @@
         <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlsso</IdentityProviderURL>
         <DefaultLogoutEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/samlsso_logout.do</DefaultLogoutEndpoint>
         <NotificationEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/samlsso_notification.do</NotificationEndpoint>
+        <ArtifactResolutionEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlartresolve</ArtifactResolutionEndpoint>
         <SingleLogoutRetryCount>5</SingleLogoutRetryCount>
         <SingleLogoutRetryInterval>60000</SingleLogoutRetryInterval>
         <!-- in milli seconds -->
