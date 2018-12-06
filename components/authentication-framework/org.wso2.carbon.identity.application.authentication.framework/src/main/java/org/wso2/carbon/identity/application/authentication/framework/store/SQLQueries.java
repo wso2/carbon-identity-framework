@@ -68,10 +68,41 @@ public class SQLQueries {
      * Query to retrieve IdP Id of a registered IdP.
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
-
     /**
-     * Query to delete session data.
+     * Query to retrieve App Id of a registered App.
      */
-    public static final String SQL_DELETE_TERMINATED_SESSION_DATA =
+    public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
+    /**
+     * Query to store APP session data.
+     */
+    public static final String SQL_INSERT_APP_SESSION_STORE_OPERATION =
+            "INSERT INTO IDN_AUTH_APP_SESSION_STORE(SESSION_ID,SUBJECT,APP_ID,APP_TENANT_ID," +
+                    "INBOUND_AUTH_TYPE)VALUES (?,?,?,?,?)";
+    /**
+     * Query to retrieve user session mapping.
+     */
+    public static final String SQL_SELECT_APP_SESSION =
+            "SELECT * FROM IDN_AUTH_APP_SESSION_STORE WHERE SESSION_ID =? AND SUBJECT =? " +
+                    "AND APP_ID =? AND APP_TENANT_ID =? AND INBOUND_AUTH_TYPE =?";
+    /**
+     * Query to store session meta data.
+     */
+    public static final String SQL_INSERT_SESSION_META_DATA =
+            "INSERT INTO IDN_AUTH_SESSION_META_DATA(SESSION_ID,PROPERTY_TYPE,VALUE)VALUES (?,?,?)";
+    /**
+     * Query to update last access time.
+     */
+    public static final String UPDATE_LAST_ACCESS_TIME = "UPDATE IDN_AUTH_SESSION_META_DATA SET VALUE=? WHERE " +
+            "SESSION_ID =? AND PROPERTY_TYPE=?";
+    /**
+     * Queries to delete session data.
+     */
+    public static final String SQL_DELETE_TERMINATED_USER_SESSION_MAPPING_DATA =
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
+
+    public static final String SQL_DELETE_TERMINATED_APP_SESSION_DATA =
+            "DELETE FROM IDN_AUTH_APP_SESSION_STORE WHERE SESSION_ID = ?";
+
+    public static final String SQL_DELETE_TERMINATED_SESSION_META_DATA =
+            "DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID = ?";
 }

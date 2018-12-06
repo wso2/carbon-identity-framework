@@ -55,6 +55,22 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
     }
 
+    @Override
+    public boolean terminateSession(List<String> sessionIdList) {
+        for (String sessionId : sessionIdList) {
+            if (!StringUtils.isBlank(sessionId)) {
+                sessionManagementService.removeSession(sessionId);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean terminateASession(String sessionId) {
+        sessionManagementService.removeSession(sessionId);
+        return true;
+    }
+
     private void validate(String username, String userStoreDomain, String tenantDomain) throws UserSessionException {
 
         if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) || StringUtils.isBlank(tenantDomain)) {
