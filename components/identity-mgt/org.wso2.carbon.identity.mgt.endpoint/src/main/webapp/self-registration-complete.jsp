@@ -88,7 +88,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
+            location.href = "<%=Encode.forUri(callback)%>";
         })
     });
 </script>
