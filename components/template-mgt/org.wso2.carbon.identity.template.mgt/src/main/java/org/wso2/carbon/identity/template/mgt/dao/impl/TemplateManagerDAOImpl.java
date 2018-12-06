@@ -108,11 +108,10 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                     {
                         Template templateResult;
                         try {
-                            templateResult = new Template(resultSet.getInt(1),
-                                    resultSet.getInt(2),
-                                    resultSet.getString(3),
-                                    resultSet.getString(4),
-                                    IOUtils.toString(resultSet.getBinaryStream(5)));
+                            templateResult = new Template(
+                                    resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    IOUtils.toString(resultSet.getBinaryStream(3)));
                         } catch (IOException e) {
                             // SQLException is thrown since the QueryFilter throws an SQLException
                             throw new TemplateManagementSQLException(String

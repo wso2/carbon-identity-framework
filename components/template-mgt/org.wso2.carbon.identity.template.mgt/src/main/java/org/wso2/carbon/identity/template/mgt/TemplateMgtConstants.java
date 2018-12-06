@@ -105,11 +105,10 @@ public class TemplateMgtConstants {
     public static class SqlQueries {
 
         public static final String INSERT_TEMPLATE = "INSERT INTO IDN_TEMPLATE_MGT (TENANT_ID, NAME," +
-                " DESCRIPTION, TEMPLATE_SCRIPT) VALUES (?,?,?,?  )";
+                " DESCRIPTION, TEMPLATE_SCRIPT) VALUES (?,?,?,?)";
 
-        public static final String GET_TEMPLATE_BY_NAME = "SELECT TEMPLATE_ID,TENANT_ID,NAME,DESCRIPTION," +
-                "TEMPLATE_SCRIPT FROM IDN_TEMPLATE_MGT WHERE NAME=?" +
-                " AND TENANT_ID=?";
+        public static final String GET_TEMPLATE_BY_NAME = "SELECT NAME,DESCRIPTION,TEMPLATE_SCRIPT " +
+                "FROM IDN_TEMPLATE_MGT WHERE NAME=? AND TENANT_ID=?";
 
         public static final String LIST_PAGINATED_TEMPLATES_MYSQL = "SELECT NAME,DESCRIPTION FROM " +
                 "IDN_TEMPLATE_MGT WHERE TENANT_ID=? ORDER BY" +
