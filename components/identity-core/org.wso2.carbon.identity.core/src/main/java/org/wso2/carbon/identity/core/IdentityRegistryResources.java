@@ -164,7 +164,7 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
 
     //SAML Issuer Qualifier
-    public final static String QUALIFIER_ID = ":urn:qualifier:";
+    public final static String QUALIFIER_ID = ":urn:sp:qualifier:";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";
