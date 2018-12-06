@@ -122,7 +122,7 @@ public class IdentityRegistryResources {
 
     //SAML SSO
     public final static String PROP_SAML_SSO_ISSUER = "Issuer";
-    public final static String PROP_SAML_SSO_ISSUER_QUALIFIER = "IssuerQualifier";
+    public final static String PROP_SAML_SSO_ISSUER_QUALIFIER = "SpQualifier";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URL = "SAMLSSOAssertionConsumerURL";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URLS = "SAMLSSOAssertionConsumerURLs";
     public final static String PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL = "DefaultSAMLSSOAssertionConsumerURL";
