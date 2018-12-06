@@ -26,6 +26,14 @@ paths:
   /templates:
     get:
       summary: "Get an array of templates."
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-response: |
+        [{"templateName":"Template100","description":"This is a sample template created by Alex"},
+        {"templateName":"Template101","description":"This is a sample template created by Bob"},
+        {"templateName":"Template102","description":"This is a sample template created by Cameron"}]
       operationId: "getTemplates"
       produces:
         - "application/json"
@@ -66,6 +74,12 @@ paths:
     post:
       summary: "Add a new template.\n"
       description: "This API is used to store template information submitted by the user.\n"
+      x-wso2-request: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"<Template_Name>\", \"description\": \"<Template_Description>\",\"templateScript\": \"<Template_Script>\"}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template100\", \"description\": \"This is a sample template created by Alex\",\"templateScript\": \"templateData\"}"
+      x-wso2-response: |
+        {"tenantId":-1234,"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
       operationId: "addTemplate"
       consumes:
         - "application/json"
@@ -103,6 +117,12 @@ paths:
     get:
       summary: "Find template by Name.\n"
       description: "This API is used to retrieve a specific template using the template name. \n"
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/{templateName}" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-response: |
+        {"templateId":1, "tenantId":-1234,"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
       operationId: "getTemplateByName"
       produces:
         - "application/json"
@@ -136,6 +156,12 @@ paths:
     post:
       summary: "Update an existing template. \n"
       description: "This API is used to update a template. \n"
+      x-wso2-request: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/{templateName}" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"<New_Template_Name>\", \"description\": \"<New_Template_Description>\",\"templateScript\": \"<New_Template_Script>\"}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template101\", \"description\": \"This is an updated version of the sample template created by Alex\",\"templateScript\": \"updated templateData\"}"
+      x-wso2-response: |
+        {"tenantId":-1234,"templateName":"Template101","description":"This is an updated version of the sample template created by Alex","templateScript":"updated templateData"}
       operationId: "updateTemplate"
       produces:
         - "application/json"
@@ -174,6 +200,10 @@ paths:
     delete:
       summary: "Delete a template."
       description: "This API is used to delete a template.\n"
+      x-wso2-request: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
       operationId: "deleteTemplate"
       produces:
         - "application/json"
@@ -229,7 +259,7 @@ definitions:
     properties:
       tenantId:
         type: "integer"
-        description: "The Id of the tenant which the template resides in."
+        description : "The Id of the tenant which the template resides in."
       templateName:
         type: "string"
         description: "The name of the template given by the admin."
