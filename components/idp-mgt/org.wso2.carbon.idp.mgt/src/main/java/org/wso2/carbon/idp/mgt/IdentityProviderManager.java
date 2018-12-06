@@ -467,10 +467,10 @@ public class IdentityProviderManager implements IdpManager {
                 getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                 SAML_METADATA_SIGNING_ENABLED);
         if (samlMetadataSigningEnabledProperty == null) {
-            samlMetadataValidityPeriodProperty = new Property();
-            samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+            samlMetadataSigningEnabledProperty = new Property();
+            samlMetadataSigningEnabledProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_SIGNING_ENABLED);
-            samlMetadataValidityPeriodProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+            samlMetadataSigningEnabledProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_SIGNING_ENABLED_DEFAULT);
         }
         propertiesList.add(samlMetadataSigningEnabledProperty);
