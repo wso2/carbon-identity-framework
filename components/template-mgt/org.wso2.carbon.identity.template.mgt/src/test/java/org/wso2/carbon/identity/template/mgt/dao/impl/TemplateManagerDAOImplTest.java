@@ -271,7 +271,6 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
             try (Connection connection1 = getConnection()) {
                 when(dataSource.getConnection()).thenReturn(connection1);
                 Template templateByName = templateManagerDAO.getTemplateByName(((Template) templateObject).getTemplateName(), tenantId);
-                Assert.assertEquals(((Template) templateObject).getTenantId(), templateByName.getTenantId());
                 Assert.assertEquals(((Template) templateObject).getTemplateName(), templateByName.getTemplateName());
                 Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
                 Assert.assertEquals(((Template) templateObject).getTemplateScript(), templateByName.getTemplateScript());

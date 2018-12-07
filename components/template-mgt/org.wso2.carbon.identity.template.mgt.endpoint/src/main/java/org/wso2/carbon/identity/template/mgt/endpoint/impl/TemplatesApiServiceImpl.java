@@ -92,7 +92,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     public Response getTemplateByName(String templateName) {
 
         try {
-            Template template = getTemplate(templateName);
+            TemplateDTO template = getTemplate(templateName);
             return Response.ok()
                     .entity(template)
                     .build();
@@ -182,10 +182,14 @@ TemplatesApiServiceImpl extends TemplatesApiService {
         return responseDTO;
     }
 
-    private Template getTemplate(String templateName) throws TemplateManagementException {
+    private TemplateDTO getTemplate(String templateName) throws TemplateManagementException {
 
         Template getTemplateResponse = TemplateEndpointUtils.getTemplateManager().getTemplateByName(templateName);
-        return getTemplateResponse;
+        TemplateDTO response = new TemplateDTO();
+        response.setTemplateName(getTemplateResponse.getTemplateName());
+        response.setDescription(getTemplateResponse.getDescription());
+        response.setTemplateScript(getTemplateResponse.getTemplateScript());
+        return response;
     }
 
     private URI getTemplateLocationURI(String templateName) throws URISyntaxException {

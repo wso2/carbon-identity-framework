@@ -265,7 +265,6 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
                 Connection spyConnection1 = spyConnection(connection);
                 when(dataSource.getConnection()).thenReturn(spyConnection1);
                 Template templateByName = templateManager.getTemplateByName(templateName);
-                Assert.assertEquals(((Template) templateObject).getTenantId(), templateByName.getTenantId());
                 Assert.assertEquals(((Template) templateObject).getTemplateName(), templateByName.getTemplateName());
                 Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
                 Assert.assertEquals(((Template) templateObject).getTemplateScript(), templateByName.getTemplateScript());
