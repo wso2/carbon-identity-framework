@@ -79,7 +79,7 @@ paths:
       x-wso2-curl: |
         curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template100\", \"description\": \"This is a sample template created by Alex\",\"templateScript\": \"templateData\"}"
       x-wso2-response: |
-        {"tenantId":-1234,"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
+        {"tenantDomain":"carbon.super","templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
       operationId: "addTemplate"
       consumes:
         - "application/json"
@@ -122,7 +122,7 @@ paths:
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
-        {"templateId":1, "tenantId":-1234,"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
+        {"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
       operationId: "getTemplateByName"
       produces:
         - "application/json"
@@ -161,7 +161,7 @@ paths:
       x-wso2-curl: |
         curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template101\", \"description\": \"This is an updated version of the sample template created by Alex\",\"templateScript\": \"updated templateData\"}"
       x-wso2-response: |
-        {"tenantId":-1234,"templateName":"Template101","description":"This is an updated version of the sample template created by Alex","templateScript":"updated templateData"}
+        {"tenantDomain":"carbon.super","templateName":"Template101","description":"This is an updated version of the sample template created by Alex","templateScript":"updated templateData"}
       operationId: "updateTemplate"
       produces:
         - "application/json"
@@ -257,9 +257,9 @@ definitions:
   TemplateResponse:
     type: "object"
     properties:
-      tenantId:
-        type: "integer"
-        description : "The Id of the tenant which the template resides in."
+      tenantDomain:
+        type: "string"
+        description: "The domain name of the tenant which the template resides in."
       templateName:
         type: "string"
         description: "The name of the template given by the admin."
@@ -270,7 +270,7 @@ definitions:
         type: "string"
         description: "This indicates the script of the template."
     example:
-      tenantId: -1234
+      tenantDomain: "abc.com"
       templateName: "sample template name"
       description: "sample description"
       templateScript: "sample template script"

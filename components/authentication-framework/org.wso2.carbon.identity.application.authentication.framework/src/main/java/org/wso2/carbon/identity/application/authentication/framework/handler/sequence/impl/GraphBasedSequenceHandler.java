@@ -252,7 +252,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
             String redirectUrl = promptPage + "?templateId=" +
-                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" + context.getContextIdentifier()+ "&tenantDomain=" + context.getTenantDomain();
+                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
+                    context.getContextIdentifier()+ "&tenantDomain=" + context.getTenantDomain();
             if (promptNode.getData() != null) {
                 context.addEndpointParams(promptNode.getData());
             }

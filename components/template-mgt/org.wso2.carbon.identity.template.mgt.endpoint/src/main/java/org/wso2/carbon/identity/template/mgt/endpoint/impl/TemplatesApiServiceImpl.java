@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.endpoint.TemplatesApiService;
 import org.wso2.carbon.identity.template.mgt.endpoint.dto.GetTemplatesResponseDTO;
@@ -175,7 +176,7 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     private TemplateResponseDTO getResponseTemplateDTO(Template templateResponse) {
 
         TemplateResponseDTO responseDTO = new TemplateResponseDTO();
-        responseDTO.setTenantId(templateResponse.getTenantId());
+        responseDTO.setTenantDomain(IdentityTenantUtil.getTenantDomain(templateResponse.getTenantId()));
         responseDTO.setTemplateName(templateResponse.getTemplateName());
         responseDTO.setDescription(templateResponse.getDescription());
         responseDTO.setTemplateScript(templateResponse.getTemplateScript());
