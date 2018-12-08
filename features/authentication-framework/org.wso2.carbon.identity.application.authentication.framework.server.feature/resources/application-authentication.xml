@@ -159,7 +159,7 @@
             <!--<Parameter name="setClaimURI">http://wso2.org/claims/identity/userCertificate</Parameter>-->
             <!--<Parameter name="EnforceSelfRegistration">true</Parameter>-->
         </AuthenticatorConfig>
-        <!--AuthenticatorConfig name="totp" enabled="true">
+        <AuthenticatorConfig name="totp" enabled="true">
             <Parameter name="encodingMethod">Base32</Parameter>
             <Parameter name="timeStepSize">30</Parameter>
             <Parameter name="windowSize">3</Parameter>
@@ -171,7 +171,7 @@
             <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
             <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
             <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
-        </AuthenticatorConfig-->
+        </AuthenticatorConfig>
 	</AuthenticatorConfigs>
 
     <!--
