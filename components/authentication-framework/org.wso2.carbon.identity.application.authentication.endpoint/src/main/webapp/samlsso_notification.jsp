@@ -17,33 +17,33 @@
   --%>
 
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@include file="localize.jsp" %>
 
-<%
+<%! private static final String INVALID_MESSAGE_MESSAGE =
+        "The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details";
+    private static final String EXCEPTION_MESSAGE = "Please try login again.";
+    private static final String INVALID_MESSAGE_STATUS = "Not a valid SAML 2.0 Request Message!";
+    private static final String EXCEPTION_STATUS = "Error when processing the authentication request!";
+%><%
     String stat = request.getParameter(Constants.STATUS);
     String statusMessage = request.getParameter(Constants.STATUS_MSG);
-
+    
     String errorStat = stat;
     String errorMsg = statusMessage;
-
+    
     boolean unrecognizedStatus = true;
-    if (stat.equals("Error when processing the authentication request!") ||
-            stat.equals("Not a valid SAML 2.0 Request Message!")) {
+    if (EXCEPTION_STATUS.equals(stat) || INVALID_MESSAGE_STATUS.equals(stat)) {
         errorStat = "error.when.processing.authentication.request";
         unrecognizedStatus = false;
     }
-
+    
     boolean unrecognizedStatusMsg = true;
-    if (statusMessage.equals("Please try login again.") ||
-            statusMessage.equals("The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details")) {
+    if (EXCEPTION_MESSAGE.equals(statusMessage) || INVALID_MESSAGE_MESSAGE.equals(statusMessage)) {
         errorMsg = "please.try.login.again";
         unrecognizedStatusMsg = false;
     }
-
+    
     if (stat == null || statusMessage == null || unrecognizedStatus || unrecognizedStatusMsg) {
-        stat = "Authentication Error !";
-        statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
         errorStat = "authentication.error";
         errorMsg = "something.went.wrong.during.authentication";
     }
