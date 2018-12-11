@@ -32,15 +32,15 @@
     <packaging>war</packaging>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.wso2.maven.plugins</groupId>
-                <artifactId>swagger2cxf-maven-plugin</artifactId>
-                <configuration>
-                    <inputSpec>
-                        ${project.basedir}/src/main/resources/org.wso2.carbon.identity.template.mgt.api.yaml
-                    </inputSpec>
-                </configuration>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.wso2.maven.plugins</groupId>-->
+                <!--<artifactId>swagger2cxf-maven-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<inputSpec>-->
+                        <!--${project.basedir}/src/main/resources/org.wso2.carbon.identity.template.mgt.api.yaml-->
+                    <!--</inputSpec>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
