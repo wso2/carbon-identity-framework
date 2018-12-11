@@ -903,6 +903,7 @@
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -924,6 +925,7 @@
             <Context>/scim2/</Context>
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
+            <Context>/api/identity/template/mgt/v1.0.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
