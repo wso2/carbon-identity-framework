@@ -39,8 +39,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${pom.artifactId}</Bundle-Name>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <private-package>org.wso2.carbon.identity.template.mgt.internal</private-package>
                         <Export-Package>
                             !org.wso2.carbon.identity.template.mgt.internal,
