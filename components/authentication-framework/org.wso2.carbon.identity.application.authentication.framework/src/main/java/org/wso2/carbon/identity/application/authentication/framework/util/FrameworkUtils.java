@@ -1509,7 +1509,10 @@ public class FrameworkUtils {
      * @param queryParams Map of query params to be append.
      * @return Built URL with query params.
      * @throws UnsupportedEncodingException Throws when trying to encode the query params.
+     *
+     * @deprecated Use {@link #buildURLWithQueryParams(String, Map)} instead.
      */
+    @Deprecated
     public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams)
             throws UnsupportedEncodingException {
 
@@ -1528,6 +1531,34 @@ public class FrameworkUtils {
 
         String queryString = StringUtils.join(queryParam1, "&");
 
+        return appendQueryParamsStringToUrl(url, queryString);
+    }
+
+    /**
+     * Append a query param map to the URL (URL may already contain query params)
+     *
+     * @param url         URL string to append the params.
+     * @param queryParams Map of query params to be append.
+     * @return Built URL with query params.
+     * @throws UnsupportedEncodingException Can be thrown when trying to encode the query params.
+     */
+    public static String buildURLWithQueryParams(String url, Map<String, String> queryParams)
+            throws UnsupportedEncodingException {
+
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Passed URL is empty.");
+        }
+        if (MapUtils.isEmpty(queryParams)) {
+            return url;
+        }
+
+        List<String> queryParam1 = new ArrayList<>();
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name());
+            queryParam1.add(entry.getKey() + "=" + encodedValue);
+        }
+
+        String queryString = StringUtils.join(queryParam1, "&");
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
