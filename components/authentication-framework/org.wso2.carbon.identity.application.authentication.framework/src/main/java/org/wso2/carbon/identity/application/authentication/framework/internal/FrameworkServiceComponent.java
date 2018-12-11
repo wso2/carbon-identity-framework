@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
@@ -83,11 +84,14 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -115,6 +119,7 @@ public class FrameworkServiceComponent {
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
+    private String requireCode;
 
     public static RealmService getRealmService() {
 
@@ -322,6 +327,11 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
+
+        /**
+         * Load and reade the require.js file in resources.
+         */
+        this.loadCodeForRequire();
     }
 
     @Deactivate
@@ -672,4 +682,49 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setIdentityEventService(null);
     }
 
+    @Reference(
+            name = "function.library.management.service",
+            service = FunctionLibraryManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFunctionLibraryManagementService"
+    )
+    protected void setFunctionLibraryManagementService
+            (FunctionLibraryManagementService functionLibraryManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("FunctionLibraryManagementService is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFunctionLibraryManagementService(functionLibraryManagementService);
+    }
+
+    protected void unsetFunctionLibraryManagementService
+            (FunctionLibraryManagementService functionLibraryManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("FunctionLibraryManagementService is unset in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFunctionLibraryManagementService(null);
+    }
+
+    public static FunctionLibraryManagementService getFunctionLibraryManagementService() {
+
+        return FrameworkServiceDataHolder.getInstance().getFunctionLibraryManagementService();
+    }
+
+    /**
+     * Load and read the JS function in require.js file.
+     */
+    private void loadCodeForRequire() {
+
+        try {
+            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
+            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
+            requireCode = IOUtils.toString(resourceStream);
+            FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
+        } catch (IOException e) {
+            log.error("Failed to read require.js file. Therefore, require() function doesn't support in" +
+                    "adaptive authentication scripts.", e);
+        }
+    }
 }

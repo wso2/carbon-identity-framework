@@ -24,13 +24,12 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.12.219-SNAPSHOT</version>
+        <version>5.12.226-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>template-mgt</artifactId>
-    <version>5.12.219-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - Template Manager</name>
     <description>
