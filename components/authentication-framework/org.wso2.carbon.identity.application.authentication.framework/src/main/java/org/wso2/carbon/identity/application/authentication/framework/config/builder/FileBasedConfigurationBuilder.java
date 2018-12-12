@@ -100,6 +100,7 @@ public class FileBasedConfigurationBuilder {
     private boolean authEndpointRedirectParamsConfigAvailable;
     private String authEndpointRedirectParamsAction;
     private List<String> authEndpointRedirectParams = new ArrayList<>();
+    private List<String> filteringEnabledHostNames = new ArrayList<>();
 
     public static FileBasedConfigurationBuilder getInstance() {
         if (instance == null) {
@@ -188,6 +189,9 @@ public class FileBasedConfigurationBuilder {
 
             //########### Read Maximum Login Attempt Count ###########
             readMaximumLoginAttemptCount(rootElement);
+
+            // ########### Read White Listed Host Names ###########
+            readFilteringEnabledHostNames(rootElement);
 
             // ########### Read Authentication Endpoint Query Params ###########
             readAuthenticationEndpointQueryParams(rootElement);
@@ -401,6 +405,23 @@ public class FileBasedConfigurationBuilder {
             }
         }
         return true;
+    }
+
+    private void readFilteringEnabledHostNames(OMElement documentElement){
+        OMElement filteringEnabledHostNamesElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_FILTERING_ENABLED_HOST_NAMES));
+        if (filteringEnabledHostNamesElem != null) {
+            Iterator<OMElement> hostNames = filteringEnabledHostNamesElem.getChildrenWithName(IdentityApplicationManagementUtil.
+                    getQNameWithIdentityApplicationNS(FrameworkConstants.Config.ELEM_HOST_NAME));
+            if (hostNames != null) {
+                while (hostNames.hasNext()) {
+                    OMElement hostNameElement = hostNames.next();
+                    if (hostNameElement != null) {
+                        filteringEnabledHostNames.add(hostNameElement.getText());
+                    }
+                }
+            }
+        }
     }
 
     private void readAuthenticationEndpointQueryParams(OMElement documentElement) {
@@ -1035,5 +1056,10 @@ public class FileBasedConfigurationBuilder {
     public List<String> getAuthEndpointRedirectParams() {
 
         return authEndpointRedirectParams;
+    }
+
+    public List<String> getFilteringEnabledHostNames() {
+
+        return filteringEnabledHostNames;
     }
 }
