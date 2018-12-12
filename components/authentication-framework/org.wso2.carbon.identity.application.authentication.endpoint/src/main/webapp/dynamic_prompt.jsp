@@ -99,7 +99,7 @@
         <div class="col-md-12">
             
             <%
-                if (templateData.getTemplateScript() != null) {
+                if (templateData != null && templateData.getTemplateScript() != null) {
             %>
             <div id="template-holder"></div>
             <script id="template-handlebars" type="text/x-handlebars-template">
