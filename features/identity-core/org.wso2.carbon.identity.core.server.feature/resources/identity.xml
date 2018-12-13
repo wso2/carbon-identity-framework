@@ -744,6 +744,7 @@
             <Cache name="AuthenticationResultCache"  enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="AppInfoCache"               enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="AuthorizationGrantCache"    enable="true" timeout="300" capacity="5000" isDistributed="false"/>
+            <Cache name="JWKSCache"                  enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthCache"                 enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthScopeCache"            enable="true"  timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthSessionDataCache"      enable="true" timeout="300" capacity="5000" isDistributed="false"/>
