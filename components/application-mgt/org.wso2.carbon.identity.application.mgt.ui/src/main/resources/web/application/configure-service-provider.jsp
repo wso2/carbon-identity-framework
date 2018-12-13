@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig" %>
@@ -138,6 +139,25 @@
     boolean isNeedToUpdate = false;
     boolean isAdvanceConsentManagementEnabled = false;
 
+    //adding code to support jwks URI
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
+
+    ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+    if (spProperties != null) {
+    for (ServiceProviderProperty spProperty : spProperties) {
+     if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
+          hasJWKSUri = true;
+          jwksUri = spProperty.getValue();
+          System.out.println("JWKS "+ jwksUri);
+          }
+       }
+    }
+
+    if (jwksUri == null) {
+            jwksUri = "";
+        }
+
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
         appBean.setAuthenticationType(authTypeReq);
@@ -176,6 +196,7 @@
             appBean.getServiceProvider().setCertificateContent(applicationCertificate);
             session.removeAttribute("applicationCertificate");
         }
+
 
         isNeedToUpdate = true;
     }
@@ -1227,6 +1248,42 @@
         %>
     }
 
+    //
+    function selectJWKS(certDataNotNull) {
+            var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+            useJWKSUriStype.display = 'table-row';
+            var uploadCertType = document.getElementById('upload_certificate').style;
+            uploadCertType.display = 'none';
+             // delete certificates if jwks_uri is selected.
+            if (jQuery('#sp-certificate').val() != '') {
+                jQuery('#sp-certificate').val('');
+            } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+                jQuery('#deletePublicCert').val('true');
+            } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+                $(jQuery('#publicCertDiv')).toggle();
+                var publicCertDiv = document.getElementById('publicCertDiv').style;
+                publicCertDiv.display = 'none';
+                jQuery( '#publicCertDiv').empty();
+                 var input = document.createElement('input');
+                input.type = "hidden";
+                input.name = "deletePublicCert";
+                input.id = "deletePublicCert";
+                input.value = "true";
+                document.forms['configure-sp-form'].appendChild(input);
+            }
+        }
+
+    function selectCertificate() {
+            var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+            useJWKSUriStype.display = 'none';
+            var uploadCertType = document.getElementById('upload_certificate').style;
+            uploadCertType.display = 'table-row';
+            if (jQuery('#deletePublicCert').length) {
+                jQuery('#deletePublicCert').val('false');
+            }
+            $('#jwksUri').val("");
+        }
+
 </script>
 
     <div id="middle">
@@ -1263,16 +1320,36 @@
                                 </div>
                             </td>
                         </tr>
+
+                        <!-----Add radio button to select certificate or jwks end point fro sp--------------->
                         <tr>
+                            <td class="leftCol-med labelField"> Select SP Certificate Type </td>
+                                <td>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                               value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && appBean.getServiceProvider().getCertificateContent() == null)) { %>
+                               checked="checked" <% } %> onclick="selectJWKS('<%=(appBean.getServiceProvider().getCertificateContent() != null)%>');" />
+                                Use SP JWKS endpoint
+                                    </label>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                    <% if (appBean.getServiceProvider().getCertificateContent() != null) { %> checked="checked" <% } %>
+                                    value="choose_upload_certificate" onclick="selectCertificate()" />
+                                Upload SP certificate
+                                    </label>
+                              </td>
+                        </tr>
+                        <!-------------------------->
+                        <tr id ="upload_certificate" <% if (appBean.getServiceProvider().getCertificateContent() == null) { %> style="display:none" <% } %>>
                             <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
                             <td>
                             <textarea style="width:100%;height: 100px;" type="text" name="sp-certificate"
                                       id="sp-certificate"
-                                      class="text-box-big"><%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %></textarea>
-                                <input type="hidden" name="sp-old-certificate"
-                                       id="sp-old-certificate"
-                                       value=<%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %>/>
-                                <input id="certFile" name="certFile" type="file" onchange='openFile(event)'/>
+                                      class="text-box-big"><%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %>
+                            </textarea>
+                            <input type="hidden" name="sp-old-certificate" id="sp-old-certificate"
+                            value=<%=appBean.getServiceProvider().getCertificateContent() != null ? Encode.forHtmlContent(appBean.getServiceProvider().getCertificateContent()) : "" %>/>
+                            <input id="certFile" name="certFile" type="file" onchange='openFile(event)'/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.certificate'/>
                                 </div>
@@ -1337,6 +1414,17 @@
                                     </table>
                                     <% } %>
                                 </div>
+                            </td>
+                        </tr>
+                        <!-----jwks text box JWKS TEXT BOX------->
+                        <tr id="use_jwks_uri" <% if (appBean.getServiceProvider().getCertificateContent() != null) { %> style="display:none" <% } %>>
+                            <td style="width:15%" class="leftCol-med labelField">
+                            <fmt:message key="config.application.JWKS"/>
+                            </td>
+                            <td>
+                               <input  id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                  autofocus required/>
+
                             </td>
                         </tr>
                         <tr>
@@ -2912,11 +3000,11 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
-                                            <input type="button"
-                                                   value="<fmt:message key='button.save.service.provider.template'/>"
-                                                   onclick="saveAsTemplate();"/>
-                                            <input type="hidden" name="templateName" id="templateName"/>
-                                            <input type="hidden" name="templateDesc" id="templateDesc"/>
+                                            <%--<input type="button"--%>
+                                                   <%--value="<fmt:message key='button.save.service.provider.template'/>"--%>
+                                                   <%--onclick="saveAsTemplate();"/>--%>
+                                            <%--<input type="hidden" name="templateName" id="templateName"/>--%>
+                                            <%--<input type="hidden" name="templateDesc" id="templateDesc"/>--%>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"
                                                    onclick="javascript:location.href='list-service-providers.jsp'"/>
                                         </div>
@@ -3008,24 +3096,6 @@
                 </tr>
                 <input type="hidden" id="templateNames" name="templateNames"
                        value="<%=spTemplateNames.length() > 0 ? Encode.forHtmlAttribute(spTemplateNames.toString()) : ""%>">
-            </table>
-        </div>
-    </div>
-    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
-        <div id="messagebox-error">
-            <h3>
-                <fmt:message key="alert.error.add.sp.template"/>
-            </h3>
-            <table style="margin-top:10px;">
-                <%
-                    for (String error : createTemplateError){
-                %>
-                <tr>
-                    <td><%=error%></td>
-                </tr>
-                <%
-                    }
-                %>
             </table>
         </div>
     </div>
