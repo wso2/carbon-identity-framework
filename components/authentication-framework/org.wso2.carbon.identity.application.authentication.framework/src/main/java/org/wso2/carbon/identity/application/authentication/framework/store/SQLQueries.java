@@ -56,7 +56,7 @@ public class SQLQueries {
 
     public static final String SQL_SELECT_TERMINATED_SESSION_IDS =
             "SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE SESSION_TYPE = '" + SESSION_CONTEXT_CACHE_NAME
-                    + "' AND OPERATION = '" + DELETE_OPERATION + "' AND  TIME_CREATED < ?";
+                    + "' AND EXPIRY_TIME < ?";
 
     /**
      * Query to retrieve user session mapping.

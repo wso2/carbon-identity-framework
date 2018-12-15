@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
@@ -484,25 +485,32 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 int idpId = UserSessionStore.getInstance().getIdPId(idpName);
                 userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
 
-                // This synchronized block is added to handle a situation when new user try to get authenticated
-                // from multiple nodes at the same time (which is rare case).
-                if (userId == null) {
-                    synchronized (this) {
-                        userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain,
-                                idpId);
-                        if (userId == null) {
-                            userId = UUIDGenerator.generateUUID();
-                            UserSessionStore.getInstance().storeUserData(userId, userName, tenantId,
-                                    userStoreDomain, idpId);
-                        }
+                boolean persistUserToSessionMapping = true;
+                try {
+                    if (userId == null) {
+                        userId = UUIDGenerator.generateUUID();
+                        UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain, idpId);
+                    }
+                } catch (DuplicatedAuthUserException e) {
+                    // When the authenticated user is already persisted the respective user to session mapping will
+                    // be persisted from the same node handling the request.
+                    // Thus, persisting the user to session mapping can be gracefully ignored here.
+                    persistUserToSessionMapping = false;
+                    String msg = "User authenticated is already persisted. Username: " + userName + " Tenant Domain:" +
+                            " " + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: " + idpName;
+                    log.warn(msg);
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg, e);
                     }
                 }
 
-                if (!UserSessionStore.getInstance().isExistingMapping(userId, sessionContextKey)) {
+                if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
+                        sessionContextKey)) {
                     UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
                 }
             } catch (UserSessionException e) {
-                throw new UserSessionException("Error while storing the session data.", e);
+                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
             }
         }
     }
