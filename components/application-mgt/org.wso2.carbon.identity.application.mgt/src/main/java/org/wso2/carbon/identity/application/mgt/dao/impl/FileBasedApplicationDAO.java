@@ -37,7 +37,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileBasedApplicationDAO implements ApplicationDAO {
+public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public int createApplication(ServiceProvider applicationDTO, String tenantDomain)

@@ -39,7 +39,7 @@ public interface AuthGraphNode extends Serializable {
      *
      * @return
      */
-    AuthGraphNode gerParent();
+    AuthGraphNode getParent();
 
     /**
      * This method should be used to assign a value to a instance variable

@@ -32,6 +32,7 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -57,6 +58,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
@@ -119,7 +121,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
     private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
-
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -205,7 +206,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
         } catch (Exception e) {
-            String error = "Error occurred while retrieving the application, " + applicationName;
+            String error = "Error occurred while retrieving the application: " + applicationName + ". " + e.getMessage();
             log.error(error, e);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
@@ -250,6 +251,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             endTenantFlow();
         }
 
+        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+            log.error("Get application basic info service is not supported.");
+            throw new IdentityApplicationManagementException("This service is not supported.");
+        }
+
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostGetApplicationBasicInfo(appDAO, tenantDomain, username,
@@ -258,7 +264,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        return appDAO.getApplicationBasicInfo(filter);
+        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
     }
 
     @Override
@@ -351,7 +357,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
         } catch (Exception e) {
-            String error = "Error occurred while updating the application: " + applicationName;
+            String error = "Error occurred while updating the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -509,7 +515,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
         } catch (Exception e) {
-            String error = "Error occurred while deleting the application: " + applicationName;
+            String error = "Error occurred while deleting the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -531,7 +537,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             return idpdao.getIdentityProvider(federatedIdPName);
         } catch (Exception e) {
-            String error = "Error occurred while retrieving Identity Provider: " + federatedIdPName;
+            String error = "Error occurred while retrieving Identity Provider: " + federatedIdPName + ". " +
+                    e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -551,7 +558,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             return new IdentityProvider[0];
         } catch (Exception e) {
-            String error = "Error occurred while retrieving all Identity Providers";
+            String error = "Error occurred while retrieving all Identity Providers" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -571,7 +578,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             return new LocalAuthenticatorConfig[0];
         } catch (Exception e) {
-            String error = "Error occurred while retrieving all Local Authenticators";
+            String error = "Error occurred while retrieving all Local Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -591,7 +598,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             return new RequestPathAuthenticatorConfig[0];
         } catch (Exception e) {
-            String error = "Error occurred while retrieving all Request Path Authenticators";
+            String error = "Error occurred while retrieving all Request Path Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -616,7 +623,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             return allLocalClaimUris;
         } catch (Exception e) {
-            String error = "Error while reading system claims";
+            String error = "Error while reading system claims" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -643,7 +650,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             name = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
 
         } catch (Exception e) {
-            String error = "Error occurred while retrieving the service provider for client id :  " + clientId;
+            String error = "Error occurred while retrieving the service provider for client id :  " + clientId + ". "
+                    + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         }
 
@@ -1113,7 +1121,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
-                                                          String tenantDomain)
+                                                String tenantDomain)
             throws IdentityApplicationManagementException {
 
         if (serviceProvider != null) {
@@ -1167,7 +1175,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (StringUtils.isBlank(templateName)) {
                 return null;
             } else {
-                throw new IdentityApplicationManagementClientException(new String[] {
+                throw new IdentityApplicationManagementClientException(new String[]{
                         String.format("Template with name: %s is not " + "registered for tenant: %s.",
                                 templateName, tenantDomain)});
             }
@@ -1450,7 +1458,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementValidationException {
 
         if (StringUtils.isEmpty(spTemplateXml)) {
-            throw new IdentityApplicationManagementValidationException(new String[] {"Empty SP template configuration" +
+            throw new IdentityApplicationManagementValidationException(new String[]{"Empty SP template configuration" +
                     " is provided."});
         }
         try {
@@ -1483,7 +1491,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (JAXBException | SAXException | ParserConfigurationException | IOException e) {
             String msg = "Error in reading Service Provider template configuration.";
             log.error(msg, e);
-            throw new IdentityApplicationManagementValidationException(new String[] {msg});
+            throw new IdentityApplicationManagementValidationException(new String[]{msg});
         }
     }
 
@@ -1636,7 +1644,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
-            throw new IdentityApplicationManagementException("Already an application available with the same name.");
+            String errorMsg = "Application registration failed. An application with name \'" + serviceProvider.
+                    getApplicationName() + "\' already exists.";
+            log.error(errorMsg);
+            throw new IdentityApplicationRegistrationFailureException(errorMsg);
         }
 
         // Invoking the listeners.

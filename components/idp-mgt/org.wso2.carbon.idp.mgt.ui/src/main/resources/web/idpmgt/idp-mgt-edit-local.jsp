@@ -84,6 +84,8 @@
     String idPEntityId = null;
     String samlSSOUrl = null;
     String samlSLOUrl = null;
+    String samlECPUrl = null;
+    String samlArtifactUrl = null;
     String oauth1RequestTokenUrl = null;
     String oauth1AuthorizeUrl = null;
     String oauth1AccessTokenUrl = null;
@@ -106,6 +108,9 @@
     String oidcDiscoveryEndpoint = null;
     String category = request.getParameter("category");
     String subCategory = request.getParameter("subCategory");
+    String samlMetadataValidityPeriod = null;
+    boolean samlMetadataSigningEnabled = false;
+    String samlMetadataSigningEnabledChecked = "";
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -120,11 +125,22 @@
                     IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL).getValue();
             samlSLOUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL).getValue();
+            samlECPUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL).getValue();
+            samlArtifactUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL).getValue();
             destinationURLList = IdPManagementUIUtil.getPropertySetStartsWith(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX);
             if (destinationURLList.size() == 0) {
                 destinationURLList.add(IdPManagementUIUtil.getProperty(properties,
                         IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL));
+            }
+            samlMetadataValidityPeriod = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD).getValue();
+            samlMetadataSigningEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED).getValue());
+            if (samlMetadataSigningEnabled) {
+                samlMetadataSigningEnabledChecked = "checked=\'checked\'";
             }
         } else if(IdentityApplicationConstants.OAuth10A.NAME.equals(federatedAuthenticator.getName())) {
             oauth1RequestTokenUrl = IdPManagementUIUtil.getProperty(properties,
@@ -265,6 +281,11 @@ function idpMgtCancel(){
         }
         var isRememberTimeValidated = doValidateInput(document.getElementById('rememberMeTimeout'), "Resident IdP Remember Me Period must be numeric value greater than 0");
         if (!isRememberTimeValidated) {
+            return false;
+        }
+        var isSamlMetadataValidityPeriodValidated = doValidateInput(document.getElementById('samlMetadataValidityPeriod'),
+            "SAML metadata validity period must be numeric value greater than 0");
+        if (!isSamlMetadataValidityPeriodValidated) {
             return false;
         }
         return true;
@@ -542,6 +563,37 @@ function removeDefaultAuthSeq() {
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
+                            <td><%=Encode.forHtmlContent(samlECPUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>
+                            <td><%=Encode.forHtmlContent(samlArtifactUrl)%></td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='saml.metadata.validity.period'/>:</td>
+                            <td>
+                                <input id="samlMetadataValidityPeriod" name="samlMetadataValidityPeriod" type="text"
+                                       value="<%=Encode.forHtmlAttribute(samlMetadataValidityPeriod)%>" autofocus/>
+                                <div class="sectionHelp">
+                                    <fmt:message key='saml.metadata.validity.period.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField">
+                                <label for="samlMetadataSigningEnabled"><fmt:message key='saml.metadata.signing.enabled'/>
+                                </label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input id="samlMetadataSigningEnabled" name="samlMetadataSigningEnabled"
+                                           type="checkbox" <%=samlMetadataSigningEnabledChecked%>/>
+                                </div>
+                            </td>
                         </tr>
                     </table>
                         <br>

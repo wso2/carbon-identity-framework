@@ -121,6 +121,7 @@ public class IdentityApplicationConstants {
             public static final String IDP_ENTITY_ID = "IdPEntityId";
             public static final String SP_ENTITY_ID = "SPEntityId";
             public static final String SSO_URL = "SSOUrl";
+            public static final String ECP_URL = "ECPUrl";
             public static final String IS_AUTHN_REQ_SIGNED = "ISAuthnReqSigned";
             public static final String IS_ENABLE_ASSERTION_ENCRYPTION = "IsAssertionEncrypted";
             public static final String IS_ENABLE_ASSERTION_SIGNING = "isAssertionSigned";
@@ -146,6 +147,10 @@ public class IdentityApplicationConstants {
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
             public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
+            public static final String SAML_METADATA_VALIDITY_PERIOD = "SAMLMetadataValidityPeriod";
+            public static final String SAML_METADATA_VALIDITY_PERIOD_DEFAULT = "60";
+            public static final String SAML_METADATA_SIGNING_ENABLED = "SAMLMetadataSigningEnabled";
+            public static final String SAML_METADATA_SIGNING_ENABLED_DEFAULT = "false";
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";

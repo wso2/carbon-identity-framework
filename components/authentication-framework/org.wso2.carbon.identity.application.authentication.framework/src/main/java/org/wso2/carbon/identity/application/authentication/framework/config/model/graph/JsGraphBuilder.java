@@ -23,6 +23,7 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -30,12 +31,16 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
+import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -137,9 +142,11 @@ public class JsGraphBuilder {
             Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                this::sendError);
+                    this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                    (LoadExecutor) this::loadLocalLibrary);
             engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
             engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
@@ -149,6 +156,7 @@ public class JsGraphBuilder {
                 functionMap.forEach(globalBindings::put);
             }
             Invocable invocable = (Invocable) engine;
+            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -287,8 +295,9 @@ public class JsGraphBuilder {
 
     /**
      * Filter out options in the step config to retain only the options provided in authentication options
+     *
      * @param authenticationOptions Authentication options to keep
-     * @param stepConfig The step config to be modified
+     * @param stepConfig            The step config to be modified
      */
     protected void filterOptions(Map<String, Map<String, String>> authenticationOptions, StepConfig stepConfig) {
 
@@ -316,6 +325,7 @@ public class JsGraphBuilder {
             log.debug("Authenticator options: " + sb.toString());
         }
         Set<AuthenticatorConfig> authenticatorsToRemove = new HashSet<>();
+        Map<String, AuthenticatorConfig> idpsToRemove = new HashMap<>();
         stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
             .forEach((idpName, idp) -> {
                 Set<String> authenticators = filteredOptions.get(idpName);
@@ -378,10 +388,29 @@ public class JsGraphBuilder {
                     }
                 }
                 if (removeOption) {
-                    authenticatorsToRemove.add(authenticatorConfig);
+                    if (authenticatorConfig.getIdps().size() > 1) {
+                        idpsToRemove.put(idpName, authenticatorConfig);
+                    } else {
+                        authenticatorsToRemove.add(authenticatorConfig);
+                    }
                 }
             }));
         if (stepConfig.getAuthenticatorList().size() > authenticatorsToRemove.size()) {
+            idpsToRemove.forEach((idp, authenticatorConfig) -> {
+                int index = stepConfig.getAuthenticatorList().indexOf(authenticatorConfig);
+                stepConfig.getAuthenticatorList().get(index).getIdps().remove(idp);
+                stepConfig.getAuthenticatorList().get(index).getIdpNames().remove(idp);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed " + idp + " option from " + authenticatorConfig.getName() + " as it " +
+                            "doesn't match the provided authenticator options");
+                }
+            });
+            // If all idps are removed from the authenticator the authenticator should be removed.
+            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+                if (authenticatorConfig.getIdps().isEmpty()) {
+                    authenticatorsToRemove.add(authenticatorConfig);
+                }
+            });
             stepConfig.getAuthenticatorList().removeAll(authenticatorsToRemove);
             if (log.isDebugEnabled()) {
                 log.debug("Removed " + authenticatorsToRemove.size() + " options which doesn't match the " +
@@ -526,11 +555,10 @@ public class JsGraphBuilder {
     }
 
     /**
-     *
      * @param templateId Identifier of the template.
      * @param parameters Parameters.
-     * @param handlers Handlers to run before and after the prompt.
-     * @param callbacks Callbacks to run after the prompt.
+     * @param handlers   Handlers to run before and after the prompt.
+     * @param callbacks  Callbacks to run after the prompt.
      */
     @SuppressWarnings("unchecked")
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
@@ -550,6 +578,31 @@ public class JsGraphBuilder {
         currentBuilder.currentNode = newNode;
         addEventListeners(newNode, callbacks);
         addHandlers(newNode, handlers);
+    }
+
+    /**
+     * Loads the required function library from the database.
+     *
+     * @param functionLibraryName functionLibraryName
+     * @return functionLibraryScript
+     * @throws FunctionLibraryManagementException
+     */
+    public String loadLocalLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
+
+        FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
+                getFunctionLibraryManagementService();
+        FunctionLibrary functionLibrary;
+        String libraryScript = null;
+
+        functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName,
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+
+        if (functionLibrary != null) {
+            libraryScript = functionLibrary.getFunctionLibraryScript();
+        } else {
+            log.error("No function library available with " + functionLibraryName + "name.");
+        }
+        return libraryScript;
     }
 
     /**
@@ -658,16 +711,18 @@ public class JsGraphBuilder {
      * New node may be cloned if needed to attach on multiple branches.
      *
      * @param destination Current node.
-     * @param newNode New node to attach.
+     * @param newNode     New node to attach.
      */
     private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
             attachToLeaf(newNode, stepConfigGraphNode.getNext());
+            newNode.setParent(destination);
             stepConfigGraphNode.setNext(newNode);
         } else if (destination instanceof DynamicDecisionNode) {
             DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) destination;
+            newNode.setParent(destination);
             attachToLeaf(newNode, dynamicDecisionNode.getDefaultEdge());
             dynamicDecisionNode.setDefaultEdge(newNode);
         } else {
@@ -681,7 +736,7 @@ public class JsGraphBuilder {
      * The new node is added to each leaf node of the Tree structure given in the destination node.
      * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
      *
-     * @param baseNode Base node.
+     * @param baseNode     Base node.
      * @param nodeToAttach Node to attach.
      */
     private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
@@ -756,6 +811,12 @@ public class JsGraphBuilder {
         void exit(Object... arg);
     }
 
+    @FunctionalInterface
+    public interface LoadExecutor {
+
+        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
+    }
+
     public void exitFunction(Object... arg) {
 
         log.error("Exit function is restricted.");
@@ -798,11 +859,13 @@ public class JsGraphBuilder {
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                        (StepExecutor) graphBuilder::executeStepInAsyncEvent);
+                            (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                        (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
+                            (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
+                            graphBuilder::loadLocalLibrary);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {

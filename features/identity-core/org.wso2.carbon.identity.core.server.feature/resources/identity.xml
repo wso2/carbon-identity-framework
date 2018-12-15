@@ -457,6 +457,7 @@
         <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlsso</IdentityProviderURL>
         <DefaultLogoutEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/samlsso_logout.do</DefaultLogoutEndpoint>
         <NotificationEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/samlsso_notification.do</NotificationEndpoint>
+        <ArtifactResolutionEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlartresolve</ArtifactResolutionEndpoint>
         <SingleLogoutRetryCount>5</SingleLogoutRetryCount>
         <SingleLogoutRetryInterval>60000</SingleLogoutRetryInterval>
         <!-- in milli seconds -->
@@ -479,6 +480,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
+        <SAMLECPEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlecp</SAMLECPEndpoint>
     </SSOService>
 
     <Consent>
@@ -747,6 +749,7 @@
             <Cache name="AuthenticationResultCache"  enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="AppInfoCache"               enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="AuthorizationGrantCache"    enable="true" timeout="300" capacity="5000" isDistributed="false"/>
+            <Cache name="JWKSCache"                  enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthCache"                 enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthScopeCache"            enable="true"  timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="OAuthSessionDataCache"      enable="true" timeout="300" capacity="5000" isDistributed="false"/>
@@ -904,6 +907,7 @@
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -925,6 +929,7 @@
             <Context>/scim2/</Context>
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
+            <Context>/api/identity/template/mgt/v1.0.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -975,5 +980,17 @@
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
     </AdaptiveAuth>
+
+    <!--Intermediate certificate validation for certificate based requests-->
+    <IntermediateCertValidation enable="false">
+        <IntermediateCerts>
+            <!--Add intermediate certificate CN. Multiple <CertCN> elements can be used for multiple certificates.-->
+            <CertCN>localhost</CertCN>
+        </IntermediateCerts>
+        <ExemptContext>
+            <!--Add exemptable context paths. Multiple <Context> elements can be used for multiple contexts.-->
+            <Context>scim2</Context>
+        </ExemptContext>
+    </IntermediateCertValidation>
 
 </Server>

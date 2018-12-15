@@ -81,6 +81,10 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
+        public static final String PRE_ADD_NEW_PASSWORD = "PRE_ADD_NEW_PASSWORD";
+        public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
+        public static final String PRE_SEND_RECOVERY_NOTIFICATION = "PRE_SEND_RECOVERY_NOTIFICATION";
+        public static final String POST_SEND_RECOVERY_NOTIFICATION = "POST_SEND_RECOVERY_NOTIFICATION";
 
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 

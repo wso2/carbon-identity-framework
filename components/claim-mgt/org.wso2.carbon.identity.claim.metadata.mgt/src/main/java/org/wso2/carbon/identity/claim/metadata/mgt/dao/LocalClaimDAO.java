@@ -32,7 +32,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,11 +79,6 @@ public class LocalClaimDAO extends ClaimDAO {
 
         return localClaims;
     }
-
-//    public LocalClaim getLocalClaim(String claimURI, int tenantId) throws  ClaimMetadataException {
-//
-//        return new LocalClaim(claimURI);
-//    }
 
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
@@ -235,82 +229,6 @@ public class LocalClaimDAO extends ClaimDAO {
             prepStmt.execute();
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while deleting attribute mappings", e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
-        }
-    }
-
-    private Map<String, String> getClaimProperties(Connection connection, int localClaimId, int
-            tenantId) throws ClaimMetadataException {
-
-        Map<String, String> claimProperties = new HashMap<>();
-
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-
-        String query = SQLConstants.GET_CLAIM_PROPERTIES;
-
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setInt(1, localClaimId);
-            prepStmt.setInt(2, tenantId);
-            rs = prepStmt.executeQuery();
-
-            while (rs.next()) {
-                String claimPropertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
-                String claimPropertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
-
-                claimProperties.put(claimPropertyName, claimPropertyValue);
-            }
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while retrieving claim properties", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(rs);
-            IdentityDatabaseUtil.closeStatement(prepStmt);
-        }
-
-        return claimProperties;
-    }
-
-    private void addClaimProperties(Connection connection, int localClaimId, Map<String, String> claimProperties, int
-            tenantId) throws ClaimMetadataException {
-
-        PreparedStatement prepStmt = null;
-        if (localClaimId > 0 && claimProperties != null) {
-            try {
-                String query = SQLConstants.ADD_CLAIM_PROPERTY;
-                prepStmt = connection.prepareStatement(query);
-
-                for (Map.Entry<String, String> property : claimProperties.entrySet()) {
-                    prepStmt.setInt(1, localClaimId);
-                    prepStmt.setString(2, property.getKey());
-                    prepStmt.setString(3, property.getValue());
-                    prepStmt.setInt(4, tenantId);
-                    prepStmt.addBatch();
-                }
-
-                prepStmt.executeBatch();
-            } catch (SQLException e) {
-                throw new ClaimMetadataException("Error while adding claim properties", e);
-            } finally {
-                IdentityDatabaseUtil.closeStatement(prepStmt);
-            }
-        }
-    }
-
-    private void deleteClaimProperties(Connection connection, int localClaimId, int tenantId) throws
-            ClaimMetadataException {
-
-        PreparedStatement prepStmt = null;
-        try {
-            String query = SQLConstants.DELETE_CLAIM_PROPERTY;
-            prepStmt = connection.prepareStatement(query);
-
-            prepStmt.setInt(1, localClaimId);
-            prepStmt.setInt(2, tenantId);
-            prepStmt.execute();
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while deleting claim properties", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }

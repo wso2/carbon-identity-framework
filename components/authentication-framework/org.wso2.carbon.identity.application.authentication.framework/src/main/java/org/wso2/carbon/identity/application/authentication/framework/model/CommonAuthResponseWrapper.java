@@ -35,6 +35,7 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
     private boolean isRedirect = false;
     private String redirectURL;
     private CommonAuthServletPrintWriter printWriter;
+    private boolean wrappedByFramework = false;
 
     public CommonAuthResponseWrapper(HttpServletResponse response) {
         super(response);
@@ -86,6 +87,16 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         response.setContentLength(content.length);
         os.write(content);
         os.close();
+    }
+
+    public boolean isWrappedByFramework() {
+
+        return wrappedByFramework;
+    }
+
+    public void setWrappedByFramework(boolean wrappedByFramework) {
+
+        this.wrappedByFramework = wrappedByFramework;
     }
 
     private final class CommonAuthServletPrintWriter extends PrintWriter {

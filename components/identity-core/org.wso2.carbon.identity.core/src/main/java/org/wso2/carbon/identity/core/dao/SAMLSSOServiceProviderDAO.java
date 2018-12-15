@@ -154,6 +154,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
         }
 
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP) != null) {
+            serviceProviderDO.setSamlECP(Boolean.valueOf(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_ENABLE_ECP).trim()));
+        }
+
         if (resource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX) != null) {
             serviceProviderDO
@@ -211,6 +216,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             serviceProviderDO.setDoValidateSignatureInArtifactResolve(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE).trim()));
         }
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER) != null) {
+            serviceProviderDO.setIssuerQualifier(resource
+                    .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER));
+        }
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS) != null) {
+            serviceProviderDO.setIdpEntityIDAlias(resource.getProperty(IdentityRegistryResources
+                    .PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS));
+        }
         return serviceProviderDO;
     }
 
@@ -227,6 +240,12 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
+        // If an issuer qualifier value is specified, it is appended to the end of the issuer value
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
+                    serviceProviderDO.getIssuerQualifier()));
+        }
+
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
 
         boolean isTransactionStarted = Transaction.isStarted();
@@ -234,8 +253,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Service Provider already exists with the same issuer name"
-                            + serviceProviderDO.getIssuer());
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
+                                + serviceProviderDO.getIssuerQualifier());
+                    } else {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + serviceProviderDO.getIssuer());
+                    }
                 }
                 return false;
             }
@@ -246,12 +271,25 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
-                log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                            + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
+                            serviceProviderDO.getIssuerQualifier() + " is added successfully.");
+                } else {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                }
             }
             return true;
         } catch (RegistryException e) {
             isErrorOccurred = true;
-            String msg = "Error while adding Service Provider for issuer: " + serviceProviderDO.getIssuer();
+            String msg;
+            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                msg = "Error while adding SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
+                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
+                        .getIssuerQualifier();
+            } else {
+                msg = "Error while adding SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
+            }
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         } finally {
@@ -327,6 +365,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String doSignAssertions = String.valueOf(serviceProviderDO.isDoSignAssertions());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);
+        String isSamlECP = String.valueOf(serviceProviderDO.isSamlECP());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_ENABLE_ECP,
+                isSamlECP);
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedClaimsList())) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS,
                     serviceProviderDO.getRequestedClaimsList());
@@ -369,7 +410,40 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 String.valueOf(serviceProviderDO.isDoValidateSignatureInArtifactResolve());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
                 validateSignatureInArtifactResolve);
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER, serviceProviderDO
+                    .getIssuerQualifier());
+        }
+        if (StringUtils.isNotBlank(serviceProviderDO.getIdpEntityIDAlias())) {
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, serviceProviderDO
+                    .getIdpEntityIDAlias());
+        }
         return resource;
+    }
+
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    private String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
+                IdentityRegistryResources.QUALIFIER_ID);
+        return issuerWithoutQualifier;
+    }
+
+    /**
+     * Get the issuer value to be added to registry by appending the qualifier.
+     *
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
+     */
+    private String getIssuerWithQualifier(String issuer, String qualifier) {
+
+        String issuerWithQualifier = issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        return issuerWithQualifier;
     }
 
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
@@ -567,6 +641,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
+                    serviceProviderDO.getIssuerQualifier()));
+        }
+
         if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
             throw new IdentityException("No default assertion consumer URL provided for service provider :" +
                     serviceProviderDO.getIssuer());
@@ -579,8 +658,14 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         try {
             if (registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("A Service Provider already exists with the same issuer name" + serviceProviderDO
-                            .getIssuer());
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
+                                + serviceProviderDO.getIssuerQualifier());
+                    } else {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + serviceProviderDO.getIssuer());
+                    }
                 }
                 throw IdentityException.error("A Service Provider already exists.");
             }
@@ -592,7 +677,13 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             Resource resource = createResource(serviceProviderDO);
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
-                log.debug("Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                            + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
+                            serviceProviderDO.getIssuerQualifier() + " is added successfully.");
+                } else {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
+                }
             }
             return serviceProviderDO;
         } catch (RegistryException e) {

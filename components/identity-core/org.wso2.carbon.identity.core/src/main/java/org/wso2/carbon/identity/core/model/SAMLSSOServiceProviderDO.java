@@ -34,6 +34,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     String tenantDomain;
     private String issuer;
+    private String issuerQualifier;
     private String assertionConsumerUrl;
     private String[] assertionConsumerUrls;
     private List<String> assertionConsumerUrlList;
@@ -72,6 +73,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
     private boolean enableSAML2ArtifactBinding;
+    private boolean samlECP;
+    private String idpEntityIDAlias;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -170,6 +173,26 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIssuer(String issuer) {
         if (issuer != null) {
             this.issuer = issuer.replaceAll("[\n\r]", "").trim();
+        }
+    }
+
+    /**
+     * Get qualifier of the issuer.
+     *
+     * @return Issuer Qualifier
+     */
+    public String getIssuerQualifier() {
+        return issuerQualifier;
+    }
+
+    /**
+     * Set issuer qualifier.
+     *
+     * @param issuerQualifier
+     */
+    public void setIssuerQualifier(String issuerQualifier) {
+        if (StringUtils.isNotBlank(issuerQualifier)) {
+            this.issuerQualifier = issuerQualifier;
         }
     }
 
@@ -579,5 +602,31 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
+    }
+
+    public void setSamlECP(boolean samlECP) {
+        this.samlECP = samlECP;
+    }
+
+    public boolean isSamlECP() {
+        return samlECP;
+    }
+
+    /**
+     * Get IdP Entity ID alias.
+     *
+     * @return IdP Entity ID Alias
+     */
+    public String getIdpEntityIDAlias() {
+        return idpEntityIDAlias;
+    }
+
+    /**
+     * Set IdP Entity ID alias.
+     *
+     * @param idpEntityIDAlias
+     */
+    public void setIdpEntityIDAlias(String idpEntityIDAlias) {
+        this.idpEntityIDAlias = idpEntityIDAlias;
     }
 }

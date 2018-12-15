@@ -290,8 +290,8 @@
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
 
-        userIdClaimURI = Encode.forJavaScriptBlock(identityProvider.getClaimConfig().getUserClaimURI());
-        roleClaimURI = Encode.forJavaScriptBlock(identityProvider.getClaimConfig().getRoleClaimURI());
+        userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
+        roleClaimURI = identityProvider.getClaimConfig().getRoleClaimURI();
 
         claimMappings = identityProvider.getClaimConfig().getClaimMappings();
 
@@ -1431,13 +1431,13 @@
         $idpClaimsList2.empty();
 
 
-        if ('<%=userIdClaimURI%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(userIdClaimURI)%>' == '') {
             $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=roleClaimURI%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(roleClaimURI)%>' == '') {
             $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
@@ -1467,12 +1467,12 @@
         jQuery('#claimAddTable .claimrow').each(function () {
             var val = htmlEncode($(this).val());
             if (val.trim() != "") {
-                if (val == '<%=userIdClaimURI%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(userIdClaimURI)%>') {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $user_id_claim_dropdown.append('<option>' + val + '</option>');
                 }
-                if (val == '<%=roleClaimURI%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(roleClaimURI)%>') {
                     $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $role_claim_dropdown.append('<option>' + val + '</option>');
@@ -3256,14 +3256,14 @@
 
                         <tr>
                             <td class="leftCol-med labelField">
-                                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
+                                <label for="federationHub"><fmt:message key='federation.hub.identity.provider'/></label>
                             </td>
                             <td>
                                 <div class="sectionCheckbox">
                                     <input type="checkbox" id="federation_hub_idp"
                                            name="federation_hub_idp" <%=federationHubIdp ? "checked" : "" %>>
                                     <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='federation.hub.identity.proider.help'/>
+                                    <fmt:message key='federation.hub.identity.provider.help'/>
                                 </span>
                                 </div>
                             </td>

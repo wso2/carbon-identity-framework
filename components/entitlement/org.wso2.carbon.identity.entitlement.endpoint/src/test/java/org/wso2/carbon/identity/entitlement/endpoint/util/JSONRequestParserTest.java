@@ -70,7 +70,43 @@ public class JSONRequestParserTest extends IdentityBaseTest {
                 "\"AccessSubject\":{\n" +
                 "            \"Content\": \"PD94bWwgdmVyc2lvbj0iMS4wIj8+DQo8Y2F0YWxvZz48Ym9vayBpZD0iYmsxMDEiPjxhdXRob3I+R2FtYmFyZGVsbGEsIE1hdHRoZXc8L2F1dGhvcj48dGl0bGU+WE1MIERldmVsb3BlcidzIEd1aWRlPC90aXRsZT48Z2VucmU+Q29tcHV0ZXI8L2dlbnJlPjxwcmljZT40NC45NTwvcHJpY2U+PHB1Ymxpc2hfZGF0ZT4yMDAwLTEwLTAxPC9wdWJsaXNoX2RhdGU+PGRlc2NyaXB0aW9uPkFuIGluLWRlcHRoIGxvb2sgYXQgY3JlYXRpbmcgYXBwbGljYXRpb25zIHdpdGggWE1MLjwvZGVzY3JpcHRpb24+PC9ib29rPjwvY2F0YWxvZz4=\"\n" +
                 "}\n" +
-                "}}"}
+                "}}"},
+                {"{\n" +
+                        "   \"Request\": {\n" +
+                        "      \"AccessSubject\": {\n" +
+                        "         \"Attribute\": [\n" +
+                        "            {\n" +
+                        "               \"AttributeId\": \"subject-id\",\n" +
+                        "               \"Value\": [\"sampleName\"],\n" +
+                        "               \"DataType\": \"string\",\n" +
+                        "               \"IncludeInResult\": true\n" +
+                        "            }\n" +
+                        "         ]\n" +
+                        "      },\n" +
+                        "     \n" +
+                        "      \"Resource\": {\n" +
+                        "         \"Attribute\": [\n" +
+                        "            {\n" +
+                        "               \"AttributeId\": \"resource-id\",\n" +
+                        "               \"Value\": [\"index.jsp\"],\n" +
+                        "               \"DataType\": \"string\",\n" +
+                        "               \"IncludeInResult\": true\n" +
+                        "            }\n" +
+                        "         ]\n" +
+                        "      },\n" +
+                        "      \"Action\": {\n" +
+                        "            \"Attribute\": [{\n" +
+                        "                    \"AttributeId\": \"action-id\",\n" +
+                        "                    \"Value\": [\"modify-welcome\",\"view-welcome\"],\n" +
+                        "                    \"DataType\": \"string\",\n" +
+                        "                    \"IncludeInResult\": true\n" +
+                        "                }\n" +
+                        "            ]\n" +
+                        "        }\n" +
+                        "        \n" +
+                        "   }\n" +
+                        "}"}
+
         };
     }
 
