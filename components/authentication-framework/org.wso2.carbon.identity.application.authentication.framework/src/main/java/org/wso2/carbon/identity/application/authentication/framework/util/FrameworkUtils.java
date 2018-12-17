@@ -19,11 +19,13 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -1089,7 +1091,8 @@ public class FrameworkUtils {
                             authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
 
                         if (FrameworkConstants.LOCAL.equals(authenticatedIdPData.getIdpName())) {
-                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName,
+                                    authenticatorConfig.getApplicationAuthenticator().getAuthMechanism())) {
                                 idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
 
                                 if (log.isDebugEnabled()) {
@@ -1266,6 +1269,98 @@ public class FrameworkUtils {
         return queryStrBuilder.toString();
     }
 
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, AuthenticationContext context) {
+
+        return getRedirectURLWithFilteredParams(redirectUrl, context.getEndpointParams());
+    }
+
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, Map<String, Serializable> dataStoreMap) {
+
+        boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
+                .isAuthEndpointRedirectParamsConfigAvailable();
+
+        if (!configAvailable) {
+            return redirectUrl;
+        }
+        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParams();
+        String action = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParamsAction();
+
+        URIBuilder uriBuilder;
+        try {
+            uriBuilder = new URIBuilder(redirectUrl);
+        } catch (URISyntaxException e) {
+            log.warn("Unable to filter redirect params for url." + redirectUrl, e);
+            return redirectUrl;
+        }
+
+        // If the host name is not white listed then the query params will not be removed from the redirect url.
+        List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts) && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+            return redirectUrl;
+        }
+
+        List<NameValuePair> queryParamsList = uriBuilder.getQueryParams();
+
+        if (action != null
+                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is in exclude list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        } else {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (!queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is not in include list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        uriBuilder.clearParameters();
+        uriBuilder.setParameters(queryParamsList);
+        return uriBuilder.toString();
+    }
+
+    public static boolean isRemoveAPIParamsOnConsume() {
+
+        return FileBasedConfigurationBuilder.getInstance().isRemoveAPIParametersOnConsume();
+    }
+
     public static int getMaxInactiveInterval() {
         return maxInactiveInterval;
     }
@@ -1422,7 +1517,10 @@ public class FrameworkUtils {
      * @param queryParams Map of query params to be append.
      * @return Built URL with query params.
      * @throws UnsupportedEncodingException Throws when trying to encode the query params.
+     *
+     * @deprecated Use {@link #buildURLWithQueryParams(String, Map)} instead.
      */
+    @Deprecated
     public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams)
             throws UnsupportedEncodingException {
 
@@ -1441,6 +1539,34 @@ public class FrameworkUtils {
 
         String queryString = StringUtils.join(queryParam1, "&");
 
+        return appendQueryParamsStringToUrl(url, queryString);
+    }
+
+    /**
+     * Append a query param map to the URL (URL may already contain query params)
+     *
+     * @param url         URL string to append the params.
+     * @param queryParams Map of query params to be append.
+     * @return Built URL with query params.
+     * @throws UnsupportedEncodingException Can be thrown when trying to encode the query params.
+     */
+    public static String buildURLWithQueryParams(String url, Map<String, String> queryParams)
+            throws UnsupportedEncodingException {
+
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Passed URL is empty.");
+        }
+        if (MapUtils.isEmpty(queryParams)) {
+            return url;
+        }
+
+        List<String> queryParam1 = new ArrayList<>();
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name());
+            queryParam1.add(entry.getKey() + "=" + encodedValue);
+        }
+
+        String queryString = StringUtils.join(queryParam1, "&");
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
@@ -1803,7 +1929,13 @@ public class FrameworkUtils {
     public static Object toJsSerializable(Object value) {
 
         if (value instanceof Serializable) {
-            return value;
+            if (value instanceof HashMap) {
+                Map<String, Object> map = new HashMap<>();
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
+                return map;
+            } else {
+                return value;
+            }
         } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {

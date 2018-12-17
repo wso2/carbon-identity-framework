@@ -120,6 +120,8 @@ public abstract class FrameworkConstants {
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
     public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
 
+    public static final String AUTH_MECHANISM = "AuthMechanism";
+
     private FrameworkConstants() {
 
     }
@@ -133,12 +135,16 @@ public abstract class FrameworkConstants {
         public static final String ELEM_AUTHENTICATOR = "Authenticator";
         public static final String ELEM_AUTHENTICATOR_CONFIG = "AuthenticatorConfig";
         public static final String ELEM_AUTH_ENDPOINT_QUERY_PARAM = "AuthenticationEndpointQueryParam";
+        public static final String ELEM_HOST_NAME = "HostName";
         public static final String ELEM_AUTHENTICATOR_NAME_MAPPING = "AuthenticatorNameMapping";
         public static final String ELEM_IDP_CONFIG = "IdPConfig";
         public static final String ELEM_PARAMETER = "Parameter";
         public static final String ELEM_REQ_PATH_AUTHENTICATOR = "RequestPathAuthenticators";
+        public static final String ELEM_AUTH_ENDPOINT_REDIRECT_PARAM = "AuthenticationEndpointRedirectParam";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
+        public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
          */
@@ -175,6 +181,8 @@ public abstract class FrameworkConstants {
         public static final String QNAME_IDP_CONFIGS = "IdPConfigs";
         public static final String QNAME_SEQUENCES = "Sequences";
         public static final String QNAME_AUTH_ENDPOINT_QUERY_PARAMS = "AuthenticationEndpointQueryParams";
+        public static final String QNAME_AUTH_ENDPOINT_REDIRECT_PARAMS = "AuthenticationEndpointRedirectParams";
+        public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
         /**
          * Configuration name for the collection of urls for receiving tenant list
          */
@@ -336,6 +344,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+        public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";

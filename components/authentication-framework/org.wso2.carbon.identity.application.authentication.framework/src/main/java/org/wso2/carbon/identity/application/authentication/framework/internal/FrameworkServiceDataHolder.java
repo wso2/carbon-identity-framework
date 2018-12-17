@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -42,6 +42,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -52,8 +54,9 @@ import java.util.List;
 
 public class FrameworkServiceDataHolder {
 
+    private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
-
+    private TemplateManager templateManagerService = null;
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
@@ -77,31 +80,47 @@ public class FrameworkServiceDataHolder {
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
-
-    private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
+    private FunctionLibraryManagementService functionLibraryManagementService = null;
+    private String requireCode = "";
 
     private FrameworkServiceDataHolder() {
+
         setNanoTimeReference(System.nanoTime());
         setUnixTimeReference(System.currentTimeMillis());
     }
 
     public static FrameworkServiceDataHolder getInstance() {
+
         return instance;
     }
 
+    public TemplateManager getTemplateManagerService() {
+
+        return templateManagerService;
+    }
+
+    public void setTemplateManagerService(TemplateManager templateManagerService) {
+
+        this.templateManagerService = templateManagerService;
+    }
+
     public RegistryService getRegistryService() {
+
         return registryService;
     }
 
     public void setRegistryService(RegistryService registryService) {
+
         this.registryService = registryService;
     }
 
     public RealmService getRealmService() {
+
         return realmService;
     }
 
     public void setRealmService(RealmService realmService) {
+
         this.realmService = realmService;
     }
 
@@ -113,81 +132,100 @@ public class FrameworkServiceDataHolder {
      */
     @Deprecated
     public BundleContext getBundleContext() {
+
         return bundleContext;
     }
 
     public void setBundleContext(BundleContext bundleContext) {
+
         this.bundleContext = bundleContext;
     }
 
     public List<ApplicationAuthenticator> getAuthenticators() {
+
         return authenticators;
     }
 
     public long getNanoTimeReference() {
+
         return nanoTimeReference;
     }
 
     private void setNanoTimeReference(long nanoTimeReference) {
+
         this.nanoTimeReference = nanoTimeReference;
     }
 
     public long getUnixTimeReference() {
+
         return unixTimeReference;
     }
 
     private void setUnixTimeReference(long unixTimeReference) {
+
         this.unixTimeReference = unixTimeReference;
     }
 
     public List<HttpIdentityRequestFactory> getHttpIdentityRequestFactories() {
+
         return httpIdentityRequestFactories;
     }
 
     public List<IdentityProcessor> getIdentityProcessors() {
+
         return identityProcessors;
     }
 
     public List<HttpIdentityResponseFactory> getHttpIdentityResponseFactories() {
+
         return httpIdentityResponseFactories;
     }
 
     public AuthenticationDataPublisher getAuthnDataPublisherProxy() {
+
         return authnDataPublisherProxy;
     }
 
     public void setAuthnDataPublisherProxy(AuthenticationDataPublisher authnDataPublisherProxy) {
+
         this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
     public SequenceLoader getSequenceLoader() {
+
         return sequenceLoader;
     }
 
     public void setSequenceLoader(SequenceLoader sequenceLoader) {
+
         this.sequenceLoader = sequenceLoader;
     }
 
     public AuthenticationMethodNameTranslator getAuthenticationMethodNameTranslator() {
+
         return authenticationMethodNameTranslator;
     }
 
     public void setAuthenticationMethodNameTranslator(
             AuthenticationMethodNameTranslator authenticationMethodNameTranslator) {
+
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
     public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+
         return JsGraphBuilderFactory;
     }
 
     public void setJsGraphBuilderFactory(
             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+
         JsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 
     /**
      * Adds a post authentication handler.
+     *
      * @param postAuthenticationHandler Post authentication handler implementation.
      */
     public void addPostAuthenticationHandler(PostAuthenticationHandler postAuthenticationHandler) {
@@ -200,6 +238,7 @@ public class FrameworkServiceDataHolder {
 
     /**
      * Get set of post authentication handlers registered via OSGI services.
+     *
      * @return List of Post Authentication handlers.
      */
     public List<PostAuthenticationHandler> getPostAuthenticationHandlers() {
@@ -208,16 +247,8 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Set post authentication management service.
-     * @param postAuthenticationMgtService Post authentication management service.
-     */
-    public void setPostAuthenticationMgtService(PostAuthenticationMgtService postAuthenticationMgtService) {
-
-        this.postAuthenticationMgtService = postAuthenticationMgtService;
-    }
-
-    /**
      * Get post authentication management service.
+     *
      * @return Post authentication management service.
      */
     public PostAuthenticationMgtService getPostAuthenticationMgtService() {
@@ -226,23 +257,38 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
+     * Set post authentication management service.
+     *
+     * @param postAuthenticationMgtService Post authentication management service.
+     */
+    public void setPostAuthenticationMgtService(PostAuthenticationMgtService postAuthenticationMgtService) {
+
+        this.postAuthenticationMgtService = postAuthenticationMgtService;
+    }
+
+    /**
      * Get {@link ConsentManager} service.
+     *
      * @return Consent manager service
      */
     public ConsentManager getConsentManager() {
+
         return consentManager;
     }
 
     /**
      * Set {@link ConsentManager} service.
+     *
      * @param consentManager Instance of {@link ConsentManager} service.
      */
     public void setConsentManager(ConsentManager consentManager) {
+
         this.consentManager = consentManager;
     }
 
     /**
      * Get {@link ClaimMetadataManagementService}.
+     *
      * @return ClaimMetadataManagementService.
      */
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
@@ -252,6 +298,7 @@ public class FrameworkServiceDataHolder {
 
     /**
      * Set {@link ClaimMetadataManagementService}.
+     *
      * @param claimMetadataManagementService Instance of {@link ClaimMetadataManagementService}.
      */
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
@@ -261,38 +308,45 @@ public class FrameworkServiceDataHolder {
 
     /**
      * Get {@link SSOConsentService}.
+     *
      * @return SSOConsentService.
      */
     public SSOConsentService getSSOConsentService() {
+
         return ssoConsentService;
     }
 
     /**
      * Set {@link SSOConsentService}.
+     *
      * @param ssoConsentService Instance of {@link SSOConsentService}.
      */
     public void setSSOConsentService(SSOConsentService ssoConsentService) {
+
         this.ssoConsentService = ssoConsentService;
     }
 
     /**
      * Get the {@link JsFunctionRegistry}
+     *
      * @return JsFunctionRegistry which hold the native functions
      */
     public JsFunctionRegistry getJsFunctionRegistry() {
+
         return jsFunctionRegistry;
     }
 
     /**
      * Set the {@link JsFunctionRegistry}
+     *
      * @param jsFunctionRegistry JsFunctionRegistry which hold the native functions
      */
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
+
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
     /**
-     *
      * @return The Claim Filter with the highest priority.
      */
     public ClaimFilter getHighestPriorityClaimFilter() {
@@ -364,6 +418,7 @@ public class FrameworkServiceDataHolder {
 
     /**
      * Get {@link IdentityEventService}.
+     *
      * @return IdentityEventService.
      */
     public IdentityEventService getIdentityEventService() {
@@ -373,10 +428,51 @@ public class FrameworkServiceDataHolder {
 
     /**
      * Set {@link IdentityEventService}.
+     *
      * @param identityEventService Instance of {@link IdentityEventService}.
      */
-    public void setIdentityEventService (IdentityEventService identityEventService) {
+    public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get function library management service.
+     *
+     * @return functionLibraryManagementService
+     */
+    public FunctionLibraryManagementService getFunctionLibraryManagementService() {
+
+        return functionLibraryManagementService;
+    }
+
+    /**
+     * Set function library management service.
+     *
+     * @param functionLibraryManagementService functionLibraryManagementService
+     */
+    public void setFunctionLibraryManagementService(FunctionLibraryManagementService functionLibraryManagementService) {
+
+        this.functionLibraryManagementService = functionLibraryManagementService;
+    }
+
+    /**
+     * Get require() function's code.
+     *
+     * @return code snippet of require()
+     */
+    public String getCodeForRequireFunction() {
+
+        return requireCode;
+    }
+
+    /**
+     * Set require() function's code.
+     *
+     * @param requireCode code snippet of require() function
+     */
+    public void setCodeForRequireFunction(String requireCode) {
+
+        this.requireCode = requireCode;
     }
 }

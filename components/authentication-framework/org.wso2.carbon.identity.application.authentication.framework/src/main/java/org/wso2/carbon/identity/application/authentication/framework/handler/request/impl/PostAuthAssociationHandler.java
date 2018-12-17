@@ -166,7 +166,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
         Map<String, Object> authProperties = context.getProperties();
 
-        if (MapUtils.isNotEmpty(authProperties)) {
+        if (authProperties == null) {
             authProperties = new HashMap<>();
             context.setProperties(authProperties);
         }

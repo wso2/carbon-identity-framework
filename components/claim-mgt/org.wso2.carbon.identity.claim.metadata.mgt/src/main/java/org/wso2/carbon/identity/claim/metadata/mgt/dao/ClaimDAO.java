@@ -73,12 +73,6 @@ public class ClaimDAO {
         return claimMap;
     }
 
-//    public Claim getClaim(Connection connection, String claimDialectURI, String claimURI, int tenantId) throws
-//            ClaimMetadataException {
-//        return null;
-//
-//    }
-
     public int addClaim(Connection connection, String claimDialectURI, String claimURI, int tenantId) throws
             ClaimMetadataException {
 
@@ -172,5 +166,65 @@ public class ClaimDAO {
         }
 
         return claimId;
+    }
+
+    public Map<String, String> getClaimProperties(Connection connection, int claimId, int tenantId)
+            throws ClaimMetadataException {
+
+        Map<String, String> claimProperties = new HashMap<>();
+
+        String query = SQLConstants.GET_CLAIM_PROPERTIES;
+
+        try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+            prepStmt.setInt(1, claimId);
+            prepStmt.setInt(2, tenantId);
+
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    String claimPropertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
+                    String claimPropertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
+
+                    claimProperties.put(claimPropertyName, claimPropertyValue);
+                }
+            }
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while retrieving claim properties", e);
+        }
+
+        return claimProperties;
+    }
+
+    public void addClaimProperties(Connection connection, int claimId, Map<String, String> claimProperties,
+            int tenantId) throws ClaimMetadataException {
+
+        if (claimId > 0 && claimProperties != null) {
+            String query = SQLConstants.ADD_CLAIM_PROPERTY;
+            try (PreparedStatement prepStmt = connection.prepareStatement(query);) {
+                for (Map.Entry<String, String> property : claimProperties.entrySet()) {
+                    prepStmt.setInt(1, claimId);
+                    prepStmt.setString(2, property.getKey());
+                    prepStmt.setString(3, property.getValue());
+                    prepStmt.setInt(4, tenantId);
+                    prepStmt.addBatch();
+                }
+
+                prepStmt.executeBatch();
+            } catch (SQLException e) {
+                throw new ClaimMetadataException("Error while adding claim properties", e);
+            }
+        }
+    }
+
+    protected void deleteClaimProperties(Connection connection, int claimId, int tenantId)
+            throws ClaimMetadataException {
+
+        String query = SQLConstants.DELETE_CLAIM_PROPERTY;
+        try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+            prepStmt.setInt(1, claimId);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.execute();
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while deleting claim properties", e);
+        }
     }
 }

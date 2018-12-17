@@ -16,12 +16,14 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Identity-suite-initializer">
-    <parameter name="useDefaultListeners" value="false"/>
+<suite name="Identity-suite-initializer" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+    <parameter name="log-level" value="info"/>
 
-    <test name="is-tests-initialize" preserve-order="true" parallel="false" group-by-instances="true">
+    <test name="is-tests-initialize" preserve-order="true" parallel="classes" group-by-instances="true">
         <classes>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtilsTest"/>
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAOTest" />
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAOTest" />
         </classes>
     </test>
 

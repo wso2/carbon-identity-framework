@@ -1,0 +1,295 @@
+---
+swagger: "2.0"
+info:
+  description: "A **RESTful API** to handle templates for dynamic prompt in adaptive\
+    \ authentication for **WSO2 Identity Server**.<br/> Written with [swagger 2](https://swagger.io/)."
+  version: "1.0.0"
+  title: "WSO2 Identity Server Rest API - Template Management"
+  contact:
+    name: "WSO2"
+    url: "http://wso2.com/products/identity-server/"
+    email: "architecture@wso2.org"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/t/{tenant-domain}/api/identity/template/mgt/v1.0.0"
+schemes:
+  - "https"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+security:
+  - UserSecurity: []
+paths:
+  /templates:
+    get:
+      summary: "Get an array of templates."
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-response: |
+        [{"templateName":"Template100","description":"This is a sample template created by Alex"},
+        {"templateName":"Template101","description":"This is a sample template created by Bob"},
+        {"templateName":"Template102","description":"This is a sample template created by Cameron"}]
+      operationId: "getTemplates"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "Limits the number of templates listed on a page."
+          required: false
+          type: "integer"
+        - name: "offset"
+          in: "query"
+          description: "Specifies the starting point for the templates to be displayed."
+          required: false
+          type: "integer"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/GetTemplatesResponse"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+    post:
+      summary: "Add a new template.\n"
+      description: "This API is used to store template information submitted by the user.\n"
+      x-wso2-request: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"<Template_Name>\", \"description\": \"<Template_Description>\",\"templateScript\": \"<Template_Script>\"}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template100\", \"description\": \"This is a sample template created by Alex\",\"templateScript\": \"templateData\"}"
+      x-wso2-response: |
+        {"tenantDomain":"carbon.super","templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
+      operationId: "addTemplate"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "template"
+          description: "This represents the Template object that needs to be added to the database."
+          required: true
+          schema:
+            $ref: "#/definitions/Template"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            $ref: "#/definitions/TemplateResponse"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+  /templates/{templateName}:
+    get:
+      summary: "Find template by Name.\n"
+      description: "This API is used to retrieve a specific template using the template name. \n"
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/{templateName}" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-response: |
+        {"templateName":"Template100","description":"This is a sample template created by Alex","templateScript":"templateData"}
+      operationId: "getTemplateByName"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "templateName"
+          in: "path"
+          description: "Name of the template to be retrieved."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Template"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+    post:
+      summary: "Update an existing template. \n"
+      description: "This API is used to update a template. \n"
+      x-wso2-request: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/{templateName}" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"<New_Template_Name>\", \"description\": \"<New_Template_Description>\",\"templateScript\": \"<New_Template_Script>\"}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/Template100" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json" -d "{\"templateName\": \"Template101\", \"description\": \"This is an updated version of the sample template created by Alex\",\"templateScript\": \"updated templateData\"}"
+      x-wso2-response: |
+        {"tenantDomain":"carbon.super","templateName":"Template101","description":"This is an updated version of the sample template created by Alex","templateScript":"updated templateData"}
+      operationId: "updateTemplate"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "templateName"
+          in: "path"
+          description: "Name of the template to be updated."
+          required: true
+          type: "string"
+        - in: "body"
+          name: "newTemplate"
+          required: true
+          schema:
+            $ref: "#/definitions/Template"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/TemplateResponse"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+    delete:
+      summary: "Delete a template."
+      description: "This API is used to delete a template.\n"
+      x-wso2-request: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates/" -u admin:admin -H "accept: application/json" -H "Content-Type: application/json"
+      operationId: "deleteTemplate"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "templateName"
+          in: "path"
+          description: "Name of the template to be deleted."
+          required: true
+          type: "string"
+      responses:
+        204:
+          description: "No Content"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+securityDefinitions:
+  UserSecurity:
+    type: "basic"
+definitions:
+  Template:
+    type: "object"
+    required:
+      - "templateName"
+    properties:
+      templateName:
+        type: "string"
+        description: "The name of the template given by the admin."
+      description:
+        type: "string"
+        description: "A description for the template given by the admin."
+      templateScript:
+        type: "string"
+        description: "This indicates the script of the template."
+    example:
+      templateName: "sample template name"
+      description: "sample description"
+      templateScript: "sample template script"
+  TemplateResponse:
+    type: "object"
+    properties:
+      tenantDomain:
+        type: "string"
+        description: "The domain name of the tenant which the template resides in."
+      templateName:
+        type: "string"
+        description: "The name of the template given by the admin."
+      description:
+        type: "string"
+        description: "A description for the template given by the admin."
+      templateScript:
+        type: "string"
+        description: "This indicates the script of the template."
+    example:
+      tenantDomain: "abc.com"
+      templateName: "sample template name"
+      description: "sample description"
+      templateScript: "sample template script"
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "string"
+      message:
+        type: "string"
+      description:
+        type: "string"
+  GetTemplatesResponse:
+    type: "object"
+    properties:
+      TemplateName:
+        type: "string"
+      description:
+        type: "string"
+    example:
+      TemplateName: "sample template name"
+      description: "sample description"

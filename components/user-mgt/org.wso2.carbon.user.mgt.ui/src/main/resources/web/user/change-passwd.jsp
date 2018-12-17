@@ -106,8 +106,8 @@
 
     String regEx = userStoreInfo.getPasswordRegEx();
 
-    if (decryptedUsername.indexOf("/") > 0) {
-        String domain = decryptedUsername.substring(0, decryptedUsername.indexOf("/"));
+    if (decryptedUsername.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR) > 0) {
+        String domain = decryptedUsername.substring(0, decryptedUsername.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR));
         allUserStoreInfo = userRealmInfo.getUserStoresInfo();
         if (allUserStoreInfo != null && allUserStoreInfo.length > 0) {
             for (int i = 0; i < allUserStoreInfo.length; i++) {
