@@ -1,0 +1,892 @@
+swagger: '2.0'
+######################################################
+# Prolog
+######################################################
+info:
+  version: "1.0.0"
+  title: "WSO2 Identity Server Configuration Management Rest API"
+  description: |
+    This document specifies a **Configurations Management RESTfulAPI** for WSO2 **Identity Server** .
+    It is written with [swagger 2](http://swagger.io/).
+  contact:
+    name: "WSO2"
+    url: "http://wso2.com/products/identity-server/"
+    email: "architecture@wso2.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
+schemes:
+- https
+
+# The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+# host: apis.is.com
+
+# The base path of the API.
+# Will be prefixed to all paths.
+# if the tenant domain is carbon.super basepath can be /api/identity/config-mgt/v1.0 like this too.
+
+basePath: /t/{tenant-domain}/api/identity/config-mgt/v1.0
+
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
+consumes:
+- application/json
+
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requester is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specified in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
+produces:
+- application/json
+paths:
+  # Endpoint used to perform tenant based search
+  "/search":
+    get:
+      description: |
+        This API is used to search for tenant resources with search filters.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Retrieve tenant resources based on search parameters.
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resources'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Search
+
+  # Endpoint used to create resource types
+  "/resource-type":
+    post:
+      description: |
+        This API is used to create a new resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Create the resource type.
+      parameters:
+      - name: type
+        in: body
+        description: This represents the resource type to be added.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceTypeAdd'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/ResourceType'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource Type
+    put:
+      description: |
+        This API is used to create or replace a new resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Create or replace the resource type.
+      parameters:
+      - name: type
+        in: body
+        description: This represents the resource type to be added.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceTypeAdd'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/ResourceType'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource Type
+    patch:
+      description: |
+        This API is used to update an existing resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Update existing resource type.
+      parameters:
+      - name: type
+        in: body
+        description: This represents the resource type to update the existing.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceTypeAdd'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/ResourceType'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource Type
+  "/resource-type/{resource-type-name}":
+    get:
+      description: |
+        This API is used to get an existing resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Get the resource type.
+      parameters:
+      - name: resource-type-name
+        in: path
+        description: This represents the resource type to be retrieved.
+        required: true
+        type: string
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/ResourceType'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource Type
+    delete:
+      description: |
+        This API is used to delete an existing resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Revoke resource type.
+      parameters:
+      - name: resource-type-name
+        in: path
+        description: This represents the resource type to be revoked.
+        required: true
+        type: string
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource Type
+
+  # Endpoint used to add tenant resources
+  "/resource":
+    get:
+      description: |
+        This API is used to retrieve resources.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Retrieve resources.
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resources'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resources
+
+  "/resource/resource-type/{resource-type-name}":
+    get:
+      description: |
+        This API is used to retrieve all the resources for a given resource type.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Retrieve all the resources for the given resource type.
+      parameters:
+      - name: resource-type-name
+        in: path
+        description:  This represents the name of the resource type to be retrieved.
+        required: true
+        type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resources'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resources
+
+  "/resource/{resource-type}":
+    post:
+      description: |
+        This API is used to store the resource given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Create the resource
+      # post parameters:
+      parameters:
+      - name: resource-type
+        in: path
+        description:  This represents the type of the resource to be added.
+        required: true
+        type: 'string'
+      - name: resource
+        in: body
+        description:  This represents the resource that needs to be added.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceAdd'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Resource'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource
+    put:
+      description: |
+        This API is used to store or replace the resource given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Add or Replace the resource
+      # put parameters:
+      parameters:
+      - name: resource-type
+        in: path
+        description:  This represents the type of the resource to be added and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: resource
+        in: body
+        description:  This represents the resource that need to be added or replaced.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceAdd'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resource'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource
+    patch:
+      description: |
+        This API is used to update an existing resource given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Update existing resource
+      # patch parameters:
+      parameters:
+      - name: resource-type
+        in: path
+        description:  This represents the type of the resource to be added and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: resource
+        in: body
+        description:  This represents the resource that needs to be updated.
+        required: true
+        schema:
+          $ref: '#/definitions/ResourceAdd'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resource'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource
+
+  "/resource/{resource-type}/{resource-name}":
+    get:
+      description: |
+        This API is used to retrieve a resource.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Retrieve the resource.
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the resource to be retrieved.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the resource to be added and can either be the name or id.
+        required: true
+        type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Resource'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource
+    delete:
+      description: |
+        This API is used to revoke a resource in the tenant domain given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Revoke the resource
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the resource to be revoked.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the resource to be added and can either be the name or id.
+        required: true
+        type: 'string'
+      responses:
+        200:
+          description: Ok
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Resource
+    post:
+      description: |
+        This API is used to store the attribute given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Create the attribute
+      # post parameters:
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the attribute to be added.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the attribute to be added and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: attribute
+        in: body
+        description:  This represents the corresponding attribute value that needs to be added.
+        required: true
+        schema:
+          $ref: '#/definitions/Attribute'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/Attribute'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Attribute
+    put:
+      description: |
+        This API is used to store or replace the attribute given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Add or Replace the attribute
+      # put parameters:
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the attribute to be added or replaced.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the attribute to be added or replaced and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: attribute
+        in: body
+        description:  This represents the corresponding attribute value that needs to be added or replaced.
+        required: true
+        schema:
+          $ref: '#/definitions/Attribute'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Attribute'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Attribute
+    patch:
+      description: |
+        This API is used to update an existing attribute given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Update existing attribute
+      # patch parameters:
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the attribute to be added or updated.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the attribute to be added or updated and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: attribute
+        in: body
+        description:  This represents the corresponding attribute value that needs to be added or updated.
+        required: true
+        schema:
+          $ref: '#/definitions/Attribute'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Attribute'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Attribute
+  "/resource/{resource-type}/{resource-name}/{attribute-key}":
+    get:
+      description: |
+        This API is used to retrieve a attribute.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Retrieve the attribute.
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the attribute to be retrieved.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description: This represents the type of the attribute to be retrieved and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: attribute-key
+        in: path
+        description: This represents an attribute key of the attribute to be retrieved.
+        required: true
+        type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/Attribute'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Attribute
+    delete:
+      description: |
+        This API is used to revoke a attribute in the tenant domain given by the user.
+      x-wso2-request:
+      x-wso2-curl:
+      x-wso2-response:
+      summary: |
+        Revoke the attribute
+      parameters:
+      - name: resource-name
+        in: path
+        description:  This represents the name of the attribute to be retrieved.
+        required: true
+        type: 'string'
+      - name: resource-type
+        in: path
+        description:  This represents the type of the attribute to be deleted and can either be the name or id.
+        required: true
+        type: 'string'
+      - name: attribute-key
+        in: path
+        description:  This represents an attribute key of the attribute to be deleted.
+        required: true
+        type: 'string'
+      responses:
+        200:
+          description: Ok
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+      - Attribute
+
+definitions:
+  #-----------------------------------------------------
+  # The Error Response  object
+  #-----------------------------------------------------
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      description:
+        type: string
+  #-----------------------------------------------------
+  # Resources object
+  #-----------------------------------------------------
+  Resources:
+    type: object
+    required:
+    - resources
+    properties:
+      resources:
+        type: array
+        items:
+          $ref: '#/definitions/Resource'
+  #-----------------------------------------------------
+  # Resource object
+  #-----------------------------------------------------
+  Resource:
+    type: object
+    required:
+    - resourceId
+    - resourceName
+    - resourceType
+    - lastModified
+    properties:
+      resourceId:
+        type: string
+      tenantDomain:
+        type: string
+      resourceName:
+        type: string
+      resourceType:
+        type: string
+      lastModified:
+        type: string
+      attributes:
+        type: array
+        items:
+          $ref: '#/definitions/Attribute'
+      files:
+        type: array
+        items:
+          $ref: '#/definitions/ResourceFile'
+  #-----------------------------------------------------
+  # Resource Add object
+  #-----------------------------------------------------
+  ResourceAdd:
+    type: object
+    properties:
+      name:
+        type: string
+      attributes:
+        type: array
+        items:
+          $ref: '#/definitions/Attribute'
+  #-----------------------------------------------------
+  # Resource Type object
+  #-----------------------------------------------------
+  ResourceType:
+    type: object
+    properties:
+      name:
+        type: string
+      id:
+        type: string
+      description:
+        type: string
+  #-----------------------------------------------------
+  # Resource Type Create object
+  #-----------------------------------------------------
+  ResourceTypeAdd:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+  #-----------------------------------------------------
+  # Resource Attribute Object
+  #-----------------------------------------------------
+  Attribute:
+    type: object
+    required:
+    - key
+    - value
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  #-----------------------------------------------------
+  # Resource File Object
+  #-----------------------------------------------------
+  ResourceFile:
+    type: object
+    required:
+    - path
+    properties:
+      path:
+        type: string
