@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_TYPE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
         .getConfigurationManager;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getOperationNotSupportedDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
         .getResourceTypeAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
@@ -50,12 +51,7 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
     public Response resourceTypePatch(ResourceTypeAddDTO resourceTypeAddDTO) {
 
         try {
-            ResourceType resourceType = getConfigurationManager().replaceResourceType(getResourceTypeAddFromDTO(resourceTypeAddDTO));
-            return Response.ok().entity(getResourceTypeDTO(resourceType)).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
+            return Response.ok().entity(getOperationNotSupportedDTO()).build();
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }

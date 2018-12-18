@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourcesDTO;
 
@@ -36,6 +37,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getOperationNotSupportedDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourcesDTO;
@@ -82,13 +84,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
     public Response resourceResourceTypePatch(String resourceType, ResourceAddDTO resourceAddDTO) {
 
         try {
-            Resource resource = getConfigurationManager()
-                    .replaceResource(resourceType, getResourceAddFromDTO(resourceAddDTO));
-            return Response.ok().entity(getResourceDTO(resource)).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
+            return Response.ok().entity(getOperationNotSupportedDTO()).build();
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
@@ -198,13 +194,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             String resourceName, String resourceType, AttributeDTO attributeDTO) {
 
         try {
-            Attribute attribute = getConfigurationManager().updateAttribute(resourceType, resourceName,
-                    getAttributeFromDTO(attributeDTO));
-            return Response.ok().entity(getAttributeDTO(attribute)).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
+            return Response.ok().entity(getOperationNotSupportedDTO()).build();
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
