@@ -344,6 +344,19 @@
             <AuthorizationContextTTL>15</AuthorizationContextTTL>
         </AuthorizationContextTokenGeneration>
 
+        <!-- Configurations for JWT bearer grant. Supported versions: IS 5.8.0 onwards. -->
+        <JWTGrant>
+            <!-- Validate issued at time (iat) of JWT token. The validity can be set using 'IATValidity' configuration.
+             Default value is 'true'.
+             -->
+            <EnableIATValidation>true</EnableIATValidation>
+            <!-- Reject the JWT if the iat of JWT is pass a certain time period. Time period is in minutes.
+             'EnableIATValidation' configuration should be set to 'true' in order to make use of the validity period.
+             Default value is '30' minutes.
+             -->
+            <IATValidityPeriod>30</IATValidityPeriod>
+        </JWTGrant>
+
         <SAML2Grant>
             <!--SAML2TokenHandler></SAML2TokenHandler-->
             <!-- UserType conifg decides whether the SAML assertion carrying user is local user or a federated user.
