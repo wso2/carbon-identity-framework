@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_SQL;
+
 public class ConfigurationUtils {
 
     /**
@@ -136,5 +138,10 @@ public class ConfigurationUtils {
     public static String generateUniqueID() {
 
         return UUID.randomUUID().toString();
+    }
+
+    public static int getMaximumQueryLength() {
+
+        return StringUtils.isEmpty(MAX_QUERY_LENGTH_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_SQL);
     }
 }

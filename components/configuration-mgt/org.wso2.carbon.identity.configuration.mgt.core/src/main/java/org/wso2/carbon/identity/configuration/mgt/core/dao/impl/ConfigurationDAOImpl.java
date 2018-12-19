@@ -75,6 +75,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getMaximumQueryLength;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
@@ -96,7 +97,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     public Resources getTenantResources(Condition condition) throws ConfigurationManagementException {
 
         PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition);
-        if (placeholderSQL.getQuery().length() > MAX_QUERY_LENGTH_SQL) {
+        if (placeholderSQL.getQuery().length() > getMaximumQueryLength()) {
             if (log.isDebugEnabled()) {
                 log.debug("Error building SQL query for the search. Search expression " +
                         "query length: " + placeholderSQL.getQuery().length() + " exceeds the maximum limit: " +
@@ -656,7 +657,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         // Since attributes exist, query is already built for the first attribute.
         for (int i = 1; i < resource.getAttributes().size(); i++) {
             sb.append(SQLConstants.INSERT_ATTRIBUTE_KEY_VALUE_SQL);
-            if (sb.toString().getBytes().length > MAX_QUERY_LENGTH_SQL) {
+            if (sb.toString().getBytes().length > getMaximumQueryLength()) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error building SQL query for the attribute insert. Number of attributes: " +
                             resource.getAttributes().size() + " exceeds the maximum limit: " +
