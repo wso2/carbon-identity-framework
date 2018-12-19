@@ -47,6 +47,10 @@
             <groupId>org.wso2.carbon.commons</groupId>
             <artifactId>org.wso2.carbon.tenant.common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

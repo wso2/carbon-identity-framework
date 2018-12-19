@@ -120,6 +120,10 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

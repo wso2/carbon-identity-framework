@@ -102,6 +102,10 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

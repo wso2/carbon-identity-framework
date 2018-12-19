@@ -24,6 +24,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+    <packaging>bundle</packaging>
+    <name>WSO2 Carbon - Identity Application Common Bundle</name>
+
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -46,9 +49,11 @@
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
-    <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Application Common Bundle</name>
 
     <build>
         <plugins>
