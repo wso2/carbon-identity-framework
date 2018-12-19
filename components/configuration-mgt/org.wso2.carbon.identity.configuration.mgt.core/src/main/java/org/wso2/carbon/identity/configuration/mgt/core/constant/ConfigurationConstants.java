@@ -88,10 +88,6 @@ public class ConfigurationConstants {
         ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS("CONFIGM_00031", "Attribute with the name: %s already exists."),
         ERROR_CODE_INSERT_ATTRIBUTE("CONFIGM_00032", "Error while adding the attribute: %s."),
         ERROR_CODE_RESOURCE_REPLACE_REQUEST_INVALID("CONFIGM_00033", "Resource replace request validation failed."),
-        ERROR_CODE_RESOURCE_REPLACE_REQUEST_INVALID_PARTIAL_UPDATE("CONFIGM_00034", "Resource replace request " +
-                "validation failed. " +
-                "Resource in the request does not match with the existing resource. Replace action does not support " +
-                "partial updates."),
         ERROR_CODE_REPLACE_RESOURCE("CONFIGM_00034", "Error while replacing the resource : %s."),
         ERROR_CODE_REPLACE_ATTRIBUTE("CONFIGM_00035", "Error while replacing the attribute: %s."),
         ;
