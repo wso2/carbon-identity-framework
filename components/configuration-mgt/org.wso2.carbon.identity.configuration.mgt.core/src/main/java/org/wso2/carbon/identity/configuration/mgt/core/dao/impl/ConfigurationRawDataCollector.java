@@ -158,6 +158,11 @@ class ConfigurationRawDataCollector {
             return this;
         }
 
+        public ConfigurationRawDataCollector build() {
+
+            return new ConfigurationRawDataCollector(this);
+        }
+
         int getTenantId() {
 
             return tenantId;
@@ -255,11 +260,6 @@ class ConfigurationRawDataCollector {
 
             this.fileId = fileId;
             return this;
-        }
-
-        public ConfigurationRawDataCollector build() {
-
-            return new ConfigurationRawDataCollector(this);
         }
     }
 }

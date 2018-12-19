@@ -45,7 +45,7 @@ import java.util.List;
 public class ConfigurationManagerComponent {
 
     private static final Log log = LogFactory.getLog(ConfigurationManagerComponent.class);
-    private List<ConfigurationDAO> configurationDAOS = new ArrayList<>();
+    private List<ConfigurationDAO> configurationDAOs = new ArrayList<>();
 
     /**
      * Register ConfigurationManager as an OSGI service.
@@ -63,7 +63,7 @@ public class ConfigurationManagerComponent {
 
             ConfigurationManagerConfigurationHolder configurationManagerConfigurationHolder =
                     new ConfigurationManagerConfigurationHolder();
-            configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOS);
+            configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOs);
 
             bundleContext.registerService(ConfigurationManager.class.getName(),
                     new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
@@ -87,8 +87,8 @@ public class ConfigurationManagerComponent {
                 log.debug("Resource DAO is registered in ConfigurationManager service.");
             }
 
-            this.configurationDAOS.add(configurationDAO);
-            this.configurationDAOS.sort(Comparator.comparingInt(ConfigurationDAO::getPriority));
+            this.configurationDAOs.add(configurationDAO);
+            this.configurationDAOs.sort(Comparator.comparingInt(ConfigurationDAO::getPriority));
         }
     }
 
@@ -97,6 +97,6 @@ public class ConfigurationManagerComponent {
         if (log.isDebugEnabled()) {
             log.debug("Purpose DAO is unregistered in ConfigurationManager service.");
         }
-        this.configurationDAOS.remove(configurationDAO);
+        this.configurationDAOs.remove(configurationDAO);
     }
 }

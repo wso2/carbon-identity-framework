@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.search;
 
+import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
+
 /**
  * This Interface is used to validate a {@link PrimitiveCondition} with {@link PrimitiveConditionValidator}. Any custom
  * modification required for the use case of the search bean is performed here.
@@ -34,5 +36,6 @@ public interface SearchBean {
      *
      * @return Mapped {@link PrimitiveCondition}.
      */
-    PrimitiveCondition mapPrimitiveCondition(PrimitiveCondition primitiveCondition);
+    PrimitiveCondition mapPrimitiveCondition(PrimitiveCondition primitiveCondition)
+            throws PrimitiveConditionValidationException;
 }

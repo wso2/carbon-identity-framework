@@ -29,19 +29,13 @@ import java.net.URISyntaxException;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_TYPE_PATH;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .getConfigurationManager;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getOperationNotSupportedDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .getResourceTypeAddFromDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .getResourceTypeDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .handleBadRequestResponse;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .handleServerErrorResponse;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils
-        .handleUnexpectedServerError;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceTypeAddFromDTO;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceTypeDTO;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleServerErrorResponse;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleUnexpectedServerError;
 
 public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
 
@@ -72,11 +66,6 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
-    }
-
-    private URI getResourceTypeURI(ResourceType resourceType) throws URISyntaxException {
-
-        return new URI(RESOURCE_TYPE_PATH + '/' + resourceType.getId());
     }
 
     @Override
@@ -123,5 +112,10 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
+    }
+
+    private URI getResourceTypeURI(ResourceType resourceType) throws URISyntaxException {
+
+        return new URI(RESOURCE_TYPE_PATH + '/' + resourceType.getId());
     }
 }

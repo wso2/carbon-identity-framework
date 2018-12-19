@@ -33,6 +33,22 @@ public class Resource {
     private boolean hasFile;
     private boolean hasAttribute;
 
+    /**
+     * Initialize a Resource object.
+     *
+     * @param resourceName Name of the resource.
+     * @param resourceType Type of the resource.
+     */
+    public Resource(String resourceName, String resourceType) {
+
+        this.resourceName = resourceName;
+        this.resourceType = resourceType;
+    }
+
+    public Resource() {
+
+    }
+
     public boolean isHasFile() {
 
         return hasFile;
@@ -51,22 +67,6 @@ public class Resource {
     public void setHasAttribute(boolean hasAttribute) {
 
         this.hasAttribute = hasAttribute;
-    }
-
-    /**
-     * Initialize a Resource object.
-     *
-     * @param resourceName Name of the resource.
-     * @param resourceType Type of the resource.
-     */
-    public Resource(String resourceName, String resourceType) {
-
-        this.resourceName = resourceName;
-        this.resourceType = resourceType;
-    }
-
-    public Resource() {
-
     }
 
     public String getResourceId() {

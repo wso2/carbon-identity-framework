@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourcesDTO;
 
@@ -104,11 +103,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
-    }
-
-    private URI getResourceURI(String resourceType, Resource resource) throws URISyntaxException {
-
-        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceId());
     }
 
     @Override
@@ -218,12 +212,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         }
     }
 
-    private URI getAttributeLocationURI(String resourceType, String resourceName, Attribute attribute)
-            throws URISyntaxException {
-
-        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + attribute.getAttributeId());
-    }
-
     @Override
     public Response resourceResourceTypeResourceNamePut(
             String resourceName, String resourceType, AttributeDTO attributeDTO) {
@@ -239,5 +227,16 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
+    }
+
+    private URI getResourceURI(String resourceType, Resource resource) throws URISyntaxException {
+
+        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceId());
+    }
+
+    private URI getAttributeLocationURI(String resourceType, String resourceName, Attribute attribute)
+            throws URISyntaxException {
+
+        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + attribute.getAttributeId());
     }
 }

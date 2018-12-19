@@ -23,8 +23,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 
-import java.util.List;
-
 /**
  * Perform CRUD operations for {@link Resource}.
  *
@@ -143,7 +141,7 @@ public interface ConfigurationDAO {
      *
      * @param attributeId Id of the {@link Attribute}.
      * @param attribute   {@link Attribute} to be updated.
-     * @param resourceId Id of the {@link Resource} this {@link Attribute} belongs to.
+     * @param resourceId  Id of the {@link Resource} this {@link Attribute} belongs to.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     void updateAttribute(String attributeId, String resourceId, Attribute attribute)

@@ -30,6 +30,8 @@ public class SQLConstants {
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_MYSQL = "INSERT INTO IDN_CONFIG_TYPE (ID, NAME, " +
             "DESCRIPTION) VALUES (?, ?, ?)  ON DUPLICATE KEY UPDATE NAME = VALUES(NAME), " +
             "DESCRIPTION = VALUES(DESCRIPTION)";
+    public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_H2 = "MERGE INTO IDN_CONFIG_TYPE KEY (ID) " +
+            "VALUES (?, ?, ?)";
     public static final String INSERT_RESOURCE_SQL = "INSERT INTO\n" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +
@@ -54,6 +56,8 @@ public class SQLConstants {
             "VALUES(?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE TENANT_ID = VALUES(TENANT_ID), NAME = VALUES(NAME), " +
             "LAST_MODIFIED = VALUES(LAST_MODIFIED), HAS_FILE = VALUES(HAS_FILE), HAS_ATTRIBUTE = VALUES" +
             "(HAS_ATTRIBUTE), TYPE_ID = VALUES(TYPE_ID)";
+    public static final String INSERT_OR_UPDATE_RESOURCE_H2 = "MERGE INTO IDN_CONFIG_RESOURCE KEY (ID) " +
+            "VALUES(?, ?, ?, ?, ?, ?, ?)";
     public static final String INSERT_ATTRIBUTES_SQL = "INSERT INTO\n" +
             "  IDN_CONFIG_ATTRIBUTE(\n" +
             "    ID,\n" +
@@ -62,15 +66,21 @@ public class SQLConstants {
             "    ATTR_VALUE\n" +
             "  )\n" +
             "VALUES(?, ?, ?, ?)";
+    public static final String UPDATE_ATTRIBUTES_H2 = "MERGE INTO\n" +
+            "  IDN_CONFIG_ATTRIBUTE KEY(ID) VALUES(?, ?, ?, ?)";
     public static final String INSERT_OR_UPDATE_ATTRIBUTES_MYSQL = "ON DUPLICATE KEY UPDATE " +
             "RESOURCE_ID = VALUES(RESOURCE_ID), ATTR_KEY = VALUES(ATTR_KEY), ATTR_VALUE = VALUES(ATTR_VALUE)";
     public static final String INSERT_ATTRIBUTE_KEY_VALUE_SQL = ", (?, ?, ?, ?)";
+    public static final String DELETE_RESOURCE_ATTRIBUTES_SQL = "DELETE FROM IDN_CONFIG_ATTRIBUTE WHERE RESOURCE_ID =" +
+            " ?";
     public static final String UPDATE_ATTRIBUTE_MYSQL = "UPDATE IDN_CONFIG_ATTRIBUTE SET ATTR_VALUE = ? WHERE ID = ?";
-    public static final String INSERT_ATTRIBUTE_MYSQL = "INSERT IDN_CONFIG_ATTRIBUTE(ID, RESOURCE_ID, ATTR_KEY, " +
+    public static final String INSERT_ATTRIBUTE_MYSQL = "INSERT INTO IDN_CONFIG_ATTRIBUTE(ID, RESOURCE_ID, ATTR_KEY, " +
             "ATTR_VALUE) VALUES(?, ?, ?, ?)";
     public static final String INSERT_OR_UPDATE_ATTRIBUTE_MYSQL = "INSERT IDN_CONFIG_ATTRIBUTE(ID, RESOURCE_ID, " +
             "ATTR_KEY, ATTR_VALUE) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE RESOURCE_ID = VALUES(RESOURCE_ID), " +
             "ATTR_KEY = VALUES(ATTR_KEY), ATTR_VALUE = VALUES(ATTR_VALUE)";
+    public static final String INSERT_OR_UPDATE_ATTRIBUTE_H2 = "MERGE INTO IDN_CONFIG_ATTRIBUTE KEY(ID) VALUES(?, ?, "
+            + "?, ?)";
     public static final String GET_ATTRIBUTE_SQL = "SELECT\n" +
             "  ID,\n" +
             "  RESOURCE_ID,\n" +
@@ -140,7 +150,7 @@ public class SQLConstants {
             "  )\n" +
             "WHERE\n" +
             "  R.ID = ?\n";
-    public static final String GET_TENANT_RESOURCES_SELECT_COLLUMNS_MYSQL = "SELECT\n" +
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
             "  R.NAME,\n" +

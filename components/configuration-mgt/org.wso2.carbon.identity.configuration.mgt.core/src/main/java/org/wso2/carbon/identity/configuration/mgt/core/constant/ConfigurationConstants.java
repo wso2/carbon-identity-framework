@@ -23,7 +23,6 @@ import java.util.Random;
  */
 public class ConfigurationConstants {
 
-    public static final int NON_EXISTING_TENANT_ID = new Random().nextInt();
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
     public static final String STATUS_NOT_FOUND_MESSAGE_DEFAULT = "Not Found";
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
@@ -39,6 +38,14 @@ public class ConfigurationConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_TENANT_ID = "tenantId";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN = "tenantDomain";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_ID = "resourceTypeId";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME = "resourceTypeName";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_ID = "resourceId";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME = "resourceName";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY = "attributeKey";
+    public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE = "attributeValue";
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),

@@ -55,6 +55,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is H2.
+     *
+     * @return true if DB is H2.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isH2() throws DataAccessException {
+
+        return isDBTypeOf(H2);
+    }
+
+    /**
      * Check if the DB is DB2.
      *
      * @return true if DB2, false otherwise.

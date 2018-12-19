@@ -21,12 +21,21 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.SearchBean;
+import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.NON_EXISTING_TENANT_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_TENANT_ID;
 
 public class ResourceSearchBean implements SearchBean {
 
+    private static final Log log = LogFactory.getLog(ResourceSearchBean.class);
     private int tenantId;
     private String tenantDomain;
     private String resourceTypeId;
@@ -35,8 +44,6 @@ public class ResourceSearchBean implements SearchBean {
     private String resourceName;
     private String attributeKey;
     private String attributeValue;
-
-    private static final Log log = LogFactory.getLog(ResourceSearchBean.class);
 
     /**
      * Map field name to the DB table identifier.
@@ -47,25 +54,25 @@ public class ResourceSearchBean implements SearchBean {
 
         String dbQualifiedFieldName = null;
         switch (fieldName) {
-            case "tenantId":
+            case RESOURCE_SEARCH_BEAN_FIELD_TENANT_ID:
                 dbQualifiedFieldName = "R.TENANT_ID";
                 break;
-            case "resourceTypeId":
+            case RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_ID:
                 dbQualifiedFieldName = "T.ID";
                 break;
-            case "resourceTypeName":
+            case RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME:
                 dbQualifiedFieldName = "T.NAME";
                 break;
-            case "resourceId":
+            case RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_ID:
                 dbQualifiedFieldName = "R.ID";
                 break;
-            case "resourceName":
+            case RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME:
                 dbQualifiedFieldName = "R.NAME";
                 break;
-            case "attributeKey":
+            case RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY:
                 dbQualifiedFieldName = "A.ATTR_KEY";
                 break;
-            case "attributeValue":
+            case RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE:
                 dbQualifiedFieldName = "A.ATTR_VALUE";
                 break;
         }
@@ -77,29 +84,28 @@ public class ResourceSearchBean implements SearchBean {
      *
      * @param primitiveCondition Primitive search expression to be mapped.
      */
-    public PrimitiveCondition mapPrimitiveCondition(PrimitiveCondition primitiveCondition) {
+    public PrimitiveCondition mapPrimitiveCondition(PrimitiveCondition primitiveCondition)
+            throws PrimitiveConditionValidationException {
 
         // Map tenant domain to tenant id
-        if (primitiveCondition.getProperty().equals("tenantDomain")) {
+        if (primitiveCondition.getProperty().equals(RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN)) {
             try {
                 primitiveCondition.setValue(IdentityTenantUtil.getTenantId(
                         (String) primitiveCondition.getValue()
                 ));
             } catch (IdentityRuntimeException e) {
-                /*
-                Search filter value for the tenant domain is possibly invalid. Therefore log the error and set
-                a non-existing tenant domain string as the primitive search expression value. This will preserve the
-                expected flow for an invalid search condition property value.
-                 */
                 if (log.isDebugEnabled()) {
                     log.debug(
                             "Error while retrieving tenant id for the tenant domain: "
                                     + primitiveCondition.getValue() + ".", e
                     );
                 }
-                primitiveCondition.setValue(NON_EXISTING_TENANT_ID);
+                throw new PrimitiveConditionValidationException(
+                        "Unable to retrieve the tenant for the " + RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN + ": "
+                                + primitiveCondition.getValue()
+                );
             }
-            primitiveCondition.setProperty("tenantId");
+            primitiveCondition.setProperty(RESOURCE_SEARCH_BEAN_FIELD_TENANT_ID);
         }
         return primitiveCondition;
     }

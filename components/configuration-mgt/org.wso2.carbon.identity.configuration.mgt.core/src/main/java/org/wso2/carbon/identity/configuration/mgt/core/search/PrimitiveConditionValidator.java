@@ -33,6 +33,7 @@ public class PrimitiveConditionValidator {
 
     /**
      * Validate parameters in a {@link PrimitiveCondition} with the given Search bean
+     *
      * @param primitiveCondition
      * @return A db qualified {@link PrimitiveCondition}.
      * @throws PrimitiveConditionValidationException
