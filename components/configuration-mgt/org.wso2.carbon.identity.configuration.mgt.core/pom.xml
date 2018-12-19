@@ -119,19 +119,23 @@
                         <Private-Package>org.wso2.carbon.identity.configuration.mgt.core.internal</Private-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${project.version}",
-                            org.osgi.framework,
-                            org.osgi.service.component,
+
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.wso2.carbon.utils;version="${carbon.kernel.package.import.version.range}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.wso2.securevault.*,
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.configuration.mgt.core.internal,
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${project.version}",
                         </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
