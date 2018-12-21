@@ -72,8 +72,8 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
     public Response resourceTypePut(ResourceTypeAddDTO resourceTypeAddDTO) {
 
         try {
-            ResourceType resourceType = getConfigurationManager()
-                    .replaceResourceType(getResourceTypeAddFromDTO(resourceTypeAddDTO));
+            ResourceType resourceType =
+                    getConfigurationManager().replaceResourceType(getResourceTypeAddFromDTO(resourceTypeAddDTO));
             return Response.ok().entity(getResourceTypeDTO(resourceType)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);

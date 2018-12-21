@@ -36,7 +36,8 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * OSGi declarative services component which handles registration and un-registration of configuration management service.
+ * OSGi declarative services component which handles registration and un-registration of configuration management
+ * service.
  */
 @Component(
         name = "carbon.configuration.mgt.component",

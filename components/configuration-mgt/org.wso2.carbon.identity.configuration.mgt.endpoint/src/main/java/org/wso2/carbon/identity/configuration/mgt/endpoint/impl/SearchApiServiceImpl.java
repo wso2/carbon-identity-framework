@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceSearchBean;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.SearchApiService;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
 
 import javax.ws.rs.core.Response;
 
@@ -44,10 +45,10 @@ public class SearchApiServiceImpl extends SearchApiService {
 
         try {
             Resources resources = getConfigurationManager().getTenantResources(
-                    getSearchCondition(searchContext, ResourceSearchBean.class)
+                    getSearchCondition(searchContext, ResourceSearchBean.class, LOG)
             );
             return Response.ok().entity(resources).build();
-        } catch (SearchParseException e) {
+        } catch (SearchParseException | SearchConditionException e) {
             return handleSearchQueryParseError(e, LOG);
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);

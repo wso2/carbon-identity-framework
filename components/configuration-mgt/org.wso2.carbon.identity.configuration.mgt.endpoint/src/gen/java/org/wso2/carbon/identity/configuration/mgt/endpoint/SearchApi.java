@@ -39,7 +39,8 @@ public class SearchApi {
 
     @Consumes({"application/json"})
     @Produces({"application/json"})
-    @io.swagger.annotations.ApiOperation(value = "Retrieve tenant resources based on search parameters.\n", notes = "This API is used to search for tenant resources with search filters.\n", response = ResourcesDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve tenant resources based on search parameters.\n", notes =
+            "This API is used to search for tenant resources with search filters.\n", response = ResourcesDTO.class)
     @io.swagger.annotations.ApiResponses(value = {
             @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
 

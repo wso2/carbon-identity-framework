@@ -116,7 +116,8 @@ public class ConfigurationUtils {
     }
 
     /**
-     * This method can be used to generate a ConfigurationManagementRuntimeException from ConfigurationConstants.ErrorMessages
+     * This method can be used to generate a ConfigurationManagementRuntimeException from ConfigurationConstants
+     * .ErrorMessages
      * object when an exception is thrown.
      *
      * @param error ConfigurationConstants.ErrorMessages.
