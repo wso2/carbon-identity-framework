@@ -1040,7 +1040,11 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+    <!--Configuration Store properties-->
     <ConfigurationStore>
+        <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,
+        specially for searching resources. This property will prevent any unwanted errors due to too large queries.
+        Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLength>4194304</MaximumQueryLength>
     </ConfigurationStore>
 
