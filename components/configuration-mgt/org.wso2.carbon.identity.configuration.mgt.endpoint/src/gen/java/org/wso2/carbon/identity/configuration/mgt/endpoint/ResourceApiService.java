@@ -31,19 +31,25 @@ public abstract class ResourceApiService {
 
     public abstract Response resourceResourceTypePut(String resourceType, ResourceAddDTO resource);
 
-    public abstract Response resourceResourceTypeResourceNameAttributeKeyDelete(String resourceName, String resourceType, String attributeKey);
+    public abstract Response resourceResourceTypeResourceNameAttributeKeyDelete(String resourceName,
+                                                                                String resourceType,
+                                                                                String attributeKey);
 
-    public abstract Response resourceResourceTypeResourceNameAttributeKeyGet(String resourceName, String resourceType, String attributeKey);
+    public abstract Response resourceResourceTypeResourceNameAttributeKeyGet(String resourceName, String resourceType
+            , String attributeKey);
 
     public abstract Response resourceResourceTypeResourceNameDelete(String resourceName, String resourceType);
 
     public abstract Response resourceResourceTypeResourceNameGet(String resourceName, String resourceType);
 
-    public abstract Response resourceResourceTypeResourceNamePatch(String resourceName, String resourceType, AttributeDTO attribute);
+    public abstract Response resourceResourceTypeResourceNamePatch(String resourceName, String resourceType,
+                                                                   AttributeDTO attribute);
 
-    public abstract Response resourceResourceTypeResourceNamePost(String resourceName, String resourceType, AttributeDTO attribute);
+    public abstract Response resourceResourceTypeResourceNamePost(String resourceName, String resourceType,
+                                                                  AttributeDTO attribute);
 
-    public abstract Response resourceResourceTypeResourceNamePut(String resourceName, String resourceType, AttributeDTO attribute);
+    public abstract Response resourceResourceTypeResourceNamePut(String resourceName, String resourceType,
+                                                                 AttributeDTO attribute);
 
     public abstract Response resourceResourceTypeResourceTypeNameGet(String resourceTypeName);
 }

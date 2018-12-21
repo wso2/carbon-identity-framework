@@ -298,7 +298,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateAttributeRequest(attribute);
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attribute.getKey());
-        getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName, resourceName),
+        getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName,
+                resourceName),
                 attribute);
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully updated.");

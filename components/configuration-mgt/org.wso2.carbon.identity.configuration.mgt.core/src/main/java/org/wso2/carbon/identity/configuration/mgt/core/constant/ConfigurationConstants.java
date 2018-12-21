@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.constant;
 
-import java.util.Random;
-
 /**
  * Constants related to configuration management.
  */

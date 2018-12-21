@@ -24,7 +24,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.exception.Primitiv
 public interface Condition {
 
     /**
-     * Build while validating a placeholder sql query ready for a prepared statement alongside with a data array in the order of how the
+     * Build while validating a placeholder sql query ready for a prepared statement alongside with a data array in
+     * the order of how the
      * data should be inserted in to the prepared statement.
      *
      * @param primitiveConditionValidator Validator for primitive conditions.

@@ -362,7 +362,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
         Attribute createdAttribute = configurationManager.addAttribute(resourceType.getName(),
                 resource.getResourceName(), getSampleAttribute1());
-        configurationManager.deleteAttribute(resourceType.getName(), resource.getResourceName(), createdAttribute.getKey());
+        configurationManager.deleteAttribute(resourceType.getName(), resource.getResourceName(),
+                createdAttribute.getKey());
         configurationManager.getAttribute(resourceType.getName(),
                 resource.getResourceName(), createdAttribute.getKey());
 
@@ -380,7 +381,6 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         mockIdentityTenantUtilForTheTest();
         // Mock carbon context back to the super tenant.
         mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
-
 
         ComplexCondition condition = getSampleSearchCondition();
         Resources resources = configurationManager.getTenantResources(condition);

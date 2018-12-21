@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ConflictReq
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ForbiddenException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.NotFoundException;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -177,12 +178,13 @@ public class ConfigurationEndpointUtils {
     public static Response handleSearchQueryParseError(PrimitiveConditionValidationException e, Log LOG) {
 
         String searchQueryErrorMessage = e.getMessage();
-        String message = String.format(ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR.getMessage(), searchQueryErrorMessage);
+        String message = String.format(ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR.getMessage(),
+                searchQueryErrorMessage);
         throw ConfigurationEndpointUtils.buildBadRequestException(
                 message, ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR.getCode(), LOG, e);
     }
 
-    public static Response handleSearchQueryParseError(SearchParseException e, Log LOG) {
+    public static Response handleSearchQueryParseError(RuntimeException e, Log LOG) {
 
         throw ConfigurationEndpointUtils.buildBadRequestException(
                 ERROR_CODE_SEARCH_QUERY_SQL_PARSE_ERROR.getMessage(),
@@ -307,10 +309,24 @@ public class ConfigurationEndpointUtils {
         return new InternalServerErrorException(errorDTO);
     }
 
-    public static <T> Condition getSearchCondition(SearchContext searchContext, Class<T> reference) {
+    public static <T> Condition getSearchCondition(SearchContext searchContext, Class<T> reference, Log log)
+            throws SearchConditionException {
 
-        SearchCondition<T> searchCondition = searchContext.getCondition(reference);
-        return buildSearchCondition(searchCondition);
+        if (searchContext != null) {
+            SearchCondition<T> searchCondition = searchContext.getCondition(reference);
+            if (searchCondition != null) {
+                return buildSearchCondition(searchCondition);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Search condition parsed from the search expression is invalid.");
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cannot find a valid search context.");
+            }
+        }
+        throw new SearchConditionException("Invalid search expression found.");
     }
 
     private static Condition buildSearchCondition(SearchCondition searchCondition) {
