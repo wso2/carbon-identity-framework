@@ -62,11 +62,20 @@
             } else {
                 String certString = request.getParameter("sp-certificate");
                 String deleteCert = request.getParameter("deletePublicCert");
+
+
                 //validate public certificate content
                 if (StringUtils.isNotBlank(certString) && !Boolean.parseBoolean(deleteCert)) {
                     CertData certData = IdentityApplicationManagementUtil.getCertData(IdentityUtil.getCertificateString(certString));
                 }
-                appBean.update(request);
+
+                if (request.getParameter("choose_certificate_type").equals("choose_jwks_uri") &&
+                !request.getParameter("jwksUri").equals("") && (!request.getParameter("jwksUri").contains("https"))) {
+                     String message = "Invalid jwks uri";
+                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+                } else {
+                     appBean.update(request);
+                }
             }
             
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
