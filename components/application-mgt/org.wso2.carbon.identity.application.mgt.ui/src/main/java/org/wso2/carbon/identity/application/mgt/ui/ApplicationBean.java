@@ -99,7 +99,6 @@ public class ApplicationBean {
     Log log = LogFactory.getLog(ApplicationBean.class);
 
     public ApplicationBean() {
-
         standardInboundAuthTypes = new ArrayList<String>();
         standardInboundAuthTypes.add("oauth2");
         standardInboundAuthTypes.add("wstrust");
@@ -109,7 +108,6 @@ public class ApplicationBean {
     }
 
     public void reset() {
-
         serviceProvider = null;
         federatedIdentityProviders = null;
         federatedIdentityProvidersMap.clear();
@@ -138,7 +136,6 @@ public class ApplicationBean {
      * @return
      */
     public ServiceProvider getServiceProvider() {
-
         return serviceProvider;
     }
 
@@ -146,7 +143,6 @@ public class ApplicationBean {
      * @param serviceProvider
      */
     public void setServiceProvider(ServiceProvider serviceProvider) {
-
         this.serviceProvider = serviceProvider;
     }
 
@@ -154,7 +150,6 @@ public class ApplicationBean {
      * @return
      */
     public String getAuthenticationType() {
-
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
     }
 
@@ -162,7 +157,6 @@ public class ApplicationBean {
      * @param type
      */
     public void setAuthenticationType(String type) {
-
         serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationType(type);
     }
 
@@ -171,7 +165,6 @@ public class ApplicationBean {
      * @return
      */
     public String getStepZeroAuthenticatorName(String type) {
-
         if (AUTH_TYPE_LOCAL.equalsIgnoreCase(type)) {
             if (serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps() != null
                     && serviceProvider.getLocalAndOutBoundAuthenticationConfig()
@@ -205,7 +198,6 @@ public class ApplicationBean {
     }
 
     public void setStepZeroAuthenticatorName(String type, String name) {
-
         if (AUTH_TYPE_LOCAL.equalsIgnoreCase(type)) {
             LocalAuthenticatorConfig localAuthenticator = new LocalAuthenticatorConfig();
             localAuthenticator.setName(name);
@@ -220,7 +212,6 @@ public class ApplicationBean {
      * @return
      */
     public IdentityProvider[] getFederatedIdentityProviders() {
-
         return federatedIdentityProviders;
     }
 
@@ -228,7 +219,6 @@ public class ApplicationBean {
      * @param federatedIdentityProviders
      */
     public void setFederatedIdentityProviders(IdentityProvider[] federatedIdentityProviders) {
-
         this.federatedIdentityProviders = federatedIdentityProviders;
         if (federatedIdentityProviders != null) {
             federatedIdentityProvidersMap.clear();
@@ -239,7 +229,6 @@ public class ApplicationBean {
     }
 
     public List<IdentityProvider> getEnabledFederatedIdentityProviders() {
-
         if (enabledFederatedIdentityProviders != null) {
             return enabledFederatedIdentityProviders;
         }
@@ -266,7 +255,6 @@ public class ApplicationBean {
      * @return
      */
     public LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs() {
-
         return localAuthenticatorConfigs;
     }
 
@@ -274,7 +262,6 @@ public class ApplicationBean {
      * @param localAuthenticatorConfigs
      */
     public void setLocalAuthenticatorConfigs(LocalAuthenticatorConfig[] localAuthenticatorConfigs) {
-
         this.localAuthenticatorConfigs = localAuthenticatorConfigs;
     }
 
@@ -282,7 +269,6 @@ public class ApplicationBean {
      * @return
      */
     public RequestPathAuthenticatorConfig[] getRequestPathAuthenticators() {
-
         return requestPathAuthenticators;
     }
 
@@ -291,7 +277,6 @@ public class ApplicationBean {
      */
     public void setRequestPathAuthenticators(
             RequestPathAuthenticatorConfig[] requestPathAuthenticators) {
-
         this.requestPathAuthenticators = requestPathAuthenticators;
     }
 
@@ -325,7 +310,6 @@ public class ApplicationBean {
      * @param permissions
      */
     public void setPermissions(String[] permissions) {
-
         ApplicationPermission[] applicationPermission = new ApplicationPermission[permissions.length];
         for (int i = 0; i < permissions.length; i++) {
             ApplicationPermission appPermission = new ApplicationPermission();
@@ -338,7 +322,6 @@ public class ApplicationBean {
      * @return
      */
     public String getRoleClaimUri() {
-
         if (serviceProvider.getClaimConfig() != null) {
             return serviceProvider.getClaimConfig().getRoleClaimURI();
         } else {
@@ -366,7 +349,6 @@ public class ApplicationBean {
      * @return
      */
     public String getUserClaimUri() {
-
         if (serviceProvider.getClaimConfig() != null) {
             return serviceProvider.getClaimConfig().getUserClaimURI();
         } else {
@@ -422,7 +404,6 @@ public class ApplicationBean {
      * @param localRole
      */
     public void addRoleMapping(String spRole, String localRole) {
-
         roleMap.put(localRole, spRole);
     }
 
@@ -475,7 +456,6 @@ public class ApplicationBean {
      * @return
      */
     public boolean isLocalClaimsSelected() {
-
         if (serviceProvider.getClaimConfig() != null) {
             return serviceProvider.getClaimConfig().getLocalClaimDialect();
         }
@@ -483,7 +463,6 @@ public class ApplicationBean {
     }
 
     public boolean isAlwaysSendMappedLocalSubjectId() {
-
         if (serviceProvider.getClaimConfig() != null) {
             return serviceProvider.getClaimConfig().getAlwaysSendMappedLocalSubjectId();
         }
@@ -491,7 +470,6 @@ public class ApplicationBean {
     }
 
     public boolean isAlwaysSendBackAuthenticatedListOfIdPs() {
-
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAlwaysSendBackAuthenticatedListOfIdPs();
         }
@@ -499,7 +477,6 @@ public class ApplicationBean {
     }
 
     public boolean isUseTenantDomainInLocalSubjectIdentifier() {
-
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseTenantDomainInLocalSubjectIdentifier();
         }
@@ -507,7 +484,6 @@ public class ApplicationBean {
     }
 
     public boolean isUseUserstoreDomainInLocalSubjectIdentifier() {
-
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInLocalSubjectIdentifier();
         }
@@ -517,11 +493,11 @@ public class ApplicationBean {
     public boolean isEnableAuthorization() {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getEnableAuthorization();
+               serviceProvider.getLocalAndOutBoundAuthenticationConfig().getEnableAuthorization();
+
     }
 
     public String getSubjectClaimUri() {
-
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri();
         }
@@ -529,7 +505,6 @@ public class ApplicationBean {
     }
 
     public String getAttributeConsumingServiceIndex() {
-
         if (attrConsumServiceIndex != null) {
             return attrConsumServiceIndex;
         }
@@ -555,12 +530,10 @@ public class ApplicationBean {
     }
 
     public void setAttributeConsumingServiceIndex(String attrConsumServiceIndex) {
-
         this.attrConsumServiceIndex = attrConsumServiceIndex;
     }
 
     public String getOauthConsumerSecret() {
-
         if (oauthConsumerSecret != null) {
             return oauthConsumerSecret;
         }
@@ -586,7 +559,6 @@ public class ApplicationBean {
     }
 
     public void setOauthConsumerSecret(String oauthConsumerSecret) {
-
         this.oauthConsumerSecret = oauthConsumerSecret;
     }
 
@@ -615,7 +587,6 @@ public class ApplicationBean {
     }
 
     public String getKerberosServiceName() {
-
         if (kerberosServiceName != null) {
             return kerberosServiceName;
         }
@@ -634,7 +605,6 @@ public class ApplicationBean {
     }
 
     public void setKerberosServiceName(String kerberosServiceName) {
-
         this.kerberosServiceName = kerberosServiceName;
     }
 
@@ -642,12 +612,10 @@ public class ApplicationBean {
      * @param issuerName
      */
     public void setSAMLIssuer(String issuerName) {
-
         this.samlIssuer = issuerName;
     }
 
     public void deleteSAMLIssuer() {
-
         this.samlIssuer = null;
         this.attrConsumServiceIndex = null;
         InboundAuthenticationRequestConfig[] authRequest = serviceProvider
@@ -679,12 +647,10 @@ public class ApplicationBean {
      * @param oauthAppName
      */
     public void setOIDCAppName(String oauthAppName) {
-
         this.oauthAppName = oauthAppName;
     }
 
     public void deleteOauthApp() {
-
         this.oauthAppName = null;
         this.oauthConsumerSecret = null;
         InboundAuthenticationRequestConfig[] authRequest = serviceProvider
@@ -713,7 +679,6 @@ public class ApplicationBean {
     }
 
     public void deleteKerberosApp() {
-
         this.kerberosServiceName = null;
         InboundAuthenticationRequestConfig[] authRequest = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
@@ -741,7 +706,6 @@ public class ApplicationBean {
     }
 
     public void deleteWstrustEp() {
-
         this.wstrustEp = null;
         InboundAuthenticationRequestConfig[] authRequest = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
@@ -818,7 +782,6 @@ public class ApplicationBean {
      * @return
      */
     public String getWstrustSP() {
-
         if (wstrustEp != null) {
             return wstrustEp;
         }
@@ -900,12 +863,10 @@ public class ApplicationBean {
      * @return
      */
     public String[] getClaimUris() {
-
         return claimUris;
     }
 
     public void setClaimUris(String[] claimUris) {
-
         this.claimUris = claimUris;
     }
 
@@ -941,8 +902,8 @@ public class ApplicationBean {
         return claimDialectUris;
     }
 
-    private boolean isCustomInboundAuthType(String authType) {
 
+    private boolean isCustomInboundAuthType(String authType) {
         return !standardInboundAuthTypes.contains(authType);
     }
 
@@ -972,6 +933,7 @@ public class ApplicationBean {
         }
         return inboundAuthenticationRequestConfigs;
     }
+
 
     /**
      * @param request
@@ -1117,26 +1079,37 @@ public class ApplicationBean {
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
-        String jwks = request.getParameter("jwksUri");
+        String jwks = request.getParameter(ApplicationMgtUIConstants.JWKS_URI);
         boolean jwksExist = false;
-        ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
-        //adding jwks uri as a sp meta data
-        ArrayList<ServiceProviderProperty> spPropList = new ArrayList<>(Arrays.asList(serviceProvider.getSpProperties()));
+        ArrayList<ServiceProviderProperty> spPropList;
+        // Adding jwks uri as a sp meta data.
+        if (this.serviceProvider.getSpProperties() != null) {
+            spPropList = new ArrayList(Arrays.asList(this.serviceProvider.getSpProperties()));
+        } else {
+            spPropList = new ArrayList();
+        }
 
-        //if a jwks property already exist for the service provider check whether the stored value is not  equal to the
-        //value recieved from the request
+        // If a jwks property already exist for the service provider check whether the stored value is not equal to the
+        // value received from the request.
         for (ServiceProviderProperty spProperty : spPropList) {
-            if ((ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName()) && !jwks.equals(spProperty.getValue()))
-                    || (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName()) && jwks.equals(spProperty.getValue()))
-                    || (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName()) && jwks.equals(""))) {
-                //remove the serivice provider property from array
-                spPropList.remove(spPropList.indexOf(spProperty));
+            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
                 jwksExist = true;
-                break;
+                if (StringUtils.isBlank(jwks)) {
+                    spPropList.remove(spProperty);
+                    break;
+                } else if (!jwks.equals(spProperty.getValue())) {
+                    if(log.isDebugEnabled()) {
+                        log.debug("Existing jwks value: "+spProperty.getValue()+" Updated jwks value is "+jwks);
+                    }
+                    // If a new value is set for the jwks uri add it to the service provider properties.
+                    spPropList.get(spPropList.indexOf(spProperty)).setValue(jwks);
+                    break;
+                }
             }
         }
-        //if a new value is set for the jwks uri add it to the service provider properties
-        if ((!jwks.equals("") || !jwksExist)) {
+        // When a jwks value is set for the first time add it to spProperties.
+        if (!StringUtils.isNotBlank(jwks) && !jwksExist) {
+            ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
             propertyForJWKS.setDisplayName(ApplicationMgtUIUtil.JWKS_DISPLAYNAME);
             propertyForJWKS.setName(ApplicationMgtUIUtil.JWKS_URI);
             propertyForJWKS.setValue(jwks);
@@ -1402,6 +1375,7 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
 
+
         String subjectClaimUri = request.getParameter("subject_claim_uri");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setSubjectClaimUri((subjectClaimUri != null && !subjectClaimUri.isEmpty()) ? subjectClaimUri : null);
@@ -1606,7 +1580,6 @@ public class ApplicationBean {
      * @return
      */
     public Map<String, String> getRequestedClaims() {
-
         return requestedClaims;
     }
 
@@ -1614,7 +1587,6 @@ public class ApplicationBean {
      * @return
      */
     public Map<String, String> getMandatoryClaims() {
-
         return mandatoryClaims;
     }
 
@@ -1622,7 +1594,6 @@ public class ApplicationBean {
      * @param wstrustEp
      */
     public void setWstrustEp(String wstrustEp) {
-
         this.wstrustEp = wstrustEp;
     }
 
@@ -1630,7 +1601,6 @@ public class ApplicationBean {
      * @param passivests
      */
     public void setPassivests(String passivests) {
-
         this.passivests = passivests;
     }
 
@@ -1638,7 +1608,6 @@ public class ApplicationBean {
      * @param passiveSTSWReply
      */
     public void setPassiveSTSWReply(String passiveSTSWReply) {
-
         this.passiveSTSWReply = passiveSTSWReply;
     }
 
@@ -1646,7 +1615,6 @@ public class ApplicationBean {
      * @param openid
      */
     public void setOpenid(String openid) {
-
         this.openid = openid;
     }
 
@@ -1737,7 +1705,6 @@ public class ApplicationBean {
      * @return true, if the user store domain should be appended with the role name.
      */
     public boolean isUseUserstoreDomainInRoles() {
-
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInRoles();
         }
