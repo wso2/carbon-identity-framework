@@ -42,6 +42,10 @@
                 document.getElementById("loginForm").submit();
             }
         }
+
+        function goBack() {
+            window.history.back();
+        }
 </script>
 
 <%!
@@ -217,6 +221,14 @@
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
                 </a>
                 ?
+            </div>
+    
+            <div class="form-actions">
+                <% if (isIdentifierFirstLogin(inputType)) { %>
+                <a id="backLink" onclick="goBack()">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "sign.in.different.account")%>
+                </a>
+                <% } %>
             </div>
         </div>
         <%
