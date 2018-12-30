@@ -21,7 +21,9 @@ info:
   title: "WSO2 Identity Server Configuration Management Rest API"
   description: |
     This document specifies a **Configurations Management RESTfulAPI** for WSO2 **Identity Server** .
+
     It is written with [swagger 2](http://swagger.io/).
+
   contact:
     name: "WSO2"
     url: "http://wso2.com/products/identity-server/"
@@ -78,7 +80,7 @@ paths:
       x-wso2-response: |
         {"resources":[{"id":"e0dd8199-d45f-49c8-a4ca-6b863d4bc157","tenantDomain":"carbon.super","resourceName":"smtp","resourceType":"e-mail","lastModified": "2019-01-24T10:15:51Z","created": "2019-01-24T10:15:51Z","files":[{"value":"/resource/file/489684c4-77ee-47e0-ad74-38ccb0762672","id":"489684c4-77ee-47e0-ad74-38ccb0762672"}],"attributes":[{"key":"from","value":"hey","id":"de983448-8700-4fde-8a4b-f0becdb7ebe1"},{"key":"to","value":"3wso2.com","id":"4b4c5c85-dbed-46cb-b576-e15de4acc76a"}],"hasFile":true,"hasAttribute":true},{"id":"4f731dc0-1581-4f00-b904-3d42bebdc9b6","tenantDomain":"carbon.super","resourceName":"pop3","resourceType":"e-mail","lastModified": "2019-01-24T10:15:51Z","created": "2019-01-24T10:15:51Z","files":[],"attributes":[{"key":"server","value":"pop3.abc.com","id":"6f7aa9ee-2bca-4813-8405-9a5ea8728e2f"},{"key":"to","value":"wso2.com","id":"7569948c-9aed-451c-af4c-64c943e85c91"}],"hasFile":false,"hasAttribute":true}]}
       summary: |
-        Retrieve tenant resources based on search parameters 
+        Retrieve tenant resources based on search parameters
       responses:
         200:
           description: Ok
@@ -111,7 +113,7 @@ paths:
       x-wso2-response: |
         {"name":"e-mail","id":"0adbdfad-5f4f-4c11-af75-9ed3e93647b9","description":"This is the resource type for email resources."}
       summary: |
-        Create resource type 
+        Create resource type
       parameters:
         - name: type
           in: body
@@ -267,7 +269,7 @@ paths:
   "/resource/{resource-type}":
     post:
       description: |
-        This API is used to create a new resource. 
+        This API is used to create a new resource.
       x-wso2-request: |
         curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}" -H "accept: application/json" -H "Content-Type: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>" -d '{"name": "string","attributes": [{"id": "string","key": "string","value": "string"}]}'
       x-wso2-curl: |
@@ -280,7 +282,7 @@ paths:
       parameters:
         - name: resource-type
           in: path
-          description:  This represents the type of resource that is to be added. 
+          description:  This represents the type of resource that is to be added.
           required: true
           type: 'string'
         - name: resource
@@ -314,7 +316,7 @@ paths:
         - Resource
     put:
       description: |
-        This API is used to create or replace a resource. 
+        This API is used to create or replace a resource.
       x-wso2-request: |
         curl -k -X PUT "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}" -H "accept: application/json" -H "Content-Type: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>" -d '{"name": "string","attributes": [{"id": "string","key": "string","value": "string"}]}'
       x-wso2-curl: |
@@ -443,7 +445,7 @@ paths:
         - Resource
     post:
       description: |
-        This API is used to create a new attribute for a given resource. 
+        This API is used to create a new attribute for a given resource.
       x-wso2-request: |
         curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}/{resource-name}" -H "accept: application/json" -H "Content-Type: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>" -d "{"key": "string","value": "string"}""
       x-wso2-curl: |
@@ -563,7 +565,7 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description: This represents the type of attribute that is to be retrieved. 
+          description: This represents the type of attribute that is to be retrieved.
           required: true
           type: 'string'
         - name: attribute-key
@@ -592,7 +594,7 @@ paths:
         - Attribute
     delete:
       description: |
-        This API is used to revoke a attribute in the tenant domain for a given resource. 
+        This API is used to revoke a attribute in the tenant domain for a given resource.
       x-wso2-request: |
         curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}/{resource-name}/{attribute-key} -H "accept: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>"
       x-wso2-curl: |
@@ -638,6 +640,109 @@ paths:
             $ref: '#/definitions/Error'
       tags:
         - Attribute
+
+  "/resource/{resource-type}/{resource-name}/file/{file-id}":
+    get:
+      produces:
+        - 'application/*'
+      description: |
+        This API is used to retrieve a file.
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1
+              .0/resource/<resource-type>/<resource-name>/<attribute-key>" -H "Authorization: Basic
+              <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/from" -H
+                    "Authorization:
+                    Basic
+                    YWRtaW46YWRtaW4=" -H "accept: application/json"
+      x-wso2-response: |
+        {"consentReceiptId":"38279263-f385-4252-8966-40998faa95ae","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"admin","tenantDomain":"carbon.super"}
+      summary: |
+        Retrieve the file.
+      parameters:
+        - name: resource-name
+          in: path
+          description:  This represents the name of the attribute to be retrieved.
+          required: true
+          type: 'string'
+        - name: resource-type
+          in: path
+          description: This represents the type of the attribute to be retrieved and can either be the name or id.
+          required: true
+          type: 'string'
+        - name: file-id
+          in: path
+          description: This represents a file id of the file to be retrieved.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: file
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
+    delete:
+      description: |
+        This API is used to revoke a file in the tenant domain given by the user.
+      x-wso2-request: |
+        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/consents" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"<Service_Name>\", \"tenantDomain\": \"<Tenant_Domain_Name>\", \"purposes\": [ { \"purposeId\": <Purpose_ID>, \"purposeCategoryId\": [ <Purpose_Category_ID> ], \"consentType\": \"<Consent_Type>\", \"piiCategory\": [ { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" }, { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" } ], \"primaryPurpose\": true, \"termination\": \"days:<Number_Of_Days>\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"<Collection_Method>\", \"jurisdiction\": \"<Jurisdiction>\", \"language\": \"<Language_Abbreviation>\", \"policyURL\": \"<Service_Policy_URL>", \"properties\": [ { \"key\": \"<PII_Controller's_Public_Key>\", \"value\": \"v1\" } ]}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/consents" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
+      x-wso2-response: |
+        {"consentReceiptId":"38279263-f385-4252-8966-40998faa95ae","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"admin","tenantDomain":"carbon.super"}
+      summary: |
+        Revoke the file
+      parameters:
+        - name: resource-name
+          in: path
+          description:  This represents the name of the attribute to be retrieved.
+          required: true
+          type: 'string'
+        - name: resource-type
+          in: path
+          description:  This represents the type of the attribute to be deleted and can either be the name or id.
+          required: true
+          type: 'string'
+        - name: file-id
+          in: path
+          description: This represents a file id of the file to be retrieved.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
 
 definitions:
   #-----------------------------------------------------
