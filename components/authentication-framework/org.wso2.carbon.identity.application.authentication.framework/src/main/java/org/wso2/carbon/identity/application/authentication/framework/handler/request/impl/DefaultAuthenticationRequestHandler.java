@@ -301,6 +301,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
             if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
 
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
