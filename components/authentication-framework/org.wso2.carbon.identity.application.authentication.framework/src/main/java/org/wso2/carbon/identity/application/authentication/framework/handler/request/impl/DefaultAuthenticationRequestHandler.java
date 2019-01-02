@@ -301,7 +301,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
-            if (FrameworkUtils.getAuthCookie(request) != null) {
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
+            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
 
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
 
@@ -343,6 +344,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             }
                         }
                     }
+                }
+
+                Long createdTime = (Long)sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+                if (createdTime != null) {
+                    authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTime);
                 }
 
                 // Authentication context properties received from newly authenticated IdPs
@@ -398,7 +404,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                Long createdTimeMillis = System.currentTimeMillis();
+                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
