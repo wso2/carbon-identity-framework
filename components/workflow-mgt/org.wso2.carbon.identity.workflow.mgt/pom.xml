@@ -21,7 +21,7 @@
     <parent>
         <artifactId>identity-workflow-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.12.240</version>
+        <version>5.12.241-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
