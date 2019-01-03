@@ -62,7 +62,6 @@ public class DefaultStepHandler implements StepHandler {
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
     private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
-    private static String PASSWORD_PROPERTY_FOR_OTP = "PASSWORD_PROPERTY";
 
     public static DefaultStepHandler getInstance() {
 
@@ -662,8 +661,8 @@ public class DefaultStepHandler implements StepHandler {
         IdentityUtil.clearIdentityErrorMsg();
 
         retryParam = handleIdentifierFirstLogin(context, retryParam);
-        String otp = (String) context.getProperty(PASSWORD_PROPERTY_FOR_OTP);
-        context.getProperties().remove(PASSWORD_PROPERTY_FOR_OTP);
+        String otp = (String) context.getProperty(FrameworkConstants.PASSWORD_PROPERTY);
+        context.getProperties().remove(FrameworkConstants.PASSWORD_PROPERTY);
 
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
