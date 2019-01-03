@@ -121,6 +121,7 @@ public abstract class FrameworkConstants {
     public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
+    public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
     private FrameworkConstants() {
 
