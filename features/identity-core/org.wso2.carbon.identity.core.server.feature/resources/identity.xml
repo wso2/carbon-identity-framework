@@ -571,6 +571,7 @@
         <!--UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Users</UserEPUrl-->
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
+        <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
     </SCIM2>
 
     <!--Recovery>
