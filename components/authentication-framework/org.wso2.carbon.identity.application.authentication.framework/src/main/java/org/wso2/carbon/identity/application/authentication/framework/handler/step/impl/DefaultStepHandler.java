@@ -62,6 +62,7 @@ public class DefaultStepHandler implements StepHandler {
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
     private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
+    private static String PASSWORD_PROPERTY_FOR_OTP = "PASSWORD_PROPERTY";
 
     public static DefaultStepHandler getInstance() {
 
@@ -563,7 +564,11 @@ public class DefaultStepHandler implements StepHandler {
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
-            log.error(e.getMessage(), e);
+            IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+            if (errorContext != null && !IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
+                    equals(errorContext.getErrorCode())) {
+                log.error("Authentication failed exception!", e);
+            }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);
@@ -657,6 +662,8 @@ public class DefaultStepHandler implements StepHandler {
         IdentityUtil.clearIdentityErrorMsg();
 
         retryParam = handleIdentifierFirstLogin(context, retryParam);
+        String otp = (String) context.getProperty(PASSWORD_PROPERTY_FOR_OTP);
+        context.getProperties().remove(PASSWORD_PROPERTY_FOR_OTP);
 
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
@@ -680,12 +687,12 @@ public class DefaultStepHandler implements StepHandler {
                     log.debug(debugString.toString());
                 }
 
-                if (errorCode.equals(UserCoreConstants.ErrorCode.INVALID_CREDENTIAL)) {
+                if (UserCoreConstants.ErrorCode.INVALID_CREDENTIAL.equals(errorCode)) {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
+                } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
                     if (remainingAttempts == 0) {
                         if (StringUtils.isBlank(reason)) {
@@ -716,7 +723,7 @@ public class DefaultStepHandler implements StepHandler {
                         }
                     }
                     return redirectURL;
-                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
+                } else if (IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(errorCode)) {
                     retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
                     String username = request.getParameter("username");
 
@@ -729,6 +736,11 @@ public class DefaultStepHandler implements StepHandler {
                             (username, "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                    String username = request.getParameter("username");
+                    return response.encodeRedirectURL(
+                            ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                            + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
                 } else {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
@@ -741,13 +753,18 @@ public class DefaultStepHandler implements StepHandler {
             }
         } else {
             String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
-            if (errorCode != null && errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
+            if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                 String redirectURL;
                 redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
                 )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
                         "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
                 return redirectURL;
 
+            } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                String username = request.getParameter("username");
+                return response.encodeRedirectURL(
+                        ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                        + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames + ":" + FrameworkConstants.LOCAL,
