@@ -29,6 +29,7 @@ import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
@@ -46,9 +47,7 @@ import java.util.Map;
 
 public class SelfRegisterApi {
 
-    String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/user/v1.0");
+    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl("api/identity/user/v1.0");
     private ApiClient apiClient;
 
     public SelfRegisterApi() {
@@ -88,9 +87,8 @@ public class SelfRegisterApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/"+tenantDomain+"/api/identity/user/v1.0");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    "/api/identity/user/v1.0");
         }
         apiClient.setBasePath(basePath);
 
@@ -149,9 +147,8 @@ public class SelfRegisterApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/"+tenantDomain+"/api/identity/user/v1.0");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    "/api/identity/user/v1.0");
         }
 
         apiClient.setBasePath(basePath);
@@ -210,9 +207,8 @@ public class SelfRegisterApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/user/v1.0");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    "/api/identity/user/v1.0");
         }
 
         apiClient.setBasePath(basePath);
