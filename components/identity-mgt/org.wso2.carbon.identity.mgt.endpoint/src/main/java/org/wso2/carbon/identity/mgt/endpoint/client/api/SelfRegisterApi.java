@@ -47,7 +47,8 @@ import java.util.Map;
 
 public class SelfRegisterApi {
 
-    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl("api/identity/user/v1.0");
+    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
+            .UserInfoRecovery.USER_API_RELATIVE_PATH);
     private ApiClient apiClient;
 
     public SelfRegisterApi() {
@@ -88,7 +89,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    "/api/identity/user/v1.0");
+                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         }
         apiClient.setBasePath(basePath);
 
@@ -148,7 +149,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    "/api/identity/user/v1.0");
+                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);
@@ -208,7 +209,7 @@ public class SelfRegisterApi {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    "/api/identity/user/v1.0");
+                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);
