@@ -26,7 +26,7 @@ BEGIN
   enableLog := true; -- ENABLE LOGGING [DEFAULT : FALSE]
   logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
   enableAudit := 1;  -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKENS USING A TABLE    [DEFAULT : TRUE]
-  deleteTillTime := CURRENT_timestamp - INTERVAL '1hour' * safePeriod;
+  deleteTillTime := timezone('UTC'::text, now()) - INTERVAL '1hour' * safePeriod;
   count := 0;
 
   RAISE NOTICE 'CLEANUP_OAUTH2_TOKENS() .... !';
