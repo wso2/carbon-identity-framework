@@ -31,12 +31,14 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -45,6 +47,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
     private int tenantId = MultitenantConstants.SUPER_TENANT_ID;
+    private static final Map<String, Object> dataSourceProperties = new HashMap<>();
 
     public JDBCUserStoreCountRetriever() {
 
@@ -178,7 +181,23 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {
 
         Connection dbConnection = null;
-        DataSource dataSource = DatabaseUtil.createUserStoreDataSource(realmConfiguration);
+        String dataSourceName = realmConfiguration.getUserStoreProperty(JDBCRealmConstants.DATASOURCE);
+        if (dataSourceName == null) {
+            dataSourceName = realmConfiguration.getUserStoreProperties().get("DomainName");
+            if (log.isDebugEnabled()) {
+                log.debug("The datasource name is null. This is a secondary userstore :" + dataSourceName);
+            }
+        }
+        DataSource dataSource = (DataSource) dataSourceProperties.get(dataSourceName);
+
+        if(dataSource == null) {
+            dataSource = DatabaseUtil.createUserStoreDataSource(realmConfiguration);
+            dataSourceProperties.put(dataSourceName, dataSource);
+            if (log.isDebugEnabled()) {
+                log.debug("The datasource is not available in the property map. Hence retrieved from the lookup" +
+                        " or jdbc pool properties");
+            }
+        }
 
         if (dataSource != null) {
             dbConnection = DatabaseUtil.getDBConnection(dataSource);
