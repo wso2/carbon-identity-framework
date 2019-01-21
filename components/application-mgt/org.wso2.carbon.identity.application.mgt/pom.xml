@@ -139,6 +139,7 @@
                             org.wso2.carbon.identity.application.mgt.internal,
                         </Private-Package>
                         <Import-Package>
+                            javax.xml.bind,
                             javax.xml.namespace,
                             org.json,
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
