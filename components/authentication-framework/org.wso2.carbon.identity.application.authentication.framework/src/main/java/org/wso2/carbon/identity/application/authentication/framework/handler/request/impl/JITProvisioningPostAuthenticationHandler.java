@@ -669,7 +669,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
-        localClaimValues.remove(USERNAME_CLAIM);
 
         try {
             FrameworkUtils.getStepBasedSequenceHandler()
