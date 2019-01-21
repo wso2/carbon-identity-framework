@@ -53,6 +53,9 @@
                             org.wso2.carbon.directory.server.manager.common.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <Import-Package>
+                        javax.xml.bind.annotation; version="[0.0.0, 1.0.0)"
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
