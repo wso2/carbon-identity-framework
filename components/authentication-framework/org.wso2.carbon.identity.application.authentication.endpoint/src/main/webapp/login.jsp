@@ -131,7 +131,7 @@
             if (reCaptchaEnabled) {
         %>
         <script src='<%=
-        (request.getParameter("reCaptchaAPI"))%>'></script>
+        Encode.forJavaScriptAttribute(request.getParameter("reCaptchaAPI"))%>'></script>
         <%
             }
         %>
