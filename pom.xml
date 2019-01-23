@@ -1643,7 +1643,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.38</carbon.kernel.version>
+        <carbon.kernel.version>4.4.37-SNAPSHOT</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
         <carbon.consent.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</carbon.consent.mgt.imp.pkg.version.range>
@@ -1817,7 +1817,7 @@
         <com.google.service.api.version>directory_v1-rev28-1.17.0-rc</com.google.service.api.version>
         <orbit.version.backport.util>3.1.0.wso2v1</orbit.version.backport.util>
         <stratos.version>2.2.0</stratos.version>
-        <org.slf4j.verison>1.6.1</org.slf4j.verison>
+        <org.slf4j.verison>1.7.25</org.slf4j.verison>
         <org.slf4j.imp.pkg.version.range>[1.6.1,2.0.0)</org.slf4j.imp.pkg.version.range>
 
         <google.step2.wso2.version>1.0.wso2v2</google.step2.wso2.version>
