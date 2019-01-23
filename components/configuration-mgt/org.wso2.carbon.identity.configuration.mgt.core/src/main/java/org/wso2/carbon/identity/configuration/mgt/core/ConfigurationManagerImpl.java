@@ -155,6 +155,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
+        populateDateTimeMetadata(resourceTypeName, resource);
         return resource;
     }
 
@@ -172,6 +173,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
+        populateDateTimeMetadata(resourceTypeName, resource);
         return resource;
     }
 
@@ -342,6 +344,14 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return attribute;
     }
 
+    private void populateDateTimeMetadata(String resourceTypeName, Resource resource)
+            throws ConfigurationManagementException {
+
+        Resource existingResource = getResource(resourceTypeName, resource.getResourceName());
+        resource.setCreatedTime(existingResource.getCreatedTime());
+        resource.setLastModified(existingResource.getLastModified());
+    }
+
     private void validateSearchRequest(Condition condition) throws ConfigurationManagementClientException {
 
         if (condition == null) {
@@ -400,7 +410,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         resource.setResourceName(resourceAdd.getName());
         resource.setResourceType(resourceTypeName);
         resource.setAttributes(resourceAdd.getAttributes());
-        resource.setLastModified(java.time.Instant.now().toString());
         return resource;
     }
 
