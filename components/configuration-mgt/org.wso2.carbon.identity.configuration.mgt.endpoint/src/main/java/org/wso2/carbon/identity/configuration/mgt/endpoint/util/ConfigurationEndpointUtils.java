@@ -85,6 +85,7 @@ public class ConfigurationEndpointUtils {
         ResourceDTO resourceDTO = new ResourceDTO();
         resourceDTO.setResourceName(resource.getResourceName());
         resourceDTO.setResourceType(resource.getResourceType());
+        resourceDTO.setCreated(resource.getCreatedTime());
         resourceDTO.setLastModified(resource.getLastModified());
         resourceDTO.setTenantDomain(resource.getTenantDomain());
         resourceDTO.setResourceId(resource.getResourceId());
