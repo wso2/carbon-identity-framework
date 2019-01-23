@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao.impl;
 
+import java.sql.Timestamp;
+
 /**
  * This class is a collector to collect a single row of data from a database call.
  */
@@ -24,7 +26,8 @@ class ConfigurationRawDataCollector {
     private int tenantId;
     private String resourceId;
     private String resourceName;
-    private String lastModified;
+    private Timestamp createdTime;
+    private Timestamp lastModified;
     private String resourceTypeName;
     private String resourceTypeDescription;
     private String attributeKey;
@@ -39,6 +42,7 @@ class ConfigurationRawDataCollector {
         this.tenantId = builder.getTenantId();
         this.resourceId = builder.getResourceId();
         this.resourceName = builder.getResourceName();
+        this.createdTime = builder.getCreatedTime();
         this.lastModified = builder.getLastModified();
         this.resourceTypeName = builder.getResourceTypeName();
         this.resourceTypeDescription = builder.getResourceTypeDescription();
@@ -70,7 +74,7 @@ class ConfigurationRawDataCollector {
         return resourceName;
     }
 
-    public String getLastModified() {
+    public Timestamp getLastModified() {
 
         return lastModified;
     }
@@ -110,12 +114,23 @@ class ConfigurationRawDataCollector {
         return hasAttribute;
     }
 
+    public Timestamp getCreatedTime() {
+
+        return createdTime;
+    }
+
+    public void setCreatedTime(Timestamp createdTime) {
+
+        this.createdTime = createdTime;
+    }
+
     public static class ConfigurationRawDataCollectorBuilder {
 
         private int tenantId;
         private String resourceId;
         private String resourceName;
-        private String lastModified;
+        private Timestamp createdTime;
+        private Timestamp lastModified;
         private String resourceTypeName;
         private String resourceTypeDescription;
         private String attributeKey;
@@ -196,12 +211,24 @@ class ConfigurationRawDataCollector {
             return this;
         }
 
-        String getLastModified() {
+        public Timestamp getCreatedTime() {
+
+            return createdTime;
+        }
+
+        public ConfigurationRawDataCollectorBuilder setCreatedTime(Timestamp createdTime) {
+
+            this.createdTime = createdTime;
+            return this;
+        }
+
+
+        Timestamp getLastModified() {
 
             return lastModified;
         }
 
-        public ConfigurationRawDataCollectorBuilder setLastModified(String lastModified) {
+        public ConfigurationRawDataCollectorBuilder setLastModified(Timestamp lastModified) {
 
             this.lastModified = lastModified;
             return this;

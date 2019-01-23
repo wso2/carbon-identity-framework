@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants;
@@ -66,14 +67,25 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_TENANT_RESOURCES;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_ATTRIBUTE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.CHECK_CREATED_TIME_COLUMN_EXISTS_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_ATTRIBUTE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_RESOURCE_ATTRIBUTES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTES_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_H2;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_H2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_RESOURCE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_RESOURCE_H2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.WITHOUT_CREATED_TIME_GET_RESOURCE_BY_NAME_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.WITHOUT_CREATED_TIME_GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.WITHOUT_CREATED_TIME_INSERT_OR_UPDATE_RESOURCE_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getMaximumQueryLength;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
@@ -96,33 +108,43 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     public Resources getTenantResources(Condition condition) throws ConfigurationManagementException {
 
-        PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition);
-        if (placeholderSQL.getQuery().length() > getMaximumQueryLength()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error building SQL query for the search. Search expression " +
-                        "query length: " + placeholderSQL.getQuery().length() + " exceeds the maximum limit: " +
-                        MAX_QUERY_LENGTH_SQL);
-            }
-            throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
-        }
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
+            boolean useCreatedTime = isCreatedTimeFieldExists();
+            PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition, useCreatedTime);
+            if (placeholderSQL.getQuery().length() > getMaximumQueryLength()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error building SQL query for the search. Search expression " +
+                            "query length: " + placeholderSQL.getQuery().length() + " exceeds the maximum limit: " +
+                            MAX_QUERY_LENGTH_SQL);
+                }
+                throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
+            }
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            List<ConfigurationRawDataCollector> configurationRawDataCollectors;
             configurationRawDataCollectors = jdbcTemplate.executeQuery(placeholderSQL.getQuery(),
-                    (resultSet, rowNumber) -> new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
-                            .setResourceId(resultSet.getString("ID"))
-                            .setTenantId(resultSet.getInt("TENANT_ID"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setLastModified(resultSet.getString("LAST_MODIFIED"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
-                            .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
-                            .setAttributeKey(resultSet.getString("ATTR_KEY"))
-                            .setAttributeValue(resultSet.getString("ATTR_VALUE"))
-                            .setAttributeId(resultSet.getString("ATTR_ID"))
-                            .setFileId(resultSet.getString("FILE_ID"))
-                            .build(), preparedStatement -> {
+                    (resultSet, rowNumber) -> {
+                        ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
+                                configurationRawDataCollectorBuilder =
+                                new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
+                                        .setResourceId(resultSet.getString("ID"))
+                                        .setTenantId(resultSet.getInt("TENANT_ID"))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setLastModified(resultSet.getTimestamp("LAST_MODIFIED",
+                                                Calendar.getInstance(TimeZone.getTimeZone(UTC))))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
+                                        .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
+                                        .setAttributeKey(resultSet.getString("ATTR_KEY"))
+                                        .setAttributeValue(resultSet.getString("ATTR_VALUE"))
+                                        .setAttributeId(resultSet.getString("ATTR_ID"))
+                                        .setFileId(resultSet.getString("FILE_ID"));
+                        if (useCreatedTime) {
+                            configurationRawDataCollectorBuilder
+                                    .setCreatedTime(resultSet.getTimestamp("CREATED_TIME",
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC))));
+                        }
+                        return configurationRawDataCollectorBuilder.build();
+                    }, preparedStatement -> {
                         for (int count = 0; count < placeholderSQL.getData().size(); count++) {
                             if (placeholderSQL.getData().get(count).getClass().equals(Integer.class)) {
                                 preparedStatement.setInt(
@@ -157,22 +179,34 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
-            configurationRawDataCollectors = jdbcTemplate.executeQuery(SQLConstants.GET_RESOURCE_BY_NAME_MYSQL,
-                    (resultSet, rowNumber) -> new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
-                            .setResourceId(resultSet.getString("ID"))
-                            .setTenantId(resultSet.getInt("TENANT_ID"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setLastModified(resultSet.getString("LAST_MODIFIED"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
-                            .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
-                            .setAttributeKey(resultSet.getString("ATTR_KEY"))
-                            .setAttributeValue(resultSet.getString("ATTR_VALUE"))
-                            .setAttributeId(resultSet.getString("ATTR_ID"))
-                            .setFileId(resultSet.getString("FILE_ID"))
-                            .setHasFile(resultSet.getBoolean("HAS_FILE"))
-                            .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"))
-                            .build(), preparedStatement -> {
+            boolean useCreatedTime = isCreatedTimeFieldExists();
+            configurationRawDataCollectors = jdbcTemplate.executeQuery(
+                    useCreatedTime ? GET_RESOURCE_BY_NAME_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_NAME_MYSQL,
+                    (resultSet, rowNumber) -> {
+                        ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
+                                configurationRawDataCollectorBuilder =
+                                new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
+                                        .setResourceId(resultSet.getString("ID"))
+                                        .setTenantId(resultSet.getInt("TENANT_ID"))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setLastModified(resultSet.getTimestamp("LAST_MODIFIED",
+                                                Calendar.getInstance(TimeZone.getTimeZone(UTC))))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
+                                        .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
+                                        .setAttributeKey(resultSet.getString("ATTR_KEY"))
+                                        .setAttributeValue(resultSet.getString("ATTR_VALUE"))
+                                        .setAttributeId(resultSet.getString("ATTR_ID"))
+                                        .setFileId(resultSet.getString("FILE_ID"))
+                                        .setHasFile(resultSet.getBoolean("HAS_FILE"))
+                                        .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"));
+                        if (useCreatedTime) {
+                            configurationRawDataCollectorBuilder.setCreatedTime(
+                                    resultSet.getTimestamp("CREATED_TIME",
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC))));
+                        }
+                        return configurationRawDataCollectorBuilder.build();
+                    }, preparedStatement -> {
                         preparedStatement.setString(1, resourceName);
                         preparedStatement.setInt(2, tenantId);
                         preparedStatement.setString(3, resourceTypeId);
@@ -197,22 +231,36 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
-            configurationRawDataCollectors = jdbcTemplate.executeQuery(SQLConstants.GET_RESOURCE_BY_ID_MYSQL,
-                    (resultSet, rowNumber) -> new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
-                            .setResourceId(resultSet.getString("ID"))
-                            .setTenantId(resultSet.getInt("TENANT_ID"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setLastModified(resultSet.getString("LAST_MODIFIED"))
-                            .setResourceName(resultSet.getString("NAME"))
-                            .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
-                            .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
-                            .setAttributeKey(resultSet.getString("ATTR_KEY"))
-                            .setAttributeValue(resultSet.getString("ATTR_VALUE"))
-                            .setAttributeId(resultSet.getString("ATTR_ID"))
-                            .setHasFile(resultSet.getBoolean("HAS_FILE"))
-                            .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"))
-                            .setFileId(resultSet.getString("FILE_ID"))
-                            .build(), preparedStatement -> preparedStatement.setString(1, resourceId));
+            boolean useCreatedTime = isCreatedTimeFieldExists();
+            configurationRawDataCollectors = jdbcTemplate.executeQuery(
+                    useCreatedTime ? GET_RESOURCE_BY_ID_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL,
+                    (resultSet, rowNumber) -> {
+                        ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
+                                configurationRawDataCollectorBuilder =
+                                new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
+                                        .setResourceId(resultSet.getString("ID"))
+                                        .setTenantId(resultSet.getInt("TENANT_ID"))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setLastModified(resultSet.getTimestamp("LAST_MODIFIED",
+                                                Calendar.getInstance(TimeZone.getTimeZone(UTC))))
+                                        .setResourceName(resultSet.getString("NAME"))
+                                        .setResourceTypeName(resultSet.getString("RESOURCE_TYPE"))
+                                        .setResourceTypeDescription(resultSet.getString("DESCRIPTION"))
+                                        .setAttributeKey(resultSet.getString("ATTR_KEY"))
+                                        .setAttributeValue(resultSet.getString("ATTR_VALUE"))
+                                        .setAttributeId(resultSet.getString("ATTR_ID"))
+                                        .setHasFile(resultSet.getBoolean("HAS_FILE"))
+                                        .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"))
+                                        .setFileId(resultSet.getString("FILE_ID"));
+                        if (useCreatedTime) {
+                            configurationRawDataCollectorBuilder.setCreatedTime(
+                                    resultSet.getTimestamp("CREATED_TIME",
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC)))
+                            );
+                        }
+                        return configurationRawDataCollectorBuilder.build();
+                    },
+                    preparedStatement -> preparedStatement.setString(1, resourceId));
             /*
             Database call can contain duplicate data for some columns. Need to filter them in order to build the
             resource.
@@ -250,29 +298,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                String query = SQLConstants.INSERT_OR_UPDATE_RESOURCE_MYSQL;
-                if (isH2()) {
-                    query = INSERT_OR_UPDATE_RESOURCE_H2;
-                }
                 boolean isAttributeExists = resource.getAttributes() != null;
-
-                // Insert resource metadata.
-                template.executeInsert(query, preparedStatement -> {
-                    preparedStatement.setString(1, resource.getResourceId());
-                    preparedStatement.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                            .getTenantId());
-                    preparedStatement.setString(3, resource.getResourceName());
-                    preparedStatement.setTimestamp(4, new java.sql.Timestamp(new Date().getTime()),
-                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-                    /*
-                    Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
-                    files. It is allowed to create a resource without files or attributes in order to allow file upload
-                    after resource creation.
-                     */
-                    preparedStatement.setBoolean(5, false);
-                    preparedStatement.setBoolean(6, isAttributeExists);
-                    preparedStatement.setString(7, resourceTypeId);
-                }, resource, false);
+                if (isH2()) {
+                    updateMetadataForH2(resource, resourceTypeId, template, isAttributeExists);
+                } else {
+                    updateMetadataForMYSQL(resource, resourceTypeId, template, isAttributeExists);
+                }
 
                 // Insert attributes.
                 if (isAttributeExists) {
@@ -308,26 +339,37 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean useCreatedTime = isCreatedTimeFieldExists();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
 
                 // Insert resource metadata.
-                template.executeInsert(SQLConstants.INSERT_RESOURCE_SQL, preparedStatement -> {
-                    preparedStatement.setString(1, resource.getResourceId());
-                    preparedStatement.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                            .getTenantId());
-                    preparedStatement.setString(3, resource.getResourceName());
-                    preparedStatement.setTimestamp(4, new java.sql.Timestamp(new Date().getTime()),
-                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                template.executeInsert(
+                        useCreatedTime ? INSERT_RESOURCE_SQL : WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL,
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                            .getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                            if (useCreatedTime) {
+                                preparedStatement.setTimestamp(++initialParameterIndex,
+                                        new java.sql.Timestamp(new Date().getTime()),
+                                        Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                            }
+                            preparedStatement.setTimestamp(++initialParameterIndex,
+                                    new java.sql.Timestamp(new Date().getTime()),
+                                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                     /*
                     Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
                     files. It is allowed to create a resource without files or attributes in order to allow file upload
                     after resource creation.
                      */
-                    preparedStatement.setBoolean(5, false);
-                    preparedStatement.setBoolean(6, isAttributeExists);
-                    preparedStatement.setString(7, resourceTypeId);
-                }, resource, false);
+                            preparedStatement.setBoolean(++initialParameterIndex, false);
+                            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }, resource, false);
 
                 // Insert attributes.
                 if (isAttributeExists) {
@@ -345,7 +387,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 }
                 return null;
             });
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_ADD_RESOURCE, resource.getResourceName(), e);
         }
     }
@@ -528,11 +570,120 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-    private PlaceholderSQL buildPlaceholderSQL(Condition condition)
+    private boolean isCreatedTimeFieldExists() throws DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        return jdbcTemplate.fetchSingleRecord(CHECK_CREATED_TIME_COLUMN_EXISTS_SQL,
+                ((resultSet, rowNumber) -> resultSet.getInt(1)), null) != 0;
+    }
+
+    private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, Template<Object> template,
+                                        boolean isAttributeExists) throws DataAccessException {
+
+        boolean useCreatedTime = isCreatedTimeFieldExists();
+        template.executeInsert(
+                useCreatedTime ? INSERT_OR_UPDATE_RESOURCE_MYSQL : WITHOUT_CREATED_TIME_INSERT_OR_UPDATE_RESOURCE_MYSQL,
+                preparedStatement -> {
+                    int initialParameterIndex = 1;
+                    preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                    preparedStatement.setInt(++initialParameterIndex,
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getTenantId());
+                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                    if (useCreatedTime) {
+                        preparedStatement.setTimestamp(++initialParameterIndex,
+                                new java.sql.Timestamp(new Date().getTime()),
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                    }
+                    preparedStatement.setTimestamp(++initialParameterIndex,
+                            new java.sql.Timestamp(new Date().getTime()),
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+            /*
+            Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
+            files. It is allowed to create a resource without files or attributes in order to allow file upload
+            after resource creation.
+             */
+                    preparedStatement.setBoolean(++initialParameterIndex, false);
+                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                }, resource, false);
+    }
+
+    private void updateMetadataForH2(Resource resource, String resourceTypeId, Template<Object> template,
+                                     boolean isAttributeExists) throws DataAccessException {
+
+        if (isResourceExists(resource, resourceTypeId, template)) {
+            template.executeInsert(UPDATE_RESOURCE_H2, preparedStatement -> {
+                preparedStatement.setString(1, resource.getResourceId());
+                preparedStatement.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getTenantId());
+                preparedStatement.setString(3, resource.getResourceName());
+                preparedStatement.setTimestamp(4, new java.sql.Timestamp(new Date().getTime()),
+                        Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                /*
+                Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
+                files. It is allowed to create a resource without files or attributes in order to allow file upload
+                after resource creation.
+                 */
+                preparedStatement.setBoolean(5, false);
+                preparedStatement.setBoolean(6, isAttributeExists);
+                preparedStatement.setString(7, resourceTypeId);
+            }, resource, false);
+        } else {
+            boolean useCreatedTime = isCreatedTimeFieldExists();
+            template.executeInsert(
+                    useCreatedTime ? INSERT_RESOURCE_SQL : WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL,
+                    preparedStatement -> {
+                        int initialParameterIndex = 1;
+                        preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                        preparedStatement.setInt(++initialParameterIndex,
+                                PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                        .getTenantId());
+                        preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                        if (useCreatedTime) {
+                            preparedStatement.setTimestamp(++initialParameterIndex,
+                                    new java.sql.Timestamp(new Date().getTime()),
+                                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                        }
+                        preparedStatement.setTimestamp(++initialParameterIndex,
+                                new java.sql.Timestamp(new Date().getTime()),
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                        /*
+                        Resource files are uploaded using a separate endpoint. Therefore resource creation does not
+                        create
+                        files. It is allowed to create a resource without files or attributes in order to allow file
+                        upload
+                        after resource creation.
+                         */
+                        preparedStatement.setBoolean(++initialParameterIndex, false);
+                        preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                        preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                    }, resource, false);
+        }
+    }
+
+    private boolean isResourceExists(Resource resource, String resourceTypeId, Template<Object> template) throws DataAccessException {
+
+        String resourceId = template.fetchSingleRecord(GET_RESOURCE_ID_BY_NAME_SQL,
+                (resultSet, rowNumber) -> resultSet.getString("ID")
+                , preparedStatement -> {
+                    preparedStatement.setString(1, resource.getResourceName());
+                    preparedStatement.setInt(2,
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                    preparedStatement.setString(3, resourceTypeId);
+                });
+        return resourceId != null;
+    }
+
+    private PlaceholderSQL buildPlaceholderSQL(Condition condition, boolean useCreatedTime)
             throws ConfigurationManagementException {
 
         StringBuilder sb = new StringBuilder();
-        sb.append(GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL);
+        sb.append(
+                useCreatedTime ?
+                        GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL :
+                        WITHOUT_CREATED_TIME_GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL
+        );
         sb.append("WHERE\n");
         try {
             PlaceholderSQL placeholderSQL = condition.buildQuery(
@@ -565,7 +716,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 resource.setResourceType(configurationRawDataCollector.getResourceTypeName());
                 resource.setHasFile(configurationRawDataCollector.isHasFile());
                 resource.setHasAttribute(configurationRawDataCollector.isHasAttribute());
-                resource.setLastModified(configurationRawDataCollector.getLastModified());
+                if (configurationRawDataCollector.getCreatedTime() != null) {
+                    resource.setCreatedTime(configurationRawDataCollector.getCreatedTime().toInstant().toString());
+                }
+                resource.setLastModified(configurationRawDataCollector.getLastModified().toInstant().toString());
                 resource.setTenantDomain(
                         IdentityTenantUtil.getTenantDomain(configurationRawDataCollector.getTenantId())
                 );
@@ -617,7 +771,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 resource.setHasAttribute(configurationRawDataCollector.isHasAttribute());
                 resource.setResourceName(configurationRawDataCollector.getResourceName());
                 resource.setResourceType(configurationRawDataCollector.getResourceTypeName());
-                resource.setLastModified(configurationRawDataCollector.getLastModified());
+                if (configurationRawDataCollector.getCreatedTime() != null) {
+                    resource.setCreatedTime(configurationRawDataCollector.getCreatedTime().toInstant().toString());
+                }
+                resource.setLastModified(configurationRawDataCollector.getLastModified().toInstant().toString());
                 resource.setTenantDomain(
                         IdentityTenantUtil.getTenantDomain(configurationRawDataCollector.getTenantId()));
             }
