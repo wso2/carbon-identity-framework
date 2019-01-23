@@ -674,6 +674,7 @@ definitions:
       - resourceName
       - resourceType
       - lastModified
+      - created
     properties:
       resourceId:
         type: string
@@ -684,6 +685,8 @@ definitions:
       resourceType:
         type: string
       lastModified:
+        type: string
+      created:
         type: string
       attributes:
         type: array
