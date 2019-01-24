@@ -11,6 +11,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -415,7 +416,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         return true;
     }
 
-    private void prepareConfigs() {
+    private void prepareConfigs() throws ConfigurationManagementException {
 
         // Mock get maximum query length call.
         mockStatic(IdentityUtil.class);
