@@ -244,8 +244,12 @@ public class ResourceApi {
 
     public Response resourceResourceTypeResourceNamePut(@ApiParam(value = "This represents the name of the attribute " +
             "to be added or replaced.", required = true) @PathParam("resource-name") String resourceName,
-                                                        @ApiParam(value = "This represents the type of the attribute to be added or replaced and can either be the name or id.", required = true) @PathParam("resource-type") String resourceType,
-                                                        @ApiParam(value = "This represents the corresponding attribute value that needs to be added or replaced.", required = true) AttributeDTO attribute) {
+                                                        @ApiParam(value = "This represents the type of the attribute " +
+                                                                "to be added or replaced and can either be the name " +
+                                                                "or id.", required = true) @PathParam("resource-type") String resourceType,
+                                                        @ApiParam(value = "This represents the corresponding " +
+                                                                "attribute value that needs to be added or replaced."
+                                                                , required = true) AttributeDTO attribute) {
 
         return delegate.resourceResourceTypeResourceNamePut(resourceName, resourceType, attribute);
     }

@@ -23,38 +23,35 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 
-
-
-
-
 @ApiModel(description = "")
-public class ResourceFileDTO  {
-  
-  
-  @NotNull
-  private String path = null;
+public class ResourceFileDTO {
 
-  
-  /**
-   **/
-  @ApiModelProperty(required = true, value = "")
-  @JsonProperty("path")
-  public String getPath() {
-    return path;
-  }
-  public void setPath(String path) {
-    this.path = path;
-  }
+    @NotNull
+    private String path = null;
 
-  
+    /**
+     *
+     **/
+    @ApiModelProperty(required = true, value = "")
+    @JsonProperty("path")
+    public String getPath() {
 
-  @Override
-  public String toString()  {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class ResourceFileDTO {\n");
-    
-    sb.append("  path: ").append(path).append("\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
+        return path;
+    }
+
+    public void setPath(String path) {
+
+        this.path = path;
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ResourceFileDTO {\n");
+
+        sb.append("  path: ").append(path).append("\n");
+        sb.append("}\n");
+        return sb.toString();
+    }
 }

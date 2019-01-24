@@ -41,6 +41,7 @@ public abstract class ResourceApiService {
     public abstract Response resourceResourceTypeResourceNamePost(String resourceName, String resourceType,
                                                                   AttributeDTO attribute);
 
-    public abstract Response resourceResourceTypeResourceNamePut(String resourceName, String resourceType, AttributeDTO attribute);
+    public abstract Response resourceResourceTypeResourceNamePut(String resourceName, String resourceType,
+                                                                 AttributeDTO attribute);
 }
 

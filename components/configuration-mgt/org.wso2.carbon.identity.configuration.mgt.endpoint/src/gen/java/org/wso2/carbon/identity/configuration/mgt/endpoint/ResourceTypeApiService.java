@@ -21,9 +21,13 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceTypeAddDT
 import javax.ws.rs.core.Response;
 
 public abstract class ResourceTypeApiService {
+
     public abstract Response resourceTypePost(ResourceTypeAddDTO type);
+
     public abstract Response resourceTypePut(ResourceTypeAddDTO type);
+
     public abstract Response resourceTypeResourceTypeNameDelete(String resourceTypeName);
+
     public abstract Response resourceTypeResourceTypeNameGet(String resourceTypeName);
 }
 

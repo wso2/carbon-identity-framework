@@ -155,7 +155,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
-        populateDateTimeMetadata(resourceTypeName, resource);
         return resource;
     }
 
@@ -173,7 +172,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
-        populateDateTimeMetadata(resourceTypeName, resource);
         return resource;
     }
 
@@ -342,14 +340,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             log.debug("Attribute: " + attribute.getKey() + " successfully replaced.");
         }
         return attribute;
-    }
-
-    private void populateDateTimeMetadata(String resourceTypeName, Resource resource)
-            throws ConfigurationManagementException {
-
-        Resource existingResource = getResource(resourceTypeName, resource.getResourceName());
-        resource.setCreatedTime(existingResource.getCreatedTime());
-        resource.setLastModified(existingResource.getLastModified());
     }
 
     private void validateSearchRequest(Condition condition) throws ConfigurationManagementClientException {

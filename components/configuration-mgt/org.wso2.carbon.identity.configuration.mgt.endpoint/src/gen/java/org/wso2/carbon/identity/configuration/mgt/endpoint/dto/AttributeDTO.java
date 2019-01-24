@@ -23,54 +23,54 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 
-
-
-
-
 @ApiModel(description = "")
-public class AttributeDTO  {
-  
-  
-  @NotNull
-  private String key = null;
-  
-  @NotNull
-  private String value = null;
+public class AttributeDTO {
 
-  
-  /**
-   **/
-  @ApiModelProperty(required = true, value = "")
-  @JsonProperty("key")
-  public String getKey() {
-    return key;
-  }
-  public void setKey(String key) {
-    this.key = key;
-  }
+    @NotNull
+    private String key = null;
 
-  
-  /**
-   **/
-  @ApiModelProperty(required = true, value = "")
-  @JsonProperty("value")
-  public String getValue() {
-    return value;
-  }
-  public void setValue(String value) {
-    this.value = value;
-  }
+    @NotNull
+    private String value = null;
 
-  
+    /**
+     *
+     **/
+    @ApiModelProperty(required = true, value = "")
+    @JsonProperty("key")
+    public String getKey() {
 
-  @Override
-  public String toString()  {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class AttributeDTO {\n");
-    
-    sb.append("  key: ").append(key).append("\n");
-    sb.append("  value: ").append(value).append("\n");
-    sb.append("}\n");
-    return sb.toString();
-  }
+        return key;
+    }
+
+    public void setKey(String key) {
+
+        this.key = key;
+    }
+
+    /**
+     *
+     **/
+    @ApiModelProperty(required = true, value = "")
+    @JsonProperty("value")
+    public String getValue() {
+
+        return value;
+    }
+
+    public void setValue(String value) {
+
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("class AttributeDTO {\n");
+
+        sb.append("  key: ").append(key).append("\n");
+        sb.append("  value: ").append(value).append("\n");
+        sb.append("}\n");
+        return sb.toString();
+    }
 }

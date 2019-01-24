@@ -88,6 +88,8 @@ public class ConfigurationConstants {
         ERROR_CODE_RESOURCE_REPLACE_REQUEST_INVALID("CONFIGM_00033", "Resource replace request validation failed."),
         ERROR_CODE_REPLACE_RESOURCE("CONFIGM_00034", "Error while replacing the resource : %s."),
         ERROR_CODE_REPLACE_ATTRIBUTE("CONFIGM_00035", "Error while replacing the attribute: %s."),
+        ERROR_CODE_CHECK_CREATED_TIME("CONFIGM_00036", "Error while checking for the resource " +
+                "metadata: created."),
         ;
 
         private final String code;

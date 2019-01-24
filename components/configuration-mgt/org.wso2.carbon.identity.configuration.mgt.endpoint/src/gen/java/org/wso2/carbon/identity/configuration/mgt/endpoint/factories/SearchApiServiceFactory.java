@@ -21,10 +21,10 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.impl.SearchApiService
 
 public class SearchApiServiceFactory {
 
-   private final static SearchApiService service = new SearchApiServiceImpl();
+    private final static SearchApiService service = new SearchApiServiceImpl();
 
-   public static SearchApiService getSearchApi()
-   {
-      return service;
-   }
+    public static SearchApiService getSearchApi() {
+
+        return service;
+    }
 }
