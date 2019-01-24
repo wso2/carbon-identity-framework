@@ -75,6 +75,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean enableSAML2ArtifactBinding;
     private boolean samlECP;
     private String idpEntityIDAlias;
+    private boolean doFrontChannelLogout;
+    private String frontChannelLogoutMethod;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -174,6 +176,30 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         if (issuer != null) {
             this.issuer = issuer.replaceAll("[\n\r]", "").trim();
         }
+    }
+
+    /**
+     * @return the doFrontChannelLogout
+     */
+    public boolean isDoFrontChannelLogout() { return doFrontChannelLogout; }
+
+    /**
+     * @param doFrontChannelLogout the doFrontChannelLogout to set
+     */
+    public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
+        this.doFrontChannelLogout = doFrontChannelLogout;
+    }
+
+    /**
+     * @return the frontChannelLogoutMethod
+     */
+    public String getFrontChannelLogoutMethod() { return frontChannelLogoutMethod; }
+
+    /**
+     * @param frontChannelLogoutMethod the frontChannelLogoutMethod to set HTTPRedirectBinding of HTTPPostBinding
+     */
+    public void setFrontChannelLogoutMethod(String frontChannelLogoutMethod) {
+        this.frontChannelLogoutMethod = frontChannelLogoutMethod;
     }
 
     /**
