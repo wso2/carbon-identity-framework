@@ -27,10 +27,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener;
 import org.wso2.carbon.identity.consent.mgt.handler.ConsentDeletionUserEventHandler;
+import org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener;
 import org.wso2.carbon.identity.consent.mgt.listener.TenantConsentMgtListener;
 import org.wso2.carbon.identity.consent.mgt.services.ConsentUtilityService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -84,6 +85,26 @@ public class IdentityConsentServiceComponent {
     protected void unsetConsentMgtService(ConsentManager consentManager) {
 
         IdentityConsentDataHolder.getInstance().setConsentManager(null);
+    }
+
+    @Reference(
+            name = "privileged.consent.manager",
+            service = PrivilegedConsentManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPrivilegedConsentManager"
+    )
+    protected void setPrivilegedConsentManager(PrivilegedConsentManager consentManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Privileged Consent Manger is set in the Identity Consent Service component bundle.");
+        }
+        IdentityConsentDataHolder.getInstance().setPrivilegedConsentManager(consentManager);
+    }
+
+    protected void unsetPrivilegedConsentManager(PrivilegedConsentManager consentManager) {
+
+        IdentityConsentDataHolder.getInstance().setPrivilegedConsentManager(null);
     }
 
     @Reference(
