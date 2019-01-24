@@ -42,6 +42,7 @@ public class ResourceDTO {
     @NotNull
     private String lastModified = null;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @NotNull
     private String created = null;
 
@@ -129,7 +130,6 @@ public class ResourceDTO {
      **/
     @ApiModelProperty(required = true, value = "")
     @JsonProperty("created")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getCreated() {
 
         return created;

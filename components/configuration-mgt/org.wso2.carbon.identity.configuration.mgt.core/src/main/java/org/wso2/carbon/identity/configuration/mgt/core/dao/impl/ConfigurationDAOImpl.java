@@ -99,16 +99,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     private static final Log log = LogFactory.getLog(ConfigurationDAOImpl.class);
     private static final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(UTC));
-    private boolean useCreatedTime;
-
-    public ConfigurationDAOImpl() throws ConfigurationManagementException{
-
-        try {
-            this.useCreatedTime = isCreatedTimeFieldExists();
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_CHECK_CREATED_TIME, null, e);
-        }
-    }
+    private Boolean isCreatedTimeFieldExists;
 
     /**
      * {@inheritDoc}
@@ -121,18 +112,19 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     public Resources getTenantResources(Condition condition) throws ConfigurationManagementException {
 
-        try {
-            PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition, useCreatedTime);
-            if (placeholderSQL.getQuery().length() > getMaximumQueryLength()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error building SQL query for the search. Search expression " +
-                            "query length: " + placeholderSQL.getQuery().length() + " exceeds the maximum limit: " +
-                            MAX_QUERY_LENGTH_SQL);
-                }
-                throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
+        PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition, useCreatedTimeField());
+        if (placeholderSQL.getQuery().length() > getMaximumQueryLength()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error building SQL query for the search. Search expression " +
+                        "query length: " + placeholderSQL.getQuery().length() + " exceeds the maximum limit: " +
+                        MAX_QUERY_LENGTH_SQL);
             }
-            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-            List<ConfigurationRawDataCollector> configurationRawDataCollectors;
+            throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        List<ConfigurationRawDataCollector> configurationRawDataCollectors;
+        try {
+            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             configurationRawDataCollectors = jdbcTemplate.executeQuery(placeholderSQL.getQuery(),
                     (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
@@ -150,7 +142,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setAttributeValue(resultSet.getString("ATTR_VALUE"))
                                         .setAttributeId(resultSet.getString("ATTR_ID"))
                                         .setFileId(resultSet.getString("FILE_ID"));
-                        if (useCreatedTime) {
+                        if (isCreatedTimeFieldAvailable) {
                             configurationRawDataCollectorBuilder
                                     .setCreatedTime(resultSet.getTimestamp("CREATED_TIME",
                                             calendar));
@@ -191,8 +183,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
+            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             configurationRawDataCollectors = jdbcTemplate.executeQuery(
-                    useCreatedTime ? GET_RESOURCE_BY_NAME_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_NAME_MYSQL,
+                    useCreatedTimeField() ? GET_RESOURCE_BY_NAME_MYSQL :
+                            WITHOUT_CREATED_TIME_GET_RESOURCE_BY_NAME_MYSQL,
                     (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
                                 configurationRawDataCollectorBuilder =
@@ -211,7 +205,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setFileId(resultSet.getString("FILE_ID"))
                                         .setHasFile(resultSet.getBoolean("HAS_FILE"))
                                         .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"));
-                        if (useCreatedTime) {
+                        if (isCreatedTimeFieldAvailable) {
                             configurationRawDataCollectorBuilder.setCreatedTime(
                                     resultSet.getTimestamp("CREATED_TIME",
                                             calendar));
@@ -242,8 +236,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
+            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             configurationRawDataCollectors = jdbcTemplate.executeQuery(
-                    useCreatedTime ? GET_RESOURCE_BY_ID_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL,
+                    useCreatedTimeField() ? GET_RESOURCE_BY_ID_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL,
                     (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
                                 configurationRawDataCollectorBuilder =
@@ -262,7 +257,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setHasFile(resultSet.getBoolean("HAS_FILE"))
                                         .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"))
                                         .setFileId(resultSet.getString("FILE_ID"));
-                        if (useCreatedTime) {
+                        if (isCreatedTimeFieldAvailable) {
                             configurationRawDataCollectorBuilder.setCreatedTime(
                                     resultSet.getTimestamp("CREATED_TIME",
                                             calendar)
@@ -312,11 +307,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 boolean isAttributeExists = resource.getAttributes() != null;
                 if (isH2()) {
                     updateMetadataForH2(
-                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTime
+                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTimeField()
                     );
                 } else {
                     updateMetadataForMYSQL(
-                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTime
+                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTimeField()
                     );
                 }
 
@@ -341,7 +336,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 return null;
             });
             resource.setLastModified(currentTime.toInstant().toString());
-            if (useCreatedTime) {
+            if (useCreatedTimeField()) {
                 resource.setCreatedTime(currentTime.toInstant().toString());
             }
         } catch (TransactionException e) {
@@ -359,12 +354,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
 
                 // Insert resource metadata.
                 template.executeInsert(
-                        useCreatedTime ? INSERT_RESOURCE_SQL : WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL,
+                        useCreatedTimeField() ? INSERT_RESOURCE_SQL : WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL,
                         preparedStatement -> {
                             int initialParameterIndex = 1;
                             preparedStatement.setString(initialParameterIndex, resource.getResourceId());
@@ -372,7 +368,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                             .getTenantId());
                             preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                            if (useCreatedTime) {
+                            if (isCreatedTimeFieldAvailable) {
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             }
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
@@ -403,7 +399,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 return null;
             });
             resource.setLastModified(currentTime.toInstant().toString());
-            if (useCreatedTime) {
+            if (useCreatedTimeField()) {
                 resource.setCreatedTime(currentTime.toInstant().toString());
             }
         } catch (TransactionException e) {
@@ -871,5 +867,24 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         return StringUtils.isEmpty(id) ? SQLConstants.DELETE_RESOURCE_TYPE_BY_NAME_SQL :
                 SQLConstants.DELETE_RESOURCE_TYPE_BY_ID_SQL;
+    }
+
+    /**
+     * Check the existence of the CREATED_TIME field in the database table IDN_CONFIG_RESOURCE. This has to be done
+     * once the datasource is loaded.
+     *
+     * @return True if the CREATED_TIME field exists in the IDN_CONFIG_RESOURCE table. False otherwise.
+     * @throws ConfigurationManagementException Data access error in the database.
+     */
+    public boolean useCreatedTimeField() throws ConfigurationManagementException {
+
+        if (this.isCreatedTimeFieldExists == null) {
+            try {
+                this.isCreatedTimeFieldExists = isCreatedTimeFieldExists();
+            } catch (DataAccessException e) {
+                throw handleServerException(ERROR_CODE_CHECK_CREATED_TIME, null, e);
+            }
+        }
+        return isCreatedTimeFieldExists;
     }
 }
