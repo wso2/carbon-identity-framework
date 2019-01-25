@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -82,6 +83,23 @@ public class ConfigurationManagerComponent {
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
+    }
+
+    @Reference(
+            name = "configuration.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
+    protected void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        log.debug("ConfigurationContextService Instance registered.");
+    }
+
+    protected void unsetConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        log.debug("ConfigurationContextService Instance was unset.");
     }
 
     @Reference(
@@ -136,7 +154,6 @@ public class ConfigurationManagerComponent {
                 // If we are here then the column exists.
                 return true;
             }
-
         } catch (IdentityRuntimeException | SQLException e) {
             return false;
         }

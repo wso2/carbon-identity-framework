@@ -98,7 +98,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     private static final Log log = LogFactory.getLog(ConfigurationDAOImpl.class);
     private static final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(UTC));
-    private Boolean isCreatedTimeFieldExists;
 
     /**
      * {@inheritDoc}
