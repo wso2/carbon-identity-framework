@@ -203,12 +203,20 @@ public class IdPManagementDAO {
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             for (IdentityProviderProperty property : properties) {
-                prepStmt.setInt(1, idpId);
-                prepStmt.setString(2, property.getName());
-                prepStmt.setString(3, property.getValue());
-                prepStmt.setString(4, property.getDisplayName());
-                prepStmt.setInt(5, tenantId);
-                prepStmt.addBatch();
+                if (StringUtils.isNotBlank(property.getValue())) {
+                    prepStmt.setInt(1, idpId);
+                    prepStmt.setString(2, property.getName());
+                    prepStmt.setString(3, property.getValue());
+                    prepStmt.setString(4, property.getDisplayName());
+                    prepStmt.setInt(5, tenantId);
+                    prepStmt.addBatch();
+                } else {
+                    if (log.isDebugEnabled()) {
+                        String msg = "IDP property '%s' of IDP with id:%d of tenantId:%d is empty or null. " +
+                                "Not adding the property to 'IDP_METADATA' table.";
+                        log.debug(String.format(msg, property.getName(), idpId, tenantId));
+                    }
+                }
             }
             prepStmt.executeBatch();
 
@@ -235,18 +243,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(1, idpId);
             prepStmt.executeUpdate();
 
-            prepStmt = dbConnection.prepareStatement(IdPManagementConstants.SQLQueries.ADD_IDP_METADATA);
-
-            for (IdentityProviderProperty property : properties) {
-                prepStmt.setInt(1, idpId);
-                prepStmt.setString(2, property.getName());
-                prepStmt.setString(3, property.getValue());
-                prepStmt.setString(4, property.getDisplayName());
-                prepStmt.setInt(5, tenantId);
-                prepStmt.addBatch();
-            }
-            prepStmt.executeBatch();
-
+            addIdentityProviderProperties(dbConnection, idpId, properties, tenantId);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
