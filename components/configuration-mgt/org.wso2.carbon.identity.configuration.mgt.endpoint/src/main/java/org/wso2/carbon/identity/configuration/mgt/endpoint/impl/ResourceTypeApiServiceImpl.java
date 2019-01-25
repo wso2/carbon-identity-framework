@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_TYPE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getOperationNotSupportedDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceTypeAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceTypeDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
@@ -40,16 +39,6 @@ import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.Configura
 public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
 
     private static final Log LOG = LogFactory.getLog(ResourceTypeApiServiceImpl.class);
-
-    @Override
-    public Response resourceTypePatch(ResourceTypeAddDTO resourceTypeAddDTO) {
-
-        try {
-            return Response.ok().entity(getOperationNotSupportedDTO()).build();
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
 
     @Override
     public Response resourceTypePost(ResourceTypeAddDTO resourceTypeAddDTO) {
