@@ -25,15 +25,24 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -69,6 +78,7 @@ public class ConfigurationManagerComponent {
             bundleContext.registerService(ConfigurationManager.class.getName(),
                     new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
 
+            setUseCreatedTime();
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
@@ -99,5 +109,36 @@ public class ConfigurationManagerComponent {
             log.debug("Purpose DAO is unregistered in ConfigurationManager service.");
         }
         this.configurationDAOs.remove(configurationDAO);
+    }
+
+    private void setUseCreatedTime() throws DataAccessException {
+
+        if (isCreatedTimeFieldExists()) {
+            ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
+        } else {
+            ConfigurationManagerComponentDataHolder.setUseCreatedTime(false);
+        }
+    }
+
+    private boolean isCreatedTimeFieldExists() {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            /*
+            DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
+             */
+            String sql = GET_CREATED_TIME_COLUMN_MYSQL;
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                 ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Following statement will throw SQLException if the column is not found
+                resultSet.findColumn("CREATED_TIME");
+                // If we are here then the column exists.
+                return true;
+            }
+
+        } catch (IdentityRuntimeException | SQLException e) {
+            return false;
+        }
     }
 }

@@ -31,8 +31,8 @@ public class SQLConstants {
             "DESCRIPTION = VALUES(DESCRIPTION)";
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_H2 = "MERGE INTO IDN_CONFIG_TYPE KEY (ID) " +
             "VALUES (?, ?, ?)";
-    public static final String CHECK_CREATED_TIME_COLUMN_EXISTS_SQL =
-            "select count(*) from information_schema.columns where table_name = 'IDN_CONFIG_RESOURCE' and column_name = 'CREATED_TIME'";
+    public static final String GET_CREATED_TIME_COLUMN_MYSQL =
+            "SELECT CREATED_TIME FROM IDN_CONFIG_RESOURCE LIMIT 1";
     public static final String INSERT_RESOURCE_SQL = "INSERT INTO\n" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +

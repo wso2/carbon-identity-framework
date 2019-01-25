@@ -55,7 +55,6 @@ import java.util.TimeZone;
 import static java.time.ZoneOffset.UTC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ADD_RESOURCE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ADD_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_CHECK_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_ATTRIBUTE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_RESOURCE_TYPE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_ATTRIBUTE;
@@ -69,7 +68,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_TENANT_RESOURCES;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_ATTRIBUTE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.CHECK_CREATED_TIME_COLUMN_EXISTS_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_ATTRIBUTE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_RESOURCE_ATTRIBUTES_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
@@ -92,6 +90,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getMaximumQueryLength;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.useCreatedTimeField;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 
@@ -124,7 +123,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
-            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             configurationRawDataCollectors = jdbcTemplate.executeQuery(placeholderSQL.getQuery(),
                     (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
@@ -142,7 +140,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setAttributeValue(resultSet.getString("ATTR_VALUE"))
                                         .setAttributeId(resultSet.getString("ATTR_ID"))
                                         .setFileId(resultSet.getString("FILE_ID"));
-                        if (isCreatedTimeFieldAvailable) {
+                        if (useCreatedTimeField()) {
                             configurationRawDataCollectorBuilder
                                     .setCreatedTime(resultSet.getTimestamp("CREATED_TIME",
                                             calendar));
@@ -236,7 +234,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
-            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             configurationRawDataCollectors = jdbcTemplate.executeQuery(
                     useCreatedTimeField() ? GET_RESOURCE_BY_ID_MYSQL : WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL,
                     (resultSet, rowNumber) -> {
@@ -257,7 +254,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setHasFile(resultSet.getBoolean("HAS_FILE"))
                                         .setHasAttribute(resultSet.getBoolean("HAS_ATTRIBUTE"))
                                         .setFileId(resultSet.getString("FILE_ID"));
-                        if (isCreatedTimeFieldAvailable) {
+                        if (useCreatedTimeField()) {
                             configurationRawDataCollectorBuilder.setCreatedTime(
                                     resultSet.getTimestamp("CREATED_TIME",
                                             calendar)
@@ -354,7 +351,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            boolean isCreatedTimeFieldAvailable = useCreatedTimeField();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
 
@@ -368,7 +364,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                             .getTenantId());
                             preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                            if (isCreatedTimeFieldAvailable) {
+                            if (useCreatedTimeField()) {
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             }
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
@@ -583,13 +579,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ATTRIBUTE, attributeKey, e);
         }
-    }
-
-    private boolean isCreatedTimeFieldExists() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.fetchSingleRecord(CHECK_CREATED_TIME_COLUMN_EXISTS_SQL,
-                ((resultSet, rowNumber) -> resultSet.getInt(1)), null) != 0;
     }
 
     private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, Template<Object> template,
@@ -867,24 +856,5 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         return StringUtils.isEmpty(id) ? SQLConstants.DELETE_RESOURCE_TYPE_BY_NAME_SQL :
                 SQLConstants.DELETE_RESOURCE_TYPE_BY_ID_SQL;
-    }
-
-    /**
-     * Check the existence of the CREATED_TIME field in the database table IDN_CONFIG_RESOURCE. This has to be done
-     * once the datasource is loaded.
-     *
-     * @return True if the CREATED_TIME field exists in the IDN_CONFIG_RESOURCE table. False otherwise.
-     * @throws ConfigurationManagementException Data access error in the database.
-     */
-    public boolean useCreatedTimeField() throws ConfigurationManagementException {
-
-        if (this.isCreatedTimeFieldExists == null) {
-            try {
-                this.isCreatedTimeFieldExists = isCreatedTimeFieldExists();
-            } catch (DataAccessException e) {
-                throw handleServerException(ERROR_CODE_CHECK_CREATED_TIME, null, e);
-            }
-        }
-        return isCreatedTimeFieldExists;
     }
 }
