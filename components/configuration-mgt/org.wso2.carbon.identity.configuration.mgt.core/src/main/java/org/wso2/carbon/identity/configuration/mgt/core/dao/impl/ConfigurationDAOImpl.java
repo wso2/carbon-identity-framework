@@ -21,7 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants;
@@ -87,6 +86,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_CREATED_TIME_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME;
@@ -310,15 +310,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.withTransaction(template -> {
+            Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
                 if (isH2()) {
                     updateMetadataForH2(
-                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTimeField()
+                            resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
                     );
                 } else {
                     updateMetadataForMYSQL(
-                            resource, resourceTypeId, template, isAttributeExists, currentTime, useCreatedTimeField()
+                            resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
                     );
                 }
 
@@ -340,11 +340,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         }
                     }, resource, false);
                 }
-                return null;
+                if (useCreatedTimeField()) {
+                    return getCreatedTimeInResponse(resource, resourceTypeId);
+                } else {
+                    return null;
+                }
             });
             resource.setLastModified(currentTime.toInstant().toString());
-            if (useCreatedTimeField()) {
-                resource.setCreatedTime(currentTime.toInstant().toString());
+            if (createdTime != null) {
+                resource.setCreatedTime(createdTime.toInstant().toString());
             }
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
@@ -379,10 +383,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             }
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             /*
-                            Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
-                            files. It is allowed to create a resource without files or attributes in order to allow file upload
-                            after resource creation.
-                             */
+                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
+                            not create files. It is allowed to create a resource without files or attributes in order
+                            to allow file upload after resource creation.
+                            */
                             preparedStatement.setBoolean(++initialParameterIndex, false);
                             preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
@@ -601,94 +605,107 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-    private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, Template<Object> template,
-                                        boolean isAttributeExists, Timestamp currentTime, boolean useCreatedTime)
-            throws DataAccessException {
+    private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, boolean isAttributeExists,
+                                        Timestamp currentTime, boolean useCreatedTime)
+            throws TransactionException {
 
-        template.executeInsert(
-                useCreatedTime ? INSERT_OR_UPDATE_RESOURCE_MYSQL : INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
-                preparedStatement -> {
-                    int initialParameterIndex = 1;
-                    preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                    preparedStatement.setInt(++initialParameterIndex,
-                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                    .getTenantId());
-                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                    if (useCreatedTime) {
-                        preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                    }
-                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                    /*
-                    Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
-                    files. It is allowed to create a resource without files or attributes in order to allow file upload
-                    after resource creation.
-                     */
-                    preparedStatement.setBoolean(++initialParameterIndex, false);
-                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                }, resource, false);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        jdbcTemplate.withTransaction(template ->
+                template.executeInsert(
+                        useCreatedTime ? INSERT_OR_UPDATE_RESOURCE_MYSQL :
+                                INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                            .getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                            if (useCreatedTime) {
+                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            }
+                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            /*
+                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
+                            not create files. It is allowed to create a resource without files or attributes in order
+                            to allow  file upload after resource creation.
+                            */
+                            preparedStatement.setBoolean(++initialParameterIndex, false);
+                            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }, resource, false)
+        );
     }
 
-    private void updateMetadataForH2(Resource resource, String resourceTypeId, Template<Object> template,
-                                     boolean isAttributeExists, Timestamp currentTime, boolean useCreatedTime)
-            throws DataAccessException {
+    private void updateMetadataForH2(Resource resource, String resourceTypeId, boolean isAttributeExists,
+                                     Timestamp currentTime, boolean useCreatedTime)
+            throws TransactionException {
 
-        if (isResourceExists(resource, resourceTypeId, template)) {
-            template.executeInsert(UPDATE_RESOURCE_H2, preparedStatement -> {
-                int initialParameterIndex = 1;
-                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                preparedStatement.setInt(++initialParameterIndex, PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getTenantId());
-                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                /*
-                Resource files are uploaded using a separate endpoint. Therefore resource creation does not create
-                files. It is allowed to create a resource without files or attributes in order to allow file upload
-                after resource creation.
-                 */
-                preparedStatement.setBoolean(++initialParameterIndex, false);
-                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-            }, resource, false);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        if (isResourceExists(resource, resourceTypeId)) {
+            jdbcTemplate.withTransaction(template ->
+                    template.executeInsert(UPDATE_RESOURCE_H2,
+                            preparedStatement -> {
+                                int initialParameterIndex = 1;
+                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                preparedStatement.setInt(++initialParameterIndex,
+                                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                /*
+                                Resource files are uploaded using a separate endpoint. Therefore resource creation
+                                does not create files. It is allowed to create a resource without files or attributes
+                                in order to allow file uploadafter resource creation.
+                                */
+                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                            }, resource, false
+                    )
+            );
         } else {
-            template.executeInsert(
-                    useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
-                    preparedStatement -> {
-                        int initialParameterIndex = 1;
-                        preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                        preparedStatement.setInt(++initialParameterIndex,
-                                PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                        .getTenantId());
-                        preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                        if (useCreatedTime) {
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                        }
-                        preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                        /*
-                        Resource files are uploaded using a separate endpoint. Therefore resource creation does not
-                        create
-                        files. It is allowed to create a resource without files or attributes in order to allow file
-                        upload
-                        after resource creation.
-                         */
-                        preparedStatement.setBoolean(++initialParameterIndex, false);
-                        preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                        preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                    }, resource, false);
+            jdbcTemplate.withTransaction(template ->
+                    template.executeInsert(
+                            useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
+                            preparedStatement -> {
+                                int initialParameterIndex = 1;
+                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                preparedStatement.setInt(++initialParameterIndex,
+                                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                if (useCreatedTime) {
+                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                }
+                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                /*
+                                Resource files are uploaded using a separate endpoint. Therefore resource creation
+                                does not create files. It is allowed to create a resource without files or attributes
+                                in order to allow file upload after resource creation.
+                                */
+                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                            }, resource, false)
+            );
         }
     }
 
-    private boolean isResourceExists(Resource resource, String resourceTypeId, Template<Object> template) throws DataAccessException {
+    private boolean isResourceExists(Resource resource, String resourceTypeId) throws TransactionException {
 
-        String resourceId = template.fetchSingleRecord(GET_RESOURCE_ID_BY_NAME_SQL,
-                (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID)
-                , preparedStatement -> {
-                    int initialParameterIndex = 1;
-                    preparedStatement.setString(initialParameterIndex, resource.getResourceName());
-                    preparedStatement.setInt(++initialParameterIndex,
-                            PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                });
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        String resourceId = jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(
+                        GET_RESOURCE_ID_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID),
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceName());
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }
+                )
+        );
         return resourceId != null;
     }
 
@@ -878,5 +895,23 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         return StringUtils.isEmpty(id) ? SQLConstants.DELETE_RESOURCE_TYPE_BY_NAME_SQL :
                 SQLConstants.DELETE_RESOURCE_TYPE_BY_ID_SQL;
+    }
+
+    private Timestamp getCreatedTimeInResponse(Resource resource, String resourceTypeId)
+            throws TransactionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        return jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(GET_RESOURCE_CREATED_TIME_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, calendar),
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceName());
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }
+                )
+        );
     }
 }

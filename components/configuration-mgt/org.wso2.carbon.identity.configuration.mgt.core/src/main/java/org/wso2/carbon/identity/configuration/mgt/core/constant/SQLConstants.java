@@ -285,6 +285,14 @@ public class SQLConstants {
             "    R.HAS_FILE = TRUE\n" +
             "    AND F.RESOURCE_ID = R.ID\n" +
             "  )\n";
+    public static final String GET_RESOURCE_CREATED_TIME_BY_NAME_SQL = "SELECT\n" +
+            "  CREATED_TIME\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_RESOURCE\n" +
+            "WHERE\n" +
+            "  NAME = ?\n" +
+            "  AND TENANT_ID = ?\n" +
+            "  AND TYPE_ID = ?";
     public static final String DELETE_RESOURCE_SQL = "DELETE FROM\n" +
             "  IDN_CONFIG_RESOURCE\n" +
             "WHERE\n" +

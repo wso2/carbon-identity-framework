@@ -213,6 +213,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Resource resourceCreated = configurationManager.addResource(resourceType.getName(), resourceAdd);
         Resource resourceReplaced = configurationManager.replaceResource(resourceType.getName(), resourceAdd);
 
+        Assert.assertNotEquals("Created time should be different from the last updated time",
+                resourceReplaced.getCreatedTime(),resourceReplaced.getLastModified());
         Assert.assertEquals("Existing id should be equal to the replaced id", resourceCreated.getResourceId(),
                 resourceReplaced.getResourceId());
     }
