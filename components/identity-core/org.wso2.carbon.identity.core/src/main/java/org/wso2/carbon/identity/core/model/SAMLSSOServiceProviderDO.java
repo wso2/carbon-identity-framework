@@ -178,26 +178,14 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    /**
-     * @return the doFrontChannelLogout
-     */
     public boolean isDoFrontChannelLogout() { return doFrontChannelLogout; }
 
-    /**
-     * @param doFrontChannelLogout the doFrontChannelLogout to set
-     */
     public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
         this.doFrontChannelLogout = doFrontChannelLogout;
     }
 
-    /**
-     * @return the frontChannelLogoutMethod
-     */
     public String getFrontChannelLogoutMethod() { return frontChannelLogoutMethod; }
 
-    /**
-     * @param frontChannelLogoutMethod the frontChannelLogoutMethod to set HTTPRedirectBinding of HTTPPostBinding
-     */
     public void setFrontChannelLogoutMethod(String frontChannelLogoutMethod) {
         this.frontChannelLogoutMethod = frontChannelLogoutMethod;
     }
