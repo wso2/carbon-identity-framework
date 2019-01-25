@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
 
 /**
@@ -94,6 +95,12 @@ public class ConfigurationManagerComponent {
     )
     protected void setConfigurationContextService(ConfigurationContextService configurationContextService) {
 
+        /*
+         * ConfigurationManagerComponent checks for the database column, 'CREATED_TIME' in the IDN_CONFIG_RESOURCE
+         * table. Database connection creation requires in this task depends on the ConfigurationContextService.
+         * This reference will ensure that the ConfigurationContextService is activated before the
+         * ConfigurationManagerComponent is activated.
+         */
         log.debug("ConfigurationContextService Instance registered.");
     }
 
@@ -150,7 +157,7 @@ public class ConfigurationManagerComponent {
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
                 // Following statement will throw SQLException if the column is not found
-                resultSet.findColumn("CREATED_TIME");
+                resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                 // If we are here then the column exists.
                 return true;
             }

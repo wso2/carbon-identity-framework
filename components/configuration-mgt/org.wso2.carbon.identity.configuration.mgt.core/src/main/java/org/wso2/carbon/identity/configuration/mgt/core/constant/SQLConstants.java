@@ -45,7 +45,7 @@ public class SQLConstants {
             "    TYPE_ID\n" +
             "  )\n" +
             "VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-    public static final String WITHOUT_CREATED_TIME_INSERT_RESOURCE_SQL = "INSERT INTO\n" +
+    public static final String INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME = "INSERT INTO\n" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +
             "    TENANT_ID,\n" +
@@ -71,7 +71,7 @@ public class SQLConstants {
             "(NAME), " +
             "LAST_MODIFIED = VALUES(LAST_MODIFIED), HAS_FILE = VALUES(HAS_FILE), HAS_ATTRIBUTE = VALUES" +
             "(HAS_ATTRIBUTE), TYPE_ID = VALUES(TYPE_ID)";
-    public static final String WITHOUT_CREATED_TIME_INSERT_OR_UPDATE_RESOURCE_MYSQL = "INSERT INTO\n" +
+    public static final String INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME = "INSERT INTO\n" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +
             "    TENANT_ID,\n" +
@@ -159,7 +159,7 @@ public class SQLConstants {
             "  R.NAME = ?\n" +
             "  AND R.TENANT_ID = ?\n" +
             "  AND R.TYPE_ID = ?";
-    public static final String WITHOUT_CREATED_TIME_GET_RESOURCE_BY_NAME_MYSQL = "SELECT\n" +
+    public static final String GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
             "  R.NAME,\n" +
@@ -214,7 +214,7 @@ public class SQLConstants {
             "  )\n" +
             "WHERE\n" +
             "  R.ID = ?\n";
-    public static final String WITHOUT_CREATED_TIME_GET_RESOURCE_BY_ID_MYSQL = "SELECT\n" +
+    public static final String GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
             "  R.NAME,\n" +
@@ -263,7 +263,7 @@ public class SQLConstants {
             "    R.HAS_FILE = TRUE\n" +
             "    AND F.RESOURCE_ID = R.ID\n" +
             "  )\n";
-    public static final String WITHOUT_CREATED_TIME_GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL = "SELECT\n" +
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
             "  R.NAME,\n" +
