@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.configuration.mgt.endpoint.factories;
+package org.wso2.carbon.identity.configuration.mgt.core.constant;
 
-import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceTypeApiService;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.impl.ResourceTypeApiServiceImpl;
+public class TestSQLConstants {
 
-public class ResourceTypeApiServiceFactory {
-
-    private final static ResourceTypeApiService service = new ResourceTypeApiServiceImpl();
-
-    public static ResourceTypeApiService getResourceTypeApi() {
-
-        return service;
-    }
+    public static final String REMOVE_CREATED_TIME_COLUMN_H2 = "ALTER TABLE IDN_CONFIG_RESOURCE DROP COLUMN " +
+            "CREATED_TIME";
 }

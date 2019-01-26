@@ -44,6 +44,19 @@ public class ConfigurationConstants {
     public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME = "resourceName";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY = "attributeKey";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE = "attributeValue";
+    public static final String DB_SCHEMA_COLUMN_NAME_ID = "ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_NAME = "NAME";
+    public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED = "LAST_MODIFIED";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE = "RESOURCE_TYPE";
+    public static final String DB_SCHEMA_COLUMN_NAME_DESCRIPTTION = "DESCRIPTION";
+    public static final String DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY = "ATTR_KEY";
+    public static final String DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE = "ATTR_VALUE";
+    public static final String DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID = "ATTR_ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_HAS_FILE = "HAS_FILE";
+    public static final String DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE = "HAS_ATTRIBUTE";
+    public static final String DB_SCHEMA_COLUMN_NAME_FILE_ID = "FILE_ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
