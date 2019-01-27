@@ -195,6 +195,20 @@
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2468:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
+            </xs:element>            
+            <xs:element name="getAllIdPsSearch">
+                 <xs:complexType>
+                     <xs:sequence>
+ 						<xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+ 					</xs:sequence>
+                 </xs:complexType>
+             </xs:element>
+            <xs:element name="getAllIdPsSearchResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2468:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
             </xs:element>
             <xs:element name="getEnabledAllIdPs">
                 <xs:complexType>
@@ -312,6 +326,12 @@
     <wsdl:message name="getAllIdPsResponse">
         <wsdl:part name="parameters" element="ns:getAllIdPsResponse"/>
     </wsdl:message>
+    <wsdl:message name="getAllIdPsSearchRequest">
+        <wsdl:part name="parameters" element="ns:getAllIdPsSearch"/>
+    </wsdl:message>
+    <wsdl:message name="getAllIdPsSearchResponse">
+        <wsdl:part name="parameters" element="ns:getAllIdPsSearchResponse"/>
+    </wsdl:message>
     <wsdl:message name="IdentityProviderMgtServiceIdentityProviderManagementException">
         <wsdl:part name="parameters" element="ns:IdentityProviderMgtServiceIdentityProviderManagementException"/>
     </wsdl:message>
@@ -383,6 +403,11 @@
             <wsdl:output message="ns:getAllIdPsResponse" wsaw:Action="urn:getAllIdPsResponse"/>
             <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllIdPsIdentityProviderMgtServiceIdentityProviderManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdPsSearch">
+            <wsdl:input message="ns:getAllIdPsSearchRequest" wsaw:Action="urn:getAllIdPsSearch"/>
+            <wsdl:output message="ns:getAllIdPsSearchResponse" wsaw:Action="urn:getAllIdPsSearchResponse"/>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllIdPsIdentityProviderMgtServiceIdentityProviderManagementException"/>
+        </wsdl:operation>
         <wsdl:operation name="getAllLocalClaimUris">
             <wsdl:input message="ns:getAllLocalClaimUrisRequest" wsaw:Action="urn:getAllLocalClaimUris"/>
             <wsdl:output message="ns:getAllLocalClaimUrisResponse" wsaw:Action="urn:getAllLocalClaimUrisResponse"/>
@@ -448,6 +473,18 @@
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
         <wsdl:operation name="getAllIdPs">
             <soap:operation soapAction="urn:getAllIdPs" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPsSearch">
+            <soap:operation soapAction="urn:getAllIdPsSearch" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -617,6 +654,18 @@
                 <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdPsSearch">
+            <soap12:operation soapAction="urn:getAllIdPsSearch" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getAllLocalClaimUris">
             <soap12:operation soapAction="urn:getAllLocalClaimUris" style="document"/>
             <wsdl:input>
@@ -766,6 +815,15 @@
         <http:binding verb="POST"/>
         <wsdl:operation name="getAllIdPs">
             <http:operation location="getAllIdPs"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPsSearch">
+            <http:operation location="getAllIdPsSearch"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
