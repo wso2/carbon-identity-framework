@@ -68,6 +68,8 @@ public class IdPManagementUIUtil {
     private static final String META_DATA_SAML = "meta_data_saml";
 
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
+    
+    public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
 
     /**
      * Validates an URI.
