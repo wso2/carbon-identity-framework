@@ -154,6 +154,86 @@ public class IdPManagementDAO {
             }
         }
     }
+    
+        public List<IdentityProvider> getIdPsSearch(Connection dbConnection, int tenantId, String tenantDomain, String filter)
+            throws IdentityProviderManagementException {
+
+        boolean dbConnInitialized = true;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        List<IdentityProvider> idps = new ArrayList<IdentityProvider>();
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection();
+        } else {
+            dbConnInitialized = false;
+        }
+        try {
+
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDPS_NAME_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
+            prepStmt.setString(3, filter + "%");
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                IdentityProvider identityProvider = new IdentityProvider();
+                identityProvider.setIdentityProviderName(rs.getString(1));
+                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
+                    identityProvider.setPrimary(true);
+                } else {
+                    identityProvider.setPrimary(false);
+                }
+                identityProvider.setHomeRealmId(rs.getString("HOME_REALM_ID"));
+                identityProvider.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
+
+                // IS_FEDERATION_HUB_IDP
+                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_FEDERATION_HUB"))) {
+                    identityProvider.setFederationHub(false);
+                }
+
+                // IS_LOCAL_CLAIM_DIALECT
+                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_LOCAL_CLAIM_DIALECT"))) {
+                    if (identityProvider.getClaimConfig() == null) {
+                        identityProvider.setClaimConfig(new ClaimConfig());
+                    }
+                    identityProvider.getClaimConfig().setLocalClaimDialect(true);
+                }
+
+                // IS_ENABLE
+                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_ENABLED"))) {
+                    identityProvider.setEnable(true);
+                } else {
+                    identityProvider.setEnable(false);
+                }
+
+                identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
+
+                if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
+                        .equals(identityProvider.getIdentityProviderName())) {
+                    idps.add(identityProvider);
+                }
+                identityProvider.setId(rs.getString("ID"));
+                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
+                        Integer.parseInt(identityProvider.getId()));
+                identityProvider
+                        .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
+
+            }
+            dbConnection.commit();
+            return idps;
+        } catch (SQLException e) {
+            IdentityApplicationManagementUtil.rollBack(dbConnection);
+            throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
+                    "Provider Entity IDs " + "for tenant " + tenantDomain, e);
+        } finally {
+            if (dbConnInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
+    }
+
 
     /**
      * Get Identity properties map
