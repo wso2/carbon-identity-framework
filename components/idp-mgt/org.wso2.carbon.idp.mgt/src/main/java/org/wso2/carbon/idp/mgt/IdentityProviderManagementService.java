@@ -104,6 +104,24 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         }
     }
 
+    public IdentityProvider[] getAllIdPsSearch(String filter) throws IdentityProviderManagementException {
+        String tenantDomain = "";
+        try {
+            tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance().getIdPsSearch(tenantDomain, filter);
+            for (int i = 0; i < identityProviders.size(); i++) {
+                String providerName = identityProviders.get(i).getIdentityProviderName();
+                if (providerName != null && providerName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
+                    identityProviders.remove(i);
+                    i--;
+                }
+            }
+            return identityProviders.toArray(new IdentityProvider[identityProviders.size()]);
+        } catch (IdentityProviderManagementException idpException) {
+            log.error("Error while getting IdPs in tenantDomain : " + tenantDomain, idpException);
+            throw idpException;
+        }
+    }
 
     /**
      * Retrieves Enabled registered Identity providers for the logged-in tenant
