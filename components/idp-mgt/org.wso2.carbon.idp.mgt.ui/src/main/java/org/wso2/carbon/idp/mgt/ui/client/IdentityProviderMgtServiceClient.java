@@ -128,6 +128,20 @@ public class IdentityProviderMgtServiceClient {
             throw new Exception("Error occurred while retrieving list of Identity Providers");
         }
     }
+    
+    public List<IdentityProvider> getIdPsSearch(String filter) throws Exception {
+        try {
+            IdentityProvider[] identityProviders = idPMgtStub.getAllIdPsSearch(filter);
+            if (identityProviders != null && identityProviders.length > 0) {
+                return Arrays.asList(identityProviders);
+            } else {
+                return new ArrayList<IdentityProvider>();
+            }
+        } catch (Exception e) {
+            log.error("Error in retrieving the Identity Provider", e);
+            throw new Exception("Error occurred while retrieving Identity Providers");
+        }
+    }
 
     /**
      * Retrieves Enabled registered Identity providers for a given tenant
