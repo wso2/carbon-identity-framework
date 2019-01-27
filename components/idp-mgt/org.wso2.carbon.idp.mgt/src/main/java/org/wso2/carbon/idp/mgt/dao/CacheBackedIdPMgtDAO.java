@@ -69,6 +69,13 @@ public class CacheBackedIdPMgtDAO {
 
         return idPMgtDAO.getIdPs(dbConnection, tenantId, tenantDomain);
     }
+    
+    public List<IdentityProvider> getIdPsSearch(Connection dbConnection,
+			int tenantId, String tenantDomain, String filter)
+			throws IdentityProviderManagementException {
+
+		return idPMgtDAO.getIdPsSearch(dbConnection, tenantId, tenantDomain, filter);
+	}
 
     /**
      * @param dbConnection
