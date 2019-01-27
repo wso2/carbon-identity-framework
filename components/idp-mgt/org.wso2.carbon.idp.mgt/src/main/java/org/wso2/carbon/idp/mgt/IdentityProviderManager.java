@@ -1040,6 +1040,16 @@ public class IdentityProviderManager implements IdpManager {
 
     }
 
+    @Override
+    public List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
+            throws IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
+        		
+
+    }
+    
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
