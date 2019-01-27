@@ -71,6 +71,8 @@ public interface IdpManager {
      */
     List<IdentityProvider> getIdPs(String tenantDomain) throws IdentityProviderManagementException;
 
+    List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter) throws IdentityProviderManagementException;
+    
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
