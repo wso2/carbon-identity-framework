@@ -152,8 +152,16 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 serviceProviderDO.setDoFrontChannelLogout(Boolean.valueOf(resource.getProperty(
                         IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT).trim()));
                 if (serviceProviderDO.isDoFrontChannelLogout()) {
-                    serviceProviderDO.setFrontChannelLogoutMethod(resource.getProperty(
-                            IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_METHOD));
+                    if (resource.getProperty(IdentityRegistryResources.
+                            PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING) != null) {
+                        serviceProviderDO.setFrontChannelLogoutBinding(resource.getProperty(
+                                IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING));
+                    } else {
+                        // Default is redirect-binding.
+                        serviceProviderDO.setFrontChannelLogoutBinding(IdentityRegistryResources
+                                .DEFAULT_FRONT_CHANNEL_LOGOUT_BINDING);
+                    }
+
                 }
             }
         }
@@ -357,16 +365,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
             // Create doFrontChannelLogout property in the registry.
             String doFrontChannelLogout = String.valueOf(serviceProviderDO.isDoFrontChannelLogout());
-            if (StringUtils.isEmpty(doFrontChannelLogout)){
-                resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT, "false");
-            }
-            else {
-                resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT, doFrontChannelLogout);
-                if (serviceProviderDO.isDoFrontChannelLogout()) {
-                    // Create frontChannelLogoutMethod property in the registry.
-                    resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_METHOD,
-                            serviceProviderDO.getFrontChannelLogoutMethod());
-                }
+            resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT, doFrontChannelLogout);
+            if (serviceProviderDO.isDoFrontChannelLogout()) {
+                // Create frontChannelLogoutMethod property in the registry.
+                resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING,
+                        serviceProviderDO.getFrontChannelLogoutBinding());
             }
         }
 

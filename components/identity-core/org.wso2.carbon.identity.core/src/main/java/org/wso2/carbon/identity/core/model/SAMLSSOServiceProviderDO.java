@@ -76,7 +76,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean samlECP;
     private String idpEntityIDAlias;
     private boolean doFrontChannelLogout;
-    private String frontChannelLogoutMethod;
+    private String frontChannelLogoutBinding;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -178,16 +178,20 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public boolean isDoFrontChannelLogout() { return doFrontChannelLogout; }
+    public boolean isDoFrontChannelLogout() {
+        return doFrontChannelLogout;
+    }
 
     public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
         this.doFrontChannelLogout = doFrontChannelLogout;
     }
 
-    public String getFrontChannelLogoutMethod() { return frontChannelLogoutMethod; }
+    public String getFrontChannelLogoutBinding() {
+        return frontChannelLogoutBinding;
+    }
 
-    public void setFrontChannelLogoutMethod(String frontChannelLogoutMethod) {
-        this.frontChannelLogoutMethod = frontChannelLogoutMethod;
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
     }
 
     /**
