@@ -108,11 +108,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getResidentIdP(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        String tenantContext = "";
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
-        }
+        IdPManagementUtil.setTenantSpecifiers(tenantDomain);
 
         String openIdUrl;
         String samlSSOUrl;
@@ -274,11 +270,11 @@ public class IdentityProviderManager implements IdpManager {
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, tenantContext +
+            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
                     IdentityConstants.STS.WSO2_CARBON_STS);
         } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + tenantContext + IdentityConstants.STS.WSO2_CARBON_STS,
-                    true, true);
+            stsUrl = IdentityUtil.getServerURL("services/" + IdPManagementUtil.getTenantContext() +
+                            IdentityConstants.STS.WSO2_CARBON_STS, true, true);
         }
 
         if (StringUtils.isBlank(scimUsersEndpoint)) {
@@ -2101,12 +2097,14 @@ public class IdentityProviderManager implements IdpManager {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
 
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
+                IdPManagementUtil.getTenantParameter();
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);;
+        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
+                IdPManagementUtil.getTenantParameter();
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL, samlLogoutUrl);
