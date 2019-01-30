@@ -31,7 +31,6 @@
             <at-least>/permission/admin/manage/identity/applicationmgt/create</at-least>
             <at-least>/permission/admin/manage/identity/applicationmgt/update</at-least>
             <at-least>/permission/admin/manage/identity/applicationmgt/delete</at-least>
-            <!--<require-permission>/permission/admin/manage/identity/applicationmgt/view</require-permission>-->
             <require-not-logged-in>false</require-not-logged-in>
             <hide-menu-id>manage_saml_sso</hide-menu-id>
             <hide-menu-id>generic_sts_menu</hide-menu-id>
