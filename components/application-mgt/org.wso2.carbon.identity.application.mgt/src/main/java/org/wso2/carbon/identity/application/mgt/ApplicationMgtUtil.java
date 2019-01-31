@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -44,8 +44,6 @@ import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.RegistryConstants;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -262,10 +260,8 @@ public class ApplicationMgtUtil {
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            RegistryUtils.initializeTenant(
-                    (RegistryService) ApplicationManagementServiceComponentHolder.getInstance().getRegistryService(),
-                    tenantId);
-        } catch (RegistryException e) {
+            IdentityTenantUtil.initializeRegistry(tenantId, IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);
         }
