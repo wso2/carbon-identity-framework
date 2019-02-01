@@ -130,7 +130,8 @@ public class IdentityRegistryResources {
     public final static String PROP_SAML_SSO_USE_FULLY_QUALIFIED_USERNAME_AS_SUBJECT = "useFullyQualifiedUsername";
     public final static String PROP_SAML_SSO_DO_SINGLE_LOGOUT = "doSingleLogout";
     public final static String PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
-    public final static String PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_METHOD = "frontChannelLogoutMethod";
+    public final static String PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
+    public final static String DEFAULT_FRONT_CHANNEL_LOGOUT_BINDING = "HTTPRedirectBinding";
     public final static String PROP_SAML_SLO_RESPONSE_URL = "sloResponseURL";
     public final static String PROP_SAML_SLO_REQUEST_URL = "sloRequestURL";
     public final static String PROP_SAML_SSO_LOGIN_PAGE_URL = "loginPageURL";
