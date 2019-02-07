@@ -391,8 +391,11 @@
                                                 selectedValue = parameterValues.get(metaData.getName()).get(metaData.getName()).getParamValue();
                                             }
                                             InputData inputData = metaData.getInputData();
-                                            MapType mapType = inputData.getMapType();
-                                            Item[] items = mapType.getItem();
+                                            Item[] items = new Item[0];
+                                            if (inputData != null) {
+                                                MapType mapType = inputData.getMapType();
+                                                items = mapType.getItem();
+                                            }
                                         %>
                                         <td>
                                             <select id="<%=metaData.getName()%>" name="<%=metaData.getName()%>" style="min-width: 30%">

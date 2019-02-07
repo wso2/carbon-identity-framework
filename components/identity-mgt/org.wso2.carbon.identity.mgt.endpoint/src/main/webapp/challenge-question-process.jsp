@@ -18,18 +18,24 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SecurityQuestionApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.AnswerVerificationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Question" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.SecurityAnswer" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.apache.commons.collections.map.HashedMap" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String userName = request.getParameter("username");
@@ -46,17 +52,22 @@
         session.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, user.getTenantDomain());
 
         try {
+            Map<String, String> requestHeaders = new HashedMap();
+            if (request.getParameter("g-recaptcha-response") != null) {
+                requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+            }
+            
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
-            InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.securityQuestionGet(user.getUsername(), user.getRealm(), user.getTenantDomain());
+            InitiateQuestionResponse initiateQuestionResponse = securityQuestionApi.securityQuestionGet(
+                    user.getUsername(), user.getRealm(), user.getTenantDomain(), requestHeaders);
             IdentityManagementEndpointUtil.addReCaptchaHeaders(request, securityQuestionApi.getApiClient().getResponseHeaders());
             session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
             request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
         } catch (ApiException e) {
             if (e.getCode() == 204) {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        "No Security Questions Found to recover password. Please contact your system Administrator");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "No.security.questions.found.to.recover.password.contact.system.administrator"));
                 request.setAttribute("errorCode", "18017");
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
@@ -169,8 +180,9 @@
         } catch (ApiException e) {
             RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
             if (retryError != null && "20008".equals(retryError.getCode())) {
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("errorResponse", retryError);
-                request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+                request.getRequestDispatcher("challenge-questions-view-all.jsp").forward(request, response);
                 return;
             }
 

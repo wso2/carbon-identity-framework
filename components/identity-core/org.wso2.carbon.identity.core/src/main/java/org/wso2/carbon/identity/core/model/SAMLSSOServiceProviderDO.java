@@ -34,6 +34,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     String tenantDomain;
     private String issuer;
+    private String issuerQualifier;
     private String assertionConsumerUrl;
     private String[] assertionConsumerUrls;
     private List<String> assertionConsumerUrlList;
@@ -61,6 +62,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private List<String> idpInitSLOReturnToURLList;
     private boolean doEnableEncryptedAssertion;
     private boolean doValidateSignatureInRequests;
+    private boolean doValidateSignatureInArtifactResolve;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
     private String assertionEncryptionAlgorithmUri;
@@ -70,6 +72,29 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private X509Certificate x509Certificate;
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
+    private boolean enableSAML2ArtifactBinding;
+    private boolean samlECP;
+    private String idpEntityIDAlias;
+    private boolean doFrontChannelLogout;
+    private String frontChannelLogoutBinding;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isEnableSAML2ArtifactBinding() {
+        return enableSAML2ArtifactBinding;
+    }
 
 
     public SAMLSSOServiceProviderDO() {
@@ -150,6 +175,42 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIssuer(String issuer) {
         if (issuer != null) {
             this.issuer = issuer.replaceAll("[\n\r]", "").trim();
+        }
+    }
+
+    public boolean isDoFrontChannelLogout() {
+        return doFrontChannelLogout;
+    }
+
+    public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
+        this.doFrontChannelLogout = doFrontChannelLogout;
+    }
+
+    public String getFrontChannelLogoutBinding() {
+        return frontChannelLogoutBinding;
+    }
+
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
+    }
+
+    /**
+     * Get qualifier of the issuer.
+     *
+     * @return Issuer Qualifier
+     */
+    public String getIssuerQualifier() {
+        return issuerQualifier;
+    }
+
+    /**
+     * Set issuer qualifier.
+     *
+     * @param issuerQualifier
+     */
+    public void setIssuerQualifier(String issuerQualifier) {
+        if (StringUtils.isNotBlank(issuerQualifier)) {
+            this.issuerQualifier = issuerQualifier;
         }
     }
 
@@ -559,5 +620,31 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
+    }
+
+    public void setSamlECP(boolean samlECP) {
+        this.samlECP = samlECP;
+    }
+
+    public boolean isSamlECP() {
+        return samlECP;
+    }
+
+    /**
+     * Get IdP Entity ID alias.
+     *
+     * @return IdP Entity ID Alias
+     */
+    public String getIdpEntityIDAlias() {
+        return idpEntityIDAlias;
+    }
+
+    /**
+     * Set IdP Entity ID alias.
+     *
+     * @param idpEntityIDAlias
+     */
+    public void setIdpEntityIDAlias(String idpEntityIDAlias) {
+        this.idpEntityIDAlias = idpEntityIDAlias;
     }
 }

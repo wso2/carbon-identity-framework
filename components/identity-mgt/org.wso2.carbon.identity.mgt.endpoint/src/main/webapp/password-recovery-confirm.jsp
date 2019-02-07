@@ -17,15 +17,51 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = request.getParameter("redirect_uri");
+    }
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
-
+    NotificationApi notificationApi = new NotificationApi();
+    try {
+        List<Property> properties = new ArrayList<>();
+        Property tenantDomainProperty = new Property();
+        tenantDomainProperty.setKey(MultitenantConstants.TENANT_DOMAIN);
+        tenantDomainProperty.setValue(tenantDomain);
+        properties.add(tenantDomainProperty);
+        
+        CodeValidationRequest validationRequest = new CodeValidationRequest();
+        validationRequest.setCode(confirmationKey);
+        validationRequest.setProperties(properties);
+        notificationApi.validateCodePostCall(validationRequest);
+        
+    } catch (ApiException e) {
+        Error error = new Gson().fromJson(e.getMessage(), Error.class);
+        request.setAttribute("error", true);
+        if (error != null) {
+            request.setAttribute("errorMsg", error.getDescription());
+            request.setAttribute("errorCode", error.getCode());
+        }
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+    
     if (StringUtils.isBlank(tenantDomain)) {
         tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
     }
@@ -33,17 +69,19 @@
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
-
-    if ( StringUtils.isNotBlank(confirmationKey)) {
+    
+    if (StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.setAttribute("callback", callback);
         request.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, tenantDomain);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", "Cannot process the email notification confirmation. confirmation code is missing.");
+        request.setAttribute("errorMsg",
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cannot.process.email.confirmation.code.is.missing"));
         request.setAttribute("errorCode", "18001");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
 %>
+

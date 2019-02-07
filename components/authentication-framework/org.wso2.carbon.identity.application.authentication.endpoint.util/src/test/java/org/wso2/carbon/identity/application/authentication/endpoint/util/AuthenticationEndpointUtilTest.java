@@ -124,10 +124,11 @@ public class AuthenticationEndpointUtilTest {
     @DataProvider(name = "username-provider")
     public Object[][] dataProviderMethod() {
 
-        String username1 = USERNAME;
+        String username1 = PRIMARY_DEFAULT_DOMAIN_NAME + DOMAIN_SEPARATOR + USERNAME;
         String username2 = USERSTORE_NAME + DOMAIN_SEPARATOR + USERNAME;
         String username3 = USERNAME + TENANT_DOMAIN_COMBINER + TENANT_DOMAIN;
         String username4 = USERSTORE_NAME + DOMAIN_SEPARATOR + USERNAME + TENANT_DOMAIN_COMBINER + TENANT_DOMAIN;
+        String username5 = USERNAME;
 
         return new Object[][]{
                 {
@@ -137,10 +138,13 @@ public class AuthenticationEndpointUtilTest {
                         username2, SUPER_TENANT_DOMAIN_NAME, USERSTORE_NAME
                 },
                 {
-                        username3, TENANT_DOMAIN, PRIMARY_DEFAULT_DOMAIN_NAME
+                        username3, TENANT_DOMAIN, null
                 },
                 {
                         username4, TENANT_DOMAIN, USERSTORE_NAME
+                },
+                {
+                        username5, SUPER_TENANT_DOMAIN_NAME, null
                 }
         };
     }

@@ -24,6 +24,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
 <%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -60,12 +61,13 @@
         reCaptchaEnabled = true;
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
+
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -95,9 +97,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -110,22 +114,25 @@
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
                 <form action="processregistration.do" method="post" id="register">
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Create
-                        An Account</h2>
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Create.an.account")%>
+                    </h2>
 
                     <div class="clearfix"></div>
                     <div class="boarder-all ">
 
                         <% if (error) { %>
                         <div class="alert alert-danger" id="server-error-msg">
-                            <%= Encode.forHtmlContent(errorMsg) %>
+                            <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, errorMsg)%>
                         </div>
                         <% } %>
 
                         <div class="alert alert-danger" id="error-msg" hidden="hidden">
                         </div>
 
-                        <div class="padding-double font-large">Enter required fields to complete registration</div>
+                        <div class="padding-double font-large"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                "Enter.required.fields.to.complete.registration")%>
+                        </div>
                         <!-- validation -->
                         <div class="padding-double">
                             <div id="regFormError" class="alert alert-danger" style="display:none"></div>
@@ -133,7 +140,9 @@
 
                             <% if (isFirstNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">First Name</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "First.name")%>
+                                </label>
                                 <input type="text" name="http://wso2.org/claims/givenname" class="form-control"
                                     <% if (isFirstNameRequired) {%> required <%}%>>
                             </div>
@@ -141,33 +150,43 @@
 
                             <% if (isLastNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Last Name</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Last.name")%>
+                                </label>
                                 <input type="text" name="http://wso2.org/claims/lastname" class="form-control"
                                     <% if (isLastNameRequired) {%> required <%}%>>
                             </div>
                             <%}%>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Username</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Username")%>
+                                </label>
                                 <input id="username" name="username" type="text"
                                        class="form-control required usrName usrNameLength" required>
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Password</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Password")%>
+                                </label>
                                 <input id="password" name="password" type="password"
                                        class="form-control" required>
                             </div>
 
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                                <label class="control-label">Confirm password</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Confirm.password")%>
+                                </label>
                                 <input id="password2" name="password2" type="password" class="form-control"
                                        data-match="reg-password" required>
                             </div>
 
                             <% if (isEmailInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label class="control-label">Email</label>
+                                <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                                        "Email")%>
+                                </label>
                                 <input type="email" name="http://wso2.org/claims/emailaddress" data-claim-uri="http://wso2.org/claims/emailaddress"
                                        class="form-control" data-validate="email"
                                     <% if (isEmailRequired) {%> required <%}%>>
@@ -180,11 +199,12 @@
                                     !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
                                     !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
                                     !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM) &&
+                                    !claim.isReadOnly()) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label <% if (claim.isRequired()) {%> class="control-label" <%}%>><%= Encode
-                                        .forHtmlContent(claim.getDisplayTag()) %>
+                                <label <% if (claim.isRequired()) {%> class="control-label" <%}%>>
+                                    <%=IdentityManagementEndpointUtil.i18nBase64(recoveryResourceBundle, claim.getDisplayTag())%>
                                 </label>
                                 <input name="<%= Encode.forHtmlAttribute(claim.getClaimUri()) %>"
                                        data-claim-uri="<%= Encode.forHtmlAttribute(claim.getClaimUri()) %>"
@@ -217,14 +237,18 @@
                                 <br/>
                                 <button id="registrationSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                        type="submit">Next
+                                        type="submit"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Next")%>
                                 </button>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <span class="margin-top padding-top-double font-large">Already have an account? </span>
+                                <span class="margin-top padding-top-double font-large">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Already.have.an.account")%>
+                                </span>
                                 <a href="<%=Encode.forHtmlAttribute(IdentityManagementEndpointUtil.getUserPortalUrl(
                                     application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>"
-                                   id="signInLink" class="font-large">Sign in</a>
+                                   id="signInLink" class="font-large">
+                                    <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Sign.in")%>
+                                </a>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -239,9 +263,11 @@
     <!-- footer -->
     <footer class="footer" style="position: relative">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>
@@ -262,7 +288,7 @@
                 for (i = 0; i < elements.length; i++) {
                     if (elements[i].type === 'text' && elements[i].value != null
                         && elements[i].value.match(unsafeCharPattern) != null) {
-                        error_msg.text('For security measures following characters are restricted < > ` "');
+                        error_msg.text("<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,"For.security.following.characters.restricted")%>");
                         error_msg.show();
                         $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                         invalidInput = true;
@@ -277,7 +303,8 @@
                 var password2 = $("#password2").val();
 
                 if (password != password2) {
-                    error_msg.text("Passwords did not match. Please try again.");
+                    error_msg.text("<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                    "Passwords.did.not.match.please.try.again")%>");
                     error_msg.show();
                     $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                     return false;
@@ -288,7 +315,8 @@
                 %>
                 var resp = $("[name='g-recaptcha-response']")[0].value;
                 if (resp.trim() == '') {
-                    error_msg.text("Please select reCaptcha.");
+                    error_msg.text("<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                    "Please.select.reCaptcha")%>");
                     error_msg.show();
                     $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
                     return false;
@@ -303,5 +331,3 @@
     </script>
     </body>
     </html>
-</fmt:bundle>
-

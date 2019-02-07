@@ -33,14 +33,16 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<jsp:directive.include file="localize.jsp"/>
 
 
-<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -61,9 +63,11 @@
         <div class="container-fluid">
             <div class="pull-left brand float-remove-xs text-center-xs">
                 <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                 "Wso2")%> class="logo">
 
-                    <h1><em>Identity Server</em></h1>
+                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
                 </a>
             </div>
         </div>
@@ -75,21 +79,31 @@
         <%
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
-
+            
             String userLocale = request.getHeader("Accept-Language");
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
-
+            String tenantDomain = request.getParameter("tenantDomain");
+            String consent = request.getParameter("consent");
+            String policyURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL().replace("/services",
+                    "/authenticationendpoint/privacy_policy.do");
+            if (StringUtils.isNotEmpty(consent)) {
+                consent = IdentityManagementEndpointUtil.buildConsentForResidentIDP
+                        (username, consent, "USA",
+                                IdentityManagementEndpointConstants.Consent.COLLECTION_METHOD_SELF_REGISTRATION,
+                                IdentityManagementEndpointConstants.Consent.LANGUAGE_ENGLISH, policyURL,
+                                IdentityManagementEndpointConstants.Consent.EXPLICIT_CONSENT_TYPE,
+                                true, false, IdentityManagementEndpointConstants.Consent.INFINITE_TERMINATION);
+            }
             if (StringUtils.isBlank(callback)) {
                 callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
             }
-
             if (StringUtils.isBlank(username)) {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        "Username cannot be empty.");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "Username.cannot.be.empty"));
                 if (isSelfRegistrationWithVerification) {
                     request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
                 } else {
@@ -99,8 +113,8 @@
 
             if (StringUtils.isBlank(password)) {
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        "Password cannot be empty.");
+                request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "Password.cannot.be.empty"));
                 if (isSelfRegistrationWithVerification) {
                     request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
                 } else {
@@ -168,7 +182,12 @@
                 Property sessionKey = new Property();
                 sessionKey.setKey("callback");
                 sessionKey.setValue(URLEncoder.encode(callback, "UTF-8"));
+                
+                Property consentProperty = new Property();
+                consentProperty.setKey("consent");
+                consentProperty.setValue(consent);
                 properties.add(sessionKey);
+                properties.add(consentProperty);
 
 
                 SelfUserRegistrationRequest selfUserRegistrationRequest = new SelfUserRegistrationRequest();
@@ -203,9 +222,11 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container-fluid">
-            <p>WSO2 Identity Server | &copy;
+            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+                <a href="<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
+                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
         </div>
     </footer>
@@ -216,5 +237,3 @@
 
     </body>
     </html>
-</fmt:bundle>
-

@@ -23,6 +23,7 @@ import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.listener.AbstractCacheListener;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -33,7 +34,9 @@ import javax.cache.CacheManager;
 import javax.cache.Caching;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,14 +47,27 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private CacheBuilder<K, V> cacheBuilder;
     private String cacheName;
-    private List<AbstractCacheListener> cacheListeners = new ArrayList<AbstractCacheListener>();
+    private List<AbstractCacheListener> cacheListeners = new ArrayList<>();
+    private IdentityCacheConfig identityCacheConfig;
 
     public BaseCache(String cacheName) {
         this.cacheName = cacheName;
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && !identityCacheConfig.isDistributed()) {
             this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
         }
+    }
+
+    public BaseCache(String cacheName, boolean isTemp) {
+        this.cacheName = cacheName;
+        identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        if (identityCacheConfig != null) {
+            if (!identityCacheConfig.isDistributed()) {
+                this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
+            }
+            identityCacheConfig.setTemporary(isTemp);
+        }
+
     }
 
     private Cache<K, V> getBaseCache() {
@@ -217,7 +233,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public boolean isEnabled() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null) {
             return identityCacheConfig.isEnabled();
         }
@@ -225,7 +240,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCacheTimeout() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && identityCacheConfig.getTimeout() > 0) {
             return identityCacheConfig.getTimeout();
         }
@@ -233,7 +247,6 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCapacity() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && identityCacheConfig.getCapacity() > 0) {
             return identityCacheConfig.getCapacity();
         }

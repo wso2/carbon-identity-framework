@@ -108,15 +108,13 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getResidentIdP(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        String tenantContext = "";
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
-        }
+        IdPManagementUtil.setTenantSpecifiers(tenantDomain);
 
         String openIdUrl;
         String samlSSOUrl;
         String samlLogoutUrl;
+        String samlECPUrl;
+        String samlArtifactUrl;
         String oauth1RequestTokenUrl;
         String oauth1AuthorizeUrl;
         String oauth1AccessTokenUrl;
@@ -141,6 +139,8 @@ public class IdentityProviderManager implements IdpManager {
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
         samlLogoutUrl = samlSSOUrl;
+        samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
+        samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
@@ -173,6 +173,13 @@ public class IdentityProviderManager implements IdpManager {
 
         if (StringUtils.isBlank(samlLogoutUrl)) {
             samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        if (StringUtils.isBlank(samlArtifactUrl)) {
+            samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+
+        if (StringUtils.isBlank(samlECPUrl)) {
+            samlECPUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
@@ -263,11 +270,11 @@ public class IdentityProviderManager implements IdpManager {
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, tenantContext +
+            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
                     IdentityConstants.STS.WSO2_CARBON_STS);
         } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + tenantContext + IdentityConstants.STS.WSO2_CARBON_STS,
-                    true, true);
+            stsUrl = IdentityUtil.getServerURL("services/" + IdPManagementUtil.getTenantContext() +
+                            IdentityConstants.STS.WSO2_CARBON_STS, true, true);
         }
 
         if (StringUtils.isBlank(scimUsersEndpoint)) {
@@ -381,30 +388,89 @@ public class IdentityProviderManager implements IdpManager {
             saml2SSOFedAuthn = new FederatedAuthenticatorConfig();
             saml2SSOFedAuthn.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(saml2SSOFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL) == null) {
-            Property ssoUrlProp = new Property();
-            ssoUrlProp.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
-            ssoUrlProp.setValue(samlSSOUrl);
-            propertiesList.add(ssoUrlProp);
+
+        propertiesList = new ArrayList<>();
+        Property samlSSOUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+        if (samlSSOUrlProperty == null) {
+            samlSSOUrlProperty = new Property();
+            samlSSOUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
         }
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL) == null) {
-            Property logoutReqUrlProp = new Property();
-            logoutReqUrlProp
-                    .setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
-            logoutReqUrlProp.setValue(samlLogoutUrl);
-            propertiesList.add(logoutReqUrlProp);
+        // Set the generated saml sso endpoint value.
+        samlSSOUrlProperty.setValue(samlSSOUrl);
+        propertiesList.add(samlSSOUrlProperty);
+
+        Property samlLogoutUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+        if (samlLogoutUrlProperty == null) {
+            samlLogoutUrlProperty = new Property();
+            samlLogoutUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
         }
-        if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID) == null) {
-            Property idPEntityIdProp = new Property();
-            idPEntityIdProp
-                    .setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            idPEntityIdProp.setValue(IdPManagementUtil.getResidentIdPEntityId());
-            propertiesList.add(idPEntityIdProp);
+        // Set the generated saml slo endpoint value.
+        samlLogoutUrlProperty.setValue(samlLogoutUrl);
+        propertiesList.add(samlLogoutUrlProperty);
+
+        Property samlECPUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                 IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
+        if (samlECPUrlProperty == null) {
+            samlECPUrlProperty = new Property();
+            samlECPUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
         }
+        //set the generated saml ecp endpoint value
+        samlECPUrlProperty.setValue(samlECPUrl);
+        propertiesList.add(samlECPUrlProperty);
+
+        Property idPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+        if (idPEntityIdProperty == null) {
+            idPEntityIdProperty = new Property();
+            idPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+            idPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+        }
+        propertiesList.add(idPEntityIdProperty);
+
+        Property samlArtifactUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        if (samlArtifactUrlProperty == null) {
+            samlArtifactUrlProperty = new Property();
+            samlArtifactUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        }
+        samlArtifactUrlProperty.setValue(samlArtifactUrl);
+        propertiesList.add(samlArtifactUrlProperty);
+
+        for (Property property : saml2SSOFedAuthn.getProperties()) {
+            if (property != null &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL.equals(property.getName()) &&
+                    !IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
+                propertiesList.add(property);
+            }
+        }
+
+        Property samlMetadataValidityPeriodProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.
+                getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_VALIDITY_PERIOD);
+        if (samlMetadataValidityPeriodProperty == null) {
+            samlMetadataValidityPeriodProperty = new Property();
+            samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD);
+            samlMetadataValidityPeriodProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT);
+        }
+        propertiesList.add(samlMetadataValidityPeriodProperty);
+        Property samlMetadataSigningEnabledProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.
+                getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_SIGNING_ENABLED);
+        if (samlMetadataSigningEnabledProperty == null) {
+            samlMetadataSigningEnabledProperty = new Property();
+            samlMetadataSigningEnabledProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED);
+            samlMetadataSigningEnabledProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED_DEFAULT);
+        }
+        propertiesList.add(samlMetadataSigningEnabledProperty);
+
         saml2SSOFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(saml2SSOFedAuthn);
 
@@ -543,24 +609,35 @@ public class IdentityProviderManager implements IdpManager {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(passiveSTSFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL) == null) {
-            Property passiveSTSUrlProp = new Property();
-            passiveSTSUrlProp
-                    .setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-            passiveSTSUrlProp.setValue(passiveStsUrl);
-            propertiesList.add(passiveSTSUrlProp);
+
+        propertiesList = new ArrayList<>();
+        Property passiveSTSUrlProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
+                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
+        if (passiveSTSUrlProperty == null) {
+            passiveSTSUrlProperty = new Property();
+            passiveSTSUrlProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
+        }
+        passiveSTSUrlProperty.setValue(passiveStsUrl);
+        propertiesList.add(passiveSTSUrlProperty);
+
+        Property stsIdPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
+                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
+        if (stsIdPEntityIdProperty == null) {
+            stsIdPEntityIdProperty = new Property();
+            stsIdPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS
+                    .IDENTITY_PROVIDER_ENTITY_ID);
+            stsIdPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+        }
+        propertiesList.add(stsIdPEntityIdProperty);
+
+        for (Property property : passiveSTSFedAuthn.getProperties()) {
+            if (property != null && !IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL
+                    .equals(property.getName()) && !IdentityApplicationConstants.Authenticator.PassiveSTS
+                    .IDENTITY_PROVIDER_ENTITY_ID.equals(property.getName())) {
+                propertiesList.add(property);
+            }
         }
 
-        if (IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID) == null) {
-            Property idPEntityIdProp = new Property();
-            idPEntityIdProp
-                    .setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-            idPEntityIdProp.setValue(IdPManagementUtil.getResidentIdPEntityId());
-            propertiesList.add(idPEntityIdProp);
-        }
         passiveSTSFedAuthn
                 .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(passiveSTSFedAuthn);
@@ -725,6 +802,35 @@ public class IdentityProviderManager implements IdpManager {
                 saml2SSOResidentAuthenticatorConfig.setProperties(new Property[]{property});
             }
         }
+        Property samlMetadataValidityPeriodProperty = new Property();
+        String samlMetadataValidityPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
+                SAML_METADATA_VALIDITY_PERIOD);
+        if (StringUtils.isBlank(samlMetadataValidityPeriod) || !StringUtils.isNumeric(samlMetadataValidityPeriod) ||
+                Integer.parseInt(samlMetadataValidityPeriod) <= 0) {
+            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value");
+            samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
+        }
+        samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_VALIDITY_PERIOD);
+        samlMetadataValidityPeriodProperty.setValue(samlMetadataValidityPeriod);
+        Property samlMetadataSigningEnabledProperty = new Property();
+        String samlMetadataSigningEnabled = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
+                SAML_METADATA_SIGNING_ENABLED);
+        if (StringUtils.isBlank(samlMetadataSigningEnabled)) {
+            log.warn("SAMLMetadataSigningEnabled in identity.xml should be a boolean value");
+            samlMetadataSigningEnabled = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED_DEFAULT;
+        }
+        samlMetadataSigningEnabledProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                SAML_METADATA_SIGNING_ENABLED);
+        samlMetadataSigningEnabledProperty.setValue(samlMetadataSigningEnabled);
+        List<Property> propertyList = new ArrayList<>(Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties()));
+        propertyList.add(samlMetadataValidityPeriodProperty);
+        propertyList.add(samlMetadataSigningEnabledProperty);
+        Property[] properties = new Property[propertyList.size()];
+        properties = propertyList.toArray(properties);
+        saml2SSOResidentAuthenticatorConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig idpPropertiesResidentAuthenticatorConfig = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -866,6 +972,20 @@ public class IdentityProviderManager implements IdpManager {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) <= 0) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                            SAML_METADATA_VALIDITY_PERIOD + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_SIGNING_ENABLED)) {
+                if (StringUtils.isBlank(idpProp.getValue())) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                            SAML_METADATA_SIGNING_ENABLED + " of ResidentIdP should be a boolean value ");
+                }
+
             }
         }
         // invoking the pre listeners
@@ -973,6 +1093,38 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
+    @Override
+    public IdentityProvider getIdPById(String id, String tenantDomain,
+                                       boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+
+        if (StringUtils.isEmpty(id)) {
+            String msg = "Invalid argument: Identity Provider ID value is empty";
+            throw new IdentityProviderManagementException(msg);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Integer intId;
+        IdentityProvider identityProvider = null;
+
+        try {
+            intId = Integer.parseInt(id);
+            identityProvider = dao.getIdPById(null, intId, tenantId, tenantDomain);
+        } catch (NumberFormatException e) {
+            // Ignore this.
+        }
+        if (!ignoreFileBasedIdps) {
+
+            if (identityProvider == null) {
+                identityProvider = new FileBasedIdPMgtDAO().getIdPByName(id, tenantDomain);
+            }
+
+            if (identityProvider == null) {
+                identityProvider = IdPManagementServiceComponent.getFileBasedIdPs().get(
+                        IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
+            }
+        }
+
+        return identityProvider;
+    }
     /**
      * @param idPName
      * @param tenantDomain
@@ -1004,6 +1156,12 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByName(String idPName, String tenantDomain)
             throws IdentityProviderManagementException {
         return getIdPByName(idPName, tenantDomain, false);
+    }
+
+    @Override
+    public IdentityProvider getIdPById(String id, String tenantDomain) throws IdentityProviderManagementException {
+
+        return getIdPById(id, tenantDomain, false);
     }
 
     /**
@@ -1062,7 +1220,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (identityProvider == null && !ignoreFileBasedIdps) {
             identityProvider = new FileBasedIdPMgtDAO()
-                    .getIdPByAuthenticatorPropertyValue(property, value, tenantDomain);
+                    .getIdPByAuthenticatorPropertyValue(property, value, tenantDomain, authenticator);
         }
 
         return identityProvider;
@@ -1813,7 +1971,7 @@ public class IdentityProviderManager implements IdpManager {
                                 if (dao.isIdPAvailableForAuthenticatorProperty(authConfig.getName(),
                                         IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID,
                                         property.getValue(), tenantId)) {
-                                    String msg = "An Identity Provider Entity Id has already been registered with the " +
+                                    String msg = "An Identity Provider Entity ID has already been registered with the " +
                                             "name '" + property.getValue() + "' for tenant '" + tenantDomain + "'";
                                     throw new IdentityProviderManagementException(msg);
                                 }
@@ -1867,7 +2025,7 @@ public class IdentityProviderManager implements IdpManager {
                                     if (dao.isIdPAvailableForAuthenticatorProperty(fedAuthnConfig.getName(),
                                             IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID,
                                             property.getValue(), tenantId)) {
-                                        String msg = "An Identity Provider Entity Id has already been registered " +
+                                        String msg = "An Identity Provider Entity ID has already been registered " +
                                                 "with the name '" +
                                                 property.getValue() + "' for tenant '" + tenantDomain + "'";
                                         throw new IdentityProviderManagementException(msg);
@@ -1939,12 +2097,14 @@ public class IdentityProviderManager implements IdpManager {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
 
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
+                IdPManagementUtil.getTenantParameter();
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);;
+        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
+                IdPManagementUtil.getTenantParameter();
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL, samlLogoutUrl);

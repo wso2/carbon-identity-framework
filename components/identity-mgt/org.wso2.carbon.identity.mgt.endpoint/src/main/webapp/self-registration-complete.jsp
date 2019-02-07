@@ -21,6 +21,8 @@
 <%@ page import="java.net.URLDecoder" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<jsp:directive.include file="localize.jsp"/>
 <%
     boolean isEmailNotificationEnabled = false;
 
@@ -36,6 +38,7 @@
 %>
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
@@ -47,18 +50,22 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Information")%>
+                    </h4>
                 </div>
                 <div class="modal-body">
                     <% if (StringUtils.isNotBlank(confirm) && confirm.equals("true")) {%>
-                    <p>Successfully confirmed</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Successfully.confirmed")%></p>
                     <%
                     } else {
                         if (isEmailNotificationEnabled) {
                     %>
-                    <p>Confirmation link has been sent to your email</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Confirmation.sent.to.mail")%></p>
                     <% } else {%>
-                    <p>User registration completed successfully</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "User.registration.completed.successfully")%>
+                    </p>
                     <%
                             }
                         }
@@ -66,7 +73,9 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>
@@ -79,7 +88,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
+            location.href = "<%=Encode.forUri(callback)%>";
         })
     });
 </script>

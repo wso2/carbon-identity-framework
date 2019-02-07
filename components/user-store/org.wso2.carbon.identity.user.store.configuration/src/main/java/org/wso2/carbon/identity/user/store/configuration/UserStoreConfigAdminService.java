@@ -60,6 +60,19 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -73,16 +86,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
@@ -141,27 +144,16 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                     updatePasswordContainer(randomPasswords, uuid);
                 }
 
-                String originalPassword = null;
-                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword)) {
-                    originalPassword = userStoreProperties.get(UserStoreConfigConstants.connectionPassword);
-                    userStoreProperties.put(UserStoreConfigConstants.connectionPassword, randomPhrase);
+                // Replace the property with random password.
+                for (RandomPassword randomPassword : randomPasswords) {
+                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getRandomPhrase());
                 }
-                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD)) {
-                    originalPassword = userStoreProperties.get(JDBCRealmConstants.PASSWORD);
-                    userStoreProperties.put(JDBCRealmConstants.PASSWORD, randomPhrase);
-                }
+
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
-                //Now revert back to original password
-                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(UserStoreConfigConstants.connectionPassword, originalPassword);
-                    }
-                }
-                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(JDBCRealmConstants.PASSWORD, originalPassword);
-                    }
+                // Now revert back to original password.
+                for (RandomPassword randomPassword : randomPasswords) {
+                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
                 }
 
                 domains.add(userStoreDTO);
@@ -260,9 +252,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException(errorMessage);
         }
 
-        File userStoreConfigFile = createConfigurationFile(domainName);
+        Path userStoreConfigFile = createConfigurationFile(domainName);
         // This is a redundant check
-        if (userStoreConfigFile.exists()) {
+        if (Files.exists(userStoreConfigFile)) {
             String errorMessage = "Cannot add user store " + domainName + ". User store already exists.";
             log.error(errorMessage);
             throw new IdentityUserStoreMgtException(errorMessage);
@@ -271,7 +263,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         try {
             writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, false);
             if (log.isDebugEnabled()) {
-                log.debug("New user store successfully written to the file" + userStoreConfigFile.getAbsolutePath());
+                log.debug("New user store successfully written to the file" + userStoreConfigFile.toAbsolutePath());
             }
         } catch (IdentityUserStoreMgtException e) {
             String errorMessage = e.getMessage();
@@ -304,8 +296,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         if (isValidDomain) {
 
-            File userStoreConfigFile = createConfigurationFile(domainName);
-            if (!userStoreConfigFile.exists()) {
+            Path userStoreConfigFile = createConfigurationFile(domainName);
+            if (!Files.exists(userStoreConfigFile)) {
                 String msg = "Cannot edit user store " + domainName + ". User store cannot be edited.";
                 log.error(msg);
                 throw new IdentityUserStoreMgtException(msg);
@@ -314,7 +306,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             try {
                 writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, true);
                 if (log.isDebugEnabled()) {
-                    log.debug("Edited user store successfully written to the file" + userStoreConfigFile.getAbsolutePath());
+                    log.debug("Edited user store successfully written to the file" + userStoreConfigFile.toAbsolutePath());
                 }
             } catch (IdentityUserStoreMgtException e) {
                 String errorMessage = e.getMessage();
@@ -352,8 +344,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException(errorMessage);
         }
 
-        File userStoreConfigFile = null;
-        File previousUserStoreConfigFile = null;
+        Path userStoreConfigFile = null;
+        Path previousUserStoreConfigFile = null;
 
         String fileName = domainName.replace(".", "_");
         String previousFileName = previousDomainName.replace(".", "_");
@@ -373,40 +365,40 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            File userStore = new File(deploymentDirectory);
-            if (!userStore.exists()) {
-                if (new File(deploymentDirectory).mkdir()) {
-                    //folder 'userstores' created
+            Path userStore = Paths.get(deploymentDirectory);
+            if (!Files.exists(userStore)) {
+                try {
+                    Files.createDirectory(userStore);
                     log.info("folder 'userstores' created for  super tenant " + fileName);
-                } else {
+                } catch (IOException e) {
                     log.error("Error at creating 'userstores' directory to store configurations for super tenant");
                 }
             }
-            userStoreConfigFile = new File(deploymentDirectory + File.separator + fileName + ".xml");
-            previousUserStoreConfigFile = new File(deploymentDirectory + File.separator + previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + ".xml");
+            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + ".xml");
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
-            tenantFilePath = tenantFilePath + File.separator + tenantId + File.separator + USERSTORES;
-            File userStore = new File(tenantFilePath);
-            if (!userStore.exists()) {
-                if (new File(tenantFilePath).mkdir()) {
+            Path userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
+            if (!Files.exists(userStore)) {
+                try {
+                    Files.createDirectory(userStore);
                     //folder 'userstores' created
                     log.info("folder 'userstores' created for tenant " + tenantId);
-                } else {
+                } catch (IOException e) {
                     log.error("Error at creating 'userstores' directory to store configurations for tenant:" + tenantId);
                 }
             }
-            userStoreConfigFile = new File(tenantFilePath + File.separator + fileName + ".xml");
-            previousUserStoreConfigFile = new File(tenantFilePath + File.separator + previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), fileName + ".xml");
+            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), previousFileName + ".xml");
         }
 
-        if (!previousUserStoreConfigFile.exists()) {
+        if (!Files.exists(previousUserStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. Previous domain name " + previousDomainName +
                     " does not exists.";
             throw new IdentityUserStoreMgtException(errorMessage);
         }
 
-        if (userStoreConfigFile.exists()) {
+        if (Files.exists(userStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. An user store already exists with new domain " +
                     domainName + ".";
             throw new IdentityUserStoreMgtException(errorMessage);
@@ -437,12 +429,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
 
         try {
-            previousUserStoreConfigFile.delete();
+            Files.delete(previousUserStoreConfigFile);
             writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, true);
         } catch (IdentityUserStoreMgtException e) {
             String errorMessage = e.getMessage();
             log.error(errorMessage, e);
             throw new IdentityUserStoreMgtException(errorMessage);
+        } catch (IOException e) {
+            log.info("Error when deleting previous configuration files " + previousUserStoreConfigFile);
         }
     }
 
@@ -475,14 +469,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String path;
+        Path path;
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            path = deploymentDirectory;
+            path = Paths.get(deploymentDirectory);
         } else {
-            path = CarbonUtils.getCarbonTenantsDirPath() + File.separator + tenantId + File.separator + USERSTORES;
+            path = Paths.get(CarbonUtils.getCarbonTenantsDirPath(), String.valueOf(tenantId), USERSTORES);
 
         }
-        File file = new File(path);
+        File file = path.toFile();
         for (String domainName : domains) {
             if (isDebugEnabled) {
                 log.debug("Deleting, .... " + domainName + " domain.");
@@ -558,6 +552,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         RandomPasswordContainer randomPasswordContainer = null;
         if (editSecondaryUserStore) {
             String uniqueID = getUniqueIDFromUserDTO(propertyDTOs);
+            if (uniqueID == null) {
+                throw new IdentityUserStoreMgtException("UniqueID property is not provided.");
+            }
             randomPasswordContainer = getAndRemoveRandomPasswordContainer(uniqueID);
             if (randomPasswordContainer == null) {
                 String errorMsg = "randomPasswordContainer is null for uniqueID therefore " +
@@ -673,9 +670,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException("Error while updating user store state.");
         }
 
-        File userStoreConfigFile = createConfigurationFile(domain);
-        StreamResult result = new StreamResult(userStoreConfigFile);
-        if (!userStoreConfigFile.exists()) {
+        Path userStoreConfigFile = createConfigurationFile(domain);
+        if (!Files.exists(userStoreConfigFile)) {
             String errorMessage = "Cannot edit user store." + domain + " does not exist.";
             throw new IdentityUserStoreMgtException(errorMessage);
         }
@@ -684,7 +680,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         DocumentBuilder documentBuilder = null;
         try {
             documentBuilder = documentFactory.newDocumentBuilder();
-            Document doc = documentBuilder.parse(userStoreConfigFile);
+            Document doc = documentBuilder.parse(Files.newInputStream(userStoreConfigFile));
 
             NodeList elements = doc.getElementsByTagName("Property");
             for (int i = 0; i < elements.getLength(); i++) {
@@ -703,6 +699,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "6");
+            StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
             transformer.transform(source, result);
 
             if (log.isDebugEnabled()) {
@@ -778,7 +775,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
     }
 
-    private File createConfigurationFile(String domainName) throws IdentityUserStoreMgtException {
+    private Path createConfigurationFile(String domainName) throws IdentityUserStoreMgtException {
         String fileName = domainName.replace(".", "_");
 
         if (!IdentityUtil.isValidFileName(fileName)) {
@@ -787,44 +784,45 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException(message);
         }
 
-        File userStoreConfigFile;
+        Path userStoreConfigFile;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            File userStore = new File(deploymentDirectory);
-            if (!userStore.exists()) {
-                if (new File(deploymentDirectory).mkdir()) {
-                    //folder 'userstores' created
+            Path userStore = Paths.get(deploymentDirectory);
+            if (!Files.exists(userStore)) {
+                try {
+                    Files.createDirectory(userStore);
                     log.info("folder 'userstores' created to store configurations for super tenant");
-                } else {
+                } catch (IOException e) {
                     log.error("Error at creating 'userstores' directory to store configurations for super tenant");
                 }
             }
-            userStoreConfigFile = new File(deploymentDirectory + File.separator + fileName + ".xml");
+            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + ".xml");
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
-            tenantFilePath = tenantFilePath + File.separator + tenantId + File.separator + USERSTORES;
-            File userStore = new File(tenantFilePath);
-            if (!userStore.exists()) {
-                if (new File(tenantFilePath).mkdir()) {
+            Path userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
+            if (!Files.exists(userStore)) {
+                try {
+                    Files.createDirectory(userStore);
                     //folder 'userstores' created
                     log.info("folder 'userstores' created to store configurations for tenant = " + tenantId);
-                } else {
+                } catch (IOException e) {
                     log.error("Error at creating 'userstores' directory to store configurations for tenant:" + tenantId);
                 }
             }
-            userStoreConfigFile = new File(tenantFilePath + File.separator + fileName + ".xml");
+            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES, fileName + ".xml");
         }
         return userStoreConfigFile;
     }
 
 
-    private void writeUserMgtXMLFile(File userStoreConfigFile, UserStoreDTO userStoreDTO,
+    private void writeUserMgtXMLFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
                                      boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
-        StreamResult result = new StreamResult(userStoreConfigFile);
         DocumentBuilderFactory docFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
         try {
+            StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
+
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
             Document doc = docBuilder.newDocument();
 
@@ -855,6 +853,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (TransformerException e) {
             String errMsg = " Error occurred during the transformation process of " + userStoreConfigFile;
+            throw new IdentityUserStoreMgtException(errMsg, e);
+        } catch (IOException e) {
+            String errMsg = " Error occurred during the creating output stream from " + userStoreConfigFile;
             throw new IdentityUserStoreMgtException(errMsg, e);
         }
     }

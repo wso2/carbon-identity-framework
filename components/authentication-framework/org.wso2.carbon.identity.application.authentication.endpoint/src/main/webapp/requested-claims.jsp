@@ -20,6 +20,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
+<%@include file="init-url.jsp" %>
 
 <%
     String[] missingClaimList = null;
@@ -39,6 +40,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -62,7 +64,7 @@
     <div class="container-fluid">
         <div class="pull-left brand float-remove-xs text-center-xs">
             <a href="#">
-                <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+                <img src="images/logo-inverse.svg" alt="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" class="logo">
                 <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
                 </em></h1>
             </a>
@@ -74,7 +76,7 @@
     <div class="row">
         <!-- content -->
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-            <form action="../commonauth" method="post" id="claimForm">
+            <form action="<%=commonauthURL%>" method="post" id="claimForm">
                 <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "provide.mandatory.details")%>
                 </h2>
@@ -83,16 +85,17 @@
                 <div class="boarder-all ">
 
                     <div class="padding-double font-large">
-                        <%=appName%> <%=AuthenticationEndpointUtil.i18n(resourceBundle, "requested.claims.recommendation")%>
+                        <%=Encode.forHtmlContent(appName)%> <%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                            "requested.claims.recommendation")%>
                     </div>
 
                     <!-- validation -->
                     <div class="padding-double">
                         <% for (String claim : missingClaimList) { %>
                         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
-                            <label class="control-label"><%=claim%>
+                            <label class="control-label"><%=Encode.forHtmlContent(claim)%>
                             </label>
-                            <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>"
+                            <input type="text" name="claim_mand_<%=Encode.forHtmlAttribute(claim)%>" id="claim_mand_<%=Encode.forHtmlAttribute(claim)%>"
                                    class="form-control" required="required">
                         </div>
                         <%}%>
@@ -123,7 +126,7 @@
     <div class="container-fluid">
         <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
             <script>document.write(new Date().getFullYear());</script>
-            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
+            <a href="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i>
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
             </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
         </p>

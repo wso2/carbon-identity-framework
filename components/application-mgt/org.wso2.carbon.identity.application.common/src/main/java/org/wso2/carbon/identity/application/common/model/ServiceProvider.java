@@ -26,25 +26,65 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "ServiceProvider")
 public class ServiceProvider implements Serializable {
 
     private static final long serialVersionUID = 4754526832588478582L;
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
+    private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
+    @XmlTransient
     private int applicationID = 0;
+
+    @XmlElement(name = "ApplicationName")
     private String applicationName;
+
+    @XmlElement(name = "Description")
     private String description;
+
+    @XmlElement(name = "Certificate")
+    private String certificateContent;
+
+    @XmlTransient
     private User owner;
+
+    @XmlElement(name = "InboundAuthenticationConfig")
     private InboundAuthenticationConfig inboundAuthenticationConfig;
+
+    @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
+
+    @XmlElementWrapper(name="RequestPathAuthenticatorConfigs")
+    @XmlElement(name = "RequestPathAuthenticatorConfig")
     private RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs;
+
+    @XmlElement(name = "InboundProvisioningConfig")
     private InboundProvisioningConfig inboundProvisioningConfig;
+
+    @XmlElement(name = "OutboundProvisioningConfig")
     private OutboundProvisioningConfig outboundProvisioningConfig;
+
+    @XmlElement(name = "ClaimConfig")
     private ClaimConfig claimConfig;
+
+    @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
+
+    @XmlElement(name = "IsSaaSApp")
     private boolean saasApp;
-    private ServiceProviderProperty []spProperties = new ServiceProviderProperty[0];
+
+    @XmlTransient
+    private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
+
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -83,6 +123,8 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
+            } else if( "Certificate".equals(elementName)){
+                serviceProvider.setCertificateContent(element.getText());
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -148,7 +190,6 @@ public class ServiceProvider implements Serializable {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
             }
-
         }
 
         return serviceProvider;
@@ -320,4 +361,25 @@ public class ServiceProvider implements Serializable {
     public void setSpProperties(ServiceProviderProperty[] spProperties) {
         this.spProperties = spProperties;
     }
+
+    /**
+     *
+     * Returns the certificate content
+     *
+     * @return the certificate in PEM format.
+     */
+    public String getCertificateContent() {
+        return certificateContent;
+    }
+
+    /**
+     *
+     * Sets the given certificate.
+     *
+     * @param certificateContent the certificate in PEM format
+     */
+    public void setCertificateContent(String certificateContent) {
+        this.certificateContent = certificateContent;
+    }
 }
+

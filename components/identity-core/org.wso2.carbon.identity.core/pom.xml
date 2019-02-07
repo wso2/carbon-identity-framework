@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>5.10.133-SNAPSHOT</version>
+        <version>5.12.260-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,10 +33,6 @@
     <description>A custom wso2 products or solution</description>
     <url>http://www.wso2.com</url>
     <dependencies>
-        <dependency>
-            <groupId>xerces.wso2</groupId>
-            <artifactId>xercesImpl</artifactId>
-        </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
@@ -95,14 +91,17 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -164,6 +163,7 @@
 
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base;version="${carbon.base.imp.pkg.version.range}",
+                            org.wso2.carbon.base.api;version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*;version="${carbon.commons.imp.pkg.version}",

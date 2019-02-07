@@ -431,7 +431,8 @@
             <%
                 if (description != null && description.trim().length() > 0) {
             %>
-            <td><textarea name="description" id="description" class="text-box-big"><%=description%>
+            <td><textarea name="description" id="description" class="text-box-big">
+                <%=Encode.forHtmlContent(description)%>
             </textarea>
             </td>
             <%
@@ -553,7 +554,7 @@
                             %>
                             <input type="text" name=<%=value%>
                             id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                 }
                             %>
@@ -566,7 +567,7 @@
                             %>
                         </td>
                         <td class="sectionHelp" width="50%" style="text-align:left; !important">
-                            <%=description%>
+                            <%=Encode.forHtmlContent(description)%>
                         </td>
 
                     </tr>
@@ -699,7 +700,7 @@
                             %>
                             <input type="text" name=<%=value%>
                             id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                     }
                                 } else {
@@ -726,7 +727,7 @@
                                         <input type="hidden" name=<%=value%>
                                         id=<%=value%>
                                         style="width:95%"
-                                               value="<%=propertyValue%>"/>
+                                               value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
 
                                     </td>
                                     <td class="sectionHelp" width="50%" style="display:none;">
@@ -835,7 +836,7 @@
                             %>
                             <input type="text" name=<%=value%>
                              id=<%=value%> style="width:95%"
-                                   value="<%=propertyValue%>"/>
+                                   value="<%=Encode.forHtmlAttribute(propertyValue)%>"/>
                             <%
                                     }
                                 } else {
@@ -899,7 +900,7 @@
                     '&connectionPassword=' + encodeURIComponent(connectionPassword);
 
             <%if(messageID != null && !"".equals(messageID)) {%>
-            url += '&messageID=<%=messageID%>';
+            url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
             <%}%>
 
             $.ajax({

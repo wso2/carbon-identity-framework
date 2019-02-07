@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.core.persistence;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -46,6 +47,9 @@ public class JDBCPersistenceManager {
     private static Log log = LogFactory.getLog(JDBCPersistenceManager.class);
     private static volatile JDBCPersistenceManager instance;
     private DataSource dataSource;
+    // This property refers to Active transaction state of postgresql db
+    private static final String PG_ACTIVE_SQL_TRANSACTION_STATE = "25001";
+    private static final String POSTGRESQL_DATABASE = "PostgreSQL";
 
     private JDBCPersistenceManager() {
         initDataSource();
@@ -119,15 +123,36 @@ public class JDBCPersistenceManager {
      * @throws IdentityException Exception occurred when getting the data source.
      */
     public Connection getDBConnection() throws IdentityRuntimeException {
+
         try {
             Connection dbConnection = dataSource.getConnection();
             dbConnection.setAutoCommit(false);
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            return dbConnection;
+            try {
+                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            } catch (SQLException e) {
+                // Handling startup error for postgresql
+                // Active SQL Transaction means that connection is not committed.
+                // Need to commit before setting isolation property.
+                if (dbConnection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE) &&
+                        PG_ACTIVE_SQL_TRANSACTION_STATE.equals(e.getSQLState())) {
+                    dbConnection.commit();
+                    dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                }
+            }
+        return dbConnection;
         } catch (SQLException e) {
             String errMsg = "Error when getting a database connection object from the Identity data source.";
             throw IdentityRuntimeException.error(errMsg, e);
         }
+    }
+
+    /**
+     * Returns Identity data source.
+     *
+     * @return data source
+     */
+    public DataSource getDataSource(){
+        return dataSource;
     }
 
 }

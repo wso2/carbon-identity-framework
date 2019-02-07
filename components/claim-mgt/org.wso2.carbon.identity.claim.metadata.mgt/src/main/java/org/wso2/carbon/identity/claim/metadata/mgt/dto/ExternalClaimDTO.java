@@ -23,6 +23,7 @@ public class ExternalClaimDTO {
     private String externalClaimDialectURI;
     private String externalClaimURI;
     private String mappedLocalClaimURI;
+    private ClaimPropertyDTO[] claimProperties;
 
     public String getExternalClaimDialectURI() {
         return externalClaimDialectURI;
@@ -46,5 +47,13 @@ public class ExternalClaimDTO {
 
     public void setMappedLocalClaimURI(String mappedLocalClaimURI) {
         this.mappedLocalClaimURI = mappedLocalClaimURI;
+    }
+
+    public ClaimPropertyDTO[] getClaimProperties() {
+        return claimProperties;
+    }
+
+    public void setClaimProperties(ClaimPropertyDTO[] claimProperties) {
+        this.claimProperties = claimProperties;
     }
 }

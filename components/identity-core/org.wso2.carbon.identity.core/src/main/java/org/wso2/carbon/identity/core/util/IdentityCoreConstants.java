@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import java.util.Arrays;
+
 public class IdentityCoreConstants {
 
     public static final String IDENTITY_CONFIG = "identity.xml";
@@ -33,6 +35,7 @@ public class IdentityCoreConstants {
     public static final int EVENT_LISTENER_ORDER_ID = -1;
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
+    public static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
     public static final String USER_NOT_FOUND = "UserNotFound";
     public static final String EXISTING_USER = "UserAlreadyExisting";
     public final static String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
@@ -56,6 +59,20 @@ public class IdentityCoreConstants {
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
+
+
+    public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
+
+    public static final char ENCODED_ZERO = ALPHABET[0];
+
+    public static final int[] INDEXES = new int[128];
+
+    static {
+        Arrays.fill(INDEXES, -1);
+        for (int i = 0; i < ALPHABET.length; i++) {
+            INDEXES[ALPHABET[i]] = i;
+        }
+    }
 
     private IdentityCoreConstants(){
     }

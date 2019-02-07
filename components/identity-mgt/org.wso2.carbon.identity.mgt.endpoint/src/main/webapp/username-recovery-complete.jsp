@@ -18,6 +18,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="java.net.URLDecoder" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
     String callback = (String) request.getAttribute("callback");
@@ -25,6 +28,7 @@
 
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
@@ -36,13 +40,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Information")%></h4>
                 </div>
                 <div class="modal-body">
-                    <p>Username recovery information has been sent to your email.</p>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Username.recovery.information.sent.to.your.email")%></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>
@@ -55,7 +63,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
+            location.href = "<%=Encode.forUri(callback)%>";
         })
     });
 </script>

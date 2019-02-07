@@ -212,6 +212,37 @@ public interface ApplicationMgtListener {
                                                       String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
+     * Define any additional actions before getting all applications' basic information for matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Boolean based on pre processing
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter.
+     *
+     * @param appDAO Application Data Access Object
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Boolean based on post processing
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                 String filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
      *  Define any additional actions before getting service provider name by client id.
      *
      * @param clientId
@@ -258,5 +289,73 @@ public interface ApplicationMgtListener {
      * @param tenantDomain
      * @return
      */
-    boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain);
+    default boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions when importing service provider.
+     *
+     * @param serviceProvider service Provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    default void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    /**
+     * Define any additional actions when exporting service provider.
+     *
+     * @param serviceProvider service Provider
+     * @param exportSecrets   is export secrets
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    default void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
+
+    /**
+     * Define any addition actions before creating inbound keys.
+     *
+     * @param serviceProvider service Provider
+     * @param isUpdate        isUpdate
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    default void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
+
+    /**
+     * Define any additional actions before creating an application template.
+     *
+     * @param serviceProvider SP template
+     * @param tenantDomain tenant domain
+     * @return true when pre import application template
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreCreateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before updating an application template.
+     *
+     * @param serviceProvider SP template
+     * @param tenantDomain tenant domain
+     * @return true when pre update application template
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreUpdateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
 }

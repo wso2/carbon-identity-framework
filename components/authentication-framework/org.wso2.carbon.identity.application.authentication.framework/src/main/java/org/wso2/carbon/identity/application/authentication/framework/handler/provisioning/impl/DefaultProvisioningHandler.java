@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -42,6 +43,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.SecureRandom;
@@ -51,6 +53,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .InternalRoleDomains.WORKFLOW_DOMAIN;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
@@ -81,32 +88,38 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                                                                           realmService, tenantDomain);
-
-            String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
-
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
-            UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
-
-            // Remove userStoreManager domain from username if the userStoreDomain is not primary
-            if (realm.getUserStoreManager().getRealmConfiguration().isPrimary()) {
-                username = UserCoreUtil.removeDomainFromName(username);
+            String userStoreDomain;
+            UserStoreManager userStoreManager;
+            if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                    .equalsIgnoreCase(provisioningUserStoreId)) {
+                String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
+                try {
+                    userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
+                    userStoreDomain = userStoreDomainFromSubject;
+                } catch (FrameworkException e) {
+                    log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
+                            + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                    userStoreManager = getUserStoreManager(realm, userStoreDomain);
+                }
+            } else {
+                userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+                userStoreManager = getUserStoreManager(realm, userStoreDomain);
             }
-
-            String[] newRoles = new String[]{};
-
-            if (roles != null) {
-                roles = removeDomainFromNamesExcludeInternal(roles, userStoreManager.getTenantId());
-                newRoles = roles.toArray(new String[roles.size()]);
-            }
+            username = UserCoreUtil.removeDomainFromName(username);
 
             if (log.isDebugEnabled()) {
-                log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles)
-                          + " going to be provisioned");
+                log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
             }
 
-            // addingRoles = newRoles AND allExistingRoles
-            Collection<String> addingRoles = getRolesToAdd(userStoreManager, newRoles);
+            // If internal roles exists convert internal role domain names to pre defined camel case domain names.
+            List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
+
+            // addingRoles = rolesToAdd AND allExistingRoles
+            Collection<String> addingRoles = getRolesAvailableToAdd(userStoreManager, rolesToAdd);
 
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
@@ -124,8 +137,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                     Collection<String> deletingRoles = new ArrayList<String>();
                     deletingRoles.addAll(currentRolesList);
-                    // deletingRoles = currentRolesList - newRoles
-                    deletingRoles.removeAll(Arrays.asList(newRoles));
+                    // deletingRoles = currentRolesList - rolesToAdd
+                    deletingRoles.removeAll(rolesToAdd);
 
                     // Exclude Internal/everyonerole from deleting role since its cannot be deleted
                     deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
@@ -134,17 +147,30 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     // Check for case whether superadmin login
                     handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
 
-                    updateUserWithNewRoleSet(username, userStoreManager, newRoles, addingRoles, deletingRoles);
+                    updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, addingRoles, deletingRoles);
                 }
 
                 if (!userClaims.isEmpty()) {
-                    userStoreManager.setUserClaimValues(username, userClaims, null);
+                    userClaims.remove(FrameworkConstants.PASSWORD);
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
 
-            } else {
+                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
 
-                userStoreManager.addUser(username, generatePassword(), addingRoles.toArray(
-                        new String[addingRoles.size()]), userClaims, null);
+                if (StringUtils.isEmpty(userProfileAdmin.getNameAssociatedWith(idp, subjectVal))) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                }
+            } else {
+                String password = generatePassword();
+                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
+                if (StringUtils.isNotEmpty(passwordFromUser)) {
+                    password = passwordFromUser;
+                }
+                userClaims.remove(FrameworkConstants.PASSWORD);
+                userStoreManager
+                        .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
+                                null);
 
                 // Associate User
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
@@ -158,7 +184,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException | UserProfileException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
@@ -204,7 +230,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return e.getMessage() != null && e.getMessage().contains(ALREADY_ASSOCIATED_MESSAGE);
     }
 
-    private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, String[] newRoles,
+    private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, List<String> rolesToAdd,
                                           Collection<String> addingRoles, Collection<String> deletingRoles)
             throws UserStoreException {
         if (log.isDebugEnabled()) {
@@ -219,7 +245,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         if (log.isDebugEnabled()) {
             log.debug("Federated user: " + username
                       + " is updated by authentication framework with roles : "
-                      + Arrays.toString(newRoles));
+                      + rolesToAdd);
         }
     }
 
@@ -261,26 +287,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return userClaims;
     }
 
-    private Collection<String> getRolesToAdd(UserStoreManager userStoreManager, String[] newRoles)
+    private Collection<String> getRolesAvailableToAdd(UserStoreManager userStoreManager, List<String> roles)
             throws UserStoreException {
 
-        List<String> rolesToAdd = Arrays.asList(newRoles);
-        List<String> updatedRolesToAdd = new ArrayList<>();
+        List<String> rolesAvailableToAdd = new ArrayList<>();
+        rolesAvailableToAdd.addAll(roles);
 
-        // Make Internal domain name case insensitive
-        for (String role : rolesToAdd) {
-            if (StringUtils.containsIgnoreCase(role, UserCoreConstants.INTERNAL_DOMAIN +
-                    CarbonConstants.DOMAIN_SEPARATOR)) {
-                updatedRolesToAdd.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
-                        UserCoreUtil.removeDomainFromName(role));
-            } else {
-                updatedRolesToAdd.add(role);
-            }
+        String[] roleNames = userStoreManager.getRoleNames();
+        if(roleNames != null) {
+            rolesAvailableToAdd.retainAll(Arrays.asList(roleNames));
         }
-        List<String> allExistingRoles = removeDomainFromNamesExcludeInternal(
-                Arrays.asList(userStoreManager.getRoleNames()), userStoreManager.getTenantId());
-        updatedRolesToAdd.retainAll(allExistingRoles);
-        return updatedRolesToAdd;
+        return rolesAvailableToAdd;
     }
 
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)
@@ -344,5 +361,38 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return nameList;
+    }
+
+    /**
+     * Check for internal roles and convert internal role domain names to camel case to match with predefined
+     * internal role domains.
+     *
+     * @param roles roles to verify and update
+     * @return updated role list
+     */
+    private List<String> convertInternalRoleDomainsToCamelCase(List<String> roles) {
+
+        List<String> updatedRoles = new ArrayList<>();
+
+        if (roles != null) {
+            // If internal roles exist, convert internal role domain names to case sensitive predefined domain names.
+            for (String role : roles) {
+                if (StringUtils.containsIgnoreCase(role, UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants
+                        .DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
+                            UserCoreUtil.removeDomainFromName(role));
+                } else if (StringUtils.containsIgnoreCase(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
+                            .removeDomainFromName(role));
+                } else if (StringUtils.containsIgnoreCase(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                    updatedRoles.add(WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
+                            .removeDomainFromName(role));
+                } else {
+                    updatedRoles.add(role);
+                }
+            }
+        }
+
+        return updatedRoles;
     }
 }

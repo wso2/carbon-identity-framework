@@ -56,12 +56,38 @@ public class EntitlementEndpointConstants {
     public static final String CATEGORY_RESOURCE_URI = "urn:oasis:names:tc:xacml:3.0:attribute-category:resource";
     public static final String CATEGORY_ACTION_URI = "urn:oasis:names:tc:xacml:3.0:attribute-category:action";
     public static final String CATEGORY_ENVIRONMENT_URI = "urn:oasis:names:tc:xacml:3.0:attribute-category:environment";
-    public static final String CATEGORY_ACCESS_SUBJECT_URI = "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject";
-    public static final String CATEGORY_RECIPIENT_SUBJECT_URI = "urn:oasis:names:tc:xacml:1.0:subject-category:recipient-subject";
-    public static final String CATEGORY_INTERMEDIARY_SUBJECT_URI = "urn:oasis:names:tc:xacml:1.0:subject-category:intermediary-subject";
+    public static final String CATEGORY_ACCESS_SUBJECT_URI =
+            "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject";
+    public static final String CATEGORY_RECIPIENT_SUBJECT_URI =
+            "urn:oasis:names:tc:xacml:1.0:subject-category:recipient-subject";
+    public static final String CATEGORY_INTERMEDIARY_SUBJECT_URI =
+            "urn:oasis:names:tc:xacml:1.0:subject-category:intermediary-subject";
     public static final String CATEGORY_CODEBASE_URI = "urn:oasis:names:tc:xacml:1.0:subject-category:codebase";
-    public static final String CATEGORY_REQUESTING_MACHINE_URI = "urn:oasis:names:tc:xacml:1.0:subject-category:requesting-machine";
+    public static final String CATEGORY_REQUESTING_MACHINE_URI =
+            "urn:oasis:names:tc:xacml:1.0:subject-category:requesting-machine";
 
+    // Attribute id uri
+    public static final String ATTRIBUTE_RESOURCE_ID = "urn:oasis:names:tc:xacml:1.0:resource:resource-id";
+    public static final String ATTRIBUTE_ACTION_ID = "urn:oasis:names:tc:xacml:1.0:action:action-id";
+    public static final String ATTRIBUTE_ENVIRONMENT_ID = "urn:oasis:names:tc:xacml:1.0:environment:environment-id";
+    public static final String ATTRIBUTE_SUBJECT_ID = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
+    public static final String ATTRIBUTE_RECIPIENT_SUBJECT_ID =
+            "urn:oasis:names:tc:xacml:1.0:recipient-subject:recipient-subject-id";
+    public static final String ATTRIBUTE_INTERMEDIARY_SUBJECT_ID =
+            "urn:oasis:names:tc:xacml:1.0:intermediary-subject:intermediary-subject-id";
+    public static final String ATTRBUTE_REQUESTING_MACHINE_ID =
+            "urn:oasis:names:tc:xacml:1.0:requesting-machine:requesting-machine-id";
+    public static final String ATTRIBUTE_CODEBASE_ID = "urn:oasis:names:tc:xacml:1.0:codebase:codebase-id";
+
+    // Attribute id simple
+    public static final String ATTRIBUTE_RESOURCE_ID_SHORTEN = "resource-id";
+    public static final String ATTRIBUTE_ACTION_ID__SHORTEN = "action-id";
+    public static final String ATTRIBUTE_ENVIRONMENT_ID_SHORTEN = "environment-id";
+    public static final String ATTRIBUTE_SUBJECT_ID_SHORTEN = "subject-id";
+    public static final String ATTRIBUTE_RECIPIENT_SUBJECT_ID_SHORTEN = "recipient-subject-id";
+    public static final String ATTRIBUTE_INTERMEDIARY_SUBJECT_ID_SHORTEN = "intermediary-subject-id";
+    public static final String ATTRBUTE_REQUESTING_MACHINE_ID_SHORTEN = "requesting-machine-id";
+    public static final String ATTRIBUTE_CODEBASE_ID_SHORTEN = "codebase-id";
 
     public static final String CATEGORY_ID = "CategoryId";
     public static final String ID = "Id";
@@ -122,7 +148,8 @@ public class EntitlementEndpointConstants {
     public static final String ATTRIBUTE_DATA_TYPE_DNS_NAME = "urn:oasis:names:tc:xacml:2.0:data-type:dnsName";
     public static final String ATTRIBUTE_DATA_TYPE_DNS_NAME_SHORT = "dnsName";
 
-    public static final String ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION = "urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression";
+    public static final String ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION =
+            "urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression";
     public static final String ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION_SHORT = "xpathExpression";
 
 

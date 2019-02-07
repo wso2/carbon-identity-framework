@@ -16,38 +16,37 @@
 ~ under the License.
 -->
 
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-	prefix="carbon"%>
+           prefix="carbon" %>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
-<jsp:include page="../dialog/display_messages.jsp" />
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <fmt:bundle
-	basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
-	<carbon:breadcrumb label="application.mgt"
-		resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
-		topPage="true" request="<%=request%>" />
-
-	<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-	<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-	<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
-
-	<%
-		String spName = request.getParameter("spName");
-			if (spName != null && !"".equals(spName)) {
-                ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, spName);
-				if ("wso2carbon-local-sp".equals(spName)) {
-					appBean.updateLocalSp(request);
-				} else {
-					appBean.update(request);
-				}
-			}
-	%>
+    basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
+    <carbon:breadcrumb label="application.mgt"
+                       resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
+                       topPage="true" request="<%=request%>"/>
+    
+    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    
+    <%
+        String spName = request.getParameter("spName");
+        if (spName != null && !"".equals(spName)) {
+            ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, spName);
+            if ("wso2carbon-local-sp".equals(spName)) {
+                appBean.updateLocalSp(request);
+            } else {
+                appBean.update(request);
+            }
+        }
+    %>
 
 </fmt:bundle>

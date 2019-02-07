@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseExcep
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -105,113 +104,104 @@ public class JSONRequestParser {
                         requestDefaults = new RequestDefaults(xPathVersion);
                         break;
                 }
-            } else if (jsonAttribute.getValue().isJsonObject()) {
-                URI category = null;
-                Node content = null;
-                Set<Attribute> attributes = null;
-                String id = null;
+            } else if (!jsonAttribute.getValue().isJsonNull()) {
+                JsonObject jsonCategory = null;
+                if (jsonAttribute.getValue().isJsonObject()) {
+                    jsonCategory = jsonAttribute.getValue().getAsJsonObject();
+                    jsonAttributeSeperator(jsonAttribute, jsonCategory, categories);
 
-                JsonObject jsonCategory = jsonAttribute.getValue().getAsJsonObject();
+                } else if (jsonAttribute.getValue().isJsonArray()) {
+                    for (JsonElement jsonElement : jsonAttribute.getValue().getAsJsonArray()) {
+                        jsonCategory = jsonElement.getAsJsonObject();
+                        jsonAttributeSeperator(jsonAttribute, jsonCategory, categories);
+                    }
+                } else if (EntitlementEndpointConstants.MULTI_REQUESTS.equals(jsonAttribute.getKey())) {
+                    Set<Map.Entry<String, JsonElement>> jsonRequestReferences = jsonCategory.entrySet();
+                    Set<RequestReference> requestReferences = new HashSet<>();
 
-                switch (jsonAttribute.getKey()) {
-
-                    //For a custom Category
-                    //Or a Category with long identifier
-                    case EntitlementEndpointConstants.CATEGORY_DEFAULT:
-                        if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
-                            category = stringCateogryToURI(jsonCategory
-                                    .get(EntitlementEndpointConstants.CATEGORY_ID)
-                                    .getAsString());
-                        }
-                    case EntitlementEndpointConstants.CATEGORY_RESOURCE:
-                    case EntitlementEndpointConstants.CATEGORY_ACTION:
-                    case EntitlementEndpointConstants.CATEGORY_ENVIRONMENT:
-                    case EntitlementEndpointConstants.CATEGORY_ACCESS_SUBJECT:
-                    case EntitlementEndpointConstants.CATEGORY_RECIPIENT_SUBJECT:
-                    case EntitlementEndpointConstants.CATEGORY_INTERMEDIARY_SUBJECT:
-                    case EntitlementEndpointConstants.CATEGORY_CODEBASE:
-                    case EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE:
-
-                        if (category == null) {
-                            category = stringCateogryToURI(jsonAttribute.getKey());
-                        }
-                        if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
-                            id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
-                        }
-                        if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
-                            ByteArrayInputStream inputStream;
-                            DocumentBuilderFactory dbf;
-                            Document doc = null;
-
-                            String xmlContent = stringContentToXMLContent(jsonCategory
-                                    .get(EntitlementEndpointConstants.CONTENT)
-                                    .getAsString());
-                            inputStream = new ByteArrayInputStream(xmlContent.getBytes());
-                            dbf = IdentityUtil.getSecuredDocumentBuilderFactory();
-                            dbf.setNamespaceAware(true);
-
-                            try {
-                                doc = dbf.newDocumentBuilder().parse(inputStream);
-                            } catch (Exception e) {
-                                throw new JsonParseException("DOM of request element can not be created from String");
-                            } finally {
-                                try {
-                                    inputStream.close();
-                                } catch (IOException e) {
-                                    throw new JsonParseException("DOM of request element can not be created from String");
-                                }
-                            }
-                            if (doc != null) {
-                                content = doc;
-                            }
-                        }
-
-                        //add all category attributes
-                        if (jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)) {
-                            if (jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()) {
-                                attributes = new HashSet<>();
-                                for (JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
-                                        .getAsJsonArray()) {
-                                    attributes.add(jsonObjectToAttribute(jsonElement.getAsJsonObject()));
-
-                                }
-                            }
-                        }
-                        break;
-
-                    case EntitlementEndpointConstants.MULTI_REQUESTS:
-                        Set<Map.Entry<String, JsonElement>> jsonRequestReferences = jsonCategory.entrySet();
-                        Set<RequestReference> requestReferences = new HashSet<>();
-
-                        if (jsonRequestReferences.isEmpty()) {
-                            throw new RequestParseException("MultiRequest should contain at least one " +
-                                    "Reference Request");
-                        }
-                        for (Map.Entry<String, JsonElement> jsonRequstReference : jsonRequestReferences) {
-                            requestReferences.add(jsonObjectToRequestReference(jsonRequstReference.getValue()
-                                    .getAsJsonObject()));
-                        }
-
-                        //multiRequests = new MultiRequests(requestReferences);
-                        /*
-                        Todo: Ask for public constructor
-                         */
-
-                        break;
-
+                    if (jsonRequestReferences.isEmpty()) {
+                        throw new RequestParseException("MultiRequest should contain at least one Reference Request");
+                    }
+                    for (Map.Entry<String, JsonElement> jsonRequstReference : jsonRequestReferences) {
+                        requestReferences.add(jsonObjectToRequestReference(jsonRequstReference.getValue()
+                                .getAsJsonObject()));
+                    }
+                    multiRequests = new MultiRequests(requestReferences);
                 }
-                //Build the Attributes object using above values
-                Attributes attributesObj = new Attributes(category, content, attributes, id);
-                categories.add(attributesObj);
             }
-
 
         }
 
+        return new RequestCtx(null,
+                categories, returnPolicyIdList, combinedDecision, multiRequests, requestDefaults);
 
-        RequestCtx requestCtx = new RequestCtx(null, categories, returnPolicyIdList, combinedDecision,
-                multiRequests, requestDefaults);
-        return requestCtx;
+    }
+
+    /**
+     * This is to seperate JSON to attributes
+     * @param jsonAttribute - the map of category string and the JSON Element
+     * @param jsonCategory - the  main object category
+     * @param categories - the set of categories
+     * @throws RequestParseException
+     * @throws UnknownIdentifierException
+     */
+    private static void jsonAttributeSeperator(Map.Entry<String, JsonElement> jsonAttribute, JsonObject jsonCategory,
+                                               Set<Attributes> categories) throws
+            RequestParseException, UnknownIdentifierException {
+
+        Node content = null;
+        URI category = null;
+        Set<Attribute> attributes = null;
+        String id = null;
+
+        if (EntitlementEndpointConstants.CATEGORY_DEFAULT.equals(jsonAttribute.getKey())) {
+            if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
+                category = stringCateogryToURI(jsonCategory
+                        .get(EntitlementEndpointConstants.CATEGORY_ID)
+                        .getAsString());
+            }
+        } else {
+            if (category == null) {
+                category = stringCateogryToURI(jsonAttribute.getKey());
+            }
+            if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
+                id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
+            }
+            if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
+                DocumentBuilderFactory dbf;
+                Document doc = null;
+
+                String xmlContent = stringContentToXMLContent(jsonCategory
+                        .get(EntitlementEndpointConstants.CONTENT)
+                        .getAsString());
+                dbf = IdentityUtil.getSecuredDocumentBuilderFactory();
+                dbf.setNamespaceAware(true);
+
+                try (ByteArrayInputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes())) {
+                    doc = dbf.newDocumentBuilder().parse(inputStream);
+                } catch (Exception e) {
+                    throw new JsonParseException("DOM of request element can not be created from String.", e);
+                }
+                if (doc != null) {
+                    content = doc.getDocumentElement();
+                }
+            }
+
+            // Add all category attributes
+            if (jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)) {
+                if (jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()) {
+                    attributes = new HashSet<>();
+                    for (JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
+                            .getAsJsonArray()) {
+                        attributes.add(jsonObjectToAttribute(jsonElement.getAsJsonObject()));
+                    }
+                }
+            }
+
+        }
+        //Build the Attributes object using above values
+        Attributes attributesObj = new Attributes(category, content, attributes, id);
+        categories.add(attributesObj);
     }
 
     /**
@@ -270,8 +260,8 @@ public class JSONRequestParser {
                         if (value.isJsonPrimitive()) {
                             //check if each value's data type can be determined
                             URI dataType = stringAttributeToURI(
-                                    jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
-                            attributeValues.add(getAttributeValue(property.getValue().getAsString(), dataType, type));
+                                    jsonElementToDataType(value.getAsJsonPrimitive()));
+                            attributeValues.add(getAttributeValue(value.getAsString(), dataType, type));
                         }
                     }
                 }
@@ -408,9 +398,8 @@ public class JSONRequestParser {
         return null;
     }
 
-
     /**
-     * Converts a given String attribute to the corresponsing <code>URI</code>
+     * Converts a given String attribute to the corresponding <code>URI</code>
      *
      * @param attribute <code>String</code>
      * @return <code>URI</code>
@@ -484,6 +473,38 @@ public class JSONRequestParser {
 
             case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION_SHORT:
                 uriName = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_XPATH_EXPRESSION;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_RESOURCE_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_RESOURCE_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_ACTION_ID__SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_ACTION_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_ENVIRONMENT_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_ENVIRONMENT_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_SUBJECT_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_SUBJECT_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_RECIPIENT_SUBJECT_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_RECIPIENT_SUBJECT_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_INTERMEDIARY_SUBJECT_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_INTERMEDIARY_SUBJECT_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRBUTE_REQUESTING_MACHINE_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRBUTE_REQUESTING_MACHINE_ID;
+                break;
+
+            case EntitlementEndpointConstants.ATTRIBUTE_CODEBASE_ID_SHORTEN:
+                uriName = EntitlementEndpointConstants.ATTRIBUTE_CODEBASE_ID;
                 break;
         }
         return URI.create(uriName);

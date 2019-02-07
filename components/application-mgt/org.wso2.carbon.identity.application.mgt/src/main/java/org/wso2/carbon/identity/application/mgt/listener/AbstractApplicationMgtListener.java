@@ -92,6 +92,20 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
+    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                 String filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
     public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
         return true;
     }
@@ -108,6 +122,40 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
 
     @Override
     public boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+        return true;
+    }
+
+    @Override
+    public void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
+            throws IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
+
+        return;
+    }
+
+    @Override
+    public boolean doPreCreateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 

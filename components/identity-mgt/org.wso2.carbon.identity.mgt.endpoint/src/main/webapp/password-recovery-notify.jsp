@@ -31,6 +31,9 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<jsp:directive.include file="localize.jsp"/>
 
 <%
 
@@ -56,7 +59,11 @@
     recoveryInitiatingRequest.setProperties(properties);
 
     try {
-        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null);
+        Map<String, String> requestHeaders = new HashedMap();
+        if (request.getParameter("g-recaptcha-response") != null) {
+            requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
+        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null, requestHeaders);
     } catch (ApiException e) {
         Error error = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
@@ -72,6 +79,7 @@
 %>
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
@@ -83,15 +91,20 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Information</h4>
+                    <h4 class="modal-title">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Information")%>
+                    </h4>
                 </div>
                 <div class="modal-body">
-                    <p>Password recovery information has been sent to the email registered
-                        with the account <%=Encode.forHtml(username)%>
+                    <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                            "Password.recovery.information.sent.to.the.email.registered.with.account")%>
+                        &nbsp; <%=Encode.forHtml(username)%>
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Close")%>
+                    </button>
                 </div>
             </div>
         </div>
@@ -104,7 +117,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
+            location.href = "<%=Encode.forUri(callback)%>";
         })
     });
 </script>

@@ -21,7 +21,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 
-<form action="../commonauth" method="post" id="loginForm">
+<form action="<%=commonauthURL%>" method="post" id="loginForm">
     <% if (Boolean.parseBoolean(loginFailed)) { %>
     <div class="alert alert-danger" id="error-msg">
         <%=AuthenticationEndpointUtil.i18n(resourceBundle, "username.or.password.invalid")%>

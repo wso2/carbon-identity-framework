@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.internal;
 
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 /**
@@ -28,6 +29,7 @@ public class ApplicationMgtServiceComponentHolder {
     private static ApplicationMgtServiceComponentHolder instance = new ApplicationMgtServiceComponentHolder();
 
     private ConfigurationContextService configurationContextService;
+    private ConsentManager consentManager;
 
     public static ApplicationMgtServiceComponentHolder getInstance() {
         return instance;
@@ -41,5 +43,13 @@ public class ApplicationMgtServiceComponentHolder {
         this.configurationContextService = configurationContextService;
     }
 
+    public ConsentManager getConsentManager() {
 
+        return consentManager;
+    }
+
+    public void setConsentManager(ConsentManager consentManager) {
+
+        this.consentManager = consentManager;
+    }
 }

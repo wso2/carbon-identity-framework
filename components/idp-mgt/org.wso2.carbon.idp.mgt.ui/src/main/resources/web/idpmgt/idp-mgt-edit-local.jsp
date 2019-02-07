@@ -16,26 +16,29 @@
 ~ under the License.
 -->
 
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
-<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
-
+<%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.client.DefaultAuthenticationSeqMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
-<%@ page import="java.util.HashMap" %>
-<%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.DefaultAuthenticationSequence" %>
 <%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
@@ -81,6 +84,8 @@
     String idPEntityId = null;
     String samlSSOUrl = null;
     String samlSLOUrl = null;
+    String samlECPUrl = null;
+    String samlArtifactUrl = null;
     String oauth1RequestTokenUrl = null;
     String oauth1AuthorizeUrl = null;
     String oauth1AccessTokenUrl = null;
@@ -101,6 +106,11 @@
     String oauth2DcrEndpoint = null;
     String oauth2JwksEndpoint = null;
     String oidcDiscoveryEndpoint = null;
+    String category = request.getParameter("category");
+    String subCategory = request.getParameter("subCategory");
+    String samlMetadataValidityPeriod = null;
+    boolean samlMetadataSigningEnabled = false;
+    String samlMetadataSigningEnabledChecked = "";
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -115,11 +125,22 @@
                     IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL).getValue();
             samlSLOUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL).getValue();
+            samlECPUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL).getValue();
+            samlArtifactUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL).getValue();
             destinationURLList = IdPManagementUIUtil.getPropertySetStartsWith(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX);
             if (destinationURLList.size() == 0) {
                 destinationURLList.add(IdPManagementUIUtil.getProperty(properties,
                         IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL));
+            }
+            samlMetadataValidityPeriod = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD).getValue();
+            samlMetadataSigningEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED).getValue());
+            if (samlMetadataSigningEnabled) {
+                samlMetadataSigningEnabledChecked = "checked=\'checked\'";
             }
         } else if(IdentityApplicationConstants.OAuth10A.NAME.equals(federatedAuthenticator.getName())) {
             oauth1RequestTokenUrl = IdPManagementUIUtil.getProperty(properties,
@@ -201,6 +222,19 @@
     session.setAttribute("returnToPath", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("cancelLink", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("backLink", "../idpmgt/idp-mgt-edit-local.jsp");
+
+    boolean selectDefaultSeq = Boolean.parseBoolean(request.getParameter("selectDefaultSeq"));
+    String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    DefaultAuthenticationSequence sequence = null;
+    try {
+        DefaultAuthenticationSeqMgtServiceClient serviceClient = new
+                DefaultAuthenticationSeqMgtServiceClient(cookie, backendServerURL, configContext);
+        sequence = serviceClient.getDefaultAuthenticationSeqInfo();
+    } catch (Exception e) {
+        String message = resourceBundle.getString("alert.error.read.default.seq.info") + " : " + e.getMessage();
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+    }
 %>
 <script>
 
@@ -247,6 +281,11 @@ function idpMgtCancel(){
         }
         var isRememberTimeValidated = doValidateInput(document.getElementById('rememberMeTimeout'), "Resident IdP Remember Me Period must be numeric value greater than 0");
         if (!isRememberTimeValidated) {
+            return false;
+        }
+        var isSamlMetadataValidityPeriodValidated = doValidateInput(document.getElementById('samlMetadataValidityPeriod'),
+            "SAML metadata validity period must be numeric value greater than 0");
+        if (!isSamlMetadataValidityPeriodValidated) {
             return false;
         }
         return true;
@@ -352,6 +391,35 @@ function idpMgtCancel(){
             $('#destinationURLTblRow').remove();
         }
     }
+
+function exportDefaultAuthSeq() {
+    function doExport() {
+        location.href='export-default-authSeq-finish-ajaxprocessor.jsp'
+    }
+    CARBON.showConfirmationDialog('<%=resourceBundle.getString("default.seq.export.para")%>',
+        doExport, null);
+}
+
+function removeDefaultAuthSeq() {
+    function doDelete() {
+        $.ajax({
+            type: 'POST',
+            url: 'remove-default-authSeq-finish-ajaxprocessor.jsp',
+            headers: {
+                Accept: "text/html"
+            },
+            async: false,
+            success: function (responseText, status) {
+                if (status == "success") {
+                    location.assign("idp-mgt-edit-local.jsp?selectDefaultSeq=true");
+                }
+            }
+        });
+    }
+
+    CARBON.showConfirmationDialog('<%=resourceBundle.getString("alert.confirm.delete.default.seq")%>' + '?',
+        doDelete, null);
+}
 </script>
 <script>
         function downloadRIDPMetadata() {
@@ -495,6 +563,37 @@ function idpMgtCancel(){
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
+                            <td><%=Encode.forHtmlContent(samlECPUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>
+                            <td><%=Encode.forHtmlContent(samlArtifactUrl)%></td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='saml.metadata.validity.period'/>:</td>
+                            <td>
+                                <input id="samlMetadataValidityPeriod" name="samlMetadataValidityPeriod" type="text"
+                                       value="<%=Encode.forHtmlAttribute(samlMetadataValidityPeriod)%>" autofocus/>
+                                <div class="sectionHelp">
+                                    <fmt:message key='saml.metadata.validity.period.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField">
+                                <label for="samlMetadataSigningEnabled"><fmt:message key='saml.metadata.signing.enabled'/>
+                                </label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input id="samlMetadataSigningEnabled" name="samlMetadataSigningEnabled"
+                                           type="checkbox" <%=samlMetadataSigningEnabledChecked%>/>
+                                </div>
+                            </td>
                         </tr>
                     </table>
                         <br>
@@ -675,7 +774,30 @@ function idpMgtCancel(){
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) {%>
+
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
+                        </td>
+                    </tr>
+
+
+                    <% } else { %>
                         <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
@@ -702,7 +824,12 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input
+                                    <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password" autocomplete="off"
+                                    <% } else  {%>
+                                    type="text" <%
+                                    } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -715,7 +842,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                 }
@@ -724,8 +851,18 @@ function idpMgtCancel(){
         <h2 id="governance_config_header_subcategory" class="sectionSeperator trigger active">
             <a href="#"><%=Encode.forHtmlContent(catName)%></a>
         </h2>
-          <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+
 <%
+        if (StringUtils.isNotEmpty(category) && category.equalsIgnoreCase(catName)) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+
+<%      }  else {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display:none;" id="roleConfig2">
+<%      }
+%>
+                                        <%
                 Map<String, List<ConnectorConfig>> subCatMap = catMap.get(catName);
                 for (String subCatName : subCatMap.keySet()) {
                     if (DEFAULT.equals(subCatName)){
@@ -735,13 +872,48 @@ function idpMgtCancel(){
                 <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
                 </a>
             </h2>
+
+<%
+        if (StringUtils.isNotEmpty(subCategory) && subCategory.equalsIgnoreCase(connectorConfig.getFriendlyName())) {
+%>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: block;" id="roleConfig2">
+<%
+        }  else {
+%>
             <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+<%
+        }
+%>
+
                 <table class="carbonFormTable">
                     <%
-                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
-                        <tr>
+                            String value = connectorProperties[k].getValue();
+                            String displayName = connectorProperties[k].getDisplayName();
+                            String name = connectorProperties[k].getName();
+                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) { %>
+
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(displayName)%>
+                        </td>
+                        <td>
+                            <a class="icon-link"
+                               style="background-image:url(images/configure.gif); margin-left: 0px; display: block; float:none"
+                               href="<%=Encode.forHtmlAttribute(value)%>"> Click here </a>
+
+                            <% if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
+                            <%}%>
+                        </td>
+                    </tr>
+
+
+                    <% } else { %>
+                    <tr>
                             <td style="width: 500px;">
                                 <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
                             </td>
@@ -767,7 +939,12 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password" autocomplete="off"
+                                    <% } else {%>
+                                    type="text" <%
+                                } %>
+                                                   name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -780,7 +957,7 @@ function idpMgtCancel(){
                             </td>
                             <%}%>
                         </tr>
-                    <%}%>
+                    <%}}%>
                         </table></div>
 <%
                         }
@@ -830,7 +1007,11 @@ function idpMgtCancel(){
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                    type="password" autocomplete="off"
+                                    <% } else {%>
+                                    type="text" <%
+                                } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -859,16 +1040,75 @@ function idpMgtCancel(){
     }
 %>
 
-</form>
-</div>
+                <h2 id="defaultseqconfighead" class="sectionSeperator trigger active">
+                    <a href="#">Default Authentication Configuration</a>
+                </h2>
+                <% if (selectDefaultSeq) { %>
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;display:block"
+                     id="defualtauthconfig">
+                    <% } else { %>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none"
+                         id="defualtauthconfig">
+                        <% } %>
+                        <table class="carbonFormTable">
+                            <tbody>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='field.default.seq'/>:</td>
+                                <%
+                                    if (sequence != null) {
+                                %>
+                                <td>
+                                    <table id="defaultSeqTable" class="styledInner">
+                                        <tbody id="defaultSeqTableBody">
+                                        <tr>
+                                                    <% if (sequence.getDescription() != null && !sequence.getDescription().trim().equals("")) {%>
+                                            <td><%=Encode.forHtml(sequence.getDescription())%>
+                                            </td>
+                                                    <%}%>
+                                            <td>
+                                                <a title="Edit Default Authentication Sequence"
+                                                   onclick="javascript:location.href='edit-default-authSeq.jsp'"
+                                                   class="icon-link"
+                                                   style="background-image: url(../application/images/edit.gif)">
+                                                    <fmt:message
+                                                            key="field.default.seq.edit"/>
+                                                </a>
+                                                <a title="Export Default Authentication Sequence"
+                                                   onclick="exportDefaultAuthSeq();"
+                                                   class="icon-link"
+                                                   style="background-image: url(../application/images/publish.gif)">
+                                                    <fmt:message key="field.default.seq.export"/>
+                                                </a>
+                                                <a title="Remove Default Authentication Sequence"
+                                                   onclick="removeDefaultAuthSeq();"
+                                                   class="icon-link"
+                                                   style="background-image: url(../application/images/delete.gif)">
+                                                    <fmt:message
+                                                            key="field.default.seq.delete"/>
+                                                </a>
+                                            </td>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <% } else { %>
 
-
-                </div>
+                                <td>
+                                    <a class="icon-link"
+                                       style="background-image:url(../application/images/add.png); margin-left: 0px; display: block; float:none"
+                                       href="javascript:document.location.href='add-default-authSeq.jsp'">Add</a>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='help.add.default.seq'/>
+                                    </div>
+                                </td>
+                                <% } %>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 <div class="buttonRow">
                     <input type="button" value="<fmt:message key='update'/>" onclick="idpMgtUpdate();"/>
                 </div>
-
-        </div>
+            </div>
     </div>
 </fmt:bundle>
 <% } %>

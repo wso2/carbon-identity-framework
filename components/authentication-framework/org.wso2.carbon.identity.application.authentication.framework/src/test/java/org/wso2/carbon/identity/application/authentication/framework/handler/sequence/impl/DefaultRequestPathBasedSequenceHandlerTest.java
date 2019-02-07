@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -45,7 +44,10 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +68,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest(FrameworkUtils.class)
+@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class})
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
 
@@ -77,6 +79,12 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @Mock
     HttpServletResponse response;
+
+    @Mock
+    ApplicationDAO applicationDAO;
+
+    @Mock
+    private ApplicationMgtSystemConfig applicationMgtSystemConfig;
 
     @Mock
     RequestPathApplicationAuthenticator requestPathAuthenticator;
@@ -348,6 +356,9 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                                                       String expectedRoles) throws Exception {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
+        mockStatic(ApplicationMgtSystemConfig.class);
+        when(ApplicationMgtSystemConfig.getInstance()).thenReturn(applicationMgtSystemConfig);
+        when(applicationMgtSystemConfig.getApplicationDAO()).thenReturn(applicationDAO);
         String mappedRoles = requestPathBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         assertEquals(mappedRoles, expectedRoles);
     }

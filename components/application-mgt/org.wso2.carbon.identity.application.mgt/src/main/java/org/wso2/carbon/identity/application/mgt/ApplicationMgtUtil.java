@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -27,14 +28,17 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
@@ -57,17 +61,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    private static final List<String> paths = new ArrayList<String>();
-    private static String applicationNode;
     // Regex for validating application name
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]*$";
+    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
+    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
     }
@@ -115,7 +121,7 @@ public class ApplicationMgtUtil {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Checking whether user has role : " + applicationRoleName + " by retrieving role list of " +
-                          "user : " + username);
+                        "user : " + username);
             }
 
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
@@ -153,7 +159,14 @@ public class ApplicationMgtUtil {
             // create a role for the application and assign the user to that role.
             if (log.isDebugEnabled()) {
                 log.debug("Creating application role : " + roleName + " and assign the user : "
-                          + Arrays.toString(usernames) + " to that role");
+                        + Arrays.toString(usernames) + " to that role");
+            }
+            if (CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager().
+                    isExistingRole(roleName)) {
+                String errorMsg = "Application registration failed. The application role \'" + roleName +
+                        "\' already exists.";
+                log.error(errorMsg);
+                throw new IdentityApplicationRegistrationFailureException(errorMsg);
             }
             CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
                     .addRole(roleName, usernames, null);
@@ -226,9 +239,10 @@ public class ApplicationMgtUtil {
             Collection permissionNode = tenantGovReg.newCollection();
             permissionNode.setProperty("name", newName);
             newApplicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + PATH_CONSTANT + newName;
-            ApplicationMgtUtil.applicationNode = newApplicationNode;
+            String applicationNode = newApplicationNode;
             tenantGovReg.put(newApplicationNode, permissionNode);
-            addPermission(loadPermissions.toArray(new ApplicationPermission[loadPermissions.size()]), tenantGovReg);
+            addPermission(applicationNode, loadPermissions.toArray(new ApplicationPermission[loadPermissions.size()]),
+                    tenantGovReg);
         } catch (RegistryException e) {
             throw new IdentityApplicationManagementException("Error while renaming permission node "
                     + oldName + "to " + newName, e);
@@ -319,7 +333,7 @@ public class ApplicationMgtUtil {
     public static void updatePermissions(String applicationName, ApplicationPermission[] permissions)
             throws IdentityApplicationManagementException {
 
-        applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
+        String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
 
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
@@ -349,14 +363,14 @@ public class ApplicationMgtUtil {
             // no permission exist for the application, create new
             if (childern == null || appNodeCollec.getChildCount() < 1) {
 
-                addPermission(permissions, tenantGovReg);
+                addPermission(applicationNode, permissions, tenantGovReg);
 
             } else { // there are permission
                 List<ApplicationPermission> loadPermissions = loadPermissions(applicationName);
                 for (ApplicationPermission applicationPermission : loadPermissions) {
                     tenantGovReg.delete(applicationNode + PATH_CONSTANT + applicationPermission.getValue());
                 }
-                addPermission(permissions, tenantGovReg);
+                addPermission(applicationNode, permissions, tenantGovReg);
             }
 
         } catch (RegistryException e) {
@@ -365,8 +379,8 @@ public class ApplicationMgtUtil {
 
     }
 
-    private static void addPermission(ApplicationPermission[] permissions, Registry tenantGovReg) throws
-            RegistryException {
+    private static void addPermission(String applicationNode, ApplicationPermission[] permissions, Registry
+            tenantGovReg) throws RegistryException {
         for (ApplicationPermission permission : permissions) {
             String permissionValue = permission.getValue();
 
@@ -395,9 +409,10 @@ public class ApplicationMgtUtil {
      */
     public static List<ApplicationPermission> loadPermissions(String applicationName)
             throws IdentityApplicationManagementException {
-        applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
+        String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
+        List<String> paths = new ArrayList<>();
 
         try {
             boolean exist = tenantGovReg.resourceExists(applicationNode);
@@ -426,7 +441,8 @@ public class ApplicationMgtUtil {
             List<ApplicationPermission> permissions = new ArrayList<ApplicationPermission>();
 
 
-            permissionPath(tenantGovReg, applicationNode);      //get permission paths recursively
+            permissionPath(tenantGovReg, applicationNode, paths, applicationNode);      //get permission paths
+            // recursively
 
             for (String permissionPath : paths) {
                 ApplicationPermission permission;
@@ -446,7 +462,8 @@ public class ApplicationMgtUtil {
         }
     }
 
-    private static void permissionPath(Registry tenantGovReg, String permissionPath) throws RegistryException {
+    private static void permissionPath(Registry tenantGovReg, String permissionPath, List<String> paths, String
+            applicationNode) throws RegistryException {
 
         Collection appCollection = (Collection) tenantGovReg.get(permissionPath);
         String[] childern = appCollection.getChildren();
@@ -457,7 +474,7 @@ public class ApplicationMgtUtil {
 
         while (childern != null && childern.length != 0) {
             for (int i = 0; i < childern.length; i++) {
-                permissionPath(tenantGovReg, childern[i]);
+                permissionPath(tenantGovReg, childern[i], paths, applicationNode);
             }
             break;
 
@@ -518,18 +535,14 @@ public class ApplicationMgtUtil {
 
         String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
         Pattern regexPattern = Pattern.compile(spValidatorRegex);
-        if (regexPattern.matcher(applicationName).matches()) {
-            return true;
-        } else {
-            return false;
-        }
+        return regexPattern.matcher(applicationName).matches();
     }
 
     /**
      * Get Property values
      *
-     * @param tenantDomain Tenant domain
-     * @param spIssuer SP Issuer
+     * @param tenantDomain  Tenant domain
+     * @param spIssuer      SP Issuer
      * @param propertyNames Property names
      * @return Properties map
      * @throws IdentityApplicationManagementException
@@ -562,5 +575,63 @@ public class ApplicationMgtUtil {
         }
 
         return propKeyValueMap;
+    }
+
+    /**
+     * To check whether the application owner is valid by validating user existence and permissions.
+     *
+     * @param serviceProvider service provider
+     * @return true if the application owner is valid.
+     * @throws IdentityApplicationManagementException when an error occurs while validating the user.
+     */
+    public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        try {
+            String userName = null;
+            String userNameWithDomain = null;
+            if (serviceProvider.getOwner() != null) {
+                userName = serviceProvider.getOwner().getUserName();
+                if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
+                    return false;
+                }
+                String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
+                userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
+            }
+            org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+                return false;
+            }
+            boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
+            if (!isUserExist) {
+                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+                        serviceProvider.getApplicationName() + " as user is not existing.");
+            }
+        } catch (UserStoreException | IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+                    serviceProvider.getApplicationName(), e);
+        }
+        return true;
+    }
+
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param spFileStream
+     * @param tenantDomain
+     * @return ServiceProvider
+     * @throws IdentityApplicationManagementException
+     */
+    public static ServiceProvider getApplicationFromSpFileStream(SpFileStream spFileStream, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            return (ServiceProvider) unmarshaller.unmarshal(spFileStream.getFileStream());
+
+        } catch (JAXBException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
+                    "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
+        }
     }
 }

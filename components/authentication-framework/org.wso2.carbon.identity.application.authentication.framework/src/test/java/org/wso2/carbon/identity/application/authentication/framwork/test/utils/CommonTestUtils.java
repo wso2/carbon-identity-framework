@@ -21,8 +21,8 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Hold common utility methods

@@ -7,6 +7,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2468:CertificateInfo"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2468:ClaimConfig"/>
                     <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2468:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2468:ProvisioningConnectorConfig"/>
@@ -15,6 +16,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2468:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2468:IdentityProviderProperty"/>
@@ -25,6 +27,12 @@
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
+            <xs:complexType name="CertificateInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="certValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="thumbPrint" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
             <xs:complexType name="ClaimConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alwaysSendMappedLocalSubjectId" type="xs:boolean"/>
@@ -32,6 +40,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2468:Claim"/>
                     <xs:element minOccurs="0" name="localClaimDialect" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="roleClaimURI" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="spClaimDialects" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="userClaimURI" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
@@ -101,6 +110,9 @@
                 <xs:complexContent>
                     <xs:extension base="ax2468:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean" nillable="true"/>
+                            <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean" nillable="true"/>
+                            <xs:element minOccurs="0" name="promptConsent" type="xs:boolean" nillable="true"/>
                             <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"/>
                         </xs:sequence>
                     </xs:extension>

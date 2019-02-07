@@ -24,6 +24,7 @@ public class IdentityCacheConfig {
     private int timeout;
     private int capacity;
     private boolean isDistributed = true;
+    private boolean isTemporary = false;
 
     public IdentityCacheConfig(IdentityCacheConfigKey identityCacheConfigKey) {
         this.identityCacheConfigKey = identityCacheConfigKey;
@@ -59,6 +60,14 @@ public class IdentityCacheConfig {
 
     public boolean isDistributed() {
         return isDistributed;
+    }
+
+    public boolean isTemporary() {
+        return isTemporary;
+    }
+
+    public void setTemporary(boolean temporary) {
+        isTemporary = temporary;
     }
 
     public void setDistributed(boolean isDistributed) {

@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -25,21 +26,35 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
 import java.util.UUID;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -52,8 +67,11 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 @PrepareForTest(FrameworkUtils.class)
+@WithCarbonHome
 public class DefaultAuthenticationRequestHandlerTest {
 
     @Mock
@@ -66,27 +84,30 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @BeforeMethod
     public void setUp() throws Exception {
+
         initMocks(this);
         authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
+
     }
 
     @Test
     public void testGetInstance() throws Exception {
+
         CommonTestUtils.testSingleton(
                 DefaultAuthenticationRequestHandler.getInstance(),
                 DefaultAuthenticationRequestHandler.getInstance()
         );
     }
-
 
     @Test
     public void testHandleDenyFromLoginPage() throws Exception {
@@ -110,7 +131,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         assertFalse(context.isRequestAuthenticated());
     }
 
-
     @DataProvider(name = "rememberMeParamProvider")
     public Object[][] provideRememberMeParam() {
 
@@ -131,6 +151,14 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticationContext context = spy(new AuthenticationContext());
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         when(sequenceConfig.isCompleted()).thenReturn(true);
+        ServiceProvider serviceProvider = spy(new ServiceProvider());
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = spy(new
+            LocalAndOutboundAuthenticationConfig());
+        when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
+            .AUTH_TYPE_LOCAL);
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        sequenceConfig.setApplicationConfig(applicationConfig);
 
         context.setSequenceConfig(sequenceConfig);
 
@@ -143,13 +171,11 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         // Mock conclude flow and post authentication flows to isolate remember me option
         doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
-        doReturn(true).when(authenticationRequestHandler).isPostAuthenticationExtensionCompleted(context);
 
         authenticationRequestHandler.handle(request, response, context);
 
         assertEquals(context.isRememberMe(), expectedResult);
     }
-
 
     @DataProvider(name = "RequestParamDataProvider")
     public Object[][] provideSequenceStartRequestParams() {
@@ -185,11 +211,12 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testConcludeFlow() throws Exception {
-    }
 
+    }
 
     @DataProvider(name = "sendResponseDataProvider")
     public Object[][] provideSendResponseData() {
+
         return new Object[][]{
                 {true, true, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key&chkRemember=on"},
                 {true, false, "/samlsso", "dummy_data_key", "/samlsso?sessionDataKey=dummy_data_key"},
@@ -223,7 +250,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         assertEquals(captor.getValue(), expectedRedirectUrl);
     }
 
-
     @Test(expectedExceptions = FrameworkException.class)
     public void testSendResponseException() throws Exception {
 
@@ -243,31 +269,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Test
     public void testHandleAuthorization() throws Exception {
-    }
 
-    @DataProvider(name = "postAuthExtensionParam")
-    public Object[][] getPostAuthExtensionParam() {
-
-        return new Object[][]{
-                {Boolean.TRUE, true},
-                {Boolean.FALSE, false},
-                {null, false},
-                {new Object(), false}
-        };
-    }
-
-    @Test(dataProvider = "postAuthExtensionParam")
-    public void testIsPostAuthenticationExtensionCompleted(Object postAuthExtensionCompleted,
-                                                           boolean expectedResult) throws Exception {
-
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext
-                .setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, postAuthExtensionCompleted);
-
-        assertEquals(
-                authenticationRequestHandler.isPostAuthenticationExtensionCompleted(authenticationContext),
-                expectedResult
-        );
     }
 
     @DataProvider(name = "errorInfoDataProvider")
@@ -282,7 +284,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         };
 
     }
-
 
     @Test(dataProvider = "errorInfoDataProvider")
     public void testPopulateErrorInformation(String errorCode,
@@ -299,7 +300,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
         context.setProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
 
-
         // request type is does not cache authentication result
         context.setRequestType(requestType);
         response = spy(new CommonAuthResponseWrapper(response));
@@ -309,7 +309,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(cacheEntry.getResult()).thenReturn(authenticationResult);
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getAuthenticationResultFromCache(anyString())).thenReturn(cacheEntry);
-
 
         authenticationRequestHandler.populateErrorInformation(request, response, context);
 
@@ -323,5 +322,98 @@ public class DefaultAuthenticationRequestHandlerTest {
         assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
     }
 
+    @Test
+    public void testPostAuthenticationHandlers() throws Exception {
+
+        Cookie[] cookies = new Cookie[1];
+        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
+        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
+        AuthenticationContext context = prepareContextForPostAuthnTests();
+        authenticationRequestHandler.handle(request, response, context);
+        assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
+        String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
+        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
+                pastrCookie);
+        when(request.getCookies()).thenReturn(cookies);
+        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
+                (cookies[0]);
+        authenticationRequestHandler.handle(request, response, context);
+        assertTrue(Boolean.parseBoolean(context.getProperty(
+                FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+    }
+
+    @Test(expectedExceptions = PostAuthenticationFailedException.class)
+    public void testPostAuthenticationHandlerFailures() throws Exception {
+
+        Cookie[] cookies = new Cookie[1];
+        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
+        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
+        AuthenticationContext context = prepareContextForPostAuthnTests();
+        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        authenticationRequestHandler.handle(request, response, context);
+        assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
+        String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
+        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(), pastrCookie);
+        when(request.getCookies()).thenReturn(cookies);
+        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
+                (new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
+                        "someGibberishValue"));
+        authenticationRequestHandler.handle(request, response, context);
+        assertTrue(Boolean.parseBoolean(context.getProperty(
+                FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+    }
+
+    private AuthenticationContext prepareContextForPostAuthnTests() {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setContextIdentifier(String.valueOf(UUID.randomUUID()));
+        addSequence(context, true);
+        addApplicationConfig(context);
+        setUser(context, "admin");
+        setPostAuthnMgtService();
+        addPostAuthnHandler();
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        return context;
+    }
+
+    private void addSequence(AuthenticationContext context, boolean isCompleted) {
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setCompleted(isCompleted);
+        context.setSequenceConfig(sequenceConfig);
+    }
+
+    private void addApplicationConfig(AuthenticationContext context) {
+
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new
+                LocalAndOutboundAuthenticationConfig();
+        applicationConfig.getServiceProvider().setLocalAndOutBoundAuthenticationConfig
+                (localAndOutboundAuthenticationConfig);
+        context.getSequenceConfig().setApplicationConfig(applicationConfig);
+    }
+
+    private void setUser(AuthenticationContext context, String userName) {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setAuthenticatedSubjectIdentifier(userName);
+        context.setProperty("user-tenant-domain", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
+    }
+
+    private void addPostAuthnHandler() {
+
+        PostAuthenticationMgtServiceTest.TestPostHandlerWithRedirect postAuthenticationHandler =
+                new PostAuthenticationMgtServiceTest.TestPostHandlerWithRedirect();
+        postAuthenticationHandler.setEnabled(true);
+        FrameworkServiceDataHolder.getInstance().addPostAuthenticationHandler(postAuthenticationHandler);
+    }
+
+    private void setPostAuthnMgtService() {
+
+        PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
+        FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
+    }
 }
 

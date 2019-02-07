@@ -33,6 +33,7 @@ import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
+import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealmService;
 import org.wso2.carbon.user.core.AuthorizationManager;
@@ -45,6 +46,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.bulkimport.BulkImportConfig;
 import org.wso2.carbon.user.mgt.bulkimport.CSVUserBulkImport;
 import org.wso2.carbon.user.mgt.bulkimport.ExcelUserBulkImport;
+import org.wso2.carbon.user.mgt.bulkimport.UserBulkImport;
 import org.wso2.carbon.user.mgt.common.ClaimValue;
 import org.wso2.carbon.user.mgt.common.FlaggedName;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
@@ -301,7 +303,7 @@ public class UserRealmProxy {
                 fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
 
                 // setting read only or writable
-                int index = externalRole != null ? externalRole.indexOf("/") : -1;
+                int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index > 0;
                 String domain = domainProvided ? externalRole.substring(0, index) : null;
                 UserStoreManager secManager =
@@ -410,7 +412,7 @@ public class UserRealmProxy {
                 fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
 
                 // setting read only or writable
-                int index = externalRole != null ? externalRole.indexOf("/") : -1;
+                int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index > 0;
                 String domain = domainProvided ? externalRole.substring(0, index) : null;
                 UserStoreManager secManager = realm.getUserStoreManager().getSecondaryUserStoreManager(domain);
@@ -614,7 +616,7 @@ public class UserRealmProxy {
                 itemsPerPage = Integer.parseInt(itemsPerPageString);
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
-                    log.info("Error parsing number of items per page, using default value", e);
+                    log.debug("Error parsing number of items per page, using default value", e);
                 }
             }
             userRealmInfo.setMaxItemsPerUIPage(itemsPerPage);
@@ -625,7 +627,7 @@ public class UserRealmProxy {
                 maxPagesInCache = Integer.parseInt(maxPageInCacheString);
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
-                    log.info("Error parsing number of maximum pages in cache, using default value", e);
+                    log.debug("Error parsing number of maximum pages in cache, using default value", e);
                 }
             }
             userRealmInfo.setMaxUIPagesInCache(maxPagesInCache);
@@ -1054,7 +1056,7 @@ public class UserRealmProxy {
     public FlaggedName[] getUsersOfRole(String roleName, String filter, int limit) throws UserAdminException {
         try {
 
-            int index = roleName != null ? roleName.indexOf("/") : -1;
+            int index = roleName != null ? roleName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
             boolean domainProvided = index > 0;
 
             String domain = domainProvided ? roleName.substring(0, index) : null;
@@ -1062,12 +1064,12 @@ public class UserRealmProxy {
             if (domain != null && filter != null && !filter.toLowerCase().startsWith(domain.toLowerCase()) &&
                 !(UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain)
                   || UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain))) {
-                filter = domain + "/" + filter;
+                filter = domain + CarbonConstants.DOMAIN_SEPARATOR + filter;
             }
 
             if (domain == null && limit != 0) {
                 if (filter != null) {
-                    filter = "/" + filter;
+                    filter = CarbonConstants.DOMAIN_SEPARATOR + filter;
                 } else {
                     filter = "/*";
                 }
@@ -1083,10 +1085,11 @@ public class UserRealmProxy {
                 List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
                 for (String anUsersOfRole : usersOfRole) {
                     //check if display name is present in the user name
-                    int combinerIndex = anUsersOfRole.indexOf("|");
+                    int combinerIndex = anUsersOfRole.indexOf(UserCoreConstants.NAME_COMBINER);
                     Matcher matcher;
                     if (combinerIndex > 0) {
-                        matcher = pattern.matcher(anUsersOfRole.substring(combinerIndex + 1));
+                        matcher = pattern.matcher(anUsersOfRole.substring(combinerIndex +
+                                UserCoreConstants.NAME_COMBINER.length()));
                     } else {
                         matcher = pattern.matcher(anUsersOfRole);
                     }
@@ -1098,7 +1101,8 @@ public class UserRealmProxy {
                     fName.setSelected(true);
                     if (combinerIndex > 0) { //if display name is appended
                         fName.setItemName(anUsersOfRole.substring(0, combinerIndex));
-                        fName.setItemDisplayName(anUsersOfRole.substring(combinerIndex + 1));
+                        fName.setItemDisplayName(anUsersOfRole.substring(combinerIndex +
+                                UserCoreConstants.NAME_COMBINER.length()));
                     } else {
                         //if only user name is present
                         fName.setItemName(anUsersOfRole);
@@ -1179,10 +1183,11 @@ public class UserRealmProxy {
                     fName.setSelected(true);
                 }
                 //check if display name is present in the user name
-                int combinerIndex = userNames[i].indexOf("|");
+                int combinerIndex = userNames[i].indexOf(UserCoreConstants.NAME_COMBINER);
                 if (combinerIndex > 0) { //if display name is appended
                     fName.setItemName(userNames[i].substring(0, combinerIndex));
-                    fName.setItemDisplayName(userNames[i].substring(combinerIndex + 1));
+                    fName.setItemDisplayName(userNames[i].substring(combinerIndex +
+                            UserCoreConstants.NAME_COMBINER.length()));
                 } else {
                     //if only user name is present
                     fName.setItemName(userNames[i]);
@@ -1260,7 +1265,7 @@ public class UserRealmProxy {
     public FlaggedName[] getRolesOfUser(String userName, String filter, int limit) throws UserAdminException {
         try {
 
-            int index = userName != null ? userName.indexOf("/") : -1;
+            int index = userName != null ? userName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
             boolean domainProvided = index > 0;
             String domain = domainProvided ? userName.substring(0, index) : null;
 
@@ -1563,7 +1568,7 @@ public class UserRealmProxy {
             List<String> list = new ArrayList<String>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
-                    int combinerIndex = value.indexOf("|");
+                    int combinerIndex = value.indexOf(UserCoreConstants.NAME_COMBINER);
                     if (combinerIndex > 0) {
                         list.add(value.substring(0, combinerIndex));
                     } else {
@@ -1798,7 +1803,7 @@ public class UserRealmProxy {
             List<String> list = new ArrayList<String>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
-                    int combinerIndex = value.indexOf("|");
+                    int combinerIndex = value.indexOf(UserCoreConstants.NAME_COMBINER);
                     if (combinerIndex > 0) {
                         list.add(value.substring(0, combinerIndex));
                     } else {
@@ -2074,6 +2079,9 @@ public class UserRealmProxy {
 
     public void setRoleUIPermission(String roleName, String[] rawResources)
             throws UserAdminException {
+
+        Permission[] permissions = null;
+        UserStoreManager userStoreManager = null;
         try {
             if (((AbstractUserStoreManager) realm.getUserStoreManager()).isOthersSharedRole(roleName)) {
                 throw new UserAdminException("Logged in user is not authorized to assign " +
@@ -2102,10 +2110,18 @@ public class UserRealmProxy {
             String[] optimizedList = UserCoreUtil.optimizePermissions(rawResources);
             AuthorizationManager authMan = realm.getAuthorizationManager();
             authMan.clearRoleActionOnAllResources(roleName, UserMgtConstants.EXECUTE_ACTION);
-            for (String path : optimizedList) {
-                authMan.authorizeRole(roleName, path, UserMgtConstants.EXECUTE_ACTION);
+
+            permissions = new Permission[optimizedList.length];
+            for (int i = 0; i < optimizedList.length; i++) {
+                authMan.authorizeRole(roleName, optimizedList[i], UserMgtConstants.EXECUTE_ACTION);
+                permissions[i] = new Permission(optimizedList[i], UserMgtConstants.EXECUTE_ACTION);
             }
+
+            userStoreManager = realm.getUserStoreManager();
+            ManagementPermissionUtil.handlePostUpdatePermissionsOfRole(roleName, permissions, userStoreManager);
         } catch (UserStoreException e) {
+            ManagementPermissionUtil
+                    .handleOnUpdatePermissionsOfRoleFailure(e.getMessage(), roleName, permissions, userStoreManager);
             log.error(e.getMessage(), e);
             throw new UserAdminException(e.getMessage(), e);
         }
@@ -2126,10 +2142,10 @@ public class UserRealmProxy {
             userStore = userStore.getSecondaryUserStoreManager(userStoreDomain);
 
             if (fileName.endsWith("csv")) {
-                CSVUserBulkImport csvAdder = new CSVUserBulkImport(config);
+                UserBulkImport csvAdder = new CSVUserBulkImport(config);
                 csvAdder.addUserList(userStore);
             } else if (fileName.endsWith("xls") || fileName.endsWith("xlsx")) {
-                ExcelUserBulkImport excelAdder = new ExcelUserBulkImport(config);
+                UserBulkImport excelAdder = new ExcelUserBulkImport(config);
                 excelAdder.addUserList(userStore);
             } else {
                 throw new UserAdminException("Unsupported format");

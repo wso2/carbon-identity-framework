@@ -71,16 +71,21 @@ public class LoginContextManagementUtil {
             String redirectUrl = getRelyingPartyRedirectUrl(relyingParty, tenantDomain);
             if (StringUtils.isBlank(redirectUrl)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Redirect URL is not available for the relaying party - " + relyingParty);
+                    log.debug("Redirect URL is not available for the relaying party - " + relyingParty + " for " +
+                            "sessionDataKey: " + sessionDataKey);
                 }
                 // Can't handle
                 result.addProperty("status", "success");
                 response.getWriter().write(result.toString());
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Redirect URL is: " + redirectUrl + " for the relaying party - " + relyingParty +
+                            " for " + "sessionDataKey: " + sessionDataKey);
+                }
+                result.addProperty("status", "redirect");
+                result.addProperty("redirectUrl", redirectUrl);
+                response.getWriter().write(result.toString());
             }
-
-            result.addProperty("status", "redirect");
-            result.addProperty("redirectUrl", redirectUrl);
-            response.getWriter().write(result.toString());
         }
     }
 
@@ -125,5 +130,32 @@ public class LoginContextManagementUtil {
             log.error("Error while getting the tenant domain from tenant id : " + tenantId, e);
         }
         return null;
+    }
+
+    /**
+     * Returns whether post authentication handler execution is ended or not.
+     *
+     * @param authenticationContext Authentication context.
+     * @return True if post authentication handlers have finished execution on this context. else false.
+     */
+    public static boolean isPostAuthenticationExtensionCompleted(AuthenticationContext authenticationContext) {
+
+        Object object = authenticationContext.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Mark post authentication handler execution completion on authentication context.
+     *
+     * @param authenticationContext Authentication context.
+     */
+    public static void markPostAuthenticationCompleted(AuthenticationContext authenticationContext) {
+
+        authenticationContext.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED,
+                true);
     }
 }

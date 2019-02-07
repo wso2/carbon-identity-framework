@@ -75,6 +75,11 @@ public class IdentityManagementEndpointConstants {
         public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
     }
 
+    public static final class RecoveryOptions {
+
+        public static final String ENABLE_MULTI_TENANCY = "EnableMultiTenancy";
+    }
+
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
     public static final String TENANT_DOMAIN = "tenantdomain";
@@ -93,7 +98,30 @@ public class IdentityManagementEndpointConstants {
 
     public static final String SECRET_ALIAS = "secretAlias:";
     public static final String SECRET_ALIAS_SEPARATOR = ":";
+    public static final String SKIP_SIGN_UP_ENABLE_CHECK = "skipsignupenablecheck";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
 
+    public static class Consent {
+
+        public static final String COLLECTION_METHOD_SELF_REGISTRATION = "Web Form - Self Registration";
+        public static final String LANGUAGE_ENGLISH = "en";
+        public static final String CONSENT_TYPE_KEY = "consentType";
+        public static final String PRIMARY_PURPOSE_KEY = "primaryPurpose";
+        public static final String THRID_PARTY_DISCLOSURE_KEY = "thirdPartyDisclosure";
+        public static final String TERMINATION_KEY = "termination";
+        public static final String VALIDITY_KEY = "validity";
+        public static final String JURISDICTION_KEY = "jurisdiction";
+        public static final String COLLECTION_METHOD_KEY = "collectionMethod";
+        public static final String LANGUAGE_KEY = "language";
+        public static final String PII_PRINCIPAL_ID_KEY = "piiPrincipalId";
+        public static final String POLICY_URL_KEY = "policyURL";
+        public static final String SERVICES = "services";
+        public static final String PURPOSES = "purposes";
+        public static final String PII_CATEGORY = "piiCategory";
+        public static final String EXPLICIT_CONSENT_TYPE = "EXPLICIT";
+        public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
+    }
 
     private IdentityManagementEndpointConstants() {
     }

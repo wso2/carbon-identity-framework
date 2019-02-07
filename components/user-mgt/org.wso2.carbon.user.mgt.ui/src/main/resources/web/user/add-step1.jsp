@@ -34,12 +34,9 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.client.ClaimDataAdminClient" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimPropertyDTO" %>
-<%@ page
-        import="org.wso2.carbon.identity.claim.metadata.mgt.stub.ClaimMetadataManagementServiceClaimMetadataException" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants" %>
 <%@ page import="org.apache.log4j.Logger"%>
+<%@ page import="org.wso2.carbon.user.mgt.ui.ClaimDataAdminException" %>
+
 <jsp:useBean id="userBean"
              type="org.wso2.carbon.user.mgt.ui.UserBean"
              class="org.wso2.carbon.user.mgt.ui.UserBean" scope="session"/>
@@ -152,7 +149,7 @@
                 return errorMessage;
             }
 
-            if (stringValue.indexOf("/") > -1) {
+            if (stringValue.indexOf("<%=UserAdminUIConstants.DOMAIN_SEPARATOR%>") > -1) {
                 errorMessage = "Domain";
                 return errorMessage;
             }
@@ -245,28 +242,18 @@
             } else {
                 <%
                 String pattern = "";
-                ClaimDataAdminClient claimDataAdminClient = new ClaimDataAdminClient((String)
+
+                if (isAskPasswordEnabled) {
+                    ClaimDataAdminClient claimDataAdminClient = new ClaimDataAdminClient((String)
                 session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE),
                 CarbonUIUtil.getServerURL(config.getServletContext(), session),
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT));
                 try {
-                    loop: for(LocalClaimDTO localClaim : claimDataAdminClient.getLocalClaims()){
-                        if (EMAIL_CLAIM.equals(localClaim.getLocalClaimURI())) {
-                            ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
-                            if (claimPropertyDTOs != null) {
-                                for (ClaimPropertyDTO claimPropertyDTO : claimPropertyDTOs){
-                                    if (ClaimConstants.REGULAR_EXPRESSION_PROPERTY.equals(claimPropertyDTO.getPropertyName())) {
-                                        pattern = claimPropertyDTO.getPropertyValue();
-                                        pattern = "/" + pattern + "/";
-                                        break loop;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    pattern = claimDataAdminClient.getRegex(EMAIL_CLAIM);
                 }
-                catch (ClaimMetadataManagementServiceClaimMetadataException e) {
+                catch (ClaimDataAdminException e) {
                     logger.error("Error while getting local claims", e);
+                }
                 }
                 %>
                 var emailPattern;

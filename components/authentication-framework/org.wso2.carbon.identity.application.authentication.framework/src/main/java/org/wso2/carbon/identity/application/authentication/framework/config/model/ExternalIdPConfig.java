@@ -57,16 +57,18 @@ public class ExternalIdPConfig implements Serializable {
         roleConfiguration = identityProvider.getPermissionAndRoleConfig();
         justInTimeProConfig = identityProvider.getJustInTimeProvisioningConfig();
 
-        RoleMapping[] mappings = roleConfiguration.getRoleMappings();
+        if(roleConfiguration != null) {
+            RoleMapping[] mappings = roleConfiguration.getRoleMappings();
 
-        if (mappings != null && mappings.length > 0) {
-            for (RoleMapping roleMapping : mappings) {
-                if (StringUtils.isNotEmpty(roleMapping.getLocalRole().getUserStoreId())) {
-                    this.roleMappings.put(roleMapping.getRemoteRole(), UserCoreUtil.addDomainToName(roleMapping
-                            .getLocalRole().getLocalRoleName(), roleMapping.getLocalRole().getUserStoreId()));
-                } else {
-                    this.roleMappings.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole()
-                            .getLocalRoleName());
+            if (mappings != null && mappings.length > 0) {
+                for (RoleMapping roleMapping : mappings) {
+                    if (StringUtils.isNotEmpty(roleMapping.getLocalRole().getUserStoreId())) {
+                        this.roleMappings.put(roleMapping.getRemoteRole(), UserCoreUtil
+                                .addDomainToName(roleMapping.getLocalRole().getLocalRoleName(),
+                                        roleMapping.getLocalRole().getUserStoreId()));
+                    } else {
+                        this.roleMappings.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole().getLocalRoleName());
+                    }
                 }
             }
         }
@@ -198,6 +200,42 @@ public class ExternalIdPConfig implements Serializable {
     public boolean isProvisioningEnabled() {
         if (justInTimeProConfig != null) {
             return justInTimeProConfig.isProvisioningEnabled();
+        }
+        return false;
+    }
+
+    /**
+     * To check whether password provisioning is enabled, while JIT provisioning.
+     *
+     * @return true if the password provisioning is enabled otherwise false.
+     */
+    public boolean isPasswordProvisioningEnabled() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isPasswordProvisioningEnabled();
+        }
+        return false;
+    }
+
+    /**
+     * To check whether modify user name is allowed, while JIT provisioning.
+     *
+     * @return true if modification of user name is allowed.
+     */
+    public boolean isModifyUserNameAllowed() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isModifyUserNameAllowed();
+        }
+        return false;
+    }
+
+    /**
+     * To check whether silent provisioning is enabled, while JIT provisioning.
+     *
+     * @return true if modification of user name is allowed.
+     */
+    public boolean isPromptConsentEnabled() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isPromptConsent();
         }
         return false;
     }

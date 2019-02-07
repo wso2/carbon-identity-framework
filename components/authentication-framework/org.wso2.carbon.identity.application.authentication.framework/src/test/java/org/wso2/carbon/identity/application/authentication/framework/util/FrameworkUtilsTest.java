@@ -21,7 +21,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,6 @@ import java.util.Map;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ConfigurationFacade.class})
 public class FrameworkUtilsTest {
@@ -37,11 +36,11 @@ public class FrameworkUtilsTest {
     @Mock
     ConfigurationFacade mockedConfigurationFacade;
 
-    private DefaultPostAuthenticationHandler testPostAuthenticationHandler;
+    private PostAuthnMissingClaimHandler testPostAuthenticationHandler;
 
     @BeforeTest
     public void setUp() {
-        testPostAuthenticationHandler = new DefaultPostAuthenticationHandler();
+        testPostAuthenticationHandler = new PostAuthnMissingClaimHandler();
     }
 
     private void setMockedConfigurationFacade() {
@@ -64,18 +63,41 @@ public class FrameworkUtilsTest {
         };
     }
 
-    @Test(dataProvider = "providePostAuthenticationData")
-    public void getPostAuthenticationHandler(Map<String, Object> configMap, boolean isMockedObjectReturned) {
+    @Test(dataProvider = "provideURLParamData")
+    public void testAppendQueryParamsToUrl(String url, Map<String, String> queryParamMap, String expectedOutput)
+            throws Exception {
 
-        setMockedConfigurationFacade();
+        String out = FrameworkUtils.appendQueryParamsToUrl(url, queryParamMap);
+        assertEquals(out, expectedOutput);
+    }
 
-        when(mockedConfigurationFacade.getExtensions()).thenReturn(configMap);
-        Object object = FrameworkUtils.getPostAuthenticationHandler();
-        if (isMockedObjectReturned) {
-            assertEquals(object, testPostAuthenticationHandler);
-        } else {
-            assertTrue(object instanceof DefaultPostAuthenticationHandler);
-        }
+    @DataProvider(name = "provideURLParamData")
+    public Object[][] provideURLParamData() {
+
+        String url1 = "https://www.example.com";
+        String url2 = "https://www.example.com?x=asd";
+
+        Map<String, String> queryParamMap1 = new HashMap<>();
+        queryParamMap1.put("a", "wer");
+        queryParamMap1.put("b", "dfg");
+        String queryParamString = "a=wer&b=dfg";
+
+        Map<String, String> queryParamMap2 = new HashMap<>();
+        queryParamMap2.put("a", "http://wso2.com");
+
+        Map<String, String> queryParamMap3 = new HashMap<>();
+
+        String expectedOutput1 = url1 + "?" + queryParamString;
+        String expectedOutput2 = url2 + "&" + queryParamString;
+        String expectedOutput3 = url1 + "?a=http%3A%2F%2Fwso2.com";
+
+        return new Object[][]{
+                {url1, queryParamMap1, expectedOutput1},
+                {url2, queryParamMap1, expectedOutput2},
+                {url1, queryParamMap2, expectedOutput3},
+                {url1, queryParamMap3, url1},
+                {url2, queryParamMap3, url2}
+        };
     }
 }
 

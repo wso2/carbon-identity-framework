@@ -27,14 +27,29 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "LocalAuthenticatorConfig")
 public class LocalAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = 3363298518257599291L;
 
+    @XmlElement(name = "Name")
     protected String name;
+
+    @XmlElement(name = "DisplayName")
     protected String displayName;
+
+    @XmlElement(name = "IsEnabled")
     protected boolean enabled;
+
+    @XmlElementWrapper(name="Properties")
+    @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
     /*

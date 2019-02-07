@@ -81,8 +81,28 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
+        public static final String PRE_ADD_NEW_PASSWORD = "PRE_ADD_NEW_PASSWORD";
+        public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
+        public static final String PRE_SEND_RECOVERY_NOTIFICATION = "PRE_SEND_RECOVERY_NOTIFICATION";
+        public static final String POST_SEND_RECOVERY_NOTIFICATION = "POST_SEND_RECOVERY_NOTIFICATION";
 
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
+        public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
+
+    }
+
+    /**
+     * Data Publishing Event Handler related constants triggered when a session is changed.
+     */
+    public enum EventName {
+
+        AUTHENTICATION_STEP_SUCCESS,
+        AUTHENTICATION_STEP_FAILURE,
+        AUTHENTICATION_SUCCESS,
+        AUTHENTICATION_FAILURE,
+        SESSION_CREATE,
+        SESSION_UPDATE,
+        SESSION_TERMINATE,
 
     }
 
@@ -117,7 +137,11 @@ public class IdentityEventConstants {
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
 
-
+        public static final String REQUEST = "request";
+        public static final String CONTEXT = "context";
+        public static final String SESSION_CONTEXT = "sessionContext";
+        public static final String PARAMS = "params";
+        public static final String AUTHENTICATION_STATUS = "authenticationStatus";
 
     }
 

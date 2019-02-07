@@ -78,6 +78,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
 
     private Map<String, List<String>> dummyBasicProperties;
     private Map<String, List<String>> dummyAdvProperties;
+    private Map<String, List<String>> dummyPropertiesWithAnIssuerQualifier;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -170,6 +171,17 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 ("recipient1", "recipient2"));
         dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX, Collections
                 .singletonList("attribConsumingSvcIndex"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_ENABLE_ECP, Collections
+                .singletonList("true"));
+        dummyAdvProperties.put(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, Collections
+                .singletonList("dummyIdPEntityAlias"));
+
+        dummyPropertiesWithAnIssuerQualifier = new HashMap<>();
+        dummyPropertiesWithAnIssuerQualifier.putAll(dummyBasicProperties);
+        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, Collections
+                .singletonList("DummyIssuer"));
+        dummyPropertiesWithAnIssuerQualifier.put(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER,
+                Collections.singletonList("DummyIssuerQualifier"));
     }
 
     @AfterMethod
@@ -181,7 +193,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         setUpResources();
         return new Object[][]{
                 {dummyBasicProperties},
-                {dummyAdvProperties}
+                {dummyAdvProperties},
+                {dummyPropertiesWithAnIssuerQualifier}
         };
     }
 
@@ -204,6 +217,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertEquals(serviceProviderDO.getLoginPageURL(), dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL)), "Login page url mismatch");
 
+        assertEquals(serviceProviderDO.getIssuerQualifier(), dummyResource.getProperty(IdentityRegistryResources.
+                PROP_SAML_SSO_ISSUER_QUALIFIER), "Issuer Qualifier Value Mismatch");
         String sigAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM);
         if (StringUtils.isBlank(sigAlg)) {
             sigAlg = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
@@ -216,6 +231,10 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertEquals(serviceProviderDO.getSupportedAssertionQueryRequestTypes(), dummyResource.getProperty(
                 (IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES)), "Query request " +
                 "type mismatch");
+
+        assertEquals(serviceProviderDO.isEnableSAML2ArtifactBinding(), Boolean.parseBoolean(dummyResource
+                        .getProperty((IdentityRegistryResources.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING))),
+                "SAML2 artifact binding enable mismatch");
 
         String digestAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM);
         if (StringUtils.isBlank(digestAlg)) {
@@ -254,6 +273,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 (IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION))), "Assertion encrypted mismatch");
         assertEquals(serviceProviderDO.isDoValidateSignatureInRequests(), Boolean.parseBoolean(dummyResource
                 .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS))));
+        assertEquals(serviceProviderDO.isDoValidateSignatureInArtifactResolve(), Boolean.parseBoolean(dummyResource
+                .getProperty((IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE))));
         assertEquals(serviceProviderDO.getNameIDFormat(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SSO_NAMEID_FORMAT), "Name id format Mismatch.");
         assertEquals(serviceProviderDO.getNameIdClaimUri(), dummyResource.getProperty(IdentityRegistryResources
@@ -262,6 +283,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 .PROP_SAML_SLO_RESPONSE_URL), "SLO response URL Mismatch.");
         assertEquals(serviceProviderDO.getSloRequestURL(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SLO_REQUEST_URL), "SLO req url Mismatch.");
+        assertEquals(serviceProviderDO.isSamlECP(), Boolean.parseBoolean(dummyResource.getProperty(IdentityRegistryResources
+                .PROP_SAML_ENABLE_ECP)), "ECP enabled mismatch");
 
         if (dummyResource.getPropertyValues
                 (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS) == null) {
@@ -304,6 +327,8 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         assertEquals(serviceProviderDO.getAttributeConsumingServiceIndex(), dummyResource.getProperty
                 (IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX), "Attrib consuming service " +
                 "index Mismatch.");
+        assertEquals(serviceProviderDO.getIdpEntityIDAlias(), dummyResource.getProperty(IdentityRegistryResources
+                .PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS), "IdP Entity ID Alias Mismatch.");
     }
 
     @Test(dataProvider = "ResourceToObjectData")
@@ -316,6 +341,11 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         String expectedPath = getPath(dummyResource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            expectedPath = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER)
+                    + IdentityRegistryResources.QUALIFIER_ID + dummyResource.getProperty(IdentityRegistryResources.
+                    PROP_SAML_SSO_ISSUER_QUALIFIER));
+        }
         objUnderTest.addServiceProvider(serviceProviderDO);
         verify(mockRegistry).put(captor.capture(), any(Resource.class));
         assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");

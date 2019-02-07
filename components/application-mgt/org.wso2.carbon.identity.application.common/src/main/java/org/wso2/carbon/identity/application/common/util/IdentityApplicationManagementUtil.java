@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.CertData;
+import org.wso2.carbon.identity.application.common.model.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -36,13 +37,11 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -60,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -67,6 +67,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.namespace.QName;
 
 public class IdentityApplicationManagementUtil {
 
@@ -82,6 +85,7 @@ public class IdentityApplicationManagementUtil {
     private static final Map<String, String> xmlKeyEncryptionAlgorithms;
     private static final Map<String, String> samlAuthnContextClasses;
     private static final List<String> samlAuthnContextComparisonLevels;
+    private static HashMap<CertData, String> certificalteValMap = new HashMap<>();
     
     static {
         //initialize xmlSignatureAlgorithms
@@ -417,7 +421,7 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             byte[] bytes = Base64.decode(encodedCert);
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
             X509Certificate cert = (X509Certificate) factory
                     .generateCertificate(new ByteArrayInputStream(bytes));
             return cert;
@@ -426,6 +430,29 @@ public class IdentityApplicationManagementUtil {
             log.debug(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }
+    }
+
+    /**
+     * extract one certificate from series of certificates.
+     * @param decodedCertificate                series of certificate value in readable format
+     * @param ordinal                           relating to the order of the certificate in a series of certificate values
+     * @return
+     */
+    public static String extractCertificate(String decodedCertificate, int ordinal) {
+
+        String certificateVal;
+        int numberOfCertificatesInCertificate = StringUtils.countMatches(decodedCertificate,
+                IdentityUtil.PEM_BEGIN_CERTFICATE);
+        if (ordinal == numberOfCertificatesInCertificate) {
+            certificateVal = decodedCertificate.substring(StringUtils.ordinalIndexOf(decodedCertificate
+                    , IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal));
+        } else {
+            certificateVal = decodedCertificate.substring(StringUtils.ordinalIndexOf(
+                    decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal),
+                    StringUtils.ordinalIndexOf(decodedCertificate,
+                            IdentityUtil.PEM_BEGIN_CERTFICATE, ordinal + 1));
+        }
+        return certificateVal;
     }
 
     /**
@@ -460,17 +487,63 @@ public class IdentityApplicationManagementUtil {
     public static CertData getCertData(String encodedCert) throws CertificateException {
 
         if (encodedCert != null) {
-            byte[] bytes = Base64.decode(encodedCert);
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) factory
-                    .generateCertificate(new ByteArrayInputStream(bytes));
-            Format formatter = new SimpleDateFormat("dd/MM/yyyy");
-            return fillCertData(cert, formatter);
+            return createCertData(encodedCert);
         } else {
             String errorMsg = "Invalid encoded certificate: \'NULL\'";
             log.debug(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }
+    }
+
+    /**
+     * Generate CertData array
+     *
+     * @param certificateInfo array of certificate info
+     * @return CertData array
+     * @throws CertificateException
+     */
+    public static List<CertData> getCertDataArray(CertificateInfo[] certificateInfo) throws CertificateException {
+
+        if (ArrayUtils.isNotEmpty(certificateInfo)) {
+            List<CertData> certDataList = new ArrayList<>();
+            HashMap<CertData, String> certDataMap = new HashMap<>();
+            int i = 0;
+            for (CertificateInfo certificateInfoVal : certificateInfo) {
+                String certVal = certificateInfoVal.getCertValue();
+                CertData certData = createCertData(certVal);
+                certDataList.add(certData);
+                certDataMap.put(certData, certVal);
+                i++;
+            }
+            setCertDataMap(certDataMap);
+            return certDataList;
+        } else {
+            String errorMsg = "Certificate info array is empty";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMsg);
+            }
+            throw new IllegalArgumentException(errorMsg);
+        }
+    }
+
+    private static CertData createCertData(String encodedCert) throws CertificateException {
+
+        byte[] bytes = Base64.decode(encodedCert);
+        CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
+        X509Certificate cert = (X509Certificate) factory
+                .generateCertificate(new ByteArrayInputStream(bytes));
+        Format formatter = new SimpleDateFormat(IdentityApplicationConstants.DATE_FORMAT);
+        return fillCertData(cert, formatter);
+    }
+
+    private static void setCertDataMap(HashMap<CertData, String> certDataMap) {
+
+        certificalteValMap = certDataMap;
+    }
+
+    public static HashMap<CertData, String> getCertDataMap() {
+
+        return certificalteValMap;
     }
 
     /**

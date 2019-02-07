@@ -25,17 +25,18 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.LocalRole;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.PermissionsAndRoleConfig;
@@ -43,24 +44,30 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.Property;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
+    public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
+
+    public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
     /**
      * Validates an URI.
@@ -112,6 +119,7 @@ public class IdPManagementUIUtil {
             Map<String, List<Property>> customAuthenticatorProperties = new HashMap<String, List<Property>>();
             Map<String, List<Property>> customProProperties = new HashMap<String, List<Property>>();
             String idpUUID = StringUtils.EMPTY;
+            StringBuilder deletedCertificateValue = new StringBuilder();
 
             for (Object item : items) {
                 DiskFileItem diskFileItem = (DiskFileItem) item;
@@ -132,6 +140,8 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
+                    } else if (key.startsWith(IdentityApplicationConstants.CERTIFICATE_VAL)) {
+                        deletedCertificateValue.append(new String(value));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -205,6 +215,8 @@ public class IdPManagementUIUtil {
                 }
             }
 
+            paramMap.put(IdentityApplicationConstants.CERTIFICATE_VAL, deletedCertificateValue.toString());
+
             IdentityProvider oldIdentityProvider = (IdentityProvider) request.getSession().getAttribute(idpUUID);
 
             if (oldIdentityProvider != null) {
@@ -215,7 +227,25 @@ public class IdPManagementUIUtil {
             }
 
             if (oldIdentityProvider != null && oldIdentityProvider.getCertificate() != null) {
-                paramMap.put("oldCertFile", oldIdentityProvider.getCertificate());
+                if (oldIdentityProvider.getCertificateInfoArray() != null && oldIdentityProvider.
+                        getCertificateInfoArray().length > 1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Number of old certificate for the identity provider " +
+                                oldIdentityProvider.getDisplayName() + " is " + oldIdentityProvider.
+                                getCertificateInfoArray().length);
+                    }
+                    StringBuilder multipleCertificate = new StringBuilder();
+                    for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
+                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
+                    }
+                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, Base64.encode(multipleCertificate.toString().
+                            getBytes(StandardCharsets.UTF_8)));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Only one certificate has been found as old certificate.");
+                    }
+                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, oldIdentityProvider.getCertificate());
+                }
             }
 
             if (oldIdentityProvider != null
@@ -283,7 +313,6 @@ public class IdPManagementUIUtil {
 
         return fedIdp;
     }
-
     /**
      * @param fedIdp
      * @param paramMap
@@ -943,8 +972,8 @@ public class IdPManagementUIUtil {
         fedIdp.setAlias(paramMap.get("tokenEndpointAlias"));
 
         // get the value of the old certificate - if this is an update.
-        if (paramMap.get("oldCertFile") != null) {
-            oldCertFile = paramMap.get("oldCertFile");
+        if (paramMap.get(IdentityApplicationConstants.OLD_CERT_FILE) != null) {
+            oldCertFile = paramMap.get(IdentityApplicationConstants.OLD_CERT_FILE);
         }
 
         // get the value of the uploaded certificate.
@@ -959,12 +988,75 @@ public class IdPManagementUIUtil {
 
         // if there is no new certificate and not a delete - use the old one.
         if (oldCertFile != null && certFile == null
-                && (deletePublicCert == null || ("false").equals(deletePublicCert))) {
+                && (!Boolean.parseBoolean(deletePublicCert))) {
             certFile = oldCertFile;
+        } else if (StringUtils.isNotBlank(oldCertFile) && StringUtils.isNotBlank(certFile)
+                && (!Boolean.parseBoolean(deletePublicCert))) {
+            // If there is a new certificate and not a delete - get the distinct union of the new certificate and old
+            // certificate and update it.
+            certFile = handleCertificateAddition(oldCertFile, certFile);
+        } else if (oldCertFile != null && certFile == null
+                && (Boolean.parseBoolean(deletePublicCert))) {
+            // if there is no new certificate and there is atleast one deletion then update the new value by removing the
+            // deleted values.
+            String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
+            certFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
+        } else if (oldCertFile != null && certFile != null
+                && (Boolean.parseBoolean(deletePublicCert))) {
+            String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
+            oldCertFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
+            certFile = handleCertificateAddition(oldCertFile, certFile);
         }
-
         // set public certificate of the identity provider.
         fedIdp.setCertificate(certFile);
+
+        // set jwks_uri of the identity provider.
+        String jwksUri = paramMap.get(JWKS_URI);
+        if (StringUtils.isNotBlank(jwksUri)) {
+            IdentityProviderProperty jwksProperty = new IdentityProviderProperty();
+            jwksProperty.setName(JWKS_URI);
+            jwksProperty.setValue(jwksUri);
+            jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
+            fedIdp.addIdpProperties(jwksProperty);
+        }
+    }
+
+    private static String handleCertificateDeletion(String oldCertificateValues, String deletedCertificateValues) {
+
+        String decodedOldCertificate = new String(Base64.decode(oldCertificateValues));
+        String decodedDeletedCertificate = new String(Base64.decode(deletedCertificateValues));
+
+        Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues(decodedOldCertificate));
+        updatedCertificateSet.removeAll(getExtractedCertificateValues(decodedDeletedCertificate));
+        return Base64.encode(String.join("", updatedCertificateSet).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String handleCertificateAddition(String oldCertValues, String newCertValues) {
+
+        String decodedOldCertificate = new String(Base64.decode(oldCertValues));
+        String decodedNewCertificate = new String(Base64.decode(newCertValues));
+
+        Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues
+                (decodedOldCertificate));
+
+        updatedCertificateSet.addAll(getExtractedCertificateValues(decodedNewCertificate));
+        return Base64.encode(String.join("", updatedCertificateSet).getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * get extracted certificate values from decodedCertificate
+     * @param decodedCertificate decoded series of certificate value.
+     * @return list of decoded certificate values.
+     */
+    private static List<String> getExtractedCertificateValues(String decodedCertificate) {
+
+        int numOfCertificates = StringUtils.countMatches(decodedCertificate, IdentityUtil.PEM_BEGIN_CERTFICATE);
+        List<String> extractedCertificateValues = new ArrayList<>();
+        for (int i = 1; i <= numOfCertificates; i++) {
+            extractedCertificateValues.add(IdentityApplicationManagementUtil.extractCertificate
+                    (decodedCertificate, i));
+        }
+        return extractedCertificateValues;
     }
 
     /**
@@ -1159,7 +1251,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[8];
+        Property[] properties = new Property[9];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1209,6 +1301,15 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
         properties[7] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+        if (paramMap.get("oidcBasicAuthEnabled") != null && "on".equals(paramMap.get("oidcBasicAuthEnabled"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties[8] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
@@ -1618,6 +1719,42 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+        property.setValue(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL));
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+        if ("on".equals(paramMap
+                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
         property.setName(IdPManagementUIUtil.META_DATA_SAML);
         if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             property.setValue(paramMap.get(IdPManagementUIUtil.META_DATA_SAML));
@@ -1730,14 +1867,38 @@ public class IdPManagementUIUtil {
     private static void buildInboundProvisioningConfiguration(IdentityProvider fedIdp,
                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
 
+        String modifyUserNamePassword = "prompt_username_password_consent";
+        String modifyPassword = "prompt_password_consent";
+        String doNotPrompt = "do_not_prompt";
+        String jitTypeGroup = "choose_jit_type_group";
         String provisioning = paramMap.get("provisioning");
         JustInTimeProvisioningConfig jitProvisioningConfiguration = new JustInTimeProvisioningConfig();
 
         if ("provision_disabled".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(false);
-        } else if ("provision_static".equals(provisioning)
-                || "provision_dynamic".equals(provisioning)) {
+            jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+            jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+            jitProvisioningConfiguration.setPromptConsent(false);
+        } else if ("provision_static".equals(provisioning) || "provision_dynamic".equals(provisioning)) {
             jitProvisioningConfiguration.setProvisioningEnabled(true);
+            if (modifyUserNamePassword.equals(paramMap.get(jitTypeGroup))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(true);
+                jitProvisioningConfiguration.setPromptConsent(true);
+            } else if (modifyPassword.equals(paramMap.get(jitTypeGroup))) {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(true);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+                jitProvisioningConfiguration.setPromptConsent(true);
+            } else {
+                jitProvisioningConfiguration.setPasswordProvisioningEnabled(false);
+                jitProvisioningConfiguration.setModifyUserNameAllowed(false);
+
+                if (doNotPrompt.equals(paramMap.get(jitTypeGroup))) {
+                    jitProvisioningConfiguration.setPromptConsent(false);
+                } else {
+                    jitProvisioningConfiguration.setPromptConsent(true);
+                }
+            }
         }
 
         jitProvisioningConfiguration.setProvisioningUserStore(paramMap
@@ -1751,7 +1912,6 @@ public class IdPManagementUIUtil {
         }
 
         fedIdp.setJustInTimeProvisioningConfig(jitProvisioningConfiguration);
-
     }
 
     /**

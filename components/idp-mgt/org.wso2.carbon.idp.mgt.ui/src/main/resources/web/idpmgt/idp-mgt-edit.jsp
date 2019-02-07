@@ -40,17 +40,22 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty" %>
+<%@ page
+        import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.Comparator" %>
 <%@page import="java.util.HashMap" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
-<%@ page
-        import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.CertificateInfo" %>
+<%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -66,7 +71,11 @@
     String idpDisplayName = null;
     String description = null;
     boolean federationHubIdp = false;
-    CertData certData = null;
+    CertData[] certDataArr = null;
+    CertificateInfo[] certInfoArr = new CertificateInfo[0];
+    HashMap<String, String> certificateWithRawIdMap = new HashMap<String, String>();
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
     Claim[] identityProviderClaims = null;
     String userIdClaimURI = null;
     String roleClaimURI = null;
@@ -76,6 +85,9 @@
     String idPAlias = null;
     boolean isProvisioningEnabled = false;
     boolean isCustomClaimEnabled = false;
+    boolean isPasswordProvisioningEnabled = false;
+    boolean isUserNameModificationAllowed = false;
+    boolean isPromptConsent = false;
 
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
@@ -111,6 +123,7 @@
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
     boolean isOIDCDefault = false;
+    boolean isOIDCBasicAuthEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -125,7 +138,7 @@
     boolean isPassiveSTSUserIdInClaims = false;
     boolean isEnablePassiveSTSAssertionSignatureValidation = true;
     boolean isEnablePassiveSTSAssertionAudienceValidation = true;
-    String[] userStoreDomains = null;
+    List<String> userStoreDomains = new ArrayList<String>();
     boolean isFBAuthEnabled = false;
     boolean isFBAuthDefault = false;
     String fbClientId = null;
@@ -192,6 +205,11 @@
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
 
+    boolean isArtifactBindingEnabled = false;
+    String artifactResolveUrl = "";
+    boolean isArtifactResolveReqSigned = false;
+    boolean isArtifactResponseSigned = false;
+
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
 
@@ -245,8 +263,29 @@
         idpDisplayName = identityProvider.getDisplayName();
         description = identityProvider.getIdentityProviderDescription();
         provisioningRole = identityProvider.getProvisioningRole();
-        if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
-            certData = IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+        if (ArrayUtils.isNotEmpty(identityProvider.getCertificateInfoArray()) && !("[]").equals(identityProvider
+                .getCertificateInfoArray())) {
+            certInfoArr = new CertificateInfo[identityProvider.getCertificateInfoArray().length];
+            int i = 0;
+            for (org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo certificateInfo :
+                    identityProvider.getCertificateInfoArray()) {
+                CertificateInfo certificateInformation = new CertificateInfo();
+                certificateInformation.setCertValue(certificateInfo.getCertValue());
+                certificateInformation.setThumbPrint(certificateInfo.getThumbPrint());
+                certInfoArr[i] = certificateInformation;
+                i++;
+            }
+            certDataArr = IdentityApplicationManagementUtil.getCertDataArray(certInfoArr).toArray(
+                    new CertData[identityProvider.getCertificateInfoArray().length]);
+        }
+        IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+        if (idpProperties != null) {
+            for (IdentityProviderProperty idpProperty : idpProperties) {
+                if (IdPManagementUIUtil.JWKS_URI.equals(idpProperty.getName())) {
+                    hasJWKSUri = true;
+                    jwksUri = idpProperty.getValue();
+                }
+            }
         }
 
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
@@ -429,6 +468,12 @@
                         oidcQueryParam = queryParamProp.getValue();
                     }
 
+                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
+                    if (basicAuthEnabledProp != null) {
+                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                    }
+
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                     isSamlssoAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
@@ -560,6 +605,30 @@
                         attributeConsumingServiceIndex = attributeConsumingServiceIndexProp.getValue();
                     }
 
+                    Property artifactBindingEnableProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+                    if (artifactBindingEnableProp != null) {
+                        isArtifactBindingEnabled = Boolean.parseBoolean(artifactBindingEnableProp.getValue());
+                    }
+
+                    Property artifactResolveUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+                    if (artifactResolveUrlProp != null) {
+                        artifactResolveUrl = artifactResolveUrlProp.getValue();
+                    }
+
+                    Property artifactResolveReqSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+                    if (artifactResolveReqSignedProp != null) {
+                        isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
+                    }
+
+                    Property artifactResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+                    if (artifactResponseSignedProp != null) {
+                        isArtifactResponseSigned = Boolean.parseBoolean(artifactResponseSignedProp.getValue());
+                    }
+
                     Property requestMethodProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD);
                     if (requestMethodProp != null) {
@@ -615,6 +684,10 @@
         idPAlias = identityProvider.getAlias();
         isProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig().getProvisioningEnabled();
         provisioningUserStoreId = identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore();
+        isPasswordProvisioningEnabled =
+                identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
+        isUserNameModificationAllowed = identityProvider.getJustInTimeProvisioningConfig().getModifyUserNameAllowed();
+        isPromptConsent = identityProvider.getJustInTimeProvisioningConfig().getPromptConsent();
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
@@ -752,30 +825,31 @@
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
                     if (googleProperty != null) {
+                        String googlePropertyValue = googleProperty.getValue();
                         if ("google_prov_domain_name".equals(googleProperty.getName())) {
-                            googleDomainName = googleProperty.getValue();
+                            googleDomainName = googlePropertyValue;
                         } else if ("google_prov_givenname".equals(googleProperty.getName())) {
-                            googleGivenNameDefaultValue = googleProperty.getValue();
+                            googleGivenNameDefaultValue = googlePropertyValue;
                         } else if ("google_prov_familyname".equals(googleProperty.getName())) {
-                            googleFamilyNameDefaultValue = googleProperty.getValue();
+                            googleFamilyNameDefaultValue = googlePropertyValue;
                         } else if ("google_prov_service_acc_email".equals(googleProperty.getName())) {
-                            googleProvServiceAccEmail = googleProperty.getValue();
+                            googleProvServiceAccEmail = googlePropertyValue;
                         } else if ("google_prov_admin_email".equals(googleProperty.getName())) {
-                            googleProvAdminEmail = googleProperty.getValue();
+                            googleProvAdminEmail = googlePropertyValue;
                         } else if ("google_prov_application_name".equals(googleProperty.getName())) {
-                            googleProvApplicationName = googleProperty.getValue();
+                            googleProvApplicationName = googlePropertyValue;
                         } else if ("google_prov_email_claim_dropdown".equals(googleProperty.getName())) {
-                            googlePrimaryEmailClaim = googleProperty.getValue();
+                            googlePrimaryEmailClaim = googlePropertyValue;
                         } else if ("google_prov_givenname_claim_dropdown".equals(googleProperty.getName())) {
-                            googleGivenNameClaim = googleProperty.getValue();
+                            googleGivenNameClaim = googlePropertyValue;
                         } else if ("google_prov_familyname_claim_dropdown".equals(googleProperty.getName())) {
-                            googleFamilyNameClaim = googleProperty.getValue();
+                            googleFamilyNameClaim = googlePropertyValue;
                         } else if ("google_prov_private_key".equals(googleProperty.getName())) {
-                            googleProvPrivateKeyData = googleProperty.getValue();
+                            googleProvPrivateKeyData = googlePropertyValue;
                         } else if ("google_prov_pattern".equals(googleProperty.getName())) {
-                            googleProvPattern = googleProperty.getValue();
+                            googleProvPattern = googlePropertyValue;
                         } else if ("google_prov_separator".equals(googleProperty.getName())) {
-                            googleProvisioningSeparator = googleProperty.getValue();
+                            googleProvisioningSeparator = googlePropertyValue;
                         }
                     }
                 }
@@ -826,6 +900,10 @@
         realmId = "";
     }
 
+    if (jwksUri == null) {
+        jwksUri = "";
+    }
+
     if (idpDisplayName == null) {
         idpDisplayName = "";
     }
@@ -857,8 +935,8 @@
     } else if (isProvisioningEnabled && provisioningUserStoreId == null) {
         provisionStaticDropdownDisabled = "disabled=\'disabled\'";
     }
-
-    userStoreDomains = client.getUserStoreDomains();
+    userStoreDomains.addAll(Arrays.asList(client.getUserStoreDomains()));
+    userStoreDomains.add(IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT);
 
     claimUris = client.getAllLocalClaimUris();
 
@@ -991,12 +1069,12 @@
     }
 
     String signAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String digestAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned) {
+    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
@@ -1068,6 +1146,11 @@
 
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
+    }
+
+    String oidcBasicAuthEnabledChecked = "";
+    if (isOIDCBasicAuthEnabled) {
+        oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
 
     String passiveSTSEnabledChecked = "";
@@ -1247,6 +1330,31 @@
         }
     }
 
+    if (artifactResolveUrl == null) {
+        artifactResolveUrl = "";
+    }
+
+    String isArtifactBindingEnabledChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactBindingEnabled) {
+            isArtifactBindingEnabledChecked = "checked=\'checked\'";
+        }
+    }
+
+    String isArtifactResolveReqSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResolveReqSigned) {
+            isArtifactResolveReqSignedChecked = "checked=\'checked\'";
+        }
+    }
+
+    String isArtifactResponseSignedChecked = "";
+    if (identityProvider != null) {
+        if (isArtifactResponseSigned) {
+            isArtifactResponseSignedChecked = "checked=\'checked\'";
+        }
+    }
+
     // If SCIM Provisioning has not been Configured at all,
     // make password provisioning enable by default.
     // Since scimUserName is a required field,
@@ -1294,6 +1402,17 @@
     advancedClaimMappinRowID = <%=claimMappings.length-1%>;
     <% } %>
 
+    function disableArtifactBinding(chkbx) {
+        if ($(chkbx).is(':checked')) {
+            $("#artifactResolveUrl").prop('disabled', false);
+            $("#artifactResolveReqSigned").prop('disabled', false);
+            $("#artifactResponseSigned").prop('disabled', false);
+        } else {
+            $("#artifactResolveUrl").prop('disabled', true);
+            $("#artifactResolveReqSigned").prop('disabled', true);
+            $("#artifactResponseSigned").prop('disabled', true);
+        }
+    }
 
     var claimURIDropdownPopulator = function () {
         var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
@@ -1312,32 +1431,32 @@
         $idpClaimsList2.empty();
 
 
-        if ('<%=userIdClaimURI%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(userIdClaimURI)%>' == '') {
             $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=roleClaimURI%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(roleClaimURI)%>' == '') {
             $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
 
-        if ('<%=googlePrimaryEmailClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>' == '') {
             $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=googleFamilyNameClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>' == '') {
             $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=googleGivenNameClaim%>' == '') {
+        if ('<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>' == '') {
             $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
@@ -1346,32 +1465,32 @@
         $idpClaimsList2.append('<option value = "" >--- Select Claim URI ---</option>');
 
         jQuery('#claimAddTable .claimrow').each(function () {
-            if ($(this).val().trim() != "") {
-                var val = htmlEncode($(this).val());
-                if (val == '<%=userIdClaimURI%>') {
+            var val = htmlEncode($(this).val());
+            if (val.trim() != "") {
+                if (val == '<%=Encode.forJavaScriptBlock(userIdClaimURI)%>') {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $user_id_claim_dropdown.append('<option>' + val + '</option>');
                 }
-                if (val == '<%=roleClaimURI%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(roleClaimURI)%>') {
                     $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $role_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googlePrimaryEmailClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>') {
                     $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googleFamilyNameClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>') {
                     $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=googleGivenNameClaim%>') {
+                if (val == '<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>') {
                     $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
@@ -1404,9 +1523,9 @@
             <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
-            user_id_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            user_id_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            user_id_option += '<option value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -1415,7 +1534,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googlePrimaryEmailClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googlePrimaryEmailClaim))){  %>
             google_prov_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -1427,7 +1546,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googleFamilyNameClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleFamilyNameClaim))){  %>
             google_prov_family_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_family_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -1439,7 +1558,7 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(googleGivenNameClaim)){  %>
+           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleGivenNameClaim))){  %>
             google_prov_givenname_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
             <% 	 } else {  %>
             google_prov_givenname_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
@@ -1593,14 +1712,26 @@
             jQuery(this).next().slideToggle("fast");
             return false; //Prevent the browser jump to the link anchor
         })
-        jQuery('#publicCertDeleteLink').click(function () {
-            $(jQuery('#publicCertDiv')).toggle();
-            var input = document.createElement('input');
-            input.type = "hidden";
-            input.name = "deletePublicCert";
-            input.id = "deletePublicCert";
-            input.value = "true";
-            document.forms['idp-mgt-edit-form'].appendChild(input);
+        jQuery('.publicCertDeleteLinkClass').click(function () {
+            $(this).closest('tr').remove();
+            if ($('#certTableData tbody tr').length == 0) {
+                jQuery('#certTableData').hide();
+            }
+            if (!jQuery('#deletePublicCert').length) {
+
+                var inputForDelete = document.createElement('input');
+                inputForDelete.type = "hidden";
+                inputForDelete.name = "deletePublicCert";
+                inputForDelete.id = "deletePublicCert";
+                inputForDelete.value = "true";
+                document.forms['idp-mgt-edit-form'].appendChild(inputForDelete);
+            }
+            var inputForCertificateVal = document.createElement('input');
+            inputForCertificateVal.type = "hidden";
+            inputForCertificateVal.name = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.id = "certificateVal" + $(this).closest('tr').attr('incrementor');
+            inputForCertificateVal.value = $(this).attr('data-certno');
+            document.forms['idp-mgt-edit-form'].appendChild(inputForCertificateVal);
         })
         jQuery('#claimAddLink').click(function () {
 
@@ -1649,6 +1780,42 @@
         });
     })
 
+    function selectJWKS(certDataNotNull) {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'table-row';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'none';
+
+        // delete certificates if jwks_uri is selected.
+        if (jQuery('#certFile').val() != '') {
+            jQuery('#certFile').val('');
+        } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('true');
+        } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+            $(jQuery('#publicCertDiv')).toggle();
+            var publicCertDiv = document.getElementById('publicCertDiv').style;
+            publicCertDiv.display = 'none';
+            jQuery( '#publicCertDiv').empty();
+
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        }
+    }
+
+    function selectCertificate() {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'none';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'table-row';
+        if (jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('false');
+        }
+        $('#jwksUri').val("");
+    }
 
     function idpMgtUpdate() {
         document.getElementById("meta_data_saml").value = "";
@@ -3028,10 +3195,15 @@
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
+        <% if ( idPName != null && idPName != "") { %>
+        <h2>
+            <fmt:message key = 'identity.provider'/>
+        </h2>
+        <% } else { %>
         <h2>
             <fmt:message key='add.identity.provider'/>
         </h2>
-
+        <% } %>
         <div id="workArea">
             <form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post"
                   action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
@@ -3084,14 +3256,14 @@
 
                         <tr>
                             <td class="leftCol-med labelField">
-                                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
+                                <label for="federationHub"><fmt:message key='federation.hub.identity.provider'/></label>
                             </td>
                             <td>
                                 <div class="sectionCheckbox">
                                     <input type="checkbox" id="federation_hub_idp"
                                            name="federation_hub_idp" <%=federationHubIdp ? "checked" : "" %>>
                                     <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='federation.hub.identity.proider.help'/>
+                                    <fmt:message key='federation.hub.identity.provider.help'/>
                                 </span>
                                 </div>
                             </td>
@@ -3110,6 +3282,27 @@
                             </td>
                         </tr>
                         <tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='select_idp_certificate_type'/>:</td>
+                            <td>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                                           value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && ArrayUtils
+                                           .isEmpty(certDataArr))) { %>
+                                           checked="checked" <% } %>
+                                           onclick="selectJWKS('<%=(ArrayUtils.isNotEmpty(certDataArr))%>');" />
+                                    Use IDP JWKS endpoint
+                                </label>
+                                <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                            <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> checked="checked" <% } %>
+                                           value="choose_upload_certificate"
+                                           onclick="selectCertificate()" />
+                                    Upload IDP certificate
+                                </label>
+                            </td>
+                        </tr>
+                        <tr id="upload_certificate" <% if (ArrayUtils.isEmpty(certDataArr)) { %> style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3117,14 +3310,12 @@
                                 <div class="sectionHelp">
                                     <fmt:message key='certificate.help'/>
                                 </div>
-                                <div id="publicCertDiv">
-                                    <% if (certData != null) { %>
-                                    <a id="publicCertDeleteLink" class="icon-link"
-                                       style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
-                                            key='public.cert.delete'/></a>
 
+                                    <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
+                                
+                                <div class="publicCertDiv">
                                     <div style="clear:both"></div>
-                                    <table class="styledLeft">
+                                    <table class="styledLeft" id="certTableData">
                                         <thead>
                                         <tr>
                                             <th><fmt:message key='issuerdn'/></th>
@@ -3133,10 +3324,18 @@
                                             <th><fmt:message key='notbefore'/></th>
                                             <th><fmt:message key='serialno'/></th>
                                             <th><fmt:message key='version'/></th>
+                                            <th><fmt:message key='actions'/></th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
+                                        <%
+                                            HashMap<CertData, String> certDataHashMap = IdentityApplicationManagementUtil.
+                                                    getCertDataMap();
+                                            int i = 0;
+                                            for (CertData certData : certDataArr) {
+                                                String certificate = certDataHashMap.get(certData);
+                                        %>
+                                        <tr class="publicCertRowClass<%=i%>" incrementor="<%=i%>">
                                             <td><%
                                                 String issuerDN = "";
                                                 if (certData.getIssuerDN() != null) {
@@ -3174,14 +3373,34 @@
                                             </td>
                                             <td><%=certData.getVersion()%>
                                             </td>
+                                            <td>
+                                                <a id="publicCertDeleteLink" data-certno="<%=certificate%>"
+                                                   class="icon-link publicCertDeleteLinkClass"
+                                                   style="margin-left:0;background-image:url(images/delete.gif);">Delete</a>
+                                            </td>
+                                            <%
+                                                    i++;
+                                                }
+                                            %>
                                         </tr>
                                         </tbody>
                                     </table>
-                                    <% } %>
+                                </div>
+                                <%
+                                    } %>
+                            </td>
+                        </tr>
+                        <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> style="display:none" <% } %>>
+                            <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
+                            <td>
+                                <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                       autofocus/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='jwks.uri.help'/>
                                 </div>
                             </td>
                         </tr>
-
 
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='resident.idp.alias'/>:</td>
@@ -3509,9 +3728,22 @@
                                                    value="<%=Encode.forHtmlAttribute(roleMappings[i].getRemoteRole())%>"
                                                    id="rolerowname_<%=i%>"
                                                    name="rolerowname_<%=i%>"/></td>
-                                        <td><input type="text"
-                                                   value="<%=UserCoreUtil.addDomainToName(roleMappings[i].getLocalRole().getLocalRoleName(), roleMappings[i].getLocalRole().getUserStoreId())%>"
-                                                   id="localrowname_<%=i%>" name="localrowname_<%=i%>"/></td>
+                                        <td>
+                                            <%
+                                                String userStore = roleMappings[i].getLocalRole().getUserStoreId();
+                                                String roleName = roleMappings[i].getLocalRole().getLocalRoleName();
+                                                if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStore) ||
+                                                        "Application".equalsIgnoreCase(userStore) ||
+                                                        "Workflow".equalsIgnoreCase(userStore)) {
+                                                    roleName = userStore + CarbonConstants.DOMAIN_SEPARATOR + roleName;
+                                                } else {
+                                                    roleName = UserCoreUtil.addDomainToName(roleName, userStore);
+                                                }
+                                            %>
+                                            <input type="text"
+                                                   value="<%=Encode.forHtmlAttribute(roleName)%>"
+                                                   id="localrowname_<%=i%>" name="localrowname_<%=i%>"/>
+                                        </td>
                                         <td>
                                             <a title="<fmt:message key='delete.role'/>"
                                                onclick="deleteRoleRow(this);return false;"
@@ -3856,7 +4088,8 @@
                                 <tr>
                                     <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                                     <td>
-                                        <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
+                                        <input id="logoutUrl" name="logoutUrl" type="text"
+                                               value="<%=Encode.forHtmlAttribute(logoutUrl) %>"/>
 
                                         <div class="sectionHelp">
                                             <fmt:message key='logout.url.help'/>
@@ -3889,6 +4122,77 @@
                                                    type="checkbox" <%=authnResponseSignedChecked%>/>
                                             <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.response.signed.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Enable Artifact Binding -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableArtifactBinding"><fmt:message
+                                                key='attr.artifact.binding.enable'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="enableArtifactBinding" name="ISArtifactBindingEnabled"
+                                                   onclick="disableArtifactBinding(this);"
+                                                   type="checkbox" <%=isArtifactBindingEnabledChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.binding.enable.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Artifact Resolve Url -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"><fmt:message key='attr.artifact.resolve.url'/>:</td>
+                                    <td>
+                                        <input id="artifactResolveUrl" name="ArtifactResolveUrl" class="text-box-big" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>
+                                        type="text" value=<%=Encode.forHtml(artifactResolveUrl)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='attr.artifact.resolve.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                 <!-- Enable Artifact Resolve Request Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResolveReqSignedLabel"><fmt:message
+                                                key='attr.artifact.resolve.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResolveReqSigned" name="ISArtifactResolveReqSigned"
+                                                   type="checkbox" <%=isArtifactResolveReqSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.resolve.sign.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Enable Artifact Response Signing -->
+
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <label for="artifactResponseSignedLabel"><fmt:message
+                                                key='attr.artifact.response.sign'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="artifactResponseSigned" name="ISArtifactResponseSigned"
+                                                   type="checkbox" <%=isArtifactResponseSignedChecked%>
+                                                   class="sectionCheckbox" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='attr.artifact.response.sign.help'/>
                                 </span>
                                         </div>
                                     </td>
@@ -4449,6 +4753,18 @@
                                     </div>
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.basicauth'/>:</td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="oidcBasicAuthEnabled" name="oidcBasicAuthEnabled"
+                                               type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.basicauth.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
                         </table>
                     </div>
 
@@ -4851,7 +5167,7 @@
                                         <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                type="password" autocomplete="off"
-                                               value="<%=prop.getValue()%>"
+                                               value="<%=Encode.forHtmlAttribute(prop.getValue())%>"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
                                               style=" float: right; padding-right: 5px;">
@@ -4882,7 +5198,7 @@
                                     <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            type="text"
-                                           value="<%=prop.getValue()%>"/>
+                                           value="<%=Encode.forHtmlAttribute(prop.getValue())%>"/>
                                     <% } else { %>
                                     <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
@@ -4941,7 +5257,7 @@
                                     <select id="provision_static_dropdown"
                                             name="provision_static_dropdown" <%=provisionStaticDropdownDisabled%>>
                                         <%
-                                            if (userStoreDomains != null && userStoreDomains.length > 0) {
+                                            if (userStoreDomains != null && userStoreDomains.size() > 0) {
                                                 for (String userStoreDomain : userStoreDomains) {
                                                     if (provisioningUserStoreId != null && userStoreDomain.equals(provisioningUserStoreId)) {
                                         %>
@@ -4957,12 +5273,53 @@
                                                 }
                                             }
                                         %>
+
                                     </select>
 
                                 </div>
 
                                 <div class="sectionHelp">
                                     <fmt:message key='provisioning.enabled.help'/>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="prompt_username_password_consent"
+                                               name="choose_jit_type_group"
+                                               value="prompt_username_password_consent" <% if (isPasswordProvisioningEnabled
+                                                && isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.username.password.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id=prompt_password_consent" name="choose_jit_type_group"
+                                               value="prompt_password_consent"  <% if (isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.password.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="prompt_consent" name="choose_jit_type_group"
+                                               value="prompt_consent"  <% if (!isPasswordProvisioningEnabled &&
+                                                !isUserNameModificationAllowed && isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.prompt.consent'/>
+                                    </label>
+                                </div>
+                                <div style="padding-left: 40px; !important">
+                                    <label style="display:block">
+                                        <input type="radio" id="do_not_prompt" name="choose_jit_type_group"
+                                               value="do_not_prompt"  <% if (!isPromptConsent) { %>
+                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                                <%}%>/>
+                                        <fmt:message key='jit.provision.silently'/>
+                                    </label>
                                 </div>
                             </td>
                         </tr>
@@ -5124,7 +5481,7 @@
                                 </td>
                                 <td><span><input id="google_prov_private_key"
                                                  name="google_prov_private_key" type="file"/>
-									<% if (googleProvPrivateKeyData != null) { %>
+									<% if (Encode.forJavaScriptBlock(googleProvPrivateKeyData) != null) { %>
                                          <img src="images/key.png" alt="key" width="14" height="14"
                                               style=" padding-right: 5px; "><label>Private Key attached</label>
 									<% } %></span>
@@ -5313,7 +5670,7 @@
                                     <fmt:message key='scim.default.password'/>:
                                 </td>
                                 <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
-                                           name="scim-default-pwd" type="text" value=<%=scimDefaultPwd%>></td>
+                                           name="scim-default-pwd" type="text" value=<%=Encode.forHtmlAttribute(scimDefaultPwd)%>></td>
                                 <%if (scimUniqueID != null) {%>
                                 <input type="hidden" id="scim-unique-id" name="scim-unique-id"
                                        value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>

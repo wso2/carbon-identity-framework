@@ -23,15 +23,30 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "ClaimMapping")
 public class ClaimMapping implements Serializable {
 
     private static final long serialVersionUID = -5329129991600888989L;
 
+    @XmlElement(name = "LocalClaim")
     private Claim localClaim;
+
+    @XmlElement(name = "RemoteClaim")
     private Claim remoteClaim;
+
+    @XmlElement(name = "DefaultValue")
     private String defaultValue;
+
+    @XmlElement(name = "RequestClaim")
     private boolean requested;
+
+    @XmlElement(name = "MandatoryClaim")
     private boolean isMandatory;
 
     /**

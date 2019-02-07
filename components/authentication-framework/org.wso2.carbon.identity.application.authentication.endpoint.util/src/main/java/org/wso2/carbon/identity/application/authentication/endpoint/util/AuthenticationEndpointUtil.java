@@ -18,17 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.ResourceBundle;
-import org.owasp.encoder.Encode;
-import org.apache.axiom.om.util.Base64;
 
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
@@ -112,7 +111,7 @@ public class AuthenticationEndpointUtil {
             return null;
         }
 
-        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
+        String userStoreDomain = extractDomainFromName(userName);
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
         String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
                 .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
@@ -125,6 +124,19 @@ public class AuthenticationEndpointUtil {
         return user;
     }
 
+    /**
+     * This method will extract the userstore domain from the username
+     * @param nameWithDomain username (ex: Secondary/alex)
+     * @return user-store-domain (ex: Secondary) or null if domain is not present in the username
+     */
+    public static String extractDomainFromName(String nameWithDomain) {
+        if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
+            String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
+            return domain.toUpperCase();
+        } else {
+            return null;
+        }
+    }
     /**
      * To get the property value for the given key from the ResourceBundle
      * Retrieve the value of property entry for key, return key if a value is not found for key
@@ -161,6 +173,24 @@ public class AuthenticationEndpointUtil {
             // Intentionally catching Exception and if something goes wrong while finding the value for key, return
             // default, not to break the UI
             return Encode.forHtml(key);
+        }
+    }
+
+    /**
+     * Read the value for the key from resources.properties. If there are no matching key call i18nBase64(), which
+     * was the previous implementation.
+     *
+     * @param resourceBundle Resource bundle
+     * @param key            key
+     * @return value of the key
+     */
+    public static String customi18n(ResourceBundle resourceBundle, String key) {
+
+        try {
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(key)) ?
+                    resourceBundle.getString(key) : key));
+        } catch (Exception e) {
+            return i18nBase64(resourceBundle, key);
         }
     }
 }

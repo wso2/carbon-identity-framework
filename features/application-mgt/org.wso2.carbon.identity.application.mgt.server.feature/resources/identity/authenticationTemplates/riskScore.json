@@ -1,0 +1,61 @@
+{
+  "category": "analytics_based",
+  "name": "Risk-Based",
+  "title": "Risk-Based 2FA Template",
+  "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
+  "preRequisites": [
+    "Change the siddhiApplication and siddhiInputStream according to the Siddhi application you have deployed in the Stream Processor.",
+    "Modify the default authentication steps and option(s) as required."
+  ],
+  "parametersDescription": {
+    "siddhiApplication" : "Name of the Siddhi application in the Stream processor",
+    "siddhiInputStream" : "Name of the input stream in the above Siddhi application"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Risk-Based+Adaptive+Authentication",
+  "code": [
+    "// Define conditional authentication by risk score value calculated from analytics engine.",
+    "",
+    "// Specify the Siddhi application name.",
+    "var siddhiApplication = 'RiskBasedLogin';",
+    "// Specify the Siddhi input stream name.",
+    "var siddhiInputStream = 'InputStream';",
+    "",
+    "function onLoginRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            var username = context.currentKnownSubject.username;",
+    "            callAnalytics({'Application':siddhiApplication,'InputStream':siddhiInputStream}, {'username':username}, {",
+    "                onSuccess : function(context, data) {",
+    "                    Log.info('--------------- Received risk score value: ' + data.event.riskScore);",
+    "                    if (data.event.riskScore > 0) {",
+    "                        executeStep(2);",
+    "                    }",
+    "                }, onFail : function(context, data) {",
+    "                    Log.info('--------------- Failed to call analytics engine');",
+    "                    executeStep(2);",
+    "                }",
+    "            });",
+    "        }",
+    "    });",
+    "}"
+  ]
+}

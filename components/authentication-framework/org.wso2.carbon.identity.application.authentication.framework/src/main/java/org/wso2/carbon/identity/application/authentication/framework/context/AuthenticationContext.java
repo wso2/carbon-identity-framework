@@ -18,17 +18,22 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +42,7 @@ import java.util.Map;
  */
 public class AuthenticationContext extends MessageContext implements Serializable {
 
-    private static final long serialVersionUID = 6438291349985653301L;
+    private static final long serialVersionUID = 6438291349985653402L;
 
     private String contextIdentifier;
     private String sessionIdentifier;
@@ -49,15 +54,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean isLogoutRequest;
     private int currentStep;
     private SequenceConfig sequenceConfig;
-    private HttpServletRequest currentRequest;
     private ExternalIdPConfig externalIdP;
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
-    private Map<String, String> authenticatorProperties = new HashMap<String, String>();
+    private int currentPostAuthHandlerIndex = 0;
+    private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
+    private Map<String, Serializable> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
     private boolean reAuthenticate;
@@ -65,8 +71,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean previousAuthTime;
     private AuthenticationRequest authenticationRequest;
 
-    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
-    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
+    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<>();
+    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<>();
+
+    // Authentication context thread status flag.
+    private volatile boolean activeInAThread;
 
     //flow controller flags
     private boolean requestAuthenticated = true;
@@ -74,16 +83,27 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean retrying;
     private boolean previousSessionFound;
 
-    //subject should be set by each authenticator
+    //Adaptive Authentication control and status
+    private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
+    private List<String> requestedAcr;
+    private AcrRule acrRule = AcrRule.EXACT;
+    private String selectedAcr;
+
+    /** The user/subject known at the latest authentication step */
+    private AuthenticatedUser lastAuthenticatedUser;
+
+    /** subject should be set by each authenticator */
     private AuthenticatedUser subject;
 
     /* Holds any (state) information that would be required by the authenticator
      * for later processing.
-	 * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
-	 * Each authenticator should have an internal DTO that extends the
-	 * AuthenticatorStateInfoDTO and set all the required state info in it.
-	 */
+     * E.g. sessionIndex for SAMLSSOAuthenticator in SLO.
+     * Each authenticator should have an internal DTO that extends the
+     * AuthenticatorStateInfoDTO and set all the required state info in it.
+     */
     private AuthenticatorStateInfo stateInfo;
+
+    private List<String> executedPostAuthHandlers = new ArrayList<>();
 
     public String getCallerPath() {
         return callerPath;
@@ -151,6 +171,9 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
+        if(subject != null) {
+            lastAuthenticatedUser = subject;
+        }
     }
 
     public String getContextIdentifier() {
@@ -159,14 +182,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setContextIdentifier(String contextIdentifier) {
         this.contextIdentifier = contextIdentifier;
-    }
-
-    public HttpServletRequest getCurrentRequest() {
-        return currentRequest;
-    }
-
-    public void setCurrentRequest(HttpServletRequest currentRequest) {
-        this.currentRequest = currentRequest;
     }
 
     public boolean isRequestAuthenticated() {
@@ -203,6 +218,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setProperty(String key, Object value) {
         parameters.put(key, value);
+    }
+
+    public void removeProperty(String key) {
+        parameters.remove(key);
     }
 
     public Object getProperty(String key) {
@@ -360,5 +379,177 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setPreviousAuthTime(boolean previousAuthTime) {
         this.previousAuthTime = previousAuthTime;
+    }
+
+    public void addAuthenticationStepHistory(AuthHistory history) {
+        authenticationStepHistory.add(history);
+    }
+
+    public List<AuthHistory> getAuthenticationStepHistory() {
+        return Collections.unmodifiableList(authenticationStepHistory);
+    }
+
+    public AcrRule getAcrRule() {
+        return acrRule;
+    }
+
+    public void setAcrRule(AcrRule acrRule) {
+        this.acrRule = acrRule;
+    }
+
+    public String getSelectedAcr() {
+        return selectedAcr;
+    }
+
+    public void setSelectedAcr(String selectedAcr) {
+        this.selectedAcr = selectedAcr;
+    }
+
+    public List<String> getRequestedAcr() {
+        if (requestedAcr == null) {
+            return Collections.EMPTY_LIST;
+        }
+        return Collections.unmodifiableList(requestedAcr);
+    }
+
+    public void addRequestedAcr(String acr) {
+        if (requestedAcr == null) {
+            requestedAcr = new ArrayList<>();
+        }
+        requestedAcr.add(acr);
+    }
+
+    /**
+     * Returns the Authenticated user who is known as at the moment.
+     * Use this to get the user details for any multi-factor authenticator which depends on previously known subject.
+     *
+     * @return AuthenticatedUser which is assigned to the context last. Null if no previous step could find a user.
+     */
+    public AuthenticatedUser getLastAuthenticatedUser() {
+        return lastAuthenticatedUser;
+    }
+
+    /**
+     * Returns current post authentication handler index which is in execution.
+     *
+     * @return Post handler index which is currently in execution.
+     */
+    public int getCurrentPostAuthHandlerIndex() {
+
+        return currentPostAuthHandlerIndex;
+    }
+
+    /**
+     * List of post authentication handlers already executed.
+     * @return List of post authentication handlers already executed.
+     */
+    public List<String> getExecutedPostAuthHandlers() {
+
+        return executedPostAuthHandlers;
+    }
+
+    /**
+     * Sets a post authentication handler.
+     * @param postAuthHandler Post Authentication Handler.
+     */
+    public void setExecutedPostAuthHandler(String postAuthHandler) {
+
+        this.executedPostAuthHandlers.add(postAuthHandler);
+        currentPostAuthHandlerIndex++;
+    }
+
+    /**
+     * Add authentication params to the message context parameters Map.
+     *
+     * @param authenticatorParams Map of authenticator and params.
+     */
+    public void addAuthenticatorParams(Map<String, Map<String, String>> authenticatorParams) {
+
+        if (MapUtils.isEmpty(authenticatorParams)) {
+            return;
+        }
+        Object runtimeParamsObj = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (runtimeParamsObj == null) {
+            addParameter(FrameworkConstants.RUNTIME_PARAMS, authenticatorParams);
+            return;
+        }
+        if (runtimeParamsObj instanceof Map) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) runtimeParamsObj;
+            for (Map.Entry<String, Map<String, String>> params : authenticatorParams.entrySet()) {
+                if (runtimeParams.get(params.getKey()) != null) {
+                    runtimeParams.get(params.getKey()).putAll(params.getValue());
+                } else {
+                    runtimeParams.put(params.getKey(), params.getValue());
+                }
+            }
+        } else {
+            throw IdentityRuntimeException.error("There is already a object set with RUNTIME_PARAMS key in the " +
+                    "message context.");
+        }
+    }
+
+    /**
+     * Get parameter map for a specific authenticator
+     *
+     * @param authenticatorName Authenticator name
+     * @return Parameter map
+     */
+    public Map<String, String> getAuthenticatorParams(String authenticatorName) {
+
+        Object parameter = getParameter(FrameworkConstants.RUNTIME_PARAMS);
+        if (parameters != null && (parameter instanceof Map)) {
+            Map<String, Map<String, String>> runtimeParams = (Map<String, Map<String, String>>) parameter;
+            Map<String, String> authenticatorParams = runtimeParams.get(authenticatorName);
+            if (MapUtils.isNotEmpty(authenticatorParams)) {
+                return authenticatorParams;
+            }
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Add an API parameter to the context. This can be used to pass sensitive values to the endpoints, without
+     * sending them as query parameters.
+     * @param key parameter key
+     * @param value parameter value
+     */
+    public void addEndpointParam(String key, Serializable value) {
+
+        endpointParams.put(key, value);
+    }
+
+    /**
+     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters at once.
+     * @param params Map of parameters to add
+     */
+    public void addEndpointParams(Map<String, Serializable> params) {
+
+        endpointParams.putAll(params);
+    }
+
+    /**
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)} for more details.
+     * @return
+     */
+    public Map<String, Serializable> getEndpointParams() {
+
+        return endpointParams;
+    }
+
+    /**
+     * Checks whether this context is in use in a active flow.
+     * @return True if this context is being used by an active thread.
+     */
+    public boolean isActiveInAThread() {
+        return activeInAThread;
+    }
+
+    /**
+     * This flag is used to mark when this authentication context is used by an active thread. This is to prevent same
+     * context is used by two different threads at the same time.
+     * @param activeInAThread True when this context started to being used by a thread.
+     */
+    public void setActiveInAThread(boolean activeInAThread) {
+        this.activeInAThread = activeInAThread;
     }
 }

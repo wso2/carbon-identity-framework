@@ -1,0 +1,70 @@
+{
+  "category": "request_based",
+  "name": "ACR-Based",
+  "title": "ACR-Based 2FA Template",
+  "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",
+  "preRequisites": [
+    "Change the supportedAcrValues parameter to an array of ACR Levels.",
+    "Modify the default authentication steps and option(s) as required."
+  ],
+  "parametersDescription": {
+    "supportedAcrValues": "An array of ACRs ordered by the level"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator",
+    "Step 3": "FIDO authenticator"
+  },
+  "authenticationSteps":3,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    },
+    "3": {
+      "local": [
+        "FIDOAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+ACR-Based+Adaptive+Authentication",
+  "code": [
+    "// Define conditional authentication by passing one or many Authentication Context Class References ",
+    "// as comma separated values.",
+    "",
+    "// Specify the ordered list of ACR here.",
+    "var supportedAcrValues = ['acr1', 'acr2', 'acr3'];",
+    "",
+    "function onLoginRequest(context) {",
+    "    var selectedAcr = selectAcrFrom(context, supportedAcrValues);",
+    "    Log.info('--------------- ACR selected: ' + selectedAcr);",
+    "    context.selectedAcr = selectedAcr;",
+    "    switch (selectedAcr) {",
+    "        case supportedAcrValues[0] :",
+    "            executeStep(1);",
+    "            break;",
+    "        case supportedAcrValues[1] :",
+    "            executeStep(1);",
+    "            executeStep(2);",
+    "            break;",
+    "        case supportedAcrValues[2] :",
+    "            executeStep(1);",
+    "            executeStep(3);",
+    "            break;",
+    "        default :",
+    "            executeStep(1);",
+    "            executeStep(2);",
+    "            executeStep(3);",
+    "    }",
+    "}"
+  ]
+}

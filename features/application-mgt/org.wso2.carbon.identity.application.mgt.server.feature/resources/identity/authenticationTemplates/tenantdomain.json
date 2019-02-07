@@ -1,0 +1,55 @@
+{
+  "category": "user_based",
+  "name": "Tenant-Based",
+  "title": "Tenant-Based Authentication Template",
+  "summary": "Prompts 2FA to the users who are from one of the given tenants.",
+  "preRequisites": [
+    "Service provider should be registered as a SAAS Application.",
+    "Change the tenantsToStepUp parameter to an array of tenant domains that should require 2FA.",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "tenantsToStepUp": "An array of tenants of which users are required to use 2FA"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Tenant-Based+Adaptive+Authentication",
+  "code": [
+    "// This script will prompt 2FA to the app only for a selected",
+    "// set of tenants.",
+    "// The app is assumed to be a SAAS app here which can be accessed by any tenant",
+    "",
+    "// If the user is in one of the following tenants, user will be prompted 2FA",
+    "var tenantsToStepUp = ['abc.com', 'xyz.com'];",
+    "",
+    "function onLoginRequest(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting tenant domain of authenticated subject from the first step",
+    "            var userTenantDomain = context.currentKnownSubject.tenantDomain;",
+    "            // Checking if the user is from whitelisted tenant domain",
+    "            if (tenantsToStepUp.indexOf(userTenantDomain) >= 0) {",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "}"
+  ]
+}

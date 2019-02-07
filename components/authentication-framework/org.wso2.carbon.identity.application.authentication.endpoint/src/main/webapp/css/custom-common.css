@@ -84,7 +84,7 @@ footer a, footer a:hover {
 }
 .wr-login {
     padding-top: 50px;
-
+    padding-bottom: 50px;
 }
 
 .wr-login input[type=text], .wr-login input[type=password]{
@@ -141,6 +141,7 @@ img.idp-image {
 .margin-right {margin-right:10px;}
 .margin-top {margin-top:10px;}
 .margin-bottom {margin-bottom:10px;}
+.margin-bottom-half {margin-bottom:5px;}
 .margin{margin:10px;}
 .margin-none{margin: 0px !important;}
 
@@ -161,4 +162,116 @@ img.idp-image {
 .form-group.required .control-label:after {
     content:" *";
     color:red;
+}
+span.required{
+    color: red;
+    vertical-align: middle;
+}
+span.mandatory{
+    color: red;
+    vertical-align: middle;
+    font-size: 12px;
+}
+span.mandatory-msg{
+    color: red;
+}
+.select-all .checkbox{
+    padding: 10px;
+}
+.claim-list{
+    max-height: 225px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.claim-list .checkbox{
+    background: #d9edf7;;
+    padding: 4px 10px;
+    margin-bottom: 2px;
+}
+
+
+.claim-list .checkbox label{
+    display: block;
+}
+
+.border-top{
+    border-top: 1px solid #d8d8d8;
+}
+.padding-bottom-100{
+    padding-bottom: 100px;
+}
+.padding-10{
+    padding: 10px;
+}
+.margin-bottom-3{
+    margin-bottom: 3px;
+}
+.table-of-contents {
+    margin-top: 50px;
+    background: #eeeeee;
+    border: 1px solid #d8d8d8;
+    padding: 1em 2em;
+}
+.table-of-contents ul {
+    padding: 0;
+}
+.table-of-contents li {
+    margin: 0 0 0.25em 0;
+}
+.table-of-contents li.sub{
+    text-indent: 20px;
+    list-style-type: circle;
+    list-style-position: inside;
+}
+.table-of-contents a {
+    text-decoration: none;
+}
+.table-of-contents a:hover,
+.table-of-contents a:active {
+    text-decoration: underline;
+}
+
+h2:target {
+    animation: highlight 2s ease;
+}
+
+@keyframes highlight {
+    from { background: #eeffa0; }
+    to { background: #fff; }
+}
+
+.border-blue{
+    border:1px solid #bce8f1;
+}
+.border-gray{
+    border:1px solid #e1e1e1;
+}
+.claim-alert p{
+    margin: 0;
+}
+.claim-alert{
+    padding: 10px;
+    color: #666666;
+    border-bottom: 1px solid #d8d8d8;
+    font-size: 13px;
+}
+input[type=reset].btn, .btn-primary + .btn{
+    border: 1px solid #dadada;
+    background: #f7f7f7;
+}
+
+.section-heading-5{
+    color: #bdbdbd;
+    margin-bottom: 5px;
+}
+.scopes-list{
+    margin: 0;
+    padding-left: 30px;
+}
+.scope-approval-container{
+    border-top: 1px solid #d8d8d8;
+}
+.scope-approval-container .radio{
+    padding: 4px 10px;
+    margin-bottom: 2px;
 }

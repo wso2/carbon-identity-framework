@@ -160,6 +160,20 @@ public class ClaimMetadataUtils {
         externalClaimDTO.setExternalClaimDialectURI(externalClaim.getClaimDialectURI());
         externalClaimDTO.setExternalClaimURI(externalClaim.getClaimURI());
         externalClaimDTO.setMappedLocalClaimURI(externalClaim.getMappedLocalClaim());
+
+        // Convert Map<String, String> to ClaimPropertyDTO[]
+        Map<String, String> claimProperties = externalClaim.getClaimProperties();
+        ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[claimProperties.size()];
+
+        int j = 0;
+        for (Map.Entry<String, String> claimPropertyEntry : claimProperties.entrySet()) {
+            ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
+            claimProperty.setPropertyName(claimPropertyEntry.getKey());
+            claimProperty.setPropertyValue(claimPropertyEntry.getValue());
+            claimPropertyDTOs[j] = claimProperty;
+            j++;
+        }
+        externalClaimDTO.setClaimProperties(claimPropertyDTOs);
         return externalClaimDTO;
     }
 
@@ -180,6 +194,17 @@ public class ClaimMetadataUtils {
         ExternalClaim externalClaim = new ExternalClaim(externalClaimDTO.getExternalClaimDialectURI(), externalClaimDTO
                 .getExternalClaimURI(), externalClaimDTO.getMappedLocalClaimURI());
 
+        // Convert ClaimPropertyDTO[] to Map<String, String>
+        if (externalClaimDTO.getClaimProperties() != null) {
+
+            Map<String, String> claimProperties = new HashMap<>();
+
+            for (ClaimPropertyDTO claimPropertyDTO : externalClaimDTO.getClaimProperties()) {
+                claimProperties.put(claimPropertyDTO.getPropertyName(), claimPropertyDTO.getPropertyValue());
+            }
+
+            externalClaim.setClaimProperties(claimProperties);
+        }
         return externalClaim;
     }
 

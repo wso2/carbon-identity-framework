@@ -625,6 +625,15 @@ public class EntitlementUtil {
     }
 
     /**
+     * This will return all the properties of entitlement.properties config
+     * @return Properties of config
+     */
+    public static Properties getPropertiesFromEntitlementConfig() {
+
+        return EntitlementServiceComponent.getEntitlementConfig().getEngineProperties();
+    }
+
+    /**
      * * This method provides a secured document builder which will secure XXE attacks.
      *
      * @param setIgnoreComments whether to set setIgnoringComments in DocumentBuilderFactory.

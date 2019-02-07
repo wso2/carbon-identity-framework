@@ -72,6 +72,9 @@ public class AuthenticatedUser extends User {
             this.userAttributes.putAll(authenticatedUser.getUserAttributes());
         }
         this.isFederatedUser = authenticatedUser.isFederatedUser();
+        if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
+            updateCaseSensitivity();
+        }
     }
 
     /**
@@ -180,7 +183,8 @@ public class AuthenticatedUser extends User {
             if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
                 authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
             }
-            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain)) {
+            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
+                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier)) {
                 authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
                         tenantDomain);
             }

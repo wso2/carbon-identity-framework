@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -54,12 +56,11 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
-    private ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+    private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
 
-    ClaimConfig claimConfig;
-    int tenantId;
+    private int tenantId;
 
     public static DefaultClaimMetadataStore getInstance(int tenantId) {
         ClaimConfig claimConfig = new ClaimConfig();
@@ -91,18 +92,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
         if (claimConfig.getClaimMap() != null) {
 
-            // Adding local claims
-            String primaryDomainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
-            UserRealm realm;
-            try {
-                realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
-                        .getTenantUserRealm(tenantId);
-                primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-                        (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-            } catch (UserStoreException e) {
-                log.error("Error while retrieving primary userstore domain name", e);
-            }
-
+            // Get the primary domain name
+            String primaryDomainName = IdentityUtil.getPrimaryDomainName();
 
             // Adding external dialects and claims
             Set<String> claimDialectList = new HashSet<>();
@@ -131,36 +122,13 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         }
                     }
 
-                    Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
-                    claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
-                    claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
-                    claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
-
-                    if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
-                        claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
-                        }
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
-                        }
-                    }
-
-                    if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
-                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
-                            claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
-                        }
-                    }
-
-                    LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
+                    LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes,
+                            fillClaimProperties(claimConfig, claimKey));
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
                         localClaimDAO.addLocalClaim(localClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding local claim " + claimURI, e);
@@ -196,9 +164,13 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
                     String mappedLocalClaimURI = claimConfig.getPropertyHolderMap().get(claimKey).get(ClaimConstants
                             .MAPPED_LOCAL_CLAIM_PROPERTY);
-                    ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
+                    ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI,
+                            fillClaimProperties(claimConfig, claimKey));
 
                     try {
+                        // As this is at the initial server startup or tenant creation time, no need go through the
+                        // caching layer. Going through the caching layer add overhead for bulk claim add.
+                        ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
                         externalClaimDAO.addExternalClaim(externalClaim, tenantId);
                     } catch (ClaimMetadataException e) {
                         log.error("Error while adding external claim " + claimURI + " to dialect " + claimDialectURI,
@@ -209,6 +181,36 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
         }
 
+    }
+
+    private Map<String, String> fillClaimProperties(ClaimConfig claimConfig, ClaimKey claimKey) {
+        Map<String, String> claimProperties = claimConfig.getPropertyHolderMap().get(claimKey);
+        claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
+        claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
+        claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
+
+        if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+            claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
+                claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+            }
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
+                claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
+            }
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
+                claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
+            }
+        }
+        return claimProperties;
     }
 
     @Override
