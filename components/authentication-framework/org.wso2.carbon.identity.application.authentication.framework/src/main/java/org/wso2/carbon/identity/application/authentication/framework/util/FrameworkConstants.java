@@ -123,6 +123,9 @@ public abstract class FrameworkConstants {
     public static final String AUTH_MECHANISM = "AuthMechanism";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
+    public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
+            "FederatedIDPRoleClaimValueAttributeSeparator";
+
     private FrameworkConstants() {
 
     }

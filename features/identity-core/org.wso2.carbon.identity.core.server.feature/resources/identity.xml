@@ -1025,4 +1025,7 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+    <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
+    <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
+
 </Server>
