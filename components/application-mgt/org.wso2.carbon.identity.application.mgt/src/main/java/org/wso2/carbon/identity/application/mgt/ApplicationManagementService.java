@@ -348,5 +348,21 @@ public abstract class ApplicationManagementService {
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Delete an OAuth application.
+     *
+     * @param clientID of the OAuth application
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void deleteOAuthApplication(String clientID) throws IdentityApplicationManagementException;
+
+    /**
+     * Read the default service provider from the service provider file configuration
+     *
+     * @return the default service provider
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract ServiceProvider getDefaultServiceProvider() throws IdentityApplicationManagementException;
+
 }
 
