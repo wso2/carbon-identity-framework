@@ -629,6 +629,7 @@
             <OTP>false</OTP>
             <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
+        <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </Recovery>
 
     <EmailVerification>
@@ -654,6 +655,7 @@
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
+	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
     <!--
