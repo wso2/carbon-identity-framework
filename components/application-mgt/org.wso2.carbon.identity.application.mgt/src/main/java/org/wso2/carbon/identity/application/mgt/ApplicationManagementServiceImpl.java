@@ -1240,19 +1240,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void deleteOAuthApplication(String clientID) throws IdentityApplicationManagementException {
-
-        OAuthApplicationDAO oathDAO = ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
-        oathDAO.removeOAuthApplication(clientID);
-    }
-
-    @Override
     public ServiceProvider getDefaultServiceProvider() throws IdentityApplicationManagementException {
 
         return ApplicationManagementServiceComponent.getFileBasedSPs().get(IdentityApplicationConstants
                 .DEFAULT_SP_CONFIG);
     }
-
 
     /**
      * Add SP template to database and cache.
