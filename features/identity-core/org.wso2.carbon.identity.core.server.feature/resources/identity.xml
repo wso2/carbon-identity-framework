@@ -1025,4 +1025,11 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+    <!--This configuration is used for X509 Certificate based authentication. -->
+    <!--<X509>-->
+        <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
+        provides the facility to configure HTTP request header name which is configured at LB.  -->
+        <!--<X509RequestHeaderName>X-SSL-CERT</X509RequestHeaderName>-->
+    <!--</X509>-->
+
 </Server>
