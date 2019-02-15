@@ -629,6 +629,7 @@
             <OTP>false</OTP>
             <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
+        <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </Recovery>
 
     <EmailVerification>
@@ -654,6 +655,7 @@
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
+	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
     <!--
@@ -1024,5 +1026,17 @@
             <Context>scim2</Context>
         </ExemptContext>
     </IntermediateCertValidation>
+
+
+    <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
+    <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
+
+    <!--This configuration is used for X509 Certificate based authentication. -->
+    <!--<X509>-->
+        <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
+        provides the facility to configure HTTP request header name which is configured at LB.  -->
+        <!--<X509RequestHeaderName>X-SSL-CERT</X509RequestHeaderName>-->
+    <!--</X509>-->
+
 
 </Server>
