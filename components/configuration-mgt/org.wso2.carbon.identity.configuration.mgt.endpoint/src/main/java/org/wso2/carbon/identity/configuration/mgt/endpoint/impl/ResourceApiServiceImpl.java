@@ -22,11 +22,9 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
-import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourcesDTO;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,10 +34,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getOperationNotSupportedDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourcesDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleServerErrorResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleUnexpectedServerError;
@@ -47,47 +43,6 @@ import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.Configura
 public class ResourceApiServiceImpl extends ResourceApiService {
 
     private static final Log LOG = LogFactory.getLog(ResourceApiServiceImpl.class);
-
-    @Override
-    public Response resourceGet() {
-
-        try {
-            Resources resources = getConfigurationManager().getResources();
-            ResourcesDTO resourcesDTO = getResourcesDTO(resources);
-            return Response.ok().entity(resourcesDTO).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
-    public Response resourceResourceTypeResourceTypeNameGet(String resourceTypeName) {
-
-        try {
-            Resources resources = getConfigurationManager().getResourcesByType(resourceTypeName);
-            return Response.ok().entity(getResourcesDTO(resources)).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
-    public Response resourceResourceTypePatch(String resourceType, ResourceAddDTO resourceAddDTO) {
-
-        try {
-            return Response.ok().entity(getOperationNotSupportedDTO()).build();
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
 
     @Override
     public Response resourceResourceTypePost(String resourceType, ResourceAddDTO resourceAddDTO) {
@@ -178,17 +133,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
             return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
-    public Response resourceResourceTypeResourceNamePatch(
-            String resourceName, String resourceType, AttributeDTO attributeDTO) {
-
-        try {
-            return Response.ok().entity(getOperationNotSupportedDTO()).build();
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }

@@ -8,9 +8,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -19,6 +23,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -35,6 +40,7 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3_UPDATED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME;
@@ -207,6 +213,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Resource resourceCreated = configurationManager.addResource(resourceType.getName(), resourceAdd);
         Resource resourceReplaced = configurationManager.replaceResource(resourceType.getName(), resourceAdd);
 
+        Assert.assertNotEquals("Created time should be different from the last updated time",
+                resourceReplaced.getCreatedTime(),resourceReplaced.getLastModified());
         Assert.assertEquals("Existing id should be equal to the replaced id", resourceCreated.getResourceId(),
                 resourceReplaced.getResourceId());
     }
@@ -388,6 +396,20 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Assert.assertTrue(isSearchConditionMatch(resources));
     }
 
+    @Test(priority = 27)
+    public void testSearchMultiTenantResourcesWithoutCreatedTime() throws Exception {
+
+        ConfigurationManagerComponentDataHolder.setUseCreatedTime(false);
+        removeCreatedTimeColumn();
+        testSearchMultiTenantResources();
+    }
+
+    private void removeCreatedTimeColumn() throws DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        jdbcTemplate.executeUpdate(REMOVE_CREATED_TIME_COLUMN_H2);
+    }
+
     private void mockIdentityTenantUtilForTheTest() {
 
         mockStatic(IdentityTenantUtil.class);
@@ -415,11 +437,12 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         return true;
     }
 
-    private void prepareConfigs() {
+    private void prepareConfigs() throws ConfigurationManagementException {
 
         // Mock get maximum query length call.
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
+        ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
         ConfigurationManagerConfigurationHolder configurationHolder =
                 new ConfigurationManagerConfigurationHolder();
         ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();

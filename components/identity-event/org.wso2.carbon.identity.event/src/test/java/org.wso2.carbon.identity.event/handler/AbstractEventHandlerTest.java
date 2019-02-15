@@ -84,6 +84,7 @@ public class AbstractEventHandlerTest extends IdentityBaseTest {
         IdentityEventMessageContext messageContext = new IdentityEventMessageContext(event);
 
         TestEventHandler testEventHandler = new TestEventHandler();
+        testEventHandler.init(moduleConfiguration);
         boolean canHandle = testEventHandler.canHandle(messageContext);
         Assert.assertFalse(canHandle);
 
@@ -97,6 +98,7 @@ public class AbstractEventHandlerTest extends IdentityBaseTest {
 
         subscriptionList.add(new Subscription("eventName", new Properties()));
         TestEventHandler testEventHandler = new TestEventHandler();
+        testEventHandler.init(moduleConfiguration);
         boolean isAssociationAsync = testEventHandler.isAssociationAsync("unknownEvent");
 
         Assert.assertFalse(isAssociationAsync);
