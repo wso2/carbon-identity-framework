@@ -327,7 +327,7 @@ paths:
       parameters:
         - name: resource-type
           in: path
-          description:  This represents the type of the resource that is to be added/replaced and can either be the resource-type name or ID.
+          description:  This represents the type of resource that is to be added/replaced.
           required: true
           type: 'string'
         - name: resource
@@ -376,7 +376,7 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description:  This represents the type of resource that is to be added and can either be the resource-type name or ID.
+          description:  This represents the type of resource that is to be added.
           required: true
           type: 'string'
       responses:
@@ -417,7 +417,7 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description:  This represents the type of resource that is to be added and can either be the resource-type name or ID.
+          description:  This represents the type of resource that is to be added.
           required: true
           type: 'string'
       responses:
@@ -461,7 +461,7 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description:  This represents the type of attribute that is to be added and can either be the resource-type name or ID.
+          description:  This represents the type of attribute that is to be added.
           required: true
           type: 'string'
         - name: attribute
@@ -515,7 +515,7 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description:  This represents the type of attribute that is to be added or replaced and can either be the resource-type name or ID.
+          description:  This represents the type of attribute that is to be added or replaced.
           required: true
           type: 'string'
         - name: attribute
@@ -563,12 +563,12 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description: This represents the type of attribute that is to be retrieved and can either be the resource-type name or ID.
+          description: This represents the type of attribute that is to be retrieved. 
           required: true
           type: 'string'
         - name: attribute-key
           in: path
-          description: This represents a unique identifier of the attribute that is to be retrieved.
+          description: This represents a key of the attribute that is to be retrieved.
           required: true
           type: 'string'
       responses:
@@ -609,12 +609,12 @@ paths:
           type: 'string'
         - name: resource-type
           in: path
-          description:  This represents the type of attribute that is to be revoked and can either be the resource-type name or ID.
+          description:  This represents the type of attribute that is to be revoked.
           required: true
           type: 'string'
         - name: attribute-key
           in: path
-          description:  This represents a unique identifier of the attribute that is to be revokeda.
+          description:  This represents a key of the attribute that is to be revoked.
           required: true
           type: 'string'
       responses:
