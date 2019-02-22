@@ -83,8 +83,8 @@ public class CallBackValidator {
         String callbackRegex = null;
         if (idpProperties != null) {
             for (IdentityProviderProperty property : idpProperties) {
-                if (property.getName().equals(IdentityManagementEndpointConstants.UserInfoRecovery
-                        .RECOVERY_CALLBACK_REGEX)) {
+                if (IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_CALLBACK_REGEX.equals(property
+                        .getValue())) {
                     callbackRegex = property.getValue();
                     if (log.isDebugEnabled()) {
                         log.debug("Configured recovery callback URL regex: " + callbackRegex);
