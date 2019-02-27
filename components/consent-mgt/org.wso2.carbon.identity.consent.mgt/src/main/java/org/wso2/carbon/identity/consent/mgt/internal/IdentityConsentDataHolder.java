@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.consent.mgt.internal;
 
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 
 /**
@@ -28,6 +29,7 @@ public class IdentityConsentDataHolder {
 
     private static IdentityConsentDataHolder instance = new IdentityConsentDataHolder();
     private ConsentManager consentManager = null;
+    private PrivilegedConsentManager privilegedConsentManager = null;
     private SSOConsentService ssoConsentService = null;
 
     private IdentityConsentDataHolder() {
@@ -61,6 +63,16 @@ public class IdentityConsentDataHolder {
     public void setConsentManager(ConsentManager consentManager) {
 
         this.consentManager = consentManager;
+    }
+
+    public PrivilegedConsentManager getPrivilegedConsentManager() {
+
+        return privilegedConsentManager;
+    }
+
+    public void setPrivilegedConsentManager(PrivilegedConsentManager privilegedConsentManager) {
+
+        this.privilegedConsentManager = privilegedConsentManager;
     }
 
     /**

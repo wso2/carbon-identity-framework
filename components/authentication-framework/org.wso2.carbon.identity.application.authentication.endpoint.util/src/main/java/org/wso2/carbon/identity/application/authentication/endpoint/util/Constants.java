@@ -81,6 +81,7 @@ public class Constants {
         public static final String KEY_MANAGER_TYPE = "key.manager.type";
         public static final String TRUST_MANAGER_TYPE = "trust.manager.type";
         public static final String TENANT_LIST_ENABLED = "tenantListEnabled";
+        public static final String MUTUAL_SSL_MANAGER_ENABLED = "mutualSSLManagerEnabled";
         public static final String TLS_PROTOCOL = "tls.protocol";
 
         // Service URL constants

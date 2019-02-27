@@ -28,6 +28,8 @@ import javax.servlet.http.HttpSession;
 public class ApplicationMgtUIUtil {
 
     private static final String SP_UNIQUE_ID_MAP = "spUniqueIdMap";
+    public static final String JWKS_URI = "jwksURI";
+    public static final String JWKS_DISPLAYNAME = "JWKS Endpoint";
 
     /**
      * Get related application bean from the session.
