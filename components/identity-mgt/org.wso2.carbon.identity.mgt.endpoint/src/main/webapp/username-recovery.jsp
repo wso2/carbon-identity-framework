@@ -208,8 +208,7 @@
                             <%}%>
 
                             <%
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
+                                String callback = request.getParameter("callback");
 
                                 if (StringUtils.isBlank(callback)) {
                                     callback = IdentityManagementEndpointUtil.getUserPortalUrl(
