@@ -49,6 +49,7 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Claims : { %s }";
     private static final String CONFIG_CHANGE_LOG_CLAIMS = "LoggableUserClaims.LoggableUserClaim";
     private String[] loggableClaimURIs;
+    private static final String DEFAULT = "default";
 
     @Override
     public int getExecutionOrderId() {
@@ -121,7 +122,7 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
 
         try {
             Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
-                    userStoreManager.getAllProfileNames()[0]);
+                    DEFAULT);
             if (MapUtils.isNotEmpty(loggableClaims)) {
                 audit.info(String.format(AUDIT_MESSAGE, getUser(), action, userName, formatClaims(loggableClaims)));
             } else {
