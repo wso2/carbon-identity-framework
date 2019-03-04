@@ -130,7 +130,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 if (roles != null && !roles.isEmpty()) {
                     // Update user
-                    Collection<String> currentRolesList = Arrays.asList(userStoreManager
+                    List<String> currentRolesList = Arrays.asList(userStoreManager
                                                                                 .getRoleListOfUser(username));
                     // addingRoles = (newRoles AND existingRoles) - currentRolesList)
                     addingRoles.removeAll(currentRolesList);
@@ -142,6 +142,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                     // Exclude Internal/everyonerole from deleting role since its cannot be deleted
                     deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+
+                    // Remove all internal roles from deleting list
+                    deletingRoles.removeAll(extractInternalRoles(currentRolesList));
 
                     // TODO : Does it need to check this?
                     // Check for case whether superadmin login
@@ -394,5 +397,25 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
 
         return updatedRoles;
+    }
+
+    /**
+     * Extract all internal roles from a list of provided roles
+     *
+     * @param allRoles list of roles to filter from
+     * @return internal role list
+     */
+    private List<String> extractInternalRoles(List<String> allRoles) {
+        List<String> internalRoles = new ArrayList<>();
+
+        for (String role : allRoles) {
+            if (StringUtils.contains(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
+                    || StringUtils.contains(role, UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
+                    || StringUtils.contains(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                internalRoles.add(role);
+            }
+        }
+
+        return internalRoles;
     }
 }
