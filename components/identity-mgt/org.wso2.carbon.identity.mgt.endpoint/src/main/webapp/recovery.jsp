@@ -44,10 +44,16 @@
     String confirmationKey = request.getParameter("confirmationKey");
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter("tenantDomain");
+    boolean isUserPortalURL = false;
 
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
+
+    if (callback.equals(IdentityManagementEndpointUtil.getUserPortalUrl(application
+            .getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))) {
+        isUserPortalURL = true;
     }
 
     // Password recovery parameters
@@ -98,6 +104,8 @@
     
             usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null, requestHeaders);
             request.setAttribute("callback", callback);
+            request.setAttribute("tenantDomain", tenantDomain);
+            request.setAttribute("isUserPortalURL", isUserPortalURL);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } catch (ApiException e) {
             if (e.getCode() == 204) {

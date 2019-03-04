@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig" %>
@@ -137,6 +138,24 @@
     StringBuilder spTemplateNames = new StringBuilder();
     boolean isNeedToUpdate = false;
     boolean isAdvanceConsentManagementEnabled = false;
+
+    //adding code to support jwks URI
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
+
+    ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+    if (spProperties != null) {
+        for (ServiceProviderProperty spProperty : spProperties) {
+            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
+                hasJWKSUri = true;
+                jwksUri = spProperty.getValue();
+            }
+        }
+    }
+
+    if (jwksUri == null) {
+        jwksUri = "";
+    }
 
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
@@ -1205,6 +1224,41 @@
         }
     }
 
+    function selectJWKS(certDataNotNull) {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'table-row';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'none';
+        // delete certificates if jwks_uri is selected.
+        if (jQuery('#sp-certificate').val() != '') {
+            jQuery('#sp-certificate').val('');
+        } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('true');
+        } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+            $(jQuery('#publicCertDiv')).toggle();
+            var publicCertDiv = document.getElementById('publicCertDiv').style;
+            publicCertDiv.display = 'none';
+            jQuery( '#publicCertDiv').empty();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['configure-sp-form'].appendChild(input);
+        }
+    }
+
+    function selectCertificate() {
+         var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+         useJWKSUriStype.display = 'none';
+         var uploadCertType = document.getElementById('upload_certificate').style;
+         uploadCertType.display = 'table-row';
+         if (jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('false');
+         }
+         $('#jwksUri').val("");
+    }
+
     function showManual() {
         $("#configure-sp-form").show();
     }
@@ -1263,7 +1317,26 @@
                                 </div>
                             </td>
                         </tr>
+
+                        <!-- Add radio button to select certificate or jwks end point fro sp -->
                         <tr>
+                            <td class="leftCol-med labelField"> Select SP Certificate Type </td>
+                                <td>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                                     value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && appBean.getServiceProvider().getCertificateContent() == null)) { %>
+                                     checked="checked" <% } %> onclick="selectJWKS('<%=(appBean.getServiceProvider().getCertificateContent() != null)%>');" />
+                                    Use SP JWKS endpoint
+                                    </label>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                     <% if (appBean.getServiceProvider().getCertificateContent() != null) { %> checked="checked" <% } %>
+                                     value="choose_upload_certificate" onclick="selectCertificate()" />
+                                    Upload SP certificate
+                                    </label>
+                                </td>
+                        </tr>
+                        <tr id ="upload_certificate" <% if (appBean.getServiceProvider().getCertificateContent() == null) { %> style="display:none" <% } %>>
                             <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
                             <td>
                             <textarea style="width:100%;height: 100px;" type="text" name="sp-certificate"
@@ -1337,6 +1410,17 @@
                                     </table>
                                     <% } %>
                                 </div>
+                            </td>
+                        </tr>
+                        <!--JWKS TEXT BOX-->
+                        <tr id="use_jwks_uri" <% if (appBean.getServiceProvider().getCertificateContent() != null) { %>
+                            style="display:none" <% } %>>
+                            <td style="width:15%" class="leftCol-med labelField">
+                            <fmt:message key="config.application.JWKS"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                autofocus required/>
                             </td>
                         </tr>
                         <tr>

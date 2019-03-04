@@ -32,6 +32,7 @@ public class ApplicationMgtUIConstants {
     public static final int DEFAULT_DISPLAY_ORDER = 0;
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
+    public static final String JWKS_URI = "jwksUri";
 
     /**
      * Holds the application UI param related constants.
