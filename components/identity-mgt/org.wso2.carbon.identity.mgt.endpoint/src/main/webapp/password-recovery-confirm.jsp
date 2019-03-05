@@ -34,6 +34,9 @@
 <%
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = request.getParameter("redirect_uri");
+    }
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
     NotificationApi notificationApi = new NotificationApi();
     try {

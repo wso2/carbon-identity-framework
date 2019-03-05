@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>5.12.238-SNAPSHOT</version>
+        <version>5.12.273-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -172,14 +172,14 @@
             </plugin>
             <!-- Plugin for generating the swagger server stubs-->
             <!--<plugin>-->
-                <!--<groupId>org.wso2.maven.plugins</groupId>-->
-                <!--<artifactId>swagger2cxf-maven-plugin</artifactId>-->
-                <!--<version>1.0-SNAPSHOT</version>-->
-                <!--<configuration>-->
-                    <!--<inputSpec>-->
-                        <!--${project.basedir}/src/main/resources/org.wso2.carbon.identity.configuration.management.yaml-->
-                    <!--</inputSpec>-->
-                <!--</configuration>-->
+            <!--<groupId>org.wso2.maven.plugins</groupId>-->
+            <!--<artifactId>swagger2cxf-maven-plugin</artifactId>-->
+            <!--<version>1.0-SNAPSHOT</version>-->
+            <!--<configuration>-->
+            <!--<inputSpec>-->
+            <!--${project.basedir}/src/main/resources/org.wso2.carbon.identity.configuration.management.yaml-->
+            <!--</inputSpec>-->
+            <!--</configuration>-->
             <!--</plugin>-->
         </plugins>
     </build>

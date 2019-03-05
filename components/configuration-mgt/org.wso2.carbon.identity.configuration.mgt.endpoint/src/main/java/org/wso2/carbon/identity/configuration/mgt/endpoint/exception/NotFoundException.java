@@ -30,7 +30,8 @@ public class NotFoundException extends WebApplicationException {
 
         super(Response.status(Response.Status.NOT_FOUND)
                 .entity(errorDTO)
-                .header(ConfigurationConstants.HEADER_CONTENT_TYPE, ConfigurationConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
+                .header(ConfigurationConstants.HEADER_CONTENT_TYPE,
+                        ConfigurationConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
                 .build());
         message = errorDTO.getDescription();
     }

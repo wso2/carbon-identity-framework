@@ -30,7 +30,8 @@ public class ConflictRequestException extends WebApplicationException {
 
         super(Response.status(Response.Status.CONFLICT)
                 .entity(errorDTO)
-                .header(ConfigurationConstants.HEADER_CONTENT_TYPE, ConfigurationConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
+                .header(ConfigurationConstants.HEADER_CONTENT_TYPE,
+                        ConfigurationConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
                 .build());
         message = errorDTO.getDescription();
     }

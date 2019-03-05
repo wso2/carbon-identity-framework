@@ -87,6 +87,7 @@ public class IdentityEventConstants {
         public static final String POST_SEND_RECOVERY_NOTIFICATION = "POST_SEND_RECOVERY_NOTIFICATION";
 
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
+        public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
 
     }
 

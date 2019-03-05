@@ -298,7 +298,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateAttributeRequest(attribute);
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attribute.getKey());
-        getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName, resourceName),
+        getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName,
+                resourceName),
                 attribute);
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully updated.");
@@ -399,7 +400,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         resource.setResourceName(resourceAdd.getName());
         resource.setResourceType(resourceTypeName);
         resource.setAttributes(resourceAdd.getAttributes());
-        resource.setLastModified(java.time.Instant.now().toString());
         return resource;
     }
 
@@ -568,12 +568,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateAttributeDeleteRequest(String resourceTypeName, String resourceName, String attributeKey)
-            throws ConfigurationManagementException {
-
-        validateAttributeAddRequest(resourceTypeName, resourceName, attributeKey);
-    }
-
     private void validateAttributeGetRequest(String resourceTypeName, String resourceName, String attributeKey)
             throws ConfigurationManagementException {
 
@@ -619,6 +613,17 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         if (isAttributeExists(resourceTypeName, resourceName, attributeKey)) {
             throw handleClientException(ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS, attributeKey);
+        }
+    }
+
+    private void validateAttributeDeleteRequest(String resourceTypeName, String resourceName, String attributeKey)
+            throws ConfigurationManagementException {
+
+        if (StringUtils.isEmpty(attributeKey) || StringUtils.isEmpty(attributeKey)) {
+            throw handleClientException(ERROR_CODE_ATTRIBUTE_REQUIRED, null);
+        }
+        if (!isAttributeExists(resourceTypeName, resourceName, attributeKey)) {
+            throw handleClientException(ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS, attributeKey);
         }
     }
 

@@ -459,7 +459,7 @@
         function handleNoDomain(key, value) {
             <%
                 String multiOptionURIParam = "";
-                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping.size() > 1) {
+                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1) {
                     multiOptionURIParam = "&multiOptionURI=" + Encode.forUriComponent(request.getRequestURI() +
                         (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
                 }

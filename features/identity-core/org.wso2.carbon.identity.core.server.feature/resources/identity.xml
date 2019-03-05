@@ -34,7 +34,7 @@
             <SessionDataCleanUp>
                 <Enable>true</Enable>
                 <CleanUpTimeout>20160</CleanUpTimeout>
-                <CleanUpPeriod>1140</CleanUpPeriod>
+                <CleanUpPeriod>1440</CleanUpPeriod>
                 <!--Instead of deleting all the records at once, we are deleting the records in chunks to prevent the -->
                 <!--possible deadlock and lock scenarios. The following property defines the chunk size.-->
                 <DeleteChunkSize>50000</DeleteChunkSize>
@@ -266,6 +266,12 @@
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
             </SupportedGrantType>
+            <!-- Supported versions: IS 5.7.0 onwards.-->
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:uma-ticket</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth.uma.grant.GrantValidator</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
         </SupportedGrantTypes>
 
         <!--
@@ -441,6 +447,18 @@
             <PoolSize>0</PoolSize>
             <RetryCount>5</RetryCount>
         </TokenPersistence>
+
+        <!--
+            Configuration provides the ability to renew the access token and the refresh token(where applicable) per each token request
+            and revoke previously available active token for a matching clientid, user and scopes combination.
+
+            Not applicable for refresh token grant type and when when self-contained access tokens are used.
+
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+         -->
+        <!--<RenewTokenPerRequest>true</RenewTokenPerRequest>-->
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -571,6 +589,7 @@
         <!--UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Users</UserEPUrl-->
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
+        <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
     </SCIM2>
 
     <!--Recovery>
@@ -610,6 +629,7 @@
             <OTP>false</OTP>
             <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
+        <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </Recovery>
 
     <EmailVerification>
@@ -635,6 +655,7 @@
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
+	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
     <!--
@@ -953,7 +974,10 @@
 
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/auth/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
+
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
     </ResourceAccessControl>
 
@@ -1040,6 +1064,18 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+
+    <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
+    <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
+
+    <!--This configuration is used for X509 Certificate based authentication. -->
+    <!--<X509>-->
+        <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
+        provides the facility to configure HTTP request header name which is configured at LB.  -->
+        <!--<X509RequestHeaderName>X-SSL-CERT</X509RequestHeaderName>-->
+    <!--</X509>-->
+
+
     <!--Configuration Store properties-->
     <ConfigurationStore>
         <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,
@@ -1049,4 +1085,3 @@
     </ConfigurationStore>
 
 </Server>
-

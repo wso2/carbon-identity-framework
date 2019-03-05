@@ -1676,8 +1676,19 @@ public class FrameworkUtils {
             idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
         }
         String[] idpRoles;
+        String federatedIDPRoleClaimAttributeSeparator;
         if (idpRoleAttrValue != null) {
-            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
+            if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR) != null) {
+                federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
+                        .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
+                if (log.isDebugEnabled()) {
+                    log.debug("The IDP side role claim value separator is configured as : " + federatedIDPRoleClaimAttributeSeparator);
+                }
+            } else {
+                federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            }
+
+            idpRoles = idpRoleAttrValue.split(federatedIDPRoleClaimAttributeSeparator);
         } else {
             // No identity provider role values found.
             if (log.isDebugEnabled()) {

@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationCon
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
+import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 
 import java.util.UUID;
 
@@ -116,7 +117,8 @@ public class ConfigurationUtils {
     }
 
     /**
-     * This method can be used to generate a ConfigurationManagementRuntimeException from ConfigurationConstants.ErrorMessages
+     * This method can be used to generate a ConfigurationManagementRuntimeException from ConfigurationConstants
+     * .ErrorMessages
      * object when an exception is thrown.
      *
      * @param error ConfigurationConstants.ErrorMessages.
@@ -143,5 +145,10 @@ public class ConfigurationUtils {
     public static int getMaximumQueryLength() {
 
         return StringUtils.isEmpty(MAX_QUERY_LENGTH_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_SQL);
+    }
+
+    public static boolean useCreatedTimeField() {
+
+        return ConfigurationManagerComponentDataHolder.getUseCreatedTime();
     }
 }
