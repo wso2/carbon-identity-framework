@@ -43,7 +43,6 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.SecureRandom;
@@ -135,16 +134,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     // addingRoles = (newRoles AND existingRoles) - currentRolesList)
                     addingRoles.removeAll(currentRolesList);
 
-                    Collection<String> deletingRoles = new ArrayList<String>();
-                    deletingRoles.addAll(currentRolesList);
-                    // deletingRoles = currentRolesList - rolesToAdd
-                    deletingRoles.removeAll(rolesToAdd);
-
-                    // Exclude Internal/everyonerole from deleting role since its cannot be deleted
-                    deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
-
-                    // Remove all internal roles from deleting list
-                    deletingRoles.removeAll(extractInternalRoles(currentRolesList));
+                    Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
 
                     // TODO : Does it need to check this?
                     // Check for case whether superadmin login
@@ -400,22 +390,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     }
 
     /**
-     * Extract all internal roles from a list of provided roles
+     * Retrieve the list of roles to be deleted
      *
-     * @param allRoles list of roles to filter from
-     * @return internal role list
+     * @param realm            user realm
+     * @param currentRolesList current role list of the user
+     * @param rolesToAdd       roles that are about to be added
+     * @return roles to be deleted
+     * @throws UserStoreException
      */
-    private List<String> extractInternalRoles(List<String> allRoles) {
-        List<String> internalRoles = new ArrayList<>();
+    protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
+                                                    List<String> rolesToAdd) throws UserStoreException {
+        List<String> deletingRoles = new ArrayList<String>();
+        deletingRoles.addAll(currentRolesList);
 
-        for (String role : allRoles) {
-            if (StringUtils.contains(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
-                    || StringUtils.contains(role, UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
-                    || StringUtils.contains(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
-                internalRoles.add(role);
-            }
-        }
+        // deletingRoles = currentRolesList - rolesToAdd
+        deletingRoles.removeAll(rolesToAdd);
 
-        return internalRoles;
+        // Exclude Internal/everyonerole from deleting role since its cannot be deleted
+        deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+
+        return deletingRoles;
     }
+
 }
