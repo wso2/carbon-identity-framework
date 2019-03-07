@@ -37,10 +37,16 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
  * roles without being deleted during the provisioning process.
  */
 public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHandler {
+
     @Override
-    public void handle(List<String> roles, String subject, Map<String, String> attributes,
-                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
-        super.handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain);
+    protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
+                                                    List<String> rolesToAdd) throws UserStoreException {
+        List<String> deletingRoles = super.retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+
+        // Remove all internal roles from deleting list
+        deletingRoles.removeAll(extractInternalRoles(currentRolesList));
+
+        return deletingRoles;
     }
 
     /**
@@ -61,16 +67,5 @@ public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHand
         }
 
         return internalRoles;
-    }
-
-    @Override
-    protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
-                                                    List<String> rolesToAdd) throws UserStoreException {
-        List<String> deletingRoles = super.retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
-
-        // Remove all internal roles from deleting list
-        deletingRoles.removeAll(extractInternalRoles(currentRolesList));
-
-        return deletingRoles;
     }
 }
