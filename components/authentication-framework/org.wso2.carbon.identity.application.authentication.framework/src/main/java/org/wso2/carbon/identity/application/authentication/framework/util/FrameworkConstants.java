@@ -205,6 +205,12 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
         public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
 
+        /**
+         * Configuration used for user session mapping.
+         */
+        public static final String USER_SESSION_MAPPING_ENABLED =
+                "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+
         private Config() {
         }
 

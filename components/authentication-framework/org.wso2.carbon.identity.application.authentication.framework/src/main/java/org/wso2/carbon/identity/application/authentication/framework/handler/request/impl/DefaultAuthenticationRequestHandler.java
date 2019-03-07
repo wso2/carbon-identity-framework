@@ -33,17 +33,22 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -417,6 +422,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
+            if (isUserSessionMappingEnabled()) {
+                try {
+                    storeSessionData(context, sessionContextKey);
+                } catch (UserSessionException e) {
+                    throw new FrameworkException("Error while storing session details of the authenticated user to " +
+                            "the database", e);
+                }
+            }
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
@@ -441,6 +454,69 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    /**
+     * Method used to store user and session related data to the database.
+     *
+     * @param context           {@link AuthenticationContext} object with the authentication request related data
+     * @param sessionContextKey of the authenticated session
+     */
+    private void storeSessionData(AuthenticationContext context, String sessionContextKey)
+            throws UserSessionException {
+
+        for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
+            String userName = authenticatedIdPData.getUser().getUserName();
+            String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
+            int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
+                    .getTenantId(tenantDomain);
+            String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
+            String idpName = authenticatedIdPData.getIdpName();
+            String userId;
+            try {
+                int idpId = UserSessionStore.getInstance().getIdPId(idpName);
+                userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
+
+                boolean persistUserToSessionMapping = true;
+                try {
+                    if (userId == null) {
+                        userId = UUIDGenerator.generateUUID();
+                        UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain, idpId);
+                    }
+                } catch (DuplicatedAuthUserException e) {
+                    // When the authenticated user is already persisted the respective user to session mapping will
+                    // be persisted from the same node handling the request.
+                    // Thus, persisting the user to session mapping can be gracefully ignored here.
+                    persistUserToSessionMapping = false;
+                    String msg = "User authenticated is already persisted. Username: " + userName + " Tenant Domain:" +
+                            " " + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: " + idpName;
+                    log.warn(msg);
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg, e);
+                    }
+                }
+
+                if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
+                        sessionContextKey)) {
+                    UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+                }
+            } catch (UserSessionException e) {
+                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
+            }
+        }
+    }
+
+    /**
+     * Method to check whether the SessionUserManager configuration is enabled.
+     *
+     * @return the boolean value of the enable decision
+     */
+    private boolean isUserSessionMappingEnabled() {
+
+        String sessionUserManagerConfig = IdentityUtil
+                .getProperty(FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED);
+        return Boolean.parseBoolean(sessionUserManagerConfig);
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {
