@@ -18,22 +18,18 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.pr
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 
 
 /**
- * Provisioning handler implementation which will keep all system (Internal/*, Application/*, Workflow/*)
+ * Provisioning handler implementation which will keep all system (Application/*, Workflow/*)
  * roles without being deleted during the provisioning process.
  */
 public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHandler {
@@ -41,6 +37,7 @@ public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHand
     @Override
     protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
                                                     List<String> rolesToAdd) throws UserStoreException {
+
         List<String> deletingRoles = super.retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
 
         // Remove all internal roles from deleting list
@@ -50,17 +47,17 @@ public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHand
     }
 
     /**
-     * Extract all internal roles from a list of provided roles
+     * Extract all internal roles from a list of provided roles.
      *
      * @param allRoles list of roles to filter from
      * @return internal role list
      */
     private List<String> extractInternalRoles(List<String> allRoles) {
+
         List<String> internalRoles = new ArrayList<>();
 
         for (String role : allRoles) {
             if (StringUtils.contains(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
-                    || StringUtils.contains(role, UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
                     || StringUtils.contains(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
                 internalRoles.add(role);
             }

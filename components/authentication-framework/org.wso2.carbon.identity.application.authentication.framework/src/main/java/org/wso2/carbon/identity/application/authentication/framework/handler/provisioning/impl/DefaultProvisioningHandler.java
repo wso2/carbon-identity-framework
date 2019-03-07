@@ -390,16 +390,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     }
 
     /**
-     * Retrieve the list of roles to be deleted
+     * Retrieve the list of roles to be deleted.
      *
      * @param realm            user realm
      * @param currentRolesList current role list of the user
      * @param rolesToAdd       roles that are about to be added
      * @return roles to be deleted
-     * @throws UserStoreException
+     * @throws UserStoreException When failed to get realm configuration
      */
     protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
                                                     List<String> rolesToAdd) throws UserStoreException {
+
         List<String> deletingRoles = new ArrayList<String>();
         deletingRoles.addAll(currentRolesList);
 
