@@ -169,13 +169,13 @@
                    <%--style="background-image:url(images/local-sp.png);"><fmt:message key='local.sp'/></a>--%>
             <%--</div>--%>
             <table style="width: 100%" class="styledLeft">
-                <tbody>
-                <tr>
-                    <div style="height:30px;">
-                        <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
-                           style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>
-                    </div>
-                </tr>
+                <%--<tbody>--%>
+                <%--<tr>--%>
+                    <%--<div style="height:30px;">--%>
+                        <%--<a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"--%>
+                           <%--style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>--%>
+                    <%--</div>--%>
+                <%--</tr>--%>
                 <tr>
                     <div style="height:30px; margin-top: 15px; margin-bottom: 4px; margin-left:12px">
                         <form action="list-service-providers.jsp" name="searchForm" method="post">
