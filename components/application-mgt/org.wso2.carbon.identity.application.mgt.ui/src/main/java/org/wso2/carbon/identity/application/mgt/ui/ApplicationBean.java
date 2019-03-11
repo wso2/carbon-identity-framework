@@ -1108,7 +1108,7 @@ public class ApplicationBean {
             }
         }
         // When a jwks value is set for the first time add it to spProperties.
-        if (!StringUtils.isNotBlank(jwks) && !jwksExist) {
+        if (StringUtils.isNotBlank(jwks) && !jwksExist) {
             ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
             propertyForJWKS.setDisplayName(ApplicationMgtUIUtil.JWKS_DISPLAYNAME);
             propertyForJWKS.setName(ApplicationMgtUIUtil.JWKS_URI);
