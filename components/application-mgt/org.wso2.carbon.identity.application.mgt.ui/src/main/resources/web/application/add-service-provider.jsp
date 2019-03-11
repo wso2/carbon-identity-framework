@@ -244,7 +244,7 @@ window.onload = function() {
             </div>
             </form>
             <form id="upload-sp-form" name="upload-sp-form" method="post"
-                  action="import-service-provider-finish-ajaxprocessor.jsp">
+                  action="import-service-provider-finish-ajaxprocessor.jsp" style="display: none;">
                 <table class="styledLeft" width="100%">
                     <thead>
                     <tr>
@@ -271,7 +271,7 @@ window.onload = function() {
             </form>
         </div>
     </div>
-    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
+    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon' style="display: none;">
         <div id="messagebox-error">
             <h3>
                 <fmt:message key="alert.error.add.sp.template"/>
