@@ -125,8 +125,10 @@
                     IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL).getValue();
             samlSLOUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL).getValue();
-            samlECPUrl = IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL).getValue();
+            if (IdPManagementUIUtil.SAML_ECP_UI_ENABLED) {
+                samlECPUrl = IdPManagementUIUtil.getProperty(properties,
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL).getValue();
+            }
             samlArtifactUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL).getValue();
             destinationURLList = IdPManagementUIUtil.getPropertySetStartsWith(properties,
@@ -564,10 +566,12 @@ function removeDefaultAuthSeq() {
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
+                        <% if (IdPManagementUIUtil.SAML_ECP_UI_ENABLED) { %>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlECPUrl)%></td>
                         </tr>
+                        <% } %>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlArtifactUrl)%></td>
