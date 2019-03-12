@@ -69,9 +69,6 @@ public class IdPManagementUIUtil {
 
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
-    public static final boolean SAML_ECP_UI_ENABLED = false; // Flag to internally disable SAML ECP UI feature
-
-
     /**
      * Validates an URI.
      *

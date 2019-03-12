@@ -35,7 +35,6 @@ public class IdPManagementConstants {
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
-    public static final boolean SAML_ECP_UI_ENABLED = false; // Flag to internally disable SAML ECP feature
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

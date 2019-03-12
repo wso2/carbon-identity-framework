@@ -418,9 +418,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         //set the generated saml ecp endpoint value
         samlECPUrlProperty.setValue(samlECPUrl);
-        if (IdPManagementConstants.SAML_ECP_UI_ENABLED) {
-            propertiesList.add(samlECPUrlProperty);
-        }
+        propertiesList.add(samlECPUrlProperty);
 
         Property idPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
