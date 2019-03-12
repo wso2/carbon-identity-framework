@@ -375,7 +375,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         when(mockRegistry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)).thenReturn(true);
         Resource collection = new CollectionImpl();
         String[] paths = new String[]{
-                getPath("DummyIssuer"), getPath("DummyAdvIssuer")
+                getPath("DummyIssuer"), getPath("DummyAdvIssuer"), getPath("https://example.com/url?abc")
         };
         Properties dummyResourceProperties = new Properties();
         dummyResourceProperties.putAll(dummyBasicProperties);
@@ -386,13 +386,22 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         dummyAdvProperties.putAll((Map<?, ?>) dummyAdvProperties);
         Resource dummyAdvResource = new ResourceImpl();
         dummyAdvResource.setProperties(dummyAdvProperties);
-        Resource[] spResources = new Resource[]{dummyResource, dummyAdvResource};
+
+        Properties urlBasedIssuerResourceProperties = new Properties();
+        urlBasedIssuerResourceProperties.putAll((Map<?, ?>) urlBasedIssuerResourceProperties);
+        Resource urlBasedIssuerResource = new ResourceImpl();
+        urlBasedIssuerResource.setProperties(urlBasedIssuerResourceProperties);
+        Resource[] spResources = new Resource[]{dummyResource, dummyAdvResource, urlBasedIssuerResource};
         collection.setContent(paths);
         when(mockRegistry.get(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)).thenReturn(collection);
         when(mockRegistry.get(paths[0])).thenReturn(spResources[0]);
         when(mockRegistry.get(paths[1])).thenReturn(spResources[1]);
+        when(mockRegistry.get(paths[2])).thenReturn(spResources[2]);
+        when(mockRegistry.resourceExists(paths[0])).thenReturn(true);
+        when(mockRegistry.resourceExists(paths[1])).thenReturn(true);
+        when(mockRegistry.resourceExists(paths[2])).thenReturn(true);
         SAMLSSOServiceProviderDO[] serviceProviders = objUnderTest.getServiceProviders();
-        assertEquals(serviceProviders.length, 2, "Should have returned 2 service providers.");
+        assertEquals(serviceProviders.length, 3, "Should have returned 3 service providers.");
     }
 
     @Test
