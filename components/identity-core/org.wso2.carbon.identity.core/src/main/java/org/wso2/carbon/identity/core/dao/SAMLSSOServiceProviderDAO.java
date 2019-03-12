@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -43,6 +44,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProviderDO> {
 
@@ -472,15 +475,16 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     }
 
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
-        SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[0];
+        List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try {
             if (registry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)) {
-                String[] providers = (String[]) registry.get(
-                        IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS).getContent();
-                if (providers != null) {
-                    serviceProvidersList = new SAMLSSOServiceProviderDO[providers.length];
-                    for (int i = 0; i < providers.length; i++) {
-                        serviceProvidersList[i] = resourceToObject(registry.get(providers[i]));
+                Resource samlSSOServiceProvidersResource = registry.get(IdentityRegistryResources
+                        .SAML_SSO_SERVICE_PROVIDERS);
+                if (samlSSOServiceProvidersResource instanceof Collection) {
+                    Collection samlSSOServiceProvidersCollection = (Collection) samlSSOServiceProvidersResource;
+                    String[] resources = samlSSOServiceProvidersCollection.getChildren();
+                    for (String resource : resources) {
+                        getChildResources(resource, serviceProvidersList);
                     }
                 }
             }
@@ -488,7 +492,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             log.error("Error reading Service Providers from Registry", e);
             throw IdentityException.error("Error reading Service Providers from Registry", e);
         }
-        return serviceProvidersList;
+        return serviceProvidersList.toArray(new SAMLSSOServiceProviderDO[serviceProvidersList.size()]);
     }
 
     /**
@@ -735,6 +739,30 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
         } catch (RegistryException ex) {
             throw new IdentityException("Error occurred while trying to commit or rollback the registry operation.", ex);
+        }
+    }
+
+    /**
+     * This helps to find resources in a recursive manner.
+     *
+     * @param parentResource      parent resource Name.
+     * @param serviceProviderList child resource list.
+     * @throws RegistryException
+     */
+    private void getChildResources(String parentResource, List<SAMLSSOServiceProviderDO>
+            serviceProviderList) throws RegistryException {
+
+        if (registry.resourceExists(parentResource)) {
+            Resource resource = registry.get(parentResource);
+            if (resource instanceof Collection) {
+                Collection collection = (Collection) resource;
+                String[] resources = collection.getChildren();
+                for (String res : resources) {
+                    getChildResources(res, serviceProviderList);
+                }
+            } else {
+                serviceProviderList.add(resourceToObject(resource));
+            }
         }
     }
 }
