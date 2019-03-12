@@ -103,6 +103,8 @@ public class IdentityManagementEndpointConstants {
     public static final String KEY = "key";
     public static final String VALUE = "value";
 
+    public static final String UTF_8 = "UTF-8";
+
     public static class Consent {
 
         public static final String COLLECTION_METHOD_SELF_REGISTRATION = "Web Form - Self Registration";
