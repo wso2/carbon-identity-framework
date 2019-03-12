@@ -564,7 +564,7 @@ function removeDefaultAuthSeq() {
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
-                        <tr>
+                        <tr style="display:none;">
                             <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlECPUrl)%></td>
                         </tr>
