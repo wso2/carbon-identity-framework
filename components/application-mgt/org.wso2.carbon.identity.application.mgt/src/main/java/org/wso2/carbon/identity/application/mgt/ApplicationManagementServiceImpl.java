@@ -940,8 +940,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     loadApplicationPermissions(serviceProviderName, serviceProvider);
 
                     if (authenticationSteps == null || authenticationSteps.length == 0) {
-                        setDefaultAuthenticationSeq(ApplicationConstants.DEFAULT_AUTH_SEQ, tenantDomain,
-                                serviceProvider);
+                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                                .getAuthenticationSteps();
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationSteps(authenticationSteps);
                     }
                 }
             }
