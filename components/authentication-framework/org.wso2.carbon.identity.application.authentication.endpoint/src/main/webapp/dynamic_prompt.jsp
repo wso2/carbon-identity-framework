@@ -22,6 +22,7 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TemplateMgtAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.template.mgt.model.Template" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
@@ -43,18 +44,11 @@
     }
     authAPIURL += "context/" + request.getParameter("promptId");
     String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
-    
-    String templateAPIURL = IdentityUtil
-            .getServerURL("/t/" + tenantDomain + "/api/identity/template/mgt/v1.0.0/templates/", true, true);
-    
-    if (!templateAPIURL.endsWith("/")) {
-        templateAPIURL += "/";
-    }
-    templateAPIURL += templateId;
-    
-    String templateJSON = TemplateMgtAPIClient.getTemplateData(templateAPIURL);
+
+
     Gson gson = new Gson();
-    Template templateData = gson.fromJson(templateJSON, Template.class);
+    Map data = gson.fromJson(contextProperties, Map.class);
+    String templatePath = templateMap.get(templateId);
 %>
 <html>
 <head>
@@ -63,7 +57,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%>
     </title>
-    <script src="js/handlebars-v4.0.11.js"></script>
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
@@ -99,25 +92,14 @@
         <div class="col-md-12">
             
             <%
-                if (templateData != null && templateData.getTemplateScript() != null) {
+                if (templatePath != null) {
             %>
-            <div id="template-holder"></div>
-            <script id="template-handlebars" type="text/x-handlebars-template">
-                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
-                    <%out.write(templateData.getTemplateScript());%>
-                </div>
-            </script>
-            
-            <script type="text/javascript">
-                var templateInfo = document.getElementById("template-handlebars").innerHTML;
-                var template = Handlebars.compile(templateInfo);
-
-                var template_data = template(data);
-                document.getElementById("template-holder").innerHTML += template_data;
-                document.getElementById("promptId").value = prompt_id;
-                document.getElementById("template-form").action = "../commonauth";
-            
-            </script>
+            <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
+                            <c:set var="data" value="<%=data%>" scope="request"/>
+                            <c:set var="promptId" value="<%=URLEncoder.encode(promptId, StandardCharsets.UTF_8.name())%>"
+                            scope="request"/>
+                            <jsp:include page="<%=templatePath%>"/>
+                        </div>
             
             <%
             } else {
