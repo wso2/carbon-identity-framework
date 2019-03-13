@@ -526,13 +526,6 @@
 				<Description>Failed Login Attempts</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</ClaimURI>
-				<DisplayName>Failed Attempts Before Success</DisplayName>
-				<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>failedLoginAttemptsBeforeSuccess</AttributeID>
-				<Description>Failed Attempts Before Success</Description>
-			</Claim>
-			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
 				<DisplayName>Failed Lockout Count</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
