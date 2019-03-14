@@ -361,13 +361,12 @@
             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
-
-        //SpTemplate[] spTemplates = serviceClient.getAllApplicationTemplateInfo();
-       // if (spTemplates != null) {
-        //    for (SpTemplate spTemplate : spTemplates) {
-          //      spTemplateNames.append(spTemplate.getName()).append(",");
-           // }
-        //}
+        SpTemplate[] spTemplates = serviceClient.getAllApplicationTemplateInfo();
+        if (spTemplates != null) {
+            for (SpTemplate spTemplate : spTemplates) {
+                spTemplateNames.append(spTemplate.getName()).append(",");
+            }
+        }
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
     }
@@ -407,10 +406,10 @@
     var roleMappinRowID = -1;
     <% } %>
 
-//    function saveAsTemplate() {
-//        showPopupConfirm($(".editor-error-warn-container").html(), "Save Service Provider Template", 250, 550, "Save", "Cancel",
-//            saveTemplate, null);
-//    }
+    function saveAsTemplate() {
+        showPopupConfirm($(".editor-error-warn-container").html(), "Save Service Provider Template", 250, 550, "Save", "Cancel",
+            saveTemplate, null);
+    }
 
     function validateTextForIllegal(fld) {
         var isValid = doValidateInput(fld, '<%=resourceBundle.getString("alert.error.sp.template.not.available")%>');
@@ -2996,11 +2995,11 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
-                                                <%--<input type="button"--%>
-                                                       <%--value="<fmt:message key='button.save.service.provider.template'/>"--%>
-                                                       <%--onclick="saveAsTemplate();"/>--%>
-                                            <%--<input type="hidden" name="templateName" id="templateName"/>--%>
-                                            <%--<input type="hidden" name="templateDesc" id="templateDesc"/>--%>
+                                                <input style="display: none" type="button"
+                                                       value="<fmt:message key='button.save.service.provider.template'/>"
+                                                       onclick="saveAsTemplate();"/>
+                                            <input type="hidden" name="templateName" id="templateName"/>
+                                            <input type="hidden" name="templateDesc" id="templateDesc"/>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"
                                                    onclick="javascript:location.href='list-service-providers.jsp'"/>
                                         </div>
