@@ -7,13 +7,4 @@
     <context:annotation-config/>
     <bean class="org.springframework.web.context.support.ServletContextPropertyPlaceholderConfigurer"/>
     <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"/>
-    <jaxrs:server id="services" address="/">
-        <jaxrs:serviceBeans>
-            <bean class="org.wso2.carbon.identity.template.mgt.endpoint.TemplatesApi"/>
-
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
-        </jaxrs:providers>
-    </jaxrs:server>
 </beans>
