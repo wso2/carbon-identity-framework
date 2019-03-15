@@ -34,14 +34,10 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -49,7 +45,6 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
-import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
@@ -58,7 +53,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
@@ -120,6 +115,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
+    private static CacheBackedApplicationDAO dao = new CacheBackedApplicationDAO();
     private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
 
     /**
@@ -186,7 +182,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        ServiceProvider serviceProvider = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -195,23 +190,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        try {
-
-            startTenantFlow(tenantDomain);
-
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
-            if (serviceProvider != null) {
-                loadApplicationPermissions(applicationName, serviceProvider);
-            }
-
-        } catch (Exception e) {
-            String error = "Error occurred while retrieving the application: " + applicationName + ". " + e.getMessage();
-            log.error(error, e);
-            throw new IdentityApplicationManagementException(error, e);
-        } finally {
-            endTenantFlow();
-        }
+        ServiceProvider serviceProvider = dao.getServiceProvider(applicationName, tenantDomain);
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
@@ -244,12 +223,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        try {
-            startTenantFlow(tenantDomain, username);
-            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        } finally {
-            endTenantFlow();
-        }
+        ApplicationBasicInfo[] allApplicationBasicInfo = dao.getAllApplicationBasicInfo(tenantDomain, username);
 
         if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
             log.error("Get application basic info service is not supported.");
@@ -264,7 +238,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+        return allApplicationBasicInfo;
     }
 
     @Override
@@ -291,6 +265,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         String applicationName = serviceProvider.getApplicationName();
 
+        // TODO: 15/03/19 Move the update part to DAO
         try {
             startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
@@ -483,9 +458,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw new IdentityApplicationManagementException("User not authorized");
             }
 
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
-            appDAO.deleteApplication(applicationName);
+            ServiceProvider serviceProvider = dao.getServiceProvider(applicationName, tenantDomain);
+            dao.deleteApplication(applicationName, tenantDomain);
 
             ApplicationMgtUtil.deleteAppRole(applicationName);
             ApplicationMgtUtil.deletePermissions(applicationName);
@@ -632,8 +606,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type, String
-            tenantDomain)
-            throws IdentityApplicationManagementException {
+            tenantDomain) throws IdentityApplicationManagementException {
 
         String name = null;
 
@@ -646,9 +619,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            name = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
-
+            name = dao.getServiceProviderNameByClientIdExcludingFileBasedSPs(clientId, type, tenantDomain);
         } catch (Exception e) {
             String error = "Error occurred while retrieving the service provider for client id :  " + clientId + ". "
                     + e.getMessage();
@@ -770,13 +741,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
-
-        if (name == null) {
-            name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
-                    clientType, tenantDomain);
-        }
+        name = dao.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
 
         if (name == null) {
             ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
@@ -812,16 +777,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ServiceProvider serviceProvider;
+        ServiceProvider serviceProvider = null;
         try {
-            startTenantFlow(tenantDomain);
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
-
-            if (serviceProvider != null) {
-                loadApplicationPermissions(serviceProviderName, serviceProvider);
-            }
-
+            serviceProvider = dao.getServiceProvider(serviceProviderName, tenantDomain);
             if (serviceProvider == null && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                     serviceProviderName)) {
                 serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
@@ -852,23 +810,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         // TODO: ApplicationMgtListener interface since we didn't want to change APIs. Also pre listener aren't vital
         // TODO: for getters. Mostly post listeners are enough.
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider serviceProvider = appDAO.getApplication(appId);
-
-        if (serviceProvider == null) {
-            throw new IdentityApplicationManagementException(
-                    "Error while getting the service provider for appId: " + appId);
-        }
+        ServiceProvider serviceProvider = dao.getServiceProvider(appId);
         String serviceProviderName = serviceProvider.getApplicationName();
         String tenantDomain = serviceProvider.getOwner().getTenantDomain();
-
-        try {
-            startTenantFlow(tenantDomain);
-            loadApplicationPermissions(serviceProviderName, serviceProvider);
-
-        } finally {
-            endTenantFlow();
-        }
 
         // TODO: Since we didn't add post listener methods to the ApplicationMgtListener API to avoid API changes, we
         // TODO: are invoking doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain) listener
@@ -906,69 +850,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             clientId = clientId.split("@")[0];
         }
 
-        String serviceProviderName;
-        ServiceProvider serviceProvider = null;
-
-        serviceProviderName = getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
-
-        try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    serviceProviderName, tenantDomain);
-            IdentityServiceProviderCacheEntry entry = IdentityServiceProviderCache.getInstance().
-                    getValueFromCache(cacheKey);
-
-            if (entry != null) {
-                return entry.getServiceProvider();
-            }
-
-        } finally {
-            endTenantFlow();
-        }
-
-        try {
-            startTenantFlow(tenantDomain);
-            if (serviceProviderName != null) {
-                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-                serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
-
-                if (serviceProvider != null) {
-                    AuthenticationStep[] authenticationSteps = serviceProvider
-                            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
-
-                    loadApplicationPermissions(serviceProviderName, serviceProvider);
-
-                    if (authenticationSteps == null || authenticationSteps.length == 0) {
-                        ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                                .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                        authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                                .getAuthenticationSteps();
-                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                                .setAuthenticationSteps(authenticationSteps);
-                    }
-                }
-            }
-
-            if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
-                    .getFileBasedSPs().containsKey(serviceProviderName)) {
-                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
-            }
-        } finally {
-            endTenantFlow();
-        }
-
-        try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    serviceProviderName, tenantDomain);
-            IdentityServiceProviderCacheEntry entry = new IdentityServiceProviderCacheEntry();
-            entry.setServiceProvider(serviceProvider);
-            IdentityServiceProviderCache.getInstance().addToCache(cacheKey, entry);
-        } finally {
-            endTenantFlow();
-        }
+        ServiceProvider serviceProvider = dao.getServiceProviderByClientId(clientId, clientType, tenantDomain);
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId, clientType, tenantDomain)) {
@@ -1579,24 +1461,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
-            throws IdentityApplicationManagementException {
-
-        List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
-
-        if (permissionList != null) {
-            PermissionsAndRoleConfig permissionAndRoleConfig;
-            if (serviceProvider.getPermissionAndRoleConfig() == null) {
-                permissionAndRoleConfig = new PermissionsAndRoleConfig();
-            } else {
-                permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
-            }
-            permissionAndRoleConfig.setPermissions(permissionList.toArray(
-                    new ApplicationPermission[permissionList.size()]));
-            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
-        }
-    }
-
     /**
      * Get axis config
      *
@@ -1620,24 +1484,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 .getConfigSystemRegistry();
     }
 
-    private void deleteApplicationPermission(String applicationName) {
-
-        try {
-            ApplicationMgtUtil.deletePermissions(applicationName);
-        } catch (IdentityApplicationManagementException e) {
-            log.error("Failed to delete the permissions for: " + applicationName, e);
-        }
-    }
-
-    private void deleteApplicationRole(String applicationName) {
-
-        try {
-            ApplicationMgtUtil.deleteAppRole(applicationName);
-        } catch (IdentityApplicationManagementException e) {
-            log.error("Failed to delete the application role for: " + applicationName, e);
-        }
-    }
-
     private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
@@ -1646,8 +1492,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw new IdentityApplicationManagementException("Application Name is required");
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        if (appDAO.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
+        if (dao.isApplicationExists(serviceProvider.getApplicationName(), tenantDomain)) {
             String errorMsg = "Application registration failed. An application with name \'" + serviceProvider.
                     getApplicationName() + "\' already exists.";
             log.error(errorMsg);
@@ -1674,30 +1519,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     "Application with the same name loaded from the file system.");
         }
 
-        try {
-            startTenantFlow(tenantDomain, username);
-
-            // First we need to create a role with the application name. Only the users in this role will be able to
-            // edit/update the application.
-            ApplicationMgtUtil.createAppRole(applicationName, username);
-            try {
-                ApplicationMgtUtil.storePermissions(applicationName, username,
-                        serviceProvider.getPermissionAndRoleConfig());
-            } catch (IdentityApplicationManagementException e) {
-                deleteApplicationRole(applicationName);
-                throw e;
-            }
-            try {
-                int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
-                serviceProvider.setApplicationID(applicationId);
-            } catch (IdentityApplicationManagementException e) {
-                deleteApplicationRole(applicationName);
-                deleteApplicationPermission(applicationName);
-                throw e;
-            }
-        } finally {
-            endTenantFlow();
-        }
+        int applicationId = dao.createApplication(serviceProvider, tenantDomain, username);
+        serviceProvider.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
