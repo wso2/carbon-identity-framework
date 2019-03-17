@@ -462,6 +462,15 @@
          -->
         <!--<RenewTokenPerRequest>true</RenewTokenPerRequest>-->
 
+        <!--
+        By enabling this property, in a logout request if the opbs cookie or a valid session does not exist instead of
+        showing the invalid request error page the user will be redirected to the successfully logged out page of the IS
+        or if a valid id_token_hint and a valid post_logout_redirect_uri is available user will be redirected to the
+        post_logout_redirect_uri
+
+        -->
+        <HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>
+
     </OAuth>
 
     <MultifactorAuthentication>
