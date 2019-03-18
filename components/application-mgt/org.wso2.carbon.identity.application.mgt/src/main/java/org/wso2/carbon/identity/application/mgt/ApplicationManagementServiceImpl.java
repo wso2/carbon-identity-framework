@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -44,8 +45,6 @@ import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
-import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -71,7 +70,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -265,19 +263,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         String applicationName = serviceProvider.getApplicationName();
 
-        // TODO: 15/03/19 Move the update part to DAO
-        try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    applicationName, tenantDomain);
-
-            IdentityServiceProviderCache.getInstance().clearCacheEntry(cacheKey);
-
-        } finally {
-            endTenantFlow();
-        }
-
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
@@ -297,12 +282,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
             }
 
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
+            String storedAppName = dao.getApplicationName(serviceProvider.getApplicationID());
 
             // Will be supported with 'Advance Consent Management Feature'.
             // validateConsentPurposes(serviceProvider);
-            appDAO.updateApplication(serviceProvider, tenantDomain);
+            dao.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdateRequest(serviceProvider)) {
                 //It is not required to validate the user here, as the user is validating inside the updateApplication
                 // method above. Hence assign application role to the app owner.
@@ -850,10 +834,36 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             clientId = clientId.split("@")[0];
         }
 
-        ServiceProvider serviceProvider = dao.getServiceProviderByClientId(clientId, clientType, tenantDomain);
+        String serviceProviderName;
+        ServiceProvider serviceProvider = null;
+
+        serviceProviderName = dao.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
+
+        serviceProvider = dao.getServiceProvider(serviceProviderName, tenantDomain);
+
+        if (serviceProvider != null) {
+            // if "Authentication Type" is "Default" we must get the steps from the default SP
+            AuthenticationStep[] authenticationSteps = serviceProvider
+                    .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+
+            if (authenticationSteps == null || authenticationSteps.length == 0) {
+                ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                        .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                        .getAuthenticationSteps();
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                        .setAuthenticationSteps(authenticationSteps);
+            }
+        }
+
+        if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
+                .getFileBasedSPs().containsKey(serviceProviderName)) {
+            serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
+        }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId,
+                    clientType, tenantDomain)) {
                 return null;
             }
         }
