@@ -98,13 +98,17 @@ public class CacheBackedApplicationDAO {
         return serviceProvider;
     }
 
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username, String filter)
             throws IdentityApplicationManagementException {
 
         ApplicationBasicInfo[] allApplicationBasicInfo = null;
         try {
             startTenantFlow(tenantDomain, username);
-            allApplicationBasicInfo = appDAO.getAllApplicationBasicInfo();
+            if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+                log.error("Get application basic info service is not supported.");
+                throw new IdentityApplicationManagementException("This service is not supported.");
+            }
+            allApplicationBasicInfo = ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
             // TODO: 15/03/19 add cache layer for appInfo
         } catch (Exception e) {
             String error = "Error occurred while retrieving all the applications";
@@ -147,11 +151,6 @@ public class CacheBackedApplicationDAO {
             }
             try {
                 applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
-                IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                        applicationName, tenantDomain);
-                IdentityServiceProviderCacheEntry spEntry = new IdentityServiceProviderCacheEntry();
-                spEntry.setServiceProvider(serviceProvider);
-                appCacheByName.addToCache(cacheKey, spEntry);
             } catch (IdentityApplicationManagementException e) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);

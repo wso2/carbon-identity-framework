@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -221,12 +222,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ApplicationBasicInfo[] allApplicationBasicInfo = dao.getAllApplicationBasicInfo(tenantDomain, username);
-
-        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
-            log.error("Get application basic info service is not supported.");
-            throw new IdentityApplicationManagementException("This service is not supported.");
+        try {
+            startTenantFlow(tenantDomain, username);
+            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        } finally {
+            endTenantFlow();
         }
+
+        ApplicationBasicInfo[] allApplicationBasicInfo = dao.getAllApplicationBasicInfo(tenantDomain, username, filter);
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
