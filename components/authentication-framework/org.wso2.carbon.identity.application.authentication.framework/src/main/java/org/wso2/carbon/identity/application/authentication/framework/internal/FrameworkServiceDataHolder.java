@@ -82,6 +82,7 @@ public class FrameworkServiceDataHolder {
     private IdentityEventService identityEventService;
     private FunctionLibraryManagementService functionLibraryManagementService = null;
     private String requireCode = "";
+    private boolean userSessionMappingEnabled;
 
     private FrameworkServiceDataHolder() {
 
@@ -474,5 +475,33 @@ public class FrameworkServiceDataHolder {
     public void setCodeForRequireFunction(String requireCode) {
 
         this.requireCode = requireCode;
+    }
+
+    /**
+     * Is user session mapping enabled.
+     *
+     * @return return true if user session mapping enabled.
+     */
+    public boolean isUserSessionMappingEnabled() {
+
+        return this.userSessionMappingEnabled;
+    }
+
+    /**
+     * Set user session mapping enabled.
+     *
+     * @param userSessionMappingEnabled
+     */
+    public void setUserSessionMappingEnabled(boolean userSessionMappingEnabled) {
+
+        if (log.isDebugEnabled()) {
+            if (userSessionMappingEnabled) {
+                log.debug("User session mapping enabled for server.");
+            } else {
+                log.debug("User session mapping not enabled for server.");
+            }
+        }
+
+        this.userSessionMappingEnabled = userSessionMappingEnabled;
     }
 }

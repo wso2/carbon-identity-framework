@@ -52,6 +52,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
+            <UserSessionMapping>
+                <Enable>true</Enable>
+            </UserSessionMapping>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -738,6 +741,10 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
+
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener"
+                       orderId="85" enable="true"/>
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
