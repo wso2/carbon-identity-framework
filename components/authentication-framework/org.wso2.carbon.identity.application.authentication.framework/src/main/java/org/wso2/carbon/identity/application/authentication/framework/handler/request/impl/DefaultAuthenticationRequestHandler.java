@@ -430,7 +430,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
-            if (isUserSessionMappingEnabled()) {
+            if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                 try {
                     storeSessionData(context, sessionContextKey);
                 } catch (UserSessionException e) {
@@ -513,18 +513,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
             }
         }
-    }
-
-    /**
-     * Method to check whether the SessionUserManager configuration is enabled.
-     *
-     * @return the boolean value of the enable decision
-     */
-    private boolean isUserSessionMappingEnabled() {
-
-        String sessionUserManagerConfig = IdentityUtil
-                .getProperty(FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED);
-        return Boolean.parseBoolean(sessionUserManagerConfig);
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {
